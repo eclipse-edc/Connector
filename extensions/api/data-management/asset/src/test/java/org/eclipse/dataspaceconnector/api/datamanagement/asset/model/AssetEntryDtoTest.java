@@ -35,7 +35,7 @@ public class AssetEntryDtoTest {
     @Test
     void verifySerialization() throws JsonProcessingException {
 
-        var assetDto = AssetInputDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
 
         var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();

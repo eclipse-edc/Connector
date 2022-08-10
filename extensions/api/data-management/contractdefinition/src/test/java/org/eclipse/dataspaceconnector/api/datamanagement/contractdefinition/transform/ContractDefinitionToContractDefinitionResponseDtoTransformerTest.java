@@ -25,9 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class ContractDefinitionToContractDefinitionOutputDtoTransformerTest {
+class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
 
-    private final ContractDefinitionToContractDefinitionOutputDtoTransformer transformer = new ContractDefinitionToContractDefinitionOutputDtoTransformer();
+    private final ContractDefinitionToContractDefinitionResponseDtoTransformer transformer = new ContractDefinitionToContractDefinitionResponseDtoTransformer();
 
     @Test
     void inputOutputType() {

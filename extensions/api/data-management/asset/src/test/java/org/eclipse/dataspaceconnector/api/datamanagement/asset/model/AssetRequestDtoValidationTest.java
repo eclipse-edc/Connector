@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class AssetInputDtoValidationTest {
+class AssetRequestDtoValidationTest {
 
     private Validator validator;
 
@@ -48,7 +48,7 @@ class AssetInputDtoValidationTest {
     @Test
     void verifyValidation_assetEntryDto_missingDataAddress() {
         var entry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetInputDto.Builder.newInstance().id("test-asset").build())
+                .asset(AssetRequestDto.Builder.newInstance().id("test-asset").build())
                 .dataAddress(null) // should break validation
                 .build();
 
@@ -59,7 +59,7 @@ class AssetInputDtoValidationTest {
 
     @Test
     void verifyValidation_assetDto_missingProperties() {
-        var asset = AssetInputDto.Builder.newInstance()
+        var asset = AssetRequestDto.Builder.newInstance()
                 .properties(null)
                 .build();
 
@@ -70,7 +70,7 @@ class AssetInputDtoValidationTest {
 
     @Test
     void verifyValidation_assetDto_blankId() {
-        var asset = AssetInputDto.Builder.newInstance()
+        var asset = AssetRequestDto.Builder.newInstance()
                 .id(" ")
                 .build();
 

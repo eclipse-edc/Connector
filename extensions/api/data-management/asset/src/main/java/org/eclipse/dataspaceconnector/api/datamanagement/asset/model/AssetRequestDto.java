@@ -24,15 +24,15 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Optional;
 
-@JsonDeserialize(builder = AssetInputDto.Builder.class)
-public class AssetInputDto {
+@JsonDeserialize(builder = AssetRequestDto.Builder.class)
+public class AssetRequestDto {
 
     private String id;
 
     @NotNull(message = "properties cannot be null")
     private Map<String, Object> properties;
 
-    private AssetInputDto() {
+    private AssetRequestDto() {
     }
 
     @JsonIgnore
@@ -61,10 +61,10 @@ public class AssetInputDto {
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
 
-        private final AssetInputDto dto;
+        private final AssetRequestDto dto;
 
         private Builder() {
-            this.dto = new AssetInputDto();
+            this.dto = new AssetRequestDto();
         }
 
         @JsonCreator
@@ -82,7 +82,7 @@ public class AssetInputDto {
             return this;
         }
 
-        public AssetInputDto build() {
+        public AssetRequestDto build() {
             return dto;
         }
     }

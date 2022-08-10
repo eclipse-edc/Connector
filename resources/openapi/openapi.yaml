@@ -79,7 +79,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssetOutputDto'
+                  $ref: '#/components/schemas/AssetResponseDto'
         "400":
           description: Request body was malformed
           content:
@@ -138,7 +138,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetOutputDto'
+                $ref: '#/components/schemas/AssetResponseDto'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -778,7 +778,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ContractDefinitionOutputDto'
+                  $ref: '#/components/schemas/ContractDefinitionResponseDto'
         "400":
           description: Request was malformed
           content:
@@ -796,7 +796,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/ContractDefinitionInputDto'
+              $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "200":
           description: contract definition was created successfully
@@ -837,7 +837,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractDefinitionOutputDto'
+                $ref: '#/components/schemas/ContractDefinitionResponseDto'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1635,10 +1635,10 @@ components:
       type: object
       properties:
         asset:
-          $ref: '#/components/schemas/AssetInputDto'
+          $ref: '#/components/schemas/AssetRequestDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
-    AssetInputDto:
+    AssetRequestDto:
       required:
       - properties
       type: object
@@ -1649,7 +1649,7 @@ components:
           type: object
           additionalProperties:
             type: object
-    AssetOutputDto:
+    AssetResponseDto:
       type: object
       properties:
         createdAt:
@@ -1707,7 +1707,7 @@ components:
           $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
-    ContractDefinitionInputDto:
+    ContractDefinitionRequestDto:
       required:
       - accessPolicyId
       - contractPolicyId
@@ -1724,7 +1724,7 @@ components:
             $ref: '#/components/schemas/Criterion'
         id:
           type: string
-    ContractDefinitionOutputDto:
+    ContractDefinitionResponseDto:
       type: object
       properties:
         accessPolicyId:

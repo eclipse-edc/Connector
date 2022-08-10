@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetOutputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -23,25 +23,24 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class AssetToAssetOutputDtoTransformer implements DtoTransformer<Asset, AssetOutputDto> {
+public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetRequestDto, Asset> {
 
     @Override
-    public Class<Asset> getInputType() {
+    public Class<AssetRequestDto> getInputType() {
+        return AssetRequestDto.class;
+    }
+
+    @Override
+    public Class<Asset> getOutputType() {
         return Asset.class;
     }
 
     @Override
-    public Class<AssetOutputDto> getOutputType() {
-        return AssetOutputDto.class;
-    }
-
-    @Override
-    public @Nullable AssetOutputDto transform(@Nullable Asset object, @NotNull TransformerContext context) {
+    public @Nullable Asset transform(@Nullable AssetRequestDto object, @NotNull TransformerContext context) {
         return Optional.ofNullable(object)
-                .map(input -> AssetOutputDto.Builder.newInstance()
+                .map(input -> Asset.Builder.newInstance()
                         .id(input.getId())
                         .properties(input.getProperties())
-                        .createdAt(input.getCreatedAt())
                         .build()
                 )
                 .orElseGet(() -> {

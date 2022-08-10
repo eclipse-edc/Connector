@@ -81,7 +81,7 @@ window.swaggerSpec={
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/AssetOutputDto"
+                    "$ref" : "#/components/schemas/AssetResponseDto"
                   }
                 }
               }
@@ -169,7 +169,7 @@ window.swaggerSpec={
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/AssetOutputDto"
+                  "$ref" : "#/components/schemas/AssetResponseDto"
                 }
               }
             }
@@ -1047,7 +1047,7 @@ window.swaggerSpec={
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ContractDefinitionOutputDto"
+                    "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
                   }
                 }
               }
@@ -1076,7 +1076,7 @@ window.swaggerSpec={
           "content" : {
             "*/*" : {
               "schema" : {
-                "$ref" : "#/components/schemas/ContractDefinitionInputDto"
+                "$ref" : "#/components/schemas/ContractDefinitionRequestDto"
               }
             }
           }
@@ -1135,7 +1135,7 @@ window.swaggerSpec={
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ContractDefinitionOutputDto"
+                  "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
                 }
               }
             }
@@ -2262,14 +2262,14 @@ window.swaggerSpec={
         "type" : "object",
         "properties" : {
           "asset" : {
-            "$ref" : "#/components/schemas/AssetInputDto"
+            "$ref" : "#/components/schemas/AssetRequestDto"
           },
           "dataAddress" : {
             "$ref" : "#/components/schemas/DataAddressDto"
           }
         }
       },
-      "AssetInputDto" : {
+      "AssetRequestDto" : {
         "required" : [ "properties" ],
         "type" : "object",
         "properties" : {
@@ -2284,7 +2284,7 @@ window.swaggerSpec={
           }
         }
       },
-      "AssetOutputDto" : {
+      "AssetResponseDto" : {
         "type" : "object",
         "properties" : {
           "createdAt" : {
@@ -2361,7 +2361,7 @@ window.swaggerSpec={
           }
         }
       },
-      "ContractDefinitionInputDto" : {
+      "ContractDefinitionRequestDto" : {
         "required" : [ "accessPolicyId", "contractPolicyId", "criteria" ],
         "type" : "object",
         "properties" : {
@@ -2382,7 +2382,7 @@ window.swaggerSpec={
           }
         }
       },
-      "ContractDefinitionOutputDto" : {
+      "ContractDefinitionResponseDto" : {
         "type" : "object",
         "properties" : {
           "accessPolicyId" : {

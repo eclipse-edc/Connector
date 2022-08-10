@@ -19,8 +19,8 @@ import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManag
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionEventListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionServiceImpl;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionInputDtoToContractDefinitionTransformer;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionToContractDefinitionOutputDtoTransformer;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionRequestDtoToContractDefinitionTransformer;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionToContractDefinitionResponseDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -68,8 +68,8 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        transformerRegistry.register(new ContractDefinitionToContractDefinitionOutputDtoTransformer());
-        transformerRegistry.register(new ContractDefinitionInputDtoToContractDefinitionTransformer());
+        transformerRegistry.register(new ContractDefinitionToContractDefinitionResponseDtoTransformer());
+        transformerRegistry.register(new ContractDefinitionRequestDtoToContractDefinitionTransformer());
 
         var monitor = context.getMonitor();
 

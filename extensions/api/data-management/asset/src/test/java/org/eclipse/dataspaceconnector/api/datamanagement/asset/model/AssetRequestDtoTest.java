@@ -23,7 +23,7 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AssetOutputDtoTest {
+public class AssetRequestDtoTest {
 
     private ObjectMapper objectMapper;
 
@@ -34,13 +34,13 @@ public class AssetOutputDtoTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var assetDto = AssetOutputDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
 
         var str = objectMapper.writeValueAsString(assetDto);
 
         assertThat(str).isNotNull();
 
-        var deserialized = objectMapper.readValue(str, AssetOutputDto.class);
+        var deserialized = objectMapper.readValue(str, AssetRequestDto.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(assetDto);
     }
 }

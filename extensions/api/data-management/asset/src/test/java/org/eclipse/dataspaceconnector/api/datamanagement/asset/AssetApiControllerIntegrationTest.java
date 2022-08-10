@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetInputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
@@ -133,7 +133,7 @@ public class AssetApiControllerIntegrationTest {
 
     @Test
     void postAsset_supportOldIdAsPropertyApi(AssetIndex assetIndex) {
-        var assetDto = AssetInputDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "Asset-1", "An Asset")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "Asset-1", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Map.of("type", "type", "asset-1", "/localhost")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
 
@@ -148,7 +148,7 @@ public class AssetApiControllerIntegrationTest {
 
     @Test
     void postAsset_invalidBody_nullDataAddress(AssetIndex assetIndex) {
-        var assetDto = AssetInputDto.Builder.newInstance().id("assetId").properties(Map.of("Asset-1", "An Asset")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().id("assetId").properties(Map.of("Asset-1", "An Asset")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(null).build();
 
         baseRequest()
@@ -253,13 +253,13 @@ public class AssetApiControllerIntegrationTest {
     }
 
     private AssetEntryDto createAssetEntryDto(String id) {
-        var assetDto = AssetInputDto.Builder.newInstance().id(id).properties(Map.of("Asset-1", "An Asset")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().id(id).properties(Map.of("Asset-1", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Map.of("type", "type", "asset-1", "/localhost")).build();
         return AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
     }
 
     private AssetEntryDto createAssetEntryDto_emptyAttributes() {
-        var assetDto = AssetInputDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
         return AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
     }

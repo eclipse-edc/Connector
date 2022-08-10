@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetInputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
@@ -25,9 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class AssetInputDtoToAssetTransformerTest {
+class AssetRequestDtoToAssetTransformerTest {
 
-    private final AssetInputDtoToAssetTransformer transformer = new AssetInputDtoToAssetTransformer();
+    private final AssetRequestDtoToAssetTransformer transformer = new AssetRequestDtoToAssetTransformer();
 
     @Test
     void inputOutputType() {
@@ -38,7 +38,7 @@ class AssetInputDtoToAssetTransformerTest {
     @Test
     void transform_id() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetInputDto.Builder.newInstance().id("assetId").properties(Map.of("key", "value")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().id("assetId").properties(Map.of("key", "value")).build();
 
         var asset = transformer.transform(assetDto, context);
 
@@ -50,7 +50,7 @@ class AssetInputDtoToAssetTransformerTest {
     @Test
     void transform_nullId() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetInputDto.Builder.newInstance().properties(Map.of("key", "value")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().properties(Map.of("key", "value")).build();
 
         var asset = transformer.transform(assetDto, context);
 
@@ -62,13 +62,13 @@ class AssetInputDtoToAssetTransformerTest {
     @Test
     void transform_idFromProperties() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetInputDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "key", "value")).build();
+        var assetDto = AssetRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "key", "value")).build();
 
         var asset = transformer.transform(assetDto, context);
 
         assertThat(asset).isNotNull();
         assertThat(asset.getId()).isEqualTo("assetId");
-        assertThat(asset.getProperties()).containsExactlyEntriesOf(assetDto.getProperties());
+        assertThat(asset.getProperties()).containsExactlyInAnyOrderEntriesOf(assetDto.getProperties());
     }
 
     @Test

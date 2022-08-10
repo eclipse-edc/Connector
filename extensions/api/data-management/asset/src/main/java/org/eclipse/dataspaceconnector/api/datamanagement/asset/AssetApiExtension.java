@@ -19,8 +19,8 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetEventListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetServiceImpl;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetInputDtoToAssetTransformer;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetToAssetOutputDtoTransformer;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetRequestDtoToAssetTransformer;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetToAssetResponseDtoTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.DataAddressDtoToDataAddressTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -83,9 +83,9 @@ public class AssetApiExtension implements ServiceExtension {
         var assetService = new AssetServiceImpl(assetIndex, assetLoader, contractNegotiationStore, transactionContext, assetObservable);
         context.registerService(AssetService.class, assetService);
 
-        transformerRegistry.register(new AssetInputDtoToAssetTransformer());
+        transformerRegistry.register(new AssetRequestDtoToAssetTransformer());
         transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
-        transformerRegistry.register(new AssetToAssetOutputDtoTransformer());
+        transformerRegistry.register(new AssetToAssetResponseDtoTransformer());
 
         webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, transformerRegistry));
     }

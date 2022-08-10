@@ -14,14 +14,14 @@
 
 package org.eclipse.dataspaceconnector.api.model;
 
-public class MutableDto extends BaseOutputDto {
+public class MutableDto extends BaseResponseDto {
     protected long updatedAt;
 
     public long getUpdatedAt() {
         return updatedAt;
     }
 
-    protected abstract static class Builder<D extends MutableDto, B extends Builder<D, B>> extends BaseOutputDto.Builder<D, B> {
+    protected abstract static class Builder<D extends MutableDto, B extends Builder<D, B>> extends BaseResponseDto.Builder<D, B> {
 
         protected Builder(D dto) {
             super(dto);

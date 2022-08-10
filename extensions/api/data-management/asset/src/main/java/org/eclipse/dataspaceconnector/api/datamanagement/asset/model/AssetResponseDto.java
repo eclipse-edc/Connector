@@ -17,18 +17,18 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.api.model.BaseOutputDto;
+import org.eclipse.dataspaceconnector.api.model.BaseResponseDto;
 
 import java.util.Map;
 
-@JsonDeserialize(builder = AssetOutputDto.Builder.class)
-public class AssetOutputDto extends BaseOutputDto {
+@JsonDeserialize(builder = AssetResponseDto.Builder.class)
+public class AssetResponseDto extends BaseResponseDto {
 
     private Map<String, Object> properties;
 
     private String id;
 
-    private AssetOutputDto() {
+    private AssetResponseDto() {
     }
 
     public Map<String, Object> getProperties() {
@@ -40,10 +40,10 @@ public class AssetOutputDto extends BaseOutputDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends BaseOutputDto.Builder<AssetOutputDto, Builder> {
+    public static final class Builder extends BaseResponseDto.Builder<AssetResponseDto, Builder> {
 
         private Builder() {
-            super(new AssetOutputDto());
+            super(new AssetResponseDto());
         }
 
         @JsonCreator

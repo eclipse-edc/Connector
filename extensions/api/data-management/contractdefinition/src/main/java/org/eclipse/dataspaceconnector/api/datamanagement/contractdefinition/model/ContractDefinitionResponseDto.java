@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,45 +8,30 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
+import org.eclipse.dataspaceconnector.api.model.BaseResponseDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-@JsonDeserialize(builder = ContractDefinitionInputDto.Builder.class)
-public class ContractDefinitionInputDto {
-
+@JsonDeserialize(builder = ContractDefinitionResponseDto.Builder.class)
+public class ContractDefinitionResponseDto extends BaseResponseDto {
     private String id;
-    @NotNull(message = "accessPolicyId cannot be null")
     private String accessPolicyId;
-    @NotNull(message = "contractPolicyId cannot be null")
     private String contractPolicyId;
-    @NotNull(message = "criteria cannot be null")
     private List<Criterion> criteria = new ArrayList<>();
 
-    private ContractDefinitionInputDto() {
-    }
-
-    @AssertTrue(message = "id must be either be null or not blank, and it cannot contain the ':' character")
-    @JsonIgnore
-    public boolean isIdValid() {
-        return Optional.of(this)
-                .map(it -> it.id)
-                .map(it -> !it.isBlank() && !it.contains(":"))
-                .orElse(true);
+    private ContractDefinitionResponseDto() {
     }
 
     public String getAccessPolicyId() {
@@ -66,11 +51,9 @@ public class ContractDefinitionInputDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final ContractDefinitionInputDto dto;
-
+    public static final class Builder extends BaseResponseDto.Builder<ContractDefinitionResponseDto, Builder> {
         private Builder() {
-            this.dto = new ContractDefinitionInputDto();
+            super(new ContractDefinitionResponseDto());
         }
 
         @JsonCreator
@@ -93,13 +76,14 @@ public class ContractDefinitionInputDto {
             return this;
         }
 
-        public Builder id(String id) {
-            dto.id = id;
+        @Override
+        public Builder self() {
             return this;
         }
 
-        public ContractDefinitionInputDto build() {
-            return dto;
+        public Builder id(String id) {
+            dto.id = id;
+            return this;
         }
     }
 }

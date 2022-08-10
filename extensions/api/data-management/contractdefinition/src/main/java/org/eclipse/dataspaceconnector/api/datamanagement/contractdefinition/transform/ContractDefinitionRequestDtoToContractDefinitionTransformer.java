@@ -14,8 +14,9 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionOutputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -23,27 +24,26 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ContractDefinitionToContractDefinitionOutputDtoTransformer implements DtoTransformer<ContractDefinition, ContractDefinitionOutputDto> {
+public class ContractDefinitionRequestDtoToContractDefinitionTransformer implements DtoTransformer<ContractDefinitionRequestDto, ContractDefinition> {
 
     @Override
-    public Class<ContractDefinition> getInputType() {
+    public Class<ContractDefinitionRequestDto> getInputType() {
+        return ContractDefinitionRequestDto.class;
+    }
+
+    @Override
+    public Class<ContractDefinition> getOutputType() {
         return ContractDefinition.class;
     }
 
     @Override
-    public Class<ContractDefinitionOutputDto> getOutputType() {
-        return ContractDefinitionOutputDto.class;
-    }
-
-    @Override
-    public @Nullable ContractDefinitionOutputDto transform(@Nullable ContractDefinition object, @NotNull TransformerContext context) {
+    public @Nullable ContractDefinition transform(@Nullable ContractDefinitionRequestDto object, @NotNull TransformerContext context) {
         return Optional.ofNullable(object)
-                .map(input -> ContractDefinitionOutputDto.Builder.newInstance()
-                        .id(object.getId())
-                        .accessPolicyId(object.getAccessPolicyId())
-                        .createdAt(object.getCreatedAt())
-                        .contractPolicyId(object.getContractPolicyId())
-                        .criteria(object.getSelectorExpression().getCriteria())
+                .map(input -> ContractDefinition.Builder.newInstance()
+                        .id(input.getId())
+                        .accessPolicyId(input.getAccessPolicyId())
+                        .contractPolicyId(input.getContractPolicyId())
+                        .selectorExpression(AssetSelectorExpression.Builder.newInstance().criteria(input.getCriteria()).build())
                         .build()
                 )
                 .orElseGet(() -> {

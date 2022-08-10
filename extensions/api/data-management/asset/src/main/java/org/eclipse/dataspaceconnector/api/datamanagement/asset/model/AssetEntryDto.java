@@ -24,7 +24,7 @@ import jakarta.validation.constraints.NotNull;
 public class AssetEntryDto {
     @NotNull(message = "asset cannot be null")
     @Valid
-    private AssetInputDto asset;
+    private AssetRequestDto asset;
     @NotNull(message = "dataAddress cannot be null")
     @Valid
     private DataAddressDto dataAddress;
@@ -32,7 +32,7 @@ public class AssetEntryDto {
     private AssetEntryDto() {
     }
 
-    public AssetInputDto getAsset() {
+    public AssetRequestDto getAsset() {
         return asset;
     }
 
@@ -54,7 +54,7 @@ public class AssetEntryDto {
             return new Builder();
         }
 
-        public Builder asset(AssetInputDto asset) {
+        public Builder asset(AssetRequestDto asset) {
             assetEntryDto.asset = asset;
             return this;
         }

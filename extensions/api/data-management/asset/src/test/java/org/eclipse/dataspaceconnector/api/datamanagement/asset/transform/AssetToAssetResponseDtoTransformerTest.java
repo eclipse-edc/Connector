@@ -24,9 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class AssetToAssetOutputDtoTransformerTest {
+class AssetToAssetResponseDtoTransformerTest {
 
-    private final AssetToAssetOutputDtoTransformer transformer = new AssetToAssetOutputDtoTransformer();
+    private final AssetToAssetResponseDtoTransformer transformer = new AssetToAssetResponseDtoTransformer();
 
     @Test
     void inputOutputType() {

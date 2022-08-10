@@ -17,8 +17,8 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetInputDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetOutputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
@@ -62,11 +62,11 @@ public class AssetApiControllerTest {
     @Test
     void createAsset() {
         var assetEntry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetInputDto.Builder.newInstance().build())
+                .asset(AssetRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
         var asset = Asset.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(AssetInputDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
 
@@ -80,11 +80,11 @@ public class AssetApiControllerTest {
     @Test
     void createAsset_alreadyExists() {
         var assetEntry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetInputDto.Builder.newInstance().build())
+                .asset(AssetRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
         var asset = Asset.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(AssetInputDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
 
@@ -94,10 +94,10 @@ public class AssetApiControllerTest {
     @Test
     void createAsset_transformFails() {
         var assetEntry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetInputDto.Builder.newInstance().build())
+                .asset(AssetRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
-        when(transformerRegistry.transform(isA(AssetInputDto.class), eq(Asset.class))).thenReturn(Result.failure("failed"));
+        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.failure("failed"));
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.failure("failed"));
         when(service.create(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
 
@@ -107,8 +107,8 @@ public class AssetApiControllerTest {
     @Test
     void getAllAssets() {
         when(service.query(any())).thenReturn(ServiceResult.success(List.of(Asset.Builder.newInstance().build())));
-        when(transformerRegistry.transform(isA(Asset.class), eq(AssetOutputDto.class)))
-                .thenReturn(Result.success(AssetOutputDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class)))
+                .thenReturn(Result.success(AssetResponseDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         var querySpec = QuerySpecDto.Builder.newInstance().build();
@@ -117,7 +117,7 @@ public class AssetApiControllerTest {
 
         assertThat(allAssets).hasSize(1);
         verify(service).query(argThat(s -> s.getOffset() == 10));
-        verify(transformerRegistry).transform(isA(Asset.class), eq(AssetOutputDto.class));
+        verify(transformerRegistry).transform(isA(Asset.class), eq(AssetResponseDto.class));
         verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
     }
 
@@ -126,7 +126,7 @@ public class AssetApiControllerTest {
         when(service.query(any())).thenReturn(ServiceResult.success(List.of(Asset.Builder.newInstance().build())));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        when(transformerRegistry.transform(isA(Asset.class), eq(AssetOutputDto.class))).thenReturn(Result.failure("failed to transform"));
+        when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class))).thenReturn(Result.failure("failed to transform"));
 
         var allAssets = controller.getAllAssets(QuerySpecDto.Builder.newInstance().build());
 
@@ -154,12 +154,12 @@ public class AssetApiControllerTest {
     @Test
     void getAssetById() {
         when(service.findById("id")).thenReturn(Asset.Builder.newInstance().build());
-        when(transformerRegistry.transform(isA(Asset.class), eq(AssetOutputDto.class))).thenReturn(Result.success(AssetOutputDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class))).thenReturn(Result.success(AssetResponseDto.Builder.newInstance().build()));
 
         var assetDto = controller.getAsset("id");
 
         assertThat(assetDto).isNotNull();
-        verify(transformerRegistry).transform(isA(Asset.class), eq(AssetOutputDto.class));
+        verify(transformerRegistry).transform(isA(Asset.class), eq(AssetResponseDto.class));
     }
 
     @Test
@@ -172,7 +172,7 @@ public class AssetApiControllerTest {
     @Test
     void getAssetById_notExistsIfTransformFails() {
         when(service.findById("id")).thenReturn(Asset.Builder.newInstance().build());
-        when(transformerRegistry.transform(isA(Asset.class), eq(AssetOutputDto.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.getAsset("id")).isInstanceOf(ObjectNotFoundException.class);
     }

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionInputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -26,9 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class ContractDefinitionInputDtoToContractDefinitionTransformerTest {
+class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
 
-    private final ContractDefinitionInputDtoToContractDefinitionTransformer transformer = new ContractDefinitionInputDtoToContractDefinitionTransformer();
+    private final ContractDefinitionRequestDtoToContractDefinitionTransformer transformer = new ContractDefinitionRequestDtoToContractDefinitionTransformer();
 
     @Test
     void inputOutputType() {
@@ -39,7 +39,7 @@ class ContractDefinitionInputDtoToContractDefinitionTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
-        var contractDefinitionDto = ContractDefinitionInputDto.Builder.newInstance()
+        var contractDefinitionDto = ContractDefinitionRequestDto.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())

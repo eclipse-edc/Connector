@@ -22,8 +22,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionInputDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionOutputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
@@ -36,24 +36,24 @@ public interface ContractDefinitionApi {
     @Operation(description = "Returns all contract definitions according to a query",
             responses = {
                     @ApiResponse(responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionOutputDto.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    List<ContractDefinitionOutputDto> getAllContractDefinitions(@Valid QuerySpecDto querySpecDto);
+    List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract definition",
-                            content = @Content(schema = @Schema(implementation = ContractDefinitionOutputDto.class))),
+                            content = @Content(schema = @Schema(implementation = ContractDefinitionResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    ContractDefinitionOutputDto getContractDefinition(String id);
+    ContractDefinitionResponseDto getContractDefinition(String id);
 
     @Operation(description = "Creates a new contract definition",
             responses = {
@@ -63,7 +63,7 @@ public interface ContractDefinitionApi {
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    void createContractDefinition(@Valid ContractDefinitionInputDto dto);
+    void createContractDefinition(@Valid ContractDefinitionRequestDto dto);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",

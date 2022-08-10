@@ -16,7 +16,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionOutputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
@@ -120,7 +120,7 @@ public class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void postContractDefinition_invalidBody(ContractDefinitionStore store) {
-        var dto = ContractDefinitionOutputDto.Builder.newInstance()
+        var dto = ContractDefinitionResponseDto.Builder.newInstance()
                 .id("test-id")
                 .contractPolicyId(null)
                 .accessPolicyId(UUID.randomUUID().toString())
@@ -170,8 +170,8 @@ public class ContractDefinitionApiControllerIntegrationTest {
                 .statusCode(404);
     }
 
-    private ContractDefinitionOutputDto createDto(String definitionId) {
-        return ContractDefinitionOutputDto.Builder.newInstance()
+    private ContractDefinitionResponseDto createDto(String definitionId) {
+        return ContractDefinitionResponseDto.Builder.newInstance()
                 .id(definitionId)
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
