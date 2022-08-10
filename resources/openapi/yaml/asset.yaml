@@ -37,7 +37,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssetDto'
+                  $ref: '#/components/schemas/AssetResponseDto'
         "400":
           content:
             application/json:
@@ -136,7 +136,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetDto'
+                $ref: '#/components/schemas/AssetResponseDto'
           description: The asset
         "400":
           content:
@@ -169,7 +169,28 @@ components:
           type: string
         type:
           type: string
-    AssetDto:
+    AssetEntryDto:
+      type: object
+      properties:
+        asset:
+          $ref: '#/components/schemas/AssetRequestDto'
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressDto'
+      required:
+      - asset
+      - dataAddress
+    AssetRequestDto:
+      type: object
+      properties:
+        id:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+      required:
+      - properties
+    AssetResponseDto:
       type: object
       properties:
         createdAt:
@@ -181,19 +202,6 @@ components:
           type: object
           additionalProperties:
             type: object
-      required:
-      - id
-      - properties
-    AssetEntryDto:
-      type: object
-      properties:
-        asset:
-          $ref: '#/components/schemas/AssetDto'
-        dataAddress:
-          $ref: '#/components/schemas/DataAddressDto'
-      required:
-      - asset
-      - dataAddress
     DataAddressDto:
       type: object
       properties:

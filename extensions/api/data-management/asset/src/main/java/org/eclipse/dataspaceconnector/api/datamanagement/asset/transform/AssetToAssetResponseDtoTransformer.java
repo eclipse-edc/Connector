@@ -14,14 +14,16 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AssetToAssetDtoTransformer implements DtoTransformer<Asset, AssetDto> {
+import java.util.Optional;
+
+public class AssetToAssetResponseDtoTransformer implements DtoTransformer<Asset, AssetResponseDto> {
 
     @Override
     public Class<Asset> getInputType() {
@@ -29,17 +31,23 @@ public class AssetToAssetDtoTransformer implements DtoTransformer<Asset, AssetDt
     }
 
     @Override
-    public Class<AssetDto> getOutputType() {
-        return AssetDto.class;
+    public Class<AssetResponseDto> getOutputType() {
+        return AssetResponseDto.class;
     }
 
     @Override
-    public @Nullable AssetDto transform(@Nullable Asset object, @NotNull TransformerContext context) {
+    public @Nullable AssetResponseDto transform(@Nullable Asset object, @NotNull TransformerContext context) {
+        return Optional.ofNullable(object)
+                .map(input -> AssetResponseDto.Builder.newInstance()
+                        .id(input.getId())
+                        .properties(input.getProperties())
+                        .createdAt(input.getCreatedAt())
+                        .build()
+                )
+                .orElseGet(() -> {
+                    context.reportProblem("input asset is null");
+                    return null;
+                });
 
-        return AssetDto.Builder.newInstance()
-                .properties(object.getProperties())
-                .id(object.getId())
-                .createdAt(object.getCreatedAt())
-                .build();
     }
 }

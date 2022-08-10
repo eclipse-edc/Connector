@@ -19,8 +19,8 @@ import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.D
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContextImpl;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -35,7 +35,7 @@ public class TransferProcessTransformerTestData {
     static Faker faker = new Faker();
 
     DtoTransformerRegistry registry = mock(DtoTransformerRegistry.class);
-    TransformerContext context = new DtoTransformerRegistryImpl.DtoTransformerContext(registry);
+    TransformerContext context = new TransformerContextImpl(registry);
     String id = faker.lorem().word();
     TransferProcess.Type type = faker.options().option(TransferProcess.Type.class);
     TransferProcessStates state = faker.options().option(TransferProcessStates.class);

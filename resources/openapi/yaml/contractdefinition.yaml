@@ -37,7 +37,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ContractDefinitionDto'
+                  $ref: '#/components/schemas/ContractDefinitionResponseDto'
         "400":
           content:
             application/json:
@@ -55,7 +55,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/ContractDefinitionDto'
+              $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "200":
           description: contract definition was created successfully
@@ -126,7 +126,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractDefinitionDto'
+                $ref: '#/components/schemas/ContractDefinitionResponseDto'
           description: The contract definition
         "400":
           content:
@@ -159,7 +159,24 @@ components:
           type: string
         type:
           type: string
-    ContractDefinitionDto:
+    ContractDefinitionRequestDto:
+      type: object
+      properties:
+        accessPolicyId:
+          type: string
+        contractPolicyId:
+          type: string
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/Criterion'
+        id:
+          type: string
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
+    ContractDefinitionResponseDto:
       type: object
       properties:
         accessPolicyId:
@@ -175,11 +192,6 @@ components:
             $ref: '#/components/schemas/Criterion'
         id:
           type: string
-      required:
-      - accessPolicyId
-      - contractPolicyId
-      - criteria
-      - id
     Criterion:
       type: object
       properties:

@@ -23,10 +23,11 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-class ContractDefinitionToContractDefinitionDtoTransformerTest {
+class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
 
-    private final ContractDefinitionToContractDefinitionDtoTransformer transformer = new ContractDefinitionToContractDefinitionDtoTransformer();
+    private final ContractDefinitionToContractDefinitionResponseDtoTransformer transformer = new ContractDefinitionToContractDefinitionResponseDtoTransformer();
 
     @Test
     void inputOutputType() {
@@ -46,11 +47,22 @@ class ContractDefinitionToContractDefinitionDtoTransformerTest {
 
         var dto = transformer.transform(contractDefinition, context);
 
+        assertThat(dto).isNotNull();
         assertThat(dto.getId()).isEqualTo(contractDefinition.getId());
         assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
         assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
         assertThat(dto.getCreatedAt()).isNotEqualTo(0L);
         assertThat(dto.getCriteria()).containsExactlyElementsOf(contractDefinition.getSelectorExpression().getCriteria());
+    }
+
+    @Test
+    void transform_nullInput() {
+        var context = mock(TransformerContext.class);
+
+        var definition = transformer.transform(null, context);
+
+        assertThat(definition).isNull();
+        verify(context).reportProblem("input contract definition is null");
     }
 
 }

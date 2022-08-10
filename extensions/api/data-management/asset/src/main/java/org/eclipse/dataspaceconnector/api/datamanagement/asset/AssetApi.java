@@ -22,8 +22,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
@@ -46,22 +46,22 @@ public interface AssetApi {
     @Operation(description = "Gets all assets according to a particular query",
             responses = {
                     @ApiResponse(responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetDto.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
-    List<AssetDto> getAllAssets(@Valid QuerySpecDto querySpecDto);
+    List<AssetResponseDto> getAllAssets(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an asset with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The asset",
-                            content = @Content(schema = @Schema(implementation = AssetDto.class))),
+                            content = @Content(schema = @Schema(implementation = AssetResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
-    AssetDto getAsset(String id);
+    AssetResponseDto getAsset(String id);
 
     @Operation(description = "Removes an asset with the given ID if possible. Deleting an asset is only possible if that asset is not yet referenced " +
             "by a contract agreement, in which case an error is returned. " +

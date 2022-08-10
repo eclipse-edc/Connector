@@ -26,8 +26,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -87,7 +87,7 @@ public class AssetApiController implements AssetApi {
 
     @GET
     @Override
-    public List<AssetDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
+    public List<AssetResponseDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (transformationResult.failed()) {
             throw new InvalidRequestException(transformationResult.getFailureMessages());
@@ -106,7 +106,7 @@ public class AssetApiController implements AssetApi {
         var assets = queryResult.getContent();
 
         return assets.stream()
-                .map(it -> transformerRegistry.transform(it, AssetDto.class))
+                .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .collect(toList());
@@ -115,11 +115,11 @@ public class AssetApiController implements AssetApi {
     @GET
     @Path("{id}")
     @Override
-    public AssetDto getAsset(@PathParam("id") String id) {
+    public AssetResponseDto getAsset(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return Asset with id %s", id));
         return Optional.of(id)
                 .map(it -> service.findById(id))
-                .map(it -> transformerRegistry.transform(it, AssetDto.class))
+                .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));

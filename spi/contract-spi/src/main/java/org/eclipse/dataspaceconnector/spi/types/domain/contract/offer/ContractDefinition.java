@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Defines the parameters of a contract.
@@ -97,7 +98,9 @@ public class ContractDefinition extends Entity {
 
         @Override
         public ContractDefinition build() {
-            Objects.requireNonNull(entity.id);
+            if (entity.getId() == null) {
+                id(UUID.randomUUID().toString());
+            }
             Objects.requireNonNull(entity.accessPolicyId);
             Objects.requireNonNull(entity.contractPolicyId);
             Objects.requireNonNull(entity.selectorExpression);

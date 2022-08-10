@@ -14,7 +14,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
@@ -60,8 +61,8 @@ class ContractDefinitionApiControllerTest {
     void getAll() {
         var contractDefinition = createContractDefinition();
         when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractDefinition)));
-        var dto = ContractDefinitionDto.Builder.newInstance().id(contractDefinition.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractDefinitionDto.class))).thenReturn(Result.success(dto));
+        var dto = ContractDefinitionResponseDto.Builder.newInstance().id(contractDefinition.getId()).build();
+        when(transformerRegistry.transform(any(), eq(ContractDefinitionResponseDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         var querySpec = QuerySpecDto.Builder.newInstance().build();
@@ -70,7 +71,7 @@ class ContractDefinitionApiControllerTest {
 
         assertThat(allContractDefinitions).hasSize(1).first().matches(d -> d.getId().equals(contractDefinition.getId()));
         verify(service).query(argThat(s -> s.getOffset() == 10));
-        verify(transformerRegistry).transform(contractDefinition, ContractDefinitionDto.class);
+        verify(transformerRegistry).transform(contractDefinition, ContractDefinitionResponseDto.class);
         verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
     }
 
@@ -80,13 +81,13 @@ class ContractDefinitionApiControllerTest {
         when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractDefinition)));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionDto.class)))
+        when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionResponseDto.class)))
                 .thenReturn(Result.failure("failure"));
 
         var allContractDefinitions = controller.getAllContractDefinitions(QuerySpecDto.Builder.newInstance().build());
 
         assertThat(allContractDefinitions).hasSize(0);
-        verify(transformerRegistry).transform(contractDefinition, ContractDefinitionDto.class);
+        verify(transformerRegistry).transform(contractDefinition, ContractDefinitionResponseDto.class);
     }
 
     @Test
@@ -101,8 +102,8 @@ class ContractDefinitionApiControllerTest {
     void getContractDef_found() {
         var contractDefinition = createContractDefinition();
         when(service.findById("definitionId")).thenReturn(contractDefinition);
-        var dto = ContractDefinitionDto.Builder.newInstance().id(contractDefinition.getId()).build();
-        when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionDto.class))).thenReturn(Result.success(dto));
+        var dto = ContractDefinitionResponseDto.Builder.newInstance().id(contractDefinition.getId()).build();
+        when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionResponseDto.class))).thenReturn(Result.success(dto));
 
         var retrieved = controller.getContractDefinition("definitionId");
 
@@ -121,28 +122,28 @@ class ContractDefinitionApiControllerTest {
     void getContractDef_notFoundIfTransformationFails() {
         var contractDefinition = createContractDefinition();
         when(service.findById("definitionId")).thenReturn(contractDefinition);
-        when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionDto.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionResponseDto.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.getContractDefinition("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
     }
 
     @Test
     void createContractDefinition_success() {
-        var dto = ContractDefinitionDto.Builder.newInstance().build();
+        var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
         var contractDefinition = createContractDefinition();
-        when(transformerRegistry.transform(isA(ContractDefinitionDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
+        when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(contractDefinition));
 
         controller.createContractDefinition(dto);
 
-        verify(service).create(isA(ContractDefinition.class));
-        verify(transformerRegistry).transform(isA(ContractDefinitionDto.class), eq(ContractDefinition.class));
+        verify(service).create(contractDefinition);
+        verify(transformerRegistry).transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class));
     }
 
     @Test
     void createContractDefinition_alreadyExists() {
-        var dto = ContractDefinitionDto.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(ContractDefinitionDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(createContractDefinition()));
+        var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
+        when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(createContractDefinition()));
         when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
 
         assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(ObjectExistsException.class);
@@ -150,8 +151,8 @@ class ContractDefinitionApiControllerTest {
 
     @Test
     void createContractDefinition_transformationFails() {
-        var dto = ContractDefinitionDto.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(ContractDefinitionDto.class), eq(ContractDefinition.class))).thenReturn(Result.failure("failure"));
+        var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
+        when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(InvalidRequestException.class);
     }

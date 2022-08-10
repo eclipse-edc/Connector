@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DtoValidationTest {
+class AssetRequestDtoValidationTest {
 
     private Validator validator;
 
@@ -48,7 +48,7 @@ class DtoValidationTest {
     @Test
     void verifyValidation_assetEntryDto_missingDataAddress() {
         var entry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetDto.Builder.newInstance().id("test-asset").build())
+                .asset(AssetRequestDto.Builder.newInstance().id("test-asset").build())
                 .dataAddress(null) // should break validation
                 .build();
 
@@ -59,12 +59,23 @@ class DtoValidationTest {
 
     @Test
     void verifyValidation_assetDto_missingProperties() {
-        var asset = AssetDto.Builder.newInstance()
+        var asset = AssetRequestDto.Builder.newInstance()
                 .properties(null)
                 .build();
 
         var result = validator.validate(asset);
 
         assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("properties cannot be null"));
+    }
+
+    @Test
+    void verifyValidation_assetDto_blankId() {
+        var asset = AssetRequestDto.Builder.newInstance()
+                .id(" ")
+                .build();
+
+        var result = validator.validate(asset);
+
+        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("id must be either null or not blank"));
     }
 }

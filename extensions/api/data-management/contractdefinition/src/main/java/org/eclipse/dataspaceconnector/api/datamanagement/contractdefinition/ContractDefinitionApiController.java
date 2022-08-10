@@ -24,7 +24,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -58,7 +59,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @GET
     @Override
-    public List<ContractDefinitionDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
+    public List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
             throw new InvalidRequestException(result.getFailureMessages());
@@ -75,7 +76,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         return queryResult.getContent()
                 .stream()
-                .map(it -> transformerRegistry.transform(it, ContractDefinitionDto.class))
+                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .collect(Collectors.toList());
@@ -84,12 +85,12 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @GET
     @Path("{id}")
     @Override
-    public ContractDefinitionDto getContractDefinition(@PathParam("id") String id) {
+    public ContractDefinitionResponseDto getContractDefinition(@PathParam("id") String id) {
         monitor.debug(format("get contract definition with ID %s", id));
 
         return Optional.of(id)
                 .map(service::findById)
-                .map(it -> transformerRegistry.transform(it, ContractDefinitionDto.class))
+                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
@@ -97,14 +98,14 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @POST
     @Override
-    public void createContractDefinition(@Valid ContractDefinitionDto dto) {
+    public void createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
         monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
         }
 
-        ContractDefinition contractDefinition = transformResult.getContent();
+        var contractDefinition = transformResult.getContent();
 
         var result = service.create(contractDefinition);
         if (result.succeeded()) {

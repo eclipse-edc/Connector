@@ -27,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -87,7 +86,7 @@ class AssetToIdsRepresentationTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        var properties = new HashMap<>(Map.of(TransformKeys.KEY_ASSET_FILE_EXTENSION, ASSET_FILE_EXTENSION));
+        var properties = Map.<String, Object>of(TransformKeys.KEY_ASSET_FILE_EXTENSION, ASSET_FILE_EXTENSION);
         var asset = Asset.Builder.newInstance().properties(properties).id(REPRESENTATION_ID).build();
         var artifact = new ArtifactBuilder().build();
         when(context.transform(any(Asset.class), eq(Artifact.class))).thenReturn(artifact);

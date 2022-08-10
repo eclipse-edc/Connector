@@ -14,18 +14,20 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AssetDtoToAssetTransformer implements DtoTransformer<AssetDto, Asset> {
+import java.util.Optional;
+
+public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetRequestDto, Asset> {
 
     @Override
-    public Class<AssetDto> getInputType() {
-        return AssetDto.class;
+    public Class<AssetRequestDto> getInputType() {
+        return AssetRequestDto.class;
     }
 
     @Override
@@ -34,10 +36,17 @@ public class AssetDtoToAssetTransformer implements DtoTransformer<AssetDto, Asse
     }
 
     @Override
-    public @Nullable Asset transform(@Nullable AssetDto object, @NotNull TransformerContext context) {
-        return Asset.Builder.newInstance()
-                .properties(object.getProperties())
-                .id(object.getId())
-                .build();
+    public @Nullable Asset transform(@Nullable AssetRequestDto object, @NotNull TransformerContext context) {
+        return Optional.ofNullable(object)
+                .map(input -> Asset.Builder.newInstance()
+                        .id(input.getId())
+                        .properties(input.getProperties())
+                        .build()
+                )
+                .orElseGet(() -> {
+                    context.reportProblem("input asset is null");
+                    return null;
+                });
+
     }
 }
