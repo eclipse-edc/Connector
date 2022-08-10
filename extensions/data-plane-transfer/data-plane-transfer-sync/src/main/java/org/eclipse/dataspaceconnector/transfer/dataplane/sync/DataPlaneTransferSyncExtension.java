@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - DataEncrypter can be provided by extensions
  *
  */
 
@@ -22,9 +23,11 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
@@ -87,6 +90,21 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     @Inject
     private PrivateKeyResolver privateKeyResolver;
 
+    @Inject
+    private DataEncrypter dataEncrypter;
+
+    private Monitor monitor;
+
+    @Provider(isDefault = true)
+    public DataEncrypter getDataEncrypter() {
+        if (monitor != null) {
+            var msg = String.format("No %s registered, a no-op implementation will be used, not suitable for production environments", DataEncrypter.class.getSimpleName());
+            monitor.warning(msg);
+        }
+
+        return new NoopDataEncrypter();
+    }
+
     @Override
     public String name() {
         return "Data Plane Transfer Sync";
@@ -94,16 +112,17 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
+
         var keyPair = createKeyPair(context);
-        var encrypter = new NoopDataEncrypter();
         var selectorStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
 
         var proxyResolver = new DataPlaneTransferProxyResolverImpl(selectorClient, selectorStrategy);
 
-        var controller = createTokenValidationApiController(keyPair.getPublic(), encrypter, context.getTypeManager());
+        var controller = createTokenValidationApiController(keyPair.getPublic(), dataEncrypter, context.getTypeManager());
         webService.registerResource(API_CONTEXT_ALIAS, controller);
 
-        var proxyReferenceService = createProxyReferenceService(context, keyPair.getPrivate(), encrypter);
+        var proxyReferenceService = createProxyReferenceService(context, keyPair.getPrivate(), dataEncrypter);
         var flowController = new ProviderDataPlaneProxyDataFlowController(context.getConnectorId(), proxyResolver, dispatcherRegistry, proxyReferenceService);
         dataFlowManager.register(flowController);
 
