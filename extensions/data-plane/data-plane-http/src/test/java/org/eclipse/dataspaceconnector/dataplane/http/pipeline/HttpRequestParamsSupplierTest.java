@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Siemens - add chunked parameter
  *
  */
 
@@ -139,6 +140,26 @@ class HttpRequestParamsSupplierTest {
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
         assertThat(HttpTestFixtures.formatRequestBodyAsString(body)).isEqualTo(supplier.body);
         assertThat(httpRequest.method()).isEqualTo(supplier.method);
+        assertThat(httpRequest.body().contentLength()).isEqualTo(-1L);
+    }
+
+    @Test
+    void verifyChunkedCall() throws IOException {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl("http://" + FAKER.internet().url())
+                .build();
+        var request = createRequest(dataAddress);
+
+        var supplier = new TestHttpRequestParamsSupplier(vaultMock, true);
+        var httpRequest = supplier.apply(request).toRequest();
+
+        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
+        var body = httpRequest.body();
+        assertThat(body).isNotNull();
+        assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
+        assertThat(HttpTestFixtures.formatRequestBodyAsString(body)).isEqualTo(supplier.body);
+        assertThat(httpRequest.method()).isEqualTo(supplier.method);
+        assertThat(httpRequest.body().contentLength()).isEqualTo(supplier.body.getBytes().length);
     }
 
     private static DataFlowRequest createRequest(DataAddress source) {
@@ -156,14 +177,31 @@ class HttpRequestParamsSupplierTest {
         private final String queryParams;
         private final String contentType;
         private final String body;
+        private final boolean isOneGo;
 
         private TestHttpRequestParamsSupplier(Vault vault) {
             super(vault);
             this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
+            this.isOneGo = false;
             this.path = FAKER.lorem().word();
             this.queryParams = FAKER.lorem().word();
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
             this.body = FAKER.lorem().word();
+        }
+
+        private TestHttpRequestParamsSupplier(Vault vault, boolean isOneGo) {
+            super(vault);
+            this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
+            this.isOneGo = isOneGo;
+            this.path = FAKER.lorem().word();
+            this.queryParams = FAKER.lorem().word();
+            this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
+            this.body = FAKER.lorem().word();
+        }
+
+        @Override
+        protected boolean extractNonChunkedTransfer(HttpDataAddress address) {
+            return isOneGo;
         }
 
         @Override

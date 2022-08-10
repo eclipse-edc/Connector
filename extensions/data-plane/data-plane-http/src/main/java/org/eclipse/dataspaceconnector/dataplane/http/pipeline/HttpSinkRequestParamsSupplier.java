@@ -35,6 +35,11 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
+    protected boolean extractNonChunkedTransfer(HttpDataAddress address) {
+        return address.getNonChunkedTransfer();
+    }
+
+    @Override
     protected @NotNull DataAddress selectAddress(DataFlowRequest request) {
         return request.getDestinationDataAddress();
     }

@@ -24,13 +24,17 @@ import java.io.InputStream;
 import java.util.function.Supplier;
 
 /**
- * Streams content into an OK HTTP buffered sink.
+ * Streams content into an OK HTTP buffered sink in chunks.
+ *
+ * Due to OkHttp implementation an extra header will be created (no-overridable) Transfer-Encoding with value chunked
+ *
+ * @see <a href="https://github.com/square/okhttp/blob/master/docs/features/calls.md">OkHttp Dcoumentation</a>
  */
-public class StreamingRequestBody extends RequestBody {
+public class ChunkedTransferRequestBody extends RequestBody {
     private final Supplier<InputStream> bodySupplier;
     private final String contentType;
 
-    public StreamingRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
+    public ChunkedTransferRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
         this.bodySupplier = contentSupplier;
         this.contentType = contentType;
     }

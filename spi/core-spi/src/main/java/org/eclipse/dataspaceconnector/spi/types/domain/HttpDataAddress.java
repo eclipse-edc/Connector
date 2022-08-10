@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +51,7 @@ public class HttpDataAddress extends DataAddress {
     public static final String ADDITIONAL_HEADER = "header:";
     public static final String CONTENT_TYPE = "contentType";
     public static final String OCTET_STREAM = "application/octet-stream";
+    public static final String NON_CHUNKED_TRANSFER = "nonChunkedTransfer";
     public static final Set<String> ADDITIONAL_HEADERS_TO_IGNORE = Set.of("content-type");
 
     private HttpDataAddress() {
@@ -122,6 +124,12 @@ public class HttpDataAddress extends DataAddress {
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
                 .collect(Collectors.toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), Map.Entry::getValue));
 
+    }
+
+    @JsonIgnore
+    public boolean getNonChunkedTransfer() {
+        var nonChunkedTransfer = getProperty(NON_CHUNKED_TRANSFER);
+        return !StringUtils.isNullOrBlank(nonChunkedTransfer) && Boolean.parseBoolean(nonChunkedTransfer);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -203,6 +211,11 @@ public class HttpDataAddress extends DataAddress {
 
         public Builder contentType(String contentType) {
             this.property(CONTENT_TYPE, contentType);
+            return this;
+        }
+
+        public Builder nonChunkedTransfer(boolean nonChunkedTransfer) {
+            this.property(NON_CHUNKED_TRANSFER, String.valueOf(nonChunkedTransfer));
             return this;
         }
 

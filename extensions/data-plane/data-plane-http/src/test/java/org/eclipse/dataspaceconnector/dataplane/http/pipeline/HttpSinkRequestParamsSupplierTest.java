@@ -22,6 +22,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Random;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -105,5 +107,17 @@ class HttpSinkRequestParamsSupplierTest {
     @Test
     void extractBody() {
         assertThat(supplier.extractPath(mock(HttpDataAddress.class), null)).isNull();
+    }
+
+    @Test
+    void extractNonChunkedTransfer() {
+        var chunked = new Random().nextBoolean();
+        var address = HttpDataAddress.Builder.newInstance()
+                .nonChunkedTransfer(chunked)
+                .build();
+
+        var result = supplier.extractNonChunkedTransfer(address);
+
+        assertThat(result).isEqualTo(chunked);
     }
 }

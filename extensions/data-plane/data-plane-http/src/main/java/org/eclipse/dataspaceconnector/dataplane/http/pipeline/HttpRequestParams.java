@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
@@ -26,6 +27,7 @@ import java.util.function.Supplier;
 public class HttpRequestParams {
 
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
+    private static final boolean DEFAULT_NON_CHUNKED_TRANSFER = false;
 
     private String method;
     private String baseUrl;
@@ -33,6 +35,7 @@ public class HttpRequestParams {
     private String queryParams;
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String body;
+    private boolean nonChunkedTransfer = DEFAULT_NON_CHUNKED_TRANSFER;
     private final Map<String, String> headers = new HashMap<>();
 
     /**
@@ -54,9 +57,7 @@ public class HttpRequestParams {
      * @return HTTP request.
      */
     public Request toRequest(@Nullable Supplier<InputStream> bodySupplier) {
-        var requestBody = (bodySupplier != null && contentType != null) ?
-                new StreamingRequestBody(bodySupplier, contentType) :
-                null;
+        var requestBody = createRequestBody(bodySupplier);
 
         var requestBuilder = new Request.Builder()
                 .url(toUrl())
@@ -64,6 +65,16 @@ public class HttpRequestParams {
         headers.forEach(requestBuilder::addHeader);
         return requestBuilder.build();
     }
+
+    private RequestBody createRequestBody(@Nullable Supplier<InputStream> bodySupplier) {
+        if (bodySupplier == null || contentType == null) {
+            return null;
+        }
+
+        return nonChunkedTransfer ?
+                new NonChunkedTransferRequestBody(bodySupplier, contentType) : new ChunkedTransferRequestBody(bodySupplier, contentType);
+    }
+
 
     /**
      * Creates a URL from the base url, path and query parameters provided in input.
@@ -125,6 +136,11 @@ public class HttpRequestParams {
 
         public HttpRequestParams.Builder path(String path) {
             params.path = path;
+            return this;
+        }
+
+        public HttpRequestParams.Builder nonChunkedTransfer(boolean nonChunkedTransfer) {
+            params.nonChunkedTransfer = nonChunkedTransfer;
             return this;
         }
 
