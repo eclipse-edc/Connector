@@ -14,6 +14,14 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.Operator;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyType;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
@@ -25,6 +33,7 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -37,10 +46,8 @@ public abstract class AbstractEndToEndTransfer {
 
     @Test
     void httpPullDataTransfer() {
-        PROVIDER.registerDataPlane();
-        CONSUMER.registerDataPlane();
-        var definitionId = "1";
-        createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpData");
+        registerDataPlanes();
+        createResourcesOnProvider("asset-id", "HttpData", noConstraintPolicy());
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
         assertThat(catalog.getContractOffers()).hasSize(1);
@@ -73,10 +80,8 @@ public abstract class AbstractEndToEndTransfer {
 
     @Test
     void httpPullDataTransferProvisioner() {
-        PROVIDER.registerDataPlane();
-        CONSUMER.registerDataPlane();
-        var definitionId = "1";
-        createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpProvision");
+        registerDataPlanes();
+        createResourcesOnProvider("asset-id", "HttpProvision", noConstraintPolicy());
 
         await().atMost(timeout).untilAsserted(() -> {
             var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
@@ -105,9 +110,8 @@ public abstract class AbstractEndToEndTransfer {
 
     @Test
     void httpPushDataTransfer() {
-        PROVIDER.registerDataPlane();
-        var definitionId = "1";
-        createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpData");
+        registerDataPlanes();
+        createResourcesOnProvider("asset-id", "HttpData", noConstraintPolicy());
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
         assertThat(catalog.getContractOffers()).hasSize(1);
@@ -140,14 +144,64 @@ public abstract class AbstractEndToEndTransfer {
         });
     }
 
-    private void createAssetAndContractDefinitionOnProvider(String assetId, String definitionId, String addressType) {
+    @Test
+    void declinedContractRequestWhenPolicyIsNotEqualToTheOfferedOne() {
+        registerDataPlanes();
+        createResourcesOnProvider("asset-id", "HttpData", singleConstraintPolicy());
+
+        var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
+        assertThat(catalog.getContractOffers()).hasSize(1);
+
+        var contractOffer = catalog.getContractOffers().get(0);
+        contractOffer.getPolicy().getPermissions().get(0).getConstraints().remove(0);
+        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
+
+        await().untilAsserted(() -> {
+            var state = CONSUMER.getContractNegotiationState(negotiationId);
+            assertThat(state).isEqualTo(DECLINED.name());
+        });
+    }
+
+    private void registerDataPlanes() {
+        PROVIDER.registerDataPlane();
+        CONSUMER.registerDataPlane();
+    }
+
+    private void createResourcesOnProvider(String assetId, String addressType, PolicyDefinition contractPolicy) {
         PROVIDER.createAsset(assetId, addressType);
-        var policyId = PROVIDER.createPolicy(assetId);
-        PROVIDER.createContractDefinition(policyId, assetId, definitionId);
+        var accessPolicy = noConstraintPolicy();
+        PROVIDER.createPolicy(accessPolicy);
+        PROVIDER.createPolicy(contractPolicy);
+        PROVIDER.createContractDefinition(assetId, "definitionId", accessPolicy.getUid(), contractPolicy.getUid());
     }
 
     private DataAddress sync() {
         return DataAddress.Builder.newInstance().type("HttpProxy").build();
     }
 
+    private PolicyDefinition noConstraintPolicy() {
+        return PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .permission(Permission.Builder.newInstance()
+                                .action(Action.Builder.newInstance().type("USE").build())
+                                .build())
+                        .type(PolicyType.SET)
+                        .build())
+                .build();
+    }
+
+    private PolicyDefinition singleConstraintPolicy() {
+        return PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .permission(Permission.Builder.newInstance()
+                                .constraint(AtomicConstraint.Builder.newInstance()
+                                        .leftExpression(new LiteralExpression("any"))
+                                        .operator(Operator.EQ)
+                                        .rightExpression(new LiteralExpression("any"))
+                                        .build())
+                                .build())
+                        .type(PolicyType.SET)
+                        .build())
+                .build();
+    }
 }

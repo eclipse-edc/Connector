@@ -18,6 +18,9 @@
 package org.eclipse.dataspaceconnector.contract.validation;
 
 import net.datafaker.Faker;
+import org.eclipse.dataspaceconnector.contract.policy.PolicyEquality;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
@@ -28,7 +31,6 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -43,7 +45,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static java.time.Instant.EPOCH;
 import static java.time.Instant.MAX;
@@ -70,17 +71,18 @@ class ContractValidationServiceImplTest {
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Clock clock = Clock.fixed(now, UTC);
     private final PolicyEngine policyEngine = mock(PolicyEngine.class);
+    private final PolicyEquality policyEquality = mock(PolicyEquality.class);
     private ContractValidationServiceImpl validationService;
 
     @BeforeEach
     void setUp() {
-        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine);
+        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
     }
 
     @Test
     void verifyContractOfferValidation() {
-        var originalPolicy = Policy.Builder.newInstance().build();
-        var newPolicy = Policy.Builder.newInstance().build();
+        var originalPolicy = Policy.Builder.newInstance().target("a").build();
+        var newPolicy = Policy.Builder.newInstance().target("b").build();
         var asset = Asset.Builder.newInstance().id("1").build();
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
@@ -93,8 +95,9 @@ class ContractValidationServiceImplTest {
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
-        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(asset));
+        when(assetIndex.findById("1")).thenReturn(asset);
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
+        when(policyEquality.test(any(), any())).thenReturn(true);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var offer = ContractOffer.Builder.newInstance().id("1:2")
@@ -106,12 +109,64 @@ class ContractValidationServiceImplTest {
 
         var result = validationService.validate(claimToken, offer);
 
-        assertThat(result.getContent()).isNotNull();
+        assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
-        verify(assetIndex).queryAssets(isA(QuerySpec.class));
+        verify(assetIndex).findById("1");
         verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
+    }
+
+    @Test
+    void validate_failsIfPolicyNotFound() {
+        var originalPolicy = Policy.Builder.newInstance().build();
+        var asset = Asset.Builder.newInstance().id("1").build();
+        var contractDefinition = getContractDefinition();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(policyStore.findById(any())).thenReturn(null);
+        when(assetIndex.findById("1")).thenReturn(asset);
+
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var offer = ContractOffer.Builder.newInstance().id("1:2")
+                .asset(asset)
+                .policy(originalPolicy)
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .build();
+
+        var result = validationService.validate(claimToken, offer);
+
+        assertThat(result.failed()).isTrue();
+    }
+
+    @Test
+    void validate_failsIfOfferedPolicyIsNotTheEqualToTheStoredOne() {
+        var offeredPolicy = Policy.Builder.newInstance().permission(Permission.Builder.newInstance().build()).build();
+        var storedPolicy = Policy.Builder.newInstance().permission(Permission.Builder.newInstance()
+                .constraint(AtomicConstraint.Builder.newInstance().build()).build())
+                .build();
+        var asset = Asset.Builder.newInstance().id("1").build();
+        var contractDefinition = getContractDefinition();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(storedPolicy).build());
+        when(assetIndex.findById("1")).thenReturn(asset);
+        when(policyEquality.test(any(), any())).thenReturn(false);
+
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var offer = ContractOffer.Builder.newInstance().id("1:2")
+                .asset(asset)
+                .policy(offeredPolicy)
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .build();
+
+        var result = validationService.validate(claimToken, offer);
+
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -136,7 +191,9 @@ class ContractValidationServiceImplTest {
                 .contractSigningDate(now.getEpochSecond())
                 .id("1:2").build();
 
-        assertThat(validationService.validate(claimToken, agreement)).isTrue();
+        boolean isValid = validationService.validate(claimToken, agreement);
+
+        assertThat(isValid).isTrue();
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
         verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
@@ -156,30 +213,6 @@ class ContractValidationServiceImplTest {
         var isValid = validateAgreementDate(MIN.getEpochSecond(), MAX.getEpochSecond(), MAX.getEpochSecond());
 
         assertThat(isValid).isFalse();
-    }
-
-    @Test
-    void verifyPolicyNotFound() {
-        var originalPolicy = Policy.Builder.newInstance().build();
-        var asset = Asset.Builder.newInstance().id("1").build();
-        var contractDefinition = getContractDefinition();
-
-        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
-        when(policyStore.findById(any())).thenReturn(null);
-        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(asset));
-
-        var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = ContractOffer.Builder.newInstance().id("1:2")
-                .asset(asset)
-                .policy(originalPolicy)
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
-                .build();
-
-        var result = validationService.validate(claimToken, offer);
-
-        assertThat(result.failed()).isTrue();
     }
 
     private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {

@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObserv
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyArchiveImpl;
+import org.eclipse.dataspaceconnector.contract.policy.PolicyEquality;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
@@ -156,7 +157,8 @@ public class ContractServiceExtension implements ServiceExtension {
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex, policyStore);
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine);
+        var policyEquality = new PolicyEquality(context.getTypeManager());
+        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
