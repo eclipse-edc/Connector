@@ -28,4 +28,5 @@
 - [2022-07-27 Custom DTO validation](2022-07-27-custom-dto-validation/README.md)
 - [2022-07-28 "Provisioning Requested" TransferProcess new state](2022-07-28-transfer-process-new-state/README.md)
 - [2022-08-01 Entity Timestamp](2022-08-01-entity-timestamp/README.md)
-- [2022-08-04 Automated Documentation](developer/decision-records/2022-08-04-documentation-automation/README.md)
+- [2022-08-04 Automated Documentation](2022-08-04-documentation-automation/README.md)
+- [2022-08-09 Project structure review](2022-08-09-project-structure-review/README.md)
