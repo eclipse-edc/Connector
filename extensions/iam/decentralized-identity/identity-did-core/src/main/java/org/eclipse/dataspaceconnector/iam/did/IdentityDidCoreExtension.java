@@ -17,45 +17,27 @@ package org.eclipse.dataspaceconnector.iam.did;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
-import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
-import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.hub.store.InMemoryIdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolution.DidResolverRegistryImpl;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.iam.did.store.InMemoryDidDocumentStore;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
-import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 import java.time.Clock;
-import java.util.function.Supplier;
 
 
-@Provides({ IdentityHub.class, IdentityHubClient.class, DidResolverRegistry.class, DidPublicKeyResolver.class })
+@Provides({ DidResolverRegistry.class, DidPublicKeyResolver.class })
 public class IdentityDidCoreExtension implements ServiceExtension {
-
-    @Inject
-    private IdentityHubStore hubStore;
-
-    @Inject
-    private WebService webService;
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
@@ -70,8 +52,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var objectMapper = context.getTypeManager().getMapper();
-
         var didResolverRegistry = new DidResolverRegistryImpl();
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
@@ -79,30 +59,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
 
         registerParsers(privateKeyResolver);
-        
-        var privateKeyWrapper = privateKeyResolver.resolvePrivateKey(context.getConnectorId(), PrivateKeyWrapper.class);
-        Supplier<PrivateKeyWrapper> supplier = () -> privateKeyWrapper;
-        var hub = new IdentityHubImpl(hubStore, supplier, publicKeyResolver, objectMapper);
-        context.registerService(IdentityHub.class, hub);
-
-        var controller = new IdentityHubApiController(hub);
-        webService.registerResource(controller);
-
-        // contribute to the liveness probe
-        var hcs = context.getService(HealthCheckService.class, true);
-        if (hcs != null) {
-            hcs.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("IdentityHub Controller").build());
-        }
-
-        var httpClient = context.getService(OkHttpClient.class);
-
-        var hubClient = new IdentityHubClientImpl(supplier, httpClient, objectMapper);
-        context.registerService(IdentityHubClient.class, hubClient);
-    }
-
-    @Provider(isDefault = true)
-    public IdentityHubStore defaultIdentityHubStore() {
-        return new InMemoryIdentityHubStore();
     }
 
     @Provider(isDefault = true)

@@ -52,7 +52,7 @@ class DidPublicKeyResolverImplTest {
 
         didDocument = DidDocument.Builder.newInstance()
                 .verificationMethod("#my-key1", DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019, publicKey)
-                .service(Collections.singletonList(new Service("#my-service1", DidConstants.HUB_URL, "http://doesnotexi.st")))
+                .service(Collections.singletonList(new Service("#my-service1", "MyService", "http://doesnotexi.st")))
                 .build();
     }
 

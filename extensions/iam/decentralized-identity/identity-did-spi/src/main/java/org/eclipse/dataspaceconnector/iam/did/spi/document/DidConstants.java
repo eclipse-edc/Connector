@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public interface DidConstants {
-    String HUB_URL = "IdentityHub";
     String ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019 = "EcdsaSecp256k1VerificationKey2019";
     String JSON_WEB_KEY_2020 = "JsonWebKey2020";
     String RSA_VERIFICATION_KEY_2018 = "RsaVerificationKey2018";
