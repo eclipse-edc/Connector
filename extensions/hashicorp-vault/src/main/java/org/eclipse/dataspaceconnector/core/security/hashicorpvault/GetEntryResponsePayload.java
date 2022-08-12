@@ -27,10 +27,6 @@ class GetEntryResponsePayload {
     @JsonProperty()
     private GetEntryResponsePayloadGetVaultEntryData data;
 
-    GetEntryResponsePayload(GetEntryResponsePayloadGetVaultEntryData data) {
-        this.data = data;
-    }
-
     GetEntryResponsePayload() {
     }
 
@@ -40,9 +36,10 @@ class GetEntryResponsePayload {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private GetEntryResponsePayloadGetVaultEntryData data;
+        private final GetEntryResponsePayload getEntryResponsePayload;
 
         private Builder() {
+            getEntryResponsePayload = new GetEntryResponsePayload();
         }
 
         @JsonCreator
@@ -52,12 +49,12 @@ class GetEntryResponsePayload {
 
         @JsonProperty()
         public Builder data(GetEntryResponsePayloadGetVaultEntryData data) {
-            this.data = data;
+            getEntryResponsePayload.data = data;
             return this;
         }
 
         public GetEntryResponsePayload build() {
-            return new GetEntryResponsePayload(data);
+            return getEntryResponsePayload;
         }
     }
 }

@@ -27,12 +27,7 @@ class CreateEntryResponsePayload {
     @JsonProperty()
     private EntryMetadata data;
 
-    CreateEntryResponsePayload(EntryMetadata data) {
-        this.data = data;
-    }
-
-    CreateEntryResponsePayload() {
-    }
+    CreateEntryResponsePayload() {}
 
     public EntryMetadata getData() {
         return this.data;
@@ -40,9 +35,10 @@ class CreateEntryResponsePayload {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private EntryMetadata data;
+        private final CreateEntryResponsePayload createEntryResponsePayload;
 
         private Builder() {
+            createEntryResponsePayload = new CreateEntryResponsePayload();
         }
 
         @JsonCreator
@@ -52,12 +48,12 @@ class CreateEntryResponsePayload {
 
         @JsonProperty()
         public Builder data(EntryMetadata data) {
-            this.data = data;
+            createEntryResponsePayload.data = data;
             return this;
         }
 
         public CreateEntryResponsePayload build() {
-            return new CreateEntryResponsePayload(data);
+            return createEntryResponsePayload;
         }
     }
 }

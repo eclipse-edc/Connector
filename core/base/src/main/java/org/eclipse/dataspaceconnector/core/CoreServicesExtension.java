@@ -208,7 +208,9 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public OkHttpClient okHttpClient() { return okHttpClient; }
+    public OkHttpClient okHttpClient() {
+        return okHttpClient;
+    }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
 

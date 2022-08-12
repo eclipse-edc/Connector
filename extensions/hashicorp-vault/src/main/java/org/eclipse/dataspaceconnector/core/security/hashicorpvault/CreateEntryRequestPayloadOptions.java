@@ -26,9 +26,7 @@ class CreateEntryRequestPayloadOptions {
     @JsonProperty()
     private Integer cas;
 
-    CreateEntryRequestPayloadOptions(Integer cas) {
-        this.cas = cas;
-    }
+    CreateEntryRequestPayloadOptions() {}
 
     public Integer getCas() {
         return this.cas;
@@ -36,9 +34,10 @@ class CreateEntryRequestPayloadOptions {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Integer cas;
+        private final CreateEntryRequestPayloadOptions createEntryRequestPayloadOptions;
 
         private Builder() {
+            createEntryRequestPayloadOptions = new CreateEntryRequestPayloadOptions();
         }
 
         @JsonCreator
@@ -48,12 +47,12 @@ class CreateEntryRequestPayloadOptions {
 
         @JsonProperty()
         public Builder cas(Integer cas) {
-            this.cas = cas;
+            createEntryRequestPayloadOptions.cas = cas;
             return this;
         }
 
         public CreateEntryRequestPayloadOptions build() {
-            return new CreateEntryRequestPayloadOptions(cas);
+            return createEntryRequestPayloadOptions;
         }
     }
 }

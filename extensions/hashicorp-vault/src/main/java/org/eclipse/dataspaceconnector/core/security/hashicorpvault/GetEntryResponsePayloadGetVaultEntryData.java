@@ -32,10 +32,7 @@ class GetEntryResponsePayloadGetVaultEntryData {
     @JsonProperty()
     private EntryMetadata metadata;
 
-    GetEntryResponsePayloadGetVaultEntryData(Map<String, String> data, EntryMetadata metadata) {
-        this.data = data;
-        this.metadata = metadata;
-    }
+    GetEntryResponsePayloadGetVaultEntryData() {}
 
     public Map<String, String> getData() {
         return this.data;
@@ -47,10 +44,10 @@ class GetEntryResponsePayloadGetVaultEntryData {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Map<String, String> data;
-        private EntryMetadata metadata;
+        private final GetEntryResponsePayloadGetVaultEntryData getEntryResponsePayloadGetVaultEntryData;
 
         private Builder() {
+            getEntryResponsePayloadGetVaultEntryData = new GetEntryResponsePayloadGetVaultEntryData();
         }
 
         @JsonCreator
@@ -60,18 +57,18 @@ class GetEntryResponsePayloadGetVaultEntryData {
 
         @JsonProperty()
         public Builder data(Map<String, String> data) {
-            this.data = data;
+            getEntryResponsePayloadGetVaultEntryData.data = data;
             return this;
         }
 
         @JsonProperty()
         public Builder metadata(EntryMetadata metadata) {
-            this.metadata = metadata;
+            getEntryResponsePayloadGetVaultEntryData.metadata = metadata;
             return this;
         }
 
         public GetEntryResponsePayloadGetVaultEntryData build() {
-            return new GetEntryResponsePayloadGetVaultEntryData(data, metadata);
+            return getEntryResponsePayloadGetVaultEntryData;
         }
     }
 }

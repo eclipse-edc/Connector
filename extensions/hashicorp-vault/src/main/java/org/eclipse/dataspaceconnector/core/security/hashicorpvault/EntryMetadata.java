@@ -26,20 +26,16 @@ import java.util.Map;
 @JsonDeserialize(builder = EntryMetadata.Builder.class)
 class EntryMetadata {
 
-    @JsonProperty("custom_metadata")
+    @JsonProperty()
     private Map<String, String> customMetadata;
 
-    @JsonProperty("destroyed")
+    @JsonProperty()
     private Boolean destroyed;
 
-    @JsonProperty("version")
+    @JsonProperty()
     private Integer version;
 
-    EntryMetadata(Map<String, String> customMetadata, Boolean destroyed, Integer version) {
-        this.customMetadata = customMetadata;
-        this.destroyed = destroyed;
-        this.version = version;
-    }
+    EntryMetadata() {}
 
     public Map<String, String> getCustomMetadata() {
         return this.customMetadata;
@@ -55,11 +51,10 @@ class EntryMetadata {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Map<String, String> customMetadata;
-        private Boolean destroyed;
-        private Integer version;
+        private final EntryMetadata entryMetadata;
 
         Builder() {
+            entryMetadata = new EntryMetadata();
         }
 
         @JsonCreator
@@ -67,26 +62,23 @@ class EntryMetadata {
             return new Builder();
         }
 
-        @JsonProperty("custom_metadata")
         public Builder customMetadata(Map<String, String> customMetadata) {
-            this.customMetadata = customMetadata;
+            entryMetadata.customMetadata = customMetadata;
             return this;
         }
 
-        @JsonProperty("destroyed")
         public Builder destroyed(Boolean destroyed) {
-            this.destroyed = destroyed;
+            entryMetadata.destroyed = destroyed;
             return this;
         }
 
-        @JsonProperty("version")
         public Builder version(Integer version) {
-            this.version = version;
+            entryMetadata.version = version;
             return this;
         }
 
         public EntryMetadata build() {
-            return new EntryMetadata(customMetadata, destroyed, version);
+            return entryMetadata;
         }
     }
 }

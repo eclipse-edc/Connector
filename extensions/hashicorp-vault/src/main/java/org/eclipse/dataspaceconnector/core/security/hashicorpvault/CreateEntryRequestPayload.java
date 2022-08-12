@@ -32,10 +32,7 @@ class CreateEntryRequestPayload {
     @JsonProperty()
     private Map<String, String> data;
 
-    CreateEntryRequestPayload(CreateEntryRequestPayloadOptions options, Map<String, String> data) {
-        this.options = options;
-        this.data = data;
-    }
+    public CreateEntryRequestPayload() {}
 
     public CreateEntryRequestPayloadOptions getOptions() {
         return this.options;
@@ -47,10 +44,10 @@ class CreateEntryRequestPayload {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private CreateEntryRequestPayloadOptions options;
-        private Map<String, String> data;
+        private final CreateEntryRequestPayload createEntryRequestPayload;
 
         private Builder() {
+            createEntryRequestPayload = new CreateEntryRequestPayload();
         }
 
         @JsonCreator
@@ -60,18 +57,18 @@ class CreateEntryRequestPayload {
 
         @JsonProperty()
         public Builder options(CreateEntryRequestPayloadOptions options) {
-            this.options = options;
+            createEntryRequestPayload.options = options;
             return this;
         }
 
         @JsonProperty()
         public Builder data(Map<String, String> data) {
-            this.data = data;
+            createEntryRequestPayload.data = data;
             return this;
         }
 
         public CreateEntryRequestPayload build() {
-            return new CreateEntryRequestPayload(options, data);
+            return createEntryRequestPayload;
         }
     }
 }
