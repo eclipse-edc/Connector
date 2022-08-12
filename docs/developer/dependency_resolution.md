@@ -9,14 +9,14 @@ components:
 - a module providing the implementation, typically located in the `extensions` directory
 - the service registry, i.e. the `ServiceExtensionContext`. Since it is not quite an IoC container, we'll henceforth
   refer to it as the "context".
-- a hook point into the loading sequence: an extension that instantiates and registers the implementation class
-  with the context
+- a hook point into the loading sequence: an extension that instantiates and registers the implementation class with the
+  context
 
 ## Registering a service implementation
 
-As a general rule the module that provides the implementation also should register it with
-the `ServiceExtensionContext`. This is done in an accompanying service extension. For example,
-providing a CosmosDB based implementation for a `FooStore` (stores `Foo` objects) would require the following classes:
+As a general rule the module that provides the implementation also should register it with the `ServiceExtensionContext`
+. This is done in an accompanying service extension. For example, providing a CosmosDB based implementation for
+a `FooStore` (stores `Foo` objects) would require the following classes:
 
 1. A `FooStore.java` interface, located in SPI:
     ```java
@@ -41,8 +41,8 @@ providing a CosmosDB based implementation for a `FooStore` (stores `Foo` objects
 ### Option 1: use `@Provider` methods (recommended)
 
 Every `ServiceExtension` may declare methods that are annotated with `@Provider`, which tells the dependency resolution
-mechanism, that this
-method contributes a dependency into the context. This is very similar to other DI containers, e.g. Spring's `@Bean`
+mechanism, that this method contributes a dependency into the context. This is very similar to other DI containers, e.g.
+Spring's `@Bean`
 annotation. It looks like this:
 
 ```java
@@ -69,16 +69,16 @@ public class CosmosFooStoreExtension implements ServiceExtension {
 ```
 
 As the previous code snipped shows, provider methods may have no args, or a single argument, which is
-the `ServiceExtensionContext`.
-There are a few other restrictions too. Violating these will raise an exception. Provider methods must:
+the `ServiceExtensionContext`. There are a few other restrictions too. Violating these will raise an exception. Provider
+methods must:
 
 - be public
 - return a value (`void` is not allowed)
 - either have no arguments, or a single `ServiceExtensionContext`.
 
 Having a provider method is equivalent to invoking `context.registerService(SomeService, new SomeServiceImpl())`. Thus,
-the return type of the method defines the service `type`,
-whatever is returned by the provider method determines the implementation of the service.
+the return type of the method defines the service `type`, whatever is returned by the provider method determines the
+implementation of the service.
 
 **Caution**: there is a slight difference between declaring `@Provider` methods and
 calling `service.registerService(...)` with respect to sequence: the DI loader mechanism _first_
@@ -89,8 +89,8 @@ where this matters.
 #### Provide "defaults"
 
 Where `@Provider` methods really come into their own is when providing default implementations. This means we can have a
-fallback implementation.
-For example, going back to our `FooStore` example, there could be an extension that provides a default (=in-mem)
+fallback implementation. For example, going back to our `FooStore` example, there could be an extension that provides a
+default (=in-mem)
 implementation:
 
 ```java
@@ -111,9 +111,8 @@ public class DefaultsExtension implements ServiceExtension {
 Provider methods configured with `isDefault=true` are only invoked, if the respective service (here: `FooStore`) is not
 provided by any other extension.
 
-> **WARNING**: The `isDefault=true` attribute should be used sparingly. It is typically not needed for technology extensions.
-> Default provider methods are invoked during the _inject_-phase, i.e. while resolving `@Inject`-ed fields, so the code inside the provider method should not reference other fields, that are also `@Inject`-ed because they might not yet be initialized.
-> Their intended use is to provide default implementations for services, not to achieve extensibility.
+> Default provider methods are a tricky topic, please be sure to thoroughly read the additional documentation about
+> them [here](./default_provider_methods.md)!
 
 ### Option 2: register manually
 
@@ -136,11 +135,10 @@ public class CosmosFooStoreExtension implements ServiceExtension {
 
 There are three important things to mention:
 
-1. the call to `context#registerService` makes the object available in the context. From this point on other
-   extensions can inject a `FooStore` (and in doing so will receive a `CosmosFooStore`).
+1. the call to `context#registerService` makes the object available in the context. From this point on other extensions
+   can inject a `FooStore` (and in doing so will receive a `CosmosFooStore`).
 2. declaring the exposed interface in the `@Provides()` annotation is required, as it helps the extension loader define
-   the order in
-   which it needs to initialize extensions
+   the order in which it needs to initialize extensions
 3. service registrations **must** be done in the `initialize()` method.
 
 ## Injecting a service
@@ -162,8 +160,8 @@ public class FooMaintenanceService {
 ```
 
 Note that the example uses what we call _constructor injection_ (even though nothing is actually _injected_), because
-that is needed for object construction, and it increases
-testability. Also, those types of class fields should be declared `final` to avoid programming errors.
+that is needed for object construction, and it increases testability. Also, those types of class fields should be
+declared `final` to avoid programming errors.
 
 In contrast to conventional DI frameworks the `fooStore` dependency won't get auto-injected - rather, there has to be
 another `ServiceExtension` that has a reference to the `FooStore` and that constructs the `FooMaintenanceService`:
