@@ -304,8 +304,10 @@ public class Participant {
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
-                put("edc.negotiation.consumer.send.retry.limit", "100");
-                put("edc.negotiation.provider.send.retry.limit", "100");
+                put("edc.negotiation.consumer.send.retry.limit", "1");
+                put("edc.negotiation.provider.send.retry.limit", "1");
+                put("edc.negotiation.consumer.send.retry.base-delay.ms", "100");
+                put("edc.negotiation.provider.send.retry.base-delay.ms", "100");
 
                 put("provisioner.http.entries.default.provisioner.type", "provider");
                 put("provisioner.http.entries.default.endpoint", backendService + "/api/provision");
