@@ -14,7 +14,9 @@
 
 package org.eclipse.dataspaceconnector.core;
 
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
+import org.eclipse.dataspaceconnector.core.base.OkHttpClientFactory;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
@@ -99,6 +101,7 @@ public class CoreServicesExtension implements ServiceExtension {
     private HealthCheckServiceImpl healthCheckService;
     private RuleBindingRegistryImpl ruleBindingRegistry;
     private ScopeFilter scopeFilter;
+    private OkHttpClient okHttpClient;
 
     @Override
     public String name() {
@@ -118,6 +121,8 @@ public class CoreServicesExtension implements ServiceExtension {
         ruleBindingRegistry = new RuleBindingRegistryImpl();
 
         scopeFilter = new ScopeFilter(ruleBindingRegistry);
+
+        okHttpClient = OkHttpClientFactory.create(context, null);
 
         var typeManager = context.getTypeManager();
         PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
@@ -201,6 +206,9 @@ public class CoreServicesExtension implements ServiceExtension {
     public CertificateResolver certificateResolver() {
         return new NoopCertificateResolver();
     }
+
+    @Provider(isDefault = true)
+    public OkHttpClient okHttpClient() { return okHttpClient; }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
 

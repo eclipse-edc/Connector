@@ -21,10 +21,10 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
+    api(project(":core:base"))
 
     implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))

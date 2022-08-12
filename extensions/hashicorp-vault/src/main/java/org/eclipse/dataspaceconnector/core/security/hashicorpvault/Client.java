@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import static dev.failsafe.Failsafe.with;
 
-class Client {
+public class Client {
     static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
@@ -60,7 +60,7 @@ class Client {
         this.retryPolicy = retryPolicy;
     }
 
-    Result<String> getSecretValue(@NotNull String key) {
+    public Result<String> getSecretValue(@NotNull String key) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var headers = getHeaders();
         var request = new Request.Builder().url(requestUri).headers(headers).get().build();
@@ -90,7 +90,7 @@ class Client {
         }
     }
 
-    Result<CreateEntryResponsePayload> setSecret(
+    public Result<CreateEntryResponsePayload> setSecret(
             @NotNull String key, @NotNull String value) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var headers = getHeaders();
@@ -119,7 +119,7 @@ class Client {
         }
     }
 
-    Result<Void> destroySecret(@NotNull String key) {
+    public Result<Void> destroySecret(@NotNull String key) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
         var headers = getHeaders();
         var request = new Request.Builder().url(requestUri).headers(headers).delete().build();
