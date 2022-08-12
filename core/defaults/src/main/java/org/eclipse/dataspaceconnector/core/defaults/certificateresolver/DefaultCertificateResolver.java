@@ -30,6 +30,7 @@ import java.util.Base64;
 public class DefaultCertificateResolver implements CertificateResolver {
     public static final String HEADER = "-----BEGIN CERTIFICATE-----";
     public static final String FOOTER = "-----END CERTIFICATE-----";
+    public static final String EDC_EXCEPTION_MESSAGE = "Found certificate with id [%s], but failed to convert it";
 
     @NotNull
     private final Vault vault;
@@ -45,13 +46,12 @@ public class DefaultCertificateResolver implements CertificateResolver {
             return null;
         }
 
-        var encoded = certificateRepresentation.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
-
         try {
+            var encoded = certificateRepresentation.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
             CertificateFactory fact = CertificateFactory.getInstance("X.509");
             return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
-        } catch (GeneralSecurityException e) {
-            throw new EdcException(String.format("Found certificate with id [%s], but failed to convert it", id), e);
+        } catch (GeneralSecurityException | IllegalArgumentException e) {
+            throw new EdcException(String.format(EDC_EXCEPTION_MESSAGE, id), e);
         }
     }
 }

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.defaults.certificateresolver;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -47,7 +48,7 @@ class DefaultCertificateResolverTest {
     }
 
     @Test
-    void resolveCertificate() throws RuntimeException, IOException {
+    void resolveCertificateSuccessfully() throws RuntimeException, IOException {
         var classloader = Thread.currentThread().getContextClassLoader();
         var pemExpected =  new String(Objects.requireNonNull(classloader.getResourceAsStream(TEST_CERT_FILE)).readAllBytes());
         when(vault.resolveSecret(KEY)).thenReturn(pemExpected);
@@ -57,6 +58,24 @@ class DefaultCertificateResolverTest {
 
         verify(vault, times(1)).resolveSecret(KEY);
         Assertions.assertEquals(pemExpected, pemReceived);
+    }
+
+    @Test
+    void resolveCertificateNotFound() {
+        when(vault.resolveSecret(KEY)).thenReturn(null);
+
+        var certificate = certificateResolver.resolveCertificate(KEY);
+
+        verify(vault, times(1)).resolveSecret(KEY);
+        Assertions.assertNull(certificate);
+    }
+
+    @Test
+    void resolveCertificateConversionError() {
+        when(vault.resolveSecret(KEY)).thenReturn("Not a PEM");
+
+        Exception exception = Assertions.assertThrows(EdcException.class, () -> certificateResolver.resolveCertificate(KEY));
+        Assertions.assertEquals(String.format(DefaultCertificateResolver.EDC_EXCEPTION_MESSAGE, KEY), exception.getMessage());
     }
 
     private static String convertCertificateToPem(@NotNull X509Certificate certificate) {

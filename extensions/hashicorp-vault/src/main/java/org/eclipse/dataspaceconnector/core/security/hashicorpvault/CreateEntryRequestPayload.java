@@ -32,7 +32,7 @@ class CreateEntryRequestPayload {
     @JsonProperty()
     private Map<String, String> data;
 
-    public CreateEntryRequestPayload() {}
+    CreateEntryRequestPayload() {}
 
     public CreateEntryRequestPayloadOptions getOptions() {
         return this.options;
