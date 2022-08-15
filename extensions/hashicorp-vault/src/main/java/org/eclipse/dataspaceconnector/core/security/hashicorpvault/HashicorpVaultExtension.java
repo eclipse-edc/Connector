@@ -36,6 +36,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @EdcSetting(value = "The token used to access the Hashicorp Vault", required = true)
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
+    @Inject
     public OkHttpClient okHttpClient;
 
     @Inject
@@ -64,7 +65,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = loadHashicorpVaultClientConfig(context);
 
-        okHttpClient = new OkHttpClient.Builder().build();
         var client = new Client(config, okHttpClient, context.getTypeManager(), retryPolicy);
 
         vault = new HashicorpVault(client, context.getMonitor());

@@ -16,9 +16,10 @@ package org.eclipse.dataspaceconnector.core.defaults;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.core.base.OkHttpClientFactory;
 import org.eclipse.dataspaceconnector.core.defaults.assetindex.InMemoryAssetIndex;
-import org.eclipse.dataspaceconnector.core.defaults.certificateresolver.DefaultCertificateResolver;
 import org.eclipse.dataspaceconnector.core.defaults.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.dataspaceconnector.core.defaults.negotiationstore.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.core.defaults.policystore.InMemoryPolicyDefinitionStore;
@@ -31,8 +32,6 @@ import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -126,10 +125,10 @@ public class DefaultServicesExtension implements ServiceExtension {
         return new NoopTransactionContext();
     }
 
-    @Provider(isDefault = true)
-    public CertificateResolver defaultCertificateResolver(ServiceExtensionContext context) {
-        var vault = context.getService(Vault.class);
-        return new DefaultCertificateResolver(vault);
+
+    @Provider
+    public OkHttpClient okHttpClient(ServiceExtensionContext context) {
+        return OkHttpClientFactory.create(context, okHttpEventListener);
     }
 
     private ContractDefinitionStore getContractDefinitionStore() {
