@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 /**
  * A generic result type.
  */
@@ -45,6 +48,17 @@ public class Result<T> extends AbstractResult<T, Failure> {
 
     public static <T> Result<T> failure(List<String> failures) {
         return new Result<>(null, new Failure(failures));
+    }
+
+    /**
+     * Converts a {@link Optional} into a result, interpreting the Optional's value as content.
+     *
+     * @return {@link Result#failure(String)} if the Optional is empty, {@link Result#success(Object)} using the
+     *         Optional's value otherwise.
+     */
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public static <T> Result<T> from(Optional<T> opt) {
+        return opt.map(Result::success).orElse(Result.failure("Empty optional"));
     }
 
     /**
@@ -72,5 +86,63 @@ public class Result<T> extends AbstractResult<T, Failure> {
         }
     }
 
-}
+    /**
+     * Maps this {@link Result} into another, maintaining the basic semantics (failed vs success). If this
+     * {@link Result} is successful, the content is discarded. If this {@link Result} failed, the failures are carried
+     * over. This method is intended for use when the return type is implicit, for example:
+     * <pre>
+     *   public Result&lt;Void&gt; someMethod() {
+     *      Result&lt;String&gt; result = getStringResult();
+     *      return result.mapTo();
+     *   }
+     * </pre>
+     *
+     * @see org.eclipse.dataspaceconnector.spi.result.Result#map(Function)
+     * @see org.eclipse.dataspaceconnector.spi.result.Result#mapTo(Class)
+     */
+    public <R> Result<R> mapTo() {
+        if (succeeded()) {
+            return new Result<>(null, null);
+        } else {
+            return Result.failure(getFailureMessages());
+        }
+    }
 
+
+    /**
+     * Maps this {@link Result} into another, maintaining the basic semantics (failed vs success). If this
+     * {@link Result} is successful, the content is discarded. If this {@link Result} failed, the failures are carried
+     * over. This method is intended for use when an explicit return type is needed, for example when using var:
+     * <pre>
+     *      Result&lt;String&gt; result = getStringResult();
+     *      var voidResult = result.mapTo(Void.class);
+     * </pre>
+     *
+     * @param clazz type of the result, with which the resulting {@link Result} should be parameterized
+     * @see org.eclipse.dataspaceconnector.spi.result.Result#map(Function)
+     * @see org.eclipse.dataspaceconnector.spi.result.Result#mapTo()
+     */
+    public <R> Result<R> mapTo(Class<R> clazz) {
+        return mapTo();
+    }
+
+    /**
+     * Maps one result into another, applying the mapping function.
+     *
+     * @param mappingFunction a function converting this result into another
+     * @return the result of the mapping function
+     */
+    public <U> Result<U> flatMap(Function<Result<T>, Result<U>> mappingFunction) {
+        return mappingFunction.apply(this);
+    }
+
+    /**
+     * Converts this result into an {@link Optional}. When this result is failed, or there is no content,
+     * {@link Optional#isEmpty()} is returned, otherwise the content is the {@link Optional}'s value
+     *
+     * @return {@link Optional#empty()} if failed, or no content, {@link Optional#of(Object)} otherwise.
+     */
+    public Optional<T> asOptional() {
+        return succeeded() && getContent() != null ? of(getContent()) : empty();
+    }
+}

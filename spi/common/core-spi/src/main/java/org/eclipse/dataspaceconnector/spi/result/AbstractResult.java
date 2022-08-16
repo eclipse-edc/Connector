@@ -17,6 +17,8 @@ package org.eclipse.dataspaceconnector.spi.result;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Base result type used by services to indicate success or failure.
@@ -68,4 +70,46 @@ public abstract class AbstractResult<T, F extends Failure> {
     public String getFailureDetail() {
         return failure == null ? null : String.join(", ", getFailureMessages());
     }
+
+    /**
+     * Executes a {@link Consumer} if this {@link Result} is successful
+     */
+    public AbstractResult<T, F> onSuccess(Consumer<T> successAction) {
+        if (succeeded()) {
+            successAction.accept(getContent());
+        }
+        return this;
+    }
+
+    /**
+     * Executes a {@link Consumer} if this {@link Result} failed. Passes the {@link Failure} to the consumer
+     */
+    public AbstractResult<T, F> onFailure(Consumer<F> failureAction) {
+        if (failed()) {
+            failureAction.accept(getFailure());
+        }
+        return this;
+    }
+
+    /**
+     * Alias for {@link AbstractResult#onFailure(Consumer)} to make code a bit more easily readable.
+     */
+    public AbstractResult<T, F> orElse(Consumer<F> failureAction) {
+        return onFailure(failureAction);
+    }
+
+    /**
+     * Throws an exception supplied by the {@link Supplier} if this {@link Result} is not successful.
+     *
+     * @param exceptionSupplier provides an instance of the exception to throw
+     */
+    public <X extends Throwable> AbstractResult<T, F> orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
+        if (failed()) {
+            throw exceptionSupplier.get();
+        } else {
+            return this;
+        }
+    }
+
+
 }
