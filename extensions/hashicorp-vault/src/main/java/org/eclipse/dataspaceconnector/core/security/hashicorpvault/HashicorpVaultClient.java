@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import static dev.failsafe.Failsafe.with;
 
-public class Client {
+public class HashicorpVaultClient {
     static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
@@ -45,7 +45,7 @@ public class Client {
     private static final String CALL_UNSUCCESSFUL_ERROR_TEMPLATE = "[Hashicorp Vault] Call unsuccessful: %s";
     private static final int HTTP_CODE_404 = 404;
     @NotNull
-    private final Config config;
+    private final HashicorpVaultConfig hashicorpVaultConfig;
     @NotNull
     private final OkHttpClient okHttpClient;
     @NotNull
@@ -53,8 +53,8 @@ public class Client {
     @NotNull
     private final RetryPolicy<Object> retryPolicy;
 
-    Client(@NotNull Config config, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager, @NotNull RetryPolicy<Object> retryPolicy) {
-        this.config = config;
+    HashicorpVaultClient(@NotNull HashicorpVaultConfig hashicorpVaultConfig, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager, @NotNull RetryPolicy<Object> retryPolicy) {
+        this.hashicorpVaultConfig = hashicorpVaultConfig;
         this.okHttpClient = okHttpClient;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
@@ -135,14 +135,14 @@ public class Client {
     private Headers getHeaders() {
         var headersBuilder =
                 new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
-        if (config.getVaultToken() != null) {
-            headersBuilder = headersBuilder.add(VAULT_TOKEN_HEADER, config.getVaultToken());
+        if (hashicorpVaultConfig.getVaultToken() != null) {
+            headersBuilder = headersBuilder.add(VAULT_TOKEN_HEADER, hashicorpVaultConfig.getVaultToken());
         }
         return headersBuilder.build();
     }
 
     private String getBaseUrl() {
-        var baseUrl = config.getVaultUrl();
+        var baseUrl = hashicorpVaultConfig.getVaultUrl();
 
         if (baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);

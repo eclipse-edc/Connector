@@ -30,25 +30,25 @@ import static org.mockito.Mockito.when;
 class HashicorpVaultTest {
     private static final String KEY = "key";
 
-    private Client vaultClient;
+    private HashicorpVaultClient vaultHashicorpVaultClient;
     private HashicorpVault vault;
 
     @BeforeEach
     void setup() {
-        vaultClient = mock(Client.class);
+        vaultHashicorpVaultClient = mock(HashicorpVaultClient.class);
         var monitor = mock(Monitor.class);
-        vault = new HashicorpVault(vaultClient, monitor);
+        vault = new HashicorpVault(vaultHashicorpVaultClient, monitor);
     }
 
     @Test
     void getSecret() {
         var value = UUID.randomUUID().toString();
         var result = Result.success(value);
-        when(vaultClient.getSecretValue(KEY)).thenReturn(result);
+        when(vaultHashicorpVaultClient.getSecretValue(KEY)).thenReturn(result);
 
         var returnValue = vault.resolveSecret(KEY);
 
-        verify(vaultClient, times(1)).getSecretValue(KEY);
+        verify(vaultHashicorpVaultClient, times(1)).getSecretValue(KEY);
         assertThat(returnValue).isEqualTo(value);
     }
 
@@ -56,22 +56,22 @@ class HashicorpVaultTest {
     void setSecret() {
         var value = UUID.randomUUID().toString();
         var result = Result.success(mock(CreateEntryResponsePayload.class));
-        when(vaultClient.setSecret(KEY, value)).thenReturn(result);
+        when(vaultHashicorpVaultClient.setSecret(KEY, value)).thenReturn(result);
 
         var returnValue = vault.storeSecret(KEY, value);
 
-        verify(vaultClient, times(1)).setSecret(KEY, value);
+        verify(vaultHashicorpVaultClient, times(1)).setSecret(KEY, value);
         assertThat(returnValue.succeeded()).isTrue();
     }
 
     @Test
     void destroySecret() {
         var result = Result.success();
-        when(vaultClient.destroySecret(KEY)).thenReturn(result);
+        when(vaultHashicorpVaultClient.destroySecret(KEY)).thenReturn(result);
 
         var returnValue = vault.deleteSecret(KEY);
 
-        verify(vaultClient, times(1)).destroySecret(KEY);
+        verify(vaultHashicorpVaultClient, times(1)).destroySecret(KEY);
         assertThat(returnValue.succeeded()).isTrue();
     }
 }

@@ -65,13 +65,13 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = loadHashicorpVaultClientConfig(context);
 
-        var client = new Client(config, okHttpClient, context.getTypeManager(), retryPolicy);
+        var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager(), retryPolicy);
 
         vault = new HashicorpVault(client, context.getMonitor());
         privateKeyResolver = new VaultPrivateKeyResolver(vault);
     }
 
-    private Config loadHashicorpVaultClientConfig(
+    private HashicorpVaultConfig loadHashicorpVaultClientConfig(
             ServiceExtensionContext context) {
 
         var vaultUrl = context.getSetting(VAULT_URL, null);
@@ -86,7 +86,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
                     String.format("For Vault authentication [%s] is required", VAULT_TOKEN));
         }
 
-        return Config.Builder.newInstance()
+        return HashicorpVaultConfig.Builder.newInstance()
                 .vaultUrl(vaultUrl)
                 .vaultToken(vaultToken)
                 .build();
