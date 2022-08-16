@@ -15,9 +15,14 @@ flexible than git refs, but at the same time improves coherence and setup speed.
 
 ## General rules
 
-_for the sake of brevity, the term "our" refers to all original implementation projects inside the
-`eclipse-dataspaceconnector` org in Github. At the time of this writing that includes `DataSpaceConnector`,
-`RegistrationService`, `IdentityHub`, `MinimumViableDataspace` and `FederatedCatalog` (not yet populated)._
+> for the sake of brevity, the term "our" refers to all original implementation projects inside the
+`eclipse-dataspaceconnector` org in [Github](https://github.com/eclipse-dataspaceconnector/). At the time of this
+> writing that includes `DataSpaceConnector` (a.k.a. "EDC"),
+`RegistrationService` (a.k.a. "RS", [see Github](https://github.com/eclipse-dataspaceconnector/RegistrationService)),
+`IdentityHub` (a.k.a. "IH", [see Github](https://github.com/eclipse-dataspaceconnector/IdentityHub),
+`MinimumViableDataspace` (a.k.a. "MVD"
+> , [see Github](https://github.com/eclipse-dataspaceconnector/MinimumViableDataspace))) and `FederatedCatalog` (a.k.a.
+"FC", [see Github](https://github.com/eclipse-dataspaceconnector/FederatedCatalog), not yet populated).
 
 All "our" projects must
 
