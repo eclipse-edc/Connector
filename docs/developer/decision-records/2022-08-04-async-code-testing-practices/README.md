@@ -7,8 +7,8 @@ Currently, the testing of async code is performed in two different ways:
 * using the `CoundDownLatch` object
 * using the `Awaitility` library
 
-The goal of `CountDownLatch` objects and the `Awaitility` library is to cause a thread to block until other threads have
-completed a given task. Something useful in order to test Asynchronous threads.
+The goal of `CountDownLatch` objects and the `Awaitility` library is to block a thread until other threads have
+completed a particular task. This is useful for testing asynchronous threads.
 
 The idea is to avoid using `CoundDownLatch` and start only using `Awaitility`.
 
