@@ -24,7 +24,7 @@ val failsafeVersion: String by project
 val okHttpVersion: String by project
 
 dependencies {
-    implementation(project(":spi:core-spi"))
+    implementation(project(":spi:common:core-spi"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("io.cloudevents:cloudevents-http-basic:${cloudEvents}")

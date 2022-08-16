@@ -24,10 +24,10 @@ val okHttpVersion: String by project
 
 
 dependencies {
-    api(project(":spi:core-spi"))
+    api(project(":spi:common:core-spi"))
     api(project(":extensions:http"))
     api(project(":extensions:filesystem:configuration-fs"))
-    api(project(":extensions:data-plane-selector:selector-spi"))
+    api(project(":spi:data-plane-selector:selector-spi"))
     implementation(project(":common:util"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":extensions:api:api-core")) //for the exception mapper

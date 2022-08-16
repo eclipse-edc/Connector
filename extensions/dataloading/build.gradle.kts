@@ -18,7 +18,7 @@ plugins {
 
 //This file serves as BOM for the dataloader
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":common:util"))
 }
 

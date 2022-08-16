@@ -23,7 +23,7 @@ val failsafeVersion: String by project
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
     implementation(project(":common:util"))

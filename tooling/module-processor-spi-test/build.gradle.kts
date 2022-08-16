@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:core-spi"))
+    implementation(project(":spi:common:core-spi"))
     implementation(project(":tooling:module-domain"))
     annotationProcessor(project(":tooling:module-processor"))
 }

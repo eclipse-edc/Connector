@@ -31,13 +31,10 @@ dependencies {
 
     implementation(project(":extensions:api:data-management"))
 
-    implementation(project(":data-protocols:ids")) {
-        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
-    }
+    implementation(project(":data-protocols:ids"))
 
     implementation(project(":extensions:azure:blobstorage"))
 
-    api(project(":spi"))
     implementation(project(":common:util"))
 
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

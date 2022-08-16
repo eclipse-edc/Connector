@@ -24,9 +24,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:contract-spi"))
-    api(project(":spi:policy-spi"))
-    api(project(":spi:transaction-spi"))
+    api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:control-plane:policy-spi"))
+    api(project(":spi:common:transaction-spi"))
     implementation(project(":common:util"))
     implementation(project(":core:policy:policy-evaluator"))
     implementation(project(":extensions:api:api-core"))

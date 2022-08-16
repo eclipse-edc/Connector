@@ -24,8 +24,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
-    api(project(":spi:transaction-spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))

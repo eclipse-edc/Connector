@@ -23,7 +23,7 @@ val storageBlobVersion: String by project
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
 
     testFixturesApi(project(":common:util"))
     testFixturesApi(project(":extensions:junit"))

@@ -22,13 +22,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:web-spi"))
+    api(project(":spi:common:web-spi"))
     implementation(project(":core:base"))
     implementation(project(":core:boot"))
     implementation(project(":core:micrometer"))
     implementation(project(":extensions:http"))
     implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:data-plane:data-plane-spi"))
+    implementation(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":extensions:data-plane:data-plane-framework"))
     implementation(project(":extensions:data-plane:data-plane-http"))
     implementation(project(":extensions:azure:data-plane:storage"))

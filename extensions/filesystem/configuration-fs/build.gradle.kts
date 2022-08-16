@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:core-spi"))
+    api(project(":spi:common:core-spi"))
     implementation(project(":common:util"))
 }
 

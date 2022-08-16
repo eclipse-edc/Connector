@@ -24,9 +24,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:transaction-spi"))
+    api(project(":spi:common:transaction-spi"))
     implementation(project(":extensions:api:api-core"))
-    implementation(project(":extensions:api:auth-spi"))
+    implementation(project(":spi:common:auth-spi"))
     implementation(project(":extensions:api:data-management:api-configuration"))
     implementation(project(":extensions:dataloading"))
 

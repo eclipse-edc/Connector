@@ -20,7 +20,7 @@ val cosmosSdkVersion: String by project
 val failsafeVersion: String by project
 
 dependencies {
-    api(project(":spi:contract-spi"))
+    api(project(":spi:control-plane:contract-spi"))
     api(project(":common:util"))
     api(project(":extensions:azure:cosmos:cosmos-common"))
     api(project(":extensions:dataloading"))

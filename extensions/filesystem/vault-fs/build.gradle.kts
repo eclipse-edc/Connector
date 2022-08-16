@@ -20,7 +20,7 @@ val nimbusVersion: String by project
 val bouncycastleVersion: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
     implementation(project(":common:util"))
     implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 

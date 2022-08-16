@@ -22,8 +22,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:api:auth-spi"))
-    api(project(":spi:core-spi"))
+    api(project(":spi:common:auth-spi"))
+    api(project(":spi:common:core-spi"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }
 

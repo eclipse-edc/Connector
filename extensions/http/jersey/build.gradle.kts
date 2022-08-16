@@ -23,7 +23,7 @@ val restAssured: String by project
 val rsApi: String by project
 
 dependencies {
-    api(project(":spi:web-spi"))
+    api(project(":spi:common:web-spi"))
     api(project(":extensions:http:jetty"))
 
     implementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")

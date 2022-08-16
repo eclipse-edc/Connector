@@ -21,7 +21,7 @@ val failsafeVersion: String by project
 val awaitility: String by project
 
 dependencies {
-    api(project(":spi:transfer-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
     api(project(":common:util"))
     api(project(":extensions:azure:cosmos:cosmos-common"))
 

@@ -44,9 +44,9 @@ OpenApi documentation can be found [here](../../../resources/openapi/yaml/data-p
 
 _Provide some information about dependencies, e.g., used extensions._
 
-| Name        | Description                                  |
-|:------------|:---------------------------------------------|
-| spi:web-spi | Essentially for the Controllers registration |
+| Name    | Description                                  |
+|:--------|:---------------------------------------------|
+| web-spi | Essentially for the Controllers registration |
 
 ### Configurations
 

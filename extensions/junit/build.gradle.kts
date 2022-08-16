@@ -24,7 +24,7 @@ val okHttpVersion: String by project
 val assertj: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
     api(project(":core:boot"))
     api(project(":core:base"))
     api(project(":common:util"))

@@ -21,15 +21,13 @@ val failsafeVersion: String by project
 
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
     api(project(":extensions:azure:blobstorage:blob-core"))
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-
-    api("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
-
 }
 
 publishing {

@@ -26,11 +26,8 @@ val okHttpVersion: String by project
 
 
 dependencies {
-    api(project(":spi"))
-
-    testFixturesApi("software.amazon.awssdk:s3:${awsVersion}")
     testFixturesApi(project(":extensions:junit"))
-
+    testFixturesApi(testFixtures(project(":common:util")))
     testFixturesImplementation(project(":extensions:aws:s3:s3-core"))
 
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}") // needed for MinIO health probe
@@ -38,7 +35,7 @@ dependencies {
     testFixturesImplementation("org.assertj:assertj-core:$assertj")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-    testFixturesApi(testFixtures(project(":common:util")))
+    testFixturesApi("software.amazon.awssdk:s3:${awsVersion}")
 }
 
 publishing {

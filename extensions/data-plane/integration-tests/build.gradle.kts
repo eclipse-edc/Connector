@@ -36,7 +36,7 @@ dependencies {
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))
-    testImplementation(project(":extensions:data-plane:data-plane-spi"))
+    testImplementation(project(":spi:data-plane:data-plane-spi"))
 
     testRuntimeOnly(project(":launchers:data-plane-server"))
 }
