@@ -37,10 +37,10 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
     @Inject
-    public OkHttpClient okHttpClient;
+    private OkHttpClient okHttpClient;
 
     @Inject
-    public RetryPolicy retryPolicy;
+    private RetryPolicy retryPolicy;
 
     private Vault vault;
 

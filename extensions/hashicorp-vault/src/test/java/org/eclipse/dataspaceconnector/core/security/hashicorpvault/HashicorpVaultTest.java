@@ -16,12 +16,12 @@ package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,7 +49,7 @@ class HashicorpVaultTest {
         var returnValue = vault.resolveSecret(KEY);
 
         verify(vaultClient, times(1)).getSecretValue(KEY);
-        Assertions.assertEquals(value, returnValue);
+        assertThat(returnValue).isEqualTo(value);
     }
 
     @Test
@@ -61,7 +61,7 @@ class HashicorpVaultTest {
         var returnValue = vault.storeSecret(KEY, value);
 
         verify(vaultClient, times(1)).setSecret(KEY, value);
-        Assertions.assertTrue(returnValue.succeeded());
+        assertThat(returnValue.succeeded()).isTrue();
     }
 
     @Test
@@ -72,6 +72,6 @@ class HashicorpVaultTest {
         var returnValue = vault.deleteSecret(KEY);
 
         verify(vaultClient, times(1)).destroySecret(KEY);
-        Assertions.assertTrue(returnValue.succeeded());
+        assertThat(returnValue.succeeded()).isTrue();
     }
 }

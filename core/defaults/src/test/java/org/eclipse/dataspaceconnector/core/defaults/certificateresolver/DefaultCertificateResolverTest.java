@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.core.defaults.certificateresolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +27,8 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Objects;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,7 @@ class DefaultCertificateResolverTest {
     }
 
     @Test
-    void resolveCertificateSuccessfully() throws RuntimeException, IOException {
+    void resolveCertificate() throws RuntimeException, IOException {
         var classloader = Thread.currentThread().getContextClassLoader();
         var pemExpected =  new String(Objects.requireNonNull(classloader.getResourceAsStream(TEST_CERT_FILE)).readAllBytes());
         when(vault.resolveSecret(KEY)).thenReturn(pemExpected);
@@ -57,25 +58,26 @@ class DefaultCertificateResolverTest {
         var pemReceived = convertCertificateToPem(certificate);
 
         verify(vault, times(1)).resolveSecret(KEY);
-        Assertions.assertEquals(pemExpected, pemReceived);
+        assertThat(pemReceived).isEqualTo(pemExpected);
     }
 
     @Test
-    void resolveCertificateNotFound() {
+    void resolveCertificate_notFound() {
         when(vault.resolveSecret(KEY)).thenReturn(null);
 
         var certificate = certificateResolver.resolveCertificate(KEY);
 
         verify(vault, times(1)).resolveSecret(KEY);
-        Assertions.assertNull(certificate);
+        assertThat(certificate).isNull();
     }
 
     @Test
-    void resolveCertificateConversionError() {
+    void resolveCertificate_conversionError() {
         when(vault.resolveSecret(KEY)).thenReturn("Not a PEM");
 
-        Exception exception = Assertions.assertThrows(EdcException.class, () -> certificateResolver.resolveCertificate(KEY));
-        Assertions.assertEquals(String.format(DefaultCertificateResolver.EDC_EXCEPTION_MESSAGE, KEY), exception.getMessage());
+        Exception exception = assertThrows(EdcException.class, () -> certificateResolver.resolveCertificate(KEY));
+
+        assertThat(exception.getMessage()).isEqualTo(String.format(DefaultCertificateResolver.EDC_EXCEPTION_MESSAGE, KEY));
     }
 
     private static String convertCertificateToPem(@NotNull X509Certificate certificate) {

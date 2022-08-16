@@ -15,14 +15,12 @@
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(builder = EntryMetadata.Builder.class)
 class EntryMetadata {
 

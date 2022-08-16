@@ -14,16 +14,10 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = CreateEntryRequestPayloadOptions.Builder.class)
 class CreateEntryRequestPayloadOptions {
-    @JsonProperty()
+
     private Integer cas;
 
     CreateEntryRequestPayloadOptions() {}
@@ -40,12 +34,10 @@ class CreateEntryRequestPayloadOptions {
             createEntryRequestPayloadOptions = new CreateEntryRequestPayloadOptions();
         }
 
-        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
-        @JsonProperty()
         public Builder cas(Integer cas) {
             createEntryRequestPayloadOptions.cas = cas;
             return this;

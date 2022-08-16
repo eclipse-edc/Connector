@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_TOKEN;
 import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_URL;
 
@@ -44,19 +44,20 @@ class HashicorpVaultIntegrationTest {
 
     @Test
     @DisplayName("Resolve a secret that exists")
-    void testResolveSecret_exists(Vault vault) {
+    void resolveSecret_exists(Vault vault) {
         var key = UUID.randomUUID().toString();
         var valueExpected = UUID.randomUUID().toString();
 
         vault.storeSecret(key, valueExpected);
         var secretValue = vault.resolveSecret(key);
-        Assertions.assertEquals(valueExpected, secretValue);
+
+        assertThat(secretValue).isEqualTo(valueExpected);
     }
 
     @Test
     @DisplayName("Resolve a secret that does not exist")
-    void testResolveSecret_doesNotExist(Vault vault) {
-        Assertions.assertNull(vault.resolveSecret("wrong_key"));
+    void resolveSecret_doesNotExist(Vault vault) {
+        assertThat(vault.resolveSecret("wrong_key")).isNull();
     }
 
     @Test
@@ -69,39 +70,41 @@ class HashicorpVaultIntegrationTest {
         vault.storeSecret(key, value1);
         vault.storeSecret(key, value2);
         var secretValue = vault.resolveSecret(key);
-        Assertions.assertEquals(value2, secretValue);
+
+        assertThat(secretValue).isEqualTo(value2);
     }
 
     @Test
     @DisplayName("Create a secret that does not exist")
-    void testSetSecret_doesNotExist(Vault vault) {
+    void setSecret_doesNotExist(Vault vault) {
         var key = UUID.randomUUID().toString();
         var value = UUID.randomUUID().toString();
 
         vault.storeSecret(key, value);
         var secretValue = vault.resolveSecret(key);
-        Assertions.assertEquals(value, secretValue);
+
+        assertThat(secretValue).isEqualTo(value);
     }
 
     @Test
     @DisplayName("Delete a secret that exists")
-    void testDeleteSecret_exists(Vault vault) {
+    void deleteSecret_exists(Vault vault) {
         var key = UUID.randomUUID().toString();
         var value = UUID.randomUUID().toString();
 
         vault.storeSecret(key, value);
         vault.deleteSecret(key);
 
-        Assertions.assertNull(vault.resolveSecret(key));
+        assertThat(vault.resolveSecret(key)).isNull();
     }
 
     @Test
     @DisplayName("Delete a secret that does not exist")
-    void testDeleteSecret_doesNotExist(Vault vault) {
+    void deleteSecret_doesNotExist(Vault vault) {
         var key = UUID.randomUUID().toString();
 
         vault.deleteSecret(key);
 
-        Assertions.assertNull(vault.resolveSecret(key));
+        assertThat(vault.resolveSecret(key)).isNull();
     }
 }
