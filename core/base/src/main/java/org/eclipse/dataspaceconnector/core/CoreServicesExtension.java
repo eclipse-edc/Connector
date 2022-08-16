@@ -173,7 +173,6 @@ public class CoreServicesExtension implements ServiceExtension {
         return new PolicyEngineImpl(scopeFilter);
     }
 
-
     @Provider
     public EventRouter eventRouter(ServiceExtensionContext context) {
         if (eventExecutorServiceContainer == null) {
