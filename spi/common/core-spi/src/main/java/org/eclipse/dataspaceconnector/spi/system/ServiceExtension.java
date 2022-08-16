@@ -38,4 +38,15 @@ public interface ServiceExtension extends SystemExtension {
     default void shutdown() {
     }
 
+    /**
+     * Hook method to perform some additional preparatory work before the extension is started.
+     * All dependencies are guaranteed to be resolved, and all other extensions are guaranteed to have completed initialization.
+     * <p>
+     * Typical use cases include wanting to wait until all registrations of a {@code *Registry} have completed, perform some additional
+     * checking whether a service exists or not, etc.
+     * <p>
+     * <strong>Do NOT perform any service registration in this method!</strong>
+     */
+    default void prepare() {
+    }
 }

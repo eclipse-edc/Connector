@@ -66,7 +66,8 @@ public class ExtensionLoader {
                 .map(ExtensionLifecycleManager::provide)
                 .collect(Collectors.toList());
 
-        lifeCycles.forEach(ExtensionLifecycleManager::start);
+        var preparedExtensions = lifeCycles.stream().map(ExtensionLifecycleManager::prepare).collect(Collectors.toList());
+        preparedExtensions.forEach(ExtensionLifecycleManager::start);
     }
 
     @NotNull
