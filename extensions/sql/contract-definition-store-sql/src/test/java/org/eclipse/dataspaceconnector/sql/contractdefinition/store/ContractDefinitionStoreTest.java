@@ -19,90 +19,28 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.BaseSqlDialectStatements;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinition;
 import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinitions;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-@ComponentTest
-public class SqlContractDefinitionStoreTest {
+abstract class ContractDefinitionStoreTest {
 
     private static final String DATASOURCE_NAME = "contractdefinition";
 
-    private DataSourceRegistry dataSourceRegistry;
-    private SqlContractDefinitionStore sqlContractDefinitionStore;
-    private BaseSqlDialectStatements statements;
-    private Connection connection;
+    protected SqlContractDefinitionStore sqlContractDefinitionStore;
 
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var txManager = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        DataSource datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-
-        statements = new BaseSqlDialectStatements();
-        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, statements, new TypeManager());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
-
-    @Test
-    @DisplayName("Context Loads, tables exist")
-    void contextLoads() throws SQLException {
-        var query = String.format("SELECT 1 FROM %s", statements.getContractDefinitionTable());
-        var result = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(), query);
-
-        assertThat(result).isNotNull();
-    }
 
     @Test
     @DisplayName("Save a single Contract Definition that doesn't already exist")
@@ -190,16 +128,12 @@ public class SqlContractDefinitionStoreTest {
 
     @Test
     @DisplayName("Update an existing Contract Definition")
-    void updateOne_exists() throws SQLException {
+    void updateOne_exists() {
         var definition1 = getContractDefinition("id", "policy1", "contract1");
         var definition2 = getContractDefinition("id", "policy2", "contract2");
 
         sqlContractDefinitionStore.save(definition1);
         sqlContractDefinitionStore.update(definition2);
-
-        var query = String.format("SELECT * FROM %s WHERE %s=?",
-                statements.getContractDefinitionTable(),
-                statements.getIdColumn());
 
         var definitions = sqlContractDefinitionStore.findAll(QuerySpec.none()).collect(Collectors.toList());
 

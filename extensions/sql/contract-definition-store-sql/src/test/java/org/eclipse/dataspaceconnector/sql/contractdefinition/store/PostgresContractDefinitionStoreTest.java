@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractdefinition.store.postgres;
+package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,12 +26,12 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlContractDefinitionStore;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.BaseSqlDialectStatements;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -56,15 +56,15 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-class PostgresContractDefinitionStoreTest {
+class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTest {
     protected static final String DATASOURCE_NAME = "contractdefinition";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
     private static final String POSTGRES_DATABASE = "itest";
-    private SqlContractDefinitionStore store;
-    private BaseSqlDialectStatements sqlStatements;
     private TransactionContext transactionContext;
     private Connection connection;
+    private DataSourceRegistry dataSourceRegistry;
+    private BaseSqlDialectStatements statements;
 
     @BeforeAll
     static void prepare() {
@@ -74,7 +74,7 @@ class PostgresContractDefinitionStoreTest {
     @BeforeEach
     void setUp() throws SQLException, IOException {
         transactionContext = new NoopTransactionContext();
-        DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
+        dataSourceRegistry = mock(DataSourceRegistry.class);
 
 
         var ds = new PGSimpleDataSource();
@@ -92,11 +92,11 @@ class PostgresContractDefinitionStoreTest {
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
 
-        sqlStatements = new PostgresDialectStatements();
+        statements = new PostgresDialectStatements();
         TypeManager manager = new TypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, sqlStatements, manager);
+        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, statements, manager);
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         try {
             transactionContext.execute(() -> {
@@ -120,18 +120,27 @@ class PostgresContractDefinitionStoreTest {
     }
 
     @Test
+    @DisplayName("Context Loads, tables exist")
+    void contextLoads() throws SQLException {
+        var query = String.format("SELECT 1 FROM %s", statements.getContractDefinitionTable());
+        var result = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(), query);
+
+        assertThat(result).isNotNull();
+    }
+
+    @Test
     void find_queryBySelectorExpression_left() {
         var definitionsExpected = getContractDefinitions(20);
         // add a selector expression to the last 5 elements
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        store.save(definitionsExpected);
+        sqlContractDefinitionStore.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(format("selectorExpression.criteria.operandLeft = %s", Asset.PROPERTY_ID))
                 .build();
 
-        var definitionsRetrieved = store.findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).hasSize(2)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -143,13 +152,13 @@ class PostgresContractDefinitionStoreTest {
         var definitionsExpected = getContractDefinitions(20);
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        store.save(definitionsExpected);
+        sqlContractDefinitionStore.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter("selectorExpression.criteria.operandRight = foobar-asset")
                 .build();
 
-        var definitionsRetrieved = store.findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -160,14 +169,14 @@ class PostgresContractDefinitionStoreTest {
     void find_queryMultiple() {
         var definitionsExpected = getContractDefinitions(20);
         definitionsExpected.forEach(d -> d.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));
-        store.save(definitionsExpected);
+        sqlContractDefinitionStore.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("selectorExpression.criteria.operandRight", "=", "test-asset"),
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 
-        var definitionsRetrieved = store.findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -177,14 +186,14 @@ class PostgresContractDefinitionStoreTest {
     @Test
     void find_queryMultiple_noMatch() {
         var definitionsExpected = getContractDefinitions(20);
-        store.save(definitionsExpected);
+        sqlContractDefinitionStore.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("selectorExpression.criteria.operandRigh", "=", "test-asset"),
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 
-        assertThat(store.findAll(spec).collect(Collectors.toList())).isEmpty();
+        assertThat(sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList())).isEmpty();
     }
 
     @Test
@@ -193,7 +202,7 @@ class PostgresContractDefinitionStoreTest {
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         var def5 = definitionsExpected.get(5);
         def5.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        store.save(definitionsExpected);
+        sqlContractDefinitionStore.save(definitionsExpected);
 
         var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
 
@@ -201,7 +210,7 @@ class PostgresContractDefinitionStoreTest {
                 .filter("selectorExpression.criteria = " + json)
                 .build();
 
-        assertThat(store.findAll(spec)).hasSize(1)
+        assertThat(sqlContractDefinitionStore.findAll(spec)).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(def5);
     }
