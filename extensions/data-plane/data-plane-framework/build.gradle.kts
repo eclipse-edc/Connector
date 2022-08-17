@@ -19,8 +19,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":extensions:data-plane:data-plane-spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":common:util"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
     testImplementation(project(":extensions:junit"))

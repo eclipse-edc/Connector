@@ -22,7 +22,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:contract-spi"))
+    api(project(":spi:control-plane:contract-spi"))
 
     implementation(project(":common:state-machine-lib"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")

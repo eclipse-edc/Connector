@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:data-plane-selector:selector-spi"))
+    api(project(":spi:data-plane-selector:selector-spi"))
     implementation(project(":common:util"))
 }
 

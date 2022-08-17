@@ -21,7 +21,7 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":data-protocols:ids:ids-spi"))
     implementation(project(":common:util"))
     api(project(":data-protocols:ids:ids-core"))

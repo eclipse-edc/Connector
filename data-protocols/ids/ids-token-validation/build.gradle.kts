@@ -20,11 +20,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":core:base"))
     api(project(":common:util"))
     api(project(":data-protocols:ids:ids-spi"))
-    api(project(":extensions:iam:oauth2:oauth2-spi"))
+    api(project(":spi:common:oauth2-spi"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 

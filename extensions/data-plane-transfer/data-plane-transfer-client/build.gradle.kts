@@ -22,11 +22,11 @@ val okHttpVersion: String by project
 val openTelemetryVersion: String by project
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:transfer-spi"))
-    api(project(":extensions:data-plane:data-plane-spi"))
-    api(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
-    api(project(":extensions:data-plane-selector:selector-spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":spi:control-plane:data-plane-transfer-spi"))
+    api(project(":spi:data-plane-selector:selector-spi"))
     implementation(project(":common:util"))
 
     implementation("dev.failsafe:failsafe:${failsafeVersion}")

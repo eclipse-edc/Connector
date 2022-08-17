@@ -19,7 +19,7 @@ plugins {
 val jwtVersion: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
     implementation("com.auth0:java-jwt:${jwtVersion}")
 }
 

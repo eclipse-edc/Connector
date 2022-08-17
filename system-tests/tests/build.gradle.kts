@@ -38,6 +38,7 @@ dependencies {
     }
 
     testFixturesApi(project(":extensions:junit"))
+    testFixturesApi(project(":spi:control-plane:control-plane-spi"))
     testFixturesApi(project(":common:util"))
     testFixturesApi(testFixtures(project(":common:util")))
 

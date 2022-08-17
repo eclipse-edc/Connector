@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:data-plane:data-plane-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:aws:s3:s3-core"))
 

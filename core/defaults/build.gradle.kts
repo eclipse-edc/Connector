@@ -24,7 +24,7 @@ val jupiterVersion: String by project
 val okHttpVersion: String by project
 
 dependencies {
-    api(project(":spi:core-spi"))
+    api(project(":spi:common:core-spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:dataloading"))
 

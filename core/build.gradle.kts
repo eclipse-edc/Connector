@@ -18,7 +18,6 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
     api(project(":core:base"))
     api(project(":core:boot"))
     api(project(":core:contract"))

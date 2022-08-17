@@ -22,9 +22,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:contract-spi"))
-    api(project(":spi:transfer-spi"))
-    api(project(":spi:transaction-spi"))
+    api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:common:transaction-spi"))
     implementation(project(":core:contract"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))

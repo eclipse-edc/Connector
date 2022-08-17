@@ -23,7 +23,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:data-plane:data-plane-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":extensions:azure:blobstorage:blob-core"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-identity:${azureIdentityVersion}")

@@ -22,11 +22,11 @@ val assertj: String by project
 val postgresVersion: String by project
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:contract-spi"))
-    api(project(":spi:transaction-spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:common:transaction-spi"))
     implementation(project(":extensions:dataloading"))
-    implementation(project(":extensions:transaction:transaction-datasource-spi"))
+    implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
 
 

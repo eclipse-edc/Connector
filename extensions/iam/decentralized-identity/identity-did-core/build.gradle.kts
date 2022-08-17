@@ -7,7 +7,7 @@ val rsApi: String by project
 val okHttpVersion: String by project
 
 dependencies {
-    api(project(":extensions:iam:decentralized-identity:identity-did-spi"))
+    api(project(":spi:common:identity-did-spi"))
     implementation(project(":extensions:iam:decentralized-identity:identity-did-crypto"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

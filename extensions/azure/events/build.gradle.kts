@@ -17,11 +17,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:azure:events-config"))
 }
-
 
 publishing {
     publications {

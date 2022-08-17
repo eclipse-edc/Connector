@@ -18,9 +18,8 @@ plugins {
 
 //This file serves as BOM for the federated catalog
 dependencies {
-    api(project(":spi"))
     api(project(":extensions:catalog:federated-catalog-cache"))
-    api(project(":extensions:catalog:federated-catalog-spi"))
+    api(project(":spi:federated-catalog:federated-catalog-spi"))
 }
 
 publishing {

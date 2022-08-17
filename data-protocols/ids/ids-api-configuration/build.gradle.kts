@@ -17,7 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:web-spi"))
 }
 
 publishing {

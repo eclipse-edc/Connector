@@ -18,6 +18,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":extensions:http"))
 }

@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":extensions:http:jetty"))
     api("io.micrometer:micrometer-core:${micrometerVersion}")
 
-    api(project(":spi:core-spi"))
+    api(project(":spi:common:core-spi"))
 
 }
 

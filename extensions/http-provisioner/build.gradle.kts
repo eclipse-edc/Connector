@@ -26,9 +26,9 @@ val rsApi: String by project
 
 
 dependencies {
-    api(project(":spi:transfer-spi"))
-    api(project(":spi:web-spi"))
-    implementation(project(":extensions:api:auth-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:common:web-spi"))
+    implementation(project(":spi:common:auth-spi"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":core:transfer")) // needs the AddProvisionedResourceCommand
 

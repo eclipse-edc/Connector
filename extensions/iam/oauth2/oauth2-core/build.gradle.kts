@@ -20,8 +20,7 @@ val nimbusVersion: String by project
 val okHttpVersion: String by project
 
 dependencies {
-    api(project(":spi"))
-    api(project(":extensions:iam:oauth2:oauth2-spi"))
+    api(project(":spi:common:oauth2-spi"))
     implementation(project(":common:token-generation-lib"))
     implementation(project(":common:token-validation-lib"))
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")

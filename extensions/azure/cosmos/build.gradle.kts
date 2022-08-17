@@ -18,7 +18,6 @@ plugins {
 
 //This file serves as BOM for cosmos db
 dependencies {
-    api(project(":spi"))
     api(project(":extensions:azure:cosmos:assetindex-cosmos"))
     api(project(":extensions:azure:cosmos:contract-definition-store-cosmos"))
     api(project(":extensions:azure:cosmos:contract-negotiation-store-cosmos"))

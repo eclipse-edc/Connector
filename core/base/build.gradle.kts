@@ -25,8 +25,8 @@ val okHttpVersion: String by project
 val bouncycastleVersion: String by project
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:transaction-spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:transaction-spi"))
     implementation(project(":common:util"))
     implementation(project(":core:defaults"))
     implementation(project(":core:policy:policy-engine"))

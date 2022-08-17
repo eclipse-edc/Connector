@@ -19,9 +19,8 @@ plugins {
 val eventGridSdkVersion: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
     api("com.azure:azure-messaging-eventgrid:${eventGridSdkVersion}")
-
 }
 
 

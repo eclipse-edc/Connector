@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:api:api-core"))
-    api(project(":extensions:api:auth-spi"))
+    api(project(":spi:common:auth-spi"))
 }
 
 publishing {

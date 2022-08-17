@@ -24,8 +24,9 @@ val awaitility: String by project
 
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":extensions:catalog:federated-catalog-spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:web-spi"))
+    api(project(":spi:federated-catalog:federated-catalog-spi"))
 
     implementation(project(":common:util"))
     implementation(project(":core:base"))

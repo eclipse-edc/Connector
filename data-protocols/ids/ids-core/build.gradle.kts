@@ -23,7 +23,6 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
     api(project(":common:util"))
     api(project(":data-protocols:ids:ids-spi"))
 

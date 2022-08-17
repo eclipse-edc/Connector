@@ -21,7 +21,7 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
 
     api(project(":core:policy:policy-engine"))
 
