@@ -401,6 +401,6 @@ public class Participant {
 
     @NotNull
     private String resourceAbsolutePath(String filename) {
-        return System.getProperty("user.dir") + separator + "src" + separator + "test" + separator + "resources" + separator + filename;
+        return System.getProperty("user.dir") + separator + "build" + separator + "resources" + separator + "test" + separator + filename;
     }
 }
