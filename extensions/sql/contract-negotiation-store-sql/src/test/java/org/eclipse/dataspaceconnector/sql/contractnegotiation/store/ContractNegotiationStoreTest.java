@@ -15,31 +15,15 @@
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
-import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
@@ -47,7 +31,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,55 +38,12 @@ import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctio
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContractBuilder;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiationBuilder;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-@ComponentTest
-class SqlContractNegotiationStoreTest {
+abstract class ContractNegotiationStoreTest {
+    protected static final String CONNECTOR_NAME = "test-connector";
+    protected SqlContractNegotiationStore store;
+    protected LeaseUtil leaseUtil;
 
-    private static final String DATASOURCE_NAME = "contractnegotiation";
-    private static final String CONNECTOR_NAME = "test-connector";
-    private DataSourceRegistry dataSourceRegistry;
-    private Connection connection;
-    private SqlContractNegotiationStore store;
-    private LeaseUtil leaseUtil;
-
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var txManager = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-
-        var statements = new H2DialectStatements();
-        TypeManager manager = new TypeManager();
-
-        manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements, CONNECTOR_NAME, Clock.systemUTC());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements, Clock.systemUTC());
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
 
     @Test
     @DisplayName("Verify that an entity is found by ID")
@@ -623,18 +563,4 @@ class SqlContractNegotiationStoreTest {
         assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
-    protected Connection getConnection() {
-        try {
-            return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static class H2DialectStatements extends PostgresDialectStatements {
-        @Override
-        protected String getFormatJsonOperator() {
-            return BaseSqlDialect.getJsonCastOperator();
-        }
-    }
 }

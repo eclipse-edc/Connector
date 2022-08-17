@@ -67,17 +67,14 @@ import static org.mockito.Mockito.when;
  * query operators.
  */
 @PostgresqlDbIntegrationTest
-class PostgresContractNegotiationStoreTest {
+class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTest {
     protected static final String DATASOURCE_NAME = "contractnegotiation";
-    protected static final String CONNECTOR_NAME = "test-connector";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
     private static final String POSTGRES_DATABASE = "itest";
     private static final String JDBC_URL_PREFIX = "jdbc:postgresql://localhost:5432/";
     protected DataSourceRegistry dataSourceRegistry;
     protected Connection connection;
-    protected SqlContractNegotiationStore store;
-    protected LeaseUtil leaseUtil;
     private TransactionContext txManager;
 
     @BeforeAll

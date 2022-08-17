@@ -17,7 +17,6 @@ plugins {
     `maven-publish`
 }
 
-val h2Version: String by project
 val assertj: String by project
 val postgresVersion: String by project
 
@@ -35,7 +34,6 @@ dependencies {
     testImplementation(project(":core:base"))
     testImplementation(project(":core:contract"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
-    testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":common:util")))
 
