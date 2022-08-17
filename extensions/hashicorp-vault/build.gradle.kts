@@ -12,8 +12,8 @@
  *
  */
 
-val okHttpVersion: String by project
 val failsafeVersion: String by project
+val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -21,10 +21,11 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":core:base"))
 
     implementation(project(":common:util"))
+
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    api("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))

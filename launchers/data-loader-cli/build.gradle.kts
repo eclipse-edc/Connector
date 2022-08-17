@@ -21,7 +21,7 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    implementation(project(":core:boot"))
+    implementation(project(":core:common:boot"))
     implementation(project(":extensions:dataloading"))
 
     // the following lines enable the CosmosDB-based AssetIndex

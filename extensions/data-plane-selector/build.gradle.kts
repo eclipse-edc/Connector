@@ -18,9 +18,7 @@ plugins {
 
 
 dependencies {
+    api(project(":core:data-plane-selector:data-plane-selector-core"))
     api(project(":extensions:data-plane-selector:selector-api"))
-    api(project(":spi:data-plane-selector:selector-spi"))
-    api(project(":extensions:data-plane-selector:selector-core"))
-    api(project(":extensions:data-plane-selector:selector-store"))
     api(project(":extensions:data-plane-selector:selector-client"))
 }

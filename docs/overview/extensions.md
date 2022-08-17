@@ -79,7 +79,6 @@
 | :selector-client | contains implementations for running a DPF Selector embedded in the Control Plane, or as remote instance, accessing it's REST API | [link]({{extensions}}data-plane-selector/selector-client) |
 | :selector-core   |  | [link]({{extensions}}data-plane-selector/selector-core) |
 | :selector-spi    |  | [link]({{extensions}}data-plane-selector/selector-spi) |
-| :selector-store  |  | [link]({{extensions}}data-plane-selector/selector-store) |
 
 ## :extensions:data-plane-transfer
 

@@ -29,8 +29,6 @@ dependencies {
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
-    testImplementation(project(":core:contract"))
-
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:azure:cosmos:cosmos-common")))
     testImplementation("org.awaitility:awaitility:${awaitility}")

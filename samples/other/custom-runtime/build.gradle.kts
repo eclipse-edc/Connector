@@ -21,7 +21,7 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":core:boot"))
+    api(project(":core:common:boot"))
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":extensions:iam:iam-mock"))

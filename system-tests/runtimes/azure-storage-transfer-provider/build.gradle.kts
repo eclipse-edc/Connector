@@ -24,19 +24,15 @@ val rsApi: String by project
 dependencies {
     implementation(project(":common:util"))
 
-    implementation(project(":core:transfer"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
+
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:selector-client"))
-    implementation(project(":extensions:data-plane-selector:selector-core"))
-    implementation(project(":extensions:data-plane-selector:selector-store"))
-    implementation(project(":extensions:data-plane:data-plane-framework"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
     implementation(project(":extensions:azure:data-plane:storage"))
 
     implementation(project(":spi:data-plane:data-plane-spi"))
-
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-    implementation(project(":core"))
 
     implementation(project(":extensions:api:observability"))
 
@@ -45,6 +41,8 @@ dependencies {
     implementation(project(":extensions:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }
 
 application {

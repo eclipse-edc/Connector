@@ -25,8 +25,8 @@ val assertj: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":core:boot"))
-    api(project(":core:base"))
+    api(project(":core:common:boot"))
+    api(project(":core:common:base"))
     api(project(":common:util"))
     implementation("org.mockito:mockito-core:${mockitoVersion}")
     implementation("org.assertj:assertj-core:${assertj}")

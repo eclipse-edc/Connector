@@ -21,7 +21,6 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":core:base"))
     api(project(":common:util"))
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":spi:common:oauth2-spi"))

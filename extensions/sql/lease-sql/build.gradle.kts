@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":extensions:sql:common-sql"))
 
     testImplementation(project(":extensions:junit"))
-    testImplementation(project(":core:base"))
     testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation(testFixtures(project(":common:util")))

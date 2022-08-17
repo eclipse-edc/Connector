@@ -40,10 +40,12 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
-import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -65,8 +67,6 @@ import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFre
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
-    public static final String HEADER = "header";
-    public static final String PAYLOAD = "payload";
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
@@ -95,6 +95,9 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
         objectMapper = getCustomizedObjectMapper();
 
+        extension.registerServiceMock(ProviderContractNegotiationManager.class, new FakeContractNegotiationManager.Provider());
+        extension.registerServiceMock(ConsumerContractNegotiationManager.class, new FakeContractNegotiationManager.Consumer());
+        extension.registerServiceMock(ContractOfferService.class, new FakeContractOfferService(ASSETS));
         extension.registerSystemExtension(ServiceExtension.class, new IdsApiMultipartEndpointV1IntegrationTestServiceExtension(ASSETS));
     }
 
@@ -204,40 +207,6 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 .addHeader("Content-Type", MediaType.MULTIPART_FORM_DATA)
                 .post(multipartBody)
                 .build();
-    }
-
-    // extract response to MultipartResponse container object
-    protected MultipartResponse extractMultipartResponse(Response response) throws Exception {
-        Message header = null;
-        byte[] payload = null;
-        try (MultipartReader multipartReader = new MultipartReader(Objects.requireNonNull(response.body()))) {
-            MultipartReader.Part part;
-            while ((part = multipartReader.nextPart()) != null) {
-                HttpHeaders httpHeaders = HttpHeaders.of(
-                        part.headers().toMultimap(),
-                        (a, b) -> a.equalsIgnoreCase("Content-Disposition")
-                );
-
-                String value = httpHeaders.firstValue("Content-Disposition").orElse(null);
-                if (value == null) {
-                    continue;
-                }
-
-                ContentDisposition contentDisposition = new ContentDisposition(value);
-                String multipartName = contentDisposition.getParameters().get("name");
-                if (multipartName == null) {
-                    continue;
-                }
-
-                if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = objectMapper.readValue(part.body().readUtf8(), Message.class);
-                } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
-                    payload = part.body().readByteArray();
-                }
-            }
-        }
-
-        return MultipartResponse.Builder.newInstance().header(header).payload(payload).build();
     }
 
     // extract response to list of NamedMultipartContent container object

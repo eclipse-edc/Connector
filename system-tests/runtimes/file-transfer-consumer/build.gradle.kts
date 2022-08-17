@@ -22,7 +22,7 @@ plugins {
 val rsApi: String by project
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":common:util"))
     implementation(project(":data-protocols:ids"))
 

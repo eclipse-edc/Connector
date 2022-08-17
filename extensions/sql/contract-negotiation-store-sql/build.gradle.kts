@@ -31,8 +31,6 @@ dependencies {
 
 
     testImplementation(project(":extensions:junit"))
-    testImplementation(project(":core:base"))
-    testImplementation(project(":core:contract"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":common:util")))

@@ -31,11 +31,8 @@ dependencies {
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
-    testImplementation(project(":core:transfer"))
-    testImplementation(project(":core:defaults"))
-
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
-
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
 }

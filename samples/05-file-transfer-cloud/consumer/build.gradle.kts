@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
 
     implementation(project(":extensions:api:observability"))
 

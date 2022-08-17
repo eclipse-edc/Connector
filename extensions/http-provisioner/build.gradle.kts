@@ -30,14 +30,12 @@ dependencies {
     api(project(":spi:common:web-spi"))
     implementation(project(":spi:common:auth-spi"))
     implementation(project(":extensions:api:api-core"))
-    implementation(project(":core:transfer")) // needs the AddProvisionedResourceCommand
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(project(":core:contract"))
-    testImplementation(project(":core:defaults"))
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:dataloading"))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:junit"))

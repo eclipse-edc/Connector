@@ -28,7 +28,6 @@ The following modules are used for this launcher:
 
 | Name                                   | Description                                                                        |
 |----------------------------------------|------------------------------------------------------------------------------------|
-| core:defaults                          | provides default (in-memory) implementations for various data stores               | 
 | extensions:data-protocols:ids          | contains all IDS modules, e.g. for dispatching and handling IDS multipart messages | 
 | extensions:filesystem:configuration-fs | reads configuration properties from a file in the file-system                      | 
 | extensions:filesystem:vault-fs         | file-system based vault, required for using a certificate from the file-system     | 
