@@ -19,70 +19,24 @@ import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTes
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresDialectStatements;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPolicy;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 @ComponentTest
-class SqlPolicyDefinitionStoreTest {
+abstract class PolicyDefinitionStoreTest {
 
-    private static final String DATASOURCE_NAME = "policy";
-    private SqlPolicyDefinitionStore sqlPolicyStore;
-    private Connection connection;
+    protected SqlPolicyDefinitionStore sqlPolicyStore;
 
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var transactionContext = new NoopTransactionContext();
-        DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), new H2DialectStatements());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
 
     @Test
     @DisplayName("Save a single policy that not exists ")

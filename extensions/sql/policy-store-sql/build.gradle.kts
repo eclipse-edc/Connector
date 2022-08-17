@@ -17,7 +17,6 @@ plugins {
     `maven-publish`
 }
 
-val h2Version: String by project
 val assertj: String by project
 val postgresVersion: String by project
 
@@ -30,7 +29,6 @@ dependencies {
     implementation(project(":extensions:sql:common-sql"))
 
 
-    testImplementation("com.h2database:h2:${h2Version}")
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
