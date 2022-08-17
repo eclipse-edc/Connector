@@ -61,7 +61,8 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     }
 
     /**
-     * Registers a mock service with the runtime.
+     * Registers a mock service with the runtime. Note that the mock will overwrite any service already registered with the context.
+     * This is intentional. A warning will be logged to STDOUT if the mock actually replaces an existing service.
      *
      * @param mock the service mock
      */
@@ -120,7 +121,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     @Override
     protected void initializeContext(ServiceExtensionContext context) {
-        serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
         super.initializeContext(context);
     }
 
@@ -131,7 +131,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     @Override
     protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
+        context = new TestServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions(), serviceMocks);
         return context;
     }
 
