@@ -194,11 +194,11 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         }
     }
 
-    int mapRowCount(ResultSet resultSet) throws SQLException {
+    private int mapRowCount(ResultSet resultSet) throws SQLException {
         return resultSet.getInt(assetStatements.getCountVariableName());
     }
 
-    AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException, JsonProcessingException {
+    private AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException, JsonProcessingException {
         var name = resultSet.getString(assetStatements.getAssetPropertyColumnName());
         var value = resultSet.getString(assetStatements.getAssetPropertyColumnValue());
         var type = resultSet.getString(assetStatements.getAssetPropertyColumnType());
@@ -206,7 +206,6 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
 
         return new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type));
     }
-
 
     @Nullable
     private <T> T single(List<T> list) {
@@ -230,7 +229,6 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         }
         return objectMapper.readValue(value, clazz);
     }
-
 
     private boolean existsById(String assetId, Connection connection) {
         var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, assetStatements.getCountAssetByIdClause(), assetId).iterator().next());
