@@ -14,88 +14,31 @@
 
 package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
-import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.BaseSqlDialectStatements;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.Clock;
 import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequest;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequestBuilder;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcess;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcessBuilder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-@ComponentTest
-public class SqlTransferProcessStoreTest {
-    private static final String DATASOURCE_NAME = "transferprocess";
-    private static final String CONNECTOR_NAME = "test-connector";
-    private SqlTransferProcessStore store;
-    private DataSourceRegistry dataSourceRegistry;
-    private LeaseUtil leaseUtil;
-    private Connection connection;
-
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var transactionContext = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-        var statements = new H2DialectStatements();
-        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        leaseUtil = new LeaseUtil(transactionContext, this::getConnection, statements, Clock.systemUTC());
-
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
+abstract class TransferProcessStoreTest {
+    protected static final String CONNECTOR_NAME = "test-connector";
+    protected SqlTransferProcessStore store;
+    protected LeaseUtil leaseUtil;
 
     @Test
     void create() {
@@ -363,7 +306,6 @@ public class SqlTransferProcessStoreTest {
         store.create(t1);
 
         store.delete("id1");
-        assertThat(countTransferProcesses()).isEqualTo(0);
         assertThat(store.findAll(QuerySpec.none())).isEmpty();
     }
 
@@ -481,23 +423,5 @@ public class SqlTransferProcessStoreTest {
                 .containsOnly(t2.getDataRequest());
     }
 
-    private Connection getConnection() {
-        try {
-            return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    private int countTransferProcesses() {
-        try (var conn = dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection()) {
-            return executeQuery(conn, "SELECT COUNT(*) FROM edc_transfer_process");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private static class H2DialectStatements extends BaseSqlDialectStatements {
-    }
 }
