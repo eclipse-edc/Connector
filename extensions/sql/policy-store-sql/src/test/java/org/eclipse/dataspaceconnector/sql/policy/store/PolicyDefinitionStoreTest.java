@@ -35,17 +35,14 @@ import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPoli
 @ComponentTest
 abstract class PolicyDefinitionStoreTest {
 
-    protected SqlPolicyDefinitionStore sqlPolicyStore;
-
-
     @Test
     @DisplayName("Save a single policy that not exists ")
     void save_notExisting() {
         var policy = createPolicy(getRandomId());
 
-        sqlPolicyStore.save(policy);
+        getPolicyDefinitionStore().save(policy);
 
-        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
+        var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
         assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
 
@@ -67,9 +64,9 @@ abstract class PolicyDefinitionStoreTest {
                 .build();
         var spec = QuerySpec.Builder.newInstance().build();
 
-        sqlPolicyStore.save(policy1);
-        sqlPolicyStore.save(policy2);
-        var policyFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        getPolicyDefinitionStore().save(policy1);
+        getPolicyDefinitionStore().save(policy2);
+        var policyFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(1).isEqualTo(policyFromDb.size());
         assertThat("Target2").isEqualTo(policyFromDb.get(0).getPolicy().getTarget());
@@ -80,9 +77,9 @@ abstract class PolicyDefinitionStoreTest {
     @DisplayName("Find policy by ID that exists")
     void findById_whenPresent() {
         var policy = createPolicy(getRandomId());
-        sqlPolicyStore.save(policy);
+        getPolicyDefinitionStore().save(policy);
 
-        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
+        var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
 
         assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
@@ -90,7 +87,7 @@ abstract class PolicyDefinitionStoreTest {
     @Test
     @DisplayName("Find policy by ID when not exists")
     void findById_whenNonexistent() {
-        assertThat(sqlPolicyStore.findById("nonexistent")).isNull();
+        assertThat(getPolicyDefinitionStore().findById("nonexistent")).isNull();
     }
 
     @Test
@@ -99,14 +96,14 @@ abstract class PolicyDefinitionStoreTest {
         var limit = 20;
 
         var definitionsExpected = getDummyPolicies(50);
-        definitionsExpected.forEach(sqlPolicyStore::save);
+        definitionsExpected.forEach(getPolicyDefinitionStore()::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .limit(limit)
                 .offset(20)
                 .build();
 
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).hasSize(limit);
     }
@@ -117,13 +114,13 @@ abstract class PolicyDefinitionStoreTest {
         var pageSize = 15;
 
         var definitionsExpected = getDummyPolicies(10);
-        definitionsExpected.forEach(sqlPolicyStore::save);
+        definitionsExpected.forEach(getPolicyDefinitionStore()::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(pageSize)
                 .build();
 
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).isEmpty();
     }
@@ -134,14 +131,14 @@ abstract class PolicyDefinitionStoreTest {
         var limit = 5;
 
         var definitionsExpected = getDummyPolicies(10);
-        definitionsExpected.forEach(sqlPolicyStore::save);
+        definitionsExpected.forEach(getPolicyDefinitionStore()::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(7)
                 .limit(limit)
                 .build();
 
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).size().isLessThanOrEqualTo(limit);
     }
@@ -151,17 +148,19 @@ abstract class PolicyDefinitionStoreTest {
     void deleteById_whenExists() {
         var policy = createPolicy(getRandomId());
 
-        sqlPolicyStore.save(policy);
+        getPolicyDefinitionStore().save(policy);
 
-        assertThat(sqlPolicyStore.deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
-        assertThat(sqlPolicyStore.findById(policy.getUid())).isNull();
+        assertThat(getPolicyDefinitionStore().deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
+        assertThat(getPolicyDefinitionStore().findById(policy.getUid())).isNull();
     }
 
     @Test
     @DisplayName("Delete a non existing policy")
     void deleteById_whenNonexistent() {
-        assertThat(sqlPolicyStore.deleteById("nonexistent")).isNull();
+        assertThat(getPolicyDefinitionStore().deleteById("nonexistent")).isNull();
     }
+
+    protected abstract SqlPolicyDefinitionStore getPolicyDefinitionStore();
 
     private String getRandomId() {
         return UUID.randomUUID().toString();

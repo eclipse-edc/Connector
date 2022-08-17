@@ -76,6 +76,8 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTest 
     protected DataSourceRegistry dataSourceRegistry;
     protected Connection connection;
     private TransactionContext txManager;
+    private SqlContractNegotiationStore store;
+    private LeaseUtil leaseUtil;
 
     @BeforeAll
     static void prepare() {
@@ -290,6 +292,16 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTest 
         // cancel the agreement
         updatedNegotiation.transitionError("Cancelled");
         store.save(updatedNegotiation);
+    }
+
+    @Override
+    protected SqlContractNegotiationStore getContractNegotiationStore() {
+        return store;
+    }
+
+    @Override
+    protected LeaseUtil getLeaseUtil() {
+        return leaseUtil;
     }
 
     protected Connection getConnection() {

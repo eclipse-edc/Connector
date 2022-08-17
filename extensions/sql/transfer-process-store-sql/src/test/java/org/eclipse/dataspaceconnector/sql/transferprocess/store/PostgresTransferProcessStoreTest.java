@@ -75,6 +75,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTest {
     private TransactionContext transactionContext;
     private Connection connection;
     private DataSourceRegistry dataSourceRegistry;
+    private LeaseUtil leaseUtil;
+    private SqlTransferProcessStore store;
 
     @BeforeAll
     static void prepare() {
@@ -138,6 +140,16 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTest {
 
         store.delete("id1");
         assertThat(store.findAll(QuerySpec.none())).isEmpty();
+    }
+
+    @Override
+    protected SqlTransferProcessStore getTransferProcessStore() {
+        return store;
+    }
+
+    @Override
+    protected LeaseUtil getLeaseUtil() {
+        return leaseUtil;
     }
 
     @Test

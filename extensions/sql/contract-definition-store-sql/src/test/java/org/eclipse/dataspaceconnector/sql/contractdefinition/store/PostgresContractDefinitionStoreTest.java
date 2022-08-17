@@ -65,6 +65,7 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTest {
     private Connection connection;
     private DataSourceRegistry dataSourceRegistry;
     private BaseSqlDialectStatements statements;
+    private SqlContractDefinitionStore sqlContractDefinitionStore;
 
     @BeforeAll
     static void prepare() {
@@ -216,4 +217,8 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTest {
     }
 
 
+    @Override
+    protected SqlContractDefinitionStore getSqlContractDefinitionStore() {
+        return sqlContractDefinitionStore;
+    }
 }

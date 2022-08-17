@@ -72,6 +72,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
     protected DataSourceRegistry dataSourceRegistry;
     protected Connection connection;
     private TransactionContext txManager;
+    private SqlPolicyDefinitionStore sqlPolicyStore;
 
     @BeforeAll
     static void prepare() {
@@ -250,6 +251,11 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
     @DisplayName("Delete a non existing policy")
     void deleteById_whenNonexistent() {
         assertThat(sqlPolicyStore.deleteById("nonexistent")).isNull();
+    }
+
+    @Override
+    protected SqlPolicyDefinitionStore getPolicyDefinitionStore() {
+        return sqlPolicyStore;
     }
 
     @Test
