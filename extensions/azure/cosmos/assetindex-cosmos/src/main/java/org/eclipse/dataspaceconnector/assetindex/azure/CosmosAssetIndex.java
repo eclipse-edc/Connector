@@ -19,17 +19,15 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
-import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
-import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -37,7 +35,7 @@ import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
 
-public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetLoader {
+public class CosmosAssetIndex implements AssetIndex {
 
     private final CosmosDbApi assetDb;
     private final String partitionKey;

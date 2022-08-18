@@ -21,8 +21,6 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -49,13 +47,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
-@Provides({ RemoteMessageDispatcherRegistry.class, AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class, FederatedCacheNodeDirectory.class })
+@Provides({ RemoteMessageDispatcherRegistry.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class, FederatedCacheNodeDirectory.class })
 public class FccTestExtension implements ServiceExtension {
 
     @Override
@@ -63,34 +60,9 @@ public class FccTestExtension implements ServiceExtension {
         List<Asset> assets = Collections.emptyList();
         context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());
         context.registerService(RemoteMessageDispatcherRegistry.class, new FakeRemoteMessageDispatcherRegistry());
-        context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
         context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
         context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
         context.registerService(FederatedCacheNodeDirectory.class, new InMemoryNodeDirectory());
-    }
-
-    private static class FakeAssetIndex implements AssetIndex {
-        private final List<Asset> assets;
-
-        private FakeAssetIndex(List<Asset> assets) {
-            this.assets = Objects.requireNonNull(assets);
-        }
-
-        @Override
-        public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-            return assets.stream();
-        }
-
-        @Override
-        public Stream<Asset> queryAssets(QuerySpec querySpec) {
-            throw new UnsupportedOperationException("Filtering/Paging not supported");
-        }
-
-        @Override
-        public Asset findById(String assetId) {
-            return assets.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
-        }
-
     }
 
     private static class FakeContractOfferService implements ContractOfferService {

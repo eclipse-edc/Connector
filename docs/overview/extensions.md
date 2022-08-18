@@ -11,7 +11,6 @@
 | :extensions:data-plane          | Covers the Data Plane Framework (DPF), which is the entity in charge of performing the actual data transfer between consumer and provider. |
 | :extensions:data-plane-selector |  |
 | :extensions:data-plane-transfer | Provides resources used to delegate data transfer to the Data Plane, or to use the Data Plane as a proxy for querying the data. |
-| :extensions:dataloading         |  |
 | :extensions:events              | Provides a way to register endpoints where the domain events will be sent as soon as they occur. |
 | :extensions:filesystem          |  |
 | :extensions:http                |  |
@@ -87,10 +86,6 @@
 | :data-plane-transfer-client |  | [link]({{extensions}}data-plane-transfer/data-plane-transfer-client) |
 | :data-plane-transfer-spi    |  | [link]({{extensions}}data-plane-transfer/data-plane-transfer-spi) |
 | :data-plane-transfer-sync   |  | [link]({{extensions}}data-plane-transfer/data-plane-transfer-sync) |
-
-## :extensions:dataloading
-
-No submodules
 
 ## :extensions:events
 

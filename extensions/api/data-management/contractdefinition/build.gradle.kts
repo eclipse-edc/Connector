@@ -24,11 +24,11 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":spi:common:auth-spi"))
     implementation(project(":extensions:api:data-management:api-configuration"))
-    implementation(project(":extensions:dataloading"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

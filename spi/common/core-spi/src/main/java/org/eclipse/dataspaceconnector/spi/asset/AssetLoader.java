@@ -12,17 +12,20 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.dataloading;
+package org.eclipse.dataspaceconnector.spi.asset;
 
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 
-public interface AssetLoader extends DataSink<AssetEntry> {
+public interface AssetLoader {
 
     default void accept(Asset asset, DataAddress dataAddress) {
         accept(new AssetEntry(asset, dataAddress));
     }
+
+    void accept(AssetEntry item);
 
     /**
      * Deletes an asset.

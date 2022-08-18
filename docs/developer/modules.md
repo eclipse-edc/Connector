@@ -6,7 +6,6 @@ org.eclipse.dataspaceconnector:common-util:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:aws-s3:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-transfer:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:dataloading:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:hashicorp-vault:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-provisioner:0.0.1-SNAPSHOT
@@ -15,7 +14,6 @@ org.eclipse.dataspaceconnector:jdk-logger-monitor:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:junit:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:core-micrometer:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:sql:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:dataloader-cli:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:module-domain:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:module-processor:0.0.1-SNAPSHOT

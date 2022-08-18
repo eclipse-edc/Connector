@@ -42,6 +42,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -103,7 +104,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
     }
 
-    private static class FakeAssetIndex implements AssetIndex, DataAddressResolver {
+    private static class FakeAssetIndex implements AssetIndex {
         private final List<Asset> assets;
 
         private FakeAssetIndex(List<Asset> assets) {
@@ -132,6 +133,16 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
                 return null;
             }
             return DataAddress.Builder.newInstance().type("test").build();
+        }
+
+        @Override
+        public Asset deleteById(String assetId) {
+            return null;
+        }
+
+        @Override
+        public void accept(AssetEntry item) {
+
         }
     }
 
@@ -219,6 +230,11 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public void reload() {
             throw new NotImplementedError();
+        }
+
+        @Override
+        public void accept(ContractDefinition item) {
+
         }
     }
 

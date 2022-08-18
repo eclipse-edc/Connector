@@ -25,8 +25,7 @@ import java.util.stream.Stream;
 /**
  * Persists {@link ContractDefinition}s.
  */
-public interface ContractDefinitionStore {
-
+public interface ContractDefinitionStore extends ContractDefinitionLoader {
 
     /**
      * Returns all the definitions in the store that are covered by a given {@link QuerySpec}.
@@ -71,5 +70,10 @@ public interface ContractDefinitionStore {
      * caching, this method will do nothing.
      */
     default void reload() {
+    }
+
+    @Override
+    default void accept(ContractDefinition item) {
+        this.save(item);
     }
 }

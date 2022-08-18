@@ -18,17 +18,15 @@ package org.eclipse.dataspaceconnector.sql.assetindex;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
-import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.AssetStatements;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,8 +44,7 @@ import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
-public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolver {
-
+public class SqlAssetIndex implements AssetIndex {
 
     private final ObjectMapper objectMapper;
     private final DataSourceRegistry dataSourceRegistry;

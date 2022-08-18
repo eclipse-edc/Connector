@@ -21,6 +21,7 @@ plugins {
 val openTelemetryVersion: String by project
 
 dependencies {
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
@@ -30,6 +31,4 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     implementation(project(":spi:data-plane:data-plane-spi"))
-
-    api(project(":extensions:dataloading"))
 }

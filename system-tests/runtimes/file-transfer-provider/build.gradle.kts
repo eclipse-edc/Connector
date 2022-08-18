@@ -32,8 +32,6 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    api(project(":extensions:dataloading"))
-
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
