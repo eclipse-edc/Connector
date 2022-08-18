@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspaceconnector.sql.policy.store;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -32,7 +31,6 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPolicy;
 
-@ComponentTest
 abstract class PolicyDefinitionStoreTest {
 
     @Test
