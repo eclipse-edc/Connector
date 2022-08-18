@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import dev.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.aws.testfixtures.annotations.AwsS3IntegrationTest;
@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -35,7 +34,6 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFileFromResourceName;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +48,8 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
     @BeforeEach
     void setup() {
         var retryPolicy = RetryPolicy.builder().withMaxRetries(3).withBackoff(200, 1000, ChronoUnit.MILLIS).build();
-        ClientProvider providerMock = mock(ClientProvider.class);
-        when(providerMock.clientFor(eq(S3AsyncClient.class), anyString())).thenReturn(client);
+        var providerMock = mock(AwsClientProvider.class);
+        when(providerMock.s3AsyncClient(anyString())).thenReturn(s3AsyncClient);
         checker = new S3StatusChecker(providerMock, retryPolicy);
     }
 

@@ -14,22 +14,25 @@
 
 package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
-import org.eclipse.dataspaceconnector.aws.s3.core.S3ClientProvider;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 import java.util.concurrent.Executors;
 
 public class DataPlaneS3Extension implements ServiceExtension {
 
     @Inject
-    PipelineService pipelineService;
+    private PipelineService pipelineService;
 
     @Inject
-    S3ClientProvider s3ClientProvider;
+    private AwsClientProvider awsClientProvider;
+
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -41,12 +44,11 @@ public class DataPlaneS3Extension implements ServiceExtension {
         var executorService = Executors.newFixedThreadPool(10); // TODO make configurable
 
         var monitor = context.getMonitor();
-        var credentialsProvider = DefaultCredentialsProvider.create();
 
-        var sourceFactory = new S3DataSourceFactory(s3ClientProvider, credentialsProvider);
+        var sourceFactory = new S3DataSourceFactory(awsClientProvider);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new S3DataSinkFactory(s3ClientProvider, executorService, monitor, credentialsProvider);
+        var sinkFactory = new S3DataSinkFactory(awsClientProvider, executorService, monitor, vault, context.getTypeManager());
         pipelineService.registerFactory(sinkFactory);
     }
 }

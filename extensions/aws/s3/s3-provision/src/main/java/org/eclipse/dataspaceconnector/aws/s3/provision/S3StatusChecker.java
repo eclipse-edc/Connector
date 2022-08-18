@@ -16,13 +16,12 @@ package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import dev.failsafe.Failsafe;
 import dev.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -33,10 +32,10 @@ import java.util.concurrent.CompletionException;
 import static java.lang.String.format;
 
 public class S3StatusChecker implements StatusChecker {
-    private final ClientProvider clientProvider;
+    private final AwsClientProvider clientProvider;
     private final RetryPolicy<Object> retryPolicy;
 
-    public S3StatusChecker(ClientProvider clientProvider, RetryPolicy<Object> retryPolicy) {
+    public S3StatusChecker(AwsClientProvider clientProvider, RetryPolicy<Object> retryPolicy) {
         this.clientProvider = clientProvider;
         this.retryPolicy = retryPolicy;
     }
@@ -74,7 +73,7 @@ public class S3StatusChecker implements StatusChecker {
 
     private boolean checkBucket(String bucketName, String region) {
         try {
-            var s3client = clientProvider.clientFor(S3AsyncClient.class, region);
+            var s3client = clientProvider.s3AsyncClient(region);
 
             var rq = ListObjectsRequest.builder().bucket(bucketName).build();
             var response = Failsafe.with(retryPolicy)

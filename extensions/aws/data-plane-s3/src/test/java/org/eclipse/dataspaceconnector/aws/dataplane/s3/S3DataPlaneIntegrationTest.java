@@ -17,15 +17,15 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
-import org.eclipse.dataspaceconnector.aws.testfixtures.TestS3ClientProvider;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
@@ -63,10 +63,8 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
     void shouldCopyFromSourceToSink() {
         putStringOnBucket(sourceBucketName, "key", faker.lorem().sentence());
 
-        var s3ClientProvider = new TestS3ClientProvider(getCredentials(), S3_ENDPOINT);
-
-        var sinkFactory = new S3DataSinkFactory(s3ClientProvider, Executors.newSingleThreadExecutor(), mock(Monitor.class), mock(AwsCredentialsProvider.class));
-        var sourceFactory = new S3DataSourceFactory(s3ClientProvider, mock(AwsCredentialsProvider.class));
+        var sinkFactory = new S3DataSinkFactory(clientProvider, Executors.newSingleThreadExecutor(), mock(Monitor.class), mock(Vault.class), new TypeManager());
+        var sourceFactory = new S3DataSourceFactory(clientProvider);
         var sourceAddress = DataAddress.Builder.newInstance()
                 .type(S3BucketSchema.TYPE)
                 .keyName("key")
@@ -97,7 +95,10 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
         assertThat(sink.transfer(source)).succeedsWithin(5, SECONDS);
         var getObjectRequest = GetObjectRequest.builder().bucket(destinationBucketName).key("key").build();
-        var response = client.getObject(getObjectRequest, new ByteArrayAsyncResponseTransformer<>());
+
+        var response = clientProvider.s3AsyncClient(REGION)
+                .getObject(getObjectRequest, new ByteArrayAsyncResponseTransformer<>());
+
         assertThat(response).succeedsWithin(10, SECONDS);
     }
 

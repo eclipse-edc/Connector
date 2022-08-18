@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.aws.testfixtures;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProviderConfiguration;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProviderImpl;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,7 +29,6 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -63,30 +65,32 @@ public abstract class AbstractS3Test {
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
     // (Should not be necessary if REGION remains static, but added to prevent future frustration.)
     // [see http://stackoverflow.com/questions/13898057/aws-error-message-a-conflicting-conditional-operation-is-currently-in-progress]
-    protected static final String S3_ENDPOINT = "http://localhost:9000";
+    protected static final URI S3_ENDPOINT = URI.create("http://localhost:9000");
     protected final UUID processId = UUID.randomUUID();
     protected String bucketName = createBucketName();
-    protected S3AsyncClient client;
+    protected S3AsyncClient s3AsyncClient;
+    private final AwsClientProviderConfiguration configuration = AwsClientProviderConfiguration.Builder.newInstance()
+            .credentialsProvider(this::getCredentials)
+            .endpointOverride(S3_ENDPOINT)
+            .build();
+    protected AwsClientProvider clientProvider = new AwsClientProviderImpl(configuration);
 
     @BeforeAll
     static void prepareAll() {
-        if (S3_ENDPOINT.contains("localhost")) { // only run this when localhost is used.
-            await().atLeast(Duration.ofSeconds(2))
-                    .atMost(Duration.ofSeconds(15))
-                    .with()
-                    .pollInterval(Duration.ofSeconds(2))
-                    .ignoreException(IOException.class) // thrown by pingMinio
-                    .ignoreException(ConnectException.class)
-                    .until(AbstractS3Test::pingMinio);
-        }
+        await().atLeast(Duration.ofSeconds(2))
+                .atMost(Duration.ofSeconds(15))
+                .with()
+                .pollInterval(Duration.ofSeconds(2))
+                .ignoreException(IOException.class) // thrown by pingMinio
+                .ignoreException(ConnectException.class)
+                .until(AbstractS3Test::pingMinio);
     }
 
     /**
-     * pings MinIO's health endpoint https://docs.min.io/minio/baremetal/monitoring/healthcheck-probe.html
+     * pings <a href="https://docs.min.io/minio/baremetal/monitoring/healthcheck-probe.html">MinIO's health endpoint</a>
      *
      * @return true if HTTP status [200..300[
      */
-
     private static boolean pingMinio() throws IOException {
         var httpClient = new OkHttpClient();
         var healthRq = new Request.Builder().url(S3_ENDPOINT + "/minio/health/live").get().build();
@@ -97,14 +101,7 @@ public abstract class AbstractS3Test {
 
     @BeforeEach
     public void setupClient() {
-        client = S3AsyncClient.builder()
-                .serviceConfiguration(S3Configuration.builder()
-                        .pathStyleAccessEnabled(true)
-                        .build())
-                .region(Region.of(REGION))
-                .credentialsProvider(this::getCredentials)
-                .endpointOverride(URI.create(S3_ENDPOINT))
-                .build();
+        s3AsyncClient = clientProvider.s3AsyncClient(REGION);
 
         createBucket(bucketName);
     }
@@ -124,7 +121,7 @@ public abstract class AbstractS3Test {
             fail("Bucket " + bucketName + " exists. Choose a different bucket name to continue test");
         }
 
-        client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build()).join();
+        s3AsyncClient.createBucket(CreateBucketRequest.builder().bucket(bucketName).build()).join();
 
         if (!bucketExists(bucketName)) {
             fail("Setup incomplete, tests will fail");
@@ -133,14 +130,14 @@ public abstract class AbstractS3Test {
 
     protected void deleteBucket(String bucketName) {
         try {
-            if (client == null) {
+            if (s3AsyncClient == null) {
                 return;
             }
 
             // Empty the bucket before deleting it, otherwise the AWS S3 API fails
             deleteBucketObjects(bucketName);
 
-            client.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build()).join();
+            s3AsyncClient.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build()).join();
         } catch (Exception e) {
             System.err.println("Unable to delete bucket " + bucketName + e);
         }
@@ -151,12 +148,12 @@ public abstract class AbstractS3Test {
     }
 
     protected CompletableFuture<PutObjectResponse> putTestFile(String key, File file, String bucketName) {
-        return client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), file.toPath());
+        return s3AsyncClient.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), file.toPath());
     }
 
     protected void putStringOnBucket(String bucketName, String key, String content) {
         var request = PutObjectRequest.builder().bucket(bucketName).key(key).build();
-        var response = client.putObject(request, AsyncRequestBody.fromString(content));
+        var response = s3AsyncClient.putObject(request, AsyncRequestBody.fromString(content));
         assertThat(response).succeedsWithin(10, TimeUnit.SECONDS);
     }
 
@@ -175,14 +172,14 @@ public abstract class AbstractS3Test {
     }
 
     private void deleteBucketObjects(String bucketName) {
-        var objectListing = client.listObjects(ListObjectsRequest.builder().bucket(bucketName).build()).join();
+        var objectListing = s3AsyncClient.listObjects(ListObjectsRequest.builder().bucket(bucketName).build()).join();
 
         CompletableFuture.allOf(objectListing.contents().stream()
-                .map(object -> client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(object.key()).build()))
+                .map(object -> s3AsyncClient.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(object.key()).build()))
                 .toArray(CompletableFuture[]::new)).join();
 
         for (var objectSummary : objectListing.contents()) {
-            client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build()).join();
+            s3AsyncClient.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build()).join();
         }
 
         if (objectListing.isTruncated()) {
@@ -193,7 +190,7 @@ public abstract class AbstractS3Test {
     private boolean bucketExists(String bucketName) {
         try {
             HeadBucketRequest request = HeadBucketRequest.builder().bucket(bucketName).build();
-            return client.headBucket(request).join()
+            return s3AsyncClient.headBucket(request).join()
                     .sdkHttpResponse()
                     .isSuccessful();
         } catch (CompletionException e) {

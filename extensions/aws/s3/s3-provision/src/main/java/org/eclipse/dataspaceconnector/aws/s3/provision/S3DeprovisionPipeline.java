@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import dev.failsafe.Failsafe;
 import dev.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
@@ -43,10 +43,10 @@ import static java.util.stream.Collectors.joining;
 public class S3DeprovisionPipeline {
 
     private final RetryPolicy<Object> retryPolicy;
-    private final ClientProvider clientProvider;
+    private final AwsClientProvider clientProvider;
     private final Monitor monitor;
 
-    public S3DeprovisionPipeline(RetryPolicy<Object> retryPolicy, ClientProvider clientProvider, Monitor monitor) {
+    public S3DeprovisionPipeline(RetryPolicy<Object> retryPolicy, AwsClientProvider clientProvider, Monitor monitor) {
         this.retryPolicy = retryPolicy;
         this.clientProvider = clientProvider;
         this.monitor = monitor;
@@ -56,8 +56,8 @@ public class S3DeprovisionPipeline {
      * Performs a non-blocking deprovisioning operation.
      */
     public CompletableFuture<?> deprovision(S3BucketProvisionedResource resource) {
-        var s3Client = clientProvider.clientFor(S3AsyncClient.class, resource.getRegion());
-        var iamClient = clientProvider.clientFor(IamAsyncClient.class, resource.getRegion());
+        var s3Client = clientProvider.s3AsyncClient(resource.getRegion());
+        var iamClient = clientProvider.iamAsyncClient();
 
         String bucketName = resource.getBucketName();
         String role = resource.getRole();
@@ -108,7 +108,7 @@ public class S3DeprovisionPipeline {
     static class Builder {
         private final RetryPolicy<Object> retryPolicy;
         private Monitor monitor;
-        private ClientProvider clientProvider;
+        private AwsClientProvider clientProvider;
 
         private Builder(RetryPolicy<Object> retryPolicy) {
             this.retryPolicy = retryPolicy;
@@ -123,7 +123,7 @@ public class S3DeprovisionPipeline {
             return this;
         }
 
-        public Builder clientProvider(ClientProvider clientProvider) {
+        public Builder clientProvider(AwsClientProvider clientProvider) {
             this.clientProvider = clientProvider;
             return this;
         }

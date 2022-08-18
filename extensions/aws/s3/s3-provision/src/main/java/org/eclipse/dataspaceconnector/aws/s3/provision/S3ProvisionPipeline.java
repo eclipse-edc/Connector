@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import dev.failsafe.Failsafe;
 import dev.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
@@ -25,7 +25,6 @@ import software.amazon.awssdk.services.iam.model.GetUserResponse;
 import software.amazon.awssdk.services.iam.model.PutRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iam.model.Tag;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
@@ -65,11 +64,11 @@ public class S3ProvisionPipeline {
             "}";
 
     private final RetryPolicy<Object> retryPolicy;
-    private final ClientProvider clientProvider;
+    private final AwsClientProvider clientProvider;
     private final Monitor monitor;
     private final int roleMaxSessionDuration;
 
-    private S3ProvisionPipeline(RetryPolicy<Object> retryPolicy, ClientProvider clientProvider,
+    private S3ProvisionPipeline(RetryPolicy<Object> retryPolicy, AwsClientProvider clientProvider,
                                 Monitor monitor, int roleMaxSessionDuration) {
         this.retryPolicy = retryPolicy;
         this.clientProvider = clientProvider;
@@ -81,9 +80,9 @@ public class S3ProvisionPipeline {
      * Performs a non-blocking provisioning operation.
      */
     public CompletableFuture<S3ProvisionResponse> provision(S3BucketResourceDefinition resourceDefinition) {
-        var s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, resourceDefinition.getRegionId());
-        var iamClient = clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId());
-        var stsClient = clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId());
+        var s3AsyncClient = clientProvider.s3AsyncClient(resourceDefinition.getRegionId());
+        var iamClient = clientProvider.iamAsyncClient();
+        var stsClient = clientProvider.stsAsyncClient(resourceDefinition.getRegionId());
 
         var request = CreateBucketRequest.builder()
                 .bucket(resourceDefinition.getBucketName())
@@ -155,7 +154,7 @@ public class S3ProvisionPipeline {
         private final RetryPolicy<Object> retryPolicy;
         private int roleMaxSessionDuration;
         private Monitor monitor;
-        private ClientProvider clientProvider;
+        private AwsClientProvider clientProvider;
 
         private Builder(RetryPolicy<Object> retryPolicy) {
             this.retryPolicy = retryPolicy;
@@ -175,7 +174,7 @@ public class S3ProvisionPipeline {
             return this;
         }
 
-        public Builder clientProvider(ClientProvider clientProvider) {
+        public Builder clientProvider(AwsClientProvider clientProvider) {
             this.clientProvider = clientProvider;
             return this;
         }

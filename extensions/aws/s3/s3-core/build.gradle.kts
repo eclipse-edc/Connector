@@ -21,7 +21,9 @@ val failsafeVersion: String by project
 
 
 dependencies {
-    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:control-plane:control-plane-spi")) // TODO: probably the scope could be narrowed down
+    api(project(":common:util"))
+
     api("dev.failsafe:failsafe:${failsafeVersion}")
 
     api("software.amazon.awssdk:sts:${awsVersion}")

@@ -31,8 +31,8 @@ class DataPlaneS3ExtensionTest {
     void shouldProvidePipelineServices(PipelineService pipelineService) {
         var request = DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(TestFunctions.validS3DataAddress())
-                .destinationDataAddress(TestFunctions.validS3DataAddress())
+                .sourceDataAddress(TestFunctions.s3DataAddressWithCredentials())
+                .destinationDataAddress(TestFunctions.s3DataAddressWithCredentials())
                 .build();
 
         var result = pipelineService.validate(request);
