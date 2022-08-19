@@ -47,13 +47,18 @@ public abstract class AbstractEndToEndTransfer {
     @Test
     void httpPullDataTransfer() {
         registerDataPlanes();
-        createResourcesOnProvider("asset-id", "HttpData", noConstraintPolicy());
+        var assetId = UUID.randomUUID().toString();
+        createResourcesOnProvider(assetId, "HttpData", noConstraintPolicy(), UUID.randomUUID().toString());
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-        assertThat(catalog.getContractOffers()).hasSize(1);
+        assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
 
-        var contractOffer = catalog.getContractOffers().get(0);
-        var assetId = contractOffer.getAsset().getId();
+        var contractOffer = catalog
+                .getContractOffers()
+                .stream()
+                .filter(o -> o.getAsset().getId().equals(assetId))
+                .findFirst()
+                .get();
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
 
@@ -81,16 +86,21 @@ public abstract class AbstractEndToEndTransfer {
     @Test
     void httpPullDataTransferProvisioner() {
         registerDataPlanes();
-        createResourcesOnProvider("asset-id", "HttpProvision", noConstraintPolicy());
+        var assetId = UUID.randomUUID().toString();
+        createResourcesOnProvider(assetId, "HttpProvision", noConstraintPolicy(), UUID.randomUUID().toString());
 
         await().atMost(timeout).untilAsserted(() -> {
             var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-            assertThat(catalog.getContractOffers()).hasSize(1);
+            assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
         });
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
 
-        var contractOffer = catalog.getContractOffers().get(0);
-        var assetId = contractOffer.getAsset().getId();
+        var contractOffer = catalog
+                .getContractOffers()
+                .stream()
+                .filter(o -> o.getAsset().getId().equals(assetId))
+                .findFirst()
+                .get();
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
 
@@ -111,13 +121,18 @@ public abstract class AbstractEndToEndTransfer {
     @Test
     void httpPushDataTransfer() {
         registerDataPlanes();
-        createResourcesOnProvider("asset-id", "HttpData", noConstraintPolicy());
+        var assetId = UUID.randomUUID().toString();
+        createResourcesOnProvider(assetId, "HttpData", noConstraintPolicy(), UUID.randomUUID().toString());
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-        assertThat(catalog.getContractOffers()).hasSize(1);
+        assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
 
-        var contractOffer = catalog.getContractOffers().get(0);
-        var assetId = contractOffer.getAsset().getId();
+        var contractOffer = catalog
+                .getContractOffers()
+                .stream()
+                .filter(o -> o.getAsset().getId().equals(assetId))
+                .findFirst()
+                .get();
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
 
@@ -147,16 +162,22 @@ public abstract class AbstractEndToEndTransfer {
     @Test
     void declinedContractRequestWhenPolicyIsNotEqualToTheOfferedOne() {
         registerDataPlanes();
-        createResourcesOnProvider("asset-id", "HttpData", singleConstraintPolicy());
+        var assetId = UUID.randomUUID().toString();
+        createResourcesOnProvider(assetId, "HttpData", singleConstraintPolicy(), UUID.randomUUID().toString());
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-        assertThat(catalog.getContractOffers()).hasSize(1);
+        assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
 
-        var contractOffer = catalog.getContractOffers().get(0);
+        var contractOffer = catalog
+                .getContractOffers()
+                .stream()
+                .filter(o -> o.getAsset().getId().equals(assetId))
+                .findFirst()
+                .get();
         contractOffer.getPolicy().getPermissions().get(0).getConstraints().remove(0);
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
 
-        await().untilAsserted(() -> {
+        await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getContractNegotiationState(negotiationId);
             assertThat(state).isEqualTo(DECLINED.name());
         });
@@ -167,12 +188,12 @@ public abstract class AbstractEndToEndTransfer {
         CONSUMER.registerDataPlane();
     }
 
-    private void createResourcesOnProvider(String assetId, String addressType, PolicyDefinition contractPolicy) {
+    private void createResourcesOnProvider(String assetId, String addressType, PolicyDefinition contractPolicy, String definitionId) {
         PROVIDER.createAsset(assetId, addressType);
         var accessPolicy = noConstraintPolicy();
         PROVIDER.createPolicy(accessPolicy);
         PROVIDER.createPolicy(contractPolicy);
-        PROVIDER.createContractDefinition(assetId, "definitionId", accessPolicy.getUid(), contractPolicy.getUid());
+        PROVIDER.createContractDefinition(assetId, definitionId, accessPolicy.getUid(), contractPolicy.getUid());
     }
 
     private DataAddress sync() {
