@@ -65,9 +65,9 @@ public class ExtensionLifecycleManager {
      * Scans the {@linkplain ServiceExtension} for methods annotated with {@linkplain org.eclipse.dataspaceconnector.spi.system.Provider}
      * with the {@link Provider#isDefault()} flag set to {@code false}, invokes them and registers the bean into the {@link ServiceExtensionContext} if necessary.
      */
-    public static StartPhase provide(RegistrationPhase phase) {
+    public static PreparePhase provide(RegistrationPhase phase) {
         phase.invokeProviderMethods();
-        return new StartPhase(phase);
+        return new PreparePhase(phase);
     }
 
     /**
@@ -78,6 +78,14 @@ public class ExtensionLifecycleManager {
     }
 
     /**
+     * invokes the {@link ServiceExtension#prepare()}.
+     */
+    public static StartPhase prepare(PreparePhase preparePhase) {
+        preparePhase.prepare();
+        return new StartPhase(preparePhase);
+    }
+
+    /**
      * Injects all dependencies into a {@link ServiceExtension}: those dependencies must be class members annotated with @Inject.
      * Kicks off the multi-phase initialization.
      */
@@ -85,5 +93,4 @@ public class ExtensionLifecycleManager {
         injector.inject(container, context);
         return new InitializePhase(injector, container, context, monitor);
     }
-
 }
