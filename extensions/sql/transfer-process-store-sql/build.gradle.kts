@@ -30,14 +30,8 @@ dependencies {
     implementation(project(":extensions:sql:common-sql"))
     implementation(project(":extensions:sql:lease-sql"))
 
-
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
-<<<<<<< HEAD
-    testImplementation(project(":core:base"))
-=======
-    testImplementation("com.h2database:h2:${h2Version}")
->>>>>>> 89c78f663 (Move contract and transfer core modules into control-plane)
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation(testFixtures(project(":common:util")))
