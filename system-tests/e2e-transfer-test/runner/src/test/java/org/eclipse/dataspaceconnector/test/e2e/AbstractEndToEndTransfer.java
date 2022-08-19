@@ -177,7 +177,7 @@ public abstract class AbstractEndToEndTransfer {
         contractOffer.getPolicy().getPermissions().get(0).getConstraints().remove(0);
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
 
-        await().untilAsserted(() -> {
+        await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getContractNegotiationState(negotiationId);
             assertThat(state).isEqualTo(DECLINED.name());
         });
