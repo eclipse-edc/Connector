@@ -83,7 +83,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("uid", is("id"));
+                .body("id", is("id"));
     }
 
     @Test

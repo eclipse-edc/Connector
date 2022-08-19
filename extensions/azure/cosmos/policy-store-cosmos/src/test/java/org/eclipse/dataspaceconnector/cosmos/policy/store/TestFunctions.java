@@ -28,7 +28,7 @@ public class TestFunctions {
     public static PolicyDefinition generatePolicy(String id) {
         return PolicyDefinition.Builder.newInstance()
                 .policy(Policy.Builder.newInstance().build())
-                .uid(id)
+                .id(id)
                 .build();
     }
 

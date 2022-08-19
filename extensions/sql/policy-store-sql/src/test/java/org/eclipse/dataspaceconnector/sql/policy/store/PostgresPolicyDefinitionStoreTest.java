@@ -148,13 +148,13 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                 .policy(Policy.Builder.newInstance()
                         .target("Target1")
                         .build())
-                .uid(id)
+                .id(id)
                 .build();
         var policy2 = PolicyDefinition.Builder.newInstance()
                 .policy(Policy.Builder.newInstance()
                         .target("Target2")
                         .build())
-                .uid(id)
+                .id(id)
                 .build();
         var spec = QuerySpec.Builder.newInstance().build();
 
@@ -267,7 +267,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -294,7 +294,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -311,7 +311,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -329,7 +329,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -356,7 +356,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -373,7 +373,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -391,7 +391,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
         sqlPolicyStore.save(createPolicy("another-policy"));
 
@@ -419,7 +419,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -436,7 +436,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                         .build())
                 .build();
 
-        var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
+        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
         sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
@@ -452,13 +452,13 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                 .assignee("test-assignee")
                 .build();
 
-        var policyDef1 = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p1).build();
+        var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p1).build();
         var p2 = createPolicyBuilder("test-policy")
                 .assigner("another-test-assigner")
                 .assignee("another-test-assignee")
                 .build();
 
-        var policyDef2 = PolicyDefinition.Builder.newInstance().uid("test-policy2").policy(p2).build();
+        var policyDef2 = PolicyDefinition.Builder.newInstance().id("test-policy2").policy(p2).build();
         sqlPolicyStore.save(policyDef1);
         sqlPolicyStore.save(policyDef2);
 
@@ -476,7 +476,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                 .assignee("test-assignee")
                 .build();
 
-        var policyDef1 = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(policy).build();
+        var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy").policy(policy).build();
         sqlPolicyStore.save(policyDef1);
 
         // query by prohibition assignee
@@ -492,7 +492,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                 .assignee("test-assignee")
                 .build();
 
-        var policyDef1 = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(policy).build();
+        var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy").policy(policy).build();
         sqlPolicyStore.save(policyDef1);
 
         // query by prohibition assignee

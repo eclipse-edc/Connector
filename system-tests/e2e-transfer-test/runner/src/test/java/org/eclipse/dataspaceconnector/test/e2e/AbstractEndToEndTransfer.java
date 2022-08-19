@@ -39,7 +39,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 
 public abstract class AbstractEndToEndTransfer {
 
-    protected final Duration timeout = Duration.ofSeconds(30);
+    protected final Duration timeout = Duration.ofSeconds(60);
 
     protected static final Participant CONSUMER = new Participant("consumer");
     protected static final Participant PROVIDER = new Participant("provider");

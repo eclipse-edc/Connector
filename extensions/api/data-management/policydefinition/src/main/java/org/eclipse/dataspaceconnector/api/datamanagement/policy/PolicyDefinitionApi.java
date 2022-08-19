@@ -22,9 +22,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 
 import java.util.List;
 
@@ -34,23 +35,23 @@ public interface PolicyDefinitionApi {
 
     @Operation(description = "Returns all policy definitions according to a query",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinition.class)))),
+                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<PolicyDefinition> getAllPolicies(@Valid QuerySpecDto querySpecDto);
+    List<PolicyDefinitionResponseDto> getAllPolicies(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The  policy definition",
-                            content = @Content(schema = @Schema(implementation = PolicyDefinition.class))),
+                            content = @Content(schema = @Schema(implementation = PolicyDefinitionResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An  policy definition with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    PolicyDefinition getPolicy(String id);
+    PolicyDefinitionResponseDto getPolicy(String id);
 
     @Operation(description = "Creates a new policy definition",
             responses = {
@@ -60,7 +61,7 @@ public interface PolicyDefinitionApi {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    void createPolicy(PolicyDefinition policy);
+    void createPolicy(PolicyDefinitionRequestDto policy);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
             "by a contract definition, in which case an error is returned. " +

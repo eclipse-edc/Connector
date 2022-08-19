@@ -175,7 +175,7 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
                 }))
                 .build();
         return PolicyDefinition.Builder.newInstance()
-                .uid(resultSet.getString(statements.getPolicyIdColumn()))
+                .id(resultSet.getString(statements.getPolicyIdColumn()))
                 .policy(policy)
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .build();

@@ -288,7 +288,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
                                         .build())
                                 .build())
                         .build())
-                .uid(policy.getUid())
+                .id(policy.getUid())
                 .build();
 
         store.save(modifiedPolicy);

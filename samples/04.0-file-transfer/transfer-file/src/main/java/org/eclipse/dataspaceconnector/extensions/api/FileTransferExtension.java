@@ -73,7 +73,7 @@ public class FileTransferExtension implements ServiceExtension {
                 .build();
 
         return PolicyDefinition.Builder.newInstance()
-                .uid(USE_POLICY)
+                .id(USE_POLICY)
                 .policy(Policy.Builder.newInstance()
                         .permission(usePermission)
                         .build())

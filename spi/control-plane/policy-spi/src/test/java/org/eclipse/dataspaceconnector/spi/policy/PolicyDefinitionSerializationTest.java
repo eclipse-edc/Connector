@@ -35,7 +35,7 @@ class PolicyDefinitionSerializationTest {
     @Test
     void verifySerialization() {
         var policyDef = PolicyDefinition.Builder.newInstance()
-                .uid("test-policy-id")
+                .id("test-policy-id")
                 .createdAt(12345L)
                 .policy(createPolicy())
                 .build();

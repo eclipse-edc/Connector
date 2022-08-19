@@ -52,13 +52,13 @@ abstract class PolicyDefinitionStoreTest {
                 .policy(Policy.Builder.newInstance()
                         .target("Target1")
                         .build())
-                .uid(id)
+                .id(id)
                 .build();
         var policy2 = PolicyDefinition.Builder.newInstance()
                 .policy(Policy.Builder.newInstance()
                         .target("Target2")
                         .build())
-                .uid(id)
+                .id(id)
                 .build();
         var spec = QuerySpec.Builder.newInstance().build();
 

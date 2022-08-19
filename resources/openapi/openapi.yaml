@@ -1055,7 +1055,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PolicyDefinition'
+                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
         "400":
           description: Request was malformed
           content:
@@ -1073,7 +1073,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinition'
+              $ref: '#/components/schemas/PolicyDefinitionRequestDto'
       responses:
         "200":
           description: policy definition was created successfully
@@ -1114,7 +1114,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinition'
+                $ref: '#/components/schemas/PolicyDefinitionResponseDto'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1964,7 +1964,18 @@ components:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
-    PolicyDefinition:
+    PolicyDefinitionRequestDto:
+      required:
+      - policy
+      type: object
+      properties:
+        id:
+          type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
+    PolicyDefinitionResponseDto:
+      required:
+      - policy
       type: object
       properties:
         createdAt:
@@ -1974,8 +1985,6 @@ components:
           type: string
         policy:
           $ref: '#/components/schemas/Policy'
-        uid:
-          type: string
     Prohibition:
       type: object
       properties:

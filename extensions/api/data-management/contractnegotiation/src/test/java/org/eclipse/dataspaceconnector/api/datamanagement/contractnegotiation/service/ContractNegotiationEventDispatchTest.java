@@ -113,7 +113,7 @@ public class ContractNegotiationEventDispatchTest {
         eventRouter.register(eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
         contractDefinitionStore.save(ContractDefinition.Builder.newInstance().id("contractDefinitionId").contractPolicyId("policyId").accessPolicyId("policyId").selectorExpression(AssetSelectorExpression.SELECT_ALL).build());
-        policyDefinitionStore.save(PolicyDefinition.Builder.newInstance().uid("policyId").policy(policy).build());
+        policyDefinitionStore.save(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         ((AssetLoader) assetIndex).accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
         manager.requested(token, createContractOfferRequest(policy));
