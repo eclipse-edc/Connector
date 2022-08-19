@@ -18,7 +18,6 @@ plugins {
 
 val assertj: String by project
 val awaitility: String by project
-val datafaker: String by project
 val jupiterVersion: String by project
 val httpMockServer: String by project
 val restAssured: String by project
@@ -31,7 +30,6 @@ dependencies {
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
-    testImplementation("net.datafaker:datafaker:${datafaker}")
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))

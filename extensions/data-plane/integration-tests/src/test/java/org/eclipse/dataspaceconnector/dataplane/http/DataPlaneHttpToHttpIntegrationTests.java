@@ -14,18 +14,17 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-import net.datafaker.Faker;
 import org.apache.http.HttpStatus;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterAll;
@@ -34,7 +33,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.Header;
 import org.mockserver.model.HttpError;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -47,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
@@ -74,9 +73,6 @@ import static org.mockserver.stop.Stop.stopQuietly;
 @ComponentTest
 public class DataPlaneHttpToHttpIntegrationTests {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final Faker FAKER = new Faker();
-
     private static final int DPF_PUBLIC_API_PORT = getFreePort();
     private static final int DPF_CONTROL_API_PORT = getFreePort();
     private static final int DPF_HTTP_SOURCE_API_PORT = getFreePort();
@@ -88,15 +84,14 @@ public class DataPlaneHttpToHttpIntegrationTests {
     private static final String TRANSFER_PATH = format("%s/transfer", CONTROL_PATH);
     private static final String TRANSFER_RESULT_PATH = format("%s/transfer/{processId}", CONTROL_PATH);
     private static final String PROCESS_ID = "processId";
-    private static final String EDC_TYPE = "edctype";
-    private static final String DATA_FLOW_REQUEST_EDC_TYPE = "dataspaceconnector:dataflowrequest";
 
     private static final String DPF_HTTP_API_PATH = "sample";
     private static final String PROXY_PATH_TOGGLE = "true";
     private static final String PROXY_QUERY_PARAMS_TOGGLE = "true";
     private static final String AUTH_HEADER_KEY = HttpHeaderNames.AUTHORIZATION.toString();
-    private static final String SOURCE_AUTH_VALUE = FAKER.lorem().word();
-    private static final String SINK_AUTH_VALUE = FAKER.lorem().word();
+    private static final String SOURCE_AUTH_VALUE = "source-auth-key";
+    private static final String SINK_AUTH_VALUE = "sink-auth-key";
+
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":launchers:data-plane-server",
@@ -105,27 +100,22 @@ public class DataPlaneHttpToHttpIntegrationTests {
                     "web.http.public.port", valueOf(DPF_PUBLIC_API_PORT),
                     "web.http.control.port", valueOf(DPF_CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH,
-                    "edc.dataplane.token.validation.endpoint", FAKER.internet().url() // not used
+                    "edc.dataplane.token.validation.endpoint", "http://not.used/endpoint"
             ));
-    /**
-     * HTTP Source mock server.
-     */
-    private static ClientAndServer httpSourceClientAndServer;
-    /**
-     * HTTP Sink mock server.
-     */
-    private static ClientAndServer httpSinkClientAndServer;
+
+    private static ClientAndServer httpSourceMockServer;
+    private static ClientAndServer httpSinkMockServer;
 
     @BeforeAll
     public static void setUp() {
-        httpSourceClientAndServer = startClientAndServer(DPF_HTTP_SOURCE_API_PORT);
-        httpSinkClientAndServer = startClientAndServer(DPF_HTTP_SINK_API_PORT);
+        httpSourceMockServer = startClientAndServer(DPF_HTTP_SOURCE_API_PORT);
+        httpSinkMockServer = startClientAndServer(DPF_HTTP_SINK_API_PORT);
     }
 
     @AfterAll
     public static void tearDown() {
-        stopQuietly(httpSourceClientAndServer);
-        stopQuietly(httpSinkClientAndServer);
+        stopQuietly(httpSourceMockServer);
+        stopQuietly(httpSinkMockServer);
     }
 
     /**
@@ -133,25 +123,24 @@ public class DataPlaneHttpToHttpIntegrationTests {
      */
     @AfterEach
     public void resetMockServer() {
-        httpSourceClientAndServer.reset();
-        httpSinkClientAndServer.reset();
+        httpSourceMockServer.reset();
+        httpSinkMockServer.reset();
     }
 
     @Test
-    void transfer_success() {
-        // Arrange
-        var body = FAKER.internet().uuid();
-        var processId = FAKER.internet().uuid();
-        httpSourceClientAndServer.when(getRequest(), once())
-                .respond(withResponse(HttpStatusCode.OK_200, body));
+    void transfer_success(TypeManager typeManager) {
+        var body = UUID.randomUUID().toString();
+        var processId = UUID.randomUUID().toString();
+        httpSourceMockServer.when(getRequest(), once())
+                .respond(successfulResponse(body));
 
         // HTTP Sink Request & Response
-        httpSinkClientAndServer.when(postRequest(body), once())
-                .respond(withResponse());
+        httpSinkMockServer.when(postRequest(body), once())
+                .respond(successfulResponse());
 
         // Act & Assert
         // Initiate transfer
-        initiateTransfer(transferRequestPayload(processId));
+        initiateTransfer(transferRequestPayload(processId, typeManager));
 
         // Wait for transfer to be completed.
         await().atMost(30, SECONDS).untilAsserted(() ->
@@ -159,38 +148,37 @@ public class DataPlaneHttpToHttpIntegrationTests {
         );
 
         // Verify HTTP Source server called exactly once.
-        httpSourceClientAndServer.verify(
+        httpSourceMockServer.verify(
                 getRequest(),
                 VerificationTimes.once()
         );
         // Verify HTTP Sink server called exactly once.
-        httpSinkClientAndServer.verify(
+        httpSinkMockServer.verify(
                 postRequest(body),
                 VerificationTimes.once()
         );
     }
 
     @Test
-    void transfer_WithSourceQueryParams_Success() {
-        // Arrange
+    void transfer_WithSourceQueryParams_Success(TypeManager typeManager) {
         // HTTP Source Request & Response
-        var body = FAKER.internet().uuid();
-        var processId = FAKER.internet().uuid();
+        var body = UUID.randomUUID().toString();
+        var processId = UUID.randomUUID().toString();
         var queryParams = Map.of(
-                FAKER.lorem().word(), FAKER.internet().url(),
-                FAKER.lorem().word(), FAKER.lorem().word()
+                "param1", "any value",
+                "param2", "any other value"
         );
 
-        httpSourceClientAndServer.when(getRequest(queryParams), once())
-                .respond(withResponse(HttpStatusCode.OK_200, body));
+        httpSourceMockServer.when(getRequest(queryParams), once())
+                .respond(successfulResponse(body));
 
         // HTTP Sink Request & Response
-        httpSinkClientAndServer.when(postRequest(body), once())
-                .respond(withResponse());
+        httpSinkMockServer.when(postRequest(body), once())
+                .respond(successfulResponse());
 
         // Act & Assert
         // Initiate transfer
-        initiateTransfer(transferRequestPayload(processId, queryParams));
+        initiateTransfer(transferRequestPayload(processId, queryParams, typeManager));
 
         // Wait for transfer to be completed.
         await().atMost(30, SECONDS).untilAsserted(() ->
@@ -198,12 +186,12 @@ public class DataPlaneHttpToHttpIntegrationTests {
         );
 
         // Verify HTTP Source server called exactly once.
-        httpSourceClientAndServer.verify(
+        httpSourceMockServer.verify(
                 getRequest(),
                 VerificationTimes.once()
         );
         // Verify HTTP Sink server called exactly once.
-        httpSinkClientAndServer.verify(
+        httpSinkMockServer.verify(
                 postRequest(body),
                 VerificationTimes.once()
         );
@@ -213,11 +201,10 @@ public class DataPlaneHttpToHttpIntegrationTests {
      * Verify DPF transfer api layer validation is working as expected.
      */
     @Test
-    void transfer_invalidInput_failure() {
-        // Arrange
+    void transfer_invalidInput_failure(TypeManager typeManager) {
         // Request without processId to initiate transfer.
-        var processId = FAKER.internet().uuid();
-        var invalidRequest = transferRequestPayload(processId).remove("processId");
+        var processId = UUID.randomUUID().toString();
+        var invalidRequest = transferRequestPayload(processId, typeManager).remove("processId");
 
         // Act & Assert
         // Initiate transfer
@@ -231,64 +218,62 @@ public class DataPlaneHttpToHttpIntegrationTests {
     }
 
     @Test
-    void transfer_sourceNotAvailable_noInteractionWithSink() {
-        // Arrange
-        var processId = FAKER.internet().uuid();
+    void transfer_sourceNotAvailable_noInteractionWithSink(TypeManager typeManager) {
+        var processId = UUID.randomUUID().toString();
         // HTTP Source Request & Error Response
-        httpSourceClientAndServer.when(getRequest())
+        httpSourceMockServer.when(getRequest())
                 .error(withDropConnection());
 
         // Initiate transfer
-        initiateTransfer(transferRequestPayload(processId));
+        initiateTransfer(transferRequestPayload(processId, typeManager));
 
         // Wait for transfer to be completed.
         await().atMost(30, SECONDS).untilAsserted(() ->
                 fetchTransferState(processId)
         );
         // Verify HTTP Source server called at lest once.
-        httpSourceClientAndServer.verify(
+        httpSourceMockServer.verify(
                 getRequest(),
                 VerificationTimes.atLeast(1)
         );
         // Verify zero interaction with HTTP Sink.
-        httpSinkClientAndServer.verifyZeroInteractions();
+        httpSinkMockServer.verifyZeroInteractions();
     }
 
     /**
      * Validate if intermittently source is dropping connection than DPF server retries to fetch data.
      */
     @Test
-    void transfer_sourceTemporaryDropConnection_success() {
-        // Arrange
-        var processId = FAKER.internet().uuid();
+    void transfer_sourceTemporaryDropConnection_success(TypeManager typeManager) {
+        var processId = UUID.randomUUID().toString();
         // First two calls to HTTP Source returns a failure response.
-        httpSourceClientAndServer.when(getRequest(), exactly(2))
+        httpSourceMockServer.when(getRequest(), exactly(2))
                 .error(withDropConnection());
 
         // Next call to HTTP Source returns a valid response.
-        var body = FAKER.internet().uuid();
-        httpSourceClientAndServer.when(getRequest(), once())
-                .respond(withResponse(HttpStatusCode.OK_200, body));
+        var body = UUID.randomUUID().toString();
+        httpSourceMockServer.when(getRequest(), once())
+                .respond(successfulResponse(body));
 
         // HTTP Sink Request & Response
-        httpSinkClientAndServer.when(postRequest(body), once())
-                .respond(withResponse());
+        httpSinkMockServer.when(postRequest(body), once())
+                .respond(successfulResponse());
 
         // Act & Assert
         // Initiate transfer
-        initiateTransfer(transferRequestPayload(processId));
+        initiateTransfer(transferRequestPayload(processId, typeManager));
 
         // Wait for transfer to be completed.
         await().atMost(30, SECONDS).untilAsserted(() ->
                 fetchTransferState(processId)
         );
         // Verify HTTP Source server called exactly 3 times.
-        httpSourceClientAndServer.verify(
+        httpSourceMockServer.verify(
                 getRequest(),
                 VerificationTimes.exactly(3)
         );
         // Verify HTTP Sink server called exactly once.
-        httpSinkClientAndServer.verify(
+        httpSinkMockServer.verify(
                 postRequest(body),
                 VerificationTimes.once()
         );
@@ -298,24 +283,24 @@ public class DataPlaneHttpToHttpIntegrationTests {
      * Validate if intermittently sink is dropping connection than DPF server doesn't retry to deliver data.
      */
     @Test
-    void transfer_sinkTemporaryDropsConnection_noRetry() {
+    void transfer_sinkTemporaryDropsConnection_noRetry(TypeManager typeManager) {
         // Arrange
         // HTTP Source Request & Response
-        var body = FAKER.internet().uuid();
-        var processId = FAKER.internet().uuid();
-        httpSourceClientAndServer.when(getRequest(), once())
-                .respond(withResponse(HttpStatusCode.OK_200, body));
+        var body = UUID.randomUUID().toString();
+        var processId = UUID.randomUUID().toString();
+        httpSourceMockServer.when(getRequest(), once())
+                .respond(successfulResponse(body));
 
         // First two calls to HTTP sink drops the connection.
-        httpSinkClientAndServer.when(postRequest(body), exactly(2))
+        httpSinkMockServer.when(postRequest(body), exactly(2))
                 .error(withDropConnection());
         // Next call to HTTP sink returns a valid response.
-        httpSinkClientAndServer.when(postRequest(body), once())
-                .respond(withResponse());
+        httpSinkMockServer.when(postRequest(body), once())
+                .respond(successfulResponse());
 
         // Act & Assert
         // Initiate transfer
-        initiateTransfer(transferRequestPayload(processId));
+        initiateTransfer(transferRequestPayload(processId, typeManager));
 
         // Wait for transfer to be completed.
         await().atMost(30, SECONDS).untilAsserted(() ->
@@ -323,14 +308,14 @@ public class DataPlaneHttpToHttpIntegrationTests {
         );
 
         // Verify HTTP Source server called exactly once.
-        httpSourceClientAndServer.verify(
+        httpSourceMockServer.verify(
                 getRequest(),
                 VerificationTimes.once()
         );
 
         // Verify HTTP Sink server called exactly twice.
         // One extra call to sink is done because internally okhttp client by default retires on connection failure.
-        httpSinkClientAndServer.verify(
+        httpSinkMockServer.verify(
                 postRequest(body),
                 VerificationTimes.exactly(2)
         );
@@ -342,8 +327,8 @@ public class DataPlaneHttpToHttpIntegrationTests {
      * @param processId ProcessID of transfer.See {@link DataFlowRequest}
      * @return JSON object. see {@link ObjectNode}.
      */
-    private ObjectNode transferRequestPayload(String processId) {
-        return transferRequestPayload(processId, Collections.emptyMap());
+    private ObjectNode transferRequestPayload(String processId, TypeManager typeManager) {
+        return transferRequestPayload(processId, Collections.emptyMap(), typeManager);
     }
 
     /**
@@ -353,7 +338,7 @@ public class DataPlaneHttpToHttpIntegrationTests {
      * @param queryParams Query params name and value as key-value entries.
      * @return JSON object. see {@link ObjectNode}.
      */
-    private ObjectNode transferRequestPayload(String processId, Map<String, String> queryParams) {
+    private ObjectNode transferRequestPayload(String processId, Map<String, String> queryParams, TypeManager typeManager) {
         var requestProperties = new HashMap<String, String>();
         requestProperties.put(DataFlowRequestSchema.METHOD, HttpMethod.GET.name());
         requestProperties.put(DataFlowRequestSchema.PATH, DPF_HTTP_API_PATH);
@@ -384,11 +369,7 @@ public class DataPlaneHttpToHttpIntegrationTests {
                 .processId(processId)
                 .build();
 
-        // Add edctype to request
-        var requestJsonNode = OBJECT_MAPPER.convertValue(request, ObjectNode.class);
-        requestJsonNode.put(EDC_TYPE, DATA_FLOW_REQUEST_EDC_TYPE);
-
-        return requestJsonNode;
+        return typeManager.getMapper().convertValue(request, ObjectNode.class);
     }
 
     /**
@@ -446,7 +427,6 @@ public class DataPlaneHttpToHttpIntegrationTests {
      * @return see {@link HttpRequest}
      */
     private HttpRequest getRequest(Map<String, String> queryParams) {
-
         var request = request();
 
         var paramsList = queryParams.entrySet()
@@ -471,11 +451,8 @@ public class DataPlaneHttpToHttpIntegrationTests {
     private HttpRequest postRequest(String responseBody) {
         return request()
                 .withMethod(HttpMethod.POST.name())
-                .withHeaders(
-                        new Header(HttpHeaderNames.CONTENT_TYPE.toString(),
-                                MediaType.APPLICATION_OCTET_STREAM.toString()),
-                        new Header(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
-                )
+                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.APPLICATION_OCTET_STREAM.toString())
+                .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
                 .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -484,30 +461,21 @@ public class DataPlaneHttpToHttpIntegrationTests {
      *
      * @return see {@link HttpResponse}
      */
-    private HttpResponse withResponse() {
-        return withResponse(HttpStatusCode.OK_200, null);
+    private HttpResponse successfulResponse() {
+        return response()
+                .withStatusCode(HttpStatusCode.OK_200.code());
     }
 
     /**
      * Mock plain text response from source.
      *
-     * @param statusCode   Response status code.
      * @param responseBody Response body.
      * @return see {@link HttpResponse}
      */
-    private HttpResponse withResponse(HttpStatusCode statusCode, String responseBody) {
-        var response = response()
-                .withStatusCode(statusCode.code());
-
-        if (responseBody != null) {
-            response.withHeader(
-                            new Header(HttpHeaderNames.CONTENT_TYPE.toString(),
-                                    MediaType.PLAIN_TEXT_UTF_8.toString())
-                    )
-                    .withBody(responseBody);
-        }
-
-        return response;
+    private HttpResponse successfulResponse(String responseBody) {
+        return successfulResponse()
+                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.PLAIN_TEXT_UTF_8.toString())
+                .withBody(responseBody);
     }
 
     /**
