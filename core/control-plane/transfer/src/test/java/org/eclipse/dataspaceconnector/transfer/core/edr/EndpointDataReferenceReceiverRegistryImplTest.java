@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.edr;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiver;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
@@ -34,7 +33,6 @@ import static org.mockito.Mockito.when;
 
 class EndpointDataReferenceReceiverRegistryImplTest {
 
-    private static final Faker FAKER = new Faker();
 
     private EndpointDataReferenceReceiver receiver1;
     private EndpointDataReferenceReceiver receiver2;
@@ -67,7 +65,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
     @Test
     void receiveAll_failsBecauseReceiverReturnsFailedResult_shouldReturnFailedResult() {
         var edr = createEndpointDataReference();
-        var errorMsg = FAKER.lorem().sentence();
+        var errorMsg = "Test error message";
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
         when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.failure(errorMsg)));
@@ -86,7 +84,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
     @Test
     void receiveAll_failsBecauseReceiverThrows_shouldReturnFailedResult() {
         var edr = createEndpointDataReference();
-        var errorMsg = FAKER.lorem().sentence();
+        var errorMsg = "Test error message";
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
         when(receiver2.send(any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException(errorMsg)));

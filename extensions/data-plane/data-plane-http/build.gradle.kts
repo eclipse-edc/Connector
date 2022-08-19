@@ -12,7 +12,6 @@
  *
  */
 
-val datafaker: String by project
 val failsafeVersion: String by project
 val httpMockServer: String by project
 val okHttpVersion: String by project
@@ -35,7 +34,6 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testFixturesImplementation("net.datafaker:datafaker:${datafaker}")
 }
 
 publishing {

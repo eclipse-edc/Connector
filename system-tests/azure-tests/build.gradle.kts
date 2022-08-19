@@ -20,7 +20,6 @@ plugins {
 }
 
 val assertj: String by project
-val datafaker: String by project
 val gatlingVersion: String by project
 val restAssured: String by project
 val storageBlobVersion: String by project
@@ -46,7 +45,6 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":system-tests:tests")))
     testFixturesImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testFixturesImplementation("org.assertj:assertj-core:${assertj}")
-    testFixturesImplementation("net.datafaker:datafaker:${datafaker}")
     testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
     testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
 

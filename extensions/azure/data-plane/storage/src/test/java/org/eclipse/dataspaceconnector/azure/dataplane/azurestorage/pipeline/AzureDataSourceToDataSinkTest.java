@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import dev.failsafe.RetryPolicy;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
@@ -26,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,20 +42,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AzureDataSourceToDataSinkTest {
-    static Faker faker = new Faker();
-    ExecutorService executor = Executors.newFixedThreadPool(2);
-    Monitor monitor = mock(Monitor.class);
-    FakeBlobAdapter fakeSource = new FakeBlobAdapter();
-    FakeBlobAdapter fakeSink = new FakeBlobAdapter();
-    FakeBlobAdapter fakeCompletionMarker = new FakeBlobAdapter();
-    String sourceAccountName = AzureStorageTestFixtures.createAccountName();
-    String sourceContainerName = AzureStorageTestFixtures.createContainerName();
-    String sourceSharedKey = AzureStorageTestFixtures.createSharedKey();
-    String sinkAccountName = AzureStorageTestFixtures.createAccountName();
-    String sinkContainerName = AzureStorageTestFixtures.createContainerName();
-    String sinkSharedAccessSignature = AzureStorageTestFixtures.createSharedAccessSignature();
-    String requestId = UUID.randomUUID().toString();
-    String errorMessage = faker.lorem().sentence();
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private final Monitor monitor = mock(Monitor.class);
+    private final FakeBlobAdapter fakeSource = new FakeBlobAdapter();
+    private final FakeBlobAdapter fakeSink = new FakeBlobAdapter();
+    private final FakeBlobAdapter fakeCompletionMarker = new FakeBlobAdapter();
+    private final String sourceAccountName = AzureStorageTestFixtures.createAccountName();
+    private final String sourceContainerName = AzureStorageTestFixtures.createContainerName();
+    private final String sourceSharedKey = AzureStorageTestFixtures.createSharedKey();
+    private final String sinkAccountName = AzureStorageTestFixtures.createAccountName();
+    private final String sinkContainerName = AzureStorageTestFixtures.createContainerName();
+    private final String sinkSharedAccessSignature = AzureStorageTestFixtures.createSharedAccessSignature();
+    private final String requestId = UUID.randomUUID().toString();
 
     /**
      * Verifies a sink is able to pull data from the source without exceptions if both endpoints are functioning.
@@ -120,6 +118,7 @@ class AzureDataSourceToDataSinkTest {
         // simulate source error
         var blobAdapter = mock(BlobAdapter.class);
         when(blobAdapter.getBlobName()).thenReturn(fakeSource.name);
+        String errorMessage = "Test error message";
         when(blobAdapter.openInputStream()).thenThrow(new RuntimeException(errorMessage));
         var fakeSourceFactory = mock(BlobStoreApi.class);
         when(fakeSourceFactory.getBlobAdapter(
@@ -209,11 +208,11 @@ class AzureDataSourceToDataSinkTest {
         assertThat(dataSink.transfer(dataSource).get().failed()).isTrue();
     }
 
-    static class FakeBlobAdapter implements BlobAdapter {
-        final String name = faker.lorem().characters();
-        final String content = faker.lorem().sentence();
-        final long length = faker.random().nextLong(1_000_000_000_000_000L);
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    private static class FakeBlobAdapter implements BlobAdapter {
+        private final String name = "test-name";
+        private final String content = "test-content";
+        private final long length = new Random().nextLong();
+        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         @Override
         public OutputStream getOutputStream() {

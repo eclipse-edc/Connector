@@ -14,18 +14,22 @@
 
 package org.eclipse.dataspaceconnector.azure.blob.core;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
+import java.time.Instant;
+import java.util.UUID;
+
 public class AzureStorageTestFixtures {
 
-    private static final Faker FAKER = new Faker();
+
+    private AzureStorageTestFixtures() {
+    }
 
     public static DataFlowRequest.Builder createRequest(String type) {
         return DataFlowRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .processId(FAKER.internet().uuid())
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(createDataAddress(type).build())
                 .destinationDataAddress(createDataAddress(type).build());
     }
@@ -35,26 +39,23 @@ public class AzureStorageTestFixtures {
     }
 
     public static String createAccountName() {
-        return FAKER.lorem().characters(3, 24, false, false);
+        return ("acct" + Instant.now().getEpochSecond()); // UUID would be too long
     }
 
     public static String createContainerName() {
-        return FAKER.lorem().characters(3, 40, false, false);
+        return ("cont-" + UUID.randomUUID()).toLowerCase();
     }
 
     public static String createBlobName() {
-        return FAKER.lorem().characters(3, 40, false, false);
+        return "blob-" + UUID.randomUUID();
     }
 
     public static String createSharedKey() {
-        return FAKER.lorem().characters();
+        return "SK-" + UUID.randomUUID();
     }
 
     public static String createSharedAccessSignature() {
-        return FAKER.lorem().characters();
-    }
-
-    private AzureStorageTestFixtures() {
+        return "SAS-" + UUID.randomUUID();
     }
 
 }

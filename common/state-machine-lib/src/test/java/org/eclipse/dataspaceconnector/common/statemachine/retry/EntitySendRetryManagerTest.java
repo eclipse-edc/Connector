@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.common.statemachine.retry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
@@ -28,6 +27,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Clock;
+import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -39,11 +39,10 @@ import static org.mockito.Mockito.when;
 
 class EntitySendRetryManagerTest {
 
-    private final Faker faker = new Faker();
-
+    private static final Random RANDOM = new Random();
     private final Monitor monitor = mock(Monitor.class);
     private final WaitStrategy delayStrategy = mock(WaitStrategy.class);
-    private final int sendRetryLimit = faker.number().numberBetween(5, 10);
+    private final int sendRetryLimit = 5 + RANDOM.nextInt(11);
 
     private final Clock clock = mock(Clock.class);
     private final Supplier<WaitStrategy> waitStrategy = () -> delayStrategy;
@@ -76,7 +75,7 @@ class EntitySendRetryManagerTest {
     @ValueSource(ints = { -2, -1, 0, 1, 2 })
     void retriesExhausted(int retriesLeft) {
         var stateCount = sendRetryLimit - retriesLeft;
-        var stateTimestamp = faker.number().randomNumber();
+        var stateTimestamp = RANDOM.nextInt();
         var process = TestEntity.Builder.newInstance()
                 .id("any")
                 .stateCount(stateCount)

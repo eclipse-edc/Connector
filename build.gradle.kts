@@ -37,7 +37,6 @@ dependencies {
     "swaggerUI"("org.webjars:swagger-ui:4.11.1")
 }
 
-val datafaker: String by project
 val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
 val javaVersion: String by project
@@ -175,7 +174,6 @@ allprojects {
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.mockito:mockito-core:${mockitoVersion}")
             testImplementation("org.assertj:assertj-core:${assertj}")
-            testImplementation("net.datafaker:datafaker:${datafaker}")
         }
 
         if (!project.hasProperty("skip.signing")) {
@@ -331,7 +329,6 @@ if (project.hasProperty("dependency.analysis")) {
                 onUnusedDependencies {
                     exclude(
                         // dependencies declared at the root level for all modules
-                        "net.datafaker:datafaker",
                         "org.assertj:assertj-core",
                         "org.junit.jupiter:junit-jupiter-api",
                         "org.junit.jupiter:junit-jupiter-params",

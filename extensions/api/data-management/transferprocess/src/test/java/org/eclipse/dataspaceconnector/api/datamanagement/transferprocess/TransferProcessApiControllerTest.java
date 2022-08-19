@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
@@ -42,6 +41,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +55,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TransferProcessApiControllerTest {
-    private static final Faker FAKER = new Faker();
     private final TransferProcessService service = mock(TransferProcessService.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
     private TransferProcessApiController controller;
@@ -276,7 +275,7 @@ class TransferProcessApiControllerTest {
     }
 
     private TransferProcess transferProcess() {
-        return transferProcess(FAKER.lorem().word());
+        return transferProcess(UUID.randomUUID().toString());
     }
 
     private TransferProcess transferProcess(String id) {

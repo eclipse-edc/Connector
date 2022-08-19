@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
@@ -43,15 +42,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test the {@link DecentralizedIdentityService} with a key algorithm.
- * See {@link WithP256Test} for concrete impl.
+ * Test the {@link DecentralizedIdentityService} with a key algorithm. See {@link WithP256Test} for concrete impl.
  */
 
 abstract class DecentralizedIdentityServiceTest {
-    private static final Faker FAKER = new Faker();
     private static final String DID_DOCUMENT = getResourceFileContentAsString("dids.json");
 
-    private final String didUrl = FAKER.internet().url();
     private DecentralizedIdentityService identityService;
 
     @Test
@@ -85,6 +81,7 @@ abstract class DecentralizedIdentityServiceTest {
 
         var didResolver = new TestResolverRegistry(DID_DOCUMENT, keyPair);
         CredentialsVerifier verifier = document -> Result.success(Map.of("region", "eu"));
+        String didUrl = "random.did.url";
         identityService = new DecentralizedIdentityService(didResolver, verifier, new ConsoleMonitor(), privateKey, didUrl, Clock.systemUTC());
     }
 

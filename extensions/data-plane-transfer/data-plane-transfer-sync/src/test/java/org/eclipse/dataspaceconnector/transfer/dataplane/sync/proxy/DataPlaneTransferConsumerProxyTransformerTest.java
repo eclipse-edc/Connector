@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
@@ -34,11 +34,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DataPlaneTransferConsumerProxyTransformerTest {
-    private static final Faker FAKER = new Faker();
 
     private DataPlaneTransferProxyResolver proxyResolverMock;
     private DataPlaneTransferProxyReferenceService proxyReferenceServiceMock;
     private DataPlaneTransferConsumerProxyTransformer transformer;
+
+    /**
+     * Creates dummy {@link EndpointDataReference}.
+     */
+    private static EndpointDataReference createEndpointDataReference() {
+        return EndpointDataReference.Builder.newInstance()
+                .endpoint("some.endpoint.url")
+                .authKey("test-authkey")
+                .authCode(UUID.randomUUID().toString())
+                .id(UUID.randomUUID().toString())
+                .properties(Map.of(
+                        "key1", "value1",
+                        CONTRACT_ID, UUID.randomUUID().toString())
+                )
+                .build();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -55,7 +70,7 @@ class DataPlaneTransferConsumerProxyTransformerTest {
         var inputEdr = createEndpointDataReference();
         var outputEdr = createEndpointDataReference();
         var proxyCreationRequestCapture = ArgumentCaptor.forClass(DataPlaneTransferProxyCreationRequest.class);
-        var proxyUrl = FAKER.internet().url();
+        var proxyUrl = "some.proxy.url";
 
         when(proxyResolverMock.resolveProxyUrl(any())).thenReturn(Result.success(proxyUrl));
         when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.success(outputEdr));
@@ -91,11 +106,11 @@ class DataPlaneTransferConsumerProxyTransformerTest {
     @Test
     void missingContractId_shouldReturnFailedResult() {
         var edr = EndpointDataReference.Builder.newInstance()
-                .endpoint(FAKER.internet().url())
-                .authKey(FAKER.lorem().word())
-                .authCode(FAKER.internet().uuid())
-                .id(FAKER.internet().uuid())
-                .properties(Map.of(FAKER.lorem().word(), FAKER.lorem().word()))
+                .endpoint("some.test.endpoint")
+                .authKey("test-authkey")
+                .authCode(UUID.randomUUID().toString())
+                .id(UUID.randomUUID().toString())
+                .properties(Map.of("key1", "value1"))
                 .build();
 
         var result = transformer.transform(edr);
@@ -103,21 +118,5 @@ class DataPlaneTransferConsumerProxyTransformerTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages())
                 .containsExactly(String.format("Cannot transform endpoint data reference with id %s as contract id is missing", edr.getId()));
-    }
-
-    /**
-     * Creates dummy {@link EndpointDataReference}.
-     */
-    private static EndpointDataReference createEndpointDataReference() {
-        return EndpointDataReference.Builder.newInstance()
-                .endpoint(FAKER.internet().url())
-                .authKey(FAKER.lorem().word())
-                .authCode(FAKER.internet().uuid())
-                .id(FAKER.internet().uuid())
-                .properties(Map.of(
-                        FAKER.lorem().word(), FAKER.lorem().word(),
-                        CONTRACT_ID, FAKER.internet().uuid())
-                )
-                .build();
     }
 }

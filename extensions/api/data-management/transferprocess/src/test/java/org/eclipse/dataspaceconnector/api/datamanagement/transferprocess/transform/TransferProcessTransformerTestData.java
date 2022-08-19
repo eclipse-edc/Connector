@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
@@ -28,23 +27,24 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.mockito.Mockito.mock;
 
 public class TransferProcessTransformerTestData {
-    static Faker faker = new Faker();
 
     DtoTransformerRegistry registry = mock(DtoTransformerRegistry.class);
     TransformerContext context = new TransformerContextImpl(registry);
-    String id = faker.lorem().word();
-    TransferProcess.Type type = faker.options().option(TransferProcess.Type.class);
-    TransferProcessStates state = faker.options().option(TransferProcessStates.class);
-    long stateTimestamp = faker.random().nextLong();
-    long createdTimestamp = faker.random().nextLong();
-    String errorDetail = faker.lorem().word();
+    String id = UUID.randomUUID().toString();
+    TransferProcess.Type type = TransferProcess.Type.CONSUMER;
+    TransferProcessStates state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];
+    long stateTimestamp = ThreadLocalRandom.current().nextLong();
+    long createdTimestamp = ThreadLocalRandom.current().nextLong();
+    String errorDetail = "test error detail";
 
-    Map<String, String> dataDestinationProperties = Map.of(faker.lorem().word(), faker.lorem().word());
-    String dataDestinationType = faker.lorem().word();
+    Map<String, String> dataDestinationProperties = Map.of("key1", "value1");
+    String dataDestinationType = "test-destination-type";
     DataAddress.Builder dataDestination = DataAddress.Builder.newInstance().type(dataDestinationType).properties(dataDestinationProperties);
     DataRequest dataRequest = DataRequest.Builder.newInstance()
             .dataDestination(dataDestination.build())

@@ -15,20 +15,20 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 
 class DataPlaneProxyTokenDecoratorTest {
-    private static final Faker FAKER = new Faker();
 
     private Date expiration;
     private String contractId;
@@ -38,9 +38,9 @@ class DataPlaneProxyTokenDecoratorTest {
 
     @BeforeEach
     public void setUp() {
-        expiration = Date.from(Instant.now().plusSeconds(FAKER.random().nextInt(1, 10)));
-        contractId = FAKER.internet().uuid();
-        encryptedDataAddress = FAKER.internet().uuid();
+        expiration = Date.from(Instant.now().plusSeconds(ThreadLocalRandom.current().nextInt(1, 10)));
+        contractId = UUID.randomUUID().toString();
+        encryptedDataAddress = UUID.randomUUID().toString();
         decorator = new DataPlaneProxyTokenDecorator(expiration, contractId, encryptedDataAddress);
     }
 

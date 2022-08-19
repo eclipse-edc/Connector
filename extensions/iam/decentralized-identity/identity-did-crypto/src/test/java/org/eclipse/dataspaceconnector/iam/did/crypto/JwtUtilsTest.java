@@ -19,7 +19,6 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPublicKeyWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +52,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class JwtUtilsTest {
-    private static final Faker FAKER = new Faker();
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
@@ -108,7 +106,7 @@ class JwtUtilsTest {
     @Test
     void verifyJwt_OnVerificationFailure_fails() throws Exception {
         var jwt = mock(SignedJWT.class);
-        var message = FAKER.lorem().sentence();
+        var message = "Test Message";
         when(jwt.verify(any())).thenThrow(new JOSEException(message));
         assertThat(verify(jwt, publicKey, "test-audience").getFailureMessages())
                 .containsExactly("Unable to verify JWT token. " + message);
@@ -118,7 +116,7 @@ class JwtUtilsTest {
     @Test
     void verifyJwt_OnInvalidClaims_fails() throws Exception {
         var jwt = mock(SignedJWT.class);
-        var message = FAKER.lorem().sentence();
+        var message = "Test Message";
         when(jwt.verify(any())).thenReturn(true);
         when(jwt.getJWTClaimsSet()).thenThrow(new ParseException(message, 0));
         assertThat(verify(jwt, publicKey, "test-audience").getFailureMessages())

@@ -17,7 +17,6 @@
 
 package org.eclipse.dataspaceconnector.contract.validation;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEquality;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
@@ -40,13 +39,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-import static java.time.Instant.EPOCH;
 import static java.time.Instant.MAX;
 import static java.time.Instant.MIN;
 import static java.time.ZoneOffset.UTC;
@@ -62,7 +59,6 @@ import static org.mockito.Mockito.when;
 
 class ContractValidationServiceImplTest {
 
-    private static final Faker FAKER = new Faker();
     private final Instant now = Instant.now();
 
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
@@ -145,7 +141,7 @@ class ContractValidationServiceImplTest {
     void validate_failsIfOfferedPolicyIsNotTheEqualToTheStoredOne() {
         var offeredPolicy = Policy.Builder.newInstance().permission(Permission.Builder.newInstance().build()).build();
         var storedPolicy = Policy.Builder.newInstance().permission(Permission.Builder.newInstance()
-                .constraint(AtomicConstraint.Builder.newInstance().build()).build())
+                        .constraint(AtomicConstraint.Builder.newInstance().build()).build())
                 .build();
         var asset = Asset.Builder.newInstance().id("1").build();
         var contractDefinition = getContractDefinition();
@@ -201,7 +197,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractAgreementExpired() {
-        var past = FAKER.date().between(Timestamp.from(EPOCH), Timestamp.from(now)).toInstant().getEpochSecond();
+        var past = Instant.now().getEpochSecond() - 5000;
         var isValid =
                 validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), past);
 

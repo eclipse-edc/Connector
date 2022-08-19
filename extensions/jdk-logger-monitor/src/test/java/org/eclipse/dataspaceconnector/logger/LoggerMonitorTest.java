@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.logger;
 
-import net.datafaker.Faker;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,11 +36,9 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class LoggerMonitorTest {
 
-    static Faker faker = new Faker();
-    final String message = faker.lorem().sentence();
-    final String extraParams = faker.lorem().sentence();
-    TestLogHandler handler = new TestLogHandler();
-    LoggerMonitor sut = new LoggerMonitor();
+    private final String message = "test message";
+    private final TestLogHandler handler = new TestLogHandler();
+    private final LoggerMonitor sut = new LoggerMonitor();
 
     @BeforeEach
     public void setUp() {
@@ -87,12 +84,13 @@ public class LoggerMonitorTest {
 
     @Test
     public void loggedOnSevereLevel_WithParams() {
+        String extraParams = "test-extraparams";
         Map<String, Object> errors = Map.of(message, extraParams);
         sut.severe(errors);
 
         assertThat(handler.getRecords())
                 .extracting(LogRecord::getMessage, LogRecord::getLevel, LogRecord::getThrown, LogRecord::getParameters)
-                .containsExactly(tuple(message, Level.SEVERE, null, new Object[]{extraParams}));
+                .containsExactly(tuple(message, Level.SEVERE, null, new Object[]{ extraParams }));
     }
 
     @Test
@@ -157,8 +155,8 @@ public class LoggerMonitorTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(faker.lorem().sentence(), new Throwable[]{new RuntimeException()}),
-                    Arguments.of(faker.lorem().sentence(), new Throwable[]{new RuntimeException(), new Exception()})
+                    Arguments.of("test-message-1", new Throwable[]{ new RuntimeException() }),
+                    Arguments.of("test-message-2", new Throwable[]{ new RuntimeException(), new Exception() })
             );
         }
     }

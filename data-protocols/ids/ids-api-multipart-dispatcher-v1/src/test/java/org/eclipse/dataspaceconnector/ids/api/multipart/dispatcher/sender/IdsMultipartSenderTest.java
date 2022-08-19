@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import net.datafaker.Faker;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
@@ -40,9 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class IdsMultipartSenderTest {
-    private static final Faker FAKER = new Faker();
     private final IdentityService identityService = mock(IdentityService.class);
-    private final String remoteAddress = FAKER.internet().url();
 
     @Test
     void should_fail_if_token_retrieval_fails() {
@@ -55,6 +52,19 @@ class IdsMultipartSenderTest {
         var result = sender.send(new TestRemoteMessage(), () -> "any");
 
         assertThat(result).failsWithin(1, TimeUnit.SECONDS);
+    }
+
+    private static class TestRemoteMessage implements RemoteMessage {
+
+        @Override
+        public String getProtocol() {
+            return null;
+        }
+
+        @Override
+        public String getConnectorAddress() {
+            return null;
+        }
     }
 
     private class TestIdsMultipartSender extends IdsMultipartSender<TestRemoteMessage, MultipartResponse> {
@@ -71,7 +81,7 @@ class IdsMultipartSenderTest {
 
         @Override
         protected String retrieveRemoteConnectorAddress(TestRemoteMessage request) {
-            return remoteAddress;
+            return "some.remote.url";
         }
 
         @Override
@@ -86,19 +96,6 @@ class IdsMultipartSenderTest {
 
         @Override
         protected List<Class<? extends Message>> getAllowedResponseTypes() {
-            return null;
-        }
-    }
-
-    private static class TestRemoteMessage implements RemoteMessage {
-
-        @Override
-        public String getProtocol() {
-            return null;
-        }
-
-        @Override
-        public String getConnectorAddress() {
             return null;
         }
     }

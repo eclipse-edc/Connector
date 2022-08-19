@@ -16,7 +16,6 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.core.identity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.datafaker.Faker;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -45,8 +44,7 @@ import static org.mockito.Mockito.when;
 
 class IdentityProviderKeyResolverTest {
 
-    private static final Faker FAKER = Faker.instance();
-    private static final String JWKS_URL = "https://" + FAKER.internet().url();
+    private static final String JWKS_URL = "https://test.jwks.url";
     private static final String JWKS_FILE = "jwks_response.json";
     private final Interceptor interceptor = mock(Interceptor.class);
     private final TypeManager typeManager = new TypeManager();
@@ -114,9 +112,9 @@ class IdentityProviderKeyResolverTest {
         return new Response.Builder()
                 .code(code)
                 .body(ResponseBody.create(typeManager.writeValueAsString(body), MediaType.get("application/json")))
-                .message(FAKER.twinPeaks().quote())
+                .message("Test message")
                 .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://" + FAKER.internet().url()).build())
+                .request(new Request.Builder().url("http://test.some.url").build())
                 .build();
     }
 }

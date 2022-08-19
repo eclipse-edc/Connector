@@ -17,7 +17,6 @@ plugins {
     `java-test-fixtures`
 }
 
-val datafaker: String by project
 val storageBlobVersion: String by project
 val failsafeVersion: String by project
 val jupiterVersion: String by project
@@ -33,7 +32,6 @@ dependencies {
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-    testFixturesImplementation("net.datafaker:datafaker:${datafaker}")
 }
 
 publishing {

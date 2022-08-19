@@ -15,11 +15,11 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.response;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.OK;
@@ -30,11 +30,10 @@ import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunc
 
 class ResponseFunctionsTest {
 
-    private static final Faker FAKER = new Faker();
 
     @Test
     void verifyValidationErrors() {
-        var errorMessages = List.of(FAKER.internet().uuid(), FAKER.internet().uuid());
+        var errorMessages = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
         var response = validationErrors(errorMessages);
         assertThat(response.getStatusInfo()).isEqualTo(BAD_REQUEST);
 
@@ -46,7 +45,7 @@ class ResponseFunctionsTest {
 
     @Test
     void verifySuccess() {
-        var data = FAKER.internet().uuid();
+        var data = UUID.randomUUID().toString();
         var response = success(data);
         assertThat(response.getStatusInfo()).isEqualTo(OK);
         assertThat(response.getEntity()).asInstanceOf(STRING).isEqualTo(data);

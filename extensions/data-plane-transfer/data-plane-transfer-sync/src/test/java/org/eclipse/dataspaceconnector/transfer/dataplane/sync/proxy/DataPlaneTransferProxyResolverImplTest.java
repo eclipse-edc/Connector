@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstanceImpl;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,7 +31,6 @@ import static org.mockito.Mockito.when;
 
 class DataPlaneTransferProxyResolverImplTest {
 
-    private static final Faker FAKER = new Faker();
 
     private DataPlaneSelectorClient selectorClient;
     private DataPlaneTransferProxyResolver resolver;
@@ -38,16 +38,16 @@ class DataPlaneTransferProxyResolverImplTest {
     @BeforeEach
     public void setUp() {
         selectorClient = mock(DataPlaneSelectorClient.class);
-        resolver = new DataPlaneTransferProxyResolverImpl(selectorClient, FAKER.internet().uuid());
+        resolver = new DataPlaneTransferProxyResolverImpl(selectorClient, UUID.randomUUID().toString());
     }
 
     @Test
     void verifyResolveSuccess() {
-        var address = DataAddress.Builder.newInstance().type(FAKER.internet().uuid()).build();
-        var proxyUrl = FAKER.internet().url();
+        var address = DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
+        var proxyUrl = "test.proxy.url";
         var instance = DataPlaneInstanceImpl.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .url("http://" + FAKER.internet().url())
+                .id(UUID.randomUUID().toString())
+                .url("http://some.test.url")
                 .property("publicApiUrl", proxyUrl)
                 .build();
 
@@ -69,7 +69,7 @@ class DataPlaneTransferProxyResolverImplTest {
 
     @Test
     void verifyFailedResultReturnedIfDataPlaneResolutionFails() {
-        var address = DataAddress.Builder.newInstance().type(FAKER.internet().uuid()).build();
+        var address = DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
 
         when(selectorClient.find(any(), any(), any())).thenReturn(null);
 
@@ -83,10 +83,10 @@ class DataPlaneTransferProxyResolverImplTest {
 
     @Test
     void verifyFailedResultReturnedIfDataPlaneInstanceDoesNotContainPublicApiUrl() {
-        var address = DataAddress.Builder.newInstance().type(FAKER.internet().uuid()).build();
+        var address = DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
         var instance = DataPlaneInstanceImpl.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .url("http://" + FAKER.internet().url())
+                .id(UUID.randomUUID().toString())
+                .url("http://some.test.url")
                 .build();
 
         when(selectorClient.find(any(), any(), any())).thenReturn(instance);

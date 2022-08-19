@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import io.netty.handler.codec.http.HttpMethod;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,13 +29,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.formatRequestBodyAsString;
 
 class HttpRequestParamsTests {
-    private static final Faker FAKER = new Faker();
-
     private String baseUrl;
 
     @BeforeEach
     public void setUp() {
-        baseUrl = "http://" + FAKER.internet().url();
+        baseUrl = "http://some.base.url";
     }
 
     @ParameterizedTest
@@ -65,7 +62,7 @@ class HttpRequestParamsTests {
 
     @Test
     void verifyHeaders() {
-        var headers = Map.of(FAKER.lorem().word(), FAKER.lorem().word());
+        var headers = Map.of("key1", "value1");
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(baseUrl)
                 .method(HttpMethod.GET.name())
@@ -79,8 +76,8 @@ class HttpRequestParamsTests {
 
     @Test
     void verifyComplexUrl() {
-        var path = FAKER.lorem().word();
-        var queryParams = FAKER.lorem().word();
+        var path = "testpath";
+        var queryParams = "test-queryparams";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(baseUrl)
                 .method(HttpMethod.GET.name())
@@ -96,7 +93,7 @@ class HttpRequestParamsTests {
 
     @Test
     void verifyDefaultContentTypeIsOctetStream() {
-        var body = FAKER.lorem().word();
+        var body = "Test body";
         var contentType = "application/octet-stream";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(baseUrl)
@@ -113,7 +110,7 @@ class HttpRequestParamsTests {
 
     @Test
     void verifyBodyFromParams() throws IOException {
-        var body = FAKER.lorem().word();
+        var body = "Test body";
         var contentType = "text/plain";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(baseUrl)
@@ -133,7 +130,7 @@ class HttpRequestParamsTests {
 
     @Test
     void verifyBodyFromMethodCall() throws IOException {
-        var body = FAKER.lorem().word();
+        var body = "Test body";
         var contentType = "application/json";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(baseUrl)
@@ -151,7 +148,7 @@ class HttpRequestParamsTests {
 
     @Test
     void verifyRequestBodyIsNullIfNoContentProvided() {
-        var contentType = FAKER.lorem().word();
+        var contentType = "test/content-type";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(baseUrl)
                 .method(HttpMethod.GET.name())
@@ -173,7 +170,7 @@ class HttpRequestParamsTests {
 
     @Test
     void verifyExceptionThrownIfMethodMissing() {
-        var builder = HttpRequestParams.Builder.newInstance().baseUrl(FAKER.internet().url());
+        var builder = HttpRequestParams.Builder.newInstance().baseUrl("http://some.base.url");
 
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(builder::build);
     }
@@ -181,10 +178,10 @@ class HttpRequestParamsTests {
     @Test
     void verifyExceptionIsRaisedIfContentTypeIsNull() {
         var builder = HttpRequestParams.Builder.newInstance()
-                .baseUrl(FAKER.internet().url())
+                .baseUrl("http://some.base.url")
                 .method(HttpMethod.POST.name())
                 .contentType(null)
-                .body(FAKER.lorem().word());
+                .body("Test Body");
 
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(builder::build);
     }

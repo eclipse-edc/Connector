@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.dataplane.api.validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.HttpHeaders;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.AfterAll;
@@ -30,6 +29,8 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.MediaType;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
@@ -40,7 +41,6 @@ import static org.mockserver.stop.Stop.stopQuietly;
 
 class TokenValidationClientImplTest {
 
-    private static final Faker FAKER = new Faker();
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final int PORT = getFreePort();
     private static final String TOKEN_VALIDATION_SERVER_URL = "http://localhost:" + PORT;
@@ -71,9 +71,9 @@ class TokenValidationClientImplTest {
 
     @Test
     void verifySuccessTokenValidation() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
         var address = DataAddress.Builder.newInstance()
-                .type(FAKER.lorem().word())
+                .type("test-type")
                 .build();
 
         validationClientAndServer.when(new HttpRequest().withHeader(HttpHeaders.AUTHORIZATION, token), once())
@@ -90,9 +90,9 @@ class TokenValidationClientImplTest {
 
     @Test
     void verifyFailedResultReturnedIfServerResponseIsUnsuccessful() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
         var address = DataAddress.Builder.newInstance()
-                .type(FAKER.lorem().word())
+                .type("test-type")
                 .build();
 
         validationClientAndServer.when(new HttpRequest().withHeader(HttpHeaders.AUTHORIZATION, token), once())

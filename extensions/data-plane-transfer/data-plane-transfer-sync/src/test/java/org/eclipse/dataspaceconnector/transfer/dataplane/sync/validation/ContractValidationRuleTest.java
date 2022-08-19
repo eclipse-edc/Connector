@@ -18,7 +18,6 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -41,7 +40,6 @@ import static org.mockito.Mockito.when;
 
 class ContractValidationRuleTest {
 
-    private static final Faker FAKER = new Faker();
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
 
@@ -56,7 +54,7 @@ class ContractValidationRuleTest {
 
     @Test
     void shouldSucceedIfContractIsStillValid() {
-        var contractId = FAKER.internet().uuid();
+        var contractId = UUID.randomUUID().toString();
         var contractAgreement = createContractAgreement(contractId, now.plus(1, HOURS));
         when(contractNegotiationStoreMock.findContractAgreement(contractId)).thenReturn(contractAgreement);
         var claims = new JWTClaimsSet.Builder()
@@ -70,7 +68,7 @@ class ContractValidationRuleTest {
 
     @Test
     void shouldFailIfContractIsExpired() {
-        var contractId = FAKER.internet().uuid();
+        var contractId = UUID.randomUUID().toString();
         var contractAgreement = createContractAgreement(contractId, now.minus(1, SECONDS));
         when(contractNegotiationStoreMock.findContractAgreement(contractId)).thenReturn(contractAgreement);
         var claims = new JWTClaimsSet.Builder()
@@ -115,8 +113,8 @@ class ContractValidationRuleTest {
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .contractEndDate(endDate.getEpochSecond())
-                .consumerAgentId(FAKER.lorem().word())
-                .providerAgentId(FAKER.lorem().word())
+                .consumerAgentId("consumer-agent-id")
+                .providerAgentId("provider-agent-id")
                 .build();
     }
 }
