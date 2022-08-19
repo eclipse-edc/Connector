@@ -121,7 +121,7 @@ public class AwsClientProviderImpl implements AwsClientProvider {
                 .credentialsProvider(credentialsProvider)
                 .region(Region.of(region));
 
-        handleEndpointOverride(builder);
+        handleBaseEndpointOverride(builder);
 
         return builder.build();
     }
@@ -131,7 +131,7 @@ public class AwsClientProviderImpl implements AwsClientProvider {
                 .credentialsProvider(credentialsProvider)
                 .region(Region.of(region));
 
-        handleEndpointOverride(builder);
+        handleBaseEndpointOverride(builder);
 
         return builder.build();
     }
@@ -142,7 +142,7 @@ public class AwsClientProviderImpl implements AwsClientProvider {
                 .credentialsProvider(credentialsProvider)
                 .region(Region.of(region));
 
-        handleEndpointOverride(builder);
+        handleBaseEndpointOverride(builder);
 
         return builder.build();
     }
@@ -169,7 +169,7 @@ public class AwsClientProviderImpl implements AwsClientProvider {
         return builder.build();
     }
 
-    private void handleEndpointOverride(S3BaseClientBuilder<?, ?> builder) {
+    private void handleBaseEndpointOverride(S3BaseClientBuilder<?, ?> builder) {
         var endpointOverride = configuration.getEndpointOverride();
         if (endpointOverride != null) {
             builder.serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
