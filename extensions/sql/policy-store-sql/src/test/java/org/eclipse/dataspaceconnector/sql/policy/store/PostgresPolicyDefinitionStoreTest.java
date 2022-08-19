@@ -64,15 +64,15 @@ import static org.mockito.Mockito.when;
  * operators.
  */
 @PostgresqlDbIntegrationTest
-class PostgresPolicyDefinitionStoreTest {
+class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
     protected static final String DATASOURCE_NAME = "policydefinition";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
     private static final String POSTGRES_DATABASE = "itest";
     protected DataSourceRegistry dataSourceRegistry;
     protected Connection connection;
-    protected SqlPolicyDefinitionStore store;
     private TransactionContext txManager;
+    private SqlPolicyDefinitionStore sqlPolicyStore;
 
     @BeforeAll
     static void prepare() {
@@ -105,7 +105,7 @@ class PostgresPolicyDefinitionStoreTest {
         TypeManager manager = new TypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements);
+        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements);
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         try {
@@ -134,9 +134,9 @@ class PostgresPolicyDefinitionStoreTest {
     void save_notExisting() {
         var policy = createPolicy("policyDef");
 
-        store.save(policy);
+        sqlPolicyStore.save(policy);
 
-        var policyFromDb = store.findById(policy.getUid());
+        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
         assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
 
@@ -158,9 +158,9 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
         var spec = QuerySpec.Builder.newInstance().build();
 
-        store.save(policy1);
-        store.save(policy2);
-        var policyFromDb = store.findAll(spec).collect(Collectors.toList());
+        sqlPolicyStore.save(policy1);
+        sqlPolicyStore.save(policy2);
+        var policyFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(1).isEqualTo(policyFromDb.size());
         assertThat("Target2").isEqualTo(policyFromDb.get(0).getPolicy().getTarget());
@@ -170,9 +170,9 @@ class PostgresPolicyDefinitionStoreTest {
     @DisplayName("Find policy by ID that exists")
     void findById_whenPresent() {
         var policy = createPolicy("policyDef");
-        store.save(policy);
+        sqlPolicyStore.save(policy);
 
-        var policyFromDb = store.findById(policy.getUid());
+        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
 
         assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
@@ -180,7 +180,7 @@ class PostgresPolicyDefinitionStoreTest {
     @Test
     @DisplayName("Find policy by ID when not exists")
     void findById_whenNonexistent() {
-        assertThat(store.findById("nonexistent")).isNull();
+        assertThat(sqlPolicyStore.findById("nonexistent")).isNull();
     }
 
     @Test
@@ -189,14 +189,14 @@ class PostgresPolicyDefinitionStoreTest {
         var limit = 20;
 
         var definitionsExpected = createPolicies(50);
-        definitionsExpected.forEach(store::save);
+        definitionsExpected.forEach(sqlPolicyStore::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .limit(limit)
                 .offset(20)
                 .build();
 
-        var policiesFromDb = store.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).hasSize(limit);
     }
@@ -207,13 +207,13 @@ class PostgresPolicyDefinitionStoreTest {
         var pageSize = 15;
 
         var definitionsExpected = createPolicies(10);
-        definitionsExpected.forEach(store::save);
+        definitionsExpected.forEach(sqlPolicyStore::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(pageSize)
                 .build();
 
-        var policiesFromDb = store.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).isEmpty();
     }
@@ -224,14 +224,14 @@ class PostgresPolicyDefinitionStoreTest {
         var limit = 5;
 
         var definitionsExpected = createPolicies(10);
-        definitionsExpected.forEach(store::save);
+        definitionsExpected.forEach(sqlPolicyStore::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(7)
                 .limit(limit)
                 .build();
 
-        var policiesFromDb = store.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).size().isLessThanOrEqualTo(limit);
     }
@@ -241,16 +241,21 @@ class PostgresPolicyDefinitionStoreTest {
     void deleteById_whenExists() {
         var policy = createPolicy("policyDef");
 
-        store.save(policy);
+        sqlPolicyStore.save(policy);
 
-        assertThat(store.deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
-        assertThat(store.findById(policy.getUid())).isNull();
+        assertThat(sqlPolicyStore.deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
+        assertThat(sqlPolicyStore.findById(policy.getUid())).isNull();
     }
 
     @Test
     @DisplayName("Delete a non existing policy")
     void deleteById_whenNonexistent() {
-        assertThat(store.deleteById("nonexistent")).isNull();
+        assertThat(sqlPolicyStore.deleteById("nonexistent")).isNull();
+    }
+
+    @Override
+    protected SqlPolicyDefinitionStore getPolicyDefinitionStore() {
+        return sqlPolicyStore;
     }
 
     @Test
@@ -263,18 +268,18 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.prohibitions.assignee=test-assignee");
-        var result = store.findAll(query);
+        var result = sqlPolicyStore.findAll(query);
         assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
 
         //query by prohibition action constraint
         var query2 = createQuery("policy.prohibitions.action.constraint.leftExpression.value=foo");
-        var result2 = store.findAll(query2);
+        var result2 = sqlPolicyStore.findAll(query2);
         assertThat(result2).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
@@ -290,11 +295,11 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.prohibitions.fooBarProperty=someval");
-        assertThat(store.findAll(query)).isEmpty();
+        assertThat(sqlPolicyStore.findAll(query)).isEmpty();
     }
 
     @Test
@@ -307,11 +312,11 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.prohibitions.action.constraint.leftExpression.value=someval");
-        var result = store.findAll(query);
+        var result = sqlPolicyStore.findAll(query);
         assertThat(result).isEmpty();
     }
 
@@ -325,18 +330,18 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.permissions.assignee=test-assignee");
-        var result = store.findAll(query);
+        var result = sqlPolicyStore.findAll(query);
         assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
 
         //query by prohibition action constraint
         var query2 = createQuery("policy.permissions.action.constraint.leftExpression.value=foo");
-        var result2 = store.findAll(query2);
+        var result2 = sqlPolicyStore.findAll(query2);
         assertThat(result2).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
@@ -352,11 +357,11 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.permissions.fooBarProperty=someval");
-        assertThat(store.findAll(query)).isEmpty();
+        assertThat(sqlPolicyStore.findAll(query)).isEmpty();
     }
 
     @Test
@@ -369,11 +374,11 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.permissions.action.constraint.leftExpression=someval");
-        var result = store.findAll(query);
+        var result = sqlPolicyStore.findAll(query);
         assertThat(result).isEmpty();
     }
 
@@ -387,19 +392,19 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
-        store.save(createPolicy("another-policy"));
+        sqlPolicyStore.save(policyDef);
+        sqlPolicyStore.save(createPolicy("another-policy"));
 
         // query by prohibition assignee
         var query = createQuery("policy.obligations.assignee=test-assignee");
-        var result = store.findAll(query);
+        var result = sqlPolicyStore.findAll(query);
         assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
 
         //query by prohibition action constraint
         var query2 = createQuery("policy.obligations.action.constraint.rightExpression.value=bar");
-        var result2 = store.findAll(query2);
+        var result2 = sqlPolicyStore.findAll(query2);
         assertThat(result2).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
@@ -415,11 +420,11 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.obligations.fooBarProperty=someval");
-        assertThat(store.findAll(query)).isEmpty();
+        assertThat(sqlPolicyStore.findAll(query)).isEmpty();
     }
 
     @Test
@@ -432,11 +437,11 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(p).build();
-        store.save(policyDef);
+        sqlPolicyStore.save(policyDef);
 
         // query by prohibition assignee
         var query = createQuery("policy.obligations.action.constraint.rightExpression.value=notexist");
-        var result = store.findAll(query);
+        var result = sqlPolicyStore.findAll(query);
         assertThat(result).isEmpty();
     }
 
@@ -454,11 +459,11 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef2 = PolicyDefinition.Builder.newInstance().uid("test-policy2").policy(p2).build();
-        store.save(policyDef1);
-        store.save(policyDef2);
+        sqlPolicyStore.save(policyDef1);
+        sqlPolicyStore.save(policyDef2);
 
         // query by prohibition assignee
-        assertThat(store.findAll(createQuery("policy.assignee=test-assignee")))
+        assertThat(sqlPolicyStore.findAll(createQuery("policy.assignee=test-assignee")))
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef1);
@@ -472,10 +477,10 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef1 = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(policy).build();
-        store.save(policyDef1);
+        sqlPolicyStore.save(policyDef1);
 
         // query by prohibition assignee
-        assertThatThrownBy(() -> store.findAll(createQuery("notexist=foobar")))
+        assertThatThrownBy(() -> sqlPolicyStore.findAll(createQuery("notexist=foobar")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
     }
@@ -488,10 +493,10 @@ class PostgresPolicyDefinitionStoreTest {
                 .build();
 
         var policyDef1 = PolicyDefinition.Builder.newInstance().uid("test-policy").policy(policy).build();
-        store.save(policyDef1);
+        sqlPolicyStore.save(policyDef1);
 
         // query by prohibition assignee
-        assertThat(store.findAll(createQuery("policy.assigner=notexist")))
+        assertThat(sqlPolicyStore.findAll(createQuery("policy.assigner=notexist")))
                 .isEmpty();
     }
 

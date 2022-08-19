@@ -15,31 +15,15 @@
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
-import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
@@ -47,7 +31,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,64 +38,18 @@ import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctio
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContractBuilder;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiationBuilder;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-@ComponentTest
-class SqlContractNegotiationStoreTest {
-
-    private static final String DATASOURCE_NAME = "contractnegotiation";
-    private static final String CONNECTOR_NAME = "test-connector";
-    private DataSourceRegistry dataSourceRegistry;
-    private Connection connection;
-    private SqlContractNegotiationStore store;
-    private LeaseUtil leaseUtil;
-
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var txManager = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-
-        var statements = new H2DialectStatements();
-        TypeManager manager = new TypeManager();
-
-        manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements, CONNECTOR_NAME, Clock.systemUTC());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements, Clock.systemUTC());
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
+abstract class ContractNegotiationStoreTest {
+    protected static final String CONNECTOR_NAME = "test-connector";
 
     @Test
     @DisplayName("Verify that an entity is found by ID")
     void find() {
         var id = "test-cn1";
         var negotiation = createNegotiation(id);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        assertThat(store.find(id))
+        assertThat(getContractNegotiationStore().find(id))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation);
 
@@ -123,20 +60,20 @@ class SqlContractNegotiationStoreTest {
     void find_whenLeased_shouldReturnEntity() {
         var id = "test-cn1";
         var negotiation = createNegotiation(id);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        leaseUtil.leaseEntity(id, CONNECTOR_NAME);
-        assertThat(store.find(id))
+        getLeaseUtil().leaseEntity(id, CONNECTOR_NAME);
+        assertThat(getContractNegotiationStore().find(id))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation);
 
 
         var id2 = "test-cn2";
         var negotiation2 = createNegotiation(id2);
-        store.save(negotiation2);
+        getContractNegotiationStore().save(negotiation2);
 
-        leaseUtil.leaseEntity(id2, "someone-else");
-        assertThat(store.find(id2))
+        getLeaseUtil().leaseEntity(id2, "someone-else");
+        assertThat(getContractNegotiationStore().find(id2))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation2);
 
@@ -145,16 +82,16 @@ class SqlContractNegotiationStoreTest {
     @Test
     @DisplayName("Verify that null is returned when entity not found")
     void find_notExist() {
-        assertThat(store.find("not-exist")).isNull();
+        assertThat(getContractNegotiationStore().find("not-exist")).isNull();
     }
 
     @Test
     @DisplayName("Find entity by its correlation ID")
     void findForCorrelationId() {
         var negotiation = createNegotiation("test-cn1");
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        assertThat(store.findForCorrelationId(negotiation.getCorrelationId()))
+        assertThat(getContractNegotiationStore().findForCorrelationId(negotiation.getCorrelationId()))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation);
     }
@@ -164,9 +101,9 @@ class SqlContractNegotiationStoreTest {
     void findContractAgreement() {
         var agreement = createContract("test-ca1");
         var negotiation = createNegotiation("test-cn1", agreement);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        assertThat(store.findContractAgreement(agreement.getId()))
+        assertThat(getContractNegotiationStore().findContractAgreement(agreement.getId()))
                 .usingRecursiveComparison()
                 .isEqualTo(agreement);
     }
@@ -174,7 +111,7 @@ class SqlContractNegotiationStoreTest {
     @Test
     @DisplayName("Verify that null is returned if ContractAgreement not found")
     void findContractAgreement_notExist() {
-        assertThat(store.findContractAgreement("not-exist")).isNull();
+        assertThat(getContractNegotiationStore().findContractAgreement("not-exist")).isNull();
     }
 
     @Test
@@ -183,9 +120,9 @@ class SqlContractNegotiationStoreTest {
         var negotiation = createNegotiationBuilder("test-id1")
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        assertThat(store.find(negotiation.getId()))
+        assertThat(getContractNegotiationStore().find(negotiation.getId()))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation);
     }
@@ -195,9 +132,9 @@ class SqlContractNegotiationStoreTest {
     void save_withContract() {
         var agreement = createContract("test-agreement");
         var negotiation = createNegotiation("test-negotiation", agreement);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        var actual = store.find(negotiation.getId());
+        var actual = getContractNegotiationStore().find(negotiation.getId());
         assertThat(actual)
                 .isNotNull()
                 .usingRecursiveComparison()
@@ -210,7 +147,7 @@ class SqlContractNegotiationStoreTest {
     void save_exists_shouldUpdate() {
         var id = "test-id1";
         var negotiation = createNegotiation(id);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
         var newNegotiation = ContractNegotiation.Builder.newInstance()
                 .type(ContractNegotiation.Type.CONSUMER)
@@ -223,9 +160,9 @@ class SqlContractNegotiationStoreTest {
                 .protocol("ids-multipart")
                 .build();
 
-        store.save(newNegotiation);
+        getContractNegotiationStore().save(newNegotiation);
 
-        var actual = store.find(negotiation.getId());
+        var actual = getContractNegotiationStore().find(negotiation.getId());
         assertThat(actual).isNotNull();
         assertThat(actual.getStateCount()).isEqualTo(420);
         assertThat(actual.getState()).isEqualTo(800);
@@ -237,9 +174,9 @@ class SqlContractNegotiationStoreTest {
         var id = "test-id1";
         var builder = createNegotiationBuilder(id);
         var negotiation = builder.build();
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        leaseUtil.leaseEntity(id, CONNECTOR_NAME);
+        getLeaseUtil().leaseEntity(id, CONNECTOR_NAME);
 
         var newNegotiation = builder
                 .stateCount(420) //modified
@@ -248,12 +185,12 @@ class SqlContractNegotiationStoreTest {
                 .build();
 
         // update should break lease
-        store.save(newNegotiation);
+        getContractNegotiationStore().save(newNegotiation);
 
-        assertThat(leaseUtil.isLeased(id, CONNECTOR_NAME)).isFalse();
+        assertThat(getLeaseUtil().isLeased(id, CONNECTOR_NAME)).isFalse();
 
 
-        var next = store.nextForState(800, 10);
+        var next = getContractNegotiationStore().nextForState(800, 10);
         assertThat(next).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt").containsOnly(newNegotiation);
 
     }
@@ -263,9 +200,9 @@ class SqlContractNegotiationStoreTest {
     void update_leasedByOther_shouldThrowException() {
         var id = "test-id1";
         var negotiation = createNegotiation(id);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        leaseUtil.leaseEntity(id, "someone-else");
+        getLeaseUtil().leaseEntity(id, "someone-else");
 
         var newNegotiation = ContractNegotiation.Builder.newInstance()
                 .type(ContractNegotiation.Type.CONSUMER)
@@ -279,8 +216,8 @@ class SqlContractNegotiationStoreTest {
                 .build();
 
         // update should break lease
-        assertThat(leaseUtil.isLeased(id, "someone-else")).isTrue();
-        assertThatThrownBy(() -> store.save(newNegotiation)).isInstanceOf(IllegalStateException.class);
+        assertThat(getLeaseUtil().isLeased(id, "someone-else")).isTrue();
+        assertThatThrownBy(() -> getContractNegotiationStore().save(newNegotiation)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -288,41 +225,41 @@ class SqlContractNegotiationStoreTest {
     void update_addsAgreement_shouldPersist() {
         var negotiationId = "test-cn1";
         var negotiation = createNegotiation(negotiationId);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
         // now add the agreement
         var agreement = createContract("test-ca1");
         var updatedNegotiation = createNegotiation(negotiationId, agreement);
 
-        store.save(updatedNegotiation); //should perform an update + insert
+        getContractNegotiationStore().save(updatedNegotiation); //should perform an update + insert
 
-        assertThat(store.queryAgreements(QuerySpec.none()))
+        assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.none()))
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(agreement);
 
-        assertThat(Objects.requireNonNull(store.find(negotiationId)).getContractAgreement()).usingRecursiveComparison().isEqualTo(agreement);
+        assertThat(Objects.requireNonNull(getContractNegotiationStore().find(negotiationId)).getContractAgreement()).usingRecursiveComparison().isEqualTo(agreement);
     }
 
     @Test
     void create_and_cancel_contractAgreement() {
         var negotiationId = "test-cn1";
         var negotiation = createNegotiation(negotiationId);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
         // now add the agreement
         var agreement = createContract("test-ca1");
         var updatedNegotiation = createNegotiation(negotiationId, agreement);
 
-        store.save(updatedNegotiation);
-        assertThat(store.queryAgreements(QuerySpec.none()))
+        getContractNegotiationStore().save(updatedNegotiation);
+        assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.none()))
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(agreement);
 
         // cancel the agreement
         updatedNegotiation.transitionError("Cancelled");
-        store.save(updatedNegotiation);
+        getContractNegotiationStore().save(updatedNegotiation);
     }
 
     @Test
@@ -331,16 +268,16 @@ class SqlContractNegotiationStoreTest {
         var negotiationId = "test-cn1";
         var agreement = createContract("test-ca1");
         var negotiation = createNegotiation(negotiationId, null);
-        store.save(negotiation);
-        var dbNegotiation = store.find(negotiationId);
+        getContractNegotiationStore().save(negotiation);
+        var dbNegotiation = getContractNegotiationStore().find(negotiationId);
         assertThat(dbNegotiation).isNotNull().satisfies(n ->
                 assertThat(n.getContractAgreement()).isNull()
         );
 
         dbNegotiation.setContractAgreement(agreement);
-        store.save(dbNegotiation);
+        getContractNegotiationStore().save(dbNegotiation);
 
-        var updatedNegotiation = store.find(negotiationId);
+        var updatedNegotiation = getContractNegotiationStore().find(negotiationId);
         assertThat(updatedNegotiation).isNotNull();
         assertThat(updatedNegotiation.getContractAgreement()).isNotNull();
     }
@@ -350,14 +287,14 @@ class SqlContractNegotiationStoreTest {
     void delete() {
         var id = UUID.randomUUID().toString();
         var n = createNegotiation(id);
-        store.save(n);
+        getContractNegotiationStore().save(n);
 
-        assertThat(store.find(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
+        assertThat(getContractNegotiationStore().find(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
 
         //todo: verify returned object
-        store.delete(id);
+        getContractNegotiationStore().delete(id);
 
-        assertThat(store.find(id)).isNull();
+        assertThat(getContractNegotiationStore().find(id)).isNull();
     }
 
     @Test
@@ -365,12 +302,12 @@ class SqlContractNegotiationStoreTest {
     void delete_whenLeasedBySelf_shouldThrowException() {
         var id = UUID.randomUUID().toString();
         var n = createNegotiation(id);
-        store.save(n);
+        getContractNegotiationStore().save(n);
 
-        leaseUtil.leaseEntity(id, CONNECTOR_NAME);
+        getLeaseUtil().leaseEntity(id, CONNECTOR_NAME);
 
         //todo: verify returned object
-        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -378,19 +315,19 @@ class SqlContractNegotiationStoreTest {
     void delete_whenLeasedByOther_shouldThrowException() {
         var id = UUID.randomUUID().toString();
         var n = createNegotiation(id);
-        store.save(n);
+        getContractNegotiationStore().save(n);
 
-        leaseUtil.leaseEntity(id, "someone-else");
+        getLeaseUtil().leaseEntity(id, "someone-else");
 
         //todo: verify returned object
-        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     @DisplayName("Verify that deleting a non-existing entity returns null")
     void delete_notExist() {
         // todo: verify returned object is null
-        store.delete("not-exist");
+        getContractNegotiationStore().delete("not-exist");
     }
 
     @Test
@@ -399,11 +336,11 @@ class SqlContractNegotiationStoreTest {
         var id = UUID.randomUUID().toString();
         var contract = createContract("test-agreement");
         var n = createNegotiation(id, contract);
-        store.save(n);
+        getContractNegotiationStore().save(n);
 
-        assertThat(store.find(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
+        assertThat(getContractNegotiationStore().find(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
 
-        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class)
+        assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Cannot delete ContractNegotiation")
                 .hasMessageContaining("ContractAgreement already created.");
 
@@ -416,9 +353,9 @@ class SqlContractNegotiationStoreTest {
 
         IntStream.range(0, 100)
                 .mapToObj(i -> createNegotiation("" + i))
-                .forEach(cn -> store.save(cn));
+                .forEach(cn -> getContractNegotiationStore().save(cn));
 
-        var result = store.queryNegotiations(querySpec);
+        var result = getContractNegotiationStore().queryNegotiations(querySpec);
 
         assertThat(result).hasSize(10)
                 .extracting(ContractNegotiation::getId)
@@ -432,12 +369,12 @@ class SqlContractNegotiationStoreTest {
         var negotiation = createNegotiation("negotiation1", agreement);
         var assetId = agreement.getAssetId();
 
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
 
@@ -448,15 +385,15 @@ class SqlContractNegotiationStoreTest {
         var assetId = UUID.randomUUID().toString();
         var negotiation = createNegotiation("negotiation1");
 
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).isEmpty();
-        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+        assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.none())).isEmpty();
 
     }
 
@@ -466,13 +403,13 @@ class SqlContractNegotiationStoreTest {
         var negotiation1 = createNegotiation("negotiation1", createContractBuilder("contract1").assetId(assetId).build());
         var negotiation2 = createNegotiation("negotiation2", createContractBuilder("contract2").assetId(assetId).build());
 
-        store.save(negotiation1);
-        store.save(negotiation2);
+        getContractNegotiationStore().save(negotiation1);
+        getContractNegotiationStore().save(negotiation2);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).hasSize(2)
                 .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
@@ -489,9 +426,9 @@ class SqlContractNegotiationStoreTest {
                     var agreement = createContract("contract" + i);
                     return createNegotiation("" + i, agreement);
                 })
-                .forEach(cn -> store.save(cn));
+                .forEach(cn -> getContractNegotiationStore().save(cn));
 
-        var result = store.queryNegotiations(querySpec);
+        var result = getContractNegotiationStore().queryNegotiations(querySpec);
 
         assertThat(result).hasSize(10)
                 .allMatch(c -> c.getContractAgreement() != null)
@@ -507,9 +444,9 @@ class SqlContractNegotiationStoreTest {
 
         IntStream.range(0, 10)
                 .mapToObj(i -> createNegotiation("" + i))
-                .forEach(cn -> store.save(cn));
+                .forEach(cn -> getContractNegotiationStore().save(cn));
 
-        var result = store.queryNegotiations(querySpec);
+        var result = getContractNegotiationStore().queryNegotiations(querySpec);
 
         assertThat(result).isEmpty();
     }
@@ -521,9 +458,9 @@ class SqlContractNegotiationStoreTest {
                 .range(0, 10)
                 .mapToObj(i -> createNegotiation("id" + i))
                 .collect(Collectors.toList());
-        negotiations.forEach(store::save);
+        negotiations.forEach(getContractNegotiationStore()::save);
 
-        var batch = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var batch = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
 
         assertThat(batch).hasSize(5).isSubsetOf(negotiations);
 
@@ -536,12 +473,12 @@ class SqlContractNegotiationStoreTest {
                 .range(0, 10)
                 .mapToObj(i -> createNegotiation(String.valueOf(i)))
                 .collect(Collectors.toList());
-        negotiations.forEach(store::save);
+        negotiations.forEach(getContractNegotiationStore()::save);
 
         // mark a few as "leased"
-        store.nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
 
-        var batch2 = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 10);
+        var batch2 = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 10);
         assertThat(batch2)
                 .hasSize(5)
                 .isSubsetOf(negotiations)
@@ -557,29 +494,29 @@ class SqlContractNegotiationStoreTest {
                 .range(0, 5)
                 .mapToObj(i -> createNegotiation(String.valueOf(i)))
                 .collect(Collectors.toList());
-        negotiations.forEach(store::save);
+        negotiations.forEach(getContractNegotiationStore()::save);
 
         // mark them as "leased"
-        negotiations.forEach(n -> leaseUtil.leaseEntity(n.getId(), CONNECTOR_NAME, Duration.ofMillis(10)));
+        negotiations.forEach(n -> getLeaseUtil().leaseEntity(n.getId(), CONNECTOR_NAME, Duration.ofMillis(10)));
 
         // let enough time pass
         Thread.sleep(50);
 
-        var leasedNegotiations = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var leasedNegotiations = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
         assertThat(leasedNegotiations)
                 .hasSize(5)
                 .containsAll(negotiations);
 
-        assertThat(leasedNegotiations).allMatch(n -> leaseUtil.isLeased(n.getId(), CONNECTOR_NAME));
+        assertThat(leasedNegotiations).allMatch(n -> getLeaseUtil().isLeased(n.getId(), CONNECTOR_NAME));
     }
 
     @Test
     void getAgreementsForDefinitionId() {
         var contractAgreement = createContract(ContractId.createContractId("definitionId"));
         var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        var result = store.getAgreementsForDefinitionId("definitionId");
+        var result = getContractNegotiationStore().getAgreementsForDefinitionId("definitionId");
 
         assertThat(result).hasSize(1);
     }
@@ -588,9 +525,9 @@ class SqlContractNegotiationStoreTest {
     void getAgreementsForDefinitionId_notFound() {
         var contractAgreement = createContract(ContractId.createContractId("otherDefinitionId"));
         var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-        store.save(negotiation);
+        getContractNegotiationStore().save(negotiation);
 
-        var result = store.getAgreementsForDefinitionId("definitionId");
+        var result = getContractNegotiationStore().getAgreementsForDefinitionId("definitionId");
 
         assertThat(result).isEmpty();
     }
@@ -600,10 +537,10 @@ class SqlContractNegotiationStoreTest {
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-            store.save(negotiation);
+            getContractNegotiationStore().save(negotiation);
         });
 
-        var all = store.queryAgreements(QuerySpec.Builder.newInstance().build());
+        var all = getContractNegotiationStore().queryAgreements(QuerySpec.Builder.newInstance().build());
 
         assertThat(all).hasSize(10);
     }
@@ -613,28 +550,18 @@ class SqlContractNegotiationStoreTest {
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-            store.save(negotiation);
+            getContractNegotiationStore().save(negotiation);
         });
 
         // page size fits
-        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+        assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
 
         // page size too large
-        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+        assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
-    protected Connection getConnection() {
-        try {
-            return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    protected abstract SqlContractNegotiationStore getContractNegotiationStore();
 
-    private static class H2DialectStatements extends PostgresDialectStatements {
-        @Override
-        protected String getFormatJsonOperator() {
-            return BaseSqlDialect.getJsonCastOperator();
-        }
-    }
+    protected abstract LeaseUtil getLeaseUtil();
+
 }

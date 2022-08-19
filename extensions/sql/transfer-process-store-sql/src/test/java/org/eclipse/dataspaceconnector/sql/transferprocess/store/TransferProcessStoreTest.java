@@ -14,95 +14,36 @@
 
 package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
-import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.BaseSqlDialectStatements;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.Clock;
 import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequest;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequestBuilder;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcess;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcessBuilder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-@ComponentTest
-public class SqlTransferProcessStoreTest {
-    private static final String DATASOURCE_NAME = "transferprocess";
-    private static final String CONNECTOR_NAME = "test-connector";
-    private SqlTransferProcessStore store;
-    private DataSourceRegistry dataSourceRegistry;
-    private LeaseUtil leaseUtil;
-    private Connection connection;
-
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var transactionContext = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-        var statements = new H2DialectStatements();
-        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        leaseUtil = new LeaseUtil(transactionContext, this::getConnection, statements, Clock.systemUTC());
-
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
+abstract class TransferProcessStoreTest {
+    protected static final String CONNECTOR_NAME = "test-connector";
 
     @Test
     void create() {
         var t = createTransferProcess("test-id");
-        store.create(t);
+        getTransferProcessStore().create(t);
 
-        var all = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
         assertThat(all).containsExactly(t);
         assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
         assertThat(all).allSatisfy(tr -> assertThat(tr.getCreatedAt()).isNotEqualTo(0L));
@@ -111,12 +52,12 @@ public class SqlTransferProcessStoreTest {
     @Test
     void create_withSameIdExists_shouldReplace() {
         var t = createTransferProcess("id1", TransferProcessStates.UNSAVED);
-        store.create(t);
+        getTransferProcessStore().create(t);
 
         var t2 = createTransferProcess("id1", TransferProcessStates.PROVISIONING);
-        store.create(t2);
+        getTransferProcessStore().create(t2);
 
-        assertThat(store.findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
     }
 
     @Test
@@ -124,14 +65,14 @@ public class SqlTransferProcessStoreTest {
         var state = TransferProcessStates.IN_PROGRESS;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess("id" + i, state))
-                .peek(store::create)
+                .peek(getTransferProcessStore()::create)
                 .collect(Collectors.toList());
 
-        assertThat(store.nextForState(state.code(), 5))
+        assertThat(getTransferProcessStore().nextForState(state.code(), 5))
                 .hasSize(5)
                 .extracting(TransferProcess::getId)
                 .isSubsetOf(all.stream().map(TransferProcess::getId).collect(Collectors.toList()))
-                .allMatch(id -> leaseUtil.isLeased(id, CONNECTOR_NAME));
+                .allMatch(id -> getLeaseUtil().isLeased(id, CONNECTOR_NAME));
     }
 
     @Test
@@ -139,14 +80,14 @@ public class SqlTransferProcessStoreTest {
         var state = TransferProcessStates.IN_PROGRESS;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess("id" + i, state))
-                .peek(store::create)
+                .peek(getTransferProcessStore()::create)
                 .collect(Collectors.toList());
 
         // lease a few
-        var leasedTp = all.stream().skip(5).peek(tp -> leaseUtil.leaseEntity(tp.getId(), CONNECTOR_NAME)).collect(Collectors.toList());
+        var leasedTp = all.stream().skip(5).peek(tp -> getLeaseUtil().leaseEntity(tp.getId(), CONNECTOR_NAME)).collect(Collectors.toList());
 
         // should not contain leased TPs
-        assertThat(store.nextForState(state.code(), 10))
+        assertThat(getTransferProcessStore().nextForState(state.code(), 10))
                 .hasSize(5)
                 .isSubsetOf(all)
                 .doesNotContainAnyElementsOf(leasedTp);
@@ -157,12 +98,12 @@ public class SqlTransferProcessStoreTest {
         var state = TransferProcessStates.IN_PROGRESS;
         IntStream.range(0, 3)
                 .mapToObj(i -> createTransferProcess("id" + i, state))
-                .forEach(store::create);
+                .forEach(getTransferProcessStore()::create);
 
         // first time works
-        assertThat(store.nextForState(state.code(), 10)).hasSize(3);
+        assertThat(getTransferProcessStore().nextForState(state.code(), 10)).hasSize(3);
         // second time returns empty list
-        assertThat(store.nextForState(state.code(), 10)).isEmpty();
+        assertThat(getTransferProcessStore().nextForState(state.code(), 10)).isEmpty();
     }
 
     @Test
@@ -170,9 +111,9 @@ public class SqlTransferProcessStoreTest {
         var state = TransferProcessStates.IN_PROGRESS;
         IntStream.range(0, 3)
                 .mapToObj(i -> createTransferProcess("id" + i, state))
-                .forEach(store::create);
+                .forEach(getTransferProcessStore()::create);
 
-        assertThat(store.nextForState(TransferProcessStates.CANCELLED.code(), 10)).isEmpty();
+        assertThat(getTransferProcessStore().nextForState(TransferProcessStates.CANCELLED.code(), 10)).isEmpty();
     }
 
     @Test
@@ -180,10 +121,10 @@ public class SqlTransferProcessStoreTest {
         var state = TransferProcessStates.IN_PROGRESS;
         IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess("id" + i, state))
-                .forEach(store::create);
+                .forEach(getTransferProcessStore()::create);
 
         // first time works
-        assertThat(store.nextForState(state.code(), 3)).hasSize(3);
+        assertThat(getTransferProcessStore().nextForState(state.code(), 3)).hasSize(3);
     }
 
     @Test
@@ -199,9 +140,9 @@ public class SqlTransferProcessStoreTest {
                     }
                     t.updateStateTimestamp();
                 })
-                .forEach(store::create);
+                .forEach(getTransferProcessStore()::create);
 
-        assertThat(store.nextForState(state.code(), 20))
+        assertThat(getTransferProcessStore().nextForState(state.code(), 20))
                 .extracting(TransferProcess::getId)
                 .map(Integer::parseInt)
                 .isSortedAccordingTo(Integer::compareTo);
@@ -212,16 +153,16 @@ public class SqlTransferProcessStoreTest {
         var state = TransferProcessStates.IN_PROGRESS;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess("id" + i, state))
-                .peek(store::create)
+                .peek(getTransferProcessStore()::create)
                 .collect(Collectors.toList());
 
         Thread.sleep(100);
 
         var fourth = all.get(3);
         fourth.updateStateTimestamp();
-        store.update(fourth);
+        getTransferProcessStore().update(fourth);
 
-        var next = store.nextForState(TransferProcessStates.IN_PROGRESS.code(), 20);
+        var next = getTransferProcessStore().nextForState(TransferProcessStates.IN_PROGRESS.code(), 20);
         assertThat(next.indexOf(fourth)).isEqualTo(9);
     }
 
@@ -229,38 +170,38 @@ public class SqlTransferProcessStoreTest {
     @DisplayName("Verifies that calling nextForState locks the TP for any subsequent calls")
     void nextForState_locksEntity() {
         var t = createTransferProcess("id1", TransferProcessStates.UNSAVED);
-        store.create(t);
+        getTransferProcessStore().create(t);
 
-        store.nextForState(TransferProcessStates.UNSAVED.code(), 100);
+        getTransferProcessStore().nextForState(TransferProcessStates.UNSAVED.code(), 100);
 
-        assertThat(leaseUtil.isLeased(t.getId(), CONNECTOR_NAME)).isTrue();
+        assertThat(getLeaseUtil().isLeased(t.getId(), CONNECTOR_NAME)).isTrue();
     }
 
     @Test
     void nextForState_expiredLease() {
         var t = createTransferProcess("id1", TransferProcessStates.UNSAVED);
-        store.create(t);
+        getTransferProcessStore().create(t);
 
-        leaseUtil.leaseEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
+        getLeaseUtil().leaseEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
         await().atLeast(Duration.ofMillis(100))
                 .atMost(Duration.ofMillis(500))
-                .until(() -> store.nextForState(TransferProcessStates.UNSAVED.code(), 10), hasSize(1));
+                .until(() -> getTransferProcessStore().nextForState(TransferProcessStates.UNSAVED.code(), 10), hasSize(1));
     }
 
     @Test
     void find() {
         var t = createTransferProcess("id1");
-        store.create(t);
+        getTransferProcessStore().create(t);
 
-        var res = store.find("id1");
+        var res = getTransferProcessStore().find("id1");
 
         assertThat(res).usingRecursiveComparison().isEqualTo(t);
     }
 
     @Test
     void find_notExist() {
-        assertThat(store.find("not-exist")).isNull();
+        assertThat(getTransferProcessStore().find("not-exist")).isNull();
     }
 
     @Test
@@ -271,25 +212,25 @@ public class SqlTransferProcessStoreTest {
         var dr = createDataRequest(pid);
         var t = createTransferProcess(tid, dr);
 
-        store.create(t);
+        getTransferProcessStore().create(t);
 
-        assertThat(store.processIdForTransferId(tid)).isEqualTo("transfer-id1");
+        assertThat(getTransferProcessStore().processIdForTransferId(tid)).isEqualTo("transfer-id1");
     }
 
     @Test
     void processIdForTransferId_notExist() {
-        assertThat(store.processIdForTransferId("not-exist")).isNull();
+        assertThat(getTransferProcessStore().processIdForTransferId("not-exist")).isNull();
     }
 
     @Test
     void update_shouldPersistDataRequest() {
         var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
-        store.create(t1);
+        getTransferProcessStore().create(t1);
 
         t1.getDataRequest().getProperties().put("newKey", "newValue");
-        store.update(t1);
+        getTransferProcessStore().update(t1);
 
-        var all = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
         assertThat(all)
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -298,16 +239,15 @@ public class SqlTransferProcessStoreTest {
         assertThat(all.get(0).getDataRequest().getProperties()).containsEntry("newKey", "newValue");
     }
 
-
     @Test
     void update_exists_shouldUpdate() {
         var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
-        store.create(t1);
+        getTransferProcessStore().create(t1);
 
         t1.transitionCompleted(); //modify
-        store.update(t1);
+        getTransferProcessStore().update(t1);
 
-        assertThat(store.findAll(QuerySpec.none()))
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none()))
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(t1);
@@ -318,9 +258,9 @@ public class SqlTransferProcessStoreTest {
         var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
 
         t1.transitionCompleted(); //modify
-        store.update(t1);
+        getTransferProcessStore().update(t1);
 
-        var result = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        var result = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
         assertThat(result)
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -331,15 +271,15 @@ public class SqlTransferProcessStoreTest {
     @DisplayName("Verify that the lease on a TP is cleared by an update")
     void update_shouldBreakLease() {
         var t1 = createTransferProcess("id1");
-        store.create(t1);
+        getTransferProcessStore().create(t1);
         // acquire lease
-        leaseUtil.leaseEntity(t1.getId(), CONNECTOR_NAME);
+        getLeaseUtil().leaseEntity(t1.getId(), CONNECTOR_NAME);
 
         t1.transitionInitial(); //modify
-        store.update(t1);
+        getTransferProcessStore().update(t1);
 
         // lease should be broken
-        assertThat(store.nextForState(TransferProcessStates.INITIAL.code(), 10)).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
+        assertThat(getTransferProcessStore().nextForState(TransferProcessStates.INITIAL.code(), 10)).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
     }
 
     @Test
@@ -347,49 +287,48 @@ public class SqlTransferProcessStoreTest {
 
         var tpId = "id1";
         var t1 = createTransferProcess(tpId);
-        store.create(t1);
-        leaseUtil.leaseEntity(tpId, "someone");
+        getTransferProcessStore().create(t1);
+        getLeaseUtil().leaseEntity(tpId, "someone");
 
         t1.transitionInitial(); //modify
 
         // leased by someone else -> throw exception
-        assertThatThrownBy(() -> store.update(t1)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> getTransferProcessStore().update(t1)).isInstanceOf(IllegalStateException.class);
 
     }
 
     @Test
     void delete() {
         var t1 = createTransferProcess("id1");
-        store.create(t1);
+        getTransferProcessStore().create(t1);
 
-        store.delete("id1");
-        assertThat(countTransferProcesses()).isEqualTo(0);
-        assertThat(store.findAll(QuerySpec.none())).isEmpty();
+        getTransferProcessStore().delete("id1");
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).isEmpty();
     }
 
     @Test
     void delete_isLeasedBySelf_shouldThrowException() {
         var t1 = createTransferProcess("id1");
-        store.create(t1);
-        leaseUtil.leaseEntity(t1.getId(), CONNECTOR_NAME);
+        getTransferProcessStore().create(t1);
+        getLeaseUtil().leaseEntity(t1.getId(), CONNECTOR_NAME);
 
 
-        assertThatThrownBy(() -> store.delete("id1")).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void delete_isLeasedByOther_shouldThrowException() {
         var t1 = createTransferProcess("id1");
-        store.create(t1);
+        getTransferProcessStore().create(t1);
 
-        leaseUtil.leaseEntity(t1.getId(), "someone-else");
+        getLeaseUtil().leaseEntity(t1.getId(), "someone-else");
 
-        assertThatThrownBy(() -> store.delete("id1")).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void delete_notExist() {
-        store.delete("not-exist");
+        getTransferProcessStore().delete("not-exist");
         //no exception should be raised
     }
 
@@ -397,20 +336,20 @@ public class SqlTransferProcessStoreTest {
     void findAll_noQuerySpec() {
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess("id" + i))
-                .peek(store::create)
+                .peek(getTransferProcessStore()::create)
                 .collect(Collectors.toList());
 
-        assertThat(store.findAll(QuerySpec.none())).containsExactlyInAnyOrderElementsOf(all);
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).containsExactlyInAnyOrderElementsOf(all);
     }
 
     @Test
     void findAll_verifyPaging() {
         IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess(String.valueOf(i)))
-                .forEach(store::create);
+                .forEach(getTransferProcessStore()::create);
 
         var qs = QuerySpec.Builder.newInstance().limit(5).offset(3).build();
-        assertThat(store.findAll(qs)).hasSize(5)
+        assertThat(getTransferProcessStore().findAll(qs)).hasSize(5)
                 .extracting(TransferProcess::getId)
                 .map(Integer::parseInt)
                 .allMatch(id -> id >= 3 && id < 8);
@@ -421,10 +360,10 @@ public class SqlTransferProcessStoreTest {
 
         IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess(String.valueOf(i)))
-                .forEach(store::create);
+                .forEach(getTransferProcessStore()::create);
 
         var qs = QuerySpec.Builder.newInstance().limit(20).offset(3).build();
-        assertThat(store.findAll(qs))
+        assertThat(getTransferProcessStore().findAll(qs))
                 .hasSize(7)
                 .extracting(TransferProcess::getId)
                 .map(Integer::parseInt)
@@ -436,10 +375,10 @@ public class SqlTransferProcessStoreTest {
 
         IntStream.range(0, 10)
                 .mapToObj(i -> createTransferProcess(String.valueOf(i)))
-                .forEach(store::create);
+                .forEach(getTransferProcessStore()::create);
 
         var qs = QuerySpec.Builder.newInstance().limit(10).offset(12).build();
-        assertThat(store.findAll(qs)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(qs)).isEmpty();
 
     }
 
@@ -448,14 +387,14 @@ public class SqlTransferProcessStoreTest {
         var t1 = createTransferProcessBuilder("id1")
                 .dataRequest(null)
                 .build();
-        assertThatIllegalArgumentException().isThrownBy(() -> store.create(t1));
+        assertThatIllegalArgumentException().isThrownBy(() -> getTransferProcessStore().create(t1));
     }
 
     @Test
     void update_dataRequestWithNewId_replacesOld() {
         var bldr = createTransferProcessBuilder("id1").state(TransferProcessStates.IN_PROGRESS.code());
         var t1 = bldr.build();
-        store.create(t1);
+        getTransferProcessStore().create(t1);
 
         var t2 = bldr
                 .dataRequest(createDataRequestBuilder()
@@ -466,9 +405,9 @@ public class SqlTransferProcessStoreTest {
                         .connectorId("new-connector")
                         .build())
                 .build();
-        store.update(t2);
+        getTransferProcessStore().update(t2);
 
-        var all = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
         assertThat(all)
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -481,23 +420,8 @@ public class SqlTransferProcessStoreTest {
                 .containsOnly(t2.getDataRequest());
     }
 
-    private Connection getConnection() {
-        try {
-            return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    protected abstract SqlTransferProcessStore getTransferProcessStore();
 
-    private int countTransferProcesses() {
-        try (var conn = dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection()) {
-            return executeQuery(conn, "SELECT COUNT(*) FROM edc_transfer_process");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    protected abstract LeaseUtil getLeaseUtil();
 
-
-    private static class H2DialectStatements extends BaseSqlDialectStatements {
-    }
 }

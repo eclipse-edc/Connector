@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.assetindex.schema.postgres;
+package org.eclipse.dataspaceconnector.sql.assetindex;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
@@ -25,9 +25,8 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.sql.assetindex.SqlAssetIndex;
-import org.eclipse.dataspaceconnector.sql.assetindex.TestObject;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.BaseSqlDialectStatements;
+import org.eclipse.dataspaceconnector.sql.assetindex.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,15 +57,15 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-class PostgresAssetIndexTest {
+class PostgresAssetIndexTest extends AssetIndexTest {
     protected static final String DATASOURCE_NAME = "asset";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
     private static final String POSTGRES_DATABASE = "itest";
-    private SqlAssetIndex sqlAssetIndex;
     private BaseSqlDialectStatements sqlStatements;
     private TransactionContext transactionContext;
     private Connection connection;
+    private SqlAssetIndex sqlAssetIndex;
 
     @BeforeAll
     static void prepare() {
@@ -175,6 +174,11 @@ class PostgresAssetIndexTest {
 
         var query = QuerySpec.Builder.newInstance().filter("testproperty <> foobar").build();
         assertThatThrownBy(() -> sqlAssetIndex.queryAssets(query)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Override
+    protected SqlAssetIndex getAssetIndex() {
+        return sqlAssetIndex;
     }
 
     /**

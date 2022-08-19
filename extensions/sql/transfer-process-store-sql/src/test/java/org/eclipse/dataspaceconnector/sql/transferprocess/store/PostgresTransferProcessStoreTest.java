@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.transferprocess.store.postgres;
+package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -34,7 +34,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
-import org.eclipse.dataspaceconnector.sql.transferprocess.store.SqlTransferProcessStore;
 import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -68,17 +67,16 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-class PostgresTransferProcessStoreTest {
+class PostgresTransferProcessStoreTest extends TransferProcessStoreTest {
     private static final String DATASOURCE_NAME = "transferprocess";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
     private static final String POSTGRES_DATABASE = "itest";
-    private SqlTransferProcessStore store;
-    private PostgresDialectStatements sqlStatements;
     private TransactionContext transactionContext;
-    private LeaseUtil leaseUtil;
     private Connection connection;
     private DataSourceRegistry dataSourceRegistry;
+    private LeaseUtil leaseUtil;
+    private SqlTransferProcessStore store;
 
     @BeforeAll
     static void prepare() {
@@ -106,7 +104,7 @@ class PostgresTransferProcessStoreTest {
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
 
-        sqlStatements = new PostgresDialectStatements();
+        PostgresDialectStatements sqlStatements = new PostgresDialectStatements();
         TypeManager manager = new TypeManager();
         manager.registerTypes(TestResourceDef.class, TestProvisionedResource.class);
 
@@ -142,6 +140,16 @@ class PostgresTransferProcessStoreTest {
 
         store.delete("id1");
         assertThat(store.findAll(QuerySpec.none())).isEmpty();
+    }
+
+    @Override
+    protected SqlTransferProcessStore getTransferProcessStore() {
+        return store;
+    }
+
+    @Override
+    protected LeaseUtil getLeaseUtil() {
+        return leaseUtil;
     }
 
     @Test

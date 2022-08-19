@@ -67,18 +67,17 @@ import static org.mockito.Mockito.when;
  * query operators.
  */
 @PostgresqlDbIntegrationTest
-class PostgresContractNegotiationStoreTest {
+class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTest {
     protected static final String DATASOURCE_NAME = "contractnegotiation";
-    protected static final String CONNECTOR_NAME = "test-connector";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
     private static final String POSTGRES_DATABASE = "itest";
     private static final String JDBC_URL_PREFIX = "jdbc:postgresql://localhost:5432/";
     protected DataSourceRegistry dataSourceRegistry;
     protected Connection connection;
-    protected SqlContractNegotiationStore store;
-    protected LeaseUtil leaseUtil;
     private TransactionContext txManager;
+    private SqlContractNegotiationStore store;
+    private LeaseUtil leaseUtil;
 
     @BeforeAll
     static void prepare() {
@@ -293,6 +292,16 @@ class PostgresContractNegotiationStoreTest {
         // cancel the agreement
         updatedNegotiation.transitionError("Cancelled");
         store.save(updatedNegotiation);
+    }
+
+    @Override
+    protected SqlContractNegotiationStore getContractNegotiationStore() {
+        return store;
+    }
+
+    @Override
+    protected LeaseUtil getLeaseUtil() {
+        return leaseUtil;
     }
 
     protected Connection getConnection() {

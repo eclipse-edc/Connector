@@ -20,7 +20,7 @@ plugins {
 
 val apacheCommonsPool2Version: String by project
 val mockitoVersion: String by project
-val h2Version: String by project
+val postgresVersion: String by project
 val assertj: String by project
 
 dependencies {
@@ -33,7 +33,8 @@ dependencies {
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
-    testImplementation("com.h2database:h2:${h2Version}")
+    testImplementation(testFixtures(project(":common:util")))
+    testImplementation("org.postgresql:postgresql:${postgresVersion}")
     testImplementation("org.assertj:assertj-core:${assertj}")
 }
 

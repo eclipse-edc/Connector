@@ -19,98 +19,32 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.BaseSqlDialectStatements;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinition;
 import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinitions;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-@ComponentTest
-public class SqlContractDefinitionStoreTest {
+abstract class ContractDefinitionStoreTest {
 
-    private static final String DATASOURCE_NAME = "contractdefinition";
-
-    private DataSourceRegistry dataSourceRegistry;
-    private SqlContractDefinitionStore sqlContractDefinitionStore;
-    private BaseSqlDialectStatements statements;
-    private Connection connection;
-
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var txManager = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        DataSource datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-
-        statements = new BaseSqlDialectStatements();
-        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, statements, new TypeManager());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
-
-    @Test
-    @DisplayName("Context Loads, tables exist")
-    void contextLoads() throws SQLException {
-        var query = String.format("SELECT 1 FROM %s", statements.getContractDefinitionTable());
-        var result = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(), query);
-
-        assertThat(result).isNotNull();
-    }
 
     @Test
     @DisplayName("Save a single Contract Definition that doesn't already exist")
     void saveOne_doesntExist() {
         var definition = getContractDefinition("id", "policy", "contract");
-        sqlContractDefinitionStore.save(definition);
+        getSqlContractDefinitionStore().save(definition);
 
-        var definitions = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        var definitions = getSqlContractDefinitionStore().findAll(QuerySpec.max());
 
         assertThat(definitions).isNotNull();
         assertThat(definitions).hasSize(1);
@@ -119,10 +53,10 @@ public class SqlContractDefinitionStoreTest {
     @Test
     @DisplayName("Save a single Contract Definition that already exists")
     void saveOne_alreadyExist_shouldUpdate() {
-        sqlContractDefinitionStore.save(getContractDefinition("id", "policy", "contract"));
-        sqlContractDefinitionStore.save(getContractDefinition("id", "updatedAccess", "updatedContract"));
+        getSqlContractDefinitionStore().save(getContractDefinition("id", "policy", "contract"));
+        getSqlContractDefinitionStore().save(getContractDefinition("id", "updatedAccess", "updatedContract"));
 
-        var result = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        var result = getSqlContractDefinitionStore().findAll(QuerySpec.max());
 
         assertThat(result).hasSize(1).containsExactly(getContractDefinition("id", "updatedAccess", "updatedContract"));
     }
@@ -132,10 +66,10 @@ public class SqlContractDefinitionStoreTest {
     void saveOne_sameParametersDifferentId() {
         var definition1 = getContractDefinition("id1", "policy", "contract");
         var definition2 = getContractDefinition("id2", "policy", "contract");
-        sqlContractDefinitionStore.save(definition1);
-        sqlContractDefinitionStore.save(definition2);
+        getSqlContractDefinitionStore().save(definition1);
+        getSqlContractDefinitionStore().save(definition2);
 
-        var definitions = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        var definitions = getSqlContractDefinitionStore().findAll(QuerySpec.max());
 
         assertThat(definitions).isNotNull();
         assertThat(definitions).hasSize(2);
@@ -145,9 +79,9 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Save multiple Contract Definitions with no preexisting Definitions")
     void saveMany_noneExist() {
         var definitionsCreated = getContractDefinitions(10);
-        sqlContractDefinitionStore.save(definitionsCreated);
+        getSqlContractDefinitionStore().save(definitionsCreated);
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        var definitionsRetrieved = getSqlContractDefinitionStore().findAll(QuerySpec.max());
 
         assertThat(definitionsRetrieved).hasSize(definitionsCreated.size());
     }
@@ -155,10 +89,10 @@ public class SqlContractDefinitionStoreTest {
     @Test
     @DisplayName("Save multiple Contract Definitions with some preexisting Definitions")
     void saveMany_someExist() {
-        sqlContractDefinitionStore.save(getContractDefinitions(3));
-        sqlContractDefinitionStore.save(getContractDefinitions(10));
+        getSqlContractDefinitionStore().save(getContractDefinitions(3));
+        getSqlContractDefinitionStore().save(getContractDefinitions(10));
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        var definitionsRetrieved = getSqlContractDefinitionStore().findAll(QuerySpec.max());
 
         assertThat(definitionsRetrieved).hasSize(10);
     }
@@ -167,12 +101,12 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Save multiple Contract Definitions with all preexisting Definitions")
     void saveMany_allExist() {
         var definitionsCreated = getContractDefinitions(10);
-        sqlContractDefinitionStore.save(definitionsCreated);
+        getSqlContractDefinitionStore().save(definitionsCreated);
 
         //
-        sqlContractDefinitionStore.save(definitionsCreated);
+        getSqlContractDefinitionStore().save(definitionsCreated);
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        var definitionsRetrieved = getSqlContractDefinitionStore().findAll(QuerySpec.max());
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved).hasSize(definitionsCreated.size());
@@ -183,25 +117,21 @@ public class SqlContractDefinitionStoreTest {
     void updateOne_doesNotExist_shouldCreate() {
         var definition = getContractDefinition("id", "policy1", "contract1");
 
-        sqlContractDefinitionStore.update(definition);
-        var existing = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        getSqlContractDefinitionStore().update(definition);
+        var existing = getSqlContractDefinitionStore().findAll(QuerySpec.max());
         assertThat(existing).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(definition);
     }
 
     @Test
     @DisplayName("Update an existing Contract Definition")
-    void updateOne_exists() throws SQLException {
+    void updateOne_exists() {
         var definition1 = getContractDefinition("id", "policy1", "contract1");
         var definition2 = getContractDefinition("id", "policy2", "contract2");
 
-        sqlContractDefinitionStore.save(definition1);
-        sqlContractDefinitionStore.update(definition2);
+        getSqlContractDefinitionStore().save(definition1);
+        getSqlContractDefinitionStore().update(definition2);
 
-        var query = String.format("SELECT * FROM %s WHERE %s=?",
-                statements.getContractDefinitionTable(),
-                statements.getIdColumn());
-
-        var definitions = sqlContractDefinitionStore.findAll(QuerySpec.none()).collect(Collectors.toList());
+        var definitions = getSqlContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
 
         assertThat(definitions).isNotNull();
         assertThat(definitions.size()).isEqualTo(1);
@@ -213,9 +143,9 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Find all contract definitions")
     void findAll() {
         var definitionsExpected = getContractDefinitions(10);
-        sqlContractDefinitionStore.save(definitionsExpected);
+        getSqlContractDefinitionStore().save(definitionsExpected);
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
+        var definitionsRetrieved = getSqlContractDefinitionStore().findAll(QuerySpec.max());
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved).hasSize(definitionsExpected.size());
@@ -225,10 +155,10 @@ public class SqlContractDefinitionStoreTest {
     @ValueSource(ints = { 49, 50, 51, 100 })
     void findAll_verifyQueryDefaults(int size) {
         var all = IntStream.range(0, size).mapToObj(i -> getContractDefinition("id" + i, "policyId" + i, "contractId" + i))
-                .peek(cd -> sqlContractDefinitionStore.save(cd))
+                .peek(cd -> getSqlContractDefinitionStore().save(cd))
                 .collect(Collectors.toList());
 
-        assertThat(sqlContractDefinitionStore.findAll(QuerySpec.max())).hasSize(size)
+        assertThat(getSqlContractDefinitionStore().findAll(QuerySpec.max())).hasSize(size)
                 .usingRecursiveFieldByFieldElementComparator()
                 .isSubsetOf(all);
     }
@@ -239,14 +169,14 @@ public class SqlContractDefinitionStoreTest {
         var limit = 20;
 
         var definitionsExpected = getContractDefinitions(50);
-        sqlContractDefinitionStore.save(definitionsExpected);
+        getSqlContractDefinitionStore().save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .limit(limit)
                 .offset(20)
                 .build();
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getSqlContractDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(limit);
@@ -257,13 +187,13 @@ public class SqlContractDefinitionStoreTest {
     void findAll_queryByAccessPolicyId_withEquals() {
 
         var definitionsExpected = getContractDefinitions(20);
-        sqlContractDefinitionStore.save(definitionsExpected);
+        getSqlContractDefinitionStore().save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter("accessPolicyId = policy4")
                 .build();
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getSqlContractDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -275,13 +205,13 @@ public class SqlContractDefinitionStoreTest {
     void findAll_queryByAccessPolicyId_withIn() {
 
         var definitionsExpected = getContractDefinitions(20);
-        sqlContractDefinitionStore.save(definitionsExpected);
+        getSqlContractDefinitionStore().save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("accessPolicyId", "in", List.of("policy4", "policy5", "policy6"))))
                 .build();
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getSqlContractDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).hasSize(3)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -293,13 +223,13 @@ public class SqlContractDefinitionStoreTest {
     void findAll_queryByInvalidKey() {
 
         var definitionsExpected = getContractDefinitions(20);
-        sqlContractDefinitionStore.save(definitionsExpected);
+        getSqlContractDefinitionStore().save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("notexist", "=", "somevalue")))
                 .build();
 
-        assertThatThrownBy(() -> sqlContractDefinitionStore.findAll(spec))
+        assertThatThrownBy(() -> getSqlContractDefinitionStore().findAll(spec))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
 
@@ -310,60 +240,62 @@ public class SqlContractDefinitionStoreTest {
     void findAll_queryByNonexistentdValue() {
 
         var definitionsExpected = getContractDefinitions(20);
-        sqlContractDefinitionStore.save(definitionsExpected);
+        getSqlContractDefinitionStore().save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractPolicyId", "=", "somevalue")))
                 .build();
 
-        assertThat(sqlContractDefinitionStore.findAll(spec)).isEmpty();
+        assertThat(getSqlContractDefinitionStore().findAll(spec)).isEmpty();
     }
 
     @Test
     void findAll_invalidOperator() {
 
         var definitionsExpected = getContractDefinitions(20);
-        sqlContractDefinitionStore.save(definitionsExpected);
+        getSqlContractDefinitionStore().save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("accessPolicyId", "sqrt", "foobar"))) //sqrt is invalid
                 .build();
 
-        assertThatThrownBy(() -> sqlContractDefinitionStore.findAll(spec)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> getSqlContractDefinitionStore().findAll(spec)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void findById() {
         var id = "definitionId";
         var definition = getContractDefinition(id, "policyId", "contractId");
-        sqlContractDefinitionStore.save(definition);
+        getSqlContractDefinitionStore().save(definition);
 
-        var result = sqlContractDefinitionStore.findById(id);
+        var result = getSqlContractDefinitionStore().findById(id);
 
         assertThat(result).isNotNull().isEqualTo(definition);
     }
 
     @Test
     void findById_invalidId() {
-        assertThat(sqlContractDefinitionStore.findById("invalid-id")).isNull();
+        assertThat(getSqlContractDefinitionStore().findById("invalid-id")).isNull();
     }
 
     @Test
     void delete() {
         var definitionExpected = getContractDefinition("test-id1", "policy1", "contract1");
-        sqlContractDefinitionStore.save(definitionExpected);
-        assertThat(sqlContractDefinitionStore.findAll(QuerySpec.max())).hasSize(1);
+        getSqlContractDefinitionStore().save(definitionExpected);
+        assertThat(getSqlContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
 
-        var deleted = sqlContractDefinitionStore.deleteById("test-id1");
+        var deleted = getSqlContractDefinitionStore().deleteById("test-id1");
         assertThat(deleted).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
-        assertThat(sqlContractDefinitionStore.findAll(QuerySpec.max())).isEmpty();
+        assertThat(getSqlContractDefinitionStore().findAll(QuerySpec.max())).isEmpty();
     }
 
     @Test
     void delete_whenNotExist() {
-        var deleted = sqlContractDefinitionStore.deleteById("test-id1");
+        var deleted = getSqlContractDefinitionStore().deleteById("test-id1");
         assertThat(deleted).isNull();
     }
+
+    protected abstract SqlContractDefinitionStore getSqlContractDefinitionStore();
 
 
 }

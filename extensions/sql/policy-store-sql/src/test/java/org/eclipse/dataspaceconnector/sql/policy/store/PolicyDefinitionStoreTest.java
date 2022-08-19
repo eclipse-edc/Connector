@@ -15,83 +15,32 @@
 
 package org.eclipse.dataspaceconnector.sql.policy.store;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresDialectStatements;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPolicy;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-@ComponentTest
-class SqlPolicyDefinitionStoreTest {
-
-    private static final String DATASOURCE_NAME = "policy";
-    private SqlPolicyDefinitionStore sqlPolicyStore;
-    private Connection connection;
-
-    @BeforeEach
-    void setUp() throws SQLException, IOException {
-        var transactionContext = new NoopTransactionContext();
-        DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
-
-        var jdbcDataSource = new JdbcDataSource();
-        jdbcDataSource.setURL("jdbc:h2:mem:");
-
-        // do not actually close
-        connection = spy(jdbcDataSource.getConnection());
-        doNothing().when(connection).close();
-
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), new H2DialectStatements());
-
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
+abstract class PolicyDefinitionStoreTest {
 
     @Test
     @DisplayName("Save a single policy that not exists ")
     void save_notExisting() {
         var policy = createPolicy(getRandomId());
 
-        sqlPolicyStore.save(policy);
+        getPolicyDefinitionStore().save(policy);
 
-        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
+        var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
         assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
 
@@ -113,9 +62,9 @@ class SqlPolicyDefinitionStoreTest {
                 .build();
         var spec = QuerySpec.Builder.newInstance().build();
 
-        sqlPolicyStore.save(policy1);
-        sqlPolicyStore.save(policy2);
-        var policyFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        getPolicyDefinitionStore().save(policy1);
+        getPolicyDefinitionStore().save(policy2);
+        var policyFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(1).isEqualTo(policyFromDb.size());
         assertThat("Target2").isEqualTo(policyFromDb.get(0).getPolicy().getTarget());
@@ -126,9 +75,9 @@ class SqlPolicyDefinitionStoreTest {
     @DisplayName("Find policy by ID that exists")
     void findById_whenPresent() {
         var policy = createPolicy(getRandomId());
-        sqlPolicyStore.save(policy);
+        getPolicyDefinitionStore().save(policy);
 
-        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
+        var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
 
         assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
@@ -136,7 +85,7 @@ class SqlPolicyDefinitionStoreTest {
     @Test
     @DisplayName("Find policy by ID when not exists")
     void findById_whenNonexistent() {
-        assertThat(sqlPolicyStore.findById("nonexistent")).isNull();
+        assertThat(getPolicyDefinitionStore().findById("nonexistent")).isNull();
     }
 
     @Test
@@ -145,14 +94,14 @@ class SqlPolicyDefinitionStoreTest {
         var limit = 20;
 
         var definitionsExpected = getDummyPolicies(50);
-        definitionsExpected.forEach(sqlPolicyStore::save);
+        definitionsExpected.forEach(getPolicyDefinitionStore()::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .limit(limit)
                 .offset(20)
                 .build();
 
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).hasSize(limit);
     }
@@ -163,13 +112,13 @@ class SqlPolicyDefinitionStoreTest {
         var pageSize = 15;
 
         var definitionsExpected = getDummyPolicies(10);
-        definitionsExpected.forEach(sqlPolicyStore::save);
+        definitionsExpected.forEach(getPolicyDefinitionStore()::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(pageSize)
                 .build();
 
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).isEmpty();
     }
@@ -180,14 +129,14 @@ class SqlPolicyDefinitionStoreTest {
         var limit = 5;
 
         var definitionsExpected = getDummyPolicies(10);
-        definitionsExpected.forEach(sqlPolicyStore::save);
+        definitionsExpected.forEach(getPolicyDefinitionStore()::save);
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(7)
                 .limit(limit)
                 .build();
 
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(policiesFromDb).size().isLessThanOrEqualTo(limit);
     }
@@ -197,17 +146,19 @@ class SqlPolicyDefinitionStoreTest {
     void deleteById_whenExists() {
         var policy = createPolicy(getRandomId());
 
-        sqlPolicyStore.save(policy);
+        getPolicyDefinitionStore().save(policy);
 
-        assertThat(sqlPolicyStore.deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
-        assertThat(sqlPolicyStore.findById(policy.getUid())).isNull();
+        assertThat(getPolicyDefinitionStore().deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
+        assertThat(getPolicyDefinitionStore().findById(policy.getUid())).isNull();
     }
 
     @Test
     @DisplayName("Delete a non existing policy")
     void deleteById_whenNonexistent() {
-        assertThat(sqlPolicyStore.deleteById("nonexistent")).isNull();
+        assertThat(getPolicyDefinitionStore().deleteById("nonexistent")).isNull();
     }
+
+    protected abstract SqlPolicyDefinitionStore getPolicyDefinitionStore();
 
     private String getRandomId() {
         return UUID.randomUUID().toString();
