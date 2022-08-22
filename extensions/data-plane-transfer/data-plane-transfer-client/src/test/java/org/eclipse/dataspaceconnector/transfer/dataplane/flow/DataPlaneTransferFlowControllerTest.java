@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.flow;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -26,6 +25,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.HTTP_PROXY;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,11 +37,33 @@ import static org.mockito.Mockito.when;
 
 class DataPlaneTransferFlowControllerTest {
 
-    private static final Faker FAKER = new Faker();
 
     private DataPlaneTransferClient transferClientMock;
 
     private DataPlaneTransferFlowController flowController;
+
+    private static DataAddress testDataAddress() {
+        return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
+    }
+
+    public static DataRequest createDataRequest() {
+        return createDataRequest(UUID.randomUUID().toString());
+    }
+
+    /**
+     * Create a {@link DataRequest} object with provided destination type.
+     */
+    public static DataRequest createDataRequest(String destinationType) {
+        return DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .protocol(UUID.randomUUID().toString())
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .connectorAddress("test.connector.address")
+                .processId(UUID.randomUUID().toString())
+                .destinationType(destinationType)
+                .build();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -57,7 +80,7 @@ class DataPlaneTransferFlowControllerTest {
 
     @Test
     void transferFailure_shouldReturnFailedTransferResult() {
-        var errorMsg = FAKER.internet().uuid();
+        var errorMsg = UUID.randomUUID().toString();
         var request = createDataRequest();
 
         when(transferClientMock.transfer(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
@@ -93,28 +116,5 @@ class DataPlaneTransferFlowControllerTest {
         assertThat(dataFlowRequest.getSourceDataAddress().getType()).isEqualTo(source.getType());
         assertThat(dataFlowRequest.getDestinationDataAddress().getType()).isEqualTo(request.getDestinationType());
         assertThat(dataFlowRequest.getProperties()).isEmpty();
-    }
-
-    private static DataAddress testDataAddress() {
-        return DataAddress.Builder.newInstance().type(FAKER.internet().uuid()).build();
-    }
-
-    public static DataRequest createDataRequest() {
-        return createDataRequest(FAKER.internet().uuid());
-    }
-
-    /**
-     * Create a {@link DataRequest} object with provided destination type.
-     */
-    public static DataRequest createDataRequest(String destinationType) {
-        return DataRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .protocol(FAKER.internet().uuid())
-                .contractId(FAKER.internet().uuid())
-                .assetId(FAKER.internet().uuid())
-                .connectorAddress(FAKER.internet().url())
-                .processId(FAKER.internet().uuid())
-                .destinationType(destinationType)
-                .build();
     }
 }

@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import dev.failsafe.RetryPolicy;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -34,19 +33,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AzureStorageDataSourceFactoryTest {
-    static Faker faker = new Faker();
-    BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
-    Vault vault = mock(Vault.class);
-    AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobStoreApi, RetryPolicy.ofDefaults(), mock(Monitor.class), vault);
-    DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
-    DataFlowRequest.Builder invalidRequest = createRequest(faker.lorem().word());
-    DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
+    private final BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
+    private final Vault vault = mock(Vault.class);
+    private final AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobStoreApi, RetryPolicy.ofDefaults(), mock(Monitor.class), vault);
+    private final DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
+    private final DataFlowRequest.Builder invalidRequest = createRequest("test-type");
+    private final DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
 
-    String accountName = createAccountName();
-    String containerName = createContainerName();
-    String blobName = createBlobName();
-    String sharedKey = createSharedKey();
-    String keyName = faker.lorem().word();
+    private final String accountName = createAccountName();
+    private final String containerName = createContainerName();
+    private final String blobName = createBlobName();
+    private final String sharedKey = createSharedKey();
 
     @Test
     void canHandle_whenBlobRequest_returnsTrue() {
@@ -102,6 +99,7 @@ class AzureStorageDataSourceFactoryTest {
 
     @Test
     void createSource_whenValidRequest_succeeds() {
+        String keyName = "test-key-name";
         when(vault.resolveSecret(keyName)).thenReturn(sharedKey);
         var validRequest = request.sourceDataAddress(dataAddress
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)

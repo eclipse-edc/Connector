@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import io.netty.handler.codec.http.HttpMethod;
-import net.datafaker.Faker;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -35,6 +34,7 @@ import org.mockito.ArgumentMatchers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,7 +48,6 @@ import static org.mockito.Mockito.when;
 
 class HttpDataSinkFactoryTest {
 
-    private static final Faker FAKER = new Faker();
     private static final OkHttpClient HTTP_CLIENT = mock(OkHttpClient.class);
     private static final Monitor MONITOR = mock(Monitor.class);
     private static final ExecutorService EXECUTOR_SERVICE = mock(ExecutorService.class);
@@ -56,6 +55,15 @@ class HttpDataSinkFactoryTest {
     private final HttpRequestParamsSupplier supplierMock = mock(HttpRequestParamsSupplier.class);
 
     private HttpDataSinkFactory factory;
+
+    private static DataFlowRequest createRequest(DataAddress destination) {
+        return DataFlowRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
+                .destinationDataAddress(destination)
+                .build();
+    }
 
     @BeforeEach
     void setUp() {
@@ -74,7 +82,7 @@ class HttpDataSinkFactoryTest {
 
     @Test
     void verifyValidationFailsIfSupplierThrows() {
-        var errorMsg = FAKER.lorem().sentence();
+        var errorMsg = "Test error message";
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);
 
@@ -91,7 +99,7 @@ class HttpDataSinkFactoryTest {
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);
         var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl("http://" + FAKER.internet().url())
+                .baseUrl("http://some.base.url")
                 .method(HttpMethod.POST.name())
                 .contentType("application/json")
                 .build();
@@ -127,7 +135,7 @@ class HttpDataSinkFactoryTest {
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);
         var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl("http://" + FAKER.internet().url())
+                .baseUrl("http://some.base.url")
                 .method(method)
                 .contentType("application/json")
                 .build();
@@ -149,14 +157,5 @@ class HttpDataSinkFactoryTest {
         assertThat(result.succeeded()).isTrue();
 
         verify(call).execute();
-    }
-
-    private static DataFlowRequest createRequest(DataAddress destination) {
-        return DataFlowRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .processId(FAKER.internet().uuid())
-                .sourceDataAddress(DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build())
-                .destinationDataAddress(destination)
-                .build();
     }
 }

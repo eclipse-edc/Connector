@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http;
 
-import net.datafaker.Faker;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -29,12 +28,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 
 import static okhttp3.Protocol.HTTP_2;
 
 public class HttpTestFixtures {
 
-    private static final Faker FAKER = new Faker();
+
+    private HttpTestFixtures() {
+    }
 
     public static DataFlowRequest.Builder createRequest(String type) {
         return createRequest(
@@ -46,8 +48,8 @@ public class HttpTestFixtures {
 
     public static DataFlowRequest.Builder createRequest(Map<String, String> properties, DataAddress source, DataAddress destination) {
         return DataFlowRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .processId(FAKER.internet().uuid())
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .properties(properties)
                 .sourceDataAddress(source)
                 .destinationDataAddress(destination)
@@ -80,8 +82,5 @@ public class HttpTestFixtures {
             requestBody.writeTo(bufferedSink);
             return os.toString();
         }
-    }
-
-    private HttpTestFixtures() {
     }
 }

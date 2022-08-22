@@ -14,22 +14,21 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.edr;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class EndpointDataReferenceFixtures {
 
-    private static final Faker FAKER = new Faker();
 
     public static EndpointDataReference createEndpointDataReference() {
         return EndpointDataReference.Builder.newInstance()
-                .endpoint(FAKER.internet().url())
-                .authKey(FAKER.lorem().word())
-                .authCode(FAKER.internet().uuid())
-                .id(FAKER.internet().uuid())
-                .properties(Map.of(FAKER.lorem().word(), FAKER.internet().uuid()))
+                .endpoint("test.endpoint.url")
+                .authKey("test-authkey")
+                .authCode(UUID.randomUUID().toString())
+                .id(UUID.randomUUID().toString())
+                .properties(Map.of("test-key", UUID.randomUUID().toString()))
                 .build();
     }
 }

@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -30,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +43,6 @@ import static org.mockito.Mockito.when;
 
 class ProviderDataPlaneProxyDataFlowControllerTest {
 
-    private static final Faker FAKER = new Faker();
 
     private String connectorId;
     private DataPlaneTransferProxyResolver proxyResolver;
@@ -51,9 +50,32 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
     private DataPlaneTransferProxyReferenceService proxyReferenceServiceMock;
     private ProviderDataPlaneProxyDataFlowController controller;
 
+    private static EndpointDataReference createEndpointDataReference() {
+        return EndpointDataReference.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .endpoint("test.endpoint.url")
+                .build();
+    }
+
+    private static DataAddress testDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type").build();
+    }
+
+    private static DataRequest createDataRequest(String destinationType) {
+        return DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .protocol("test-protocol")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .connectorAddress("test.connector.address")
+                .processId(UUID.randomUUID().toString())
+                .destinationType(destinationType)
+                .build();
+    }
+
     @BeforeEach
     void setUp() {
-        connectorId = FAKER.internet().uuid();
+        connectorId = UUID.randomUUID().toString();
         proxyResolver = mock(DataPlaneTransferProxyResolver.class);
         dispatcherRegistryMock = mock(RemoteMessageDispatcherRegistry.class);
         proxyReferenceServiceMock = mock(DataPlaneTransferProxyReferenceService.class);
@@ -65,7 +87,7 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var contentAddress = DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
 
         assertThat(controller.canHandle(createDataRequest(HTTP_PROXY), contentAddress)).isTrue();
-        assertThat(controller.canHandle(createDataRequest(FAKER.internet().uuid()), contentAddress)).isFalse();
+        assertThat(controller.canHandle(createDataRequest(UUID.randomUUID().toString()), contentAddress)).isFalse();
     }
 
     @Test
@@ -74,7 +96,7 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
         var edr = createEndpointDataReference();
-        var proxyUrl = FAKER.internet().url();
+        var proxyUrl = "proxy.test.url";
 
         var edrRequestCaptor = ArgumentCaptor.forClass(EndpointDataReferenceMessage.class);
         var proxyCreationRequestCaptor = ArgumentCaptor.forClass(DataPlaneTransferProxyCreationRequest.class);
@@ -109,7 +131,7 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var request = createDataRequest(HTTP_PROXY);
         var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
-        var errorMsg = FAKER.lorem().sentence();
+        var errorMsg = "test-errormsg";
 
         when(proxyResolver.resolveProxyUrl(dataAddress)).thenReturn(Result.failure(errorMsg));
 
@@ -127,8 +149,8 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var request = createDataRequest(HTTP_PROXY);
         var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
-        var errorMsg = FAKER.lorem().sentence();
-        var proxyUrl = FAKER.internet().url();
+        var errorMsg = "Test Error Message";
+        var proxyUrl = "test.proxy.url";
 
         when(proxyResolver.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
         when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.failure(errorMsg));
@@ -139,28 +161,5 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
-    }
-
-    private static EndpointDataReference createEndpointDataReference() {
-        return EndpointDataReference.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .endpoint(FAKER.internet().url())
-                .build();
-    }
-
-    private static DataAddress testDataAddress() {
-        return DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build();
-    }
-
-    private static DataRequest createDataRequest(String destinationType) {
-        return DataRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .protocol(FAKER.lorem().word())
-                .contractId(FAKER.internet().uuid())
-                .assetId(FAKER.internet().uuid())
-                .connectorAddress(FAKER.internet().url())
-                .processId(FAKER.internet().uuid())
-                .destinationType(destinationType)
-                .build();
     }
 }

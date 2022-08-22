@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.core.security;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,13 +22,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class DefaultPrivateKeyParseFunctionTest {
 
-    private static final Faker FAKER = new Faker();
 
     private DefaultPrivateKeyParseFunction parseFunction;
 
@@ -41,12 +40,12 @@ class DefaultPrivateKeyParseFunctionTest {
     @Test
     void verifyParseInvalidPemThrowsException() {
         assertThatExceptionOfType(EdcException.class)
-                .isThrownBy(() -> parseFunction.apply(FAKER.internet().uuid()))
+                .isThrownBy(() -> parseFunction.apply(UUID.randomUUID().toString()))
                 .withMessageContaining("Object cannot be null");
     }
 
     @ParameterizedTest(name = "{index} {1}")
-    @CsvSource({"rsa-privatekey.pem, RSA", "ec-privatekey.pem, EC"})
+    @CsvSource({ "rsa-privatekey.pem, RSA", "ec-privatekey.pem, EC" })
     void verifyParseSuccess(String keyFileName, String expectedAlgo) throws IOException {
         var pem = loadResourceFile(keyFileName);
 
@@ -59,7 +58,7 @@ class DefaultPrivateKeyParseFunctionTest {
     /**
      * Load content from a resource file.
      */
-    private static String loadResourceFile(String file) throws IOException {
+    private String loadResourceFile(String file) throws IOException {
         return new String(
                 Objects.requireNonNull(
                                 DefaultPrivateKeyParseFunctionTest.class.getClassLoader().getResourceAsStream(file)

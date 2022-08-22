@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.RetryPolicy;
-import net.datafaker.Faker;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static okhttp3.Protocol.HTTP_1_1;
@@ -42,7 +42,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HttpDataSourceTest {
-    private static final Faker FAKER = new Faker();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private String requestId;
@@ -50,16 +49,16 @@ class HttpDataSourceTest {
 
     @BeforeEach
     public void setUp() {
-        requestId = FAKER.internet().uuid();
-        url = "http://" + FAKER.internet().domainName() + "/";
+        requestId = UUID.randomUUID().toString();
+        url = "http://some.test.url/";
     }
 
     @Test
     void verifyCallSuccess() throws IOException {
-        var json = MAPPER.writeValueAsString(Map.of(FAKER.lorem().word(), FAKER.lorem().word()));
+        var json = MAPPER.writeValueAsString(Map.of("key1", "Value1"));
         var responseBody = ResponseBody.create(json, MediaType.parse("application/json"));
 
-        var interceptor = new CustomInterceptor(200, responseBody, FAKER.lorem().word());
+        var interceptor = new CustomInterceptor(200, responseBody, "Test message");
         var params = mock(HttpRequestParams.class);
         var request = new Request.Builder().url(url).get().build();
         var source = defaultBuilder(interceptor).params(params).build();
@@ -81,8 +80,8 @@ class HttpDataSourceTest {
 
     @Test
     void verifyExceptionIsThrownIfCallFailed() {
-        var message = FAKER.lorem().word();
-        var body = FAKER.lorem().word();
+        var message = "Test message";
+        var body = "Test body";
         var interceptor = new CustomInterceptor(400, ResponseBody.create(body, MediaType.parse("text/plain")), message);
         var params = mock(HttpRequestParams.class);
         var request = new Request.Builder().url(url).get().build();
@@ -102,7 +101,7 @@ class HttpDataSourceTest {
         var httpClient = testOkHttpClient().newBuilder().addInterceptor(interceptor).build();
         return HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
-                .name(FAKER.lorem().word())
+                .name("test-name")
                 .requestId(requestId)
                 .retryPolicy(retryPolicy);
     }

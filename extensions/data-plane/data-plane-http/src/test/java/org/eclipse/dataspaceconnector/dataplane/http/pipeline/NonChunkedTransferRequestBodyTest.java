@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import net.datafaker.Faker;
 import okio.BufferedSink;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
@@ -30,11 +29,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class NonChunkedTransferRequestBodyTest {
-    private static final Faker FAKER = new Faker();
 
     @Test
     void verifyTransferWhenDataAvailable() throws IOException {
-        var content = FAKER.lorem().word();
+        var content = "Test Content";
         var sink = mock(BufferedSink.class);
         var outputStream = new ByteArrayOutputStream();
 

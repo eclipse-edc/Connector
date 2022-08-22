@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.azure.blob.core.validator;
 
-import net.datafaker.Faker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -27,58 +26,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class AzureStorageValidatorTest {
 
-    static Faker faker = new Faker();
-
-    @ParameterizedTest
-    @ValueSource(strings = {"abc", "abcdefghijabcdefghijbcde", "1er", "451", "ge45"})
-    void validateAccountName_success(String input) {
-        AzureStorageValidator.validateAccountName(input);
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"  ", "$log", "r", "re", "a a", " b", "ag_c", "re-r", "bdjfkCJdfd", "efer:a",
-            "abcdefghijabcdefghijbcdef"})
-    void validateAccountName_fail(String input) {
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> AzureStorageValidator.validateAccountName(input));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "$root", "$logs", "$web",
-            "re-r", "z0r-a-q",
-            "abc", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz01234567890", "1er", "451", "ge45"})
-    void validateContainerName_success(String input) {
-        AzureStorageValidator.validateContainerName(input);
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"$log", "  ", "r", "re", "a a", "-ree", "era-", "z0rr--", " b", "ag_c",
-            "bdjfkCJdfd", "efer:a", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz012345678901"})
-    void validateContainerName_fail(String input) {
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> AzureStorageValidator.validateContainerName(input));
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    void validateKeyName_fail(String input) {
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> AzureStorageValidator.validateKeyName(input));
-    }
-
-    @Test
-    void validateKeyName_success() {
-        AzureStorageValidator.validateKeyName(faker.lorem().word());
-    }
-
-    @ParameterizedTest
-    @MethodSource("validBlobNames")
-    void validateBlobName_success(String input) {
-        AzureStorageValidator.validateBlobName(input);
-    }
 
     private static Stream<String> validBlobNames() {
         return Stream.of(
@@ -100,6 +47,56 @@ class AzureStorageValidatorTest {
                 "a/b".repeat(254));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "abc", "abcdefghijabcdefghijbcde", "1er", "451", "ge45" })
+    void validateAccountName_success(String input) {
+        AzureStorageValidator.validateAccountName(input);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = { "  ", "$log", "r", "re", "a a", " b", "ag_c", "re-r", "bdjfkCJdfd", "efer:a",
+            "abcdefghijabcdefghijbcdef" })
+    void validateAccountName_fail(String input) {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> AzureStorageValidator.validateAccountName(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "$root", "$logs", "$web",
+            "re-r", "z0r-a-q",
+            "abc", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz01234567890", "1er", "451", "ge45" })
+    void validateContainerName_success(String input) {
+        AzureStorageValidator.validateContainerName(input);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = { "$log", "  ", "r", "re", "a a", "-ree", "era-", "z0rr--", " b", "ag_c",
+            "bdjfkCJdfd", "efer:a", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz012345678901" })
+    void validateContainerName_fail(String input) {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> AzureStorageValidator.validateContainerName(input));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void validateKeyName_fail(String input) {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> AzureStorageValidator.validateKeyName(input));
+    }
+
+    @Test
+    void validateKeyName_success() {
+        AzureStorageValidator.validateKeyName("test random key name");
+    }
+
+    @ParameterizedTest
+    @MethodSource("validBlobNames")
+    void validateBlobName_success(String input) {
+        AzureStorageValidator.validateBlobName(input);
+    }
 
     @ParameterizedTest
     @MethodSource("invalidBlobNames")

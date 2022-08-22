@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import dev.failsafe.RetryPolicy;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
@@ -42,7 +41,6 @@ import static org.mockito.Mockito.when;
 
 class AzureStorageDataSourceTest {
 
-    static Faker faker = new Faker();
     Monitor monitor = mock(Monitor.class);
     BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
     DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
@@ -51,9 +49,9 @@ class AzureStorageDataSourceTest {
     String containerName = createContainerName();
     String sharedKey = createSharedKey();
     String blobName = createBlobName();
-    String content = faker.lorem().sentence();
+    String content = "Test Content";
 
-    Exception exception = new TestCustomException(faker.lorem().sentence());
+    Exception exception = new TestCustomException("Test exception message");
 
     AzureStorageDataSource dataSource = AzureStorageDataSource.Builder.newInstance()
             .accountName(accountName)

@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -36,16 +35,14 @@ import static org.mockito.Mockito.when;
 
 class ParallelSinkTest {
 
-    Faker faker = new Faker();
-    Monitor monitor = mock(Monitor.class);
-    ExecutorService executor = Executors.newFixedThreadPool(2);
-    String dataSourceName = faker.lorem().word();
-    String dataSourceContent = faker.lorem().characters();
-    String errorMessage = faker.lorem().sentence();
-    InputStreamDataSource dataSource = new InputStreamDataSource(
+    private final Monitor monitor = mock(Monitor.class);
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private final String dataSourceName = "test-datasource-name";
+    private final String dataSourceContent = "test-content";
+    private final String errorMessage = "test-errormessage";
+    private final InputStreamDataSource dataSource = new InputStreamDataSource(
             dataSourceName,
             new ByteArrayInputStream(dataSourceContent.getBytes()));
-
     FakeParallelSink fakeSink;
 
     @BeforeEach

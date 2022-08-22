@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azuredatafactory;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -31,22 +30,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AzureDataFactoryTransferServiceTest {
-    static final Faker FAKER = new Faker();
 
-    AzureDataFactoryTransferRequestValidator validator = mock(AzureDataFactoryTransferRequestValidator.class);
-    AzureDataFactoryTransferManager transferManager = mock(AzureDataFactoryTransferManager.class);
-    AzureDataFactoryTransferService transferService = new AzureDataFactoryTransferService(
+    private final AzureDataFactoryTransferRequestValidator validator = mock(AzureDataFactoryTransferRequestValidator.class);
+    private final AzureDataFactoryTransferManager transferManager = mock(AzureDataFactoryTransferManager.class);
+    private final AzureDataFactoryTransferService transferService = new AzureDataFactoryTransferService(
             validator,
             transferManager);
 
-    DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
-    Result<Boolean> failure = Result.failure(FAKER.lorem().sentence());
-    Result<Boolean> success = Result.success(true);
+    private final DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
+    private final Result<Boolean> failure = Result.failure("Test Failure");
+    private final Result<Boolean> success = Result.success(true);
     @SuppressWarnings("unchecked")
-    CompletableFuture<StatusResult<Void>> result = mock(CompletableFuture.class);
+    private final CompletableFuture<StatusResult<Void>> result = mock(CompletableFuture.class);
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void canHandle_onResult(boolean expected) {
         // Arrange
         when(validator.canHandle(request.build())).thenReturn(expected);

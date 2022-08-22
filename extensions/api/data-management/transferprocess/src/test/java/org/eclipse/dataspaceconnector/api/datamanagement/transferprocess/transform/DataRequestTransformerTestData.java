@@ -14,27 +14,27 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.mock;
 
 class DataRequestTransformerTestData {
-    static Faker faker = new Faker();
 
     TransformerContext context = mock(TransformerContext.class);
-    String assetId = faker.lorem().word();
-    String contractId = faker.lorem().word();
-    String connectorId = faker.lorem().word();
+    String assetId = UUID.randomUUID().toString();
+    String contractId = UUID.randomUUID().toString();
+    String connectorId = UUID.randomUUID().toString();
 
     DataRequest entity = DataRequest.Builder.newInstance()
             .assetId(assetId)
             .contractId(contractId)
             .connectorId(connectorId)
-            .dataDestination(DataAddress.Builder.newInstance().type(faker.lorem().word()).build())
+            .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
             .build();
 
     DataRequestDto dto = DataRequestDto.Builder.newInstance()

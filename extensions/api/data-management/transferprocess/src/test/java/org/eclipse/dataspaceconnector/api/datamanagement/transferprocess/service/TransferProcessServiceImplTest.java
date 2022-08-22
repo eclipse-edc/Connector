@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
@@ -34,6 +33,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,19 +47,18 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TransferProcessServiceImplTest {
-    static Faker faker = new Faker();
 
-    String id = faker.lorem().word();
-    TransferProcess process1 = transferProcess();
-    TransferProcess process2 = transferProcess();
-    QuerySpec query = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
-    ArgumentCaptor<SingleTransferProcessCommand> commandCaptor = ArgumentCaptor.forClass(SingleTransferProcessCommand.class);
+    private final String id = UUID.randomUUID().toString();
+    private final TransferProcess process1 = transferProcess();
+    private final TransferProcess process2 = transferProcess();
+    private final QuerySpec query = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
+    private final ArgumentCaptor<SingleTransferProcessCommand> commandCaptor = ArgumentCaptor.forClass(SingleTransferProcessCommand.class);
 
-    TransferProcessStore store = mock(TransferProcessStore.class);
-    TransferProcessManager manager = mock(TransferProcessManager.class);
-    TransactionContext transactionContext = spy(new NoopTransactionContext());
+    private final TransferProcessStore store = mock(TransferProcessStore.class);
+    private final TransferProcessManager manager = mock(TransferProcessManager.class);
+    private final TransactionContext transactionContext = spy(new NoopTransactionContext());
 
-    TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext);
+    private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext);
 
     @Test
     void findById_whenFound() {
@@ -210,7 +209,8 @@ class TransferProcessServiceImplTest {
     }
 
     private TransferProcess transferProcess() {
-        return transferProcess(faker.options().option(TransferProcessStates.class), UUID.randomUUID().toString());
+        var state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];
+        return transferProcess(state, UUID.randomUUID().toString());
     }
 
     private TransferProcess transferProcess(TransferProcessStates state, String id) {

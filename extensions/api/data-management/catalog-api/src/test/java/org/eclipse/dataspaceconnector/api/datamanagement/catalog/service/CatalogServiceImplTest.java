@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog.service;
 
-import net.datafaker.Faker;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -25,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -39,22 +39,21 @@ import static org.mockito.Mockito.when;
 
 class CatalogServiceImplTest {
 
-    private static final Faker FAKER = Faker.instance();
     private final RemoteMessageDispatcherRegistry dispatcher = mock(RemoteMessageDispatcherRegistry.class);
 
     @Test
     void shouldSendCatalogRequestToDispatcher() {
         var service = new CatalogServiceImpl(dispatcher);
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id(FAKER.internet().uuid())
+                .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .assetId(FAKER.internet().uuid())
+                .assetId(UUID.randomUUID().toString())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
                 .thenReturn(completedFuture(Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build()));
 
-        var future = service.getByProviderUrl(FAKER.internet().url(), new QuerySpec());
+        var future = service.getByProviderUrl("test.provider.url", new QuerySpec());
 
         assertThat(future).succeedsWithin(1, SECONDS).extracting(Catalog::getContractOffers, InstanceOfAssertFactories.list(ContractOffer.class)).hasSize(1);
         verify(dispatcher, times(1)).send(eq(Catalog.class), isA(CatalogRequest.class), any());

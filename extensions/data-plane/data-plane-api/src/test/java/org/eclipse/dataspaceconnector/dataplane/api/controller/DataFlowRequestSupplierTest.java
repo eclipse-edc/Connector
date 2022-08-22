@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.MediaType;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -30,9 +29,12 @@ import static org.mockito.Mockito.when;
 
 class DataFlowRequestSupplierTest {
 
-    private static final Faker FAKER = new Faker();
 
     private final DataFlowRequestSupplier supplier = new DataFlowRequestSupplier();
+
+    private static DataAddress createDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type").build();
+    }
 
     @Test
     void verifyMapping_noInputBody() {
@@ -40,8 +42,8 @@ class DataFlowRequestSupplierTest {
         var address = createDataAddress();
 
         var method = HttpMethod.GET;
-        var queryParams = FAKER.lorem().word();
-        var path = FAKER.lorem().word();
+        var queryParams = "test-query-param";
+        var path = "test-path";
 
         when(contextApi.method()).thenReturn(method);
         when(contextApi.queryParams()).thenReturn(queryParams);
@@ -62,14 +64,14 @@ class DataFlowRequestSupplierTest {
     }
 
     @Test
-    void veirfyMapping_withInputBody() {
+    void verifyMapping_withInputBody() {
         var contextApi = mock(ContainerRequestContextApi.class);
         var address = createDataAddress();
 
         var method = HttpMethod.GET;
-        var queryParams = FAKER.lorem().word();
-        var path = FAKER.lorem().word();
-        var body = FAKER.lorem().sentence();
+        var queryParams = "test-query-param";
+        var path = "test-path";
+        var body = "Test request body";
 
         when(contextApi.method()).thenReturn(method);
         when(contextApi.queryParams()).thenReturn(queryParams);
@@ -90,9 +92,5 @@ class DataFlowRequestSupplierTest {
                 DataFlowRequestSchema.BODY, body,
                 DataFlowRequestSchema.MEDIA_TYPE, MediaType.TEXT_PLAIN
         ));
-    }
-
-    private static DataAddress createDataAddress() {
-        return DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build();
     }
 }

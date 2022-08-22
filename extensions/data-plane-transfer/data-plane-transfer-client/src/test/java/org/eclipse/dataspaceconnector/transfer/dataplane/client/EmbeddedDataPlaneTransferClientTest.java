@@ -14,12 +14,13 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.TestFixtures.createDataFlowRequest;
@@ -32,8 +33,6 @@ import static org.mockito.Mockito.when;
 
 class EmbeddedDataPlaneTransferClientTest {
 
-    private static final Faker FAKER = new Faker();
-
     private DataPlaneManager dataPlaneManagerMock;
     private DataPlaneTransferClient client;
 
@@ -45,7 +44,7 @@ class EmbeddedDataPlaneTransferClientTest {
 
     @Test
     void validationFailure_shouldReturnFailedResult() {
-        var errorMsg = FAKER.internet().uuid();
+        var errorMsg = UUID.randomUUID().toString();
         var request = createDataFlowRequest();
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.failure(errorMsg));
         doNothing().when(dataPlaneManagerMock).initiateTransfer(any());

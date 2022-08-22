@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage;
 
 import com.azure.core.util.BinaryData;
 import dev.failsafe.RetryPolicy;
-import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;
@@ -52,21 +51,17 @@ import static org.mockito.Mockito.when;
 @AzureStorageIntegrationTest
 class AzureDataPlaneCopyIntegrationTest extends AbstractAzureBlobTest {
 
-    static Faker faker = new Faker();
     private final TypeManager typeManager = new TypeManager();
 
-    String account1KeyName = faker.lorem().word() + "1";
-    String account2KeyName = faker.lorem().word() + "2";
-    RetryPolicy<Object> policy = RetryPolicy.builder().withMaxRetries(1).build();
-    String sinkContainerName = createContainerName();
-    String blobName = createBlobName();
-    String content = faker.lorem().sentence();
-    ExecutorService executor = Executors.newFixedThreadPool(2);
-    Monitor monitor = mock(Monitor.class);
-    Vault vault = mock(Vault.class);
+    private final RetryPolicy<Object> policy = RetryPolicy.builder().withMaxRetries(1).build();
+    private final String sinkContainerName = createContainerName();
+    private final String blobName = createBlobName();
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private final Monitor monitor = mock(Monitor.class);
+    private final Vault vault = mock(Vault.class);
 
-    BlobStoreApi account1Api = new BlobStoreApiImpl(vault, TestFunctions.getBlobServiceTestEndpoint(account1Name));
-    BlobStoreApi account2Api = new BlobStoreApiImpl(vault, TestFunctions.getBlobServiceTestEndpoint(account2Name));
+    private final BlobStoreApi account1Api = new BlobStoreApiImpl(vault, TestFunctions.getBlobServiceTestEndpoint(account1Name));
+    private final BlobStoreApi account2Api = new BlobStoreApiImpl(vault, TestFunctions.getBlobServiceTestEndpoint(account2Name));
 
     @BeforeEach
     void setUp() {
@@ -75,10 +70,12 @@ class AzureDataPlaneCopyIntegrationTest extends AbstractAzureBlobTest {
 
     @Test
     void transfer_success() {
+        String content = "test-content";
         blobServiceClient1.getBlobContainerClient(account1ContainerName)
                 .getBlobClient(blobName)
                 .upload(BinaryData.fromString(content));
 
+        String account1KeyName = "test-account-key-name1";
         var source = DataAddress.Builder.newInstance()
                 .type(TYPE)
                 .property(ACCOUNT_NAME, account1Name)
@@ -88,6 +85,7 @@ class AzureDataPlaneCopyIntegrationTest extends AbstractAzureBlobTest {
                 .build();
         when(vault.resolveSecret(account1KeyName)).thenReturn(account1Key);
 
+        String account2KeyName = "test-account-key-name2";
         var destination = DataAddress.Builder.newInstance()
                 .type(TYPE)
                 .property(ACCOUNT_NAME, account2Name)
