@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.aws.s3.core;
 
-import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -38,8 +37,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
 
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
@@ -48,7 +45,6 @@ public class AwsClientProviderImpl implements AwsClientProvider {
     private final AwsCredentialsProvider credentialsProvider;
     private final AwsClientProviderConfiguration configuration;
     private final Executor executor;
-    private final LockManager lock = new LockManager(new ReentrantReadWriteLock());
     private final Map<String, S3Client> s3Clients = new ConcurrentHashMap<>();
     private final Map<String, S3AsyncClient> s3AsyncClients = new ConcurrentHashMap<>();
     private final Map<String, StsAsyncClient> stsAsyncClients = new ConcurrentHashMap<>();
@@ -78,12 +74,12 @@ public class AwsClientProviderImpl implements AwsClientProvider {
 
     @Override
     public S3Client s3Client(String region) {
-        return getOrStoreInCache(region, s3Clients, this::createS3Client);
+        return s3Clients.computeIfAbsent(region, this::createS3Client);
     }
 
     @Override
     public S3AsyncClient s3AsyncClient(String region) {
-        return getOrStoreInCache(region, s3AsyncClients, this::createS3AsyncClient);
+        return s3AsyncClients.computeIfAbsent(region, this::createS3AsyncClient);
     }
 
     @Override
@@ -93,7 +89,7 @@ public class AwsClientProviderImpl implements AwsClientProvider {
 
     @Override
     public StsAsyncClient stsAsyncClient(String region) {
-        return getOrStoreInCache(region, stsAsyncClients, this::createStsClient);
+        return stsAsyncClients.computeIfAbsent(region, this::createStsClient);
     }
 
     @Override
@@ -102,17 +98,6 @@ public class AwsClientProviderImpl implements AwsClientProvider {
         s3Clients.values().forEach(SdkAutoCloseable::close);
         s3AsyncClients.values().forEach(SdkAutoCloseable::close);
         stsAsyncClients.values().forEach(SdkAutoCloseable::close);
-    }
-
-    private <T> T getOrStoreInCache(String region, Map<String, T> cache, Function<String, T> create) {
-        var client = lock.readLock(() -> cache.get(region));
-        if (client == null) {
-            var newClient = create.apply(region);
-            lock.writeLock(() -> cache.put(region, newClient));
-            return newClient;
-        } else {
-            return client;
-        }
     }
 
     private S3Client createS3Client(AwsCredentials credentials, String region) {

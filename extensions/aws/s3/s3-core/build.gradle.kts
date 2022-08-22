@@ -21,8 +21,7 @@ val failsafeVersion: String by project
 
 
 dependencies {
-    api(project(":spi:control-plane:control-plane-spi")) // TODO: probably the scope could be narrowed down
-    api(project(":common:util"))
+    api(project(":spi:control-plane:transfer-spi"))
 
     api("dev.failsafe:failsafe:${failsafeVersion}")
 

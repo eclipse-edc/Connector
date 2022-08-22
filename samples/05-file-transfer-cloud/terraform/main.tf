@@ -215,14 +215,3 @@ resource "azurerm_key_vault_secret" "aws-secret" {
   depends_on = [
   azurerm_role_assignment.current-user-secrets]
 }
-
-resource "azurerm_key_vault_secret" "aws-credentials" {
-  key_vault_id = azurerm_key_vault.main-vault.id
-  name         = "aws-credentials"
-  value = jsonencode({
-    "accessKeyId"     = aws_iam_access_key.access_key.id,
-    "secretAccessKey" = aws_iam_access_key.access_key.secret
-  })
-  depends_on = [
-  azurerm_role_assignment.current-user-secrets]
-}

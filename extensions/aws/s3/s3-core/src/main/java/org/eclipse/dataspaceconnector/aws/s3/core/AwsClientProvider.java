@@ -20,6 +20,20 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
 
+/**
+ * Provide various AWS client shapes
+ * <br>
+ * Caching by region:
+ *  - S3Client
+ *  - S3AsyncClient
+ *  - StsAsyncClient
+ * <br>
+ *  Single instance for the aws-global region:
+ *   - IamAsyncClient
+ * <br>
+ *  Instantiated on-fly given a SecretToken:
+ *   - S3Client
+ */
 public interface AwsClientProvider {
 
     /**

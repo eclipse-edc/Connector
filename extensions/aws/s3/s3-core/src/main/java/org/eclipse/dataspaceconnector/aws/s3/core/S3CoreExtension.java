@@ -85,11 +85,6 @@ public class S3CoreExtension implements ServiceExtension {
             return DefaultCredentialsProvider.create();
         }
 
-        // TODO: what is this for?
-        if (vault.resolveSecret("aws-credentials") == null) {
-            vault.storeSecret("aws-credentials", context.getTypeManager().writeValueAsString(new AwsSecretToken(accessKey, secretKey)));
-        }
-
         return () -> AwsBasicCredentials.create(accessKey, secretKey);
     }
 
