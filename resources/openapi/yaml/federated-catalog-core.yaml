@@ -1,0 +1,188 @@
+openapi: 3.0.1
+paths:
+  /federatedcatalog:
+    post:
+      operationId: getCachedCatalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FederatedCatalogCacheQuery'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractOffer'
+          description: default response
+components:
+  schemas:
+    Action:
+      type: object
+      properties:
+        constraint:
+          $ref: '#/components/schemas/Constraint'
+        includedIn:
+          type: string
+        type:
+          type: string
+    Asset:
+      type: object
+      properties:
+        createdAt:
+          type: integer
+          format: int64
+        id:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+    Constraint:
+      type: object
+      discriminator:
+        propertyName: edctype
+      properties:
+        edctype:
+          type: string
+      required:
+      - edctype
+    ContractOffer:
+      type: object
+      properties:
+        asset:
+          $ref: '#/components/schemas/Asset'
+        assetId:
+          type: string
+        consumer:
+          type: string
+          format: uri
+        contractEnd:
+          type: string
+          format: date-time
+        contractStart:
+          type: string
+          format: date-time
+        id:
+          type: string
+        offerEnd:
+          type: string
+          format: date-time
+        offerStart:
+          type: string
+          format: date-time
+        policy:
+          $ref: '#/components/schemas/Policy'
+        provider:
+          type: string
+          format: uri
+    Criterion:
+      type: object
+      properties:
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+    Duty:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        consequence:
+          $ref: '#/components/schemas/Duty'
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        parentPermission:
+          $ref: '#/components/schemas/Permission'
+        target:
+          type: string
+        uid:
+          type: string
+    FederatedCatalogCacheQuery:
+      type: object
+      properties:
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/Criterion'
+    Permission:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        duties:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
+    Policy:
+      type: object
+      properties:
+        '@type':
+          type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+        assignee:
+          type: string
+        assigner:
+          type: string
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+        prohibitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prohibition'
+        target:
+          type: string
+    Prohibition:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        target:
+          type: string
+        uid:
+          type: string
