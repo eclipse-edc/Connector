@@ -114,7 +114,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     }
 
     private PolicyDefinition createPolicyDefinition() {
-        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid(POLICY_ID).build();
+        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(POLICY_ID).build();
     }
 
     private ContractNegotiation createContractNegotiation() {

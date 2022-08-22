@@ -167,12 +167,12 @@ class InMemoryPolicyDefinitionStoreTest {
 
     private PolicyDefinition createPolicyDef(String id) {
         return PolicyDefinition.Builder.newInstance()
-                .uid(id)
+                .id(id)
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }
 
     private PolicyDefinition createPolicyDef(String id, String target) {
-        return PolicyDefinition.Builder.newInstance().uid(id).policy(Policy.Builder.newInstance().target(target).build()).build();
+        return PolicyDefinition.Builder.newInstance().id(id).policy(Policy.Builder.newInstance().target(target).build()).build();
     }
 }

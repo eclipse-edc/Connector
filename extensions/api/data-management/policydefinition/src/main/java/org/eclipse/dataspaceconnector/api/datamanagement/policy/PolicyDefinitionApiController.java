@@ -25,6 +25,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -34,10 +36,11 @@ import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
@@ -59,7 +62,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     @GET
     @Override
-    public List<PolicyDefinition> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
+    public List<PolicyDefinitionResponseDto> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
             throw new InvalidRequestException(result.getFailureMessages());
@@ -73,30 +76,42 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         if (queryResult.failed()) {
             throw mapToException(queryResult, PolicyDefinition.class, null);
         }
-        return new ArrayList<>(queryResult.getContent());
 
+        return queryResult.getContent().stream()
+                .map(it -> transformerRegistry.transform(it, PolicyDefinitionResponseDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(Collectors.toList());
     }
 
     @GET
     @Path("{id}")
     @Override
-    public PolicyDefinition getPolicy(@PathParam("id") String id) {
+    public PolicyDefinitionResponseDto getPolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return policy with ID %s", id));
         return Optional.of(id)
                 .map(it -> policyDefinitionService.findById(id))
+                .map(it -> transformerRegistry.transform(it, PolicyDefinitionResponseDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(Policy.class, id));
     }
 
     @POST
     @Override
-    public void createPolicy(PolicyDefinition policy) {
+    public void createPolicy(PolicyDefinitionRequestDto requestDto) {
+        var transformResult = transformerRegistry.transform(requestDto, PolicyDefinition.class);
+        if (transformResult.failed()) {
+            throw new InvalidRequestException(transformResult.getFailureMessages());
+        }
 
-        var result = policyDefinitionService.create(policy);
+        var definition = transformResult.getContent();
 
+        var result = policyDefinitionService.create(definition);
         if (result.succeeded()) {
-            monitor.debug(format("Policy created %s", policy.getUid()));
+            monitor.debug(format("Policy definition created %s", definition.getId()));
         } else {
-            throw mapToException(result, PolicyDefinition.class, policy.getUid());
+            throw mapToException(result, PolicyDefinition.class, definition.getId());
         }
     }
 

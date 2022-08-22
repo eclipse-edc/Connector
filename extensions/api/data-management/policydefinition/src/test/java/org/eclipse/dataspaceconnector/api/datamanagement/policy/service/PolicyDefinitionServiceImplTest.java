@@ -187,6 +187,6 @@ public class PolicyDefinitionServiceImplTest {
     }
 
     private PolicyDefinition createPolicy(String policyId) {
-        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid(policyId).build();
+        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(policyId).build();
     }
 }

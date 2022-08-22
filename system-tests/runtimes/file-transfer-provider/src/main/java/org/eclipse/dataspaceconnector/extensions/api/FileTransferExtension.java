@@ -78,7 +78,7 @@ public class FileTransferExtension implements ServiceExtension {
                         .permission(usePermission)
                         .target("test-document")
                         .build())
-                .uid(USE_POLICY)
+                .id(USE_POLICY)
                 .build();
     }
 

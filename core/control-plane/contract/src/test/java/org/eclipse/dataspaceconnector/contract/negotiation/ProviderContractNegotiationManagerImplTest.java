@@ -429,7 +429,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONFIRMING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid("policyId").build());
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("policyId").build());
 
         negotiationManager.start();
 

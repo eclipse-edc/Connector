@@ -76,7 +76,7 @@ class ContractDefinitionServiceImplTest {
     @Test
     void definitionsFor_verifyDoesNotSatisfyAccessPolicy() {
         var agent = new ParticipantAgent(Map.of(), Map.of());
-        var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid("access").build();
+        var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("access").build();
         when(policyStore.findById(any())).thenReturn(definition);
         var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
         when(policyEngine.evaluate(any(), any(), any())).thenReturn(Result.failure("invalid"));

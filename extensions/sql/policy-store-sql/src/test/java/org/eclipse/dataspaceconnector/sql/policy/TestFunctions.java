@@ -35,7 +35,7 @@ public class TestFunctions {
 
         return PolicyDefinition.Builder.newInstance()
                 .createdAt(Clock.systemUTC().millis())
-                .uid(id)
+                .id(id)
                 .policy(policy)
                 .build();
     }

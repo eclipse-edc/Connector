@@ -34,7 +34,7 @@ public class TestFunctions {
                         .prohibitions(List.of())
                         .duties(List.of())
                         .build())
-                .uid(id)
+                .id(id)
                 .build();
     }
 

@@ -1433,7 +1433,7 @@ window.swaggerSpec={
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/PolicyDefinition"
+                    "$ref" : "#/components/schemas/PolicyDefinitionResponseDto"
                   }
                 }
               }
@@ -1462,7 +1462,7 @@ window.swaggerSpec={
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/PolicyDefinition"
+                "$ref" : "#/components/schemas/PolicyDefinitionRequestDto"
               }
             }
           }
@@ -1521,7 +1521,7 @@ window.swaggerSpec={
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PolicyDefinition"
+                  "$ref" : "#/components/schemas/PolicyDefinitionResponseDto"
                 }
               }
             }
@@ -2720,7 +2720,20 @@ window.swaggerSpec={
           }
         }
       },
-      "PolicyDefinition" : {
+      "PolicyDefinitionRequestDto" : {
+        "required" : [ "policy" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "policy" : {
+            "$ref" : "#/components/schemas/Policy"
+          }
+        }
+      },
+      "PolicyDefinitionResponseDto" : {
+        "required" : [ "policy" ],
         "type" : "object",
         "properties" : {
           "createdAt" : {
@@ -2732,9 +2745,6 @@ window.swaggerSpec={
           },
           "policy" : {
             "$ref" : "#/components/schemas/Policy"
-          },
-          "uid" : {
-            "type" : "string"
           }
         }
       },

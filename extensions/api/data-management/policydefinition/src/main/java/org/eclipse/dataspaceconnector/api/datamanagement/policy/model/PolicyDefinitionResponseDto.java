@@ -12,32 +12,29 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.policy;
+package org.eclipse.dataspaceconnector.api.datamanagement.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.NotNull;
+import org.eclipse.dataspaceconnector.api.model.BaseResponseDto;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
 
 import java.util.Objects;
-import java.util.UUID;
 
-/**
- * A {@link PolicyDefinition} is a container for a {@link Policy} and a unique identifier. Policies by themselves do
- * not have and identity, they are value objects.
- * However, most connector runtimes will need to keep a set of policies as their reference or master data, which
- * requires them to be identifiable and addressable. In most cases this also means that they have a stable, unique
- * identity, potentially across systems. In such cases a {@link Policy} should be enveloped in a
- * {@link PolicyDefinition}.
- * <p>
- * <em>Many external Policy formats like ODRL also require policies to have an ID.</em>
- */
-@JsonDeserialize(builder = PolicyDefinition.Builder.class)
-public class PolicyDefinition extends Entity {
+@JsonDeserialize(builder = PolicyDefinitionResponseDto.Builder.class)
+public class PolicyDefinitionResponseDto extends BaseResponseDto {
+
+    private String id;
+    @NotNull
     private Policy policy;
 
-    private PolicyDefinition() {
+    private PolicyDefinitionResponseDto() {
+    }
+
+    public String getId() {
+        return id;
     }
 
     public Policy getPolicy() {
@@ -57,19 +54,15 @@ public class PolicyDefinition extends Entity {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PolicyDefinition that = (PolicyDefinition) o;
+        PolicyDefinitionResponseDto that = (PolicyDefinitionResponseDto) o;
         return Objects.equals(id, that.id) && policy.equals(that.policy);
     }
 
-    public String getUid() {
-        return id;
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends Entity.Builder<PolicyDefinition, Builder> {
+    public static final class Builder extends BaseResponseDto.Builder<PolicyDefinitionResponseDto, Builder> {
 
         private Builder() {
-            super(new PolicyDefinition());
+            super(new PolicyDefinitionResponseDto());
         }
 
         @JsonCreator
@@ -77,8 +70,13 @@ public class PolicyDefinition extends Entity {
             return new Builder();
         }
 
+        public Builder id(String id) {
+            dto.id = id;
+            return this;
+        }
+
         public Builder policy(Policy policy) {
-            entity.policy = policy;
+            dto.policy = policy;
             return this;
         }
 
@@ -87,12 +85,9 @@ public class PolicyDefinition extends Entity {
             return this;
         }
 
-        public PolicyDefinition build() {
-            if (entity.id == null) {
-                entity.id = UUID.randomUUID().toString();
-            }
-            Objects.requireNonNull(entity.policy, "Policy cannot be null!");
-            return super.build();
+        @Override
+        public PolicyDefinitionResponseDto build() {
+            return dto;
         }
     }
 }
