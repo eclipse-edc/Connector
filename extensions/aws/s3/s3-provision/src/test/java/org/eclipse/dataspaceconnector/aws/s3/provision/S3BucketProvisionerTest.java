@@ -15,15 +15,12 @@
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import dev.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
-import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
@@ -47,7 +44,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -60,11 +56,13 @@ class S3BucketProvisionerTest {
     private final IamAsyncClient iamClient = mock(IamAsyncClient.class);
     private final StsAsyncClient stsClient = mock(StsAsyncClient.class);
     private final S3AsyncClient s3Client = mock(S3AsyncClient.class);
-    private final ClientProvider clientProvider = mock(ClientProvider.class);
+    private final AwsClientProvider clientProvider = mock(AwsClientProvider.class);
 
     @BeforeEach
     void setUp() {
-        when(clientProvider.clientFor(any(), anyString())).thenAnswer(chooseClient());
+        when(clientProvider.iamAsyncClient()).thenReturn(iamClient);
+        when(clientProvider.s3AsyncClient(anyString())).thenReturn(s3Client);
+        when(clientProvider.stsAsyncClient(anyString())).thenReturn(stsClient);
 
         var configuration = new S3BucketProvisionerConfiguration(2, 3600);
 
@@ -113,22 +111,6 @@ class S3BucketProvisionerTest {
         var response = provisioner.provision(definition, policy);
 
         assertThat(response).failsWithin(1, SECONDS);
-    }
-
-    @NotNull
-    private Answer<Object> chooseClient() {
-        return invocation -> {
-            Class<SdkClient> skdClient = invocation.getArgument(0, Class.class);
-            if (skdClient.isAssignableFrom(IamAsyncClient.class)) {
-                return iamClient;
-            } else if (skdClient.isAssignableFrom(StsAsyncClient.class)) {
-                return stsClient;
-            } else if (skdClient.isAssignableFrom(S3AsyncClient.class)) {
-                return s3Client;
-            } else {
-                throw new RuntimeException("unexpected provider SdkClient type");
-            }
-        };
     }
 
 }

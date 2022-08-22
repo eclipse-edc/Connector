@@ -24,13 +24,23 @@ public class TestFunctions {
     public static final String VALID_ACCESS_KEY_ID = "validAccessKeyId";
     public static final String VALID_SECRET_ACCESS_KEY = "validSecretAccessKey";
 
-    public static DataAddress validS3DataAddress() {
+    public static DataAddress s3DataAddressWithCredentials() {
         return DataAddress.Builder.newInstance()
                 .type(S3BucketSchema.TYPE)
+                .keyName("aKey")
                 .property(S3BucketSchema.BUCKET_NAME, VALID_BUCKET_NAME)
                 .property(S3BucketSchema.REGION, VALID_REGION)
                 .property(S3BucketSchema.ACCESS_KEY_ID, VALID_ACCESS_KEY_ID)
                 .property(S3BucketSchema.SECRET_ACCESS_KEY, VALID_SECRET_ACCESS_KEY)
+                .build();
+    }
+
+    public static DataAddress s3DataAddressWithoutCredentials() {
+        return DataAddress.Builder.newInstance()
+                .type(S3BucketSchema.TYPE)
+                .keyName("aKey")
+                .property(S3BucketSchema.BUCKET_NAME, VALID_BUCKET_NAME)
+                .property(S3BucketSchema.REGION, VALID_REGION)
                 .build();
     }
 }

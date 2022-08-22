@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import dev.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
-import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -36,12 +36,12 @@ import java.util.concurrent.CompletableFuture;
  */
 public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefinition, S3BucketProvisionedResource> {
 
-    private final ClientProvider clientProvider;
+    private final AwsClientProvider clientProvider;
     private final Monitor monitor;
     private final RetryPolicy<Object> retryPolicy;
     private final S3BucketProvisionerConfiguration configuration;
 
-    public S3BucketProvisioner(ClientProvider clientProvider, Monitor monitor, RetryPolicy<Object> retryPolicy, S3BucketProvisionerConfiguration configuration) {
+    public S3BucketProvisioner(AwsClientProvider clientProvider, Monitor monitor, RetryPolicy<Object> retryPolicy, S3BucketProvisionerConfiguration configuration) {
         this.clientProvider = clientProvider;
         this.monitor = monitor;
         this.configuration = configuration;

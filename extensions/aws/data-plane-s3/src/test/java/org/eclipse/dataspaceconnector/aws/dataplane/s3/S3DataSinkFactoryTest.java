@@ -14,19 +14,22 @@
 
 package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsSecretToken;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
-import org.eclipse.dataspaceconnector.aws.s3.core.S3ClientProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -38,17 +41,22 @@ import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALI
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALID_BUCKET_NAME;
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALID_REGION;
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALID_SECRET_ACCESS_KEY;
-import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.validS3DataAddress;
+import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.s3DataAddressWithCredentials;
+import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.s3DataAddressWithoutCredentials;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.REGION;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class S3DataSinkFactoryTest {
 
-    private final AwsCredentialsProvider credentialsProvider = mock(AwsCredentialsProvider.class);
-    private final S3ClientProvider clientProvider = mock(S3ClientProvider.class);
-    private final S3DataSinkFactory factory = new S3DataSinkFactory(clientProvider, mock(ExecutorService.class), mock(Monitor.class), credentialsProvider);
+    private final AwsClientProvider clientProvider = mock(AwsClientProvider.class);
+    private final Vault vault = mock(Vault.class);
+    private final TypeManager typeManager = new TypeManager();
+    private final S3DataSinkFactory factory = new S3DataSinkFactory(clientProvider, mock(ExecutorService.class), mock(Monitor.class), vault, typeManager);
 
     @Test
     void canHandle_returnsTrueWhenExpectedType() {
@@ -70,7 +78,7 @@ class S3DataSinkFactoryTest {
 
     @Test
     void validate_ShouldSucceedIfPropertiesAreValid() {
-        var destination = validS3DataAddress();
+        var destination = s3DataAddressWithCredentials();
         var request = createRequest(destination);
 
         var result = factory.validate(request);
@@ -78,25 +86,9 @@ class S3DataSinkFactoryTest {
         assertThat(result.succeeded()).isTrue();
     }
 
-    @Test
-    void validate_shouldGetCredentialsByExternalProviderFirst() {
-        when(credentialsProvider.resolveCredentials()).thenReturn(AwsBasicCredentials.create(VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY));
-        var destination = DataAddress.Builder.newInstance()
-                .type(S3BucketSchema.TYPE)
-                .property(S3BucketSchema.BUCKET_NAME, VALID_BUCKET_NAME)
-                .property(REGION, VALID_REGION)
-                .property(S3BucketSchema.ACCESS_KEY_ID, null)
-                .property(S3BucketSchema.SECRET_ACCESS_KEY, null)
-                .build();
-
-        var result = factory.validate(createRequest(destination));
-
-        assertThat(result.succeeded()).isTrue();
-    }
-
     @ParameterizedTest
-    @MethodSource("invalidInputs")
-    void validate_shouldFailIfPropertiesAreMissing(String bucketName, String region, String accessKeyId, String secretAccessKey) {
+    @ArgumentsSource(InvalidInputs.class)
+    void validate_shouldFailIfMandatoryPropertiesAreMissing(String bucketName, String region, String accessKeyId, String secretAccessKey) {
         var destination = DataAddress.Builder.newInstance()
                 .type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, bucketName)
@@ -113,27 +105,40 @@ class S3DataSinkFactoryTest {
     }
 
     @Test
-    void createSink_shouldCreateDataSink() {
-        var destination = validS3DataAddress();
+    void createSink_shouldGetTheTemporarySecretTokenFromTheVault() {
+        var destination = s3DataAddressWithCredentials();
+        var temporaryKey = new AwsTemporarySecretToken("temporaryId", "temporarySecret", "temporaryToken", 10);
+        when(vault.resolveSecret(destination.getKeyName())).thenReturn(typeManager.writeValueAsString(temporaryKey));
         var request = createRequest(destination);
 
         var sink = factory.createSink(request);
 
         assertThat(sink).isNotNull().isInstanceOf(S3DataSink.class);
-        verify(clientProvider).provide(VALID_REGION, new AwsSecretToken(VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY));
+        verify(clientProvider).s3Client(eq(VALID_REGION), isA(AwsTemporarySecretToken.class));
     }
 
     @Test
-    void createSink_shouldUseExternalProviderCredentialsFirst() {
-        var providedCredentials = AwsBasicCredentials.create("providedAccessKeyId", "providedSecretAccessKey");
-        when(credentialsProvider.resolveCredentials()).thenReturn(providedCredentials);
-        var destination = validS3DataAddress();
+    void createSink_shouldCreateDataSinkWithCredentialsInDataAddressIfTheresNoSecret() {
+        when(vault.resolveSecret(any())).thenReturn(null);
+        var destination = s3DataAddressWithCredentials();
         var request = createRequest(destination);
 
         var sink = factory.createSink(request);
 
         assertThat(sink).isNotNull().isInstanceOf(S3DataSink.class);
-        verify(clientProvider).provide(VALID_REGION, providedCredentials);
+        verify(clientProvider).s3Client(VALID_REGION, new AwsSecretToken(VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY));
+    }
+
+    @Test
+    void createSink_shouldLetTheProviderGetTheCredentialsAsFallback() {
+        when(vault.resolveSecret(any())).thenReturn(null);
+        var destination = s3DataAddressWithoutCredentials();
+        var request = createRequest(destination);
+
+        var sink = factory.createSink(request);
+
+        assertThat(sink).isNotNull().isInstanceOf(S3DataSink.class);
+        verify(clientProvider).s3Client(VALID_REGION);
     }
 
     @Test
@@ -147,13 +152,15 @@ class S3DataSinkFactoryTest {
         assertThatThrownBy(() -> factory.createSink(request)).isInstanceOf(EdcException.class);
     }
 
-    private static Stream<Arguments> invalidInputs() {
-        return Stream.of(
-                Arguments.of(VALID_BUCKET_NAME, VALID_REGION, VALID_ACCESS_KEY_ID, " "),
-                Arguments.of(VALID_BUCKET_NAME, VALID_REGION, " ", VALID_SECRET_ACCESS_KEY),
-                Arguments.of(VALID_BUCKET_NAME, " ", VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY),
-                Arguments.of(" ", VALID_REGION, VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY)
-        );
+    private static class InvalidInputs implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(VALID_BUCKET_NAME, " ", VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY),
+                    Arguments.of(" ", VALID_REGION, VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY)
+            );
+        }
     }
 
     private DataFlowRequest createRequest(DataAddress destination) {
