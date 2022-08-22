@@ -56,10 +56,10 @@
 
 ## :extensions:catalog
 
-| Module | Description | Details
-| :----- | :---------- | :------ |
-| :federated-catalog-cache | Contains implementations for the Federated Catalog Cache, which is a database that contains a snapshot of all the catalogs offered by all the connectors in a dataspace | [link]({{extensions}}catalog/federated-catalog-cache) |
-| :federated-catalog-spi   | This module contains extension points and interfaces specifically for the Federated Catalog feature. | [link]({{extensions}}catalog/federated-catalog-spi) |
+| Module                  | Description | Details                                                 
+|:------------------------| :---------- |:--------------------------------------------------------|
+| :federated-catalog-core | Contains implementations for the Federated Catalog Cache, which is a database that contains a snapshot of all the catalogs offered by all the connectors in a dataspace | [link]({{core}}federate-catalog/federated-catalog-core) |
+| :federated-catalog-spi  | This module contains extension points and interfaces specifically for the Federated Catalog feature. | [link]({{extensions}}catalog/federated-catalog-spi)     |
 
 ## :extensions:data-plane
 
