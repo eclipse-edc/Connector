@@ -18,12 +18,10 @@ import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelector;
 import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelectorService;
 import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelectorServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstanceStore;
-import org.eclipse.dataspaceconnector.dataplane.selector.store.DefaultDataPlaneInstanceStore;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.RandomSelectionStrategy;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategyRegistry;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -46,8 +44,4 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
         context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(selector, instanceStore, strategy));
     }
 
-    @Provider(isDefault = true)
-    public DataPlaneInstanceStore instanceStore() {
-        return new DefaultDataPlaneInstanceStore();
-    }
 }

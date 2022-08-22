@@ -13,3 +13,4 @@
 #
 
 org.eclipse.dataspaceconnector.dataplane.selector.core.DataPlaneSelectorExtension
+org.eclipse.dataspaceconnector.dataplane.selector.core.DataPlaneSelectorDefaultsExtension
