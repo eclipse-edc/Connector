@@ -326,7 +326,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     private void checkResponseType(@NotNull MultipartResponse<?> response) {
         var type = getAllowedResponseTypes();
         if (!type.contains(response.getHeader().getClass())) {
-            throw new EdcException("Received unexpected response type.");
+            throw new EdcException(String.format("Received %s but expected %s.", response.getHeader().getClass(), type));
         }
     }
 
