@@ -12,12 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.dataloading;
+package org.eclipse.dataspaceconnector.spi.types.domain.asset;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 public class AssetEntry {
     private final Asset asset;

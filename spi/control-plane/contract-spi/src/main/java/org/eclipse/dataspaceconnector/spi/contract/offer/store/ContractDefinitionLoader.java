@@ -12,21 +12,10 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
-//This file serves as BOM for the dataloader
-dependencies {
-    api(project(":spi:control-plane:control-plane-spi"))
-    implementation(project(":common:util"))
-}
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
-publishing {
-    publications {
-        create<MavenPublication>("dataloading") {
-            artifactId = "dataloading"
-            from(components["java"])
-        }
-    }
+public interface ContractDefinitionLoader {
+    void accept(ContractDefinition item);
 }

@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  * to an {@link Asset} by its corresponding asset id. Therefore, it is absolutely crucial that assets are not removed from the {@link AssetIndex} as long as data transfers or contracts (agreements and offers) exists for them.
  * Additionally, as an {@link Asset} may be referenced by a contract, the content of an {@link Asset} and its corresponding data must not change in ways, that violates an existing contract.
  */
-public interface AssetIndex {
+public interface AssetIndex extends AssetLoader, DataAddressResolver {
 
     /**
      * Returns all {@link Asset} objects that are selected by a certain expression

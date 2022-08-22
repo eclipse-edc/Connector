@@ -15,15 +15,13 @@
 package org.eclipse.dataspaceconnector.core.controlplane.defaults.assetindex;
 
 import org.eclipse.dataspaceconnector.common.collection.CollectionUtil;
-import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
-import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -41,7 +39,7 @@ import static java.lang.String.format;
 /**
  * An ephemeral asset index, that is also a DataAddressResolver and an AssetLoader
  */
-public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, AssetLoader {
+public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
     private final AssetPredicateConverter predicateFactory;

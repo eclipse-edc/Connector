@@ -23,7 +23,6 @@ val postgresVersion: String by project
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
-    implementation(project(":extensions:dataloading"))
     implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
 

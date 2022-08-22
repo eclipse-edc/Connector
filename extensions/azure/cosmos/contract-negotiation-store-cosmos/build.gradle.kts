@@ -24,7 +24,6 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":common:util"))
     api(project(":extensions:azure:cosmos:cosmos-common"))
-    api(project(":extensions:dataloading"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")

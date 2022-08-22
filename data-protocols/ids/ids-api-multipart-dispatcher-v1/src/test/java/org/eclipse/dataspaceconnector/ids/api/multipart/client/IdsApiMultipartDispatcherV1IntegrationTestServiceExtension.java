@@ -46,7 +46,9 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -148,6 +150,20 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
             return assets.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
         }
 
+        @Override
+        public void accept(AssetEntry item) {
+
+        }
+
+        @Override
+        public Asset deleteById(String assetId) {
+            return null;
+        }
+
+        @Override
+        public DataAddress resolveForAsset(String assetId) {
+            return null;
+        }
     }
 
     private static class FakeContractOfferService implements ContractOfferService {

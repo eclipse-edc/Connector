@@ -22,8 +22,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
@@ -32,7 +31,6 @@ dependencies {
 
     testImplementation(project(":common:util"))
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(project(":extensions:dataloading"))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:junit"))
 

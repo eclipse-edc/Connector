@@ -23,7 +23,6 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":extensions:azure:data-plane:storage"))
     implementation(project(":extensions:aws:data-plane-s3"))
-    implementation(project(":extensions:dataloading"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))

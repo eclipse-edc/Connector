@@ -24,7 +24,6 @@ dependencies {
     api(project(":core:control-plane:contract"))
     api(project(":core:control-plane:transfer"))
     implementation(project(":common:util"))
-    implementation(project(":extensions:dataloading"))
 }
 
 publishing {

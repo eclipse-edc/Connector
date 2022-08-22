@@ -52,7 +52,6 @@ styleguide.md @paullatzelsperger
 /extensions/data-plane/ @bscholtes1A @jimmarino
 /extensions/data-plane-selector/ @paullatzelsperger
 /extensions/data-plane-transfer/ @bscholtes1A
-/extensions/dataloading/ @paullatzelsperger
 /extensions/events/ @ndr-brt
 /extensions/filesystem/ @jimmarino @paullatzelsperger
 /extensions/http/ @paullatzelsperger
@@ -65,7 +64,6 @@ styleguide.md @paullatzelsperger
 /extensions/sql/ @bcronin90 @denisneuling @paullatzelsperger
 /extensions/transaction/ @jimmarino
 
-/launchers/data-loader-cli/ @paullatzelsperger @ronjaquensel
 /launchers/data-plane-server/ @bscholtes1A
 /launchers/dpf-selector/ @paullatzelsperger
 /launchers/ids-connector/ @ronjaquensel
