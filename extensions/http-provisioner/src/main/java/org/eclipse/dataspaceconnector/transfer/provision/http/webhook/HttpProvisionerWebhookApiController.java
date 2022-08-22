@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.AddProvisionedResourceCommand;
-import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionCompleteCommand;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionCompleteCommand;
 import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionedContentResource;
 
 import java.util.UUID;

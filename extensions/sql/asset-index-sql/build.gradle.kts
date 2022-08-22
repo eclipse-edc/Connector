@@ -29,7 +29,7 @@ dependencies {
 
     testImplementation(project(":extensions:junit"))
 
-    testImplementation(project(":core:base"))
+    testImplementation(project(":core:common:policy-evaluator"))
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")

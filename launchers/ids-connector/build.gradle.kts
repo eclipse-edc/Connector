@@ -22,7 +22,7 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
 
     implementation(project(":data-protocols:ids"))
 

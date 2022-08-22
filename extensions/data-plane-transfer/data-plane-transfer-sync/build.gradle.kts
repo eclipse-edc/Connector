@@ -30,7 +30,7 @@ dependencies {
 
     api(project(":spi:control-plane:data-plane-transfer-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
-    api(project(":spi:data-plane-selector:selector-spi"))
+    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     implementation(project(":common:token-validation-lib"))
     implementation(project(":common:token-generation-lib"))

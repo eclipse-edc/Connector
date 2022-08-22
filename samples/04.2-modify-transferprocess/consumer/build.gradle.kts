@@ -24,7 +24,7 @@ val jupiterVersion: String by project
 val rsApi: String by project
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":samples:04.2-modify-transferprocess:watchdog"))
     implementation(project(":samples:04.2-modify-transferprocess:simulator"))
 

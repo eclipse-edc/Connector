@@ -23,8 +23,8 @@ plugins {
 val rsApi: String by project
 
 dependencies {
-    api(project(":core"))
-    api(project(":extensions:http"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":extensions:http"))
 
     implementation(project(":extensions:api:data-management"))
 

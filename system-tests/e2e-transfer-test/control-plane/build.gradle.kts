@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     implementation(project(":common:token-generation-lib"))
-    implementation(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":data-protocols:ids"))
     implementation(project(":extensions:filesystem:vault-fs"))
     implementation(project(":extensions:http"))
@@ -26,7 +26,11 @@ dependencies {
     implementation(project(":extensions:api:data-management"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
-    implementation(project(":extensions:data-plane-selector"))
+
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
+    implementation(project(":extensions:data-plane-selector:selector-api"))
+    implementation(project(":extensions:data-plane-selector:selector-client"))
+
     implementation(project(":extensions:http-provisioner"))
     implementation(project(":extensions:http-receiver"))
 }

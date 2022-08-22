@@ -27,14 +27,13 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":extensions:http"))
     api(project(":extensions:filesystem:configuration-fs"))
-    api(project(":spi:data-plane-selector:selector-spi"))
+    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":common:util"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":extensions:api:api-core")) //for the exception mapper
 
 
-    testImplementation(project(":extensions:data-plane-selector:selector-core")) //for the selector impl
-    testImplementation(project(":extensions:data-plane-selector:selector-store"))
+    testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(project(":extensions:http"))

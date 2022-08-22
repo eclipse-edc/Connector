@@ -34,7 +34,7 @@ dependencies {
     implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
 
     testImplementation(project(":extensions:filesystem:configuration-fs"))
-    testImplementation(project(":extensions:data-plane:data-plane-framework"))
+    testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":extensions:azure:resource-manager"))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:azure:blobstorage:blob-core")))

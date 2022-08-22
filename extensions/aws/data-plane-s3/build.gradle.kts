@@ -27,7 +27,7 @@ dependencies {
 
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
-    testImplementation(project(":extensions:data-plane:data-plane-framework"))
+    testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(testFixtures(project(":extensions:aws:aws-test")))
 
     testImplementation(project(":extensions:junit"))

@@ -32,7 +32,7 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(project(":core:defaults"))
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")

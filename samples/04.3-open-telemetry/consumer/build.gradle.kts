@@ -23,8 +23,8 @@ val jupiterVersion: String by project
 val rsApi: String by project
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":core:micrometer"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":extensions:micrometer"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))

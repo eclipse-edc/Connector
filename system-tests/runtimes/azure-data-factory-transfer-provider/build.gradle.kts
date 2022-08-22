@@ -26,38 +26,30 @@ val azureResourceManagerVersion: String by project
 
 
 dependencies {
+    implementation(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":common:util"))
-
-    implementation(project(":core:transfer"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:selector-client"))
-    implementation(project(":extensions:data-plane-selector:selector-core"))
-    implementation(project(":extensions:data-plane-selector:selector-store"))
-    implementation(project(":extensions:data-plane:data-plane-framework"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
     implementation(project(":extensions:azure:data-plane:data-factory"))
     implementation(project(":extensions:azure:resource-manager"))
+    implementation(project(":extensions:api:observability"))
+    implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:iam:iam-mock"))
+    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:azure:blobstorage"))
+    implementation(project(":extensions:azure:vault"))
+    implementation(project(":data-protocols:ids"))
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("com.azure:azure-identity:${azureIdentityVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager-datafactory:${azureResourceManagerDataFactory}")
     implementation("com.azure.resourcemanager:azure-resourcemanager-storage:${azureResourceManagerVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:${azureResourceManagerVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
-
-    implementation(project(":spi:data-plane:data-plane-spi"))
-
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-    implementation(project(":core"))
-
-    implementation(project(":extensions:api:observability"))
-
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":extensions:api:data-management"))
-    implementation(project(":extensions:azure:blobstorage"))
-    implementation(project(":extensions:azure:vault"))
-
-    implementation(project(":data-protocols:ids"))
 }
 
 application {

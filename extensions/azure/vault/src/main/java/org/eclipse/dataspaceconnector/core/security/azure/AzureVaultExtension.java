@@ -15,8 +15,10 @@
 package org.eclipse.dataspaceconnector.core.security.azure;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.security.VaultCertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -24,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import static org.eclipse.dataspaceconnector.common.string.StringUtils.isNullOrEmpty;
 
-@Provides({ Vault.class, PrivateKeyResolver.class })
+@Provides({ Vault.class, PrivateKeyResolver.class, CertificateResolver.class })
 public class AzureVaultExtension implements ServiceExtension {
 
     @EdcSetting
@@ -65,6 +67,7 @@ public class AzureVaultExtension implements ServiceExtension {
 
         context.registerService(Vault.class, vault);
         context.registerService(PrivateKeyResolver.class, new VaultPrivateKeyResolver(vault));
+        context.registerService(CertificateResolver.class, new VaultCertificateResolver(vault));
     }
 
     private String getMandatorySetting(ServiceExtensionContext context, String setting) {

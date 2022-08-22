@@ -11,7 +11,7 @@ that contains the essential dependencies. We'll need at least the following thin
 
 ```kotlin
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
     
 }
 ```

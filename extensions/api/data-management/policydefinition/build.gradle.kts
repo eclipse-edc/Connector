@@ -28,16 +28,15 @@ dependencies {
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":common:util"))
-    implementation(project(":core:policy:policy-evaluator"))
+    implementation(project(":core:common:policy-evaluator"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:http"))
-
     testImplementation(project(":extensions:transaction:transaction-local"))
-
     testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }

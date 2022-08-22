@@ -30,10 +30,8 @@ dependencies {
     implementation(project(":extensions:sql:common-sql"))
     implementation(project(":extensions:sql:lease-sql"))
 
-
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
-    testImplementation(project(":core:base"))
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation(testFixtures(project(":common:util")))

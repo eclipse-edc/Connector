@@ -256,7 +256,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
         @Override
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
-            throw new UnsupportedOperationException();
+            return contractDefinitions.stream();
         }
 
         @Override
