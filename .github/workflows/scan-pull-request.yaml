@@ -38,7 +38,7 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v3
-      - uses: agilepathway/label-checker@v1.0.113
+      - uses: agilepathway/label-checker@v1.1.2
         with:
           any_of: api,bug,build,dependencies,documentation,enhancement,no-changelog,refactoring
           repo_token: ${{ secrets.GITHUB_TOKEN }}
