@@ -77,8 +77,8 @@ public class S3CoreExtension implements ServiceExtension {
 
     @NotNull
     private AwsCredentialsProvider createCredentialsProvider(ServiceExtensionContext context) {
-        var accessKey = vault.resolveSecret(AWS_ACCESS_KEY);
-        var secretKey = vault.resolveSecret(AWS_SECRET_KEY);
+        var accessKey = vault.resolveSecret(context.getSetting(AWS_ACCESS_KEY, AWS_ACCESS_KEY));
+        var secretKey = vault.resolveSecret(context.getSetting(AWS_SECRET_KEY, AWS_SECRET_KEY));
 
         if (accessKey == null || secretKey == null) {
             monitor.info(format("S3: %s and %s were not found in the vault, DefaultCredentialsProvider will be used", AWS_ACCESS_KEY, AWS_SECRET_KEY));
