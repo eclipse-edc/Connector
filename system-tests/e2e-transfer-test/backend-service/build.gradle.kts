@@ -20,7 +20,7 @@ val okHttpVersion: String by project
 val rsApi: String by project
 
 dependencies {
-    implementation(project(":extensions:http"))
+    implementation(project(":extensions:common:http"))
     implementation(project(":core:common:boot"))
     implementation(project(":core:common:base"))
 

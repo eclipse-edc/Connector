@@ -24,11 +24,11 @@ val rsApi: String by project
 
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":extensions:http"))
+    implementation(project(":extensions:common:http"))
 
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:control-plane:api:data-management"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:common:configuration:filesystem-configuration"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

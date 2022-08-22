@@ -100,13 +100,13 @@ build file and a config file. Common dependencies we need to add to the build fi
 
 ```kotlin
 // in consumer/build.gradle.kts and provider/build.gradle.kts:
-implementation(project(":extensions:filesystem:configuration-fs"))
+implementation(project(":extensions:common:configuration:filesystem-configuration"))
 
 implementation(project(":data-protocols:ids"))
-implementation(project(":extensions:iam:iam-mock"))
+implementation(project(":extensions:common:iam:iam-mock"))
 
-implementation(project(":extensions:api:data-management"))
-implementation(project(":extensions:api:auth-tokenbased"))
+implementation(project(":extensions:control-plane:api:data-management"))
+implementation(project(":extensions:common:auth:auth-tokenbased"))
 ```
 
 Three of these dependencies are new and have not been used in the previous samples:

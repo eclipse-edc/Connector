@@ -37,9 +37,9 @@ dependencies {
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     // required for integration test
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:junit"))
 
-    testImplementation(project(":extensions:http"))
+    testImplementation(project(":extensions:common:http"))
     testImplementation(project(":data-protocols:ids:ids-spi"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
 

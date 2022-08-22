@@ -26,13 +26,13 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:filesystem:vault-fs"))
+    implementation(project(":extensions:common:configuration:filesystem-configuration"))
+    implementation(project(":extensions:common:vault:filesystem-vault"))
 
-    implementation(project(":extensions:iam:oauth2:oauth2-core"))
-    implementation(project(":extensions:iam:daps"))
+    implementation(project(":extensions:common:iam:oauth2:oauth2-core"))
+    implementation(project(":extensions:common:iam:oauth2:daps"))
 
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:control-plane:api:data-management"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

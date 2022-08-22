@@ -22,7 +22,7 @@ val jupiterVersion: String by project
 
 dependencies {
 
-    implementation(project(":extensions:api:observability"))
+    implementation(project(":extensions:common:api:observability"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))
     api(project(":extensions:data-plane-selector:selector-api"))
     api(project(":extensions:data-plane-selector:selector-client"))

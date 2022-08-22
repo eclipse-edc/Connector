@@ -25,7 +25,7 @@ dependencies {
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
-    api(project(":extensions:http"))
+    api(project(":extensions:common:http"))
 
     implementation(project(":data-protocols:ids:ids-api-configuration"))
 
@@ -37,7 +37,7 @@ dependencies {
     testImplementation("net.javacrumbs.json-unit:json-unit:2.35.0")
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:junit"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(testFixtures(project(":common:util")))

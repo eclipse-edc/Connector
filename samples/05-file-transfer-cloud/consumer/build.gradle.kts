@@ -23,19 +23,19 @@ plugins {
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
 
-    implementation(project(":extensions:api:observability"))
+    implementation(project(":extensions:common:api:observability"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:common:configuration:filesystem-configuration"))
 
-    implementation(project(":extensions:http"))
+    implementation(project(":extensions:common:http"))
 
-    implementation(project(":extensions:aws:s3:s3-provision"))
+    implementation(project(":extensions:control-plane:provision:s3-provision"))
 
-    implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":extensions:azure:vault"))
+    implementation(project(":extensions:common:iam:iam-mock"))
+    implementation(project(":extensions:common:vault:azure-vault"))
 
-    implementation(project(":extensions:api:auth-tokenbased"))
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:common:auth:auth-tokenbased"))
+    implementation(project(":extensions:control-plane:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
 }

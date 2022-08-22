@@ -21,9 +21,9 @@ val openTelemetryVersion: String by project
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
-    implementation(project(":extensions:azure:data-plane:storage"))
-    implementation(project(":extensions:aws:data-plane-s3"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
+    implementation(project(":extensions:data-plane:data-plane-azure-storage"))
+    implementation(project(":extensions:data-plane:data-plane-s3"))
+    implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
