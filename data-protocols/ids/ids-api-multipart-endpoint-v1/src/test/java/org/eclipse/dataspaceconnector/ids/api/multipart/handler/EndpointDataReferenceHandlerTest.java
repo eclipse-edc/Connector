@@ -51,28 +51,6 @@ class EndpointDataReferenceHandlerTest {
     private EndpointDataReferenceReceiverRegistry receiverRegistry;
     private EndpointDataReferenceTransformerRegistry transformerRegistry;
 
-    private static EndpointDataReference createEndpointDataReference() {
-        return EndpointDataReference.Builder.newInstance()
-                .endpoint("some.endpoint.url")
-                .authKey("test-authkey")
-                .authCode(UUID.randomUUID().toString())
-                .id(UUID.randomUUID().toString())
-                .properties(Map.of("key1", UUID.randomUUID().toString()))
-                .build();
-    }
-
-    private static MultipartRequest createMultipartRequest(EndpointDataReference payload) throws JsonProcessingException {
-        return MultipartRequest.Builder.newInstance()
-                .header(new ParticipantUpdateMessageBuilder().build())
-                .payload(MAPPER.writeValueAsString(payload))
-                .claimToken(createClaimToken())
-                .build();
-    }
-
-    private static ClaimToken createClaimToken() {
-        return ClaimToken.Builder.newInstance().build();
-    }
-
     @BeforeEach
     public void setUp() {
         var monitor = mock(Monitor.class);
@@ -153,5 +131,27 @@ class EndpointDataReferenceHandlerTest {
         assertThat(response)
                 .isNotNull()
                 .satisfies(r -> assertThat(r.getHeader()).isInstanceOf(RejectionMessage.class));
+    }
+
+    private EndpointDataReference createEndpointDataReference() {
+        return EndpointDataReference.Builder.newInstance()
+                .endpoint("some.endpoint.url")
+                .authKey("test-authkey")
+                .authCode(UUID.randomUUID().toString())
+                .id(UUID.randomUUID().toString())
+                .properties(Map.of("key1", UUID.randomUUID().toString()))
+                .build();
+    }
+
+    private MultipartRequest createMultipartRequest(EndpointDataReference payload) throws JsonProcessingException {
+        return MultipartRequest.Builder.newInstance()
+                .header(new ParticipantUpdateMessageBuilder().build())
+                .payload(MAPPER.writeValueAsString(payload))
+                .claimToken(createClaimToken())
+                .build();
+    }
+
+    private ClaimToken createClaimToken() {
+        return ClaimToken.Builder.newInstance().build();
     }
 }

@@ -32,17 +32,6 @@ class DefaultPrivateKeyParseFunctionTest {
 
     private DefaultPrivateKeyParseFunction parseFunction;
 
-    /**
-     * Load content from a resource file.
-     */
-    private static String loadResourceFile(String file) throws IOException {
-        return new String(
-                Objects.requireNonNull(
-                                DefaultPrivateKeyParseFunctionTest.class.getClassLoader().getResourceAsStream(file)
-                        )
-                        .readAllBytes());
-    }
-
     @BeforeEach
     public void setUp() {
         parseFunction = new DefaultPrivateKeyParseFunction();
@@ -64,5 +53,16 @@ class DefaultPrivateKeyParseFunctionTest {
 
         assertThat(key).isNotNull();
         assertThat(key.getAlgorithm()).isEqualTo(expectedAlgo);
+    }
+
+    /**
+     * Load content from a resource file.
+     */
+    private String loadResourceFile(String file) throws IOException {
+        return new String(
+                Objects.requireNonNull(
+                                DefaultPrivateKeyParseFunctionTest.class.getClassLoader().getResourceAsStream(file)
+                        )
+                        .readAllBytes());
     }
 }
