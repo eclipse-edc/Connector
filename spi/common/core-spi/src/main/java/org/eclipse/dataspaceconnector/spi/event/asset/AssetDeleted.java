@@ -38,7 +38,7 @@ public class AssetDeleted extends Event<AssetDeleted.Payload> {
         }
 
         public Builder assetId(String assetId) {
-            event.payload.setAssetId(assetId);
+            event.payload.assetId = assetId;
             return this;
         }
 
