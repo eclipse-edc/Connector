@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
-import org.eclipse.dataspaceconnector.common.token.JwtDecoratorRegistryImpl;
+import org.eclipse.dataspaceconnector.core.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 
 /**

@@ -15,9 +15,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync;
 
-import org.eclipse.dataspaceconnector.common.token.TokenGenerationServiceImpl;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationRulesRegistryImpl;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
+import org.eclipse.dataspaceconnector.core.jwt.TokenGenerationServiceImpl;
+import org.eclipse.dataspaceconnector.core.jwt.TokenValidationRulesRegistryImpl;
+import org.eclipse.dataspaceconnector.core.jwt.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;

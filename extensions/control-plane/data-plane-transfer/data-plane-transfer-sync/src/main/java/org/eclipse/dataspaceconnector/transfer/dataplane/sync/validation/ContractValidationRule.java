@@ -16,8 +16,8 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation;
 
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.jwt.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

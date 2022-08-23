@@ -32,8 +32,7 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
-    implementation(project(":common:token-validation-lib"))
-    implementation(project(":common:token-generation-lib"))
+    implementation(project(":core:common:jwt-core"))
 
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")

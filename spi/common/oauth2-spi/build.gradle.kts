@@ -19,8 +19,7 @@ plugins {
 val nimbusVersion: String by project
 
 dependencies {
-    api(project(":common:token-generation-lib"))
-    api(project(":common:token-validation-lib"))
+    api(project(":spi:common:jwt-spi"))
 
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 }

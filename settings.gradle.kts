@@ -20,12 +20,11 @@ rootProject.name = "dataspaceconnector"
 
 include(":common:util")
 include(":common:state-machine-lib")
-include(":common:token-generation-lib")
-include(":common:token-validation-lib")
 
 // EDC core modules
 include(":core:common:base")
 include(":core:common:boot")
+include(":core:common:jwt-core")
 include(":core:common:policy-engine")
 include(":core:common:policy-evaluator")
 include(":core:control-plane:control-plane-core")
@@ -146,6 +145,7 @@ include(":spi:common:auth-spi")
 include(":spi:common:catalog-spi")
 include(":spi:common:core-spi")
 include(":spi:common:identity-did-spi")
+include(":spi:common:jwt-spi")
 include(":spi:common:oauth2-spi")
 include(":spi:common:transaction-datasource-spi")
 include(":spi:common:transaction-spi")

@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.api;
 
-import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.jwt.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
