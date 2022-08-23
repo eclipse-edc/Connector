@@ -9,13 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
 package org.eclipse.dataspaceconnector.spi.event.asset;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
-import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -44,15 +44,11 @@ public class AssetDeleted extends Event<AssetDeleted.Payload> {
 
         @Override
         protected void validate() {
-            Objects.requireNonNull(event.payload.assetId);
+            Objects.requireNonNull(event.payload.getAssetId());
         }
     }
 
-    public static class Payload extends EventPayload {
-        private String assetId;
+    public static class Payload extends AssetEventPayload {
 
-        public String getAssetId() {
-            return assetId;
-        }
     }
 }
