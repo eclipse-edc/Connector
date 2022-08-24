@@ -117,14 +117,16 @@ public class Oauth2Extension implements ServiceExtension {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
 
-        var tokenValidationService = new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry);
-
         var privateKeyAlias = configuration.getPrivateKeyAlias();
         var privateKey = configuration.getPrivateKeyResolver().resolvePrivateKey(privateKeyAlias, PrivateKey.class);
-        var tokenGenerationService = new TokenGenerationServiceImpl(privateKey);
 
-        var oauth2Service = new Oauth2ServiceImpl(configuration, tokenGenerationService, okHttpClient, jwtDecoratorRegistry,
-                context.getTypeManager(), tokenValidationService,
+        var oauth2Service = new Oauth2ServiceImpl(
+                configuration,
+                new TokenGenerationServiceImpl(privateKey),
+                okHttpClient,
+                jwtDecoratorRegistry,
+                context.getTypeManager(),
+                new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
                 Optional.ofNullable(credentialsRequestAdditionalParametersProvider).orElse(noopCredentialsRequestAdditionalParametersProvider())
         );
 
