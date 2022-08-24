@@ -42,6 +42,8 @@ import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.SECRET_A
 
 public class S3DataSinkFactory implements DataSinkFactory {
 
+    private static final int CHUNK_SIZE_IN_BYTES = 1024 * 1024 * 500; // 500MB chunk size
+
     private final ValidationRule<DataAddress> validation = new S3DataAddressValidationRule();
     private final ValidationRule<DataAddress> credentialsValidation = new S3DataAddressCredentialsValidationRule();
     private final AwsClientProvider clientProvider;
@@ -92,13 +94,14 @@ public class S3DataSinkFactory implements DataSinkFactory {
         }
 
         return S3DataSink.Builder.newInstance()
-                .bucketName(destination.getProperty(BUCKET_NAME))
-                .keyName(destination.getKeyName())
-                .requestId(request.getId())
-                .executorService(executorService)
-                .monitor(monitor)
-                .client(client)
-                .build();
+            .bucketName(destination.getProperty(BUCKET_NAME))
+            .keyName(destination.getKeyName())
+            .requestId(request.getId())
+            .executorService(executorService)
+            .monitor(monitor)
+            .client(client)
+            .chunkSizeBytes(CHUNK_SIZE_IN_BYTES)
+            .build();
     }
 
 }
