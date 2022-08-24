@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
  *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -19,7 +20,6 @@ package org.eclipse.dataspaceconnector.iam.oauth2.core.identity;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import org.eclipse.dataspaceconnector.common.token.JwtDecorator;
 import org.eclipse.dataspaceconnector.common.token.JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
@@ -51,25 +51,28 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final JwtDecoratorRegistry jwtDecoratorRegistry;
     private final TokenGenerationService tokenGenerationService;
     private final TokenValidationService tokenValidationService;
+    private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
 
     /**
      * Creates a new instance of the OAuth2 Service
      *
-     * @param configuration          The configuration
-     * @param tokenGenerationService Service used to generate the signed tokens;
-     * @param client                 Http client
-     * @param jwtDecoratorRegistry   Registry containing the decorator for build the JWT
-     * @param typeManager            Type manager
-     * @param tokenValidationService Service used for token validation
+     * @param configuration                                  The configuration
+     * @param tokenGenerationService                         Service used to generate the signed tokens;
+     * @param client                                         Http client
+     * @param jwtDecoratorRegistry                           Registry containing the decorator for build the JWT
+     * @param typeManager                                    Type manager
+     * @param tokenValidationService                         Service used for token validation
+     * @param credentialsRequestAdditionalParametersProvider Provides additional form parameters
      */
     public Oauth2ServiceImpl(Oauth2Configuration configuration, TokenGenerationService tokenGenerationService, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager,
-                             TokenValidationService tokenValidationService) {
+                             TokenValidationService tokenValidationService, CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider) {
         this.configuration = configuration;
         this.typeManager = typeManager;
         httpClient = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
         this.tokenGenerationService = tokenGenerationService;
         this.tokenValidationService = tokenValidationService;
+        this.credentialsRequestAdditionalParametersProvider = credentialsRequestAdditionalParametersProvider;
     }
 
     @Override
@@ -80,33 +83,38 @@ public class Oauth2ServiceImpl implements IdentityService {
         }
 
         var assertion = jwtCreationResult.getContent().getToken();
-        var requestBody = new FormBody.Builder()
+
+        var requestBodyBuilder = new FormBody.Builder()
                 .add("client_assertion_type", ASSERTION_TYPE)
                 .add("grant_type", GRANT_TYPE)
                 .add("client_assertion", assertion)
-                .add("scope", parameters.getScope())
+                .add("scope", parameters.getScope());
+
+        credentialsRequestAdditionalParametersProvider.provide(parameters).forEach(requestBodyBuilder::add);
+
+        var request = new Request.Builder()
+                .url(configuration.getTokenUrl())
+                .addHeader("Content-Type", CONTENT_TYPE)
+                .post(requestBodyBuilder.build())
                 .build();
 
-        var request = new Request.Builder().url(configuration.getTokenUrl()).addHeader("Content-Type", CONTENT_TYPE).post(requestBody).build();
-
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                try (var body = response.body()) {
-                    String message = body == null ? "<empty body>" : body.string();
+        try (var response = httpClient.newCall(request).execute()) {
+            try (var body = response.body()) {
+                if (!response.isSuccessful()) {
+                    var message = body == null ? "<empty body>" : body.string();
                     return Result.failure(message);
                 }
-            }
 
-            var responseBody = response.body();
-            if (responseBody == null) {
-                return Result.failure("<empty token body>");
-            }
+                if (body == null) {
+                    return Result.failure("<empty token body>");
+                }
 
-            var responsePayload = responseBody.string();
-            var deserialized = typeManager.readValue(responsePayload, LinkedHashMap.class);
-            var token = (String) deserialized.get("access_token");
-            var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
-            return Result.success(tokenRepresentation);
+                var responsePayload = body.string();
+                var deserialized = typeManager.readValue(responsePayload, LinkedHashMap.class);
+                var token = (String) deserialized.get("access_token");
+                var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
+                return Result.success(tokenRepresentation);
+            }
         } catch (IOException e) {
             throw new EdcException(e);
         }

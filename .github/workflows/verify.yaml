@@ -279,7 +279,9 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
-      - run: docker run -d --rm -p 4567:4567 -v ${{ github.workspace }}/extensions/common/iam/oauth2/daps/src/test/resources/config:/opt/config -v ${{ github.workspace }}/extensions/common/iam/oauth2/daps/src/test/resources/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.4.2
+      - run: |
+          export DAPS_RESOURCES=${{ github.workspace }}/extensions/common/iam/oauth2/daps/src/test/resources
+          docker run -d --rm -p 4567:4567 -v $DAPS_RESOURCES/config:/opt/config -v $DAPS_RESOURCES/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.4.2
 
       - name: Daps Integration Tests
         uses: ./.github/actions/run-tests

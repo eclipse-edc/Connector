@@ -2,7 +2,7 @@
 
 This extension provides an `IdentityService` implementation based on the OAuth2 protocol for authorization.
 
-The setting parameters of this extension are listed below:
+## Configuration
 
 | Parameter name                    | Description                                                                                | Mandatory | Default value                   |
 |:----------------------------------|:-------------------------------------------------------------------------------------------|:----------|:--------------------------------|
@@ -14,3 +14,10 @@ The setting parameters of this extension are listed below:
 | `edc.oauth.provider.jwks.refresh` | Interval at which public keys are refreshed from Authorization server (in minutes)         | false     | 5                               |
 | `edc.oauth.client.id`             | Public identifier of the client                                                            | true      | null                            |
 | `edc.oauth.validation.nbf.leeway` | Leeway in seconds added to current time to remedy clock skew on notBefore claim validation | false     | 10                              |
+
+## Extensions
+
+### CredentialsRequestAdditionalParametersProvider
+
+An instance of the `CredentialsRequestAdditionalParametersProvider` service interface can be provided to have the
+possibility to enrich the form parameters of the client credentials token request 

@@ -3,5 +3,6 @@
 ## How to run integration tests
 Run omejdn server:
 ```
-docker run --rm -p 4567:4567 -v $PWD/extensions/common/iam/daps/src/test/resources/config:/opt/config -v $PWD/extensions/common/iam/daps/src/test/resources/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.4.2
+export DAPS_RESOURCES=$PWD/extensions/common/iam/oauth2/daps/src/test/resources
+docker run --rm -p 4567:4567 -v $DAPS_RESOURCES/config:/opt/config -v $DAPS_RESOURCES/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.4.2
 ```
