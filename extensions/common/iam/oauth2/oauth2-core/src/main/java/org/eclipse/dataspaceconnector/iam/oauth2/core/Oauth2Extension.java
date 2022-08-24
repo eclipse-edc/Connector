@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.iam.oauth2.core;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationServiceImpl;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.IdentityProviderKeyResolver;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.Oauth2ServiceImpl;
@@ -35,11 +36,15 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.time.Clock;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * Provides OAuth2 client credentials flow support.
@@ -87,6 +92,9 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject(required = false)
+    private CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
+
     @Override
     public String name() {
         return "OAuth2";
@@ -115,7 +123,10 @@ public class Oauth2Extension implements ServiceExtension {
         var privateKey = configuration.getPrivateKeyResolver().resolvePrivateKey(privateKeyAlias, PrivateKey.class);
         var tokenGenerationService = new TokenGenerationServiceImpl(privateKey);
 
-        var oauth2Service = new Oauth2ServiceImpl(configuration, tokenGenerationService, okHttpClient, jwtDecoratorRegistry, context.getTypeManager(), tokenValidationService);
+        var oauth2Service = new Oauth2ServiceImpl(configuration, tokenGenerationService, okHttpClient, jwtDecoratorRegistry,
+                context.getTypeManager(), tokenValidationService,
+                Optional.ofNullable(credentialsRequestAdditionalParametersProvider).orElse(noopCredentialsRequestAdditionalParametersProvider())
+        );
 
         context.registerService(IdentityService.class, oauth2Service);
     }
@@ -130,7 +141,12 @@ public class Oauth2Extension implements ServiceExtension {
         providerKeyResolver.stop();
     }
 
-    private static byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {
+    @NotNull
+    private CredentialsRequestAdditionalParametersProvider noopCredentialsRequestAdditionalParametersProvider() {
+        return p -> emptyMap();
+    }
+
+    private byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {
         var certificate = configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias());
         if (certificate == null) {
             throw new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias());
