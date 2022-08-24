@@ -21,12 +21,12 @@ val awaitility: String by project
 
 
 dependencies {
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:junit"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation(project(":extensions:api:data-management:transferprocess"))
-    testImplementation(project(":extensions:api:api-core"))
+    testImplementation(project(":extensions:control-plane:api:data-management:transferprocess-api"))
+    testImplementation(project(":extensions:common:api:api-core"))
 
     testImplementation(testFixtures(project(":samples:04.0-file-transfer:integration-tests")))
 

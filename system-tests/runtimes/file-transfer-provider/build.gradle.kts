@@ -28,17 +28,17 @@ dependencies {
 
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
+    implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
-    implementation(project(":extensions:api:observability"))
+    implementation(project(":extensions:common:api:observability"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:iam:iam-mock"))
+    implementation(project(":extensions:common:configuration:filesystem-configuration"))
+    implementation(project(":extensions:common:iam:iam-mock"))
 
     implementation(project(":data-protocols:ids"))
 }

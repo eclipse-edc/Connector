@@ -104,7 +104,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
                         "contract-negotiation-store-sql",
                         "policy-store-sql",
                         "transfer-process-store-sql")
-                .map(module -> "../../../extensions/sql/" + module + "/docs/schema.sql")
+                .map(module -> "../../../extensions/control-plane/store/sql/" + module + "/docs/schema.sql")
                 .map(Paths::get)
                 .collect(Collectors.toList());
 

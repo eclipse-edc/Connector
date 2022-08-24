@@ -36,12 +36,12 @@ dependencies {
         exclude(group = "io.gatling", module = "gatling-graphite")
     }
 
-    testImplementation(project(":extensions:azure:blobstorage:blob-core"))
-    testImplementation(project(":extensions:azure:vault"))
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:azure:blob-core"))
+    testImplementation(project(":extensions:common:vault:azure-vault"))
+    testImplementation(project(":extensions:common:junit"))
     testImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":system-tests:azure-tests")))
-    testImplementation(testFixtures(project(":extensions:azure:azure-test")))
+    testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("com.azure:azure-identity:${azureIdentityVersion}")

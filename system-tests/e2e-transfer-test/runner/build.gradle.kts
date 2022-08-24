@@ -24,13 +24,13 @@ val assertj: String by project
 val postgresVersion: String by project
 
 dependencies {
-    testImplementation(project(":extensions:sql:common-sql"))
+    testImplementation(project(":extensions:common:sql:common-sql"))
 
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:junit"))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":extensions:azure:azure-test")))
-    testImplementation(testFixtures(project(":extensions:azure:cosmos:cosmos-common")))
-    testImplementation(project(":extensions:junit"))
+    testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
+    testImplementation(testFixtures(project(":extensions:common:azure:cosmos-common")))
+    testImplementation(project(":extensions:common:junit"))
 
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")

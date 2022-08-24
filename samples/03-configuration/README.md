@@ -9,12 +9,12 @@ named [`FsConfigurationExtension.java`](../../extensions/filesystem/configuratio
 which uses a standard Java properties file to store configuration entries.
 
 In the previous steps we had not included that in the JAR file, so we need to add
-the `:extensions:filesystem:configuration-fs` module to the dependency list:
+the `:extensions:common:configuration:filesystem-configuration` module to the dependency list:
 
 ```kotlin
 dependencies {
     // ...
-    implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:common:configuration:filesystem-configuration"))
     // ...
 }
 ```
@@ -146,13 +146,13 @@ There are a few things worth mentioning here:
 ## Management API
 
 Part of most connectors will be the management api defined in the
-[`:extensions:api:data-management`](../../extensions/api/data-management) module. Therefore, we need to add the following
+[`:extensions:control-plane:api:data-management`](../../extensions/api/data-management) module. Therefore, we need to add the following
 module to the dependency list in our `build.gradle.kts`:
 
 ```kotlin
 dependencies {
     // ...
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:control-plane:api:data-management"))
     // ...
 }
 ```

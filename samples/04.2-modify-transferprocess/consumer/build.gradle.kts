@@ -28,13 +28,13 @@ dependencies {
     implementation(project(":samples:04.2-modify-transferprocess:watchdog"))
     implementation(project(":samples:04.2-modify-transferprocess:simulator"))
 
-    implementation(project(":extensions:http"))
+    implementation(project(":extensions:common:http"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:iam:iam-mock"))
+    implementation(project(":extensions:common:configuration:filesystem-configuration"))
+    implementation(project(":extensions:common:iam:iam-mock"))
 
-    implementation(project(":extensions:api:auth-tokenbased"))
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:common:auth:auth-tokenbased"))
+    implementation(project(":extensions:control-plane:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
 }

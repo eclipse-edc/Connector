@@ -34,7 +34,7 @@ dependencies {
     api("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
 }

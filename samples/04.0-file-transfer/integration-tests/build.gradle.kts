@@ -24,13 +24,14 @@ val jupiterVersion: String by project
 
 
 dependencies {
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:junit"))
     testImplementation(testFixtures(project(":common:util")))
 
-    testFixturesImplementation(project(":extensions:junit"))
     testFixturesImplementation(testFixtures(project(":common:util")))
-    testFixturesImplementation(project(":extensions:api:data-management:transferprocess"))
-    testFixturesImplementation(project(":extensions:api:api-core"))
+    testFixturesImplementation(project(":spi:control-plane:control-plane-spi"))
+    testFixturesImplementation(project(":extensions:common:junit"))
+    testFixturesImplementation(project(":extensions:control-plane:api:data-management:transferprocess-api"))
+    testFixturesImplementation(project(":extensions:common:api:api-core"))
     testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
     testFixturesImplementation("org.awaitility:awaitility:${awaitility}")
     testFixturesImplementation("org.assertj:assertj-core:${assertj}")
