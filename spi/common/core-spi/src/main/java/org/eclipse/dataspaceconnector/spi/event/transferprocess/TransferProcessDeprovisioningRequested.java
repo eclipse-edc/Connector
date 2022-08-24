@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.spi.event.transferprocess;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
-import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -48,11 +47,6 @@ public class TransferProcessDeprovisioningRequested extends Event<TransferProces
         }
     }
 
-    public static class Payload extends EventPayload {
-        private String transferProcessId;
-
-        public String getTransferProcessId() {
-            return transferProcessId;
-        }
+    public static class Payload extends TransferProcessEventPayload {
     }
 }
