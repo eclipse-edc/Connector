@@ -20,11 +20,14 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
@@ -102,4 +105,23 @@ public class S3DataSinkTest {
         assertThat(completeMultipartUploadRequest.multipartUpload().parts()).hasSize(2);
     }
 
+    @Test
+    void complete_succeedIfPutObjectSucceeds() {
+        when(s3ClientMock.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
+
+        var result = dataSink.complete();
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void complete_failsIfPutObjectFails() {
+        when(s3ClientMock.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(SdkException.builder().message("an error").build());
+
+        var result = dataSink.complete();
+
+        assertThat(result.failed()).isTrue();
+    }
 }
