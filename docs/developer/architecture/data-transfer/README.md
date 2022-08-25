@@ -10,7 +10,7 @@
 
 In case IDS is used as protocol, supported data flow types can be part of the data and contract offers:
 
-![UML Sequence Diagram](developer/architecture/data-transfer/diagrams/description-request-flow.png)
+![UML Sequence Diagram](diagrams/description-request-flow.png)
 
 Description:
 - Provider lists supported protocols and flows (e.g., HTTP push) as part of the initial contract offer. TBD which IDS message property can be used.
@@ -19,7 +19,7 @@ Subsequently, a contract negotiation (not depicted here) is performed.
 
 ## HTTP Push
 
-![UML Sequence Diagram](developer/architecture/data-transfer/diagrams/data-flow-http-push.png)
+![UML Sequence Diagram](diagrams/data-flow-http-push.png)
 
 Description:
 - The DataFlowAgent fetches data from a data source, which can either be a storage (e.g., database) or a service (e.g. an app performing transformations).

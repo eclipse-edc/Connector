@@ -133,9 +133,9 @@ provided as resources in the `cosmos-common` module.
 
 Please find the specific configuration values for each module in the respective sub-folder:
 
-- [AssetIndex](assetindex-cosmos/README.md)
-- [ContractDefinitionStore](contract-definition-store-cosmos/README.md)
-- [ContractNegotiationStore](contract-negotiation-store-cosmos/README.md)
-- [FederatedCache Node directory](fcc-node-directory-cosmos/README.md)
-- [PolicyStore](policy-store-cosmos/README.md)
-- [TransferProcessStore](transfer-process-store-cosmos/README.md)
+- [AssetIndex](../../../control-plane/store/cosmos/assetindex-cosmos/README.md)
+- [ContractDefinitionStore](../../../control-plane/store/cosmos/contract-definition-store-cosmos/README.md)
+- [ContractNegotiationStore](../../../control-plane/store/cosmos/contract-negotiation-store-cosmos/README.md)
+- [FederatedCache Node directory](../../../federated-catalog/store/fcc-node-directory-cosmos/README.md)
+- [PolicyStore](../../../control-plane/store/cosmos/policy-store-cosmos/README.md)
+- [TransferProcessStore](../../../control-plane/store/cosmos/transfer-process-store-cosmos/README.md)

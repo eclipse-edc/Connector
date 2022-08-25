@@ -1,6 +1,6 @@
 # Domain Model
 
-![domain-model](developer/architecture/diagrams/domain-model.png)
+![domain-model](diagrams/domain-model.png)
 > The shown picture illustrates only a generic view of the Domain Model and is not intended to show all aspects of the project.
 
 ## Asset
@@ -49,7 +49,7 @@ passes several stages which are explained below:
 
 Contract policies represent permitted and prohibited actions over a certain asset. These actions can be limited further
 by constraints (temporal or spatial) and duties ("e.g. deletion of the data after 30 days"). Further information is
-provided in a separate [section](developer/architecturechitecture/usage-control/policies.md).
+provided in a separate [section](usage-control/policies.md).
 
 ## Data request
 

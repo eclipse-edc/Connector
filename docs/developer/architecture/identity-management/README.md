@@ -4,8 +4,8 @@
 
 ### Request data
 
-![Request Data](developer/architecture/identity-management/diagrams/data-request.png)
+![Request Data](diagrams/data-request.png)
 
 ### Service discovery
 
-![Service Discovery](developer/architecture/identity-management/diagrams/service-discovery.png)
+![Service Discovery](diagrams/service-discovery.png)

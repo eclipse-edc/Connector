@@ -2,8 +2,8 @@
 
 ## Provide data offers
 
-![Provide Offers](developer/architecture/catalog/diagrams/provide-offers.png)
+![Provide Offers](diagrams/provide-offers.png)
 
 ## Query data offers
 
-![Query Offers](developer/architecture/catalog/diagrams/offer-query.png)
+![Query Offers](diagrams/offer-query.png)
