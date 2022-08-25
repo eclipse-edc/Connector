@@ -1,12 +1,10 @@
-Contributing to the Project
-===================================
+# Contributing to the Project
 
 Thank you for your interest in contributing to
 the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technology.dataspaceconnector)!
 
 ## Table of Contents
 
-* [Project Description](#project-description)
 * [Code Of Conduct](#code-of-conduct)
 * [Eclipse Contributor Agreement](#eclipse-contributor-agreement)
 * [How to Contribute](#how-to-contribute)
@@ -17,11 +15,8 @@ the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technolo
 * [Project and Milestone Planning](#project-and-milestone-planning)
   * [Milestones](#milestones)
   * [Projects](#projects)
+  * [Releases](#releases)
 * [Contact Us](#contact-us)
-
-## Project Description
-
-See [README.md](README.md) for a comprehensive project description.
 
 ## Code Of Conduct
 
@@ -218,7 +213,11 @@ It can be unassigned or moved to any other project that is provided.
 In every project, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
 independent of their association to a specific milestone.
 
-### Contact Us
+### Releases
+
+Please find more information about our release approach [here](docs/developer/releases.md).
+
+## Contact Us
 
 If you have questions or suggestions, do not hesitate to contact the project developers via
 the [project's "dev" list](https://dev.eclipse.org/mailman/listinfo/dataspaceconnector-dev). 

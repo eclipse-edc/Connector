@@ -23,16 +23,22 @@ Note that this covers both what we call the [EDC Core repository](https://github
 It is up to the committers to decide where the code will eventually be hosted in case of adoption.
 
 However, in order to do a preliminary check, please go through the following bullet points:
+
 #### Why should this contribution be adopted?
 Please argue why this feature must be hosted upstream and be maintained by the EDC core team.
+
 #### Could it be achieved with existing functionality? If not, why?
 If there is any existing code that can achieve the same thing with little modification, that is usually the preferable way for the EDC core team. We aim to keep the code succinct and want to avoid similar/duplicate code. Make sure you understand the EDC code base well!
+
 #### Are there multiple use cases or applications who will benefit from the contribution?
 Basically, we want you to motivate who will use that feature and why, thereby arguing the fact that it is well-suited to be adopted in the core code base. One-off features are better suited to be maintained externally. 
+
 #### Can it be achieved without introducing third-party dependencies? If not, which ones?
 EDC is a platform rather than an application, therefore we are extremely careful when it comes to introducing third party libraries. The reasons are diverse: security, license issues and over all JAR weight, just to mention a few important ones.
+
 #### Would this feature limit platform independence in any way? If so, how and why?
 Features that do not work well in clustered environments are difficult to adopt, since EDC is designed from the ground up to be stateless and clusterable. Similarly, features, that have dependencies onto certain operating systems are difficult to argue.
+
 #### Is it going to be a self-contained feature, or would it cut across the entire code base?
 Features that have a large impact on the code base are very complex to thoroughly test, they have a high chance to destabilize the code and require careful inspection. Self-contained features on the other hand are easier to isolate and test.
 
