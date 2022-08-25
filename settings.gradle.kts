@@ -47,7 +47,6 @@ include(":data-protocols:ids:ids-token-validation")
 include(":data-protocols:ids:ids-api-configuration")
 
 // modules for technology- or cloud-provider extensions
-include(":extensions:aws")
 include(":extensions:common:api:api-core")
 include(":extensions:common:auth:auth-basic")
 include(":extensions:common:auth:auth-tokenbased")
@@ -128,17 +127,11 @@ include(":extensions:control-plane:store:sql:policy-store-sql")
 include(":extensions:control-plane:store:sql:transfer-process-store-sql")
 // modules for launchers, i.e. runnable compositions of the app
 
-include(":launchers:test")
 include(":launchers:ids-connector")
 include(":launchers:dpf-selector")
 include(":launchers:data-plane-server")
 // modules for code samples
 
-include(":samples:other:copy-file-to-s3bucket")
-include(":samples:other:dataseed:dataseed-aws")
-include(":samples:other:dataseed:dataseed-azure")
-include(":samples:other:dataseed:dataseed-policy")
-include(":samples:other:run-from-junit")
 include(":samples:other:custom-runtime")
 // extension points for a connector
 
