@@ -6,9 +6,9 @@ These extensions bridge between EDC core and IDS.
 
 ## Included Extensions
 
-- [data-protocols:ids:ids-spi](../ids-new/ids-spi/README.md)
-- [data-protocols:ids:ids-core](../ids-new/ids-core/README.md)
-- [data-protocols:ids:ids-api-multipart](../ids-new/ids-api-multipart-endpoint-v1/README.md)
+- [data-protocols:ids:ids-spi](ids-spi/README.md)
+- [data-protocols:ids:ids-core](ids-core/README.md)
+- [data-protocols:ids:ids-api-multipart](ids-api-multipart-endpoint-v1/README.md)
 
 ## IDS Contracts
 

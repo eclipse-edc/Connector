@@ -165,7 +165,7 @@ Please refer to [this document](openapi.md).
 ### Code style & Patterns
 
 Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented
-in [architecture principles](docs/architecture/architecture-principles.md).
+in [architecture principles](IdeaProjects/edc/connector/docs/developer/architecture/architecture-principles.md).
 
 ## Directory structure
 

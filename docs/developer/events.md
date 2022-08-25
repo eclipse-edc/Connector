@@ -98,7 +98,7 @@ public class SomethingHappened extends Event {
 ```
 All the data regarding an event should be contained in the `Payload` class.
 
-As you may notice, we use the builder pattern to construct objects, as stated in the [Architecture Principles document](../architecture/architecture-principles.md).
+As you may notice, we use the builder pattern to construct objects, as stated in the [Architecture Principles document](developer/architecture/architecture-principles.md).
 The extended builder will inherit all the builder method from the superclass.
 The `validate` method is the place where validations on the payload can be added.
 

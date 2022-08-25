@@ -11,6 +11,6 @@
 - Secure and sovereign data transfer
 
 [GitHub](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector)
-[Getting Started](README.md)
+[Getting Started](https://eclipse-dataspaceconnector.github.io/docs/#/README)
 
 ![color](#f0f0f0)

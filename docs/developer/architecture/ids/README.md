@@ -18,7 +18,7 @@ The EDC connector will not be able to support more than one IDS Information mode
 
 ## Key Components
 
-![Dispatch Architecture](dispatch.architecture.jpg)
+![Dispatch Architecture](developer/architecture/ids/dispatch.architecture.jpg)
 
 ### Modules
 - ids-api-[x]-endpoint-v[x] modules marshall requests and responses between the EDC and a transport. They are tied to a specific infomodel version.

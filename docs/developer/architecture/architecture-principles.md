@@ -56,4 +56,4 @@
 2. An implementor who are meant to be the default implementation for an interface but other are/can be defined used instead.
 
 ### XII. Observability
-1. Services are [instrumented for collecting essential metrics](../developer/metrics.md), in particular instances of `ExecutorService`.
+1. Services are [instrumented for collecting essential metrics](developer/metrics.md), in particular instances of `ExecutorService`.

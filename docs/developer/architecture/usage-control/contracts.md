@@ -28,7 +28,7 @@ The EDC connector is able to provide contract offers. This feature requires four
 
 ### Prototypic Sequence for Contract Offer Creation
 
-![Offer Query](architecture/catalog/diagrams/offer-query.png)
+![Offer Query](developer/architecturechitecture/catalog/diagrams/offer-query.png)
 *The consumer connector requests a description, that contains the contract offers, from the provider.*
 
 ## Negotiation

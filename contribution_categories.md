@@ -44,7 +44,7 @@ Features that have a large impact on the code base are very complex to thoroughl
 
 And on a more general level:
 - does your contribution comply with our [licensing](LICENSE)?
-- does the code adhere to our [styleguide](styleguide.md) and our [architectural principles](docs/architecture/architecture-principles.md)?
+- does the code adhere to our [styleguide](styleguide.md) and our [architectural principles](IdeaProjects/edc/connector/docs/developer/architecture/architecture-principles.md)?
 - are you willing to accept our [contributing guidelines](CONTRIBUTING.md)?
 - are you prepared to make frequent contributions and help out with maintaining this feature?
 
