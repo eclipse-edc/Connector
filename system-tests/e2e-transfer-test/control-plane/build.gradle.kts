@@ -17,9 +17,9 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":core:common:jwt-core"))
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":data-protocols:ids"))
-    implementation(project(":common:token-generation-lib"))
     implementation(project(":extensions:common:vault:filesystem-vault"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.core.rule;
 
-import org.eclipse.dataspaceconnector.common.token.TokenValidationRulesRegistryImpl;
+import org.eclipse.dataspaceconnector.core.jwt.TokenValidationRulesRegistryImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 

@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
 import jakarta.ws.rs.core.HttpHeaders;
-import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
+import org.eclipse.dataspaceconnector.spi.jwt.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;

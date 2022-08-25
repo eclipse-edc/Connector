@@ -16,8 +16,8 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.core;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.common.token.TokenGenerationServiceImpl;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
+import org.eclipse.dataspaceconnector.core.jwt.TokenGenerationServiceImpl;
+import org.eclipse.dataspaceconnector.core.jwt.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.IdentityProviderKeyResolver;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.IdentityProviderKeyResolverConfiguration;

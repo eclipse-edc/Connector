@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.ids.token.validation.rule;
 
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.jwt.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
