@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.spi.event.transferprocess;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
-import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -48,11 +47,7 @@ public class TransferProcessCompleted extends Event<TransferProcessCompleted.Pay
         }
     }
 
-    public static class Payload extends EventPayload {
-        private String transferProcessId;
+    public static class Payload extends TransferProcessEventPayload {
 
-        public String getTransferProcessId() {
-            return transferProcessId;
-        }
     }
 }
