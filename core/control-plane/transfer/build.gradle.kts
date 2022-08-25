@@ -20,6 +20,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:transaction-spi"))
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     implementation(project(":common:state-machine-lib"))

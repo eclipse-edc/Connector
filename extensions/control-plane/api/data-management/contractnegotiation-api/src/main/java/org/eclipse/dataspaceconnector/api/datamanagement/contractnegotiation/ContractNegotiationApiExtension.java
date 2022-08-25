@@ -16,20 +16,16 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationServiceImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.transform.ContractNegotiationToContractNegotiationDtoTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.transform.NegotiationInitiateRequestDtoToDataRequestTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.service.ContractNegotiationService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 @Provides(ContractNegotiationService.class)
 public class ContractNegotiationApiExtension implements ServiceExtension {
@@ -44,13 +40,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     private DtoTransformerRegistry transformerRegistry;
 
     @Inject
-    private ContractNegotiationStore store;
-
-    @Inject
-    private ConsumerContractNegotiationManager manager;
-
-    @Inject
-    private TransactionContext transactionContext;
+    private ContractNegotiationService service;
 
     @Override
     public String name() {
@@ -64,9 +54,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer());
 
         var monitor = context.getMonitor();
-
-        var service = new ContractNegotiationServiceImpl(store, manager, transactionContext);
-        context.registerService(ContractNegotiationService.class, service);
 
         var controller = new ContractNegotiationApiController(monitor, service, transformerRegistry);
         webService.registerResource(config.getContextAlias(), controller);

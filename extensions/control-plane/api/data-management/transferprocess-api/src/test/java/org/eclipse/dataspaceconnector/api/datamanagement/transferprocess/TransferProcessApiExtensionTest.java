@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.service.TransferProcessService;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class TransferProcessApiExtensionTest {
+
     private final TransferProcessTransformerTestData data = new TransferProcessTransformerTestData();
     private final String contextAlias = "test-alias";
 
@@ -51,6 +53,7 @@ class TransferProcessApiExtensionTest {
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
         context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
         context.registerService(TransferProcessStore.class, mock(TransferProcessStore.class));
+        context.registerService(TransferProcessService.class, mock(TransferProcessService.class));
 
         var extension = factory.constructInstance(TransferProcessApiExtension.class);
         extension.initialize(context);

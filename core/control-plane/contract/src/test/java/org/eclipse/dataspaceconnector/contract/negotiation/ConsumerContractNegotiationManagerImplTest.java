@@ -16,7 +16,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
-import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
+import org.eclipse.dataspaceconnector.contract.negotiation.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;

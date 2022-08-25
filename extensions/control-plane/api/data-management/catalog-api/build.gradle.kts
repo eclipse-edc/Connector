@@ -22,16 +22,15 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:common:auth-spi"))
     implementation(project(":spi:common:catalog-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:data-management:api-configuration"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:iam:iam-mock"))
-
     testImplementation(project(":extensions:common:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }

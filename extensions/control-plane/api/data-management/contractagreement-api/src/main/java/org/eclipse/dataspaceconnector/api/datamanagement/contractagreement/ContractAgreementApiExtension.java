@@ -16,33 +16,27 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service.ContractAgreementServiceImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.contract.agreement.service.ContractAgreementService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 public class ContractAgreementApiExtension implements ServiceExtension {
 
     @Inject
-    WebService webService;
+    private WebService webService;
 
     @Inject
-    DataManagementApiConfiguration config;
+    private DataManagementApiConfiguration config;
 
     @Inject
-    DtoTransformerRegistry transformerRegistry;
+    private DtoTransformerRegistry transformerRegistry;
 
     @Inject
-    TransactionContext transactionContext;
-
-    @Inject
-    ContractNegotiationStore store;
-
+    private ContractAgreementService service;
 
     @Override
     public String name() {
@@ -54,7 +48,6 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
         var monitor = context.getMonitor();
 
-        var service = new ContractAgreementServiceImpl(store, transactionContext);
         var controller = new ContractAgreementApiController(monitor, service, transformerRegistry);
         webService.registerResource(config.getContextAlias(), controller);
     }

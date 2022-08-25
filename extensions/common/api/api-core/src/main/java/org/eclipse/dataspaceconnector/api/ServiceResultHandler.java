@@ -14,11 +14,12 @@
 
 package org.eclipse.dataspaceconnector.api;
 
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.spi.result.ServiceFailure;
+import org.eclipse.dataspaceconnector.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +50,7 @@ public class ServiceResultHandler {
      * @param result The {@link ServiceResult}
      * @param clazz The type in whose context the failure occurred. Must not be null.
      * @param id The id of the entity which was involved in the failure. Can be null for
-     *         {@link org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason#BAD_REQUEST}.
+     *         {@link ServiceFailure.Reason#BAD_REQUEST}.
      * @return Exception mapped from failure reason.
      */
     public static EdcException mapToException(@NotNull ServiceResult<?> result, @NotNull Class<?> clazz, @Nullable String id) {

@@ -30,9 +30,11 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
@@ -41,6 +43,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObserv
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.transfer.service.TransferProcessService;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -57,6 +60,7 @@ import org.eclipse.dataspaceconnector.transfer.core.listener.TransferProcessEven
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
+import org.eclipse.dataspaceconnector.transfer.core.service.TransferProcessServiceImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
@@ -105,6 +109,9 @@ public class CoreTransferExtension implements ServiceExtension {
     
     @Inject
     private PolicyEngine policyEngine;
+
+    @Inject
+    private TransactionContext transactionContext;
 
     private TransferProcessManagerImpl processManager;
 
@@ -194,6 +201,11 @@ public class CoreTransferExtension implements ServiceExtension {
         if (processManager != null) {
             processManager.stop();
         }
+    }
+
+    @Provider
+    public TransferProcessService transferProcessService() {
+        return new TransferProcessServiceImpl(transferProcessStore, processManager, transactionContext);
     }
 
     private void registerTypes(TypeManager typeManager) {

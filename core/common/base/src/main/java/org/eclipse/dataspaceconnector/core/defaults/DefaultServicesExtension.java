@@ -47,6 +47,11 @@ public class DefaultServicesExtension implements ServiceExtension {
     @Inject(required = false)
     private EventListener okHttpEventListener;
 
+    @Override
+    public String name() {
+        return "Common default services";
+    }
+
     public DefaultServicesExtension() {
     }
 

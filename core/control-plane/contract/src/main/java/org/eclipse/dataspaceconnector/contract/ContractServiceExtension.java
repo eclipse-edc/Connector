@@ -18,10 +18,13 @@
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.common.statemachine.retry.EntitySendRetryManager;
-import org.eclipse.dataspaceconnector.contract.listener.ContractNegotiationEventListener;
+import org.eclipse.dataspaceconnector.contract.agreement.service.ContractAgreementServiceImpl;
+import org.eclipse.dataspaceconnector.contract.definition.listener.ContractDefinitionEventListener;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
-import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
+import org.eclipse.dataspaceconnector.contract.negotiation.listener.ContractNegotiationEventListener;
+import org.eclipse.dataspaceconnector.contract.negotiation.observe.ContractNegotiationObservableImpl;
+import org.eclipse.dataspaceconnector.contract.negotiation.service.ContractNegotiationServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyArchiveImpl;
@@ -34,14 +37,17 @@ import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
+import org.eclipse.dataspaceconnector.spi.contract.agreement.service.ContractAgreementService;
+import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservableImpl;
+import org.eclipse.dataspaceconnector.spi.contract.definition.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.service.ContractNegotiationService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -53,10 +59,12 @@ import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
+import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.jetbrains.annotations.NotNull;
@@ -121,6 +129,9 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Inject
     private EventRouter eventRouter;
+
+    @Inject
+    private TransactionContext transactionContext;
 
     @Override
     public String name() {
@@ -208,6 +219,24 @@ public class ContractServiceExtension implements ServiceExtension {
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
         context.registerService(ProviderContractNegotiationManager.class, providerNegotiationManager);
+    }
+
+    @Provider
+    public ContractAgreementService contractAgreementService() {
+        return new ContractAgreementServiceImpl(store, transactionContext);
+    }
+
+    @Provider
+    public org.eclipse.dataspaceconnector.spi.contract.definition.service.ContractDefinitionService contractDefinitionService() {
+        var contractDefinitionObservable = new ContractDefinitionObservableImpl();
+        contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(clock, eventRouter));
+
+        return new org.eclipse.dataspaceconnector.contract.definition.service.ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionStore, transactionContext, contractDefinitionObservable);
+    }
+
+    @Provider
+    public ContractNegotiationService contractNegotiationService() {
+        return new ContractNegotiationServiceImpl(store, consumerNegotiationManager, transactionContext);
     }
 
     private EntitySendRetryManager providerSendRetryManager(ServiceExtensionContext context) {

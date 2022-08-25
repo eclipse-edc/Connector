@@ -14,11 +14,10 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.catalog.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -31,7 +30,7 @@ public class CatalogApiExtension implements ServiceExtension {
     private DataManagementApiConfiguration config;
 
     @Inject
-    private RemoteMessageDispatcherRegistry dispatcher;
+    private CatalogService service;
 
     @Inject
     private DtoTransformerRegistry transformerRegistry;
@@ -43,7 +42,6 @@ public class CatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var service = new CatalogServiceImpl(dispatcher);
         webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, context.getMonitor()));
     }
 }

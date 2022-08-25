@@ -14,81 +14,83 @@
 
 package org.eclipse.dataspaceconnector.core.controlplane;
 
-import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
-import org.eclipse.dataspaceconnector.core.controlplane.defaults.assetindex.InMemoryAssetIndex;
-import org.eclipse.dataspaceconnector.core.controlplane.defaults.contractdefinition.InMemoryContractDefinitionStore;
-import org.eclipse.dataspaceconnector.core.controlplane.defaults.negotiationstore.InMemoryContractNegotiationStore;
-import org.eclipse.dataspaceconnector.core.controlplane.defaults.policystore.InMemoryPolicyDefinitionStore;
-import org.eclipse.dataspaceconnector.core.controlplane.defaults.transferprocessstore.InMemoryTransferProcessStore;
+import org.eclipse.dataspaceconnector.core.controlplane.listener.AssetEventListener;
+import org.eclipse.dataspaceconnector.core.controlplane.listener.PolicyDefinitionEventListener;
+import org.eclipse.dataspaceconnector.core.controlplane.service.AssetServiceImpl;
+import org.eclipse.dataspaceconnector.core.controlplane.service.CatalogServiceImpl;
+import org.eclipse.dataspaceconnector.core.controlplane.service.PolicyDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
+import org.eclipse.dataspaceconnector.spi.asset.AssetService;
+import org.eclipse.dataspaceconnector.spi.catalog.service.CatalogService;
+import org.eclipse.dataspaceconnector.spi.contract.definition.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionLoader;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.event.EventRouter;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservableImpl;
+import org.eclipse.dataspaceconnector.spi.observe.policydefinition.PolicyDefinitionObservableImpl;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionService;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.time.Clock;
 
 public class ControlPlaneCoreExtension implements ServiceExtension {
 
-    private InMemoryAssetIndex assetIndex;
-    private InMemoryContractDefinitionStore contractDefinitionStore;
+    @Inject
+    private AssetIndex assetIndex;
 
-    @Provider(isDefault = true)
-    public AssetIndex defaultAssetIndex() {
-        return getAssetIndex();
+    @Inject
+    private AssetLoader assetLoader;
+
+    @Inject
+    private PolicyDefinitionStore policyStore;
+
+    @Inject
+    private ContractDefinitionStore contractDefinitionStore;
+
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
+
+    @Inject
+    private TransactionContext transactionContext;
+
+    @Inject
+    private EventRouter eventRouter;
+
+    @Inject
+    private RemoteMessageDispatcherRegistry dispatcher;
+
+    @Inject
+    private Clock clock;
+
+    @Override
+    public String name() {
+        return "Control Plane core services";
     }
 
-    @Provider(isDefault = true)
-    public DataAddressResolver defaultDataAddressResolver() {
-        return getAssetIndex();
+    @Provider
+    public AssetService assetService() {
+        var assetObservable = new AssetObservableImpl();
+        assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
+
+        return new AssetServiceImpl(assetIndex, assetLoader, contractNegotiationStore, transactionContext, assetObservable);
     }
 
-    @Provider(isDefault = true)
-    public AssetLoader defaultAssetLoader() {
-        return getAssetIndex();
+    @Provider
+    public CatalogService catalogService() {
+        return new CatalogServiceImpl(dispatcher);
     }
 
-    @Provider(isDefault = true)
-    public ContractDefinitionStore defaultContractDefinitionStore() {
-        return getContractDefinitionStore();
+    @Provider
+    public PolicyDefinitionService policyDefinitionService() {
+        var policyDefinitionObservable = new PolicyDefinitionObservableImpl();
+        policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(clock, eventRouter));
+
+        return new PolicyDefinitionServiceImpl(transactionContext, policyStore, contractDefinitionStore, policyDefinitionObservable);
     }
 
-    @Provider(isDefault = true)
-    public ContractDefinitionLoader defaultContractDefinitionLoader() {
-        return getContractDefinitionStore()::save;
-    }
-
-    @Provider(isDefault = true)
-    public ContractNegotiationStore defaultContractNegotiationStore() {
-        return new InMemoryContractNegotiationStore();
-    }
-
-    @Provider(isDefault = true)
-    public TransferProcessStore defaultTransferProcessStore() {
-        return new InMemoryTransferProcessStore();
-    }
-
-    @Provider(isDefault = true)
-    public PolicyDefinitionStore defaultPolicyStore() {
-        return new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)));
-    }
-
-    private ContractDefinitionStore getContractDefinitionStore() {
-        if (contractDefinitionStore == null) {
-            contractDefinitionStore = new InMemoryContractDefinitionStore();
-        }
-        return contractDefinitionStore;
-    }
-
-    private InMemoryAssetIndex getAssetIndex() {
-        if (assetIndex == null) {
-            assetIndex = new InMemoryAssetIndex();
-        }
-        return assetIndex;
-    }
 }

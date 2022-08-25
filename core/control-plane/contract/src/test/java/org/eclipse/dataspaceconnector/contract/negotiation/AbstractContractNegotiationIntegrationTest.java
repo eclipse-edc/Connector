@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
-import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
+import org.eclipse.dataspaceconnector.contract.negotiation.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.negotiationstore.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;

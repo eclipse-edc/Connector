@@ -13,8 +13,8 @@
 *
 */
 
-val openTelemetryVersion: String by project
 val awaitility: String by project
+val openTelemetryVersion: String by project
 
 plugins {
     `java-library`
@@ -22,6 +22,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:transaction-spi"))
     api(project(":spi:control-plane:contract-spi"))
 
     implementation(project(":common:state-machine-lib"))
