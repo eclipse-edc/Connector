@@ -42,19 +42,19 @@ class S3DataSink extends ParallelSink {
 
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
-        for (DataSource.Part part : parts) {
+        for (var part : parts) {
             try (var input = part.openStream()) {
 
-                int partNumber = 1;
+                var partNumber = 1;
                 List<CompletedPart> completedParts = new ArrayList<>();
 
-                String uploadId = client.createMultipartUpload(CreateMultipartUploadRequest.builder()
+                var uploadId = client.createMultipartUpload(CreateMultipartUploadRequest.builder()
                         .bucket(bucketName)
                         .key(keyName)
                         .build()).uploadId();
 
                 while (true) {
-                    byte[] bytesChunk = input.readNBytes(chunkSize);
+                    var bytesChunk = input.readNBytes(chunkSize);
 
                     if (bytesChunk.length < 1) {
                         break;

@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -49,26 +47,26 @@ public class S3DataSinkTest {
     private static final String ETAG = "eTag";
     private static final int CHUNK_SIZE_BYTES = 50;
 
-    private final Monitor monitor = mock(Monitor.class);
-    private final S3Client s3ClientMock = mock(S3Client.class);
-    private final DataFlowRequest.Builder request = createRequest(S3BucketSchema.TYPE);
-    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private S3Client s3ClientMock;
+    private S3DataSink dataSink;
 
-    private final ArgumentCaptor<CompleteMultipartUploadRequest> completeMultipartUploadRequestCaptor =
-            ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
-
-    private final S3DataSink dataSink = S3DataSink.Builder.newInstance()
-            .bucketName(BUCKET_NAME)
-            .keyName(KEY_NAME)
-            .client(s3ClientMock)
-            .requestId(request.build().getId())
-            .executorService(executor)
-            .monitor(monitor)
-            .chunkSizeBytes(CHUNK_SIZE_BYTES)
-            .build();
+    private ArgumentCaptor<CompleteMultipartUploadRequest> completeMultipartUploadRequestCaptor;
 
     @BeforeEach
     void setup() {
+        s3ClientMock = mock(S3Client.class);
+        completeMultipartUploadRequestCaptor = ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
+
+        dataSink = S3DataSink.Builder.newInstance()
+            .bucketName(BUCKET_NAME)
+            .keyName(KEY_NAME)
+            .client(s3ClientMock)
+            .requestId(createRequest(S3BucketSchema.TYPE).build().getId())
+            .executorService(Executors.newFixedThreadPool(2))
+            .monitor(mock(Monitor.class))
+            .chunkSizeBytes(CHUNK_SIZE_BYTES)
+            .build();
+
         when(s3ClientMock.createMultipartUpload(any(CreateMultipartUploadRequest.class)))
                 .thenReturn(CreateMultipartUploadResponse.builder().uploadId("uploadId").build());
         when(s3ClientMock.uploadPart(any(UploadPartRequest.class), any(RequestBody.class)))
@@ -82,7 +80,7 @@ public class S3DataSinkTest {
         assertThat(result.succeeded()).isTrue();
         verify(s3ClientMock).completeMultipartUpload(completeMultipartUploadRequestCaptor.capture());
 
-        CompleteMultipartUploadRequest completeMultipartUploadRequest = completeMultipartUploadRequestCaptor.getValue();
+        var completeMultipartUploadRequest = completeMultipartUploadRequestCaptor.getValue();
         assertThat(completeMultipartUploadRequest.bucket()).isEqualTo(BUCKET_NAME);
         assertThat(completeMultipartUploadRequest.key()).isEqualTo(KEY_NAME);
         assertThat(completeMultipartUploadRequest.multipartUpload().parts()).hasSize(1);
@@ -97,7 +95,7 @@ public class S3DataSinkTest {
         assertThat(result.succeeded()).isTrue();
         verify(s3ClientMock).completeMultipartUpload(completeMultipartUploadRequestCaptor.capture());
 
-        CompleteMultipartUploadRequest completeMultipartUploadRequest = completeMultipartUploadRequestCaptor.getValue();
+        var completeMultipartUploadRequest = completeMultipartUploadRequestCaptor.getValue();
         assertThat(completeMultipartUploadRequest.bucket()).isEqualTo(BUCKET_NAME);
         assertThat(completeMultipartUploadRequest.key()).isEqualTo(KEY_NAME);
 
