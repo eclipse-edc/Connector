@@ -25,10 +25,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -40,7 +43,6 @@ import static org.mockito.Mockito.mock;
 
 @IntegrationTest
 public class S3DataPlaneIntegrationTest extends AbstractS3Test {
-
 
     private final String sourceBucketName = "source-" + UUID.randomUUID();
     private final String destinationBucketName = "destination-" + UUID.randomUUID();
@@ -59,13 +61,15 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
     @Test
     void shouldCopyFromSourceToSink() {
-        putStringOnBucket(sourceBucketName, "key", UUID.randomUUID().toString());
+        var body = UUID.randomUUID().toString();
+        var key = UUID.randomUUID().toString();
+        putStringOnBucket(sourceBucketName, key, body);
 
         var sinkFactory = new S3DataSinkFactory(clientProvider, Executors.newSingleThreadExecutor(), mock(Monitor.class), mock(Vault.class), new TypeManager());
         var sourceFactory = new S3DataSourceFactory(clientProvider);
         var sourceAddress = DataAddress.Builder.newInstance()
                 .type(S3BucketSchema.TYPE)
-                .keyName("key")
+                .keyName(key)
                 .property(BUCKET_NAME, sourceBucketName)
                 .property(S3BucketSchema.REGION, REGION)
                 .property(ACCESS_KEY_ID, getCredentials().accessKeyId())
@@ -74,7 +78,7 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
         var destinationAddress = DataAddress.Builder.newInstance()
                 .type(S3BucketSchema.TYPE)
-                .keyName("key")
+                .keyName(key)
                 .property(BUCKET_NAME, destinationBucketName)
                 .property(S3BucketSchema.REGION, REGION)
                 .property(ACCESS_KEY_ID, getCredentials().accessKeyId())
@@ -91,13 +95,21 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
         var sink = sinkFactory.createSink(request);
         var source = sourceFactory.createSource(request);
 
-        assertThat(sink.transfer(source)).succeedsWithin(5, SECONDS);
-        var getObjectRequest = GetObjectRequest.builder().bucket(destinationBucketName).key("key").build();
+        var transferResult = sink.transfer(source);
 
-        var response = clientProvider.s3AsyncClient(REGION)
+        assertThat(transferResult).succeedsWithin(5, SECONDS);
+        assertThat(getObject(key)).succeedsWithin(5, SECONDS)
+                .extracting(ResponseBytes::response)
+                .extracting(GetObjectResponse::contentLength)
+                .extracting(Long::intValue)
+                .isEqualTo(body.length());
+        assertThat(getObject(key + ".complete")).succeedsWithin(5, SECONDS);
+    }
+
+    private CompletableFuture<ResponseBytes<GetObjectResponse>> getObject(String key) {
+        var getObjectRequest = GetObjectRequest.builder().bucket(destinationBucketName).key(key).build();
+        return clientProvider.s3AsyncClient(REGION)
                 .getObject(getObjectRequest, new ByteArrayAsyncResponseTransformer<>());
-
-        assertThat(response).succeedsWithin(10, SECONDS);
     }
 
 }
