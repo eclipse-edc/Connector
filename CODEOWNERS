@@ -28,41 +28,34 @@ styleguide.md @paullatzelsperger
 /common/token-generation-lib/ @bscholtes1A
 /common/token-validation-lib/ @bscholtes1A
 
-/core/base/agent/ @jimmarino
-/core/base/policy/ @jimmarino
-/core/boot/ @jimmarino @paullatzelsperger
-/core/contract/ @jimmarino @juliapampus @ronjaquensel
-/core/defaults/ @paullatzelsperger
-/core/event/ @ndr-brt
-/core/health/ @paullatzelsperger
-/core/micrometer/ @algattik
-/core/policy/ @jimmarino
-/core/security/ @bscholtes1A
-/core/transfer/ @jimmarino @bscholtes1A @paullatzelsperger @ndr-brt
+/core/common/base/ @jimmarino @paullatzelsperger @ndr-brt
+/core/common/boot/ @jimmarino @paullatzelsperger
+core/common/policy-engine/ @jimmarino @ronjaquensel
+core/common/policy-evaluator/ @jimmarino @juliapampus @ronjaquensel
 
 /data-protocols/ids/ @ronjaquensel @juliapampus @DominikPinsel @denisneuling
 /data-protocols/ids/ids-jsonld-serdes-lib/ @juliapampus
 
 /docs/ @juliapampus
 
-/extensions/api/ @ndr-brt @paullatzelsperger
-/extensions/aws/ @paullatzelsperger
-/extensions/azure/ @paullatzelsperger
-/extensions/catalog/ @paullatzelsperger
+/extensions/common/api/ @ndr-brt @paullatzelsperger
+/extensions/common/aws/ @paullatzelsperger
+/extensions/common/azure/ @paullatzelsperger
+/extensions/common/configuration/ @jimmarino
+/extensions/common/events/ @ndr-brt
+/extensions/common/http/ @paullatzelsperger
+/extensions/common/iam/decentralized-identity/ @paullatzelsperger
+/extensions/common/iam/oauth2/ @bscholtes1A
+/extensions/common/junit/ @paullatzelsperger @algattik
+/extensions/common/micrometer/ @algattik
+/extensions/common/monitor/ @cpeeyush
+/extensions/common/sql/ @bcronin90 @denisneuling @paullatzelsperger
+/extensions/common/transaction/ @jimmarino
+/extensions/common/vault/ @paullatzelsperger
+/extensions/control-plane/ @paullatzelsperger
 /extensions/data-plane/ @bscholtes1A @jimmarino
 /extensions/data-plane-selector/ @paullatzelsperger
-/extensions/data-plane-transfer/ @bscholtes1A
-/extensions/events/ @ndr-brt
-/extensions/filesystem/ @jimmarino @paullatzelsperger
-/extensions/http/ @paullatzelsperger
-/extensions/http-provisioner/ @jimmarino @paullatzelsperger
-/extensions/http-receiver/ @bscholtes1A
-/extensions/iam/daps/ @bscholtes1A
-/extensions/iam/decentralized-identity/ @paullatzelsperger
-/extensions/iam/oauth2/ @bscholtes1A
-/extensions/jdk-logger-monitor/ @cpeeyush
-/extensions/sql/ @bcronin90 @denisneuling @paullatzelsperger
-/extensions/transaction/ @jimmarino
+/extensions/federated-catalog/ @paullatzelsperger
 
 /launchers/data-plane-server/ @bscholtes1A
 /launchers/dpf-selector/ @paullatzelsperger
