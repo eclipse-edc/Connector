@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - refactoring
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -27,9 +28,7 @@ import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class OfferedAssetToIdsResourceTransformer implements IdsTypeTransformer<OfferedAsset, Resource> {
 
@@ -48,22 +47,21 @@ public class OfferedAssetToIdsResourceTransformer implements IdsTypeTransformer<
 
     @Override
     public @Nullable Resource transform(OfferedAsset object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
         var asset = object.getAsset();
-        var result = context.transform(asset, Representation.class);
         var id = IdsId.Builder.newInstance().value(asset.getId()).type(IdsType.RESOURCE).build().toUri();
 
         var builder = new ResourceBuilder(id);
-        for (var contractOffer : object.getTargetingContractOffers()) {
-            var idsOffer = context.transform(contractOffer, ContractOffer.class);
-            builder._contractOffer_(new ArrayList<>(Collections.singletonList(idsOffer)));
-        }
+        var offers = object.getTargetingContractOffers().stream()
+                .map(it -> context.transform(it, ContractOffer.class))
+                .collect(Collectors.toList());
+        builder._contractOffer_(offers);
 
-        builder._representation_(new ArrayList<>(Collections.singletonList(result)));
+        var representation = context.transform(asset, Representation.class);
+        builder._representation_(representation);
 
         return builder.build();
     }
