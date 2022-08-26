@@ -68,6 +68,7 @@ org.eclipse.dataspaceconnector:blob-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:cosmos-common:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:filesystem-configuration:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:cloudevents-http:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:gcp-lib:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jersey:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jersey-micrometer:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jetty:0.0.1-SNAPSHOT
@@ -86,6 +87,7 @@ org.eclipse.dataspaceconnector:data-management-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-transfer-client:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-transfer-sync:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:blob-provision:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:gcs-provision:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-provisioner:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:s3-provision:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:fcc-node-directory-cosmos:0.0.1-SNAPSHOT
