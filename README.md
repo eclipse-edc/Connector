@@ -160,12 +160,8 @@ More information about shadowJar can be found [here](https://github.com/johnreng
 
 ### Generate the OpenApi specification
 
-Please refer to [this document](openapi.md).
+Please refer to [this document](docs/developer/openapi.md).
 
-### Code style & Patterns
-
-Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented
-in [architecture principles](docs/developer/architecture/architecture-principles.md).
 
 ## Directory structure
 

@@ -19,10 +19,13 @@
 - [Events](events.md)
 - [Logging](logging.md)
 - [Metrics](metrics.md)
+- [OpenApi Spec Generation](openapi.md)
 - [Releases](releases.md)
 - [State Machine](state-machine.md)
 - [Testing](testing.md)
 
 > All implementations have to follow existing design principles and architectural patterns that are provided as
-> [Decision Records](decision-records/). Please make sure to continuously check and extend the list. The same
-> applies to the [Contributing.md](../../CONTRIBUTING.md).
+> [Decision Records](decision-records/). Therefore, during implementation, please refer to the dedicated
+> [style guide](../../styleguide.md) and [contribution guidelines](../../CONTRIBUTING.md), and the patterns we
+> documented in [architecture principles](architecture/architecture-principles.md). _Make sure to continuously
+> check and extend the list._

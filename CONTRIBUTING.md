@@ -221,3 +221,11 @@ Please find more information about our release approach [here](docs/developer/re
 
 If you have questions or suggestions, do not hesitate to contact the project developers via
 the [project's "dev" list](https://dev.eclipse.org/mailman/listinfo/dataspaceconnector-dev). 
+
+You may also want to join our [Discord server](https://discord.gg/n4sD9qtjMQ).
+
+There, we provide a biweekly meeting on fridays 2-3 p.m. (CET) to give any interested person the
+opportunity to get in touch with the committer team. We are meeting in the "general" voice channel.
+Find more details about the schedule [on GitHub](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/1303).
+
+_If you have a "contributor" or "committer" status, you will also have access to private channels._
