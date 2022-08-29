@@ -1,6 +1,8 @@
 # Architecture
 
+- [Domain Model](domain-model.md)
 - [Key Principles](architecture-principles.md)
+- [Terminology](terminology.md)
 
 ## Configuration
 
@@ -26,4 +28,4 @@ transferProcessObservable = context.getService(TransferProcessObservable.class);
 transferProcessObservable.registerListener(myTransferProcessListener);
 ```
 
-A sample is available at [04.1-file-transfer-listener](/samples/04.1-file-transfer-listener).
+A sample is available at [04.1-file-transfer-listener](../../../samples/04.1-file-transfer-listener/).

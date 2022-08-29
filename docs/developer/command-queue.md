@@ -76,4 +76,4 @@ violate the serializability principle.
 
 ## Further reading
 
-A complete sample with additional explanation can be found in the [samples](/samples/04.2-modify-transferprocess/README.md).
+A complete sample with additional explanation can be found in the [samples](../../samples/04.2-modify-transferprocess/README.md).

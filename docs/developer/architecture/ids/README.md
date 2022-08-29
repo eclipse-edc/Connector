@@ -1,5 +1,7 @@
 # IDS Standard
 
+See implementation details [here](../../../../data-protocols/ids/).
+
 ## Specification
 
 ### Compliance Issues
@@ -41,4 +43,4 @@ The EDC connector will not be able to support more than one IDS Information mode
 ### Transformers
 - A `TransformerRegistery` dispatches to `Transformers` to map between IDS and EDC types. Handlers/Sub Handlers should use these to marshal 
 requests and responses to and from the EDC core.
-- Type mapping should preferably be done in the handlers, not services (we need to look at this further, e.g. `ConnectorDescriptionService`). 
+- Type mapping should preferably be done in the handlers, not services (we need to look at this further, e.g. `ConnectorDescriptionService`).

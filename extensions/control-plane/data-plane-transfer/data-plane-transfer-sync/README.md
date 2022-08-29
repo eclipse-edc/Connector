@@ -33,7 +33,7 @@ thus overloading the Control Plane. This is a typical use-case for which the pre
 ### Interfaces
 
 This extension exposes an endpoint queried by the Data Plane in order to validate the access token.
-OpenApi documentation can be found [here](../../../resources/openapi/yaml/data-plane-transfer-api.yaml).
+OpenApi documentation can be found [here](../../../../resources/openapi/yaml/data-plane-transfer-sync.yaml).
 
 ### Dependencies
 
@@ -104,10 +104,6 @@ will then be able to perform the data transfer.
 
 #### Flow diagram
 
-![alt text](../../../../docs/architecture/data-transfer/diagrams/data-plane-transfer-sync.png).
+![alt text](../../../../docs/developer/architecture/data-transfer/diagrams/data-plane-transfer-sync.png).
 
 ## Decisions
-
-
-
-

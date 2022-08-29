@@ -98,7 +98,7 @@ public class SomethingHappened extends Event {
 ```
 All the data regarding an event should be contained in the `Payload` class.
 
-As you may notice, we use the builder pattern to construct objects, as stated in the [Architecture Principles document](../architecture/architecture-principles.md).
+As you may notice, we use the builder pattern to construct objects, as stated in the [Architecture Principles document](architecture/architecture-principles.md).
 The extended builder will inherit all the builder method from the superclass.
 The `validate` method is the place where validations on the payload can be added.
 
@@ -145,4 +145,4 @@ doing so, the event can be deserialized using the `Event` superclass as type:
 var deserialized = typeManager.readValue(json, Event.class);
 // deserialized will have the `SomethingHappened` type at runtime
 ```
-(please take a look at the [`EventTest`](../../spi/core-spi/src/test/java/org/eclipse/dataspaceconnector/spi/event/EventTest.java) class for a serialization/deserialization example)
+(please take a look at the [`EventTest`](../../spi/common/core-spi/src/test/java/org/eclipse/dataspaceconnector/spi/event/EventTest.java) class for a serialization/deserialization example)

@@ -1,12 +1,10 @@
-Contributing to the Project
-===================================
+# Contributing to the Project
 
 Thank you for your interest in contributing to
 the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technology.dataspaceconnector)!
 
 ## Table of Contents
 
-* [Project Description](#project-description)
 * [Code Of Conduct](#code-of-conduct)
 * [Eclipse Contributor Agreement](#eclipse-contributor-agreement)
 * [How to Contribute](#how-to-contribute)
@@ -17,11 +15,8 @@ the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technolo
 * [Project and Milestone Planning](#project-and-milestone-planning)
   * [Milestones](#milestones)
   * [Projects](#projects)
+  * [Releases](#releases)
 * [Contact Us](#contact-us)
-
-## Project Description
-
-See [README.md](README.md) for a comprehensive project description.
 
 ## Code Of Conduct
 
@@ -218,7 +213,19 @@ It can be unassigned or moved to any other project that is provided.
 In every project, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
 independent of their association to a specific milestone.
 
-### Contact Us
+### Releases
+
+Please find more information about our release approach [here](docs/developer/releases.md).
+
+## Contact Us
 
 If you have questions or suggestions, do not hesitate to contact the project developers via
 the [project's "dev" list](https://dev.eclipse.org/mailman/listinfo/dataspaceconnector-dev). 
+
+You may also want to join our [Discord server](https://discord.gg/n4sD9qtjMQ).
+
+There, we provide a biweekly meeting on fridays 2-3 p.m. (CET) to give any interested person the
+opportunity to get in touch with the committer team. We are meeting in the "general" voice channel.
+Find more details about the schedule [on GitHub](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/1303).
+
+_If you have a "contributor" or "committer" status, you will also have access to private channels._

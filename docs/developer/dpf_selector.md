@@ -127,7 +127,7 @@ loader, scripting, etc.
 ### Selection Strategies
 
 A `SelectionStrategy` (as in: [strategy pattern](https://en.wikipedia.org/wiki/Strategy_pattern)) influences the
-best-fit criteria for a `DataPlaneInstance`. By default we will implement the following ones:
+best-fit criteria for a `DataPlaneInstance`. By default, we will implement the following ones:
 
 - `RandomSelectionStrategy`: will select one DPF instance at random. Assuming normal distribution of the RNG, all DPFs
   will be selected at approximately equal frequency.

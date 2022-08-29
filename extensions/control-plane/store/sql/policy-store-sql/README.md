@@ -11,7 +11,7 @@ Please apply this [schema](schema.sql) to your SQL database.
 
 ## Entity Diagram
 
-![ER Diagram](er.png)
+![ER Diagram](docs/er.png)
 <!--
 ```plantuml
 @startuml

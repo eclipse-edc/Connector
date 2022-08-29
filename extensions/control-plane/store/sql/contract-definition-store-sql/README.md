@@ -4,11 +4,11 @@ Provides SQL persistence for contract definitions.
 
 ## Prerequisites
 
-Please apply this [schema](schema.sql) to your SQL database.
+Please apply this [schema](docs/schema.sql) to your SQL database.
 
 ## Entity Diagram
 
-![ER Diagram](er.png)
+![ER Diagram](docs/er.png)
 
 ## Configuration
 

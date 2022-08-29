@@ -43,10 +43,6 @@ finally forwarded to the Data Plane by the client.
 
 #### Flow diagram
 
-![alt text](../../../../docs/architecture/data-transfer/diagrams/data-plane-transfer-client.png)
+![alt text](../../../../docs/developer/architecture/data-transfer/diagrams/data-plane-transfer-client.png)
 
 ## Decisions
-
-
-
-

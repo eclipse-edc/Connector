@@ -112,7 +112,7 @@ Provider methods configured with `isDefault=true` are only invoked, if the respe
 provided by any other extension.
 
 > Default provider methods are a tricky topic, please be sure to thoroughly read the additional documentation about
-> them [here](./default_provider_methods.md)!
+> them [here](default_provider_methods.md)!
 
 ### Option 2: register manually
 

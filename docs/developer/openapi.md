@@ -38,7 +38,7 @@ work!**
 ### Generate static SwaggerUI
 
 Finally, after the new OpenAPI spec has been generated, we should re-generate the Swagger UI. It is available as static
-web content located [in the docs folder](docs/swaggerui/index.html).
+web content located [in the docs folder](../swaggerui/index.html).
 
 To do that, simply execute the following Gradle task:
 
@@ -78,7 +78,7 @@ However, if you leave it out, the Swagger Gradle Plugin will report an error.
 
 This feature does **neither** expose the generated files through a REST endpoint providing any sort of live try-out
 feature, **nor** does it generate any sort of client code. The static web content for Swagger UI is merely served
-through our [documentation page](https://eclipse-dataspaceconnector.github.io/DataSpaceConnector/).
+through our [documentation page](https://eclipse-dataspaceconnector.github.io/docs/).
 
 However, the same gradle plugin we use for generating the static HTML content is also capable of generating client code.
 Please refer to the [official documentation](https://github.com/int128/gradle-swagger-generator-plugin).  

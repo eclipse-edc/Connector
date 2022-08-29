@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="#contributing">Contribute</a> •
-  <a href="https://eclipse-dataspaceconnector.github.io/DataSpaceConnector/">Docs</a> •
+  <a href="https://eclipse-dataspaceconnector.github.io/docs/">Docs</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues">Issues</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/LICENSE">License</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/1303">Q&A</a>
@@ -27,7 +27,7 @@ Please also refer to:
 - The [GAIA-X](https://gaia-x.eu) project
 - The [Onboarding Guide](onboarding.md)
 
-## Built with
+### Built with
 
 One of the guiding principles in developing the connector is simplicity and keeping the core small and efficient with as
 little external dependencies as possible to avoid version conflicts. We do not want to force any third-party
@@ -35,11 +35,18 @@ dependencies onto our users, so we aim to avoid any of the big frameworks. Of co
 can add them to your extensions (see: [TBW]). The connector is a plain Java application built with Gradle, but it can be
 embedded into any form of application deployment.
 
-For detailed information about the project, please have a look at our [documentation](/docs/README.md).
+### Documentation
 
-# Getting Started
+Developer documentation can be found under [docs/developer](docs/developer/),
+where the main concepts and decisions are captured as [decision records](docs/developer/decision-records/).
 
-## Add Maven dependencies
+Some more documentation can be found at [extensions](extensions/), [launchers](launchers/) and [samples](samples/).
+
+For detailed information about the whole project, please take a look at our [GitHub pages](https://eclipse-dataspaceconnector.github.io/docs).
+
+## Getting Started
+
+### Add Maven dependencies
 
 Official versions are available through [MavenCentral](https://search.maven.org/search?q=org.eclipse.dataspaceconnector)
 .
@@ -64,7 +71,7 @@ dependencies {
 }
 ```
 
-### Using `SNAPSHOT` versions
+#### Using `SNAPSHOT` versions
 
 In addition, EDC regularly publishes snapshot versions, which are available at Sonatype's snapshot
 repository. In
@@ -98,14 +105,14 @@ Please be aware of the following pitfalls:
 - this may cause unrepeatable builds
 - snapshots are created irregularly, we do not have any fixed publish schedule
 
-### Using release versions
+#### Using release versions
 
 _We plan to have actual release versions starting some time mid 2022. Please check back soon._
 
 
 > For more information about versioning please refer to the [release documentation](docs/developer/releases.md)
 
-## Checkout and build from source
+### Checkout and build from source
 
 The project requires JDK 11+. To get started:
 
@@ -119,14 +126,14 @@ cd DataSpaceConnector
 
 That will build the connector and run unit tests.
 
-## [Optional] Setup your IDE
+### [Optional] Setup your IDE
 
 If you wish to configure your IDE/editor to automatically apply the EDC code style, please
 follow [this guide](styleguide.md).
 
 _Note: the style guide will be checked/enforced in GitHub Actions._
 
-## Run your first connector
+### Run your first connector
 
 Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined
 as gradle build files.
@@ -151,11 +158,12 @@ More information about the extension concept can be found here [TBW].
 
 More information about shadowJar can be found [here](https://github.com/johnrengelman/shadow).
 
-## Generate the OpenApi specification
+### Generate the OpenApi specification
 
-Please refer to [this document](./openapi.md).
+Please refer to [this document](docs/developer/openapi.md).
 
-# Directory structure
+
+## Directory structure
 
 ### `spi`
 
@@ -185,8 +193,7 @@ Launchers are essentially connector packages that are runnable. What modules get
 capabilities a connector has) is defined by the `build.gradle.kts` file inside the launcher subdirectory. That's also
 where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
 connector to become operational the `runtime` needs to perform several important tasks (="bootstrapping"). For an
-example take a look at
-[this runtime](launchers/basic/src/main/java/org/eclipse/dataspaceconnector/runtime/ConnectorRuntime.java)
+example take a look at [this runtime](samples/other/custom-runtime/src/main/java/org/eclipse/dataspaceconnector/demo/runtime/CustomRuntime.java)
 
 ### `resources/charts`
 
@@ -211,21 +218,22 @@ Contains utility code such as collection utils, string utils and helper classes.
 
 Contains several scripts to deploy a connector in an AKS cluster on Microsoft Azure using Terraform.
 
-## Code style & Patterns
+## Releases
 
-Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented
-in [architecture principles](docs/architecture/architecture-principles.md).
+GitHub releases are listed [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/releases).
+Please find more information about releases in our [release approach](docs/developer/releases.md).
 
-## Roadmap
+### Roadmap
 
 See [here](CONTRIBUTING.md#project-and-milestone-planning) for more information about project and
 milestone planning. Scheduled and ongoing milestones are listed
 [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
 
+### Tags
+
+Available tags can be found [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tags).
+
+
 ## Contributing
 
 See [how to contribute](CONTRIBUTING.md).
-
-## Tags
-
-Available tags can be found [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tags).

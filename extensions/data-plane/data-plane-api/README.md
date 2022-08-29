@@ -21,7 +21,7 @@ These APIs have been designed to support the different data transfer types that 
 Provider wants to expose a Rest API taking as input some query parameters that restrict the amount of data returned for each query.
 Here it is not feasible for the data consumer to negotiate a contract for each query that will hit the provider data source API.
 Here the approach for the consumer would then be to
-[negotiate with the provider the possibility to access the data source through a proxy](../../data-plane-transfer/data-plane-transfer-sync).
+[negotiate with the provider the possibility to access the data source through a proxy](../../control-plane/data-plane-transfer/data-plane-transfer-sync/).
 If the negotiation ends successfully, the consumer will be provided an access token that its backend applications can then use when querying the Data Plane public API.
 
 This approach enables the consumer backend application to pass directly the query parameters, path parameters and body
@@ -56,7 +56,7 @@ _Provide some information about dependencies, e.g., used extensions._
 
 ## Design Principles
 
-Both public and control APIs rely on the `DataPlaneManager` for executing the actual data transfer, see [Data Plane Framework](../data-plane-framework/README.md) for more details.
+Both public and control APIs rely on the `DataPlaneManager` for executing the actual data transfer, see [Data Plane Framework](../../../core/data-plane/data-plane-framework/README.md) for more details.
 
 The Data Plane public API takes an access token in input from the `Authorization` header, which is validated and decode by calling the
 validation server. If the validation is successful, then the Data Plane is executed in order to query the data from the data address returned by the validation server.

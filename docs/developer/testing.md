@@ -232,7 +232,7 @@ To write a system test two parts are needed:
 - _runtimes_: one or more modules that define a standalone runtime (e.g. a complete EDC definition)
 
 The runner can load an EDC runtime by using the `@RegisterExtension` annotation (example
-in [`FileTransferIntegrationTest`](/system-tests/tests/src/test/java/org/eclipse/dataspaceconnector/system/tests/local/FileTransferIntegrationTest.java))
+in [`FileTransferIntegrationTest`](../../system-tests/tests/src/test/java/org/eclipse/dataspaceconnector/system/tests/local/FileTransferIntegrationTest.java))
 .
 
 To make sure that the runtime extensions are correctly built and available, they need to be set as dependency of the

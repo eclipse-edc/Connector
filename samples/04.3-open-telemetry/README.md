@@ -1,6 +1,6 @@
 # Telemetry with OpenTelemetry and Micrometer
 
-This sample builds on top of [sample 04.0-file-transfer](../04.0-file-transfer) to show how you can:
+This sample builds on top of [sample 04.0-file-transfer](../04.0-file-transfer/) to show how you can:
 
 - generate traces with [OpenTelemetry](https://opentelemetry.io) and collect and visualize them with [Jaeger](https://www.jaegertracing.io/).
 - automatically collect metrics from infrastructure, server endpoints and client libraries with [Micrometer](https://micrometer.io) and visualize them with [Prometheus](https://prometheus.io).

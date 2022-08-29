@@ -161,7 +161,7 @@ while still leveraging the policy evaluation capabilities of the connector core.
 In this section we'll take a look at how to define transformers between a custom policy model and the EDC one,
 on the example of the IDS model. Full code of all relevant IDS transformers can be found in `data-protocols/ids/ids-transform-v1`.
 
-To begin, we will need an instance of the _TransformerRegistry_ class, which acts as dispatcher, calling apropriate IDS-EDC or EDC-IDS type converters.
+To begin, we will need an instance of the _TransformerRegistry_ class, which acts as dispatcher, calling appropriate IDS-EDC or EDC-IDS type converters.
 As with all services, it can be retrieved from the _ServiceExtensionContext_:
 
 ```java
@@ -180,9 +180,3 @@ latter follows the IDC policy model.
 
 `transformResult` will contain either a list of issues that appeared during the conversion, available through `transformResult.getProblems()` or
 the actual result of the conversion, available through `transformResult.getOutput()`.
-
-
-
-
-
-
