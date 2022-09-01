@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutorService;
 
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.ACCESS_KEY_ID;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.BUCKET_NAME;
+import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.ENDPOINT_OVERRIDE;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.REGION;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.SECRET_ACCESS_KEY;
 
@@ -81,6 +82,22 @@ public class S3DataSinkFactory implements DataSinkFactory {
 
         var destination = request.getDestinationDataAddress();
 
+        S3Client client = createS3Client(destination);
+        return S3DataSink.Builder.newInstance()
+            .bucketName(destination.getProperty(BUCKET_NAME))
+            .keyName(destination.getKeyName())
+            .requestId(request.getId())
+            .executorService(executorService)
+            .monitor(monitor)
+            .client(client)
+            .chunkSizeBytes(CHUNK_SIZE_IN_BYTES)
+            .build();
+    }
+
+    private S3Client createS3Client(DataAddress destination) {
+
+        clientProvider.configureEndpointOverride(destination.getProperty(ENDPOINT_OVERRIDE));
+
         S3Client client;
         var secret = vault.resolveSecret(destination.getKeyName());
         if (secret != null) {
@@ -92,16 +109,7 @@ public class S3DataSinkFactory implements DataSinkFactory {
         } else {
             client = clientProvider.s3Client(destination.getProperty(REGION));
         }
-
-        return S3DataSink.Builder.newInstance()
-            .bucketName(destination.getProperty(BUCKET_NAME))
-            .keyName(destination.getKeyName())
-            .requestId(request.getId())
-            .executorService(executorService)
-            .monitor(monitor)
-            .client(client)
-            .chunkSizeBytes(CHUNK_SIZE_IN_BYTES)
-            .build();
+        return client;
     }
 
 }

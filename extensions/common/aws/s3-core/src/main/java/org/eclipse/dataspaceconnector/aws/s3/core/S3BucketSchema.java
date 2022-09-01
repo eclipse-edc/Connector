@@ -19,5 +19,6 @@ public interface S3BucketSchema {
     String REGION = "region";
     String BUCKET_NAME = "bucketName";
     String ACCESS_KEY_ID = "accessKeyId";
+    String ENDPOINT_OVERRIDE = "endpointOverride";
     String SECRET_ACCESS_KEY = "secretAccessKey";
 }

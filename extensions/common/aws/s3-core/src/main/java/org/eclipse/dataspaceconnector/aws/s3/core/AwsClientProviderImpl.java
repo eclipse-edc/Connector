@@ -100,6 +100,13 @@ public class AwsClientProviderImpl implements AwsClientProvider {
         stsAsyncClients.values().forEach(SdkAutoCloseable::close);
     }
 
+    @Override
+    public void configureEndpointOverride(String endpointOverride) {
+        if(endpointOverride == null || endpointOverride.equals(""))
+            return;
+        configuration.setEndpointOverride(endpointOverride);
+    }
+
     private S3Client createS3Client(AwsCredentials credentials, String region) {
         var credentialsProvider = StaticCredentialsProvider.create(credentials);
         var builder = S3Client.builder()

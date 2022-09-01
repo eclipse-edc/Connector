@@ -27,9 +27,11 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.ACCESS_KEY_ID;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.BUCKET_NAME;
+import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.ENDPOINT_OVERRIDE;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.REGION;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.SECRET_ACCESS_KEY;
 
@@ -64,17 +66,23 @@ public class S3DataSourceFactory implements DataSourceFactory {
 
         var source = request.getSourceDataAddress();
 
-        var secretToken = new AwsSecretToken(source.getProperty(ACCESS_KEY_ID), source.getProperty(SECRET_ACCESS_KEY));
-
-        var client = credentialsValidation.apply(source).succeeded()
-                ? clientProvider.s3Client(source.getProperty(REGION), secretToken)
-                : clientProvider.s3Client(source.getProperty(REGION));
-
+        var client = getS3Client(source);
         return S3DataSource.Builder.newInstance()
                 .bucketName(source.getProperty(BUCKET_NAME))
                 .keyName(source.getKeyName())
                 .client(client)
                 .build();
+    }
+
+    private S3Client getS3Client(DataAddress address) {
+        clientProvider.configureEndpointOverride(address.getProperty(ENDPOINT_OVERRIDE));
+
+        var secretToken = new AwsSecretToken(address.getProperty(ACCESS_KEY_ID), address.getProperty(SECRET_ACCESS_KEY));
+
+        var client = credentialsValidation.apply(address).succeeded()
+                ? clientProvider.s3Client(address.getProperty(REGION), secretToken)
+                : clientProvider.s3Client(address.getProperty(REGION));
+        return client;
     }
 
 }

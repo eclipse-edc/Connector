@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.aws.s3.core;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 
 public class AwsClientProviderConfiguration {
@@ -37,6 +38,13 @@ public class AwsClientProviderConfiguration {
 
     public URI getEndpointOverride() {
         return endpointOverride;
+    }
+    public void setEndpointOverride(String endpointOverride) {
+        try {
+            this.endpointOverride = new URI(endpointOverride);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(String.format("Cannot set endpointOverride (%s) as URI",endpointOverride));
+        }
     }
 
     public int getThreadPoolSize() {
