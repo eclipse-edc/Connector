@@ -7,7 +7,7 @@ org.eclipse.dataspaceconnector:module-domain:0.0.1-milestone-6
 org.eclipse.dataspaceconnector:module-processor:0.0.1-milestone-6
 org.eclipse.dataspaceconnector:core-base:0.0.1-milestone-6
 org.eclipse.dataspaceconnector:core-boot:0.0.1-milestone-6
-org.eclipse.dataspaceconnector:jwt-spi:0.0.1-milestone-6
+org.eclipse.dataspaceconnector:jwt-core:0.0.1-milestone-6
 org.eclipse.dataspaceconnector:policy-engine:0.0.1-milestone-6
 org.eclipse.dataspaceconnector:policy-evaluator:0.0.1-milestone-6
 org.eclipse.dataspaceconnector:contract:0.0.1-milestone-6

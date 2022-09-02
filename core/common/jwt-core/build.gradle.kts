@@ -27,8 +27,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("jwt-spi") {
-            artifactId = "jwt-spi"
+        create<MavenPublication>("jwt-core") {
+            artifactId = "jwt-core"
             from(components["java"])
         }
     }
