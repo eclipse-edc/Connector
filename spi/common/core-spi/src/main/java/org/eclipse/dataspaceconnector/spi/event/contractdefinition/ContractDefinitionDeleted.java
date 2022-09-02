@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.spi.event.contractdefinition;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
-import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -48,11 +47,6 @@ public class ContractDefinitionDeleted extends Event<ContractDefinitionDeleted.P
         }
     }
 
-    public static class Payload extends EventPayload {
-        private String contractDefinitionId;
-
-        public String getContractDefinitionId() {
-            return contractDefinitionId;
-        }
+    public static class Payload extends ContractDefinitionEventPayload {
     }
 }
