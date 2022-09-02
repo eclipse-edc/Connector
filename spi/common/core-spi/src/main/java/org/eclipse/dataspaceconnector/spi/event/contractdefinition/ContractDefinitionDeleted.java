@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
