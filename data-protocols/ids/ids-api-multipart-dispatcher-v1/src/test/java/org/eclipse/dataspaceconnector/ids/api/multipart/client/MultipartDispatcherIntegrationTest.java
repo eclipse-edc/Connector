@@ -21,12 +21,14 @@ import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartCatalogDescriptionRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractOfferSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartCatalogDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractAgreementSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractOfferSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractRejectionSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.MessageProtocol;
@@ -67,7 +69,7 @@ import static org.mockito.Mockito.when;
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private IdsTransformerRegistry transformerRegistry;
-    private IdsMultipartRemoteMessageDispatcher multipartDispatcher;
+    private IdsMultipartRemoteMessageDispatcher dispatcher;
 
     @BeforeEach
     void init() {
@@ -79,14 +81,16 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var httpClient = testOkHttpClient();
 
         var idsWebhookAddress = "http://webhook/api";
+    
+        var senderContext = new DelegateMessageContext(URI.create(CONNECTOR_ID), objectMapper, transformerRegistry, idsWebhookAddress);
 
-        multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
+        dispatcher = new IdsMultipartRemoteMessageDispatcher();
+        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartArtifactRequestSender(senderContext, vault)));
+        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartDescriptionRequestSender(senderContext)));
+        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractOfferSender(senderContext)));
+        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractAgreementSender(senderContext)));
+        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractRejectionSender(senderContext)));
+        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartCatalogDescriptionRequestSender(senderContext)));
     }
 
     @Test
@@ -97,7 +101,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .build();
 
-        var result = multipartDispatcher.send(BaseConnector.class, request, () -> null).get();
+        var result = dispatcher.send(BaseConnector.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result).isInstanceOf(BaseConnector.class);
@@ -126,7 +130,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
-        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
     }
 
     @Test
@@ -144,7 +148,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
         verify(transformerRegistry).transform(any(), any());
     }
@@ -167,7 +171,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
         verify(transformerRegistry).transform(any(), any());
     }
@@ -192,7 +196,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .policy(Policy.Builder.newInstance().build())
                 .build();
 
-        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
         verify(transformerRegistry, times(1)).transform(any(), any());
     }
@@ -207,7 +211,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        assertThatCode(() -> multipartDispatcher.send(null, rejection, () -> null)).doesNotThrowAnyException();
+        assertThatCode(() -> dispatcher.send(null, rejection, () -> null)).doesNotThrowAnyException();
     }
 
     @Override

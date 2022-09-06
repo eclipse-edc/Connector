@@ -18,14 +18,12 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -44,21 +42,20 @@ import static org.mockito.Mockito.mock;
 class MultipartArtifactRequestSenderTest {
 
     private MultipartArtifactRequestSender sender;
+    private DelegateMessageContext senderContext;
     private String idsWebhookAddress;
 
     @BeforeEach
     public void setUp() {
-        var httpClient = mock(OkHttpClient.class);
-        var monitor = mock(Monitor.class);
         var vault = mock(Vault.class);
-        var identityService = mock(IdentityService.class);
-        String connectorId = UUID.randomUUID().toString();
+        var connectorId = URI.create(UUID.randomUUID().toString());
         var transformerRegistry = mock(IdsTransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
 
         var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
-        sender = new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
+        senderContext = new DelegateMessageContext(connectorId, objectMapper, transformerRegistry, idsWebhookAddress);
+        sender = new MultipartArtifactRequestSender(senderContext, vault);
     }
 
     @Test
@@ -74,8 +71,8 @@ class MultipartArtifactRequestSenderTest {
         assertThat(message.getId()).hasToString(request.getId());
         assertThat(message.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
         assertThat(message.getSecurityToken()).isEqualTo(token);
-        assertThat(message.getIssuerConnector()).isEqualTo(sender.getConnectorId());
-        assertThat(message.getSenderAgent()).isEqualTo(sender.getConnectorId());
+        assertThat(message.getIssuerConnector()).isEqualTo(senderContext.getConnectorId());
+        assertThat(message.getSenderAgent()).isEqualTo(senderContext.getConnectorId());
         assertThat(message.getRecipientConnector()).containsExactly(URI.create(request.getConnectorId()));
         assertThat(((ArtifactRequestMessage) message).getRequestedArtifact().compareTo(artifactId)).isZero();
         assertThat(message.getTransferContract().compareTo(contractId)).isZero();
