@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
@@ -84,7 +84,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.setConfiguration(PROVISIONER_CONFIG);
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
             @Inject
-            private AssetLoader loader; //needed for on-demand dependency resolution
+            private AssetIndex assetIndex; // needed for on-demand dependency resolution
         });
     }
 
@@ -94,11 +94,11 @@ public class HttpProvisionerExtensionEndToEndTest {
     @Test
     void processProviderRequestRetry(TransferProcessManager processManager,
                                      ContractNegotiationStore negotiationStore,
-                                     AssetLoader assetLoader,
+                                     AssetIndex assetIndex,
                                      TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
         negotiationStore.save(createContractNegotiation());
         policyStore.save(createPolicyDefinition());
-        assetLoader.accept(createAssetEntry());
+        assetIndex.accept(createAssetEntry());
 
         when(delegate.intercept(any()))
                 .thenAnswer(invocation -> createResponse(503, invocation))

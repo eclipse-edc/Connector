@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.core.controlplane.defaults.negotiationstor
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.policystore.InMemoryPolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.transferprocessstore.InMemoryTransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionLoader;
@@ -45,11 +44,6 @@ public class ControlPlaneCoreExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataAddressResolver defaultDataAddressResolver() {
-        return getAssetIndex();
-    }
-
-    @Provider(isDefault = true)
-    public AssetLoader defaultAssetLoader() {
         return getAssetIndex();
     }
 

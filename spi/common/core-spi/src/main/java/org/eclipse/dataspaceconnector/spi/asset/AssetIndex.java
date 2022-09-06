@@ -14,8 +14,11 @@
 
 package org.eclipse.dataspaceconnector.spi.asset;
 
+import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
@@ -27,7 +30,7 @@ import java.util.stream.Stream;
  * to an {@link Asset} by its corresponding asset id. Therefore, it is absolutely crucial that assets are not removed from the {@link AssetIndex} as long as data transfers or contracts (agreements and offers) exists for them.
  * Additionally, as an {@link Asset} may be referenced by a contract, the content of an {@link Asset} and its corresponding data must not change in ways, that violates an existing contract.
  */
-public interface AssetIndex extends AssetLoader, DataAddressResolver {
+public interface AssetIndex extends DataAddressResolver {
 
     /**
      * Returns all {@link Asset} objects that are selected by a certain expression
@@ -65,5 +68,19 @@ public interface AssetIndex extends AssetLoader, DataAddressResolver {
     @Nullable
     Asset findById(String assetId);
 
+    default void accept(Asset asset, DataAddress dataAddress) {
+        accept(new AssetEntry(asset, dataAddress));
+    }
+
+    void accept(AssetEntry item);
+
+    /**
+     * Deletes an asset.
+     *
+     * @param assetId Id of the asset to be deleted.
+     * @return Deleted Asset or null if asset did not exist.
+     * @throws EdcPersistenceException if something goes wrong.
+     */
+    Asset deleteById(String assetId);
 
 }

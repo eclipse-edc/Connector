@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.se
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -114,7 +113,7 @@ public class ContractNegotiationEventDispatchTest {
         var policy = Policy.Builder.newInstance().build();
         contractDefinitionStore.save(ContractDefinition.Builder.newInstance().id("contractDefinitionId").contractPolicyId("policyId").accessPolicyId("policyId").selectorExpression(AssetSelectorExpression.SELECT_ALL).build());
         policyDefinitionStore.save(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
-        ((AssetLoader) assetIndex).accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
+        assetIndex.accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
         manager.requested(token, createContractOfferRequest(policy));
 

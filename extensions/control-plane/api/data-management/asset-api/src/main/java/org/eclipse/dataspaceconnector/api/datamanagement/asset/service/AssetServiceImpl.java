@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservable;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
@@ -35,15 +34,13 @@ import static java.util.stream.Collectors.toList;
 public class AssetServiceImpl implements AssetService {
     private static final String ASSET_ID_QUERY = "contractAgreement.assetId";
     private final AssetIndex index;
-    private final AssetLoader loader;
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
     private final AssetObservable observable;
     private final QueryValidator queryValidator;
 
-    public AssetServiceImpl(AssetIndex index, AssetLoader loader, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable) {
+    public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable) {
         this.index = index;
-        this.loader = loader;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
@@ -70,7 +67,7 @@ public class AssetServiceImpl implements AssetService {
     public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
         return transactionContext.execute(() -> {
             if (findById(asset.getId()) == null) {
-                loader.accept(asset, dataAddress);
+                index.accept(asset, dataAddress);
                 observable.invokeForEach(l -> l.created(asset));
                 return ServiceResult.success(asset);
             } else {
@@ -91,7 +88,7 @@ public class AssetServiceImpl implements AssetService {
                 return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
             }
 
-            var deleted = loader.deleteById(assetId);
+            var deleted = index.deleteById(assetId);
             if (deleted == null) {
                 return ServiceResult.notFound(format("Asset %s does not exist", assetId));
             }
