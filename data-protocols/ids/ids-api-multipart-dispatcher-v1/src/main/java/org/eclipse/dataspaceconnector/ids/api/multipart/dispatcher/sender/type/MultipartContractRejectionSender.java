@@ -12,28 +12,26 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
-import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
@@ -41,25 +39,17 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender
  * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejection, String> {
+public class MultipartContractRejectionSender implements MultipartSenderDelegate<ContractRejection, String> {
 
-    public MultipartContractRejectionSender(@NotNull String connectorId,
-                                            @NotNull OkHttpClient httpClient,
-                                            @NotNull ObjectMapper objectMapper,
-                                            @NotNull Monitor monitor,
-                                            @NotNull IdentityService identityService,
-                                            @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+    private final DelegateMessageContext context;
+
+    public MultipartContractRejectionSender(@NotNull DelegateMessageContext context) {
+        this.context = Objects.requireNonNull(context);
     }
 
     @Override
-    public Class<ContractRejection> messageType() {
+    public Class<ContractRejection> getMessageType() {
         return ContractRejection.class;
-    }
-
-    @Override
-    protected String retrieveRemoteConnectorAddress(ContractRejection rejection) {
-        return rejection.getConnectorAddress();
     }
 
     /**
@@ -70,13 +60,13 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
      * @return a ContractRejectionMessage
      */
     @Override
-    protected Message buildMessageHeader(ContractRejection rejection, DynamicAttributeToken token) throws Exception {
+    public Message buildMessageHeader(ContractRejection rejection, DynamicAttributeToken token) throws Exception {
         return new ContractRejectionMessageBuilder()
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
-                ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
+                ._issuerConnector_(context.getConnectorId())
+                ._senderAgent_(context.getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(rejection.getConnectorId())))
                 ._contractRejectionReason_(new TypedLiteral(rejection.getRejectionReason()))
                 ._transferContract_(URI.create(rejection.getCorrelationId()))
@@ -90,7 +80,7 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
      * @return the rejection reason.
      */
     @Override
-    protected String buildMessagePayload(ContractRejection rejection) throws Exception {
+    public String buildMessagePayload(ContractRejection rejection) throws Exception {
         return rejection.getRejectionReason();
     }
 
@@ -102,12 +92,12 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
      * @throws Exception if parsing header or payload fails.
      */
     @Override
-    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
-        return parseMultipartStringResponse(parts, getObjectMapper());
+    public MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
+        return parseMultipartStringResponse(parts, context.getObjectMapper());
     }
 
     @Override
-    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+    public List<Class<? extends Message>> getAllowedResponseTypes() {
         return List.of(MessageProcessedNotificationMessageImpl.class);
     }
 }

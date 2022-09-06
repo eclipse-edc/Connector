@@ -17,7 +17,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.TokenFormat;
@@ -34,9 +33,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.respon
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
-import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
@@ -49,9 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.http.HttpHeaders;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -64,31 +58,27 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
  * @param <M> the RemoteMessage type sent by the sub-class.
  * @param <R> the response type returned by the sub-class.
  */
-abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
+public class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
     private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
-    private final URI connectorId;
-    private final OkHttpClient httpClient;
-    private final ObjectMapper objectMapper;
-    private final Monitor monitor;
-    private final IdentityService identityService;
-    private final IdsTransformerRegistry transformerRegistry;
 
-    protected IdsMultipartSender(@NotNull String connectorId,
-                                 @NotNull OkHttpClient httpClient,
-                                 @NotNull ObjectMapper objectMapper,
-                                 @NotNull Monitor monitor,
-                                 @NotNull IdentityService identityService,
-                                 @NotNull IdsTransformerRegistry transformerRegistry) {
-        this.connectorId = createConnectorIdUri(Objects.requireNonNull(connectorId, "connectorId"));
-        this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
-        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
-        this.monitor = Objects.requireNonNull(monitor, "monitor");
-        this.identityService = Objects.requireNonNull(identityService, "identityService");
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
+    private Monitor monitor;
+    private OkHttpClient httpClient;
+    private IdentityService identityService;
+    private ObjectMapper objectMapper;
+    private MultipartSenderDelegate<M, R> senderDelegate;
+
+    public IdsMultipartSender(@NotNull Monitor monitor, @NotNull OkHttpClient httpClient, @NotNull IdentityService identityService,
+                              @NotNull ObjectMapper objectMapper, @NotNull MultipartSenderDelegate<M, R> senderDelegate) {
+        this.monitor = monitor;
+        this.httpClient = httpClient;
+        this.identityService = identityService;
+        this.objectMapper = objectMapper;
+        this.senderDelegate = senderDelegate;
     }
 
-    private static URI createConnectorIdUri(String connectorId) {
-        return IdsId.Builder.newInstance().value(connectorId).type(IdsType.CONNECTOR).build().toUri();
+    @Override
+    public Class<M> messageType() {
+        return senderDelegate.getMessageType();
     }
 
     /**
@@ -101,7 +91,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      */
     @Override
     public CompletableFuture<R> send(M request, MessageContext context) {
-        var remoteConnectorAddress = retrieveRemoteConnectorAddress(request);
+        var remoteConnectorAddress = request.getConnectorAddress();
 
         // Get Dynamic Attribute Token
         var tokenParameters = TokenParameters.Builder.newInstance()
@@ -130,7 +120,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         // Build IDS message header
         Message message;
         try {
-            message = buildMessageHeader(request, token); // TODO set idsWebhookAddress globally?
+            message = senderDelegate.buildMessageHeader(request, token); // TODO set idsWebhookAddress globally?
         } catch (Exception e) {
             return failedFuture(e);
         }
@@ -154,7 +144,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         // Build IDS message payload
         String payload;
         try {
-            payload = buildMessagePayload(request);
+            payload = senderDelegate.buildMessagePayload(request);
         } catch (Exception e) {
             return failedFuture(e);
         }
@@ -202,7 +192,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                             future.completeExceptionally(new EdcException("Received an empty body response from connector"));
                         } else {
                             var parts = extractResponseParts(body);
-                            var response = getResponseContent(parts);
+                            var response = senderDelegate.getResponseContent(parts);
 
                             checkResponseType(response);
 
@@ -220,67 +210,6 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
 
         return future;
     }
-
-    @NotNull
-    protected IdsTransformerRegistry getTransformerRegistry() {
-        return transformerRegistry;
-    }
-
-    @NotNull
-    protected ObjectMapper getObjectMapper() {
-        return objectMapper;
-    }
-
-    @NotNull
-    protected URI getConnectorId() {
-        return connectorId;
-    }
-
-    /**
-     * Returns the address of the recipient connector, which is the destination for the multipart
-     * message.
-     *
-     * @param request the request.
-     * @return the recipient connector's address.
-     */
-    protected abstract String retrieveRemoteConnectorAddress(M request);
-
-    /**
-     * Builds the IDS multipart header for the request.
-     *
-     * @param request the request.
-     * @param token   the dynamic attribute token.
-     * @return the message header.
-     * @throws Exception if building the message header fails.
-     */
-    protected abstract Message buildMessageHeader(M request, DynamicAttributeToken token) throws Exception;
-
-    /**
-     * Builds the IDS multipart payload for the request.
-     *
-     * @param request the request.
-     * @return the message payload.
-     * @throws Exception if building the message payload fails.
-     */
-    protected String buildMessagePayload(M request) throws Exception {
-        return null;
-    }
-
-    /**
-     * Reads and parses the IDS multipart response.
-     *
-     * @param parts container object for response header and payload {@link InputStream}s.
-     * @return an instance of the sub class's return type.
-     * @throws Exception if parsing the response fails.
-     */
-    protected abstract MultipartResponse<R> getResponseContent(IdsMultipartParts parts) throws Exception;
-
-    /**
-     * Return expected response type.
-     *
-     * @return the response type class.
-     */
-    protected abstract List<Class<? extends Message>> getAllowedResponseTypes();
 
     /**
      * Parses the multipart response. Extracts header and payload as input stream and wraps them
@@ -324,7 +253,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     private void checkResponseType(@NotNull MultipartResponse<?> response) {
-        var type = getAllowedResponseTypes();
+        var type = senderDelegate.getAllowedResponseTypes();
         if (!type.contains(response.getHeader().getClass())) {
             throw new EdcException(String.format("Received %s but expected %s.", response.getHeader().getClass(), type));
         }

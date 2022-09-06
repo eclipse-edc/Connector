@@ -12,10 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
@@ -24,16 +23,14 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
-import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.Range;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.jetbrains.annotations.NotNull;
@@ -52,25 +49,17 @@ import java.util.Objects;
  * IdsMultipartSender implementation for connector catalog requests. Sends IDS DescriptionRequestMessages and expects an
  * IDS DescriptionResponseMessage as the response.
  */
-public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender<CatalogRequest, Catalog> {
+public class MultipartCatalogDescriptionRequestSender implements MultipartSenderDelegate<CatalogRequest, Catalog> {
 
-    public MultipartCatalogDescriptionRequestSender(@NotNull String connectorId,
-                                                    @NotNull OkHttpClient httpClient,
-                                                    @NotNull ObjectMapper objectMapper,
-                                                    @NotNull Monitor monitor,
-                                                    @NotNull IdentityService identityService,
-                                                    @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+    private final DelegateMessageContext context;
+
+    public MultipartCatalogDescriptionRequestSender(@NotNull DelegateMessageContext context) {
+        this.context = Objects.requireNonNull(context);
     }
 
     @Override
-    public Class<CatalogRequest> messageType() {
+    public Class<CatalogRequest> getMessageType() {
         return CatalogRequest.class;
-    }
-
-    @Override
-    protected String retrieveRemoteConnectorAddress(CatalogRequest request) {
-        return request.getConnectorAddress();
     }
 
     /**
@@ -82,13 +71,13 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
      * @return a DescriptionRequestMessage
      */
     @Override
-    protected Message buildMessageHeader(CatalogRequest request, DynamicAttributeToken token) {
+    public Message buildMessageHeader(CatalogRequest request, DynamicAttributeToken token) {
         var message = new DescriptionRequestMessageBuilder()
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
-                ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
+                ._issuerConnector_(context.getConnectorId())
+                ._senderAgent_(context.getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
         //TODO: IDS REFACTORING: incorporate this into the protocol itself
@@ -104,8 +93,8 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
      * @return the other connector's catalog
      */
     @Override
-    protected MultipartResponse<Catalog> getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+    public MultipartResponse<Catalog> getResponseContent(IdsMultipartParts parts) throws Exception {
+        var header = context.getObjectMapper().readValue(parts.getHeader(), Message.class);
 
         if (parts.getPayload() == null) {
             throw new EdcException("Payload was null but connector self-description was expected");
@@ -125,7 +114,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             createOfferResourcesFromProperties(resourceCatalog);
         }
 
-        var transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
+        var transformResult = context.getTransformerRegistry().transform(resourceCatalog, Catalog.class);
         if (transformResult.failed()) {
             throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailureMessages())));
         }
@@ -134,21 +123,21 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     }
 
     @Override
-    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+    public List<Class<? extends Message>> getAllowedResponseTypes() {
         return List.of(DescriptionResponseMessageImpl.class);
     }
 
     private BaseConnector getBaseConnector(IdsMultipartParts parts) {
         try {
             var payload = Objects.requireNonNull(parts.getPayload());
-            return getObjectMapper().readValue(payload.readAllBytes(), BaseConnector.class);
+            return context.getObjectMapper().readValue(payload.readAllBytes(), BaseConnector.class);
         } catch (IOException exception) {
             throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
         }
     }
 
     private void createOfferResourcesFromProperties(ResourceCatalog catalog) {
-        var objectMapper = getObjectMapper();
+        var objectMapper = context.getObjectMapper();
         if (catalog.getProperties() != null) {
             for (Map.Entry<String, Object> entry : catalog.getProperties().entrySet()) {
                 if ("ids:offeredResource".equals(entry.getKey())) {

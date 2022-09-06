@@ -12,9 +12,8 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
 import de.fraunhofer.iais.eis.ContractRequest;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
@@ -22,15 +21,13 @@ import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
-import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -47,29 +44,16 @@ import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEB
  * IdsMultipartSender implementation for contract requests. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, String> {
-    private final String idsWebhookAddress;
+public class MultipartContractOfferSender implements MultipartSenderDelegate<ContractOfferRequest, String> {
+    private final DelegateMessageContext context;
 
-    public MultipartContractOfferSender(@NotNull String connectorId,
-                                        @NotNull OkHttpClient httpClient,
-                                        @NotNull ObjectMapper objectMapper,
-                                        @NotNull Monitor monitor,
-                                        @NotNull IdentityService identityService,
-                                        @NotNull IdsTransformerRegistry transformerRegistry,
-                                        @NotNull String idsWebhookAddress) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
-
-        this.idsWebhookAddress = idsWebhookAddress;
+    public MultipartContractOfferSender(@NotNull DelegateMessageContext context) {
+        this.context = Objects.requireNonNull(context);
     }
 
     @Override
-    public Class<ContractOfferRequest> messageType() {
+    public Class<ContractOfferRequest> getMessageType() {
         return ContractOfferRequest.class;
-    }
-
-    @Override
-    protected String retrieveRemoteConnectorAddress(ContractOfferRequest request) {
-        return request.getConnectorAddress();
     }
 
     /**
@@ -81,31 +65,31 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
      * @return a ContractRequestMessage or ContractOfferMessage
      */
     @Override
-    protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
+    public Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
             var message = new ContractRequestMessageBuilder()
                     ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                     ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
-                    ._issuerConnector_(getConnectorId())
-                    ._senderAgent_(getConnectorId())
+                    ._issuerConnector_(context.getConnectorId())
+                    ._senderAgent_(context.getConnectorId())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
-
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, context.getIdsWebhookAddress());
+  
             return message;
         } else {
             var message = new ContractOfferMessageBuilder()
                     ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                     ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
-                    ._issuerConnector_(getConnectorId())
-                    ._senderAgent_(getConnectorId())
+                    ._issuerConnector_(context.getConnectorId())
+                    ._senderAgent_(context.getConnectorId())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, context.getIdsWebhookAddress());
 
             return message;
         }
@@ -120,13 +104,13 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
      * @throws Exception if parsing the request/offer fails.
      */
     @Override
-    protected String buildMessagePayload(ContractOfferRequest request) throws Exception {
+    public String buildMessagePayload(ContractOfferRequest request) throws Exception {
         var contractOffer = request.getContractOffer();
-
+        
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
-            return getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
+            return context.getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
         } else {
-            return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
+            return context.getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
         }
     }
 
@@ -138,17 +122,17 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
      * @throws Exception if parsing header or payload fails.
      */
     @Override
-    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
-        return parseMultipartStringResponse(parts, getObjectMapper());
+    public MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
+        return parseMultipartStringResponse(parts, context.getObjectMapper());
     }
 
     @Override
-    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+    public List<Class<? extends Message>> getAllowedResponseTypes() {
         return List.of(RequestInProcessMessageImpl.class);
     }
 
     private ContractRequest createContractRequest(ContractOffer offer) {
-        var transformationResult = getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
+        var transformationResult = context.getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
         if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract request");
         }
@@ -158,7 +142,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     }
 
     private de.fraunhofer.iais.eis.ContractOffer createContractOffer(ContractOffer offer) {
-        var transformationResult = getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
+        var transformationResult = context.getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
         if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract offer");
         }
