@@ -174,3 +174,6 @@ The GitHub workflow then performs these steps
     - the release notes are auto-generated based on the last available tag and the `.github/releases.yaml` file
     - no pre-releases are supported
     - no discussions are created
+
+**Important: The first commit after a release has to change the `defaultVersion` in `gradle.properties` to `-SNAPSHOT`
+again. Otherwise, the upload of the automated nightly builds to OSSRH Snapshots will fail.** 
