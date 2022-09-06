@@ -14,11 +14,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;

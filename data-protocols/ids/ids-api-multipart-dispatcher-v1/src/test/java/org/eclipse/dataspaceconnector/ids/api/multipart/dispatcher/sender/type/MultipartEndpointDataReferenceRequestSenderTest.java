@@ -14,7 +14,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
@@ -22,8 +22,8 @@ import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.NotificationMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartEndpointDataReferenceRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
