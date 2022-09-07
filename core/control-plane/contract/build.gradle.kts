@@ -24,7 +24,7 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:contract-spi"))
 
-    implementation(project(":common:state-machine-lib"))
+    implementation(project(":common:state-machine"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     testImplementation(project(":core:control-plane:control-plane-core"))

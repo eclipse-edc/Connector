@@ -1,5 +1,5 @@
 
-org.eclipse.dataspaceconnector:state-machine-lib:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:state-machine:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:common-util:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT

@@ -24,7 +24,7 @@ styleguide.md @paullatzelsperger
 
 /buildSrc/ @paullatzelsperger @marcgs
 
-/common/state-machine-lib/ @ndr-brt @algattik
+/common/state-machine/ @ndr-brt @algattik
 
 /core/common/base/ @jimmarino @paullatzelsperger @ndr-brt
 /core/common/boot/ @jimmarino @paullatzelsperger

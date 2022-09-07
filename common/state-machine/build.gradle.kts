@@ -24,8 +24,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("state-machine-lib") {
-            artifactId = "state-machine-lib"
+        create<MavenPublication>("state-machine") {
+            artifactId = "state-machine"
             from(components["java"])
         }
     }
