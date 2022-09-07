@@ -32,7 +32,7 @@ core/common/policy-engine/ @jimmarino @ronjaquensel
 core/common/policy-evaluator/ @jimmarino @juliapampus @ronjaquensel
 
 /data-protocols/ids/ @ronjaquensel @juliapampus @DominikPinsel @denisneuling
-/data-protocols/ids/ids-jsonld-serdes-lib/ @juliapampus
+/data-protocols/ids/ids-jsonld-serdes/ @juliapampus
 
 /docs/ @juliapampus
 

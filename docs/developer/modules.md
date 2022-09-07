@@ -21,7 +21,7 @@ org.eclipse.dataspaceconnector:ids-api-configuration:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-api-multipart-dispatcher-v1:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-api-multipart-endpoint-v1:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-core:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:ids-jsonld-serdes-lib:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:ids-jsonld-serdes:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-token-validation:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-api-transform-v1:0.0.1-SNAPSHOT
