@@ -21,7 +21,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 }
 

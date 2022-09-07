@@ -28,7 +28,7 @@ dependencies {
     api(project(":extensions:common:http"))
     api(project(":extensions:common:configuration:filesystem-configuration"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":extensions:common:api:api-core")) //for the exception mapper
 

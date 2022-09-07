@@ -21,7 +21,7 @@ val bouncycastleVersion: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
     testImplementation(project(":extensions:common:iam:decentralized-identity:identity-did-crypto"))

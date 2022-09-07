@@ -10,7 +10,7 @@ These extensions bridge between EDC core and IDS.
 - [data-protocols:ids:ids-api-multipart-dispatcher](ids-api-multipart-dispatcher-v1/)
 - [data-protocols:ids:ids-api-multipart-endpoint](ids-api-multipart-endpoint-v1/)
 - [data-protocols:ids:ids-core](ids-core/)
-- [data-protocols:ids:ids-jsonld-serdes-lib](ids-jsonld-serdes-lib/)
+- [data-protocols:ids:ids-jsonld-serdes](ids-jsonld-serdes/)
 - [data-protocols:ids:ids-spi](ids-spi/)
 - [data-protocols:ids:ids-token-validation](ids-token-validation/)
 - [data-protocols:ids:ids-transform](ids-transform-v1/)

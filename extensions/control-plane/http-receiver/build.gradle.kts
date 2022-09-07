@@ -22,7 +22,7 @@ val failsafeVersion: String by project
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:transfer-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")

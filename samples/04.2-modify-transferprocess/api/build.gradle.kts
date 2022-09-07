@@ -22,7 +22,7 @@ val rsApi: String by project
 
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

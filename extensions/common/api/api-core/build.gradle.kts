@@ -25,7 +25,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:common:transport-spi"))
 
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("jakarta.validation:jakarta.validation-api:${jakartaValidationApi}")
     implementation("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation

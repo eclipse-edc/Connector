@@ -25,7 +25,7 @@ dependencies {
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:transaction-datasource-spi"))
 
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation("javax.transaction:javax.transaction-api:${jtaVersion}")
     implementation("com.atomikos:transactions-jta:${atomikosVersion}")
     implementation("com.atomikos:transactions-jdbc:${atomikosVersion}")

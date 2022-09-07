@@ -16,17 +16,14 @@
 
 rootProject.name = "dataspaceconnector"
 
-// modules for common/util code
-
-include(":common:util")
-include(":common:state-machine-lib")
-
 // EDC core modules
 include(":core:common:base")
 include(":core:common:boot")
 include(":core:common:jwt-core")
 include(":core:common:policy-engine")
 include(":core:common:policy-evaluator")
+include(":core:common:state-machine")
+include(":core:common:util")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:transfer")
 include(":core:control-plane:contract")
@@ -39,7 +36,7 @@ include(":core:federated-catalog:federated-catalog-core")
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
 include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
 include(":data-protocols:ids:ids-core")
-include(":data-protocols:ids:ids-jsonld-serdes-lib")
+include(":data-protocols:ids:ids-jsonld-serdes")
 include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 include(":data-protocols:ids:ids-token-validation")

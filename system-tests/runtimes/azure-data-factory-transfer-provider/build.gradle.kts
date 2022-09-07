@@ -27,7 +27,7 @@ val azureResourceManagerVersion: String by project
 
 dependencies {
     implementation(project(":spi:data-plane:data-plane-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))

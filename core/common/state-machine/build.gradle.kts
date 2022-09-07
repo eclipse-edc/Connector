@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,23 +8,24 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
 plugins {
     `java-library`
+    `java-test-fixtures`
     `maven-publish`
 }
 
 dependencies {
-    testImplementation(project(":data-protocols:ids:ids-core"))
+    api(project(":spi:common:core-spi"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("ids-jsonld-serdes-lib") {
-            artifactId = "ids-jsonld-serdes-lib"
+        create<MavenPublication>("state-machine") {
+            artifactId = "state-machine"
             from(components["java"])
         }
     }

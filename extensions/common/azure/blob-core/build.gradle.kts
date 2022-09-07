@@ -25,10 +25,10 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 
     testFixturesApi(project(":extensions:common:azure:blob-core"))
-    testFixturesImplementation(project(":common:util"))
+    testFixturesImplementation(project(":core:common:util"))
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

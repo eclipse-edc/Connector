@@ -22,7 +22,7 @@ val awaitility: String by project
 
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
-    api(project(":common:util"))
+    api(project(":core:common:util"))
     api(project(":extensions:common:azure:cosmos-common"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")

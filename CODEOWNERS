@@ -24,15 +24,14 @@ styleguide.md @paullatzelsperger
 
 /buildSrc/ @paullatzelsperger @marcgs
 
-/common/state-machine-lib/ @ndr-brt @algattik
-
 /core/common/base/ @jimmarino @paullatzelsperger @ndr-brt
 /core/common/boot/ @jimmarino @paullatzelsperger
-core/common/policy-engine/ @jimmarino @ronjaquensel
-core/common/policy-evaluator/ @jimmarino @juliapampus @ronjaquensel
+/core/common/policy-engine/ @jimmarino @ronjaquensel
+/core/common/policy-evaluator/ @jimmarino @juliapampus @ronjaquensel
+/core/common/state-machine/ @ndr-brt @algattik
 
 /data-protocols/ids/ @ronjaquensel @juliapampus @DominikPinsel @denisneuling
-/data-protocols/ids/ids-jsonld-serdes-lib/ @juliapampus
+/data-protocols/ids/ids-jsonld-serdes/ @juliapampus
 
 /docs/ @juliapampus
 

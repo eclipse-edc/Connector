@@ -32,7 +32,7 @@ dependencies {
     testImplementation(project(":extensions:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:sql:lease-sql")))
     testImplementation("org.assertj:assertj-core:${assertj}")
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":core:common:util")))
 
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
 }

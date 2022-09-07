@@ -21,7 +21,7 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:azure:blob-core"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation("com.azure:azure-identity:${azureIdentityVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
