@@ -23,7 +23,7 @@ val rsApi: String by project
 
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":extensions:control-plane:api:data-management"))

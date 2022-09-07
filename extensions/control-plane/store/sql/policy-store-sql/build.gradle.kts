@@ -29,7 +29,7 @@ dependencies {
 
 
     testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":core:common:util")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
 
 }

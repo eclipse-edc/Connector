@@ -25,9 +25,9 @@ val jupiterVersion: String by project
 
 dependencies {
     testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":core:common:util")))
 
-    testFixturesImplementation(testFixtures(project(":common:util")))
+    testFixturesImplementation(testFixtures(project(":core:common:util")))
     testFixturesImplementation(project(":spi:control-plane:control-plane-spi"))
     testFixturesImplementation(project(":extensions:common:junit"))
     testFixturesImplementation(project(":extensions:control-plane:api:data-management:transferprocess-api"))

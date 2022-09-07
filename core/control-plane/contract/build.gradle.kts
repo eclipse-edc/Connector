@@ -29,7 +29,7 @@ dependencies {
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":core:common:util")))
     testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 

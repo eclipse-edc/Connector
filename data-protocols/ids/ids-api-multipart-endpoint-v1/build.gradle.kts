@@ -40,7 +40,7 @@ dependencies {
     testImplementation(project(":extensions:common:junit"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":core:common:util")))
 
 }
 

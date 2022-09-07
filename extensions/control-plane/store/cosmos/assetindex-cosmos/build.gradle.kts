@@ -21,7 +21,7 @@ val failsafeVersion: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":common:util"))
+    api(project(":core:common:util"))
     api(project(":extensions:common:azure:cosmos-common"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")

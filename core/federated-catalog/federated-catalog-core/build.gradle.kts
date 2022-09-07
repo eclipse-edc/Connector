@@ -28,7 +28,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:federated-catalog:federated-catalog-spi"))
 
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation(project(":core:common:base"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")

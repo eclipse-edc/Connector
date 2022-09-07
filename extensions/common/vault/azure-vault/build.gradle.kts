@@ -25,7 +25,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     implementation("com.azure:azure-security-keyvault-secrets:${azureKeyVaultVersion}")
     implementation("com.azure:azure-identity:${azureIdentityVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

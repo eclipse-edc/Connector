@@ -27,7 +27,7 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:control-plane:data-plane-transfer-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")

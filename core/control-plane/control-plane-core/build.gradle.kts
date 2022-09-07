@@ -23,7 +23,7 @@ dependencies {
     api(project(":core:common:policy-engine"))
     api(project(":core:control-plane:contract"))
     api(project(":core:control-plane:transfer"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 }
 
 publishing {

@@ -39,8 +39,8 @@ dependencies {
 
     testFixturesApi(project(":extensions:common:junit"))
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
-    testFixturesApi(project(":common:util"))
-    testFixturesApi(testFixtures(project(":common:util")))
+    testFixturesApi(project(":core:common:util"))
+    testFixturesApi(testFixtures(project(":core:common:util")))
 
     testFixturesApi("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")

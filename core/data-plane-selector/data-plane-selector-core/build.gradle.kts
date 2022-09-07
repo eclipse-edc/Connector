@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     api(project(":core:common:base"))
     api(project(":core:common:boot"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 }
 
 publishing {

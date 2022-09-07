@@ -22,13 +22,13 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":core:common:util")))
 }
 
 publishing {

@@ -27,7 +27,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":core:common:boot"))
     api(project(":core:common:base"))
-    api(project(":common:util"))
+    api(project(":core:common:util"))
     implementation("org.mockito:mockito-core:${mockitoVersion}")
     implementation("org.assertj:assertj-core:${assertj}")
 

@@ -20,7 +20,7 @@ val eventGridSdkVersion: String by project
 
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 
     implementation("com.azure:azure-messaging-eventgrid:${eventGridSdkVersion}")
 }
