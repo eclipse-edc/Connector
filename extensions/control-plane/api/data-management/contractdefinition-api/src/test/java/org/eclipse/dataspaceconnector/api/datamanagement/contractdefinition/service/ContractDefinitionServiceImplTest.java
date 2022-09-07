@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionListener;
 import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservable;
 import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservableImpl;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
@@ -48,12 +47,11 @@ import static org.mockito.Mockito.when;
 class ContractDefinitionServiceImplTest {
 
     private final ContractDefinitionStore store = mock(ContractDefinitionStore.class);
-    private final ContractDefinitionLoader loader = mock(ContractDefinitionLoader.class);
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final ContractDefinitionObservable observable = new ContractDefinitionObservableImpl();
     private final ContractDefinitionListener listener = mock(ContractDefinitionListener.class);
 
-    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, loader, transactionContext, observable);
+    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, transactionContext, observable);
 
     @BeforeEach
     void setUp() {
@@ -126,7 +124,7 @@ class ContractDefinitionServiceImplTest {
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(definition.getId()));
-        verify(loader).accept(argThat(it -> definition.getId().equals(it.getId())));
+        verify(store).accept(argThat(it -> definition.getId().equals(it.getId())));
         verify(listener).created(any());
     }
 
@@ -139,7 +137,6 @@ class ContractDefinitionServiceImplTest {
 
         assertThat(inserted.failed()).isTrue();
         assertThat(inserted.reason()).isEqualTo(CONFLICT);
-        verifyNoInteractions(loader);
         verifyNoInteractions(listener);
     }
 

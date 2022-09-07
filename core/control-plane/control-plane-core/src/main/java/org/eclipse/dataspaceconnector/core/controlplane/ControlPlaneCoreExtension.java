@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.core.controlplane.defaults.transferprocess
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
@@ -50,11 +49,6 @@ public class ControlPlaneCoreExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public ContractDefinitionStore defaultContractDefinitionStore() {
         return getContractDefinitionStore();
-    }
-
-    @Provider(isDefault = true)
-    public ContractDefinitionLoader defaultContractDefinitionLoader() {
-        return getContractDefinitionStore()::save;
     }
 
     @Provider(isDefault = true)
