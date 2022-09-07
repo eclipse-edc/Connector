@@ -1,5 +1,4 @@
 
-org.eclipse.dataspaceconnector:state-machine:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:common-util:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT
@@ -10,6 +9,7 @@ org.eclipse.dataspaceconnector:core-boot:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jwt-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policy-engine:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policy-evaluator:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:state-machine:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contract:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:control-plane-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transfer:0.0.1-SNAPSHOT

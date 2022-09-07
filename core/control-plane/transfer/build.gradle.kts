@@ -22,7 +22,7 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
-    implementation(project(":common:state-machine"))
+    implementation(project(":core:common:state-machine"))
     implementation(project(":common:util"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 

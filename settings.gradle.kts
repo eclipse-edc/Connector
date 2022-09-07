@@ -19,7 +19,6 @@ rootProject.name = "dataspaceconnector"
 // modules for common/util code
 
 include(":common:util")
-include(":common:state-machine")
 
 // EDC core modules
 include(":core:common:base")
@@ -27,6 +26,7 @@ include(":core:common:boot")
 include(":core:common:jwt-core")
 include(":core:common:policy-engine")
 include(":core:common:policy-evaluator")
+include(":core:common:state-machine")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:transfer")
 include(":core:control-plane:contract")
