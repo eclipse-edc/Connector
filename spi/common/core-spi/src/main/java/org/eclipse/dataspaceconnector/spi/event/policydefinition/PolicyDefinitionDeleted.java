@@ -48,6 +48,10 @@ public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Paylo
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a PolicyDefinition Deletion Event
+     *
+     */
     public static class Payload extends PolicyDefinitionEventPayload {
     }
 }

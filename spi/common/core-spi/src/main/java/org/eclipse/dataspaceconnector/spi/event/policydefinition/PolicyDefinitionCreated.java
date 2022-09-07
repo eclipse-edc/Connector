@@ -48,6 +48,10 @@ public class PolicyDefinitionCreated extends Event<PolicyDefinitionCreated.Paylo
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a PolicyDefinition Creation Event
+     *
+     */
     public static class Payload extends PolicyDefinitionEventPayload {
     }
 }

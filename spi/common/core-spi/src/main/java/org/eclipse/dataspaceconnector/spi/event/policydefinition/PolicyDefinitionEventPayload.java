@@ -17,6 +17,11 @@ package org.eclipse.dataspaceconnector.spi.event.policydefinition;
 
 import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
+
+/**
+ *  Class as organizational between level to catch events of type PolicyDefinition to catch them together in an Event Subscriber
+ *
+ */
 public class PolicyDefinitionEventPayload extends EventPayload {
 
     protected String policyDefinitionId;
