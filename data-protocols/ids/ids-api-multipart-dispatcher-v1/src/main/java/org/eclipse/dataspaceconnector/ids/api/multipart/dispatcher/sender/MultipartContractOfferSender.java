@@ -167,7 +167,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     }
 
     private ContractRequest createIdsRequestFromOffer(de.fraunhofer.iais.eis.ContractOffer offer) {
-        return new ContractRequestBuilder(offer.getId())
+        var request = new ContractRequestBuilder(offer.getId())
                 ._consumer_(offer.getConsumer())
                 ._contractAnnex_(offer.getContractAnnex())
                 ._contractDate_(offer.getContractDate())
@@ -179,5 +179,11 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                 ._prohibition_(offer.getProhibition())
                 ._provider_(offer.getProvider())
                 .build();
+    
+        if (offer.getProperties() != null) {
+            offer.getProperties().forEach(request::setProperty);
+        }
+    
+        return request;
     }
 }
