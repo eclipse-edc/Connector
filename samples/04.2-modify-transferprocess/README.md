@@ -122,3 +122,7 @@ In order to run the sample, enter the following commands in a shell:
 ./gradlew samples:04.2-modify-transferprocess:consumer:build
 java -Dedc.fs.config=samples/04.2-modify-transferprocess/consumer/config.properties -jar samples/04.2-modify-transferprocess/consumer/build/libs/consumer.jar
 ```
+
+---
+
+[Previous Chapter](../04.1-file-transfer-listener/README.md) | [Next Chapter](../04.3-open-telemetry/README.md)

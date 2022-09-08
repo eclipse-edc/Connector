@@ -56,3 +56,8 @@ INFO 2022-01-13T13:43:57.866073376 edc-e796b518-35f0-4c45-a333-79ca20a6be06 read
 This basic connector - while perfectly fine - does not offer any outward-facing API, nor does it provide any
 connector-to-connector communication protocols. However, it will serve us as platform to build out more complex
 scenarios.
+
+---
+
+[Next Chapter](02-health-endpoint/README.md)
+<!-- ../02 seems to have the same behavior -->
