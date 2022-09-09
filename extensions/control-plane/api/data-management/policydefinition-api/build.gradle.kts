@@ -17,6 +17,7 @@ val jerseyVersion: String by project
 val okHttpVersion: String by project
 val rsApi: String by project
 val restAssured: String by project
+val awaitility: String by project
 
 plugins {
     `java-library`
@@ -38,6 +39,7 @@ dependencies {
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(project(":extensions:common:junit"))
+    testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 
