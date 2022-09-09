@@ -59,5 +59,4 @@ scenarios.
 
 ---
 
-[Next Chapter](02-health-endpoint/README.md)
-<!-- ../02 seems to have the same behavior -->
+[Next Chapter](../02-health-endpoint/README.md)
