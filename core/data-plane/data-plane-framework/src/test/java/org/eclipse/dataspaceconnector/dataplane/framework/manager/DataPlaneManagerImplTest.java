@@ -26,11 +26,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
@@ -39,11 +36,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class DataPlaneManagerImplTest {
     TransferService transferService = mock(TransferService.class);
     DataPlaneStore store = new InMemoryDataPlaneStore(10);
     DataFlowRequest request = createRequest();
-    CountDownLatch latch = new CountDownLatch(1);
     TransferServiceRegistry registry = mock(TransferServiceRegistry.class);
 
     @BeforeEach
@@ -64,15 +61,18 @@ class DataPlaneManagerImplTest {
         when(transferService.canHandle(isA(DataFlowRequest.class)))
                 .thenReturn(true);
 
+
         when(transferService.transfer(isA(DataFlowRequest.class))).thenAnswer(i -> {
-            latch.countDown();
             return completedFuture(Result.success("ok"));
         });
 
-        performTransfer(dataPlaneManager);
+        dataPlaneManager.start();
+        dataPlaneManager.initiateTransfer(request);
 
-        verify(registry).resolveTransferService(eq(request));
-        verify(transferService).transfer(isA(DataFlowRequest.class));
+        await().untilAsserted(() -> {
+            verify(registry).resolveTransferService(eq(request));
+            verify(transferService).transfer(isA(DataFlowRequest.class));
+        });
     }
 
     /**
@@ -89,7 +89,6 @@ class DataPlaneManagerImplTest {
                 .thenAnswer(i -> {
                     throw new RuntimeException("Test exception");
                 }).thenAnswer((i -> {
-                    latch.countDown();
                     return completedFuture(Result.success("ok"));
                 }));
 
@@ -99,11 +98,9 @@ class DataPlaneManagerImplTest {
         dataPlaneManager.initiateTransfer(request);
         dataPlaneManager.initiateTransfer(request);
 
-        assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
-
-        dataPlaneManager.stop();
-
-        verify(transferService, times(2)).transfer(request);
+        await().untilAsserted(() -> {
+            verify(transferService, times(2)).transfer(request);
+        });
     }
 
     @Test
@@ -113,15 +110,15 @@ class DataPlaneManagerImplTest {
 
         var dataPlaneManager = createDataPlaneManager();
 
-        when(transferService.canHandle(isA(DataFlowRequest.class)))
-                .thenReturn(false);
+        doAnswer(i -> null).when(registry).resolveTransferService(request);
+        doAnswer(i -> null).when(store).completed(request.getProcessId());
 
-        doAnswer(i -> {
-            latch.countDown();
-            return null;
-        }).when(store).completed(request.getProcessId());
+        dataPlaneManager.start();
+        dataPlaneManager.initiateTransfer(request);
 
-        performTransfer(dataPlaneManager);
+        await().untilAsserted(() -> {
+            verify(store, times(1)).completed(request.getProcessId());
+        });
     }
 
     private DataPlaneManagerImpl createDataPlaneManager() {
@@ -143,16 +140,6 @@ class DataPlaneManagerImplTest {
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .build();
-    }
-
-    void performTransfer(DataPlaneManagerImpl dataPlaneManager) throws InterruptedException {
-        dataPlaneManager.start();
-
-        dataPlaneManager.initiateTransfer(request);
-
-        assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
-
-        dataPlaneManager.stop();
     }
 
 }
