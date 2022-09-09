@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddress
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -61,10 +60,10 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllAssets(AssetLoader assetLoader) {
+    void getAllAssets(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetLoader.accept(asset, dataAddress);
+        assetIndex.accept(asset, dataAddress);
 
         baseRequest()
                 .get("/assets")
@@ -75,10 +74,10 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllAssetsQuery(AssetLoader assetLoader) {
+    void getAllAssetsQuery(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetLoader.accept(asset, dataAddress);
+        assetIndex.accept(asset, dataAddress);
 
         baseRequest()
                 .get("/assets?limit=1&offset=0&filter=asset:prop:id=id&sort=DESC&sortField=properties.asset:prop:id")
@@ -97,10 +96,10 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
-    void getSingleAsset(AssetLoader assetLoader) {
+    void getSingleAsset(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetLoader.accept(asset, dataAddress);
+        assetIndex.accept(asset, dataAddress);
 
         baseRequest()
                 .get("/assets/id")
@@ -161,10 +160,10 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
-    void postAssetId_alreadyExists(AssetLoader assetLoader) {
+    void postAssetId_alreadyExists(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetLoader.accept(asset, dataAddress);
+        assetIndex.accept(asset, dataAddress);
         var assetEntryDto = createAssetEntryDto("assetId");
 
         baseRequest()
@@ -188,10 +187,10 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
-    void deleteAsset(AssetLoader assetLoader, AssetIndex assetIndex) {
+    void deleteAsset(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetLoader.accept(asset, dataAddress);
+        assetIndex.accept(asset, dataAddress);
 
         baseRequest()
                 .contentType(JSON)
@@ -211,10 +210,10 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
-    void deleteAsset_alreadyReferencedInAgreement(ContractNegotiationStore negotiationStore, AssetLoader assetLoader) {
+    void deleteAsset_alreadyReferencedInAgreement(ContractNegotiationStore negotiationStore, AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetLoader.accept(asset, dataAddress);
+        assetIndex.accept(asset, dataAddress);
         negotiationStore.save(createContractNegotiation(asset));
 
         baseRequest()

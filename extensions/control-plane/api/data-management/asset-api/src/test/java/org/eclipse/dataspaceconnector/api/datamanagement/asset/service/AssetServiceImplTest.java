@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservable;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -43,19 +42,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class AssetServiceImplTest {
 
     private final AssetIndex index = mock(AssetIndex.class);
-    private final AssetLoader loader = mock(AssetLoader.class);
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final AssetObservable observable = mock(AssetObservable.class);
 
-    private final AssetServiceImpl service = new AssetServiceImpl(index, loader, contractNegotiationStore, dummyTransactionContext, observable);
+    private final AssetServiceImpl service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -124,7 +121,7 @@ class AssetServiceImplTest {
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(assetId));
-        verify(loader).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
+        verify(index).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
         verify(observable).invokeForEach(any());
     }
 
@@ -137,13 +134,12 @@ class AssetServiceImplTest {
         var inserted = service.create(asset, dataAddress);
 
         assertThat(inserted.succeeded()).isFalse();
-        verifyNoInteractions(loader);
     }
 
     @Test
     void delete_shouldDeleteAssetIfItsNotReferencedByAnyNegotiation() {
         when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
-        when(loader.deleteById("assetId")).thenReturn(createAsset("assetId"));
+        when(index.deleteById("assetId")).thenReturn(createAsset("assetId"));
 
         var deleted = service.delete("assetId");
 
@@ -154,7 +150,7 @@ class AssetServiceImplTest {
     @Test
     void delete_shouldNotDeleteIfAssetIsAlreadyPartOfAnAgreement() {
         var asset = createAsset("assetId");
-        when(loader.deleteById("assetId")).thenReturn(asset);
+        when(index.deleteById("assetId")).thenReturn(asset);
         var contractNegotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .counterPartyId(UUID.randomUUID().toString())
@@ -180,7 +176,7 @@ class AssetServiceImplTest {
 
     @Test
     void delete_shouldFailIfAssetDoesNotExist() {
-        when(loader.deleteById("assetId")).thenReturn(null);
+        when(index.deleteById("assetId")).thenReturn(null);
 
         var deleted = service.delete("assetId");
 

@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.extensions.transfer;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
@@ -31,7 +31,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 
 public class CloudTransferExtension implements ServiceExtension {
     @Inject
-    private AssetLoader loader;
+    private AssetIndex assetIndex;
     @Inject
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject
@@ -60,7 +60,7 @@ public class CloudTransferExtension implements ServiceExtension {
                 .property("blobname", "test-document.txt")
                 .keyName("<storage-account-name>-key1")
                 .build();
-        loader.accept(asset, dataAddress);
+        assetIndex.accept(asset, dataAddress);
 
         var asset2 = Asset.Builder.newInstance().id("2").build();
         var dataAddress2 = DataAddress.Builder.newInstance()
@@ -70,7 +70,7 @@ public class CloudTransferExtension implements ServiceExtension {
                 .property("blobname", "test-document.txt")
                 .keyName("<storage-account-name>-key1")
                 .build();
-        loader.accept(asset2, dataAddress2);
+        assetIndex.accept(asset2, dataAddress2);
     }
 
     public void registerContractDefinition(String policyId) {

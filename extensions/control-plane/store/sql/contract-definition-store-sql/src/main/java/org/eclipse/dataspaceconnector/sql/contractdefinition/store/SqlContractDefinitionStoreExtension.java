@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
@@ -28,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.ContractDefinitionStatements;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.PostgresDialectStatements;
 
-@Provides({ ContractDefinitionStore.class, ContractDefinitionLoader.class })
+@Provides({ ContractDefinitionStore.class })
 public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
     /**
@@ -52,7 +51,6 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
         var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext, getStatementImpl(), context.getTypeManager());
 
-        context.registerService(ContractDefinitionLoader.class, sqlContractDefinitionStore::save);
         context.registerService(ContractDefinitionStore.class, sqlContractDefinitionStore);
     }
 

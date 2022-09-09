@@ -75,8 +75,8 @@ private void registerContractDefinition(String uid) {
 }
 ```
 
-This adds an `Asset` to the `AssetIndex` and the relative `DataAddress` to the `DataAddressResolver` through the
-`AssetLoader`. Or, in other words, your provider now "hosts" one file named `test-document.txt` located in the path
+This adds an `Asset` to the `AssetIndex` and the relative `DataAddress` to the `DataAddressResolver`.
+Or, in other words, your provider now "hosts" one file named `test-document.txt` located in the path
 configured by the setting `edc.samples.04.asset.path` on your development machine. It makes it available for transfer
 under its `id` `"test-document"`. While it makes sense to have some sort of similarity between file name and id, it
 is by no means mandatory.

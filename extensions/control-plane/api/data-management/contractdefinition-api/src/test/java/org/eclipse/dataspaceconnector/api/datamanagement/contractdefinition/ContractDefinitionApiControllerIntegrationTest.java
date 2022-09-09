@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -54,8 +53,8 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllContractDefs(ContractDefinitionLoader loader) {
-        loader.accept(createContractDefinition("definitionId"));
+    void getAllContractDefs(ContractDefinitionStore store) {
+        store.accept(createContractDefinition("definitionId"));
 
         baseRequest()
                 .get("/contractdefinitions")
@@ -66,8 +65,8 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllContractDefs_withPaging(ContractDefinitionLoader loader) {
-        loader.accept(createContractDefinition("definitionId"));
+    void getAllContractDefs_withPaging(ContractDefinitionStore store) {
+        store.accept(createContractDefinition("definitionId"));
 
         baseRequest()
                 .get("/contractdefinitions?offset=0&limit=15&sort=ASC")
@@ -86,8 +85,8 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void getSingleContractDef(ContractDefinitionLoader loader) {
-        loader.accept(createContractDefinition("definitionId"));
+    void getSingleContractDef(ContractDefinitionStore store) {
+        store.accept(createContractDefinition("definitionId"));
 
         baseRequest()
                 .get("/contractdefinitions/definitionId")
@@ -136,8 +135,8 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void postContractDefinition_alreadyExists(ContractDefinitionLoader loader, ContractDefinitionStore store) {
-        loader.accept(createContractDefinition("definitionId"));
+    void postContractDefinition_alreadyExists(ContractDefinitionStore store) {
+        store.accept(createContractDefinition("definitionId"));
         var dto = createDto("definitionId");
 
         baseRequest()
@@ -150,8 +149,8 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void deleteContractDefinition(ContractDefinitionLoader loader, ContractDefinitionStore store) {
-        loader.accept(createContractDefinition("definitionId"));
+    void deleteContractDefinition(ContractDefinitionStore store) {
+        store.accept(createContractDefinition("definitionId"));
 
         baseRequest()
                 .contentType(JSON)

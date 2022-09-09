@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.controlplane.defaults.assetindex;
 
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class InMemoryAssetLoaderIndexTest {
 
-    private AssetLoader assetLoader;
+    private AssetIndex assetLoader;
 
     @Test
     void accept() {

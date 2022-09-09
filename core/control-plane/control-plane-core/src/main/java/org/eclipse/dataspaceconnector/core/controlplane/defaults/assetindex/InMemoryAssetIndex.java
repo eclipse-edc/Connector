@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 
 /**
- * An ephemeral asset index, that is also a DataAddressResolver and an AssetLoader
+ * An ephemeral asset index, that is also a DataAddressResolver
  */
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();

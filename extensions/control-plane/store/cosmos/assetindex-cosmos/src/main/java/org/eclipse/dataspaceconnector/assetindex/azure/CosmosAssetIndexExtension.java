@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -31,7 +30,7 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 /**
  * Provides a persistent implementation of the {@link org.eclipse.dataspaceconnector.spi.asset.AssetIndex} using CosmosDB.
  */
-@Provides({ AssetIndex.class, DataAddressResolver.class, AssetLoader.class })
+@Provides({ AssetIndex.class, DataAddressResolver.class })
 public class CosmosAssetIndexExtension implements ServiceExtension {
 
     @Inject
@@ -52,7 +51,6 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
         var cosmosDbApi = new CosmosDbApiImpl(configuration, client);
         var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class), context.getMonitor());
         context.registerService(AssetIndex.class, assetIndex);
-        context.registerService(AssetLoader.class, assetIndex);
         context.registerService(DataAddressResolver.class, assetIndex);
 
         context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
@@ -61,4 +59,3 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
     }
 
 }
-

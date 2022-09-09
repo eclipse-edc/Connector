@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.tran
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservableImpl;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -50,9 +49,6 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     ContractDefinitionStore contractDefinitionStore;
 
     @Inject
-    ContractDefinitionLoader contractDefinitionLoader;
-
-    @Inject
     TransactionContext transactionContext;
 
     @Inject
@@ -76,7 +72,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         var contractDefinitionObservable = new ContractDefinitionObservableImpl();
         contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(clock, eventRouter));
 
-        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContext, contractDefinitionObservable);
+        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, transactionContext, contractDefinitionObservable);
         context.registerService(ContractDefinitionService.class, service);
 
         webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(monitor, service, transformerRegistry));
