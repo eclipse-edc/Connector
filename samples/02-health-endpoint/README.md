@@ -68,3 +68,7 @@ this whenever you have two connectors running on the same machine.
 Also, the default path is `/api/*`, which is defined
 in [`JettyConfiguration.java`](../../extensions/common/http/jetty/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JettyConfiguration.java)
 .
+
+---
+
+[Previous Chapter](../01-basic-connector/README.md) | [Next Chapter](../03-configuration/README.md)

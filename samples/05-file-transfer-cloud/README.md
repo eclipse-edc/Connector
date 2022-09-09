@@ -181,3 +181,7 @@ Finally, run terraform to clean-up the vault and other remaining stuffs:
 cd samples/05-file-transfer-cloud/terraform 
 terraform destroy
 ```
+
+---
+
+[Previous Chapter](../04.3-open-telemetry/README.md)

@@ -79,3 +79,7 @@ INFO 2022-04-14T16:23:18.9048494 Transfer Listener successfully wrote file C:\Us
 ```
 
 Then check `/path/on/yourmachine`, which should now contain a file named `marker.txt` in addition to the file defined in `dataDestination.properties.path` in `samples/04.0-file-transfer/filetransfer.json`.
+
+---
+
+[Previous Chapter](../04.0-file-transfer/README.md) | [Next Chapter](../04.2-modify-transferprocess/README.md)

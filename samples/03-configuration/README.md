@@ -173,3 +173,7 @@ web.http.data.path=/api/v1/data
 _**Caution**: If you do not provide this configuration, it leads to the problem that the authentication mechanism is
 also applied to EVERY request in the _default_ context of Jetty, which includes the IDS communication between two
 connectors._
+
+---
+
+[Previous Chapter](../02-health-endpoint/README.md) | [Next Chapter](../04.0-file-transfer/README.md)
