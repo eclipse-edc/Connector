@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.event.Event;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
 import org.eclipse.dataspaceconnector.spi.event.asset.AssetCreated;
@@ -27,10 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
@@ -52,32 +49,23 @@ public class AssetEventDispatchTest {
 
     @Test
     void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) throws InterruptedException {
-        var createdLatch = onDispatchLatch(AssetCreated.class);
-        var deletedLatch = onDispatchLatch(AssetDeleted.class);
+
+        doAnswer(i -> null).when(eventSubscriber).on(isA(AssetCreated.class));
+        doAnswer(i -> null).when(eventSubscriber).on(isA(AssetDeleted.class));
+
         eventRouter.register(eventSubscriber);
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("any").build();
 
         service.create(asset, dataAddress);
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(AssetCreated.class));
+        });
 
-        assertThat(createdLatch.await(10, SECONDS)).isTrue();
-        verify(eventSubscriber).on(isA(AssetCreated.class));
 
         service.delete(asset.getId());
-
-        assertThat(deletedLatch.await(10, SECONDS)).isTrue();
-        verify(eventSubscriber).on(isA(AssetDeleted.class));
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(AssetDeleted.class));
+        });
     }
-
-    private CountDownLatch onDispatchLatch(Class<? extends Event> eventType) {
-        var latch = new CountDownLatch(1);
-
-        doAnswer(i -> {
-            latch.countDown();
-            return null;
-        }).when(eventSubscriber).on(isA(eventType));
-
-        return latch;
-    }
-
 }

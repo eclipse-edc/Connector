@@ -21,10 +21,9 @@ import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
-
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -32,6 +31,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
 
 class StateMachineManagerTest {
 
@@ -46,10 +46,8 @@ class StateMachineManagerTest {
 
     @Test
     void shouldExecuteProcessorsAsyncAndCanBeStopped() throws InterruptedException {
-        var latch = new CountDownLatch(2);
         var processor = mock(StateProcessor.class);
         when(processor.process()).thenAnswer(i -> {
-            latch.countDown();
             Thread.sleep(100L);
             return 1L;
         });
@@ -59,20 +57,20 @@ class StateMachineManagerTest {
                 .build();
 
         stateMachine.start();
-        assertThat(latch.await(1, SECONDS)).isTrue();
-        verify(processor, atLeastOnce()).process();
 
-        assertThat(stateMachine.stop()).succeedsWithin(2, SECONDS);
-        verifyNoMoreInteractions(processor);
+        await().untilAsserted(() -> {
+            verify(processor, atLeastOnce()).process();
+
+            assertThat(stateMachine.stop()).succeedsWithin(2, SECONDS);
+            verifyNoMoreInteractions(processor);
+        });
     }
 
     @Test
     void shouldNotWaitForSomeTimeIfTheresAtLeastOneProcessedEntity() throws InterruptedException {
         var processor = mock(StateProcessor.class);
         when(processor.process()).thenReturn(1L);
-        var latch = new CountDownLatch(1);
         doAnswer(i -> {
-            latch.countDown();
             return 1L;
         }).when(waitStrategy).success();
         var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
@@ -81,19 +79,18 @@ class StateMachineManagerTest {
 
         stateMachine.start();
 
-        assertThat(latch.await(1, SECONDS)).isTrue();
-        verify(waitStrategy, never()).waitForMillis();
-        verify(waitStrategy, atLeastOnce()).success();
+        await().untilAsserted(() -> {
+            verify(waitStrategy, never()).waitForMillis();
+            verify(waitStrategy, atLeastOnce()).success();
+        });
     }
 
     @Test
     void shouldWaitForSomeTimeIfNoEntityIsProcessed() throws InterruptedException {
         var processor = mock(StateProcessor.class);
         when(processor.process()).thenReturn(0L);
-        var latch = new CountDownLatch(1);
         var waitStrategy = mock(WaitStrategy.class);
         doAnswer(i -> {
-            latch.countDown();
             return 0L;
         }).when(waitStrategy).waitForMillis();
         var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
@@ -102,9 +99,10 @@ class StateMachineManagerTest {
 
         stateMachine.start();
 
-        assertThat(latch.await(1, SECONDS)).isTrue();
-        verify(waitStrategy, atLeastOnce()).waitForMillis();
-        verify(waitStrategy, atLeastOnce()).success();
+        await().untilAsserted(() -> {
+            verify(waitStrategy, atLeastOnce()).waitForMillis();
+            verify(waitStrategy, atLeastOnce()).success();
+        });
     }
 
     @Test
@@ -121,11 +119,9 @@ class StateMachineManagerTest {
 
     @Test
     void shouldWaitRetryTimeWhenAnExceptionIsThrownByAnProcessor() throws InterruptedException {
-        var latch = new CountDownLatch(1);
         var processor = mock(StateProcessor.class);
         when(processor.process()).thenThrow(new EdcException("exception")).thenReturn(0L);
         when(waitStrategy.retryInMillis()).thenAnswer(i -> {
-            latch.countDown();
             return 1L;
         });
         var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
@@ -134,8 +130,9 @@ class StateMachineManagerTest {
 
         stateMachine.start();
 
-        assertThat(latch.await(1, SECONDS)).isTrue();
-        assertThat(stateMachine.isActive()).isTrue();
-        verify(waitStrategy).retryInMillis();
+        await().untilAsserted(() -> {
+            assertThat(stateMachine.isActive()).isTrue();
+            verify(waitStrategy).retryInMillis();
+        });
     }
 }

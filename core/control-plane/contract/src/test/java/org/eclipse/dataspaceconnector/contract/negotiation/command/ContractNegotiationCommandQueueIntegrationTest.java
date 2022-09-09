@@ -36,10 +36,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.comm
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,9 +52,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private final String errorDetail = "Updated by command handler";
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
-
-    private CountDownLatch countDownLatch;
-
     private String negotiationId;
     private ContractNegotiation negotiation;
     private TestCommand command;
@@ -66,8 +61,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     void setUp() {
         var commandHandlerRegistry = mock(CommandHandlerRegistry.class);
 
-        countDownLatch = new CountDownLatch(1);
-        TestCommandHandler handler = new TestCommandHandler(store, countDownLatch, errorDetail);
+        TestCommandHandler handler = new TestCommandHandler(store, errorDetail);
 
         when(commandHandlerRegistry.get(TestCommand.class)).thenReturn(handler);
 
@@ -100,13 +94,11 @@ class ContractNegotiationCommandQueueIntegrationTest {
 
         negotiationManager.enqueueCommand(command);
 
-        // Wait for CommandHandler to modify negotiation with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        assertThat(success).isTrue();
-
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-        assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
+        await().untilAsserted(() -> {
+            assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
+            assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
+        });
 
         // Stop the negotiation manager
         negotiationManager.stop();
@@ -133,13 +125,12 @@ class ContractNegotiationCommandQueueIntegrationTest {
         // Enqueue command
         negotiationManager.enqueueCommand(command);
 
-        // Wait for CommandHandler to modify negotiation with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        assertThat(success).isTrue();
+        await().untilAsserted(() -> {
+            assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
+            assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
+        });
 
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-        assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
 
         // Stop the negotiation manager
         negotiationManager.stop();
@@ -170,12 +161,10 @@ class ContractNegotiationCommandQueueIntegrationTest {
      */
     private static class TestCommandHandler extends SingleContractNegotiationCommandHandler<TestCommand> {
 
-        private final CountDownLatch countDownLatch;
         private final String errorDetail;
 
-        TestCommandHandler(ContractNegotiationStore store, CountDownLatch countDownLatch, String errorDetail) {
+        TestCommandHandler(ContractNegotiationStore store, String errorDetail) {
             super(store);
-            this.countDownLatch = countDownLatch;
             this.errorDetail = errorDetail;
         }
 
@@ -188,7 +177,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
         protected boolean modify(ContractNegotiation negotiation) {
             negotiation.transitionError(errorDetail);
             store.save(negotiation);
-            countDownLatch.countDown();
             return true;
         }
     }
