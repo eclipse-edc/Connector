@@ -12,6 +12,8 @@
  *
  */
 
+val awaitility: String by project
+
 plugins {
     `java-library`
     `java-test-fixtures`
@@ -20,6 +22,8 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    testImplementation("org.awaitility:awaitility:${awaitility}")
+
 }
 
 publishing {
