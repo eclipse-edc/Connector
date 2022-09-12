@@ -71,5 +71,4 @@ public class CosmosAssetQueryBuilder {
 
         return stmt.getQueryAsSqlQuerySpec();
     }
-
 }

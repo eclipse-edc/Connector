@@ -24,6 +24,7 @@ dependencies {
     api(project(":core:control-plane:contract"))
     api(project(":core:control-plane:transfer"))
     implementation(project(":core:common:util"))
+    testImplementation(testFixtures(project(":spi:common:core-spi")))
 }
 
 publishing {

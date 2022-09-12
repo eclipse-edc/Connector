@@ -4,11 +4,12 @@
 work but might have unexpected side effects!_**
 
 ## 1. Table schema
+
 see [schema.sql](docs/schema.sql).
 
-As an alternative to storing `ContractAgreement`s in a dedicated table, it could also be serialized and stored as column 
-in the `contract_negotiation` table. However, we will need to be able to list all contract agreements at some point, so it 
-seemed more future-proof to have it separate.
+As an alternative to storing `ContractAgreement`s in a dedicated table, it could also be serialized and stored as column
+in the `contract_negotiation` table. However, we will need to be able to list all contract agreements at some point, so
+it seemed more future-proof to have it separate.
 
 ## 2. Translating the `ContractNegotiationStore` into SQL statements
 

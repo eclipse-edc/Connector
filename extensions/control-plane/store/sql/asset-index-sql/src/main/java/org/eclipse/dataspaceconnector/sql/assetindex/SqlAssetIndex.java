@@ -61,66 +61,6 @@ public class SqlAssetIndex implements AssetIndex {
     }
 
     @Override
-    public Asset deleteById(String assetId) {
-        Objects.requireNonNull(assetId);
-
-        try (var connection = getConnection()) {
-            var asset = findById(assetId);
-            if (asset == null) {
-                return null;
-            }
-
-            transactionContext.execute(() -> {
-                executeQuery(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
-            });
-
-            return asset;
-        } catch (Exception e) {
-            throw new EdcPersistenceException(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void accept(AssetEntry item) {
-        Objects.requireNonNull(item);
-        var asset = item.getAsset();
-        var dataAddress = item.getDataAddress();
-
-        Objects.requireNonNull(asset);
-        Objects.requireNonNull(dataAddress);
-
-
-        transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                try {
-                    if (existsById(asset.getId(), connection)) {
-                        throw new EdcPersistenceException(format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
-                    }
-
-                    executeQuery(connection, assetStatements.getInsertAssetTemplate(), asset.getId(), asset.getCreatedAt());
-                    var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
-                    executeQuery(connection, insertDataAddressTemplate, asset.getId(), objectMapper.writeValueAsString(dataAddress.getProperties()));
-
-                    for (var property : asset.getProperties().entrySet()) {
-                        executeQuery(connection, assetStatements.getInsertPropertyTemplate(),
-                                asset.getId(),
-                                property.getKey(),
-                                toPropertyValue(property.getValue()),
-                                property.getValue().getClass().getName());
-                    }
-
-                } catch (JsonProcessingException e) {
-                    throw new EdcPersistenceException(e);
-                }
-            } catch (Exception e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
-
-
-    }
-
-    @Override
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression);
 
@@ -172,6 +112,67 @@ public class SqlAssetIndex implements AssetIndex {
             } else {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
+        }
+    }
+
+    @Override
+    public void accept(AssetEntry item) {
+        Objects.requireNonNull(item);
+        var asset = item.getAsset();
+        var dataAddress = item.getDataAddress();
+
+        Objects.requireNonNull(asset);
+        Objects.requireNonNull(dataAddress);
+
+
+        var assetId = asset.getId();
+        transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                try {
+                    if (existsById(assetId, connection)) {
+                        deleteById(assetId);
+                    }
+
+                    executeQuery(connection, assetStatements.getInsertAssetTemplate(), assetId, asset.getCreatedAt());
+                    var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
+                    executeQuery(connection, insertDataAddressTemplate, assetId, objectMapper.writeValueAsString(dataAddress.getProperties()));
+
+                    for (var property : asset.getProperties().entrySet()) {
+                        executeQuery(connection, assetStatements.getInsertPropertyTemplate(),
+                                assetId,
+                                property.getKey(),
+                                toPropertyValue(property.getValue()),
+                                property.getValue().getClass().getName());
+                    }
+
+                } catch (JsonProcessingException e) {
+                    throw new EdcPersistenceException(e);
+                }
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+
+
+    }
+
+    @Override
+    public Asset deleteById(String assetId) {
+        Objects.requireNonNull(assetId);
+
+        try (var connection = getConnection()) {
+            var asset = findById(assetId);
+            if (asset == null) {
+                return null;
+            }
+
+            transactionContext.execute(() -> {
+                executeQuery(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
+            });
+
+            return asset;
+        } catch (Exception e) {
+            throw new EdcPersistenceException(e.getMessage(), e);
         }
     }
 

@@ -39,12 +39,13 @@ public class Asset extends Entity {
     public static final String PROPERTY_VERSION = "asset:prop:version";
     public static final String PROPERTY_CONTENT_TYPE = "asset:prop:contenttype";
 
-    private Map<String, Object> properties;
+    private final Map<String, Object> properties;
 
     protected Asset() {
         properties = new HashMap<>();
     }
 
+    @Override
     public String getId() {
         return id == null ? getPropertyAsString(PROPERTY_ID) : id;
     }
@@ -114,6 +115,14 @@ public class Asset extends Entity {
             return (B) this;
         }
 
+        @Override
+        public Asset build() {
+            if (entity.getId() == null) {
+                id(UUID.randomUUID().toString());
+            }
+            return super.build();
+        }
+
         public B name(String title) {
             entity.properties.put(PROPERTY_NAME, title);
             return self();
@@ -143,14 +152,6 @@ public class Asset extends Entity {
         public B property(String key, Object value) {
             entity.properties.put(key, value);
             return self();
-        }
-
-        @Override
-        public Asset build() {
-            if (entity.getId() == null) {
-                id(UUID.randomUUID().toString());
-            }
-            return super.build();
         }
 
     }

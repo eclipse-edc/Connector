@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class AssetDocument extends CosmosDocument<Map<String, Object>> {
     private final String id;
     private final DataAddress dataAddress;
+    private final long createdAt;
 
     public AssetDocument(Asset wrappedInstance,
                          String partitionKey,
@@ -36,15 +37,18 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
         super(sanitizeProperties(wrappedInstance), partitionKey);
         id = wrappedInstance.getId();
         this.dataAddress = dataAddress;
+        this.createdAt = wrappedInstance.getCreatedAt();
     }
 
     @JsonCreator
     public AssetDocument(@JsonProperty("wrappedInstance") Map<String, Object> wrappedInstance,
                          @JsonProperty("partitionKey") String partitionKey,
-                         @JsonProperty("dataAddress") DataAddress dataAddress) {
+                         @JsonProperty("dataAddress") DataAddress dataAddress,
+                         @JsonProperty("createdAt") long createdAt) {
         super(wrappedInstance, partitionKey);
         id = wrappedInstance.get("asset_prop_id").toString();
         this.dataAddress = dataAddress;
+        this.createdAt = createdAt;
     }
 
 
@@ -62,12 +66,17 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
     public Asset getWrappedAsset() {
         return Asset.Builder.newInstance()
                 .id(id)
+                .createdAt(createdAt)
                 .properties(restoreProperties())
                 .build();
     }
 
     public DataAddress getDataAddress() {
         return dataAddress;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
     }
 
     private Map<String, Object> restoreProperties() {

@@ -18,7 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexTestBase;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.asset.TestObject;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -57,7 +59,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-class PostgresAssetIndexTest extends AssetIndexTest {
+class PostgresAssetIndexTest extends AssetIndexTestBase {
     protected static final String DATASOURCE_NAME = "asset";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
@@ -99,7 +101,8 @@ class PostgresAssetIndexTest extends AssetIndexTest {
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
         sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), sqlStatements);
-        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+
+        var schema = Files.readString(Paths.get("docs/schema.sql"));
         try {
             transactionContext.execute(() -> {
                 executeQuery(connection, schema);

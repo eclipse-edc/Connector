@@ -31,7 +31,9 @@ dependencies {
     testImplementation(project(":core:common:policy-evaluator"))
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":core:common:util")))
+    testImplementation(testFixtures(project(":spi:common:core-spi")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
+
 }
 
 publishing {

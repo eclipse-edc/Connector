@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Daimler TSS GmbH
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,17 +8,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Daimler TSS GmbH - Initial Tests
- *       Microsoft Corporation - added full QuerySpec support, improvements
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.assetindex;
+package org.eclipse.dataspaceconnector.spi.asset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -26,16 +23,36 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.time.Clock;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchException;
 
-abstract class AssetIndexTest {
+/**
+ * This is the minimum test specification that all {@link AssetIndex} implementations must support. All
+ * {@link AssetIndex} tests, that actually utilize the target system (SQL, MongoDb,....) MUST inherit this class. Pure
+ * unit tests need not inherit this, as they will likely heavily rely on mocks that require specific preparation.
+ */
+public abstract class AssetIndexTestBase {
+
+    public AssetIndexTestBase() {
+        var supportedOperators = getSupportedOperators();
+        boolean hasLikeOperator = true;
+        boolean hasInOperator = true;
+        if (!supportedOperators.isEmpty()) {
+            hasLikeOperator = supportedOperators.contains("like");
+            hasInOperator = supportedOperators.contains("in");
+        }
+        System.setProperty("assetindex.supports.operator.like", String.valueOf(hasLikeOperator));
+        System.setProperty("assetindex.supports.operator.in", String.valueOf(hasInOperator));
+    }
 
     @Test
     @DisplayName("Accept an asset and a data address that don't exist yet")
@@ -50,6 +67,7 @@ abstract class AssetIndexTest {
     }
 
     @Test
+    @DisplayName("Verify that the object was stored with the correct timestamp")
     void store_verifyTimestamp() {
         var asset = getAsset("test-asset");
         getAssetIndex().accept(asset, getDataAddress());
@@ -65,9 +83,10 @@ abstract class AssetIndexTest {
         var asset = getAsset("id1");
         getAssetIndex().accept(asset, getDataAddress());
 
-        assertThatThrownBy(() -> getAssetIndex().accept(asset, getDataAddress()))
-                .isInstanceOf(EdcPersistenceException.class)
-                .hasMessageContaining(String.format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
+        getAssetIndex().accept(asset, getDataAddress());
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsOnly(asset);
     }
 
     @Test
@@ -90,9 +109,11 @@ abstract class AssetIndexTest {
         var asset = getAsset("id1");
         getAssetIndex().accept(new AssetEntry(asset, getDataAddress()));
 
-        assertThatThrownBy(() -> getAssetIndex().accept(asset, getDataAddress()))
-                .isInstanceOf(EdcPersistenceException.class)
-                .hasMessageContaining(String.format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
+
+        getAssetIndex().accept(asset, getDataAddress());
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsOnly(asset);
     }
 
     @Test
@@ -141,13 +162,16 @@ abstract class AssetIndexTest {
         var asset2 = getAsset("id2");
         getAssetIndex().accept(asset2, getDataAddress());
 
-        assertThatThrownBy(() -> getAssetIndex().queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "in", "(id1, id2)")
-                .build())).isInstanceOf(IllegalArgumentException.class);
+        var exception = catchException(() -> getAssetIndex().queryAssets(AssetSelectorExpression.Builder.newInstance().constraint(Asset.PROPERTY_ID, "in", "(id1, id2)").build())
+                .collect(Collectors.toList())); // must collect, otherwise the stream may not get materialized
+
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     @DisplayName("Query assets with selector expression using the LIKE operator")
+    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
     void queryAsset_selectorExpression_like() {
         var asset1 = getAsset("id1");
         getAssetIndex().accept(asset1, getDataAddress());
@@ -164,6 +188,7 @@ abstract class AssetIndexTest {
 
     @Test
     @DisplayName("Query assets with selector expression using the LIKE operator on a json value")
+    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
     void queryAsset_selectorExpression_likeJson() throws JsonProcessingException {
         var asset = getAsset("id1");
         asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
@@ -205,6 +230,7 @@ abstract class AssetIndexTest {
 
     @Test
     @DisplayName("Query assets with selector expression using the LIKE operator on a json value")
+    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
     void queryAsset_querySpec_likeJson() throws JsonProcessingException {
         var asset = getAsset("id1");
         asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
@@ -249,12 +275,12 @@ abstract class AssetIndexTest {
     void queryAsset_withFilterExpression() {
         var qs = QuerySpec.Builder.newInstance().filter(List.of(
                 new Criterion("version", "=", "2.0"),
-                new Criterion("content-type", "=", "whatever")
+                new Criterion("contenttype", "=", "whatever")
         ));
 
         var asset = getAsset("id1");
         asset.getProperties().put("version", "2.0");
-        asset.getProperties().put("content-type", "whatever");
+        asset.getProperties().put("contenttype", "whatever");
         getAssetIndex().accept(asset, getDataAddress());
 
         var result = getAssetIndex().queryAssets(qs.build()).collect(Collectors.toList());
@@ -299,7 +325,20 @@ abstract class AssetIndexTest {
         assertThat(dataAddressFound).usingRecursiveComparison().isEqualTo(dataAddress);
     }
 
-    protected abstract SqlAssetIndex getAssetIndex();
+
+    /**
+     * Returns an array of all operators supported by a particular AssetIndex. If no limitations or constraints exist
+     * (i.e. the AssetIndex supports all operators), then an empty list can be returned. Note that the operators MUST be
+     * lowercase!
+     */
+    protected Collection<String> getSupportedOperators() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Returns the SuT i.e. the fully constructed instance of the {@link AssetIndex}
+     */
+    protected abstract AssetIndex getAssetIndex();
 
     private Asset getAsset(String id) {
         return Asset.Builder.newInstance()
@@ -324,3 +363,4 @@ abstract class AssetIndexTest {
                 .build();
     }
 }
+

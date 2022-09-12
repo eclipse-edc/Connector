@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.assetindex;
+package org.eclipse.dataspaceconnector.spi.asset;
 
 public class TestObject {
     private String someText;

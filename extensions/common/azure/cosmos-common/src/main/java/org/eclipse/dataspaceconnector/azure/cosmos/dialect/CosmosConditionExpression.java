@@ -34,7 +34,8 @@ import static org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument.sanitiz
 class CosmosConditionExpression {
     private static final String IN_OPERATOR = "in";
     private static final String EQUALS_OPERATOR = "=";
-    private static final List<String> SUPPORTED_PREPARED_STATEMENT_OPERATORS = List.of(EQUALS_OPERATOR, IN_OPERATOR);
+    private static final String LIKE_OPERATOR = "like";
+    private static final List<String> SUPPORTED_PREPARED_STATEMENT_OPERATORS = List.of(EQUALS_OPERATOR, IN_OPERATOR, LIKE_OPERATOR);
     private static final String PREPARED_STATEMENT_PLACEHOLDER = "@";
     private final Criterion criterion;
     private final String objectPrefix;
@@ -49,8 +50,9 @@ class CosmosConditionExpression {
     }
 
     /**
-     * Checks whether the given {@link Criterion} is valid or not, i.e. if its {@linkplain Criterion#getOperator()} is in the list
-     * of supported operators, and whether the {@linkplain Criterion#getOperandRight()} has the correct type.
+     * Checks whether the given {@link Criterion} is valid or not, i.e. if its {@linkplain Criterion#getOperator()} is
+     * in the list of supported operators, and whether the {@linkplain Criterion#getOperandRight()} has the correct
+     * type.
      */
     public Result<Void> isValidExpression() {
         var isSupportedOperator = SUPPORTED_PREPARED_STATEMENT_OPERATORS.contains(criterion.getOperator().toLowerCase());
@@ -66,8 +68,8 @@ class CosmosConditionExpression {
     }
 
     /**
-     * Converts the {@link Criterion#getOperandRight()} to a {@link List} of {@link SqlParameter}
-     * which can then be used to execute prepared statements against CosmosDB.
+     * Converts the {@link Criterion#getOperandRight()} to a {@link List} of {@link SqlParameter} which can then be used
+     * to execute prepared statements against CosmosDB.
      */
     public List<SqlParameter> getParameters() {
 
@@ -86,8 +88,8 @@ class CosmosConditionExpression {
     }
 
     /**
-     * Converts the {@link Criterion} into a string representation, that uses statement placeholders ("@xyz").
-     * The corresponding parameters are available using {@link CosmosConditionExpression#getParameters()}.
+     * Converts the {@link Criterion} into a string representation, that uses statement placeholders ("@xyz"). The
+     * corresponding parameters are available using {@link CosmosConditionExpression#getParameters()}.
      */
     public String toExpressionString() {
         var operandLeft = sanitize(criterion.getOperandLeft().toString());
@@ -111,9 +113,9 @@ class CosmosConditionExpression {
     }
 
     /**
-     * Converts a right-operand into a simple Cosmos SQL statement placeholder ("@example"), or, if the operand is actually a list, converts
-     * it into "(@val1, @val2,...)", with as many placeholders as there are list items.
-     * The resulting String does not include the left-operand or the operator.
+     * Converts a right-operand into a simple Cosmos SQL statement placeholder ("@example"), or, if the operand is
+     * actually a list, converts it into "(@val1, @val2,...)", with as many placeholders as there are list items. The
+     * resulting String does not include the left-operand or the operator.
      */
     private String toValuePlaceholder() {
         var name = getName();
@@ -131,9 +133,9 @@ class CosmosConditionExpression {
     }
 
     /**
-     * Converts the right-operand into a set of SQL parameter placeholders, e.g. converts {@code foo IN ["bar", "baz"]} into a List containing
-     * {@code ["@foo0", "@foo1"]}.
-     * If the right-operand is not a list-type object, it would simply return a singleton list
+     * Converts the right-operand into a set of SQL parameter placeholders, e.g. converts {@code foo IN ["bar", "baz"]}
+     * into a List containing {@code ["@foo0", "@foo1"]}. If the right-operand is not a list-type object, it would
+     * simply return a singleton list
      */
     private List<String> getPlaceholderValues() {
         var operandRight = criterion.getOperandRight();

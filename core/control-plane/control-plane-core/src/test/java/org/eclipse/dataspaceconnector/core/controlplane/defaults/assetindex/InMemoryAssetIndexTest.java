@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.core.controlplane.defaults.assetindex;
 
 
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexTestBase;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,7 +35,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
-class InMemoryAssetIndexTest {
+class InMemoryAssetIndexTest extends AssetIndexTestBase {
     private InMemoryAssetIndex index;
 
     @BeforeEach
@@ -282,6 +285,16 @@ class InMemoryAssetIndexTest {
     @Test
     void deleteById_whenMissing_returnsNull() {
         assertThat(index.deleteById("not-exists")).isNull();
+    }
+
+    @Override
+    protected Collection<String> getSupportedOperators() {
+        return List.of("=", "in");
+    }
+
+    @Override
+    protected AssetIndex getAssetIndex() {
+        return index;
     }
 
     @NotNull
