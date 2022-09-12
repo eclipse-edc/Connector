@@ -15,12 +15,14 @@
 
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
+import com.azure.cosmos.implementation.NotFoundException;
 import dev.failsafe.RetryPolicy;
 import dev.failsafe.function.CheckedSupplier;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
@@ -51,15 +53,17 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     private final LockManager lockManager;
     private final String partitionKey;
     private final QueryResolver<ContractDefinition> queryResolver;
+    private final Monitor monitor;
     private AtomicReference<Map<String, ContractDefinition>> objectCache;
 
-    public CosmosContractDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
+    public CosmosContractDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey, Monitor monitor) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
         this.partitionKey = partitionKey;
         lockManager = new LockManager(new ReentrantReadWriteLock(true));
         queryResolver = new ReflectionBasedQueryResolver<>(ContractDefinition.class);
+        this.monitor = monitor;
     }
 
     @Override
@@ -102,9 +106,15 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     @Override
     public ContractDefinition deleteById(String id) {
         return lockManager.writeLock(() -> {
-            var deletedItem = with(retryPolicy).get(() -> cosmosDbApi.deleteItem(id));
-            getCache().remove(id);
-            return deletedItem == null ? null : convert(deletedItem);
+
+            try {
+                var deletedItem = with(retryPolicy).get(() -> cosmosDbApi.deleteItem(id));
+                getCache().remove(id);
+                return deletedItem == null ? null : convert(deletedItem);
+            } catch (NotFoundException e) {
+                monitor.debug(() -> String.format("ContractDefinition with id %s not found", id));
+                return null;
+            }
         });
     }
 

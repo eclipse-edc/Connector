@@ -27,7 +27,7 @@ dependencies {
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
-
+    testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 }
 
