@@ -42,3 +42,11 @@ publishing {
         }
     }
 }
+
+tasks.withType<Test> {
+    useJUnitPlatform {
+        systemProperty("it.aws.region", System.getProperty("it.aws.region"))
+        systemProperty("it.aws.endpoint", System.getProperty("it.aws.endpoint"))
+        systemProperty("it.aws.profile", System.getProperty("it.aws.profile"))
+    }
+}

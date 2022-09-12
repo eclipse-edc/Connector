@@ -59,13 +59,14 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public abstract class AbstractS3Test {
 
-    protected static final String REGION = System.getProperty("it.aws.region", Region.US_EAST_1.id());
+    protected static final String REGION = propOrEnv("it.aws.region", Region.US_EAST_1.id());
     // Adding REGION to bucket prevents errors of
     //      "A conflicting conditional operation is currently in progress against this resource."
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
     // (Should not be necessary if REGION remains static, but added to prevent future frustration.)
     // [see http://stackoverflow.com/questions/13898057/aws-error-message-a-conflicting-conditional-operation-is-currently-in-progress]
-    protected static final URI S3_ENDPOINT = URI.create("http://localhost:9000");
+    protected static final String MINIO_ENDPOINT = "http://localhost:9000";
+    protected static final URI S3_ENDPOINT = URI.create(propOrEnv("it.aws.endpoint", MINIO_ENDPOINT));
     protected final UUID processId = UUID.randomUUID();
     protected String bucketName = createBucketName();
     protected S3AsyncClient s3AsyncClient;
@@ -86,12 +87,19 @@ public abstract class AbstractS3Test {
                 .until(AbstractS3Test::pingMinio);
     }
 
+    private static boolean isMinio() {
+        return MINIO_ENDPOINT.equals(S3_ENDPOINT.toString());
+    }
+
     /**
      * pings <a href="https://docs.min.io/minio/baremetal/monitoring/healthcheck-probe.html">MinIO's health endpoint</a>
      *
      * @return true if HTTP status [200..300[
      */
     private static boolean pingMinio() throws IOException {
+        if (!isMinio()) {
+            return true;
+        }
         var httpClient = new OkHttpClient();
         var healthRq = new Request.Builder().url(S3_ENDPOINT + "/minio/health/live").get().build();
         try (var response = httpClient.newCall(healthRq).execute()) {
@@ -158,7 +166,7 @@ public abstract class AbstractS3Test {
     }
 
     protected @NotNull AwsCredentials getCredentials() {
-        String profile = propOrEnv("AWS_PROFILE", null);
+        String profile = propOrEnv("it.aws.profile", null);
         if (profile != null) {
             return ProfileCredentialsProvider.create(profile).resolveCredentials();
         }
