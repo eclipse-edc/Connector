@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    "swaggerCodegen"("org.openapitools:openapi-generator-cli:6.0.1")
+    "swaggerCodegen"("org.openapitools:openapi-generator-cli:6.1.0")
     "swaggerUI"("org.webjars:swagger-ui:4.14.0")
 }
 
