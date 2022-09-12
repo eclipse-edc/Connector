@@ -26,6 +26,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
+import java.time.Clock;
+
 
 @Provides({ ContractNegotiationStore.class })
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
@@ -35,6 +37,9 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
 
     @Inject
     private CosmosClientProvider clientProvider;
+    
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
@@ -46,7 +51,7 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
         var configuration = new CosmosContractNegotiationStoreConfig(context);
 
         var cosmosDbApi = new CosmosDbApiImpl(configuration, clientProvider.createClient(vault, configuration));
-        var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey());
+        var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey(), clock);
         context.registerService(ContractNegotiationStore.class, store);
 
         context.getTypeManager().registerTypes(ContractNegotiationDocument.class);

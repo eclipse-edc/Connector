@@ -55,4 +55,8 @@ public class Lease {
     public long getLeaseDuration() {
         return leaseDuration;
     }
+
+    public boolean isExpired(long now) {
+        return leasedAt + leaseDuration < now;
+    }
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractnegotiation;
+package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;

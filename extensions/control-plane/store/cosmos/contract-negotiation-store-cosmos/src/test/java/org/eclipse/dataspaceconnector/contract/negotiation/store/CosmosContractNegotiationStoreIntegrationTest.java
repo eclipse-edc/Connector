@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.contract.negotiation.store;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.implementation.BadRequestException;
+import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.PartitionKey;
 import dev.failsafe.RetryPolicy;
@@ -26,8 +27,10 @@ import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStoreTestBase;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -64,7 +67,7 @@ import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunc
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
 
 @AzureCosmosDbIntegrationTest
-class CosmosContractNegotiationStoreIntegrationTest {
+class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationStoreTestBase {
     public static final String CONNECTOR_ID = "test-connector";
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
@@ -104,9 +107,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         typeManager = new TypeManager();
         typeManager.registerTypes(ContractDefinition.class, ContractNegotiationDocument.class);
+        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
         var retryPolicy = RetryPolicy.builder().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS).build();
-        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, retryPolicy, CONNECTOR_ID);
+        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, retryPolicy, CONNECTOR_ID, clock);
     }
 
     @AfterEach
@@ -219,7 +223,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         negotiation.transitionError("test-error");
 
-        assertThatThrownBy(() -> store.save(negotiation)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> store.save(negotiation)).isInstanceOf(IllegalStateException.class).hasRootCauseInstanceOf(BadRequestException.class);
     }
 
     @Test
@@ -229,7 +233,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         item.acquireLease("someone-else", clock);
         container.createItem(item);
 
-        assertThatThrownBy(() -> store.delete(negotiation.getId())).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> store.delete(negotiation.getId())).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -353,7 +357,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     }
 
     @Test
-    @DisplayName("Verify that a leased entity can still be deleted")
+    @DisplayName("Verify that a leased entity can not be deleted")
     void nextForState_verifyDelete() {
         var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
@@ -364,8 +368,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
 
         // verify entity can be deleted
-        store.delete(n.getId());
-        assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).isEmpty();
+        assertThatThrownBy(() -> store.delete(n.getId())).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -606,6 +609,26 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(result).hasSize(2)
                 .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
 
+    }
+
+    @Override
+    protected ContractNegotiationStore getContractNegotiationStore() {
+        return store;
+    }
+
+    @Override
+    protected void lockEntity(String negotiationId, String owner, Duration duration) {
+        var document = readItem(negotiationId);
+        document.acquireLease(owner, clock, duration);
+
+        var result = container.upsertItem(document, new PartitionKey(partitionKey), new CosmosItemRequestOptions());
+        assertThat(result.getStatusCode()).isEqualTo(200);
+    }
+
+    @Override
+    protected boolean isLockedBy(String negotiationId, String owner) {
+        var lease = readItem(negotiationId).getLease();
+        return lease != null && lease.getLeasedBy().equals(owner) && !lease.isExpired(clock.millis());
     }
 
     private ContractNegotiationDocument toDocument(Object object) {
