@@ -24,7 +24,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -36,6 +35,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -77,8 +77,7 @@ public class ConsumerApiController {
                 .build();
 
         var result = consumerNegotiationManager.initiate(contractOfferRequest);
-        if (result.failed() &&
-                result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (result.failed() && result.getFailure().status() == FATAL_ERROR) {
             return Response.serverError().build();
         }
 
@@ -114,4 +113,3 @@ public class ConsumerApiController {
         return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
     }
 }
-
