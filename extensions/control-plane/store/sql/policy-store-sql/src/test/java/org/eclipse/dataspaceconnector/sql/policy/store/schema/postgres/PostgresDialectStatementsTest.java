@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createQuery;
+import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createQuery;
 
 class PostgresDialectStatementsTest {
 

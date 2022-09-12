@@ -14,9 +14,11 @@
 
 package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
+import com.azure.cosmos.implementation.NotFoundException;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
@@ -48,8 +50,9 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
     private final String partitionKey;
     private final QueryResolver<PolicyDefinition> queryResolver;
     private final AtomicReference<Map<String, PolicyDefinition>> objectCache;
+    private final Monitor monitor;
 
-    public CosmosPolicyDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
+    public CosmosPolicyDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey, Monitor monitor) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
@@ -57,6 +60,7 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
         lockManager = new LockManager(new ReentrantReadWriteLock(true));
         queryResolver = new ReflectionBasedQueryResolver<>(PolicyDefinition.class);
         objectCache = new AtomicReference<>(new HashMap<>());
+        this.monitor = monitor;
     }
 
     @Override
@@ -81,12 +85,18 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
     @Override
     public @Nullable PolicyDefinition deleteById(String policyId) {
         return lockManager.writeLock(() -> {
-            var deletedItem = cosmosDbApi.deleteItem(policyId);
-            if (deletedItem == null) {
+
+            try {
+                var deletedItem = cosmosDbApi.deleteItem(policyId);
+                if (deletedItem == null) {
+                    return null;
+                }
+                removeFromCache(policyId);
+                return convert(deletedItem);
+            } catch (NotFoundException e) {
+                monitor.debug(() -> String.format("PolicyDefinition with id %s not found", policyId));
                 return null;
             }
-            removeFromCache(policyId);
-            return convert(deletedItem);
         });
     }
 

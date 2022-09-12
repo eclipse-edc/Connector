@@ -30,6 +30,8 @@ dependencies {
 
     testImplementation(project(":extensions:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
+    testImplementation(testFixtures(project(":spi:control-plane:policy-spi")))
+
 }
 
 

@@ -25,6 +25,8 @@ import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 public class PolicyDefinitionMapping extends TranslationMapping {
     public PolicyDefinitionMapping(SqlPolicyStoreStatements statements) {
         add("uid", statements.getPolicyIdColumn());
+        add("id", statements.getPolicyIdColumn());
+        add("createdAt", statements.getCreatedAtColumn());
         add("policy", new PolicyMapping(statements));
     }
 }

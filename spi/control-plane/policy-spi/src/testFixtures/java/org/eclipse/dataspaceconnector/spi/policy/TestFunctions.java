@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.policy;
+package org.eclipse.dataspaceconnector.spi.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -23,21 +23,33 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+;
 
 public class TestFunctions {
     public static PolicyDefinition createPolicy(String id) {
-        var policy = createPolicyBuilder(id).build();
+        return createPolicy(id, null);
+    }
+
+    public static PolicyDefinition createPolicy(String id, String target) {
+        var policy = createPolicyBuilder(id).target(target).build();
 
         return PolicyDefinition.Builder.newInstance()
                 .createdAt(Clock.systemUTC().millis())
                 .id(id)
                 .policy(policy)
                 .build();
+    }
+
+
+    public static List<PolicyDefinition> createPolicies(int count) {
+        return IntStream.range(0, count).mapToObj(i -> createPolicy("policyDef" + i)).collect(Collectors.toList());
     }
 
     public static Policy.Builder createPolicyBuilder(String id) {

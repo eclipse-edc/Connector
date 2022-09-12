@@ -16,10 +16,9 @@ package org.eclipse.dataspaceconnector.sql.policy.store;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
-import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStoreTestBase;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -28,7 +27,6 @@ import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresD
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -37,21 +35,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createPolicyBuilder;
+import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createQuery;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createAction;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createDutyBuilder;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPermissionBuilder;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPolicy;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPolicyBuilder;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createProhibitionBuilder;
-import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createQuery;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
@@ -64,7 +53,7 @@ import static org.mockito.Mockito.when;
  * operators.
  */
 @PostgresqlDbIntegrationTest
-class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
+class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     protected static final String DATASOURCE_NAME = "policydefinition";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
@@ -130,346 +119,6 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
     }
 
     @Test
-    @DisplayName("Save a single policy that not exists ")
-    void save_notExisting() {
-        var policy = createPolicy("policyDef");
-
-        sqlPolicyStore.save(policy);
-
-        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
-        assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
-    }
-
-    @Test
-    @DisplayName("Save (update) a single policy that already exists")
-    void save_alreadyExists() {
-        var id = "policyDef";
-        var policy1 = PolicyDefinition.Builder.newInstance()
-                .policy(Policy.Builder.newInstance()
-                        .target("Target1")
-                        .build())
-                .id(id)
-                .build();
-        var policy2 = PolicyDefinition.Builder.newInstance()
-                .policy(Policy.Builder.newInstance()
-                        .target("Target2")
-                        .build())
-                .id(id)
-                .build();
-        var spec = QuerySpec.Builder.newInstance().build();
-
-        sqlPolicyStore.save(policy1);
-        sqlPolicyStore.save(policy2);
-        var policyFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
-
-        assertThat(1).isEqualTo(policyFromDb.size());
-        assertThat("Target2").isEqualTo(policyFromDb.get(0).getPolicy().getTarget());
-    }
-
-    @Test
-    @DisplayName("Find policy by ID that exists")
-    void findById_whenPresent() {
-        var policy = createPolicy("policyDef");
-        sqlPolicyStore.save(policy);
-
-        var policyFromDb = sqlPolicyStore.findById(policy.getUid());
-
-        assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
-    }
-
-    @Test
-    @DisplayName("Find policy by ID when not exists")
-    void findById_whenNonexistent() {
-        assertThat(sqlPolicyStore.findById("nonexistent")).isNull();
-    }
-
-    @Test
-    @DisplayName("Find all policies with limit and offset")
-    void findAll_withSpec() {
-        var limit = 20;
-
-        var definitionsExpected = createPolicies(50);
-        definitionsExpected.forEach(sqlPolicyStore::save);
-
-        var spec = QuerySpec.Builder.newInstance()
-                .limit(limit)
-                .offset(20)
-                .build();
-
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
-
-        assertThat(policiesFromDb).hasSize(limit);
-    }
-
-    @Test
-    @DisplayName("Find policies when page size larger than DB collection")
-    void findAll_pageSizeLargerThanDbCollection() {
-        var pageSize = 15;
-
-        var definitionsExpected = createPolicies(10);
-        definitionsExpected.forEach(sqlPolicyStore::save);
-
-        var spec = QuerySpec.Builder.newInstance()
-                .offset(pageSize)
-                .build();
-
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
-
-        assertThat(policiesFromDb).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Find policies when page size oversteps DB collection size")
-    void findAll_pageSizeLarger() {
-        var limit = 5;
-
-        var definitionsExpected = createPolicies(10);
-        definitionsExpected.forEach(sqlPolicyStore::save);
-
-        var spec = QuerySpec.Builder.newInstance()
-                .offset(7)
-                .limit(limit)
-                .build();
-
-        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
-
-        assertThat(policiesFromDb).size().isLessThanOrEqualTo(limit);
-    }
-
-    @Test
-    @DisplayName("Delete existing policy")
-    void deleteById_whenExists() {
-        var policy = createPolicy("policyDef");
-
-        sqlPolicyStore.save(policy);
-
-        assertThat(sqlPolicyStore.deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
-        assertThat(sqlPolicyStore.findById(policy.getUid())).isNull();
-    }
-
-    @Test
-    @DisplayName("Delete a non existing policy")
-    void deleteById_whenNonexistent() {
-        assertThat(sqlPolicyStore.deleteById("nonexistent")).isNull();
-    }
-
-    @Override
-    protected SqlPolicyDefinitionStore getPolicyDefinitionStore() {
-        return sqlPolicyStore;
-    }
-
-    @Test
-    void find_queryByProhibitions() {
-        var p = createPolicyBuilder("test-policy")
-                .prohibition(createProhibitionBuilder("prohibition1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.prohibitions.assignee=test-assignee");
-        var result = sqlPolicyStore.findAll(query);
-        assertThat(result).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(policyDef);
-
-        //query by prohibition action constraint
-        var query2 = createQuery("policy.prohibitions.action.constraint.leftExpression.value=foo");
-        var result2 = sqlPolicyStore.findAll(query2);
-        assertThat(result2).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(policyDef);
-    }
-
-    @Test
-    void find_queryByProhibitions_propertyNotExist() {
-        var p = createPolicyBuilder("test-policy")
-                .prohibition(createProhibitionBuilder("prohibition1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.prohibitions.fooBarProperty=someval");
-        assertThat(sqlPolicyStore.findAll(query)).isEmpty();
-    }
-
-    @Test
-    void find_queryByProhibitions_valueNotExist() {
-        var p = createPolicyBuilder("test-policy")
-                .prohibition(createProhibitionBuilder("prohibition1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.prohibitions.action.constraint.leftExpression.value=someval");
-        var result = sqlPolicyStore.findAll(query);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void find_queryByPermissions() {
-        var p = createPolicyBuilder("test-policy")
-                .permission(createPermissionBuilder("permission1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.permissions.assignee=test-assignee");
-        var result = sqlPolicyStore.findAll(query);
-        assertThat(result).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(policyDef);
-
-        //query by prohibition action constraint
-        var query2 = createQuery("policy.permissions.action.constraint.leftExpression.value=foo");
-        var result2 = sqlPolicyStore.findAll(query2);
-        assertThat(result2).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(policyDef);
-    }
-
-    @Test
-    void find_queryByPermissions_propertyNotExist() {
-        var p = createPolicyBuilder("test-policy")
-                .permission(createPermissionBuilder("permission1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.permissions.fooBarProperty=someval");
-        assertThat(sqlPolicyStore.findAll(query)).isEmpty();
-    }
-
-    @Test
-    void find_queryByPermissions_valueNotExist() {
-        var p = createPolicyBuilder("test-policy")
-                .permission(createPermissionBuilder("permission1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.permissions.action.constraint.leftExpression=someval");
-        var result = sqlPolicyStore.findAll(query);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void find_queryByDuties() {
-        var p = createPolicyBuilder("test-policy")
-                .duty(createDutyBuilder("prohibition1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-        sqlPolicyStore.save(createPolicy("another-policy"));
-
-        // query by prohibition assignee
-        var query = createQuery("policy.obligations.assignee=test-assignee");
-        var result = sqlPolicyStore.findAll(query);
-        assertThat(result).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(policyDef);
-
-        //query by prohibition action constraint
-        var query2 = createQuery("policy.obligations.action.constraint.rightExpression.value=bar");
-        var result2 = sqlPolicyStore.findAll(query2);
-        assertThat(result2).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(policyDef);
-    }
-
-    @Test
-    void find_queryByDuties_propertyNotExist() {
-        var p = createPolicyBuilder("test-policy")
-                .duty(createDutyBuilder("prohibition1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.obligations.fooBarProperty=someval");
-        assertThat(sqlPolicyStore.findAll(query)).isEmpty();
-    }
-
-    @Test
-    void find_queryByDuties_valueNotExist() {
-        var p = createPolicyBuilder("test-policy")
-                .duty(createDutyBuilder("prohibition1")
-                        .assignee("test-assignee")
-                        .action(createAction())
-                        .build())
-                .build();
-
-        var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p).build();
-        sqlPolicyStore.save(policyDef);
-
-        // query by prohibition assignee
-        var query = createQuery("policy.obligations.action.constraint.rightExpression.value=notexist");
-        var result = sqlPolicyStore.findAll(query);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void find_queryByProperty() {
-        var p1 = createPolicyBuilder("test-policy")
-                .assigner("test-assigner")
-                .assignee("test-assignee")
-                .build();
-
-        var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p1).build();
-        var p2 = createPolicyBuilder("test-policy")
-                .assigner("another-test-assigner")
-                .assignee("another-test-assignee")
-                .build();
-
-        var policyDef2 = PolicyDefinition.Builder.newInstance().id("test-policy2").policy(p2).build();
-        sqlPolicyStore.save(policyDef1);
-        sqlPolicyStore.save(policyDef2);
-
-        // query by prohibition assignee
-        assertThat(sqlPolicyStore.findAll(createQuery("policy.assignee=test-assignee")))
-                .hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(policyDef1);
-    }
-
-    @Test
     void find_queryByProperty_notExist() {
         var policy = createPolicyBuilder("test-policy")
                 .assigner("test-assigner")
@@ -477,31 +126,26 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTest {
                 .build();
 
         var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy").policy(policy).build();
-        sqlPolicyStore.save(policyDef1);
+        getPolicyDefinitionStore().save(policyDef1);
 
         // query by prohibition assignee
-        assertThatThrownBy(() -> sqlPolicyStore.findAll(createQuery("notexist=foobar")))
+        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(createQuery("notexist=foobar")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
     }
 
-    @Test
-    void find_queryByProperty_valueNotFound() {
-        var policy = createPolicyBuilder("test-policy")
-                .assigner("test-assigner")
-                .assignee("test-assignee")
-                .build();
-
-        var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy").policy(policy).build();
-        sqlPolicyStore.save(policyDef1);
-
-        // query by prohibition assignee
-        assertThat(sqlPolicyStore.findAll(createQuery("policy.assigner=notexist")))
-                .isEmpty();
+    @Override
+    protected SqlPolicyDefinitionStore getPolicyDefinitionStore() {
+        return sqlPolicyStore;
     }
 
+    @Override
+    protected boolean supportCollectionQuery() {
+        return true;
+    }
 
-    private List<PolicyDefinition> createPolicies(int count) {
-        return IntStream.range(0, count).mapToObj(i -> createPolicy("policyDef" + i)).collect(Collectors.toList());
+    @Override
+    protected Boolean supportSortOrder() {
+        return false;
     }
 }

@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
@@ -28,7 +27,11 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStoreTestBase;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -48,9 +51,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generatePolicy;
+import static org.mockito.Mockito.mock;
 
 @AzureCosmosDbIntegrationTest
-public class CosmosPolicyDefinitionStoreIntegrationTest {
+public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinitionStoreTestBase {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractDefinitionStore-";
@@ -64,6 +68,8 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
     static void prepareCosmosClient() {
         var client = CosmosTestClient.createClient();
         typeManager = new TypeManager();
+        typeManager.registerTypes(PolicyDefinition.class, PolicyDocument.class);
+        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
 
         CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
@@ -87,7 +93,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
 
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
         var retryPolicy = RetryPolicy.builder().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS).build();
-        store = new CosmosPolicyDefinitionStore(cosmosDbApi, typeManager, retryPolicy, TEST_PARTITION_KEY);
+        store = new CosmosPolicyDefinitionStore(cosmosDbApi, typeManager, retryPolicy, TEST_PARTITION_KEY, mock(Monitor.class));
     }
 
     @AfterEach
@@ -179,13 +185,6 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
         assertThat(deletedPolicy).isEqualTo(policy);
 
         assertThat(container.readAllItems(new PartitionKey(document.getPartitionKey()), Object.class)).isEmpty();
-    }
-
-    @Test
-    void delete_notExist() {
-        assertThatThrownBy(() -> store.deleteById("not-exists"))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("An object with the ID not-exists could not be found!");
     }
 
     @Test
@@ -297,6 +296,21 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
         var all = store.findAll(QuerySpec.Builder.newInstance().filter("policy.permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
         assertThat(all).hasSize(1).containsExactly(modifiedPolicy);
 
+    }
+
+    @Override
+    protected PolicyDefinitionStore getPolicyDefinitionStore() {
+        return store;
+    }
+
+    @Override
+    protected boolean supportCollectionQuery() {
+        return false;
+    }
+
+    @Override
+    protected Boolean supportSortOrder() {
+        return true;
     }
 
     private PolicyDefinition convert(Object object) {
