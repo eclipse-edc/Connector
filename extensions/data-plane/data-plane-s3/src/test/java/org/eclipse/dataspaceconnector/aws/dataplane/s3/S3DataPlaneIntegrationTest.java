@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.aws.testfixtures.annotations.AwsS3IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -41,7 +41,7 @@ import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.BUCKET_N
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.SECRET_ACCESS_KEY;
 import static org.mockito.Mockito.mock;
 
-@IntegrationTest
+@AwsS3IntegrationTest
 public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
     private final String sourceBucketName = "source-" + UUID.randomUUID();
