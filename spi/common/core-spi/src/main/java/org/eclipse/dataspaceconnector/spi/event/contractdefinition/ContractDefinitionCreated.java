@@ -48,6 +48,10 @@ public class ContractDefinitionCreated extends Event<ContractDefinitionCreated.P
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a ContractDefinition Creation Event
+     *
+     */
     public static class Payload extends ContractDefinitionEventPayload {
     }
 }

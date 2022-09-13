@@ -48,6 +48,10 @@ public class ContractDefinitionDeleted extends Event<ContractDefinitionDeleted.P
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a ContractDefinition Deletion Event
+     *
+     */
     public static class Payload extends ContractDefinitionEventPayload {
     }
 }
