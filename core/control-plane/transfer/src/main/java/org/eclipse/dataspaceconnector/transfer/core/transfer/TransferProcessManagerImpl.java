@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
-import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -655,14 +654,16 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             process.transitionInProgressOrStreaming();
             updateTransferProcess(process, l -> l.preInProgress(process));
         } else {
-            if (sendRetryManager.retriesExhausted(process)) {
+            if (response.fatalError()) {
+                var message = format("TransferProcessManager: Fatal error initiating data transfer: %s. Error details: %s", process.getId(), response.getFailureDetail());
+                transitionToError(process, message);
+            } else if (sendRetryManager.retriesExhausted(process)) {
                 var message = format("TransferProcessManager: attempt #%d failed to initiate data transfer. Retry limit exceeded, TransferProcess %s moves to ERROR state. Cause: %s",
                         process.getStateCount(),
                         process.getId(),
                         response.getFailureDetail());
-                monitor.severe(message);
                 transitionToError(process, message);
-            } else if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
+            } else {
                 monitor.debug(format("TransferProcessManager: attempt #%d failed to initiate data transfer. TransferProcess %s stays in state %s. Cause: %s",
                         process.getStateCount(),
                         process.getId(),
@@ -670,9 +671,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                         response.getFailureDetail()));
                 process.transitionProvisioned();
                 updateTransferProcess(process, l -> l.preProvisioned(process));
-            } else {
-                var message = format("TransferProcessManager: Fatal error initiating data transfer: %s. Error details: %s", process.getId(), response.getFailureDetail());
-                transitionToError(process, message);
             }
         }
     }
