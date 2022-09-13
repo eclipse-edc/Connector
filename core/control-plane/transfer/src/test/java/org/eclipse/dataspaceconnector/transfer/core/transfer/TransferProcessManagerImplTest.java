@@ -373,7 +373,6 @@ class TransferProcessManagerImplTest {
     void provisionedProvider_shouldTransitionToInProgress() {
         var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
 
@@ -381,8 +380,68 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+        });
+    }
+
+    @Test
+    void provisionedProvider_shouldTransitionToErrorIfFatalFailure() {
+        var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+            verify(listener).failed(any());
+        });
+    }
+
+    @Test
+    void provisionedProvider_onFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
+        var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
+        when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(PROVISIONED.code()).build());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == PROVISIONED.code()));
+        });
+    }
+
+    @Test
+    void provisionedProvider_onFailureAndRetriesExhausted_updatesStateCountForRetry() {
+        var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
+        when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(PROVISIONED.code()).build());
+        when(sendRetryManager.retriesExhausted(process)).thenReturn(true);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == ERROR.code()));
+            verify(listener).failed(process);
+        });
+    }
+
+    @Test
+    void provisionedProvider_whenShouldWait_updatesStateCount() {
+        var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
+        when(sendRetryManager.shouldDelay(process)).thenReturn(true);
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
+        when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(PROVISIONED.code()).build());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verifyNoInteractions(dataFlowManager);
+            verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == PROVISIONED.code()));
         });
     }
 
