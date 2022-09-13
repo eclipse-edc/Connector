@@ -9,13 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
 package org.eclipse.dataspaceconnector.spi.event.policydefinition;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
-import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -48,11 +48,10 @@ public class PolicyDefinitionCreated extends Event<PolicyDefinitionCreated.Paylo
         }
     }
 
-    public static class Payload extends EventPayload {
-        private String policyDefinitionId;
-
-        public String getPolicyDefinitionId() {
-            return policyDefinitionId;
-        }
+    /**
+     * This class contains all event specific attributes of a PolicyDefinition Creation Event
+     *
+     */
+    public static class Payload extends PolicyDefinitionEventPayload {
     }
 }
