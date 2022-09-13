@@ -48,6 +48,10 @@ public class ContractNegotiationApproved extends Event<ContractNegotiationApprov
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a ContractNegotiation Approved Event
+     *
+     */
     public static class Payload extends ContractNegotiationEventPayload {
     }
 }

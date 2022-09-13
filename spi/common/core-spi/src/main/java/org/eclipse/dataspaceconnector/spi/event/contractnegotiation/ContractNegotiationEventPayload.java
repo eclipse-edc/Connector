@@ -17,6 +17,11 @@ package org.eclipse.dataspaceconnector.spi.event.contractnegotiation;
 
 import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
+/**
+ *  Class as organizational between level to catch events of type PolicyDefinition to catch them together in an Event Subscriber
+ *  Contains data related to contract negotiation events
+ *
+ */
 public class ContractNegotiationEventPayload extends EventPayload {
     protected String contractNegotiationId;
 

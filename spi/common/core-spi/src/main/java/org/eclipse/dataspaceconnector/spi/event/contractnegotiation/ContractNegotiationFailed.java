@@ -48,6 +48,10 @@ public class ContractNegotiationFailed extends Event<ContractNegotiationFailed.P
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a ContractNegotiation Failed Event
+     *
+     */
     public static class Payload extends ContractNegotiationEventPayload {
     }
 }

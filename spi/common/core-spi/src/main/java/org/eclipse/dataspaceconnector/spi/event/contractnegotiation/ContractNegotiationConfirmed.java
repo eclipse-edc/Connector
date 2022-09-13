@@ -48,6 +48,10 @@ public class ContractNegotiationConfirmed extends Event<ContractNegotiationConfi
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a ContractNegotiation Confirmed Event
+     *
+     */
     public static class Payload extends ContractNegotiationEventPayload {
     }
 }

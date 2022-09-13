@@ -48,6 +48,10 @@ public class ContractNegotiationDeclined extends Event<ContractNegotiationDeclin
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a ContractNegotiation Declined Event
+     *
+     */
     public static class Payload extends ContractNegotiationEventPayload {
     }
 }
