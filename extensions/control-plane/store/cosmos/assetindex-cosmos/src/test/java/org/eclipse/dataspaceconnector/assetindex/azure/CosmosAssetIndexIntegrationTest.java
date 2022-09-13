@@ -23,6 +23,8 @@ import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexTestBase;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -47,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 @AzureCosmosDbIntegrationTest
-class CosmosAssetIndexIntegrationTest {
+class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_NAME = "CosmosAssetIndexTest-" + TEST_ID;
@@ -356,6 +358,11 @@ class CosmosAssetIndexIntegrationTest {
     @Test
     void deleteById_whenMissing_returnsNull() {
         assertThat(assetIndex.deleteById("not-exists")).isNull();
+    }
+
+    @Override
+    protected AssetIndex getAssetIndex() {
+        return assetIndex;
     }
 
     private Asset createAsset(String id, String somePropertyKey, String somePropertyValue) {

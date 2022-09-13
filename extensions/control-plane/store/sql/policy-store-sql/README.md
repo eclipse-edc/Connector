@@ -7,7 +7,7 @@ but might have unexpected side effects!
 
 ## Prerequisites
 
-Please apply this [schema](schema.sql) to your SQL database.
+Please apply this [schema](docs/schema.sql) to your SQL database.
 
 ## Entity Diagram
 

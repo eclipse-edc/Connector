@@ -108,6 +108,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
                 .map(Paths::get)
                 .collect(Collectors.toList());
 
+
         try (Connection connection = DriverManager.getConnection(consumer.jdbcUrl(), USER, PASSWORD)) {
             for (var script : scripts) {
                 var sql = Files.readString(script);

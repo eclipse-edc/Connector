@@ -22,8 +22,8 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
- * Converts a {@link Criterion} into a {@link Predicate} of any given type.
- * At this time only "=", "in" and "like" operators are supported.
+ * Converts a {@link Criterion} into a {@link Predicate} of any given type. At this time only "=", "in" and "like"
+ * operators are supported.
  *
  * @param <T> The type of object that the Predicate is created for.
  */
@@ -46,9 +46,9 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
     /**
      * Method to extract an object's field's value
      *
-     * @param key    Then name of the field
+     * @param key Then name of the field
      * @param object The target object
-     * @param <R>    The type of the field's value
+     * @param <R> The type of the field's value
      */
     protected abstract <R> R property(String key, Object object);
 

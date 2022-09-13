@@ -28,6 +28,7 @@ dependencies {
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
+    testImplementation(testFixtures(project(":spi:common:core-spi")))
 
 }
 
