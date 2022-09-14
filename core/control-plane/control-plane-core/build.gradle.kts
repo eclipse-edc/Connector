@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":core:common:util"))
     testImplementation(testFixtures(project(":spi:common:core-spi")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane:policy-spi")))
 }
 
 publishing {
