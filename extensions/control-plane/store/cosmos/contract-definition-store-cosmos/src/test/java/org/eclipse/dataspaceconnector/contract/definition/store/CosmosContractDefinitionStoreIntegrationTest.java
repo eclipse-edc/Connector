@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
@@ -25,8 +24,11 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
+import org.eclipse.dataspaceconnector.contract.offer.store.ContractDefinitionStoreTestBase;
 import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -50,9 +52,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
+import static org.mockito.Mockito.mock;
 
 @AzureCosmosDbIntegrationTest
-public class CosmosContractDefinitionStoreIntegrationTest {
+public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionStoreTestBase {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractDefinitionStore-";
@@ -89,7 +92,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
         var retryPolicy = RetryPolicy.builder().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS).build();
-        store = new CosmosContractDefinitionStore(cosmosDbApi, typeManager, retryPolicy, TEST_PARTITION_KEY);
+        store = new CosmosContractDefinitionStore(cosmosDbApi, typeManager, retryPolicy, TEST_PARTITION_KEY, mock(Monitor.class));
     }
 
     @AfterEach
@@ -240,13 +243,6 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     }
 
     @Test
-    void delete_notExist() {
-        assertThatThrownBy(() -> store.deleteById("not-exists"))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("An object with the ID not-exists could not be found!");
-    }
-
-    @Test
     void findAll_noQuerySpec() {
         var doc1 = generateDocument(TEST_PARTITION_KEY);
         var doc2 = generateDocument(TEST_PARTITION_KEY);
@@ -349,6 +345,21 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         assertThat(all).hasSize(1).containsExactly(modifiedDef);
 
+    }
+
+    @Override
+    protected ContractDefinitionStore getContractDefinitionStore() {
+        return store;
+    }
+
+    @Override
+    protected Boolean supportCollectionQuery() {
+        return false;
+    }
+
+    @Override
+    protected Boolean supportSortOrder() {
+        return true;
     }
 
     private ContractDefinition getContractDefinition(String definitionId, String accessPolicyId, String contractPolicyId) {

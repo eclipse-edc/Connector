@@ -14,18 +14,19 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
+import org.eclipse.dataspaceconnector.contract.offer.store.ContractDefinitionStoreTestBase;
+import org.eclipse.dataspaceconnector.contract.offer.store.TestFunctions;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.BaseSqlDialectStatements;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
@@ -41,13 +42,11 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinitions;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
@@ -56,7 +55,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTest {
+class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBase {
     protected static final String DATASOURCE_NAME = "contractdefinition";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
@@ -130,95 +129,35 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTest {
     }
 
     @Test
-    void find_queryBySelectorExpression_left() {
-        var definitionsExpected = getContractDefinitions(20);
-        // add a selector expression to the last 5 elements
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        sqlContractDefinitionStore.save(definitionsExpected);
+    @DisplayName("Verify empty result when query contains invalid keys")
+    void findAll_queryByInvalidKey() {
+
+        var definitionsExpected = TestFunctions.createContractDefinitions(20);
+        getContractDefinitionStore().save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(format("selectorExpression.criteria.operandLeft = %s", Asset.PROPERTY_ID))
+                .filter(List.of(new Criterion("notexist", "=", "somevalue")))
                 .build();
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
+        assertThatThrownBy(() -> getContractDefinitionStore().findAll(spec))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Translation failed for Model");
 
-        assertThat(definitionsRetrieved).hasSize(2)
-                .usingRecursiveFieldByFieldElementComparator()
-                .allSatisfy(cd -> assertThat(cd.getId()).matches("id[0,5]"));
     }
 
-    @Test
-    void find_queryBySelectorExpression_right() {
-        var definitionsExpected = getContractDefinitions(20);
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        sqlContractDefinitionStore.save(definitionsExpected);
-
-        var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria.operandRight = foobar-asset")
-                .build();
-
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
-
-        assertThat(definitionsRetrieved).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsOnly(definitionsExpected.get(5));
-    }
-
-    @Test
-    void find_queryMultiple() {
-        var definitionsExpected = getContractDefinitions(20);
-        definitionsExpected.forEach(d -> d.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));
-        sqlContractDefinitionStore.save(definitionsExpected);
-
-        var spec = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("selectorExpression.criteria.operandRight", "=", "test-asset"),
-                        new Criterion("contractPolicyId", "=", "contract4")))
-                .build();
-
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
-
-        assertThat(definitionsRetrieved).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsOnly(definitionsExpected.get(4));
-    }
-
-    @Test
-    void find_queryMultiple_noMatch() {
-        var definitionsExpected = getContractDefinitions(20);
-        sqlContractDefinitionStore.save(definitionsExpected);
-
-        var spec = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("selectorExpression.criteria.operandRigh", "=", "test-asset"),
-                        new Criterion("contractPolicyId", "=", "contract4")))
-                .build();
-
-        assertThat(sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList())).isEmpty();
-    }
-
-    @Test
-    void find_queryBySelectorExpression_entireCriterion() throws JsonProcessingException {
-        var definitionsExpected = getContractDefinitions(20);
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        var def5 = definitionsExpected.get(5);
-        def5.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        sqlContractDefinitionStore.save(definitionsExpected);
-
-        var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-
-        var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria = " + json)
-                .build();
-
-        assertThat(sqlContractDefinitionStore.findAll(spec)).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsOnly(def5);
+    @Override
+    protected ContractDefinitionStore getContractDefinitionStore() {
+        return sqlContractDefinitionStore;
     }
 
 
     @Override
-    protected SqlContractDefinitionStore getSqlContractDefinitionStore() {
-        return sqlContractDefinitionStore;
+    protected Boolean supportCollectionQuery() {
+        return true;
+    }
+
+    @Override
+    protected Boolean supportSortOrder() {
+        return false;
     }
 }
