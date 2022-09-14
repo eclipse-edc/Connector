@@ -127,12 +127,8 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public DataAddress resolveForAsset(String assetId) {
-            var asset = findById(assetId);
-            if (asset == null) {
-                return null;
-            }
-            return DataAddress.Builder.newInstance().type("test").build();
+        public void accept(AssetEntry item) {
+
         }
 
         @Override
@@ -141,8 +137,12 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public void accept(AssetEntry item) {
-
+        public DataAddress resolveForAsset(String assetId) {
+            var asset = findById(assetId);
+            if (asset == null) {
+                return null;
+            }
+            return DataAddress.Builder.newInstance().type("test").build();
         }
     }
 
@@ -153,7 +153,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public @Nullable String processIdForTransferId(String id) {
+        public @Nullable String processIdForDataRequestId(String id) {
             return null;
         }
 

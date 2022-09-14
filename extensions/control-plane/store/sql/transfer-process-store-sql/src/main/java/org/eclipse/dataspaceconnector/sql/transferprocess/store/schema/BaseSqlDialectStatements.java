@@ -66,7 +66,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
         return format("SELECT * FROM %s WHERE %s.%s = (SELECT %s FROM %s WHERE %s.%s = ?);",
                 getTransferProcessTableName(), getTransferProcessTableName(),
                 getIdColumn(), getTransferProcessIdFkColumn(),
-                getDataRequestTable(), getDataRequestTable(), getProcessIdColumn());
+                getDataRequestTable(), getDataRequestTable(), getDataRequestIdColumn());
     }
 
     @Override

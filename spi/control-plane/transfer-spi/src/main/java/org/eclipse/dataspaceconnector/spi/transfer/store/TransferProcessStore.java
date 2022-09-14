@@ -36,7 +36,7 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      * Returns the transfer process for the data request id or null if not found.
      */
     @Nullable
-    String processIdForTransferId(String id);
+    String processIdForDataRequestId(String id);
 
     /**
      * Creates a transfer process.

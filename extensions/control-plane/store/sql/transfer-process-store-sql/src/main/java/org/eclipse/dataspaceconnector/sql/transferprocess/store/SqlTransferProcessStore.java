@@ -100,7 +100,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public @Nullable String processIdForTransferId(String transferId) {
+    public @Nullable String processIdForDataRequestId(String transferId) {
         return transactionContext.execute(() -> {
             try (var conn = getConnection()) {
                 var stmt = statements.getProcessIdForTransferIdTemplate();

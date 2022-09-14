@@ -26,6 +26,8 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
 
+import java.time.Clock;
+
 
 /**
  * Provides an in-memory implementation of the {@link org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore} for testing.
@@ -44,6 +46,9 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     @Inject
     private CosmosClientProvider clientProvider;
 
+    @Inject
+    private Clock clock;
+
     @Override
     public String name() {
         return "Cosmos Transfer Process Store";
@@ -59,7 +64,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         TransferProcessStoreCosmosConfig configuration = new TransferProcessStoreCosmosConfig(context);
         var client = clientProvider.createClient(vault, configuration);
         var cosmosDbApi = new CosmosDbApiImpl(configuration, client);
-        context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(cosmosDbApi, context.getTypeManager(), configuration.getPartitionKey(), connectorId, retryPolicy));
+        context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(cosmosDbApi, context.getTypeManager(), configuration.getPartitionKey(), connectorId, retryPolicy, clock));
 
         context.getTypeManager().registerTypes(TransferProcessDocument.class);
 

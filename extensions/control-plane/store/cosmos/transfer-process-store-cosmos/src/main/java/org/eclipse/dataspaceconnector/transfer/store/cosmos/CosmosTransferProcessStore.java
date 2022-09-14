@@ -37,6 +37,7 @@ import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProces
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +61,8 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     private final FailsafeExecutor<Object> failsafeExecutor;
     private final CosmosLeaseContext leaseContext;
 
+    private final Clock clock;
+
     /**
      * Creates a new instance of the CosmosDB-based transfer process store.
      *
@@ -72,7 +75,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
      *                     in a local K8s cluster must have unique names. The connectorId is used to lock transfer processes so that no
      * @param retryPolicy  A general retry policy for the CosmosAPI
      */
-    public CosmosTransferProcessStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, String partitionKey, String leaseHolder, RetryPolicy<Object> retryPolicy) {
+    public CosmosTransferProcessStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, String partitionKey, String leaseHolder, RetryPolicy<Object> retryPolicy, Clock clock) {
 
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
@@ -89,19 +92,21 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
         failsafeExecutor = with(rateLimitRetry, generalRetry);
         leaseContext = CosmosLeaseContext.with(cosmosDbApi, partitionKey, leaseHolder).usingRetry(List.of(rateLimitRetry, generalRetry));
+
+        this.clock = clock;
     }
 
     @Override
     public TransferProcess find(String id) {
         // we need to read the TransferProcessDocument as Object, because no custom JSON deserialization can be registered
         // with the CosmosDB SDK, so it would not know about subtypes, etc.
-        Object obj = failsafeExecutor.get(() -> cosmosDbApi.queryItemById(id, partitionKey));
+        Object obj = findByIdInternal(id);
         return obj != null ? convertToDocument(obj).getWrappedInstance() : null;
     }
 
     @Override
     public @Nullable
-    String processIdForTransferId(String transferId) {
+    String processIdForDataRequestId(String transferId) {
         var query = "SELECT * FROM t WHERE t.wrappedInstance.dataRequest.id = '" + transferId + "'";
         var response = failsafeExecutor.get(() -> cosmosDbApi.queryItems(query));
         return response
@@ -135,12 +140,25 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     @Override
     public void delete(String processId) {
         try {
+
+            var item = findByIdInternal(processId);
+            if (item == null) {
+                return;
+            }
+
+            var document = convertToDocument(item);
+
+            var lease = document.getLease();
+            if (lease != null && !lease.isExpired(clock.millis())) {
+                throw new IllegalStateException(String.format("The TransferProcess [%s] cannot be deleted: it is currently leased", processId));
+            }
             leaseContext.acquireLease(processId);
             failsafeExecutor.run(() -> cosmosDbApi.deleteItem(processId));
+            leaseContext.breakLease(processId);
         } catch (NotFoundException ex) {
             //do nothing
         } catch (CosmosException ex) {
-            throw new EdcException(ex);
+            throw new IllegalStateException(ex);
         }
     }
 
@@ -178,6 +196,10 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
                 .map(CosmosDocument::getWrappedInstance)
                 .collect(Collectors.toList());
 
+    }
+
+    private Object findByIdInternal(String processId) {
+        return failsafeExecutor.get(() -> cosmosDbApi.queryItemById(processId));
     }
 
     private TransferProcessDocument convertToDocument(Object databaseDocument) {

@@ -128,6 +128,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private TransferProcessManagerImpl() {
     }
 
+    @NotNull
+    private static Result<Void> toFatalError(StatusResult<?> result) {
+        if (result.fatalError()) {
+            return Result.failure(result.getFailureMessages());
+        } else {
+            return Result.success();
+        }
+    }
+
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
@@ -245,7 +254,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private StatusResult<String> initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
-        var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
+        var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
         if (processId != null) {
             return StatusResult.success(processId);
         }
@@ -542,15 +551,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
-        }
-    }
-
-    @NotNull
-    private static Result<Void> toFatalError(StatusResult<?> result) {
-        if (result.fatalError()) {
-            return Result.failure(result.getFailureMessages());
-        } else {
-            return Result.success();
         }
     }
 
