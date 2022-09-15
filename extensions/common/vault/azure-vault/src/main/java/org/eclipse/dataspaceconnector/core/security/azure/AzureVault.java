@@ -82,7 +82,7 @@ public class AzureVault implements Vault {
     public Result<Void> storeSecret(String key, String value) {
         try {
             var sanitizedKey = sanitizeKey(key);
-            var secret = secretClient.setSecret(sanitizedKey, value);
+            secretClient.setSecret(sanitizedKey, value);
             monitor.debug("storing secret successful");
             return Result.success();
         } catch (Exception ex) {
