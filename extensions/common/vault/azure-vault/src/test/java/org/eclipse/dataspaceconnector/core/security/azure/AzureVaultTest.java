@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AzureVaultTest {
@@ -56,13 +55,13 @@ class AzureVaultTest {
     }
 
     @Test
-    void resolveSecret_shouldNotLogIfSecretNotFound() {
+    void resolveSecret_shouldNotLogSevereIfSecretNotFound() {
         when(secretClient.getSecret("key")).thenThrow(new ResourceNotFoundException("error", mock(HttpResponse.class)));
 
         var result = vault.resolveSecret("key");
 
         assertThat(result).isNull();
-        verifyNoInteractions(monitor);
+        verify(monitor).debug(anyString());
     }
 
     @Test

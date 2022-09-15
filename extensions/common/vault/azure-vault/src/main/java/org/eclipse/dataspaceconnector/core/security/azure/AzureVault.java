@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
+import static java.lang.String.format;
+
 /**
  * Implements a vault backed by Azure Vault.
  */
@@ -59,18 +61,19 @@ public class AzureVault implements Vault {
         return new AzureVault(monitor, createSecretClient(credential, keyVaultName));
     }
 
-    protected AzureVault(Monitor monitor, SecretClient secretClient) {
+    public AzureVault(Monitor monitor, SecretClient secretClient) {
         this.monitor = monitor;
         this.secretClient = secretClient;
     }
 
     @Override
     public @Nullable String resolveSecret(String key) {
+        var sanitizedKey = sanitizeKey(key);
         try {
-            var sanitizedKey = sanitizeKey(key);
             var secret = secretClient.getSecret(sanitizedKey);
             return secret.getValue();
         } catch (ResourceNotFoundException ex) {
+            monitor.debug(format("Secret %s not found", sanitizedKey));
             return null;
         } catch (Exception ex) {
             monitor.severe("Error accessing secret " + key, ex);
