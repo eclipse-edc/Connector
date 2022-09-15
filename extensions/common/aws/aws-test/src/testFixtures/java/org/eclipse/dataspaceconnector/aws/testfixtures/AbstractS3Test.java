@@ -85,13 +85,15 @@ public abstract class AbstractS3Test {
                 .pollInterval(Duration.ofSeconds(2))
                 .ignoreException(IOException.class) // thrown by pingMinio
                 .ignoreException(ConnectException.class)
-                .until(() -> {
-                    if (isMinio()) {
-                        return isMinioAvailable();
-                    } else {
-                        return true;
-                    }
-                });
+                .until(AbstractS3Test::isBackendAvailable);
+    }
+
+    private static boolean isBackendAvailable() throws IOException {
+        if (isMinio()) {
+            return isMinioAvailable();
+        } else {
+            return true;
+        }
     }
 
     private static boolean isMinio() {
