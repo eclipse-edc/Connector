@@ -18,13 +18,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:common:policy-evaluator"))
 }
-
 publishing {
     publications {
-        create<MavenPublication>("policy-engine") {
-            artifactId = "policy-engine"
+        create<MavenPublication>("policy-model") {
+            artifactId = "policy-model"
             from(components["java"])
         }
     }

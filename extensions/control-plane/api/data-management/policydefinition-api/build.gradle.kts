@@ -29,7 +29,7 @@ dependencies {
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":core:common:util"))
-    implementation(project(":core:common:policy-evaluator"))
+    implementation(project(":spi:common:policy-model"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:data-management:api-configuration"))
 

@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":core:common:policy-evaluator"))
+    api(project(":spi:common:policy-model"))
 }
 
 publishing {

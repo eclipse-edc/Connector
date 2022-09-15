@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(project(":core:common:base"))
     api(project(":core:common:boot"))
-    api(project(":core:common:policy-engine"))
+    api(project(":core:common:policy-evaluator"))
     api(project(":core:control-plane:contract"))
     api(project(":core:control-plane:transfer"))
     implementation(project(":core:common:util"))

@@ -21,8 +21,8 @@ rootProject.name = "dataspaceconnector"
 include(":core:common:base")
 include(":core:common:boot")
 include(":core:common:jwt-core")
-include(":core:common:policy-engine")
 include(":core:common:policy-evaluator")
+include(":spi:common:policy-model")
 include(":core:common:state-machine")
 include(":core:common:util")
 

@@ -18,7 +18,9 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:policy-model"))
 }
+
 publishing {
     publications {
         create<MavenPublication>("policy-evaluator") {
