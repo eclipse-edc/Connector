@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.observe.policydefinition;
+package org.eclipse.dataspaceconnector.spi.policy.observe;
 
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
 

@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionDeleted;
-import org.eclipse.dataspaceconnector.spi.observe.policydefinition.PolicyDefinitionListener;
+import org.eclipse.dataspaceconnector.spi.policy.observe.PolicyDefinitionListener;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 
 import java.time.Clock;

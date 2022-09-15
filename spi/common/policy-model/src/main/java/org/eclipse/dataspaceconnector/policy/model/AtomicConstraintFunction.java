@@ -15,7 +15,8 @@
 package org.eclipse.dataspaceconnector.policy.model;
 
 /**
- * An extension point that evaluates an {@link AtomicConstraint}.
+ * Invoked during policy evaluation when the left operand of an atomic constraint evaluates to a key associated with this function.
+ * The function is responsible for performing policy evaluation on the right operand.
  */
 @FunctionalInterface
 public interface AtomicConstraintFunction<RIGHT_VALUE, RULE_TYPE extends Rule, RESULT> {
