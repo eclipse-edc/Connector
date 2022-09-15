@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.core.policy.engine;
 
-import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
-import org.eclipse.dataspaceconnector.policy.engine.RuleProblem;
+import org.eclipse.dataspaceconnector.policy.evaluator.PolicyEvaluator;
+import org.eclipse.dataspaceconnector.policy.evaluator.RuleProblem;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;

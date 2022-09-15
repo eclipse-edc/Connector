@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.policy.engine;
+package org.eclipse.dataspaceconnector.policy.evaluator;
 
 import org.jetbrains.annotations.NotNull;
 

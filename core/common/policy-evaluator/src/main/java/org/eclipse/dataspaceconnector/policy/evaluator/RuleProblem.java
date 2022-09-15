@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.policy.engine;
+package org.eclipse.dataspaceconnector.policy.evaluator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

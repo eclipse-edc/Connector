@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.core.policy.engine;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
 import static org.eclipse.dataspaceconnector.spi.policy.engine.PolicyEngine.ALL_SCOPES;
 
@@ -58,7 +58,7 @@ public class PolicyEngineImplScenariosTest {
 
 
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        Assertions.assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
     }
 
     /**
@@ -75,7 +75,7 @@ public class PolicyEngineImplScenariosTest {
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
 
         policyEngine.registerFunction(ALL_SCOPES, Prohibition.class, (rule, context) -> rule.getAction().getType().equals(USE_ACTION.getType()));
-        Assertions.assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isFalse();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isFalse();
     }
 
     /**
@@ -101,10 +101,10 @@ public class PolicyEngineImplScenariosTest {
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
-        Assertions.assertThat(policyEngine.evaluate(TEST_SCOPE, policy, euAgent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, euAgent).succeeded()).isTrue();
 
         var noRegionAgent = new ParticipantAgent(emptyMap(), emptyMap());
-        Assertions.assertThat(policyEngine.evaluate(TEST_SCOPE, policy, noRegionAgent).succeeded()).isFalse();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, noRegionAgent).succeeded()).isFalse();
     }
 
     /**
@@ -129,7 +129,7 @@ public class PolicyEngineImplScenariosTest {
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        Assertions.assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
     }
 
     @BeforeEach

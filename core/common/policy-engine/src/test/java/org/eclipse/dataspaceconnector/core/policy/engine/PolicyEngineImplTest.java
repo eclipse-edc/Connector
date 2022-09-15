@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.EQ;
 import static org.eclipse.dataspaceconnector.spi.policy.engine.PolicyEngine.ALL_SCOPES;
 
@@ -45,7 +46,7 @@ class PolicyEngineImplTest {
         // No explicit rule specified, policy should evaluate to true
         var result = policyEngine.evaluate(TEST_SCOPE, emptyPolicy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isTrue();
+        assertThat(result.succeeded()).isTrue();
     }
 
     @Test
@@ -62,7 +63,7 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().duty(duty).build();
 
         // The duty is not satisfied, so the policy should evaluate to false
-        org.assertj.core.api.Assertions.assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isFalse();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isFalse();
     }
 
     @Test
@@ -82,7 +83,7 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         // the permission containing the unfulfilled constraint should be filtered, resulting in the policy evaluation succeeding
-        org.assertj.core.api.Assertions.assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
     }
 
     @Test
@@ -101,7 +102,7 @@ class PolicyEngineImplTest {
         // The permission is not granted, so the policy should evaluate to false
         var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -116,7 +117,7 @@ class PolicyEngineImplTest {
         // The prohibition is triggered (it is true), so the policy should evaluate to false
         var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -132,7 +133,7 @@ class PolicyEngineImplTest {
         // The bar-scoped prohibition is triggered (it is true), so the policy should evaluate to false
         var result = policyEngine.evaluate("bar", policy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -148,7 +149,7 @@ class PolicyEngineImplTest {
         // The bar-scoped prohibition is triggered (it is true), so the policy should evaluate to false
         var result = policyEngine.evaluate("bar", policy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -163,7 +164,7 @@ class PolicyEngineImplTest {
         // The bar-scoped prohibition is triggered (it is true), so the policy should evaluate to false
         var result = policyEngine.evaluate("bar.child", policy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -180,7 +181,7 @@ class PolicyEngineImplTest {
 
         policyEngine.registerFunction("foo", Permission.class, (rule, context) -> Assertions.fail("Foo permission should be out of scope"));
         policyEngine.registerFunction("bar", Permission.class, (rule, context) -> rule.getAction().getType().equals(action.getType()));
-        org.assertj.core.api.Assertions.assertThat(policyEngine.evaluate("bar", policy, agent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate("bar", policy, agent).succeeded()).isTrue();
     }
 
     @Test
@@ -193,7 +194,7 @@ class PolicyEngineImplTest {
 
         var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -206,7 +207,7 @@ class PolicyEngineImplTest {
 
         var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
 
-        org.assertj.core.api.Assertions.assertThat(result.succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @BeforeEach

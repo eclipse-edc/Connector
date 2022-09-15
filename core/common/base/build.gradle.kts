@@ -28,8 +28,8 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:policy-engine-spi"))
     api(project(":spi:common:transaction-spi"))
+    implementation(project(":core:common:policy-engine"))
     implementation(project(":core:common:util"))
-    implementation(project(":core:common:policy-evaluator"))
 
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("dev.failsafe:failsafe:${failsafeVersion}")
