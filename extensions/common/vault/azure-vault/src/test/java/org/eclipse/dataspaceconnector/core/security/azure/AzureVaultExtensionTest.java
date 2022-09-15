@@ -9,12 +9,12 @@
  *
  *  Contributors:
  *       Microsoft Corporation - Initial implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
 package org.eclipse.dataspaceconnector.core.security.azure;
 
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,13 +22,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 class AzureVaultExtensionTest {
@@ -38,20 +36,18 @@ class AzureVaultExtensionTest {
     private static final String KEYVAULT_NAME = UUID.randomUUID().toString();
     private static final String CLIENT_SECRET = UUID.randomUUID().toString();
     private static final String CERTIFICATE_PATH = UUID.randomUUID().toString();
-    private static final long TIMEOUT_MS = 500;
-    private Monitor monitor;
-    private ServiceExtensionContext context;
-    private AzureVaultExtension extension;
+
+    private final Monitor monitor = mock(Monitor.class);
+    private final ServiceExtensionContext context = mock(ServiceExtensionContext.class);
+
+    private final AzureVaultExtension extension = new AzureVaultExtension();
 
     @BeforeEach
     public void setUp() {
-        monitor = new ConsoleMonitor();
-        context = mock(ServiceExtensionContext.class);
         when(context.getSetting("edc.vault.clientid", null)).thenReturn(CLIENT_ID);
         when(context.getSetting("edc.vault.name", null)).thenReturn(KEYVAULT_NAME);
         when(context.getSetting("edc.vault.tenantid", null)).thenReturn(TENANT_ID);
         when(context.getMonitor()).thenReturn(monitor);
-        extension = new AzureVaultExtension();
     }
 
     @Test
@@ -60,58 +56,45 @@ class AzureVaultExtensionTest {
     }
 
     @Test
-    void onlyCertificateProvided_authenticateWithCertificate() throws InterruptedException {
-        when(context.getSetting("edc.vault.certificate", null)).thenReturn(CERTIFICATE_PATH);
-
-        var l = new CountDownLatch(1);
-
-        try (MockedStatic<AzureVault> utilities = mockStatic(AzureVault.class)) {
-            utilities.when(() -> AzureVault.authenticateWithCertificate(monitor, CLIENT_ID, TENANT_ID, CERTIFICATE_PATH, KEYVAULT_NAME))
-                    .then(i -> {
-                        l.countDown();
-                        return null;
-                    });
+    void onlyCertificateProvided_authenticateWithCertificate() {
+        try (MockedStatic<AzureVault> staticMock = mockStatic(AzureVault.class)) {
+            when(context.getSetting("edc.vault.certificate", null)).thenReturn(CERTIFICATE_PATH);
 
             extension.initialize(context);
 
-            assertThat(l.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+            staticMock.verify(
+                    () -> AzureVault.authenticateWithCertificate(monitor, CLIENT_ID, TENANT_ID, CERTIFICATE_PATH, KEYVAULT_NAME),
+                    times(1));
+            staticMock.verifyNoMoreInteractions();
         }
     }
 
     @Test
-    void onlySecretProvided_authenticateWithSecret() throws InterruptedException {
-        when(context.getSetting("edc.vault.clientsecret", null)).thenReturn(CLIENT_SECRET);
-        var l = new CountDownLatch(1);
-
-        try (MockedStatic<AzureVault> utilities = mockStatic(AzureVault.class)) {
-            utilities.when(() -> AzureVault.authenticateWithSecret(monitor, CLIENT_ID, TENANT_ID, CLIENT_SECRET, KEYVAULT_NAME))
-                    .then(i -> {
-                        l.countDown();
-                        return null;
-                    });
+    void onlySecretProvided_authenticateWithSecret() {
+        try (var staticMock = mockStatic(AzureVault.class)) {
+            when(context.getSetting("edc.vault.clientsecret", null)).thenReturn(CLIENT_SECRET);
 
             extension.initialize(context);
 
-            assertThat(l.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+            staticMock.verify(
+                    () -> AzureVault.authenticateWithSecret(monitor, CLIENT_ID, TENANT_ID, CLIENT_SECRET, KEYVAULT_NAME),
+                    times(1));
+            staticMock.verifyNoMoreInteractions();
         }
     }
 
     @Test
-    void bothSecretAndCertificateProvided_authenticateWithCertificate() throws InterruptedException {
-        when(context.getSetting("edc.vault.certificate", null)).thenReturn(CERTIFICATE_PATH);
-        when(context.getSetting("edc.vault.clientsecret", null)).thenReturn(CLIENT_SECRET);
-        var l = new CountDownLatch(1);
-
-        try (MockedStatic<AzureVault> utilities = mockStatic(AzureVault.class)) {
-            utilities.when(() -> AzureVault.authenticateWithCertificate(monitor, CLIENT_ID, TENANT_ID, CERTIFICATE_PATH, KEYVAULT_NAME))
-                    .then(i -> {
-                        l.countDown();
-                        return null;
-                    });
+    void bothSecretAndCertificateProvided_authenticateWithCertificate() {
+        try (MockedStatic<AzureVault> staticMock = mockStatic(AzureVault.class)) {
+            when(context.getSetting("edc.vault.certificate", null)).thenReturn(CERTIFICATE_PATH);
+            when(context.getSetting("edc.vault.clientsecret", null)).thenReturn(CLIENT_SECRET);
 
             extension.initialize(context);
 
-            assertThat(l.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+            staticMock.verify(
+                    () -> AzureVault.authenticateWithCertificate(monitor, CLIENT_ID, TENANT_ID, CERTIFICATE_PATH, KEYVAULT_NAME),
+                    times(1));
+            staticMock.verifyNoMoreInteractions();
         }
     }
 }
