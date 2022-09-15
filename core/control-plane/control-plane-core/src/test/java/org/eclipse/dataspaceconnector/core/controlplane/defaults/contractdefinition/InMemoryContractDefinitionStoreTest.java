@@ -28,12 +28,17 @@ class InMemoryContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
 
 
     @Override
-    protected Boolean supportCollectionQuery() {
+    protected boolean supportsCollectionQuery() {
         return false;
     }
 
     @Override
-    protected Boolean supportSortOrder() {
+    protected boolean supportsCollectionIndexQuery() {
+        return true;
+    }
+
+    @Override
+    protected boolean supportsSortOrder() {
         return true;
     }
 }

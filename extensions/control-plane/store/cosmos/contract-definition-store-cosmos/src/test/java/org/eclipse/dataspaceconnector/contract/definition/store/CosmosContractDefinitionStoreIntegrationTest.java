@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
@@ -283,16 +282,6 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
     }
 
     @Test
-    void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
-
-        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
-
-        // message is coming from the predicate converter rather than the SQL statement translation layer
-        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Operator [contains] is not supported by this converter!");
-    }
-
-    @Test
     void findAll_verifyFiltering_unsuccessfulFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
 
@@ -312,8 +301,9 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
         assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
+    // Override the base test since Cosmos returns documents where the property subject of ORDER BY does not exist
     @Test
-    void findAll_sorting_nonExistentProperty() {
+    void findAll_verifySorting_invalidProperty() {
 
         var ids = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(ContractDefinitionDocument::getId).collect(Collectors.toList());
 
@@ -321,7 +311,7 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         var all = store.findAll(query).collect(Collectors.toList());
-        assertThat(all).isEmpty();
+        assertThat(all).hasSize(10);
     }
 
     @Test
@@ -353,12 +343,17 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
     }
 
     @Override
-    protected Boolean supportCollectionQuery() {
+    protected boolean supportsCollectionQuery() {
         return false;
     }
 
     @Override
-    protected Boolean supportSortOrder() {
+    protected boolean supportsCollectionIndexQuery() {
+        return true;
+    }
+
+    @Override
+    protected boolean supportsSortOrder() {
         return true;
     }
 
