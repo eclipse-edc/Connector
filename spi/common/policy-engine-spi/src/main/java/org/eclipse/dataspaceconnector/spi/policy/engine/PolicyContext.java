@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.policy;
+package org.eclipse.dataspaceconnector.spi.policy.engine;
 
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.jetbrains.annotations.NotNull;

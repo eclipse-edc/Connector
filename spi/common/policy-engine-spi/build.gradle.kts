@@ -12,27 +12,20 @@
  *
  */
 
+
 plugins {
     `java-library`
 }
 
-
 dependencies {
-    api(project(":core:common:base"))
-    api(project(":core:common:boot"))
-    api(project(":core:common:policy-engine"))
-    api(project(":core:common:policy-evaluator"))
-    api(project(":core:control-plane:contract"))
-    api(project(":core:control-plane:transfer"))
-    implementation(project(":core:common:util"))
-    testImplementation(testFixtures(project(":spi:common:core-spi")))
-    testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:policy-model"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("control-plane-core") {
-            artifactId = "control-plane-core"
+        create<MavenPublication>("policy-engine-spi") {
+            artifactId = "policy-engine-spi"
             from(components["java"])
         }
     }

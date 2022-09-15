@@ -32,8 +32,8 @@ import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.engine.RuleBindingRegistry;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -97,7 +97,7 @@ public class CoreServicesExtension implements ServiceExtension {
     private EventExecutorServiceContainer eventExecutorServiceContainer;
 
     private HealthCheckServiceImpl healthCheckService;
-    private RuleBindingRegistryImpl ruleBindingRegistry;
+    private RuleBindingRegistry ruleBindingRegistry;
     private ScopeFilter scopeFilter;
 
     @Override

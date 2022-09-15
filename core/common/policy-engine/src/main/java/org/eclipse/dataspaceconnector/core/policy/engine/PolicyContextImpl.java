@@ -13,10 +13,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.base.policy;
+package org.eclipse.dataspaceconnector.core.policy.engine;
 
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
+import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

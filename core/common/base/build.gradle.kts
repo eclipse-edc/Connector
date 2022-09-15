@@ -26,6 +26,7 @@ val bouncycastleVersion: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:policy-engine-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":core:common:policy-evaluator"))

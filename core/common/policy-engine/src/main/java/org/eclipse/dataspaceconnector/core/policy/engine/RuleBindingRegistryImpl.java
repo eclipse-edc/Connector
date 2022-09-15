@@ -12,9 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.base.policy;
+package org.eclipse.dataspaceconnector.core.policy.engine;
 
-import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.engine.RuleBindingRegistry;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +25,7 @@ public class RuleBindingRegistryImpl implements RuleBindingRegistry {
     private static final String DELIMITER = ".";
     private static final String DELIMITED_ALL = "*" + DELIMITER;
 
-    private Map<String, Set<String>> ruleBindings = new HashMap<>();
+    private final Map<String, Set<String>> ruleBindings = new HashMap<>();
 
     @Override
     public void bind(String ruleType, String scope) {

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.policy;
+package org.eclipse.dataspaceconnector.spi.policy.engine;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

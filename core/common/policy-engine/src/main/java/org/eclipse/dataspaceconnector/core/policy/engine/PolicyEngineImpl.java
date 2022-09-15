@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.base.policy;
+package org.eclipse.dataspaceconnector.core.policy.engine;
 
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
 import org.eclipse.dataspaceconnector.policy.engine.RuleProblem;
@@ -22,10 +22,10 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.policy.AtomicConstraintFunction;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.policy.RuleFunction;
+import org.eclipse.dataspaceconnector.spi.policy.engine.AtomicConstraintFunction;
+import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyContext;
+import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.engine.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.ArrayList;
@@ -43,13 +43,13 @@ import static java.util.stream.Collectors.toList;
 public class PolicyEngineImpl implements PolicyEngine {
     private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + ".";
 
-    private ScopeFilter scopeFilter;
+    private final ScopeFilter scopeFilter;
 
-    private Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
-    private Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
+    private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
+    private final Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
 
-    private List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
-    private List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
+    private final List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
+    private final List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
 
     public PolicyEngineImpl(ScopeFilter scopeFilter) {
         this.scopeFilter = scopeFilter;
