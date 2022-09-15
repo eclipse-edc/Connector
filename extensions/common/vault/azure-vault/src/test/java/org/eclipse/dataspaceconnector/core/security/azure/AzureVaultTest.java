@@ -22,6 +22,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -61,5 +63,15 @@ class AzureVaultTest {
 
         assertThat(result).isNull();
         verifyNoInteractions(monitor);
+    }
+
+    @Test
+    void resolveSecret_shouldReturnNullAndLogErrorOnGenericException() {
+        when(secretClient.getSecret("key")).thenThrow(new RuntimeException("error"));
+
+        var result = vault.resolveSecret("key");
+
+        assertThat(result).isNull();
+        verify(monitor).severe(anyString(), isA(RuntimeException.class));
     }
 }
