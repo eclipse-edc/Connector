@@ -13,3 +13,4 @@
 #
 
 org.eclipse.dataspaceconnector.api.ApiCoreExtension
+org.eclipse.dataspaceconnector.api.DefaultApiCoreExtension

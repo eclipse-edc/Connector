@@ -22,7 +22,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:common:auth-spi"))
     implementation(project(":spi:common:catalog-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:data-management:api-configuration"))

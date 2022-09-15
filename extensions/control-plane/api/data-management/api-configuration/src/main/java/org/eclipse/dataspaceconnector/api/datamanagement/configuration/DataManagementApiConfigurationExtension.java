@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.configuration;
 
-import org.eclipse.dataspaceconnector.api.auth.AllPassAuthenticationService;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -24,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 
 @Provides(DataManagementApiConfiguration.class)
 public class DataManagementApiConfigurationExtension implements ServiceExtension {
@@ -35,8 +33,8 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
     @Inject
     private WebService webService;
 
-    @Inject(required = false)
-    private AuthenticationService service;
+    @Inject
+    private AuthenticationService authenticationService;
 
     @Override
     public String name() {
@@ -68,7 +66,6 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
         // the DataManagementApiConfiguration tells all DataManagementApi controllers under which context alias
         // they need to register their resources: either `default` or `data`
         context.registerService(DataManagementApiConfiguration.class, new DataManagementApiConfiguration(contextAlias));
-        var srv = ofNullable(service).orElse(new AllPassAuthenticationService());
-        webService.registerResource(contextAlias, new AuthenticationRequestFilter(srv));
+        webService.registerResource(contextAlias, new AuthenticationRequestFilter(authenticationService));
     }
 }

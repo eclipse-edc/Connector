@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.core.controlplane.ControlPlaneCoreExtension
+org.eclipse.dataspaceconnector.core.controlplane.DefaultControlPlaneExtension

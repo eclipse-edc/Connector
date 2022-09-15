@@ -49,7 +49,7 @@ public class OkHttpClientFactory {
 
         ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
-        boolean enforceHttps = context.getSetting(EDC_HTTP_ENFORCE_HTTPS, false);
+        var enforceHttps = context.getSetting(EDC_HTTP_ENFORCE_HTTPS, false);
         if (enforceHttps) {
             builder.addInterceptor(new EnforceHttps());
         } else {

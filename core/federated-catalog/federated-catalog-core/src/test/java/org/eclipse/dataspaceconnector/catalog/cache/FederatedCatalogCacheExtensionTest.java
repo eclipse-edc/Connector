@@ -17,12 +17,10 @@ package org.eclipse.dataspaceconnector.catalog.cache;
 import org.awaitility.Awaitility;
 import org.eclipse.dataspaceconnector.catalog.cache.controller.FederatedCatalogApiController;
 import org.eclipse.dataspaceconnector.catalog.cache.query.IdsMultipartNodeQueryAdapter;
-import org.eclipse.dataspaceconnector.catalog.directory.InMemoryNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
-import org.eclipse.dataspaceconnector.catalog.store.InMemoryFederatedCacheStore;
 import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -112,7 +110,6 @@ class FederatedCatalogCacheExtensionTest {
                 .untilAsserted(() -> {
                     verify(storeMock, atLeastOnce()).save(any());
                 });
-
     }
 
     @Test
@@ -132,20 +129,6 @@ class FederatedCatalogCacheExtensionTest {
         var n = extension.createNodeQueryAdapterRegistry(context);
         assertThat(extension.createNodeQueryAdapterRegistry(context)).isSameAs(n);
         assertThat(n.findForProtocol("ids-multipart")).hasSize(1).allSatisfy(qa -> assertThat(qa).isInstanceOf(IdsMultipartNodeQueryAdapter.class));
-    }
-
-    @Test
-    void verifyProvider_defaultNodeDirectory() {
-        var n = extension.defaultNodeDirectory();
-        assertThat(extension.defaultNodeDirectory()).isNotSameAs(n);
-        assertThat(n).isInstanceOf(InMemoryNodeDirectory.class);
-    }
-
-    @Test
-    void verifyProvider_defaultCacheStore() {
-        var c = extension.defaultCacheStore();
-        assertThat(extension.defaultCacheStore()).isNotSameAs(c);
-        assertThat(c).isInstanceOf(InMemoryFederatedCacheStore.class);
     }
 
 }

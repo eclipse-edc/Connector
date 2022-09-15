@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core;
 
+import org.eclipse.dataspaceconnector.core.event.EventExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.security.PrivateKey;
+import java.util.concurrent.Executors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -39,6 +41,20 @@ class CoreServicesExtensionTest {
     private TypeManager typeManager;
     private PrivateKeyResolver privateKeyResolverMock;
 
+    @BeforeEach
+    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+        context.registerService(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(Executors.newSingleThreadExecutor()));
+
+        privateKeyResolverMock = mock(PrivateKeyResolver.class);
+        context.registerService(PrivateKeyResolver.class, privateKeyResolverMock);
+
+        typeManager = context.getTypeManager(); //is already a spy!
+        context.registerService(ExecutorInstrumentation.class, mock(ExecutorInstrumentation.class));
+
+        this.context = context;
+        extension = factory.constructInstance(CoreServicesExtension.class);
+    }
+
     @Test
     void verifyPolicyTypesAreRegistered() {
         extension.initialize(context);
@@ -49,17 +65,5 @@ class CoreServicesExtensionTest {
     void verifyDefaultPrivateKeyParserIsRegistered() {
         extension.initialize(context);
         verify(privateKeyResolverMock).addParser(eq(PrivateKey.class), any(DefaultPrivateKeyParseFunction.class));
-    }
-
-    @BeforeEach
-    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        privateKeyResolverMock = mock(PrivateKeyResolver.class);
-        context.registerService(PrivateKeyResolver.class, privateKeyResolverMock);
-
-        typeManager = context.getTypeManager(); //is already a spy!
-        context.registerService(ExecutorInstrumentation.class, mock(ExecutorInstrumentation.class));
-
-        this.context = context;
-        extension = factory.constructInstance(CoreServicesExtension.class);
     }
 }
