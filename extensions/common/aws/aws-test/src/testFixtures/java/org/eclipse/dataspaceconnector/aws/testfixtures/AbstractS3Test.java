@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       NTT DATA - added endpoint override
  *
  */
 
@@ -84,7 +85,13 @@ public abstract class AbstractS3Test {
                 .pollInterval(Duration.ofSeconds(2))
                 .ignoreException(IOException.class) // thrown by pingMinio
                 .ignoreException(ConnectException.class)
-                .until(AbstractS3Test::pingMinio);
+                .until(() -> {
+                    if (isMinio()) {
+                        return isMinioAvailable();
+                    } else {
+                        return true;
+                    }
+                });
     }
 
     private static boolean isMinio() {
@@ -96,10 +103,7 @@ public abstract class AbstractS3Test {
      *
      * @return true if HTTP status [200..300[
      */
-    private static boolean pingMinio() throws IOException {
-        if (!isMinio()) {
-            return true;
-        }
+    private static boolean isMinioAvailable() throws IOException {
         var httpClient = new OkHttpClient();
         var healthRq = new Request.Builder().url(S3_ENDPOINT + "/minio/health/live").get().build();
         try (var response = httpClient.newCall(healthRq).execute()) {
@@ -166,7 +170,7 @@ public abstract class AbstractS3Test {
     }
 
     protected @NotNull AwsCredentials getCredentials() {
-        String profile = propOrEnv("it.aws.profile", null);
+        var profile = propOrEnv("it.aws.profile", null);
         if (profile != null) {
             return ProfileCredentialsProvider.create(profile).resolveCredentials();
         }
