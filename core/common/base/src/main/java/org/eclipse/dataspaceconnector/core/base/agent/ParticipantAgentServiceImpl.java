@@ -29,7 +29,7 @@ import static java.util.stream.Collectors.toMap;
  * Default implementation.
  */
 public class ParticipantAgentServiceImpl implements ParticipantAgentService {
-    private List<ParticipantAgentServiceExtension> extensions = new ArrayList<>();
+    private final List<ParticipantAgentServiceExtension> extensions = new ArrayList<>();
 
     @Override
     public ParticipantAgent createFor(ClaimToken token) {

@@ -28,7 +28,7 @@ dependencies {
     implementation(project(":extensions:common:sql:common-sql"))
 
     testImplementation(project(":extensions:common:junit"))
-    testImplementation(project(":core:common:policy-evaluator"))
+    testImplementation(project(":spi:common:policy-model"))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":core:common:util")))

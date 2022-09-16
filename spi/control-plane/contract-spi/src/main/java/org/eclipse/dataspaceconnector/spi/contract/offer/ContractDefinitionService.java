@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.spi.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.message.Range;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyScope;
+import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

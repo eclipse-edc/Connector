@@ -22,7 +22,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;

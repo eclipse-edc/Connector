@@ -43,6 +43,8 @@ org.eclipse.dataspaceconnector:core-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:identity-did-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jwt-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:oauth2-spi:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:policy-engine-spi:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:policy-model:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-datasource-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transport-spi:0.0.1-SNAPSHOT

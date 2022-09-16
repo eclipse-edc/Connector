@@ -16,7 +16,7 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyScope;
+import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;

@@ -210,14 +210,6 @@ Contains code that demonstrates how the connector can be used in various scenari
 connector from a unit test in order to try out functionality quickly or how to implement an outward-facing REST API for
 a connector.
 
-### `common`
-
-Contains utility code such as collection utils, string utils and helper classes.
-
-### `scripts`
-
-Contains several scripts to deploy a connector in an AKS cluster on Microsoft Azure using Terraform.
-
 ## Releases
 
 GitHub releases are listed [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/releases).
