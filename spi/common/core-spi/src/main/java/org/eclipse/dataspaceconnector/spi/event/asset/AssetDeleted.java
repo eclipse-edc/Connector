@@ -48,6 +48,10 @@ public class AssetDeleted extends Event<AssetDeleted.Payload> {
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a Asset Deletion Event
+     *
+     */
     public static class Payload extends AssetEventPayload {
 
     }
