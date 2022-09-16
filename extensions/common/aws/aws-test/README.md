@@ -15,11 +15,11 @@ S3_SECRET_ACCESS_KEY=password
 
 ## Test using your AWS credential
 
-`IT_AWS_ENDPOINT` can be used to override endpoint URI
-for running  integration tests against AWS S3 by environment variable:
+`IT_AWS_ENDPOINT` can be used to override [endpoint](https://docs.aws.amazon.com/general/latest/gr/s3.html) URI
+for running integration tests against AWS S3 by environment variable:
 
 ```
-$ IT_AWS_ENDPOINT=https://us-east-1.amazonaws.com/ \
+$ IT_AWS_ENDPOINT=https://s3.us-east-1.amazonaws.com/ \
   IT_AWS_REGION=us-east-1 \
   IT_AWS_PROFILE=myprofie \
   ./gradlew clean test -DincludeTags="AwsS3IntegrationTest" --tests '*S3StatusCheckerIntegrationTest'
