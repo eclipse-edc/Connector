@@ -145,6 +145,11 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     }
 
     @Override
+    protected boolean supportCollectionIndexQuery() {
+        return false;
+    }
+
+    @Override
     protected Boolean supportSortOrder() {
         return false;
     }

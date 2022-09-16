@@ -23,10 +23,8 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
-import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
@@ -48,7 +46,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generatePolicy;
 import static org.mockito.Mockito.mock;
@@ -228,16 +225,6 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
     }
 
     @Test
-    void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
-
-        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
-
-        // message is coming from the predicate converter rather than the SQL statement translation layer
-        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Operator [contains] is not supported by this converter!");
-    }
-
-    @Test
     void findAll_verifyFiltering_unsuccessfulFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
 
@@ -257,6 +244,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
         assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getUid().compareTo(c1.getUid()));
     }
 
+    // Override the base test since Cosmos returns documents where the property subject of ORDER BY does not exist
     @Test
     void findAll_sorting_nonExistentProperty() {
 
@@ -266,37 +254,9 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         var all = store.findAll(query).collect(Collectors.toList());
-        assertThat(all).isEmpty();
+        assertThat(all).hasSize(10);
     }
 
-    @Test
-    void verify_readWriteFindAll() {
-        // add an object
-        var policy = generatePolicy();
-        store.save(policy);
-        assertThat(store.findAll(QuerySpec.none())).containsExactly(policy);
-
-        // modify the object
-        var modifiedPolicy = PolicyDefinition.Builder.newInstance()
-                .policy(Policy.Builder.newInstance()
-
-                        .permission(Permission.Builder.newInstance()
-                                .target("test-asset-id")
-                                .action(Action.Builder.newInstance()
-                                        .type("USE")
-                                        .build())
-                                .build())
-                        .build())
-                .id(policy.getUid())
-                .build();
-
-        store.save(modifiedPolicy);
-
-        // re-read
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("policy.permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
-        assertThat(all).hasSize(1).containsExactly(modifiedPolicy);
-
-    }
 
     @Override
     protected PolicyDefinitionStore getPolicyDefinitionStore() {
@@ -306,6 +266,11 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
     @Override
     protected boolean supportCollectionQuery() {
         return false;
+    }
+
+    @Override
+    protected boolean supportCollectionIndexQuery() {
+        return true;
     }
 
     @Override

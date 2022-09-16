@@ -129,7 +129,10 @@ class CosmosConditionExpression {
     private String getName() {
         return criterion.getOperandLeft().toString()
                 .replace(":", "_")
-                .replace(".", "_");
+                .replace(".", "_")
+                .replace("[", "")
+                .replace("]", "")
+                .replaceAll("[0-9]", "");
     }
 
     /**

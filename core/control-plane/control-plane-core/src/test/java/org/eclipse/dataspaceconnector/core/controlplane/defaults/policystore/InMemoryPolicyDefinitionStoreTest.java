@@ -25,9 +25,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createPolicy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -76,6 +79,16 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
         assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.deleteById("any-policy-id"));
     }
 
+    @Test
+    void findAll_verifyFiltering_invalidFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> createPolicy("test-id")).forEach(d -> getPolicyDefinitionStore().save(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+
+        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query)).isInstanceOfAny(EdcPersistenceException.class);
+    }
+
+
     @Override
     protected PolicyDefinitionStore getPolicyDefinitionStore() {
         return store;
@@ -84,6 +97,11 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     @Override
     protected boolean supportCollectionQuery() {
         return false;
+    }
+
+    @Override
+    protected boolean supportCollectionIndexQuery() {
+        return true;
     }
 
     @Override
