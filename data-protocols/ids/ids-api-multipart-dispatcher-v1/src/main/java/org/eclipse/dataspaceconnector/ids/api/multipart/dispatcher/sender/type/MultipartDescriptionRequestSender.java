@@ -27,7 +27,7 @@ import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
@@ -47,9 +47,9 @@ import java.util.Objects;
  */
 public class MultipartDescriptionRequestSender implements MultipartSenderDelegate<MetadataRequest, ModelClass> {
 
-    private final DelegateMessageContext context;
+    private final SenderDelegateContext context;
 
-    public MultipartDescriptionRequestSender(@NotNull DelegateMessageContext context) {
+    public MultipartDescriptionRequestSender(@NotNull SenderDelegateContext context) {
         this.context = Objects.requireNonNull(context);
     }
 

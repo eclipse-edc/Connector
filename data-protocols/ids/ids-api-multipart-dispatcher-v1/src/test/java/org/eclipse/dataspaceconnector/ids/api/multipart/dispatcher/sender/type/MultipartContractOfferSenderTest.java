@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.transform.IdsTransformerRegistryImpl;
 import org.eclipse.dataspaceconnector.ids.transform.type.contract.ContractOfferToIdsContractOfferTransformer;
@@ -52,7 +52,7 @@ class MultipartContractOfferSenderTest {
     
         objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
         
-        var senderContext = new DelegateMessageContext(connectorId, objectMapper, transformerRegistry, webhookAddress);
+        var senderContext = new SenderDelegateContext(connectorId, objectMapper, transformerRegistry, webhookAddress);
         sender = new MultipartContractOfferSender(senderContext);
     }
     

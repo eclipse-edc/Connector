@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
@@ -44,9 +44,9 @@ import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEB
  * MultipartSenderDelegate for contract requests.
  */
 public class MultipartContractOfferSender implements MultipartSenderDelegate<ContractOfferRequest, String> {
-    private final DelegateMessageContext context;
+    private final SenderDelegateContext context;
 
-    public MultipartContractOfferSender(@NotNull DelegateMessageContext context) {
+    public MultipartContractOfferSender(@NotNull SenderDelegateContext context) {
         this.context = Objects.requireNonNull(context);
     }
 

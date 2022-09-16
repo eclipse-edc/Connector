@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartCatalogDescriptionRequestSender;
@@ -82,7 +82,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         var idsWebhookAddress = "http://webhook/api";
     
-        var senderContext = new DelegateMessageContext(URI.create(CONNECTOR_ID), objectMapper, transformerRegistry, idsWebhookAddress);
+        var senderContext = new SenderDelegateContext(URI.create(CONNECTOR_ID), objectMapper, transformerRegistry, idsWebhookAddress);
 
         var sender = new IdsMultipartSender(monitor, httpClient, identityService, objectMapper);
         dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);

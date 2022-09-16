@@ -19,7 +19,7 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
@@ -40,9 +40,9 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender
  */
 public class MultipartContractRejectionSender implements MultipartSenderDelegate<ContractRejection, String> {
 
-    private final DelegateMessageContext context;
+    private final SenderDelegateContext context;
 
-    public MultipartContractRejectionSender(@NotNull DelegateMessageContext context) {
+    public MultipartContractRejectionSender(@NotNull SenderDelegateContext context) {
         this.context = Objects.requireNonNull(context);
     }
 

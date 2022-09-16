@@ -18,7 +18,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.mock;
 class MultipartArtifactRequestSenderTest {
 
     private MultipartArtifactRequestSender sender;
-    private DelegateMessageContext senderContext;
+    private SenderDelegateContext senderContext;
     private String idsWebhookAddress;
 
     @BeforeEach
@@ -54,7 +54,7 @@ class MultipartArtifactRequestSenderTest {
 
         var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
-        senderContext = new DelegateMessageContext(connectorId, objectMapper, transformerRegistry, idsWebhookAddress);
+        senderContext = new SenderDelegateContext(connectorId, objectMapper, transformerRegistry, idsWebhookAddress);
         sender = new MultipartArtifactRequestSender(senderContext, vault);
     }
 

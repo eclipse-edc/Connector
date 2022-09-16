@@ -22,7 +22,7 @@ import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.NotificationMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.mock;
 class MultipartEndpointDataReferenceRequestSenderTest {
 
     private MultipartEndpointDataReferenceRequestSender sender;
-    private DelegateMessageContext senderContext;
+    private SenderDelegateContext senderContext;
     private ObjectMapper mapper;
 
     @BeforeEach
@@ -55,7 +55,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var typeManager = new TypeManager();
         mapper = IdsTypeManagerUtil.getIdsObjectMapper(typeManager);
     
-        senderContext = new DelegateMessageContext(connectorId, mapper, transformerRegistry, idsWebhookAddress);
+        senderContext = new SenderDelegateContext(connectorId, mapper, transformerRegistry, idsWebhookAddress);
         sender = new MultipartEndpointDataReferenceRequestSender(senderContext, typeManager);
     }
 

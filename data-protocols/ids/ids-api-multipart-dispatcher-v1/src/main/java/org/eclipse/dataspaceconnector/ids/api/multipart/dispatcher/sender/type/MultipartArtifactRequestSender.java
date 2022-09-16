@@ -18,7 +18,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
@@ -45,10 +45,10 @@ import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEB
  */
 public class MultipartArtifactRequestSender implements MultipartSenderDelegate<DataRequest, String> {
 
-    private final DelegateMessageContext context;
+    private final SenderDelegateContext context;
     private final Vault vault;
 
-    public MultipartArtifactRequestSender(@NotNull DelegateMessageContext context, @NotNull Vault vault) {
+    public MultipartArtifactRequestSender(@NotNull SenderDelegateContext context, @NotNull Vault vault) {
         this.context = Objects.requireNonNull(context);
         this.vault = Objects.requireNonNull(vault);
     }

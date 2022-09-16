@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartCatalogDescriptionRequestSender;
@@ -83,7 +83,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         var objectMapper = context.getTypeManager().getMapper("ids");
         var typeManager = context.getTypeManager();
 
-        var senderContext = new DelegateMessageContext(URI.create(connectorId), objectMapper, transformerRegistry, idsWebhookAddress);
+        var senderContext = new SenderDelegateContext(URI.create(connectorId), objectMapper, transformerRegistry, idsWebhookAddress);
 
         var sender = new IdsMultipartSender(monitor, httpClient, identityService, objectMapper);
         var dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);
