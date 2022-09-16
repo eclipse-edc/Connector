@@ -43,7 +43,7 @@ public abstract class IdsRemoteMessageDispatcher implements RemoteMessageDispatc
         if (handler == null) {
             throw new EdcException("Message sender not found for message type: " + message.getClass().getName());
         }
-        return (CompletableFuture<T>) handler.send(message, context);
+        return (CompletableFuture<T>) handler.send(message);
     }
 
 }

@@ -48,9 +48,7 @@ public interface MultipartSenderDelegate<M extends RemoteMessage, R> {
      * @return the message payload.
      * @throws Exception if building the message payload fails.
      */
-    default String buildMessagePayload(M request) throws Exception {
-        return null;
-    }
+    String buildMessagePayload(M request) throws Exception;
 
     /**
      * Reads and parses the IDS multipart response.

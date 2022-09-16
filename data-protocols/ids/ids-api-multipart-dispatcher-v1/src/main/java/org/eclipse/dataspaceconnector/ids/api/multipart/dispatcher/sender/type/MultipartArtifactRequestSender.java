@@ -18,7 +18,6 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import de.fraunhofer.iais.eis.ResponseMessageImpl;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.DelegateMessageContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
@@ -130,6 +129,6 @@ public class MultipartArtifactRequestSender implements MultipartSenderDelegate<D
 
     @Override
     public List<Class<? extends Message>> getAllowedResponseTypes() {
-        return List.of(ResponseMessageImpl.class, RequestInProcessMessageImpl.class); // TODO remove ResponseMessage.class
+        return List.of(RequestInProcessMessageImpl.class);
     }
 }

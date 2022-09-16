@@ -47,7 +47,7 @@ class IdsMultipartSenderTest {
 
         var sender = new IdsMultipartSender<>(mock(Monitor.class), mock(OkHttpClient.class), identityService, objectMapper, new TestIdsMultipartSender());
 
-        var result = sender.send(new TestRemoteMessage(), () -> "any");
+        var result = sender.send(new TestRemoteMessage());
 
         assertThat(result).failsWithin(1, TimeUnit.SECONDS);
     }
@@ -76,7 +76,12 @@ class IdsMultipartSenderTest {
         public Message buildMessageHeader(TestRemoteMessage request, DynamicAttributeToken token) {
             return null;
         }
-
+    
+        @Override
+        public String buildMessagePayload(TestRemoteMessage request) throws Exception {
+            return null;
+        }
+    
         @Override
         public MultipartResponse<String> getResponseContent(IdsMultipartParts parts) {
             return null;

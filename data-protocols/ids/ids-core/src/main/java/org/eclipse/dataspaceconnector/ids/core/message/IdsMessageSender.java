@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.core.message;
 
-import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +31,6 @@ public interface IdsMessageSender<M extends RemoteMessage, R> {
     /**
      * Binds and sends the message, returning a future for retrieving the response.
      */
-    CompletableFuture<R> send(M message, MessageContext context);
+    CompletableFuture<R> send(M message);
 
 }

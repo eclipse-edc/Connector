@@ -85,7 +85,12 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
         message.setProperty(Range.TO, request.getRange().getTo());
         return message;
     }
-
+    
+    @Override
+    public String buildMessagePayload(CatalogRequest request) throws Exception {
+        return null;
+    }
+    
     /**
      * Parses the response content and extracts the catalog from the received self description.
      *

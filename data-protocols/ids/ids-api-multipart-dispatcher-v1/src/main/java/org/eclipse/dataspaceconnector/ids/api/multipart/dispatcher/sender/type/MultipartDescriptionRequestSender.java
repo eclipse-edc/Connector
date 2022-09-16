@@ -78,7 +78,12 @@ public class MultipartDescriptionRequestSender implements MultipartSenderDelegat
                 ._requestedElement_(request.getRequestedAsset())
                 .build();
     }
-
+    
+    @Override
+    public String buildMessagePayload(MetadataRequest request) throws Exception {
+        return null;
+    }
+    
     /**
      * Parses the response content. Tries to parse the payload to the correct IDS information model type.
      *

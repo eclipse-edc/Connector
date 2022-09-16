@@ -36,7 +36,6 @@ import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
-import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -86,11 +85,10 @@ public class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessag
      * for the sub-class.
      *
      * @param request the request.
-     * @param context the message context.
      * @return the response as {@link CompletableFuture}.
      */
     @Override
-    public CompletableFuture<R> send(M request, MessageContext context) {
+    public CompletableFuture<R> send(M request) {
         var remoteConnectorAddress = request.getConnectorAddress();
 
         // Get Dynamic Attribute Token
