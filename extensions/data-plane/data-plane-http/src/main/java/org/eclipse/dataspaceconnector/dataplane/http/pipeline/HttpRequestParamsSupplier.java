@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       SAP SE - use vault for sensitive data
  *
  */
 
@@ -22,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -47,6 +49,8 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
                 .copyFrom(selectAddress(request))
                 .build();
 
+        resolveVaultValues(address);
+
         var params = HttpRequestParams.Builder.newInstance();
         var requestId = request.getId();
         var baseUrl = Optional.ofNullable(address.getBaseUrl())
@@ -69,6 +73,13 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
         params.nonChunkedTransfer(extractNonChunkedTransfer(address));
 
         return params.build();
+    }
+
+    private void resolveVaultValues(HttpDataAddress address) {
+        for (Map.Entry<String, String> vaultEntry : address.getVaultEntries().entrySet()) {
+            Optional.ofNullable(vault.resolveSecret(vaultEntry.getValue()))
+                    .ifPresent(s -> address.setProperty(vaultEntry.getKey(), s));
+        }
     }
 
     protected abstract boolean extractNonChunkedTransfer(HttpDataAddress address);

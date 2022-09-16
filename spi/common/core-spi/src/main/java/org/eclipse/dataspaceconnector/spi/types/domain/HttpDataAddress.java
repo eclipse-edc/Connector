@@ -10,6 +10,7 @@
  *  Contributors:
  *       Amadeus - Initial implementation
  *       Siemens AG - added additionalHeaders
+ *       SAP SE - use vault for sensitive data
  *
  */
 
@@ -53,6 +54,7 @@ public class HttpDataAddress extends DataAddress {
     public static final String OCTET_STREAM = "application/octet-stream";
     public static final String NON_CHUNKED_TRANSFER = "nonChunkedTransfer";
     public static final Set<String> ADDITIONAL_HEADERS_TO_IGNORE = Set.of("content-type");
+    public static final String VAULT_ENTRY = "vault:";
 
     private HttpDataAddress() {
         super();
@@ -123,7 +125,13 @@ public class HttpDataAddress extends DataAddress {
         return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
                 .collect(Collectors.toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), Map.Entry::getValue));
+    }
 
+    @JsonIgnore
+    public Map<String, String> getVaultEntries() {
+        return getProperties().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(VAULT_ENTRY))
+                .collect(Collectors.toMap(entry -> entry.getKey().replace(VAULT_ENTRY, ""), Map.Entry::getValue));
     }
 
     @JsonIgnore
@@ -216,6 +224,11 @@ public class HttpDataAddress extends DataAddress {
 
         public Builder nonChunkedTransfer(boolean nonChunkedTransfer) {
             this.property(NON_CHUNKED_TRANSFER, String.valueOf(nonChunkedTransfer));
+            return this;
+        }
+
+        public Builder addVaultEntry(String propertyName, String vaultKey) {
+            address.getProperties().put(VAULT_ENTRY + propertyName, Objects.requireNonNull(vaultKey));
             return this;
         }
 

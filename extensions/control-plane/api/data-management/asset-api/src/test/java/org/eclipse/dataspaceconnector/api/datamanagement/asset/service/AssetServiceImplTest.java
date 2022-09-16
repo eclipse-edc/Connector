@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       SAP SE - use vault for sensitive data
  *
  */
 
@@ -19,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservable;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -31,6 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -41,6 +45,7 @@ import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NO
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -51,8 +56,9 @@ class AssetServiceImplTest {
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final AssetObservable observable = mock(AssetObservable.class);
+    private final Vault vault = mock(Vault.class);
 
-    private final AssetServiceImpl service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable);
+    private final AssetServiceImpl service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable, vault);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -190,6 +196,26 @@ class AssetServiceImplTest {
         var deleted = service.delete("test-asset");
         verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 &&
                 argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
+    }
+
+    @Test
+    void createAsset_secretShouldBeStoredInVault() {
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        when(index.findById(assetId)).thenReturn(null);
+        var addressType = "addressType";
+        Map<String, String> props = new HashMap<>();
+        props.put("baseUrl", "https://something.is/set");
+        props.put("vault:authCode", "Bearer ABCDEFG1234567890");
+        var dataAddress = DataAddress.Builder.newInstance().type(addressType).properties(props).build();
+
+        var inserted = service.create(asset, dataAddress);
+
+        assertThat(inserted.succeeded()).isTrue();
+        assertThat(inserted.getContent()).matches(hasId(assetId));
+        verify(vault, times(1)).storeSecret("30398603863DAC78E6BA01D9B7FD1625B243BC9AEBCDD099DFA3FDEB788D38E0", "Bearer ABCDEFG1234567890");
+        verify(index).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
+        verify(observable).invokeForEach(any());
     }
 
     @NotNull

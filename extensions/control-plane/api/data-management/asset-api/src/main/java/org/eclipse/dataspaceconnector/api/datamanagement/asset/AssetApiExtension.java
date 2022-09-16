@@ -11,6 +11,7 @@
  *       ZF Friedrichshafen AG - Initial API and Implementation
  *       Microsoft Corporation - name refactoring
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       SAP SE - use vault for sensitive data
  *
  */
 
@@ -29,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservableImpl;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -64,6 +66,9 @@ public class AssetApiExtension implements ServiceExtension {
     @Inject
     Clock clock;
 
+    @Inject
+    Vault vault;
+
     @Override
     public String name() {
         return "Data Management API: Asset";
@@ -76,7 +81,7 @@ public class AssetApiExtension implements ServiceExtension {
         var assetObservable = new AssetObservableImpl();
         assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
 
-        var assetService = new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable);
+        var assetService = new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable, vault);
         context.registerService(AssetService.class, assetService);
 
         transformerRegistry.register(new AssetRequestDtoToAssetTransformer());

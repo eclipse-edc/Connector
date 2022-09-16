@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Siemens AG - enable read property and return a default value is missing
+ *       SAP SE - use vault for sensitive data
  *
  */
 
@@ -55,6 +56,10 @@ public class DataAddress {
 
     public String getProperty(String key) {
         return properties.get(key);
+    }
+
+    public String setProperty(String key, String value) {
+        return properties.put(key, value);
     }
 
     public String getProperty(String key, String defaultValue) {

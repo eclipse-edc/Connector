@@ -9,22 +9,28 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       SAP SE - use vault for sensitive data
  *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
+import jakarta.xml.bind.DatatypeConverter;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservable;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,12 +44,14 @@ public class AssetServiceImpl implements AssetService {
     private final TransactionContext transactionContext;
     private final AssetObservable observable;
     private final QueryValidator queryValidator;
+    private final Vault vault;
 
-    public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable) {
+    public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable, Vault vault) {
         this.index = index;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
+        this.vault = vault;
         queryValidator = new AssetQueryValidator();
     }
 
@@ -67,6 +75,20 @@ public class AssetServiceImpl implements AssetService {
     public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
         return transactionContext.execute(() -> {
             if (findById(asset.getId()) == null) {
+                dataAddress.getProperties().entrySet().stream()
+                        .filter(p -> p.getKey().startsWith("vault:"))
+                        .forEach(p -> {
+                            try {
+                                MessageDigest md = MessageDigest.getInstance("SHA3-256");
+                                md.update(p.getValue().getBytes());
+                                byte[] digest = md.digest();
+                                String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
+                                vault.storeSecret(hash, p.getValue());
+                                p.setValue(hash);
+                            } catch (NoSuchAlgorithmException e) {
+                                throw new EdcException("Cannot store data address parameter into vault.", e);
+                            }
+                        });
                 index.accept(asset, dataAddress);
                 observable.invokeForEach(l -> l.created(asset));
                 return ServiceResult.success(asset);

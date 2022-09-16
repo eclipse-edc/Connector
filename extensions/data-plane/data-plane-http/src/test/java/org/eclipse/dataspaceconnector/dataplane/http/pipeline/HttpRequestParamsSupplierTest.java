@@ -10,6 +10,7 @@
  *  Contributors:
  *       Amadeus - initial API and implementation
  *       Siemens - add chunked parameter
+ *       SAP SE - use vault for sensitive data
  *
  */
 
@@ -166,6 +167,37 @@ class HttpRequestParamsSupplierTest {
         assertThat(HttpTestFixtures.formatRequestBodyAsString(body)).isEqualTo(supplier.body);
         assertThat(httpRequest.method()).isEqualTo(supplier.method);
         assertThat(httpRequest.body().contentLength()).isEqualTo(supplier.body.getBytes().length);
+    }
+
+    @Test
+    void verifyVaultEntriesAreResolvedIntoDataAddress() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .authKey("test-auth-key")
+                .authCode("test-auth-code")
+                .addVaultEntry("authCode", "HASHOFVAULTCODE1")
+                .addVaultEntry("authKey", "HASHOFVAULTKEY1")
+                .addVaultEntry("baseUrl", "HASHOFBASEURL1")
+                .baseUrl("http://test.base.url")
+                .build();
+        var request = createRequest(dataAddress);
+
+        when(vaultMock.resolveSecret("HASHOFVAULTCODE1")).thenReturn("test-auth-code-from-vault");
+        when(vaultMock.resolveSecret("HASHOFVAULTKEY1")).thenReturn("test-auth-key-from-vault");
+        when(vaultMock.resolveSecret("HASHOFBASEURL1")).thenReturn("http://test.base.url.from.vault");
+
+        var httpRequest = supplier.apply(request).toRequest();
+        assertThat(httpRequest.url())
+                .asString().startsWith("http://test.base.url.from.vault");
+
+        var headers = httpRequest.headers();
+        assertThat(headers)
+                .isNotNull()
+                .hasSize(1);
+        assertThat(headers.get("test-auth-key-from-vault"))
+                .isNotNull()
+                .isEqualTo("test-auth-code-from-vault");
+
+        verify(vaultMock).resolveSecret("HASHOFVAULTCODE1");
     }
 
     public static final class TestHttpRequestParamsSupplier extends HttpRequestParamsSupplier {

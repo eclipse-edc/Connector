@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Siemens AG - initial implementation
+ *       SAP SE - use vault for sensitive data
  *
  */
 
@@ -70,5 +71,17 @@ class HttpDataAddressTest {
         assertThat(dataAddress.getAdditionalHeaders()).isEmpty();
         assertThat(dataAddress.getNonChunkedTransfer()).isFalse();
         assertThat(dataAddress.getContentType()).isEqualTo("application/octet-stream");
+    }
+
+    @Test
+    void verifyVaultProperties() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .name("name1")
+                .baseUrl("http://myendpoint")
+                .addVaultEntry("authCode", "HASHEDKEY1")
+                .build();
+
+        assertThat(dataAddress.getVaultEntries())
+                .containsEntry("authCode", "HASHEDKEY1");
     }
 }
