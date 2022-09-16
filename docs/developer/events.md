@@ -52,7 +52,7 @@ public class ExampleEventSubscriber implements EventSubscriber {
     
     public void on(Event event) {
         if (event.getPayload() instanceof TransferProcessEventPayload) {
-            // react only to AssertCreated events
+            // react on Events related to TransferProcessEvents
         }
     }
     
