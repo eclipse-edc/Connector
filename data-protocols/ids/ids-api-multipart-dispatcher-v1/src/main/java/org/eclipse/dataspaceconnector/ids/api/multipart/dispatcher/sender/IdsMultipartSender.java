@@ -32,7 +32,6 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
-import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
@@ -57,27 +56,20 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
  * @param <M> the RemoteMessage type sent by the sub-class.
  * @param <R> the response type returned by the sub-class.
  */
-public class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
+public class IdsMultipartSender {
     private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
 
     private Monitor monitor;
     private OkHttpClient httpClient;
     private IdentityService identityService;
     private ObjectMapper objectMapper;
-    private MultipartSenderDelegate<M, R> senderDelegate;
 
     public IdsMultipartSender(@NotNull Monitor monitor, @NotNull OkHttpClient httpClient, @NotNull IdentityService identityService,
-                              @NotNull ObjectMapper objectMapper, @NotNull MultipartSenderDelegate<M, R> senderDelegate) {
+                              @NotNull ObjectMapper objectMapper) {
         this.monitor = monitor;
         this.httpClient = httpClient;
         this.identityService = identityService;
         this.objectMapper = objectMapper;
-        this.senderDelegate = senderDelegate;
-    }
-
-    @Override
-    public Class<M> messageType() {
-        return senderDelegate.getMessageType();
     }
 
     /**
@@ -87,8 +79,7 @@ public class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessag
      * @param request the request.
      * @return the response as {@link CompletableFuture}.
      */
-    @Override
-    public CompletableFuture<R> send(M request) {
+    public <M extends RemoteMessage, R> CompletableFuture<R> send(M request, MultipartSenderDelegate<M, R> senderDelegate) {
         var remoteConnectorAddress = request.getConnectorAddress();
 
         // Get Dynamic Attribute Token
@@ -192,7 +183,7 @@ public class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessag
                             var parts = extractResponseParts(body);
                             var response = senderDelegate.getResponseContent(parts);
 
-                            checkResponseType(response);
+                            checkResponseType(response, senderDelegate);
 
                             return response.getPayload();
                         }
@@ -250,7 +241,7 @@ public class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessag
                 .build();
     }
 
-    private void checkResponseType(@NotNull MultipartResponse<?> response) {
+    private void checkResponseType(@NotNull MultipartResponse<?> response, MultipartSenderDelegate<? extends RemoteMessage, ?> senderDelegate) {
         var type = senderDelegate.getAllowedResponseTypes();
         if (!type.contains(response.getHeader().getClass())) {
             throw new EdcException(String.format("Received %s but expected %s.", response.getHeader().getClass(), type));

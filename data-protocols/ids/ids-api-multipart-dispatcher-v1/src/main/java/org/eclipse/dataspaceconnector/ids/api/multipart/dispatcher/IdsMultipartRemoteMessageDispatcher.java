@@ -14,17 +14,49 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher;
 
-import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.dataspaceconnector.ids.spi.types.MessageProtocol;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.message.MessageContext;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * IdsRemoteMessageDispatcher implementation for IDS multipart.
  */
-public class IdsMultipartRemoteMessageDispatcher extends IdsRemoteMessageDispatcher {
+public class IdsMultipartRemoteMessageDispatcher implements RemoteMessageDispatcher {
+    
+    private final IdsMultipartSender multipartSender;
+    private final Map<Class<? extends RemoteMessage>, MultipartSenderDelegate<? extends RemoteMessage, ?>> delegates = new HashMap<>();
+    
+    public IdsMultipartRemoteMessageDispatcher(IdsMultipartSender idsMultipartSender) {
+        this.multipartSender = idsMultipartSender;
+    }
+    
+    public <M extends RemoteMessage, R> void register(MultipartSenderDelegate<M, R> delegate) {
+        delegates.put(delegate.getMessageType(), delegate);
+    }
 
     @Override
     public String protocol() {
         return MessageProtocol.IDS_MULTIPART;
     }
-
+    
+    @Override
+    public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message, MessageContext context) {
+        Objects.requireNonNull(message, "Message was null");
+        var delegate = (MultipartSenderDelegate<M, T>) delegates.get(message.getClass());
+        if (delegate == null) {
+            throw new EdcException("Message sender not found for message type: " + message.getClass().getName());
+        }
+        
+        return multipartSender.send(message, delegate);
+    }
+    
 }

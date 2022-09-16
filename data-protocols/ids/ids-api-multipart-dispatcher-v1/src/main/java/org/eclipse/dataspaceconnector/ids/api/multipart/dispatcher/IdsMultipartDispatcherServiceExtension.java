@@ -85,14 +85,15 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
 
         var senderContext = new DelegateMessageContext(URI.create(connectorId), objectMapper, transformerRegistry, idsWebhookAddress);
 
-        var dispatcher = new IdsMultipartRemoteMessageDispatcher();
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartArtifactRequestSender(senderContext, vault)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartDescriptionRequestSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractOfferSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractAgreementSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractRejectionSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartCatalogDescriptionRequestSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartEndpointDataReferenceRequestSender(senderContext, typeManager)));
+        var sender = new IdsMultipartSender(monitor, httpClient, identityService, objectMapper);
+        var dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);
+        dispatcher.register(new MultipartArtifactRequestSender(senderContext, vault));
+        dispatcher.register(new MultipartDescriptionRequestSender(senderContext));
+        dispatcher.register(new MultipartContractOfferSender(senderContext));
+        dispatcher.register(new MultipartContractAgreementSender(senderContext));
+        dispatcher.register(new MultipartContractRejectionSender(senderContext));
+        dispatcher.register(new MultipartCatalogDescriptionRequestSender(senderContext));
+        dispatcher.register(new MultipartEndpointDataReferenceRequestSender(senderContext, typeManager));
 
         dispatcherRegistry.register(dispatcher);
     }

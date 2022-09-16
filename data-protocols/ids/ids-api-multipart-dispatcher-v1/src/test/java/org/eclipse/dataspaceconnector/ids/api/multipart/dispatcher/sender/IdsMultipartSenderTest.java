@@ -45,9 +45,9 @@ class IdsMultipartSenderTest {
 
         var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
-        var sender = new IdsMultipartSender<>(mock(Monitor.class), mock(OkHttpClient.class), identityService, objectMapper, new TestIdsMultipartSender());
+        var sender = new IdsMultipartSender(mock(Monitor.class), mock(OkHttpClient.class), identityService, objectMapper);
 
-        var result = sender.send(new TestRemoteMessage());
+        var result = sender.send(new TestRemoteMessage(), new TestSenderDelegate());
 
         assertThat(result).failsWithin(1, TimeUnit.SECONDS);
     }
@@ -65,7 +65,7 @@ class IdsMultipartSenderTest {
         }
     }
 
-    private class TestIdsMultipartSender implements MultipartSenderDelegate<TestRemoteMessage, String> {
+    private class TestSenderDelegate implements MultipartSenderDelegate<TestRemoteMessage, String> {
 
         @Override
         public Class<TestRemoteMessage> getMessageType() {

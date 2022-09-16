@@ -84,13 +84,14 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     
         var senderContext = new DelegateMessageContext(URI.create(CONNECTOR_ID), objectMapper, transformerRegistry, idsWebhookAddress);
 
-        dispatcher = new IdsMultipartRemoteMessageDispatcher();
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartArtifactRequestSender(senderContext, vault)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartDescriptionRequestSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractOfferSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractAgreementSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartContractRejectionSender(senderContext)));
-        dispatcher.register(new IdsMultipartSender<>(monitor, httpClient, identityService, objectMapper, new MultipartCatalogDescriptionRequestSender(senderContext)));
+        var sender = new IdsMultipartSender(monitor, httpClient, identityService, objectMapper);
+        dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);
+        dispatcher.register(new MultipartArtifactRequestSender(senderContext, vault));
+        dispatcher.register(new MultipartDescriptionRequestSender(senderContext));
+        dispatcher.register(new MultipartContractOfferSender(senderContext));
+        dispatcher.register(new MultipartContractAgreementSender(senderContext));
+        dispatcher.register(new MultipartContractRejectionSender(senderContext));
+        dispatcher.register(new MultipartCatalogDescriptionRequestSender(senderContext));
     }
 
     @Test

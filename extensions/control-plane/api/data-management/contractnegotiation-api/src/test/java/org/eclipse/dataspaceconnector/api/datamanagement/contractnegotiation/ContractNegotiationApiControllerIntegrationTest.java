@@ -253,7 +253,7 @@ class ContractNegotiationApiControllerIntegrationTest {
         }
 
         @Override
-        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
+        public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message, MessageContext context) {
             return CompletableFuture.completedFuture(null);
         }
     }

@@ -36,6 +36,6 @@ public interface RemoteMessageDispatcher {
      * @param context      the message context
      * @return a future that can be used to retrieve the response when the operation has completed
      */
-    <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context);
+    <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message, MessageContext context);
 
 }
