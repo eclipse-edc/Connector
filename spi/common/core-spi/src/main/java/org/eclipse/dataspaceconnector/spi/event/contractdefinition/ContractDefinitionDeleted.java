@@ -9,13 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
 package org.eclipse.dataspaceconnector.spi.event.contractdefinition;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
-import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -48,11 +48,10 @@ public class ContractDefinitionDeleted extends Event<ContractDefinitionDeleted.P
         }
     }
 
-    public static class Payload extends EventPayload {
-        private String contractDefinitionId;
-
-        public String getContractDefinitionId() {
-            return contractDefinitionId;
-        }
+    /**
+     * This class contains all event specific attributes of a ContractDefinition Deletion Event
+     *
+     */
+    public static class Payload extends ContractDefinitionEventPayload {
     }
 }
