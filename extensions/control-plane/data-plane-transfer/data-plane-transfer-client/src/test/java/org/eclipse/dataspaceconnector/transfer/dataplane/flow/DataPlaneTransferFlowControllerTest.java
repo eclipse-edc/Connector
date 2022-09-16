@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add test for properties mapping
  *
  */
 
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +56,19 @@ class DataPlaneTransferFlowControllerTest {
      * Create a {@link DataRequest} object with provided destination type.
      */
     public static DataRequest createDataRequest(String destinationType) {
+        return createDataRequestBuilder(destinationType).build();
+    }
+    
+    /**
+     * Create a {@link DataRequest} object with provided destination type and additional properties.
+     */
+    public static DataRequest createDataRequestWithProperties(String destinationType, Map<String, String> properties) {
+        return createDataRequestBuilder(destinationType)
+                .properties(properties)
+                .build();
+    }
+    
+    private static DataRequest.Builder createDataRequestBuilder(String destinationType) {
         return DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(UUID.randomUUID().toString())
@@ -61,8 +76,7 @@ class DataPlaneTransferFlowControllerTest {
                 .assetId(UUID.randomUUID().toString())
                 .connectorAddress("test.connector.address")
                 .processId(UUID.randomUUID().toString())
-                .destinationType(destinationType)
-                .build();
+                .destinationType(destinationType);
     }
 
     @BeforeEach
@@ -116,5 +130,29 @@ class DataPlaneTransferFlowControllerTest {
         assertThat(dataFlowRequest.getSourceDataAddress().getType()).isEqualTo(source.getType());
         assertThat(dataFlowRequest.getDestinationDataAddress().getType()).isEqualTo(request.getDestinationType());
         assertThat(dataFlowRequest.getProperties()).isEmpty();
+    }
+    
+    @Test
+    void transferSuccess_additionalProperties() {
+        var properties = Map.of("propertyKey", "propertyValue");
+        var request = createDataRequestWithProperties(UUID.randomUUID().toString(), properties);
+        var source = testDataAddress();
+        
+        var dfrCapture = ArgumentCaptor.forClass(DataFlowRequest.class);
+        when(transferClientMock.transfer(any())).thenReturn(StatusResult.success());
+        
+        var policy = Policy.Builder.newInstance().build();
+        
+        var result = flowController.initiateFlow(request, source, policy);
+        
+        verify(transferClientMock, times(1)).transfer(dfrCapture.capture());
+        
+        assertThat(result.succeeded()).isTrue();
+        var dataFlowRequest = dfrCapture.getValue();
+        assertThat(dataFlowRequest.isTrackable()).isTrue();
+        assertThat(dataFlowRequest.getProcessId()).isEqualTo(request.getProcessId());
+        assertThat(dataFlowRequest.getSourceDataAddress().getType()).isEqualTo(source.getType());
+        assertThat(dataFlowRequest.getDestinationDataAddress().getType()).isEqualTo(request.getDestinationType());
+        assertThat(dataFlowRequest.getProperties()).containsAllEntriesOf(properties);
     }
 }

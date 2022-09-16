@@ -71,6 +71,7 @@ public class DataPlaneTransferFlowController implements DataFlowController {
                 .sourceDataAddress(sourceAddress)
                 .destinationType(dataRequest.getDestinationType())
                 .destinationDataAddress(dataRequest.getDataDestination())
+                .properties(dataRequest.getProperties())
                 .build();
     }
 }
