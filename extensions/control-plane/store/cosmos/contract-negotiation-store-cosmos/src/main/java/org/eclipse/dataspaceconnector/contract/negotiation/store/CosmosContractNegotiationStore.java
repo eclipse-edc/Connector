@@ -15,7 +15,9 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
+import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.implementation.BadRequestException;
+import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -25,7 +27,6 @@ import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.dataspaceconnector.azure.cosmos.util.CosmosLeaseContext;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -36,6 +37,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
+import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -58,19 +61,21 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     private final String connectorId;
     private final String partitionKey;
     private final CosmosLeaseContext leaseContext;
+    private final Clock clock;
 
-    public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String connectorId) {
+    public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String connectorId, Clock clock) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
         this.connectorId = connectorId;
         partitionKey = connectorId;
+        this.clock = clock;
         leaseContext = CosmosLeaseContext.with(cosmosDbApi, partitionKey, connectorId).usingRetry(List.of(retryPolicy));
     }
 
     @Override
     public @Nullable ContractNegotiation find(String negotiationId) {
-        var object = with(retryPolicy).get(() -> cosmosDbApi.queryItemById(negotiationId));
+        var object = with(retryPolicy).get(() -> findByIdInternal(negotiationId));
         return object != null ? toNegotiation(object) : null;
     }
 
@@ -102,18 +107,34 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
             with(retryPolicy).run(() -> cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation, partitionKey)));
             leaseContext.breakLease(negotiation.getId());
         } catch (BadRequestException ex) {
-            throw new EdcException(ex);
+            throw new IllegalStateException(ex);
         }
     }
 
     @Override
     public void delete(String negotiationId) {
         try {
+            var item = findByIdInternal(negotiationId);
+            if (item == null) {
+                return; //nothing to do
+            }
+            var document = toNegotiationDocument(item);
+            if (document.getWrappedInstance().getContractAgreement() != null) {
+                throw new IllegalStateException(format("Cannot delete ContractNegotiation [%s]: ContractAgreement already created.", negotiationId));
+            }
+            var lease = document.getLease();
+            if (lease != null && !lease.isExpired(clock.millis())) {
+                throw new IllegalStateException(format("The ContractNegotiation [%s] cannot be deleted: it is currently leased", negotiationId));
+            }
+
             leaseContext.acquireLease(negotiationId);
             with(retryPolicy).run(() -> cosmosDbApi.deleteItem(negotiationId));
             leaseContext.breakLease(negotiationId);
-        } catch (BadRequestException ex) {
-            throw new EdcException(ex);
+
+        } catch (NotFoundException ignored) {
+            // noop here
+        } catch (CosmosException ex) {
+            throw new IllegalStateException(ex);
         }
     }
 
@@ -176,10 +197,18 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         return list.stream().map(this::toNegotiation).collect(Collectors.toList());
     }
 
+    @Nullable
+    private Object findByIdInternal(String negotiationId) {
+        return cosmosDbApi.queryItemById(negotiationId);
+    }
+
     private ContractNegotiation toNegotiation(Object object) {
+        return toNegotiationDocument(object).getWrappedInstance();
+    }
+
+    private ContractNegotiationDocument toNegotiationDocument(Object object) {
         var json = typeManager.writeValueAsString(object);
-        var document = typeManager.readValue(json, ContractNegotiationDocument.class);
-        return document.getWrappedInstance();
+        return typeManager.readValue(json, ContractNegotiationDocument.class);
     }
 }
 

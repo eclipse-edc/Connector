@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -35,6 +36,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,6 +44,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -49,6 +52,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 class CosmosContractNegotiationStoreTest {
     private static final String PARTITION_KEY = "test-connector";
+    private final Clock clock = Clock.systemUTC();
     private CosmosContractNegotiationStore store;
     private CosmosDbApi cosmosDbApi;
 
@@ -57,7 +61,7 @@ class CosmosContractNegotiationStoreTest {
         cosmosDbApi = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
         var retryPolicy = RetryPolicy.ofDefaults();
-        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, retryPolicy, "test-connector");
+        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, retryPolicy, "test-connector", clock);
     }
 
     @Test
@@ -113,10 +117,36 @@ class CosmosContractNegotiationStoreTest {
 
     @Test
     void delete() {
+        var cn = createNegotiationBuilder("test-id").build();
+        when(cosmosDbApi.queryItemById(any())).thenReturn(generateDocument(cn));
+
         store.delete("test-id");
 
+        verify(cosmosDbApi).queryItemById("test-id");
         verify(cosmosDbApi).deleteItem("test-id");
         verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any());
+        verifyNoMoreInteractions(cosmosDbApi);
+    }
+
+    @Test
+    void delete_hasAgreement() {
+        when(cosmosDbApi.queryItemById(any())).thenReturn(generateDocument());
+
+        assertThatThrownBy(() -> store.delete("test-id")).isInstanceOf(IllegalStateException.class);
+
+        verify(cosmosDbApi).queryItemById("test-id");
+        verify(cosmosDbApi, never()).deleteItem("test-id");
+        verifyNoMoreInteractions(cosmosDbApi);
+    }
+
+    @Test
+    void delete_notFound() {
+        when(cosmosDbApi.queryItemById(any())).thenReturn(null);
+
+        store.delete("test-id");
+        
+        verify(cosmosDbApi).queryItemById("test-id");
+        verify(cosmosDbApi, never()).deleteItem("test-id");
         verifyNoMoreInteractions(cosmosDbApi);
     }
 

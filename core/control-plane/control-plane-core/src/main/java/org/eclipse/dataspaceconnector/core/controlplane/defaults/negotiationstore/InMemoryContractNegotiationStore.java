@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.core.controlplane.defaults.negotiationsto
 
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.InMemoryStatefulEntityStore;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
@@ -25,18 +26,32 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
+
+import static java.lang.String.format;
 
 /**
  * An in-memory, threadsafe process store. This implementation is intended for testing purposes only.
  */
 public class InMemoryContractNegotiationStore implements ContractNegotiationStore {
 
-    private final InMemoryStatefulEntityStore<ContractNegotiation> store = new InMemoryStatefulEntityStore<>(ContractNegotiation.class);
     private final QueryResolver<ContractNegotiation> negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
     private final QueryResolver<ContractAgreement> agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class);
+    private final InMemoryStatefulEntityStore<ContractNegotiation> store;
+
+    public InMemoryContractNegotiationStore() {
+        this(UUID.randomUUID().toString(), Clock.systemUTC(), new HashMap<>());
+    }
+
+    public InMemoryContractNegotiationStore(String leaseHolder, Clock clock, Map<String, Lease> leases) {
+        store = new InMemoryStatefulEntityStore<>(ContractNegotiation.class, leaseHolder, clock, leases);
+    }
 
     @Override
     public @Nullable ContractNegotiation find(String negotiationId) {
@@ -65,6 +80,10 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public void delete(String negotiationId) {
+        var negotiation = store.find(negotiationId);
+        if (negotiation != null && negotiation.getContractAgreement() != null) {
+            throw new IllegalStateException(format("Cannot delete ContractNegotiation [%s]: ContractAgreement already created.", negotiationId));
+        }
         store.delete(negotiationId);
     }
 

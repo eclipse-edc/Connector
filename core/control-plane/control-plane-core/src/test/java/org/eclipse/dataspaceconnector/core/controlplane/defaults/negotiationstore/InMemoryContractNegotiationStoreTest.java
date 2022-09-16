@@ -15,7 +15,11 @@
 package org.eclipse.dataspaceconnector.core.controlplane.defaults.negotiationstore;
 
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStoreTestBase;
+import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -24,10 +28,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -45,18 +54,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class InMemoryContractNegotiationStoreTest {
+class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
+    private final Map<String, Lease> leases = new HashMap<>();
     private InMemoryContractNegotiationStore store;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryContractNegotiationStore();
+        store = new InMemoryContractNegotiationStore(CONNECTOR_NAME, Clock.systemUTC(), leases);
     }
 
     @Test
-    void verifyCreateUpdateDelete() {
+    void verifyCreateDelete() {
         String id = UUID.randomUUID().toString();
-        ContractNegotiation negotiation = createNegotiation(id);
+        var negotiation = createNegotiationBuilder(id).build();
         negotiation.transitionInitial();
 
         store.save(negotiation);
@@ -66,6 +76,20 @@ class InMemoryContractNegotiationStoreTest {
         assertNotNull(found);
         assertNotSame(found, negotiation); // enforce by-value
 
+        store.delete(id);
+        assertNull(store.find(id));
+        assertNull(store.findContractAgreement("agreementId"));
+    }
+
+    @Test
+    void verifyCreateUpdate() {
+        String id = UUID.randomUUID().toString();
+        var negotiation = createNegotiation(id);
+        negotiation.transitionInitial();
+
+        store.save(negotiation);
+
+        var found = store.find(id);
         assertNotNull(store.findContractAgreement("agreementId"));
 
         assertEquals(INITIAL.code(), found.getState());
@@ -73,15 +97,11 @@ class InMemoryContractNegotiationStoreTest {
         negotiation.transitionRequesting();
 
         store.save(negotiation);
-
         found = store.find(id);
         assertNotNull(found);
         assertEquals(REQUESTING.code(), found.getState());
 
-        store.delete(id);
-        assertNull(store.find(id));
-        assertNull(store.findContractAgreement("agreementId"));
-
+        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -387,6 +407,49 @@ class InMemoryContractNegotiationStoreTest {
         var agreement = store.findContractAgreement("negotiation1");
 
         assertThat(agreement).isNull();
+    }
+
+    /**
+     * this test actually overwrites the base one, because the in-mem test sorts the elements by ID, which are Strings,
+     * which have a different natural sorting order than ints.
+     */
+    @Test
+    @DisplayName("Verify that paging and sorting is used")
+    void queryNegotiations_withPagingAndSorting() {
+        var querySpec = QuerySpec.Builder.newInstance()
+                .sortField("id")
+                .limit(10).offset(5).build();
+
+        IntStream.range(0, 100)
+                .mapToObj(i -> org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions.createNegotiation("" + i))
+                .forEach(cn -> getContractNegotiationStore().save(cn));
+
+        var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
+
+        Assertions.assertThat(result).hasSize(10)
+                .extracting(ContractNegotiation::getId)
+                .isSorted();
+    }
+
+    @Override
+    protected ContractNegotiationStore getContractNegotiationStore() {
+        return store;
+    }
+
+    @Override
+    protected void lockEntity(String negotiationId, String owner, Duration duration) {
+        leases.put(negotiationId, new Lease(owner, Clock.systemUTC().millis(), duration.toMillis()));
+    }
+
+    @Override
+    protected boolean isLockedBy(String negotiationId, String owner) {
+        return leases.entrySet().stream().anyMatch(e -> e.getKey().equals(negotiationId) &&
+                e.getValue().getLeasedBy().equals(owner) &&
+                !isExpired(e.getValue()));
+    }
+
+    private boolean isExpired(Lease e) {
+        return e.getLeasedAt() + e.getLeaseDuration() < Clock.systemUTC().millis();
     }
 
     @NotNull

@@ -15,22 +15,40 @@
 package org.eclipse.dataspaceconnector.core.controlplane.defaults.transferprocessstore;
 
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.InMemoryStatefulEntityStore;
+import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * An in-memory, threadsafe process store.
- * This implementation is intended for testing purposes only.
+ * An in-memory, threadsafe process store. This implementation is intended for testing purposes only.
  */
 public class InMemoryTransferProcessStore implements TransferProcessStore {
 
-    private final InMemoryStatefulEntityStore<TransferProcess> store = new InMemoryStatefulEntityStore<>(TransferProcess.class);
+    private final InMemoryStatefulEntityStore<TransferProcess> store;
+
+    public InMemoryTransferProcessStore() {
+        this(UUID.randomUUID().toString(), Clock.systemUTC(), new HashMap<>());
+    }
+
+    public InMemoryTransferProcessStore(String leaserId, Clock clock, Map<String, Lease> leases) {
+        store = new InMemoryStatefulEntityStore<>(TransferProcess.class, leaserId, clock, leases);
+    }
+
+    @Nullable
+    @Override
+    public TransferProcess find(String id) {
+        return store.find(id);
+    }
 
     @Override
     @Nullable
@@ -50,12 +68,6 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public void update(TransferProcess process) {
         store.upsert(process);
-    }
-
-    @Nullable
-    @Override
-    public TransferProcess find(String id) {
-        return store.find(id);
     }
 
     @Override

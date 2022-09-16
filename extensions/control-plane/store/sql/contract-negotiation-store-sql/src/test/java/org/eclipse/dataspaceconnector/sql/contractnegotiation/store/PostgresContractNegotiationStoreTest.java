@@ -23,16 +23,20 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStoreTestBase;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -43,6 +47,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -51,10 +56,10 @@ import javax.sql.DataSource;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions.createContract;
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions.createContractBuilder;
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions.createNegotiation;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContract;
-import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContractBuilder;
-import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
@@ -67,7 +72,7 @@ import static org.mockito.Mockito.when;
  * query operators.
  */
 @PostgresqlDbIntegrationTest
-class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTest {
+class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
     protected static final String DATASOURCE_NAME = "contractnegotiation";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
@@ -294,14 +299,37 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTest 
         store.save(updatedNegotiation);
     }
 
+    @Test
+    @Disabled("Postgres does not yet support ordering and sorting")
+    void queryNegotiations_withPagingAndSorting() {
+        var querySpec = QuerySpec.Builder.newInstance()
+                .sortField("id")
+                .limit(10).offset(5).build();
+
+        IntStream.range(0, 100)
+                .mapToObj(i -> TestFunctions.createNegotiation("" + i))
+                .forEach(cn -> getContractNegotiationStore().save(cn));
+
+        var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
+
+        assertThat(result).hasSize(10)
+                .extracting(ContractNegotiation::getId)
+                .isSorted();
+    }
+
     @Override
     protected SqlContractNegotiationStore getContractNegotiationStore() {
         return store;
     }
 
     @Override
-    protected LeaseUtil getLeaseUtil() {
-        return leaseUtil;
+    protected void lockEntity(String negotiationId, String owner, Duration duration) {
+        leaseUtil.leaseEntity(negotiationId, owner, duration);
+    }
+
+    @Override
+    protected boolean isLockedBy(String negotiationId, String owner) {
+        return leaseUtil.isLeased(negotiationId, owner);
     }
 
     protected Connection getConnection() {
