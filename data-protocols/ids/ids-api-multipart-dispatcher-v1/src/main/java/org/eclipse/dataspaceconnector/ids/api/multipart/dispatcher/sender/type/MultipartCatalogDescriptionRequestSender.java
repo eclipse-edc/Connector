@@ -46,8 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * IdsMultipartSender implementation for connector catalog requests. Sends IDS DescriptionRequestMessages and expects an
- * IDS DescriptionResponseMessage as the response.
+ * MultipartSenderDelegate for connector catalog requests.
  */
 public class MultipartCatalogDescriptionRequestSender implements MultipartSenderDelegate<CatalogRequest, Catalog> {
 

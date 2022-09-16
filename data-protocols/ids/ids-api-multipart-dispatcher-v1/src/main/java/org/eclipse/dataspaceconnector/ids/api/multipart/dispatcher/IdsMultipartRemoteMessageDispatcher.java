@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * IdsRemoteMessageDispatcher implementation for IDS multipart.
+ * Dispatcher for IDS Multipart messages.
  */
 public class IdsMultipartRemoteMessageDispatcher implements RemoteMessageDispatcher {
     
@@ -48,6 +48,15 @@ public class IdsMultipartRemoteMessageDispatcher implements RemoteMessageDispatc
         return MessageProtocol.IDS_MULTIPART;
     }
     
+    /**
+     * Sends an IDS Multipart message by choosing the correct delegate for the given message type
+     * and passing it to the IdsMultipartSender.
+     *
+     * @param responseType the expected response type
+     * @param message the message
+     * @param context the message context
+     * @return a future that can be used to retrieve the response when the operation has completed
+     */
     @Override
     public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message, MessageContext context) {
         Objects.requireNonNull(message, "Message was null");

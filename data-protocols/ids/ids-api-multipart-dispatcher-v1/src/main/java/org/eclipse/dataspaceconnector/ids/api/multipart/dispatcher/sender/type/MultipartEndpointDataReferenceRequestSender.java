@@ -36,8 +36,7 @@ import java.util.Objects;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
 /**
- * IdsMultipartSender implementation for transferring Endpoint Data Reference (EDR). Sends IDS NotificationMessage and
- * expects an IDS MessageProcessedMessage as the response.
+ * MultipartSenderDelegate for transferring Endpoint Data Reference (EDR).
  */
 public class MultipartEndpointDataReferenceRequestSender implements MultipartSenderDelegate<EndpointDataReferenceMessage, String> {
 

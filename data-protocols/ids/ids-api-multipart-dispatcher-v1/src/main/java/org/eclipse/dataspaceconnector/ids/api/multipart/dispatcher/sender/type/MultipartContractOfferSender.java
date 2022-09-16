@@ -41,8 +41,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender
 import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
- * IdsMultipartSender implementation for contract requests. Sends IDS ContractRequestMessages and
- * expects an IDS RequestInProcessMessage as the response.
+ * MultipartSenderDelegate for contract requests.
  */
 public class MultipartContractOfferSender implements MultipartSenderDelegate<ContractOfferRequest, String> {
     private final DelegateMessageContext context;

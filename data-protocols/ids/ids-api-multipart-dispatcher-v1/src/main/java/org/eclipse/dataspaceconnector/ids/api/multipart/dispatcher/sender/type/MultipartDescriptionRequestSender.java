@@ -43,8 +43,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * IdsMultipartSender implementation for metadata requests. Sends IDS DescriptionRequestMessages and
- * expects an IDS DescriptionResponseMessage as the response.
+ * MultipartSenderDelegate for metadata requests.
  */
 public class MultipartDescriptionRequestSender implements MultipartSenderDelegate<MetadataRequest, ModelClass> {
 

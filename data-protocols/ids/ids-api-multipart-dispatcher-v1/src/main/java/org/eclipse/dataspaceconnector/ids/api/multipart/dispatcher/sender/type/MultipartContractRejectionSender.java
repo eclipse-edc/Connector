@@ -36,8 +36,7 @@ import java.util.Objects;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
 /**
- * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and
- * expects an IDS RequestInProcessMessage as the response.
+ * MultipartSenderDelegate for contract rejections.
  */
 public class MultipartContractRejectionSender implements MultipartSenderDelegate<ContractRejection, String> {
 

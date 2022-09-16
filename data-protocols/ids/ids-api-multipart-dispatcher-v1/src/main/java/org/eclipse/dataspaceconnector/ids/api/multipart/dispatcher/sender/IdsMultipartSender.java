@@ -51,10 +51,7 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
 /**
- * Abstract class for sending IDS multipart messages.
- *
- * @param <M> the RemoteMessage type sent by the sub-class.
- * @param <R> the response type returned by the sub-class.
+ * Sends IDS multipart messages.
  */
 public class IdsMultipartSender {
     private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
