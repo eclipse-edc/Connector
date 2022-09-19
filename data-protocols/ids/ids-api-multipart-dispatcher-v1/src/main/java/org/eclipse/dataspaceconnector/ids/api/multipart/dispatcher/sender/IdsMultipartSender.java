@@ -61,12 +61,13 @@ public class IdsMultipartSender {
     private IdentityService identityService;
     private ObjectMapper objectMapper;
 
-    public IdsMultipartSender(@NotNull Monitor monitor, @NotNull OkHttpClient httpClient, @NotNull IdentityService identityService,
+    public IdsMultipartSender(@NotNull Monitor monitor, @NotNull OkHttpClient httpClient,
+                              @NotNull IdentityService identityService,
                               @NotNull ObjectMapper objectMapper) {
-        this.monitor = monitor;
-        this.httpClient = httpClient;
-        this.identityService = identityService;
-        this.objectMapper = objectMapper;
+        this.monitor = Objects.requireNonNull(monitor);
+        this.httpClient = Objects.requireNonNull(httpClient);
+        this.identityService = Objects.requireNonNull(identityService);
+        this.objectMapper = Objects.requireNonNull(objectMapper);
     }
 
     /**
@@ -238,7 +239,7 @@ public class IdsMultipartSender {
                 .build();
     }
 
-    private void checkResponseType(@NotNull MultipartResponse<?> response, MultipartSenderDelegate<? extends RemoteMessage, ?> senderDelegate) {
+    private void checkResponseType(MultipartResponse<?> response, MultipartSenderDelegate<? extends RemoteMessage, ?> senderDelegate) {
         var type = senderDelegate.getAllowedResponseTypes();
         if (!type.contains(response.getHeader().getClass())) {
             throw new EdcException(String.format("Received %s but expected %s.", response.getHeader().getClass(), type));
