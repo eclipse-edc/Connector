@@ -15,14 +15,18 @@
 package org.eclipse.dataspaceconnector.core.jwt;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.HamcrestCondition;
 import org.eclipse.dataspaceconnector.spi.jwt.JwtDecorator;
 import org.eclipse.dataspaceconnector.spi.jwt.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,9 +36,12 @@ import java.security.Key;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
+import static com.nimbusds.jose.JWSAlgorithm.RS256;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.PATH;
 
 class TokenGenerationServiceImplTest {
 
@@ -64,11 +71,13 @@ class TokenGenerationServiceImplTest {
         var tested = signedJwt.getJWTClaimsSet().getClaims();
         assertThat(tested)
                 .containsEntry("foo", "bar")
-                .hasEntrySatisfying("exp", new Condition<>() {
-                    public boolean matches(Object value) {
-                        return value instanceof Date;
-                    }
-                });
+                .containsKey("exp")
+                .extracting(it -> it.get("exp")).isInstanceOf(Date.class);
+
+        assertThat(signedJwt.getHeader()).satisfies(header -> {
+            assertThat(header.getAlgorithm()).isEqualTo(RS256);
+            assertThat(header.getX509CertThumbprint()).isEqualTo(Base64URL.from("some x509CertThumbprint thing"));
+        });
     }
 
     private JWSVerifier createVerifier(JWSHeader header, Key publicKey) throws JOSEException {
@@ -76,10 +85,17 @@ class TokenGenerationServiceImplTest {
     }
 
     private JwtDecorator testDecorator() {
-        return (header, claimsSet) -> {
-            claimsSet.expirationTime(Date.from(Instant.now().plusSeconds(60)))
-                    .claim("foo", "bar")
-                    .build();
+        return new JwtDecorator() {
+
+            @Override
+            public Map<String, Object> claims() {
+                return Map.of("foo", "bar", "exp", Date.from(Instant.now().plusSeconds(60)));
+            }
+
+            @Override
+            public Map<String, Object> headers() {
+                return Map.of("x5t", "some x509CertThumbprint thing");
+            }
         };
     }
 

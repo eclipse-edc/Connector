@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.jwt.JwtDecorator;
 
 import java.util.Date;
+import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 
@@ -41,10 +41,16 @@ public class DataPlaneProxyTokenDecorator implements JwtDecorator {
     }
 
     @Override
-    public void decorate(JWSHeader.Builder header, JWTClaimsSet.Builder claimsSet) {
-        claimsSet.expirationTime(expirationDate)
-                .claim(CONTRACT_ID, contractId)
-                .claim(DATA_ADDRESS, encryptedDataAddress)
-                .build();
+    public Map<String, Object> claims() {
+        return Map.of(
+                "exp", expirationDate,
+                CONTRACT_ID, contractId,
+                DATA_ADDRESS, encryptedDataAddress
+        );
+    }
+
+    @Override
+    public Map<String, Object> headers() {
+        return emptyMap();
     }
 }

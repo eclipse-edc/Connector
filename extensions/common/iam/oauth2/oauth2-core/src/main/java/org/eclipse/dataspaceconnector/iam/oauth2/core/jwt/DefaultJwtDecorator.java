@@ -14,13 +14,12 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.util.Base64URL;
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.jwt.JwtDecorator;
 
 import java.time.Clock;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.Fingerprint.sha1Base64Fingerprint;
@@ -42,13 +41,19 @@ public class DefaultJwtDecorator implements JwtDecorator {
     }
 
     @Override
-    public void decorate(JWSHeader.Builder header, JWTClaimsSet.Builder claimsSet) {
-        header.x509CertThumbprint(new Base64URL(sha1Base64Fingerprint(encodedCertificate)));
-        claimsSet.audience(audience)
-                .issuer(clientId)
-                .subject(clientId)
-                .jwtID(UUID.randomUUID().toString())
-                .issueTime(Date.from(clock.instant()))
-                .expirationTime(Date.from(clock.instant().plusSeconds(expiration)));
+    public Map<String, Object> headers() {
+        return Map.of("x5t", sha1Base64Fingerprint(encodedCertificate));
+    }
+
+    @Override
+    public Map<String, Object> claims() {
+        return Map.of(
+                "aud", List.of(audience),
+                "iss", clientId,
+                "sub", clientId,
+                "jti", UUID.randomUUID().toString(),
+                "iat", Date.from(clock.instant()),
+                "exp", Date.from(clock.instant().plusSeconds(expiration))
+        );
     }
 }

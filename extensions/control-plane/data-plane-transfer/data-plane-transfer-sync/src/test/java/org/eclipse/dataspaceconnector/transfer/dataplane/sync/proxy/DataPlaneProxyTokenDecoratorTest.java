@@ -14,11 +14,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
@@ -45,15 +43,19 @@ class DataPlaneProxyTokenDecoratorTest {
     }
 
     @Test
-    void decorate() throws ParseException {
-        var builder = new JWTClaimsSet.Builder();
+    void claims() {
+        var result = decorator.claims();
 
-        decorator.decorate(null, builder);
+        assertThat(result)
+                .containsEntry(CONTRACT_ID, contractId)
+                .containsEntry(DATA_ADDRESS, encryptedDataAddress)
+                .containsEntry("exp", expiration);
+    }
 
-        var claims = builder.build();
-        assertThat(claims.getStringClaim(CONTRACT_ID)).isEqualTo(contractId);
-        assertThat(claims.getStringClaim(DATA_ADDRESS)).isEqualTo(encryptedDataAddress);
-        assertThat(claims.getExpirationTime()).isNotNull()
-                .isEqualTo(expiration);
+    @Test
+    void headers() {
+        var result = decorator.headers();
+
+        assertThat(result).isNotNull().isEmpty();
     }
 }
