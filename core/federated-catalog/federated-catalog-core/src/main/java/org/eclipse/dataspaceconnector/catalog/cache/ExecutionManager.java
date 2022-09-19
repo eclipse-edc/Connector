@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.crawler.CatalogCrawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerSuccessHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeFilter;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
@@ -41,7 +42,6 @@ import static java.lang.String.format;
  * The execution manager is responsible for instantiating crawlers and delegating the incoming work items among them.
  * Work items are fetched directly from the {@link FederatedCacheNodeDirectory}, crawlers are instantiated before starting the run and will be reused.
  * For example, a list of 10 work items and 2 {@link CatalogCrawler} objects would mean that every crawler gets invoked 5 times.
- * All this is done
  * <p>
  * Pre- and Post-Tasks can be registered to perform preparatory or cleanup operations.
  * <p>
@@ -53,12 +53,13 @@ public class ExecutionManager {
     private Runnable preExecutionTask;
     private Runnable postExecutionTask;
     private FederatedCacheNodeDirectory directory;
-    private String connectorId;
+    private FederatedCacheNodeFilter nodeFilter;
     private int numCrawlers = 1;
     private NodeQueryAdapterRegistry nodeQueryAdapterRegistry;
     private CrawlerSuccessHandler successHandler;
 
     private ExecutionManager() {
+        nodeFilter = n -> true;
     }
 
     public void executePlan(ExecutionPlan plan) {
@@ -165,7 +166,7 @@ public class ExecutionManager {
 
     private List<WorkItem> fetchWorkItems() {
         // use all nodes EXCEPT self
-        return directory.getAll().stream().filter(node -> !node.getName().equals(connectorId)).map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
+        return directory.getAll().stream().filter(nodeFilter).map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
     }
 
     private String selectProtocol(List<String> supportedProtocols) {
@@ -214,11 +215,6 @@ public class ExecutionManager {
             return this;
         }
 
-        public Builder connectorId(String connectorId) {
-            instance.connectorId = connectorId;
-            return this;
-        }
-
         public Builder numCrawlers(int numCrawlers) {
             instance.numCrawlers = numCrawlers;
             return this;
@@ -239,6 +235,11 @@ public class ExecutionManager {
             return this;
         }
 
+        public Builder nodeFilterFunction(FederatedCacheNodeFilter filter) {
+            instance.nodeFilter = filter;
+            return this;
+        }
+
         public Builder onSuccess(CrawlerSuccessHandler successConsumer) {
             instance.successHandler = successConsumer;
             return this;
@@ -246,7 +247,6 @@ public class ExecutionManager {
 
         public ExecutionManager build() {
             Objects.requireNonNull(instance.monitor, "ExecutionManager.Builder: Monitor cannot be null");
-            Objects.requireNonNull(instance.connectorId, "ExecutionManager.Builder: connectorId cannot be null");
             Objects.requireNonNull(instance.nodeQueryAdapterRegistry, "ExecutionManager.Builder: nodeQueryAdapterRegistry cannot be null");
             Objects.requireNonNull(instance.directory, "ExecutionManager.Builder: nodeDirectory cannot be null");
             return instance;
