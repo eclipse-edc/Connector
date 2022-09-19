@@ -35,12 +35,10 @@ import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * MultipartSenderDelegate for metadata requests.
@@ -49,8 +47,8 @@ public class MultipartDescriptionRequestSender implements MultipartSenderDelegat
 
     private final SenderDelegateContext context;
 
-    public MultipartDescriptionRequestSender(@NotNull SenderDelegateContext context) {
-        this.context = Objects.requireNonNull(context);
+    public MultipartDescriptionRequestSender(SenderDelegateContext context) {
+        this.context = context;
     }
 
     @Override

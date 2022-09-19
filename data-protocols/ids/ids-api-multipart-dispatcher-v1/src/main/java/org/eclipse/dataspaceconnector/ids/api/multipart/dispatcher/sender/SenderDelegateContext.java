@@ -16,10 +16,8 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.util.Objects;
 
 /**
  * Contains services and context information required by sender delegate classes.
@@ -30,13 +28,13 @@ public class SenderDelegateContext {
     private final IdsTransformerRegistry transformerRegistry;
     private final String idsWebhookAddress;
 
-    public SenderDelegateContext(@NotNull URI connectorId, @NotNull ObjectMapper objectMapper,
-                                 @NotNull IdsTransformerRegistry transformerRegistry,
-                                 @NotNull String idsWebhookAddress) {
-        this.connectorId = Objects.requireNonNull(connectorId);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.idsWebhookAddress = Objects.requireNonNull(idsWebhookAddress);
+    public SenderDelegateContext(URI connectorId, ObjectMapper objectMapper,
+                                 IdsTransformerRegistry transformerRegistry,
+                                 String idsWebhookAddress) {
+        this.connectorId = connectorId;
+        this.objectMapper = objectMapper;
+        this.transformerRegistry = transformerRegistry;
+        this.idsWebhookAddress = idsWebhookAddress;
     }
 
     public URI getConnectorId() {

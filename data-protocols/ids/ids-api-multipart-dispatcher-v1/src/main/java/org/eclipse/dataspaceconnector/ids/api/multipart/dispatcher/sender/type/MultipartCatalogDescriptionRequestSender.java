@@ -33,7 +33,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,8 +51,8 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
 
     private final SenderDelegateContext context;
 
-    public MultipartCatalogDescriptionRequestSender(@NotNull SenderDelegateContext context) {
-        this.context = Objects.requireNonNull(context);
+    public MultipartCatalogDescriptionRequestSender(SenderDelegateContext context) {
+        this.context = context;
     }
 
     @Override

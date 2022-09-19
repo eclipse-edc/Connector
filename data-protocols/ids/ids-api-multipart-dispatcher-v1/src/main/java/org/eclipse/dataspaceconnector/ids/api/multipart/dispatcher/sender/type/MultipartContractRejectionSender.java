@@ -26,12 +26,10 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.respon
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
@@ -42,8 +40,8 @@ public class MultipartContractRejectionSender implements MultipartSenderDelegate
 
     private final SenderDelegateContext context;
 
-    public MultipartContractRejectionSender(@NotNull SenderDelegateContext context) {
-        this.context = Objects.requireNonNull(context);
+    public MultipartContractRejectionSender(SenderDelegateContext context) {
+        this.context = context;
     }
 
     @Override

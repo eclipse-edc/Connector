@@ -26,12 +26,10 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.respon
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
@@ -43,8 +41,8 @@ public class MultipartEndpointDataReferenceRequestSender implements MultipartSen
     private final SenderDelegateContext context;
     private final TypeManager typeManager;
 
-    public MultipartEndpointDataReferenceRequestSender(@NotNull SenderDelegateContext context, @NotNull TypeManager typeManager) {
-        this.context = Objects.requireNonNull(context);
+    public MultipartEndpointDataReferenceRequestSender(SenderDelegateContext context, TypeManager typeManager) {
+        this.context = context;
         this.typeManager = typeManager;
     }
 

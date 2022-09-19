@@ -38,7 +38,6 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -61,13 +60,13 @@ public class IdsMultipartSender {
     private IdentityService identityService;
     private ObjectMapper objectMapper;
 
-    public IdsMultipartSender(@NotNull Monitor monitor, @NotNull OkHttpClient httpClient,
-                              @NotNull IdentityService identityService,
-                              @NotNull ObjectMapper objectMapper) {
-        this.monitor = Objects.requireNonNull(monitor);
-        this.httpClient = Objects.requireNonNull(httpClient);
-        this.identityService = Objects.requireNonNull(identityService);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
+    public IdsMultipartSender(Monitor monitor, OkHttpClient httpClient,
+                              IdentityService identityService,
+                              ObjectMapper objectMapper) {
+        this.monitor = monitor;
+        this.httpClient = httpClient;
+        this.identityService = identityService;
+        this.objectMapper = objectMapper;
     }
 
     /**

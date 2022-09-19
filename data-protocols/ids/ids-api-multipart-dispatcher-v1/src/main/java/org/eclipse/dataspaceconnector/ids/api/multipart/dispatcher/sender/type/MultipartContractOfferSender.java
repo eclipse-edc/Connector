@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
@@ -46,8 +45,8 @@ import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEB
 public class MultipartContractOfferSender implements MultipartSenderDelegate<ContractOfferRequest, String> {
     private final SenderDelegateContext context;
 
-    public MultipartContractOfferSender(@NotNull SenderDelegateContext context) {
-        this.context = Objects.requireNonNull(context);
+    public MultipartContractOfferSender(SenderDelegateContext context) {
+        this.context = context;
     }
 
     @Override

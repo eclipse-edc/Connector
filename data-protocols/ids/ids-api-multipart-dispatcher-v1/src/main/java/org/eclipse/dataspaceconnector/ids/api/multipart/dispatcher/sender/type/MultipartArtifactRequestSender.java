@@ -29,12 +29,10 @@ import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
@@ -48,9 +46,9 @@ public class MultipartArtifactRequestSender implements MultipartSenderDelegate<D
     private final SenderDelegateContext context;
     private final Vault vault;
 
-    public MultipartArtifactRequestSender(@NotNull SenderDelegateContext context, @NotNull Vault vault) {
-        this.context = Objects.requireNonNull(context);
-        this.vault = Objects.requireNonNull(vault);
+    public MultipartArtifactRequestSender(SenderDelegateContext context, Vault vault) {
+        this.context = context;
+        this.vault = vault;
     }
 
     @Override

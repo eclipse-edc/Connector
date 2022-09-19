@@ -29,12 +29,10 @@ import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
@@ -46,8 +44,8 @@ public class MultipartContractAgreementSender implements MultipartSenderDelegate
 
     private final SenderDelegateContext context;
 
-    public MultipartContractAgreementSender(@NotNull SenderDelegateContext context) {
-        this.context = Objects.requireNonNull(context);
+    public MultipartContractAgreementSender(SenderDelegateContext context) {
+        this.context = context;
     }
 
     @Override
