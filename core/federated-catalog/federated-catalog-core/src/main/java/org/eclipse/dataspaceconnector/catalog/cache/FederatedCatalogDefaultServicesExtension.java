@@ -27,11 +27,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * Provides default service implementations for fallback
  */
-public class DefaultFederatedCatalogExtension implements ServiceExtension {
+public class FederatedCatalogDefaultServicesExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Default Federated Catalog Services";
+        return "Federated Catalog Default Services";
     }
 
     @Provider(isDefault = true)

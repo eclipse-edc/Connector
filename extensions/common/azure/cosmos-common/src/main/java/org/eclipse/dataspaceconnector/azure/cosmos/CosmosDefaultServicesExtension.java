@@ -20,11 +20,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 /**
  * Provides default service implementations for fallback
  */
-public class DefaultCosmosExtension implements ServiceExtension {
+public class CosmosDefaultServicesExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Default CosmosDB Services";
+        return "CosmosDB Default Services";
     }
 
     @Provider(isDefault = true)

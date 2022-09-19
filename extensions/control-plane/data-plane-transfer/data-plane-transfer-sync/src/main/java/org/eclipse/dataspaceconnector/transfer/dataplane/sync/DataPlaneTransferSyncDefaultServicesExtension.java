@@ -23,11 +23,11 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.sync.security.NoopDataE
 /**
  * Provides default service implementations for fallback
  */
-public class DefaultDataPlaneTransferSyncExtension implements ServiceExtension {
+public class DataPlaneTransferSyncDefaultServicesExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Default Data Plane Transfer Sync Services";
+        return "Data Plane Transfer Sync Default Services";
     }
 
     @Provider(isDefault = true)

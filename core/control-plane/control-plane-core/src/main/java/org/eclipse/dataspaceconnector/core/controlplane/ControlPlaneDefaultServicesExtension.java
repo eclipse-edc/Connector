@@ -34,14 +34,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * Provides default service implementations for fallback
  */
-public class DefaultControlPlaneExtension implements ServiceExtension {
+public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     private InMemoryAssetIndex assetIndex;
     private InMemoryContractDefinitionStore contractDefinitionStore;
 
     @Override
     public String name() {
-        return "Default Control Plane Services";
+        return "Control Plane Default Services";
     }
 
     @Provider(isDefault = true)

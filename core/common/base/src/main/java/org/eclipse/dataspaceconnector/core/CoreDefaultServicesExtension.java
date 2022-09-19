@@ -40,7 +40,7 @@ import java.util.concurrent.Executors;
 /**
  * Provides default service implementations for fallback
  */
-public class DefaultCoreExtension implements ServiceExtension {
+public class CoreDefaultServicesExtension implements ServiceExtension {
 
     @EdcSetting(value = "Maximum retries for the retry policy before a failure is propagated")
     public static final String MAX_RETRIES = "edc.core.retry.retries.max";
@@ -57,7 +57,7 @@ public class DefaultCoreExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Default Core Services";
+        return "Core Default Services";
     }
 
     @Provider(isDefault = true)

@@ -23,7 +23,12 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 /**
  * Provides default service implementations for fallback
  */
-public class DefaultApiCoreExtension implements ServiceExtension {
+public class ApiCoreDefaultServicesExtension implements ServiceExtension {
+
+    @Override
+    public String name() {
+        return "Api Core Default Services";
+    }
 
     @Provider(isDefault = true)
     public AuthenticationService authenticationService(ServiceExtensionContext context) {
