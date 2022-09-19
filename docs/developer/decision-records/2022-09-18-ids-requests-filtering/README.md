@@ -1,4 +1,4 @@
-# Add filtering to IDS requests
+# Add filtering to IDS catalog requests
 
 ## Decision
 
@@ -22,15 +22,14 @@ As the logic for querying `AssetIndex` by `QuerySpec` is already in place, all w
 message.setProperty(CatalogRequest.FILTER, request.getFilter());
 ```
 
-Then, on the receiving end, it's simply extracted and converted to the list of `Criteria`:
+Then, on the receiving end, it's simply extracted and converted to the list of `Criteria` and encapsulated (along with `Range`) into 
+`QuerySpec`:
 
 ```
 // in DescriptionRequestHandler.java 
- Optional<Object> maybeFilter = Optional.ofNullable(message.getProperties().get(CatalogRequest.FILTER));
-
- if (maybeFilter.isPresent()) {
-   criterions = objectMapper.convertValue(maybeFilter.get(), new TypeReference<>() {});
- }
+var querySpec = ofNullable(message.getProperties().get(CatalogRequest.FILTER))
+    .map(map -> objectMapper.convertValue(map, typeRef))
+    .orElse(/*should never occur!!*/)
 ```
 
 And now, they can be applied to `AssetIndex` search query when constructing the `Catalog` response:
@@ -39,4 +38,9 @@ And now, they can be applied to `AssetIndex` search query when constructing the 
 2) attach to the existing `ContractOfferQuery` object
 3) in `ContractOfferServiceImpl.queryContractOffers()`, merge with `AssetSelectorExpressions` from contract definitions.
 
+## Considerations and limitations
 
+- there is no standardized query language nor will there be one for the foreseeable future;
+- querying is based on the "Canonical format": (https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/docs/developer/sql_queries.md),
+  i.e. the schema of the queried objects, i.e. their Java class. That implies that the client must have knowledge of the schema; 
+- that schema is subject to change without special notice.
