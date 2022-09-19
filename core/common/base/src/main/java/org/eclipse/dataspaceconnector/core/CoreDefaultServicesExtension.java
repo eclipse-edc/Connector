@@ -12,27 +12,36 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.defaults;
+package org.eclipse.dataspaceconnector.core;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.OkHttpClientFactory;
+import org.eclipse.dataspaceconnector.core.event.EventExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopCertificateResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopVault;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.Executors;
 
 /**
- * Provides defaults for various services.
- * Provider methods are only invoked if no other implementation was found on the classpath.
+ * Provides default service implementations for fallback
  */
-public class DefaultServicesExtension implements ServiceExtension {
+public class CoreDefaultServicesExtension implements ServiceExtension {
+
     @EdcSetting(value = "Maximum retries for the retry policy before a failure is propagated")
     public static final String MAX_RETRIES = "edc.core.retry.retries.max";
     @EdcSetting(value = "Minimum number of milliseconds for exponential backoff")
@@ -42,12 +51,49 @@ public class DefaultServicesExtension implements ServiceExtension {
 
     /**
      * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
-     * Used by the optional {@code micrometer} module.
      */
     @Inject(required = false)
     private EventListener okHttpEventListener;
 
-    public DefaultServicesExtension() {
+    @Override
+    public String name() {
+        return "Core Default Services";
+    }
+
+    @Provider(isDefault = true)
+    public TransactionContext defaultTransactionContext(ServiceExtensionContext context) {
+        context.getMonitor().warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
+        return new NoopTransactionContext();
+    }
+
+    @Provider(isDefault = true)
+    public ExecutorInstrumentation defaultInstrumentation() {
+        return ExecutorInstrumentation.noop();
+    }
+
+    @Provider(isDefault = true)
+    public EventExecutorServiceContainer eventExecutorServiceContainer() {
+        return new EventExecutorServiceContainer(Executors.newFixedThreadPool(1)); // TODO: make configurable
+    }
+
+    @Provider(isDefault = true)
+    public Vault vault() {
+        return new NoopVault();
+    }
+
+    @Provider(isDefault = true)
+    public PrivateKeyResolver privateKeyResolver() {
+        return new NoopPrivateKeyResolver();
+    }
+
+    @Provider(isDefault = true)
+    public CertificateResolver certificateResolver() {
+        return new NoopCertificateResolver();
+    }
+
+    @Provider
+    public OkHttpClient okHttpClient(ServiceExtensionContext context) {
+        return OkHttpClientFactory.create(context, okHttpEventListener);
     }
 
     @Provider
@@ -62,15 +108,4 @@ public class DefaultServicesExtension implements ServiceExtension {
                 .build();
     }
 
-    @Provider(isDefault = true)
-    public TransactionContext defaultTransactionContext(ServiceExtensionContext context) {
-        context.getMonitor().warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
-        return new NoopTransactionContext();
-    }
-
-
-    @Provider
-    public OkHttpClient okHttpClient(ServiceExtensionContext context) {
-        return OkHttpClientFactory.create(context, okHttpEventListener);
-    }
 }

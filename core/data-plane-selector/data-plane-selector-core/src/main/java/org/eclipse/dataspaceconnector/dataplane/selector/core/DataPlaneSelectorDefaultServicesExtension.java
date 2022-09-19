@@ -19,14 +19,17 @@ import org.eclipse.dataspaceconnector.dataplane.selector.store.DefaultDataPlaneI
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
-public class DataPlaneSelectorDefaultsExtension implements ServiceExtension {
+/**
+ * Provides default service implementations for fallback
+ */
+public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane Selector Defaults";
+        return "Data Plane Selector Default Services";
     }
 
-    @Provider
+    @Provider(isDefault = true)
     public DataPlaneInstanceStore instanceStore() {
         return new DefaultDataPlaneInstanceStore();
     }

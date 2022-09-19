@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.IdsMultipartNodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
-import org.eclipse.dataspaceconnector.catalog.directory.InMemoryNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheConfiguration;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
@@ -30,8 +29,6 @@ import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
-import org.eclipse.dataspaceconnector.catalog.store.InMemoryFederatedCacheStore;
-import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -41,8 +38,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
-
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     private Monitor monitor;
@@ -133,17 +128,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
             nodeQueryAdapterRegistry.register("ids-multipart", new IdsMultipartNodeQueryAdapter(context.getConnectorId(), dispatcherRegistry, monitor));
         }
         return nodeQueryAdapterRegistry;
-    }
-
-    @Provider(isDefault = true)
-    public FederatedCacheStore defaultCacheStore() {
-        //todo: converts every criterion into a predicate that is always true. must be changed later!
-        return new InMemoryFederatedCacheStore(criterion -> offer -> true, new LockManager(new ReentrantReadWriteLock()));
-    }
-
-    @Provider(isDefault = true)
-    public FederatedCacheNodeDirectory defaultNodeDirectory() {
-        return new InMemoryNodeDirectory();
     }
 
     /**

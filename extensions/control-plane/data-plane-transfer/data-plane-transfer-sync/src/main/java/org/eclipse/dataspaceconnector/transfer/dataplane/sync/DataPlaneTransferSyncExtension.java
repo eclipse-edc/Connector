@@ -23,11 +23,9 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
@@ -40,7 +38,6 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow.ProviderDataP
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferConsumerProxyTransformer;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferProxyReferenceServiceImpl;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferProxyResolverImpl;
-import org.eclipse.dataspaceconnector.transfer.dataplane.sync.security.NoopDataEncrypter;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.security.PublicKeyParser;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation.ContractValidationRule;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation.ExpirationDateValidationRule;
@@ -93,18 +90,6 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     @Inject
     private DataEncrypter dataEncrypter;
 
-    private Monitor monitor;
-
-    @Provider(isDefault = true)
-    public DataEncrypter getDataEncrypter() {
-        if (monitor != null) {
-            var msg = String.format("No %s registered, a no-op implementation will be used, not suitable for production environments", DataEncrypter.class.getSimpleName());
-            monitor.warning(msg);
-        }
-
-        return new NoopDataEncrypter();
-    }
-
     @Override
     public String name() {
         return "Data Plane Transfer Sync";
@@ -112,8 +97,6 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         var keyPair = createKeyPair(context);
         var selectorStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
 

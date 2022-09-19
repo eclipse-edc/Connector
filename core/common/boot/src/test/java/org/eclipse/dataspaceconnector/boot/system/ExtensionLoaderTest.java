@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.boot.system;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
-import org.eclipse.dataspaceconnector.boot.system.testextensions.DefaultProviderExtension;
+import org.eclipse.dataspaceconnector.boot.system.testextensions.ProviderDefaultServicesExtension;
 import org.eclipse.dataspaceconnector.boot.system.testextensions.ProviderExtension;
 import org.eclipse.dataspaceconnector.boot.util.CyclicDependencyException;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -294,7 +294,7 @@ class ExtensionLoaderTest {
     void bootServiceExtensions_withSingleDefaultProvider() {
         var dependentExtension = createDependentExtension(true);
 
-        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+        var defaultProvider = (ProviderDefaultServicesExtension) spy(createProviderExtension(true));
         when(defaultProvider.testObject()).thenCallRealMethod();
 
 
@@ -312,7 +312,7 @@ class ExtensionLoaderTest {
     void bootServiceExtensions_withSingleDefaultProvider_andNonDefault() {
         var dependentExtension = createDependentExtension(true);
 
-        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+        var defaultProvider = (ProviderDefaultServicesExtension) spy(createProviderExtension(true));
 
         var nonDefaultProvider = (ProviderExtension) spy(createProviderExtension(false));
         when(nonDefaultProvider.testObject()).thenCallRealMethod();
@@ -349,7 +349,7 @@ class ExtensionLoaderTest {
     void bootServiceExtensions_withOptionalDependency_onlyDefault() {
         var dependentExtension = createDependentExtension(false);
 
-        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+        var defaultProvider = (ProviderDefaultServicesExtension) spy(createProviderExtension(true));
         when(defaultProvider.testObject()).thenCallRealMethod();
 
         var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
@@ -367,7 +367,7 @@ class ExtensionLoaderTest {
     void bootServiceExtensions_withOptionalDependency_defaultAndNonDefault() {
         var dependentExtension = createDependentExtension(false);
 
-        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+        var defaultProvider = (ProviderDefaultServicesExtension) spy(createProviderExtension(true));
         when(defaultProvider.testObject()).thenCallRealMethod();
 
         var provider = (ProviderExtension) spy(createProviderExtension(false));

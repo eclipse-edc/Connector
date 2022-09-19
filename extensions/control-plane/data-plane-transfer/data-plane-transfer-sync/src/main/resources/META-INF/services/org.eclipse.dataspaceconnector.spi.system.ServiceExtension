@@ -12,3 +12,4 @@
 #
 #
 org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncExtension
+org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncDefaultServicesExtension

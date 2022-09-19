@@ -1,1 +1,2 @@
 org.eclipse.dataspaceconnector.catalog.cache.FederatedCatalogCacheExtension
+org.eclipse.dataspaceconnector.catalog.cache.FederatedCatalogDefaultServicesExtension

@@ -31,10 +31,18 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class ControlPlaneCoreExtension implements ServiceExtension {
+/**
+ * Provides default service implementations for fallback
+ */
+public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     private InMemoryAssetIndex assetIndex;
     private InMemoryContractDefinitionStore contractDefinitionStore;
+
+    @Override
+    public String name() {
+        return "Control Plane Default Services";
+    }
 
     @Provider(isDefault = true)
     public AssetIndex defaultAssetIndex() {

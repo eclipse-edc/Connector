@@ -22,8 +22,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:common:util"))
-    api(project(":extensions:common:api:api-core"))
+    api(project(":spi:common:web-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

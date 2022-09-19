@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.boot.system.testextensions.BaseExtension;
 import org.eclipse.dataspaceconnector.boot.system.testextensions.CoreExtension;
-import org.eclipse.dataspaceconnector.boot.system.testextensions.DefaultProviderExtension;
 import org.eclipse.dataspaceconnector.boot.system.testextensions.DependentExtension;
+import org.eclipse.dataspaceconnector.boot.system.testextensions.ProviderDefaultServicesExtension;
 import org.eclipse.dataspaceconnector.boot.system.testextensions.ProviderExtension;
 import org.eclipse.dataspaceconnector.boot.system.testextensions.RequiredDependentExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -42,7 +42,7 @@ public class TestFunctions {
 
     public static ServiceExtension createProviderExtension(boolean isDefault) {
 
-        return isDefault ? new DefaultProviderExtension() : new ProviderExtension();
+        return isDefault ? new ProviderDefaultServicesExtension() : new ProviderExtension();
     }
 
     public static ServiceExtension createDependentExtension(boolean isRequired) {

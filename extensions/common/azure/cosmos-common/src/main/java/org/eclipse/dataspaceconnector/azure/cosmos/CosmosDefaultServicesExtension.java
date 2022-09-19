@@ -17,11 +17,14 @@ package org.eclipse.dataspaceconnector.azure.cosmos;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
-public class CosmosClientProviderExtension implements ServiceExtension {
+/**
+ * Provides default service implementations for fallback
+ */
+public class CosmosDefaultServicesExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "CosmosDB Client Provider";
+        return "CosmosDB Default Services";
     }
 
     @Provider(isDefault = true)

@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProviderExtension
+org.eclipse.dataspaceconnector.azure.cosmos.CosmosDefaultServicesExtension

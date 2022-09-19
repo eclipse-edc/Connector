@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.boot.system.TestObject;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
-public class DefaultProviderExtension implements ServiceExtension {
+public class ProviderDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public TestObject testObject() {
         return new TestObject("barbaz");

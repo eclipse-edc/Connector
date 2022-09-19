@@ -28,7 +28,6 @@ val rsApi: String by project
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:web-spi"))
-    implementation(project(":spi:common:auth-spi"))
     implementation(project(":extensions:common:api:api-core"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")

@@ -23,17 +23,12 @@ import org.eclipse.dataspaceconnector.iam.did.resolution.DidResolverRegistryImpl
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
-import org.eclipse.dataspaceconnector.iam.did.store.InMemoryDidDocumentStore;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.time.Clock;
 
 
 @Provides({ DidResolverRegistry.class, DidPublicKeyResolver.class })
@@ -41,9 +36,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
-
-    @Inject
-    private Clock clock;
 
     @Override
     public String name() {
@@ -59,11 +51,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
 
         registerParsers(privateKeyResolver);
-    }
-
-    @Provider(isDefault = true)
-    public DidStore defaultDidDocumentStore() {
-        return new InMemoryDidDocumentStore(clock);
     }
 
     private void registerParsers(PrivateKeyResolver resolver) {
