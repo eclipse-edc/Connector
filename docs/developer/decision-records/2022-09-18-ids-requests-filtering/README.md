@@ -22,7 +22,7 @@ As the logic for querying `AssetIndex` by `QuerySpec` is already in place, all w
 message.setProperty(CatalogRequest.FILTER, request.getFilter());
 ```
 
-Then, on the receiving end, it's simply extracted:
+Then, on the receiving end, it's simply extracted and converted to the list of `Criteria`:
 
 ```
 // in DescriptionRequestHandler.java 
@@ -33,4 +33,10 @@ Then, on the receiving end, it's simply extracted:
  }
 ```
 
-And now, they can be applied to `AssetIndex` search query when constructing the `Catalog` response
+And now, they can be applied to `AssetIndex` search query when constructing the `Catalog` response:
+
+1) pass Criterions to the `CatalogServiceImpl.getDataCatalog()`
+2) attach to the existing `ContractOfferQuery` object
+3) in `ContractOfferServiceImpl.queryContractOffers()`, merge with `AssetSelectorExpressions` from contract definitions.
+
+
