@@ -16,11 +16,13 @@ package org.eclipse.dataspaceconnector.sql.translation;
 
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class SqlQueryStatementTest {
 
@@ -55,7 +57,61 @@ class SqlQueryStatementTest {
         assertThat(t.getParameters()).containsExactlyInAnyOrder("id1", "id2", "id3", "something", 50, 0);
     }
 
+    @Test
+    void singleExpression_orderByDesc() {
+        var criterion = new Criterion("field1", "=", "testid1");
+        QuerySpec.Builder builder = queryBuilder(criterion).sortField("description");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.DESC).build(), new TestMapping());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description DESC LIMIT ? OFFSET ?;");
+    }
+
+    @Test
+    void singleExpression_orderByAsc() {
+        var criterion = new Criterion("field1", "=", "testid1");
+        QuerySpec.Builder builder = queryBuilder(criterion).sortField("description");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
+
+    }
+
+    @Test
+    void singleExpression_orderBy_WithNoCondition() {
+        QuerySpec.Builder builder = queryBuilder().sortField("description");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + "  ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
+
+    }
+
+    @Test
+    void singleExpression_orderBy_WithNonExistentProperty() {
+        QuerySpec.Builder builder = queryBuilder().sortField("notexist");
+
+        assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Translation failed for Model");
+
+
+    }
+
+    @Test
+    void singleExpression_orderBy_WithNestedProperty() {
+        QuerySpec.Builder builder = queryBuilder().sortField("complex");
+
+        assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Translation failed for Model");
+
+
+    }
+
+    private QuerySpec.Builder queryBuilder(Criterion... criterion) {
+        return QuerySpec.Builder.newInstance().filter(List.of(criterion));
+    }
+
     private QuerySpec query(Criterion... criterion) {
-        return QuerySpec.Builder.newInstance().filter(List.of(criterion)).build();
+        return queryBuilder(criterion).build();
     }
 }

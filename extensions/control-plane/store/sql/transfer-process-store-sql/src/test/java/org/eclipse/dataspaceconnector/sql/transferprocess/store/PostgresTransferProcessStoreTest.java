@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstan
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -43,6 +44,7 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -228,6 +230,17 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         connection.close();
     }
 
+    @Override
+    @Test
+    protected void findAll_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().create(createTransferProcess("test-neg-" + i)));
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        assertThatThrownBy(() -> getTransferProcessStore().findAll(query))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Translation failed for Model");
+    }
 
     @Override
     protected boolean supportsCollectionQuery() {
@@ -246,7 +259,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
     @Override
     protected boolean supportsSortOrder() {
-        return false;
+        return true;
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -42,10 +43,12 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.contract.offer.store.TestFunctions.createContractDefinition;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -145,6 +148,16 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
 
     }
 
+
+    // Override in PG since it does not have the field mapping
+    @Test
+    void findAll_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        assertThatThrownBy(() -> getContractDefinitionStore().findAll(query)).isInstanceOf(IllegalArgumentException.class);
+    }
+
     @Override
     protected ContractDefinitionStore getContractDefinitionStore() {
         return sqlContractDefinitionStore;
@@ -163,6 +176,6 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
 
     @Override
     protected boolean supportsSortOrder() {
-        return false;
+        return true;
     }
 }

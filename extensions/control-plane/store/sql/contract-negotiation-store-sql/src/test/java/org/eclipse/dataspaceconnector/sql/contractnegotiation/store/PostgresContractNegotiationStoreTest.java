@@ -24,19 +24,16 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStoreTestBase;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -297,24 +294,6 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         // cancel the agreement
         updatedNegotiation.transitionError("Cancelled");
         store.save(updatedNegotiation);
-    }
-
-    @Test
-    @Disabled("Postgres does not yet support ordering and sorting")
-    void queryNegotiations_withPagingAndSorting() {
-        var querySpec = QuerySpec.Builder.newInstance()
-                .sortField("id")
-                .limit(10).offset(5).build();
-
-        IntStream.range(0, 100)
-                .mapToObj(i -> TestFunctions.createNegotiation("" + i))
-                .forEach(cn -> getContractNegotiationStore().save(cn));
-
-        var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
-
-        assertThat(result).hasSize(10)
-                .extracting(ContractNegotiation::getId)
-                .isSorted();
     }
 
     @Override

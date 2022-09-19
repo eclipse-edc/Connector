@@ -19,6 +19,8 @@ import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstan
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStoreTestBase;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -35,9 +37,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createPolicy;
 import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createPolicyBuilder;
 import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createQuery;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
@@ -134,6 +138,21 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
                 .hasMessageStartingWith("Translation failed for Model");
     }
 
+    @Test
+    void findAll_sorting_nonExistentProperty() {
+
+        IntStream.range(0, 10).mapToObj(i -> createPolicy("test-policy")).forEach((d) -> getPolicyDefinitionStore().save(d));
+
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+
+        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Translation failed for Model");
+
+    }
+
     @Override
     protected SqlPolicyDefinitionStore getPolicyDefinitionStore() {
         return sqlPolicyStore;
@@ -151,6 +170,6 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
 
     @Override
     protected Boolean supportSortOrder() {
-        return false;
+        return true;
     }
 }

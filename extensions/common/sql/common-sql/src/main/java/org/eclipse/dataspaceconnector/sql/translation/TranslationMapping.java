@@ -37,6 +37,9 @@ public abstract class TranslationMapping {
      * @throws IllegalArgumentException if the canonical property name was not found.
      */
     public String getStatement(String canonicalPropertyName) {
+        if (canonicalPropertyName == null) {
+            throw new IllegalArgumentException(format("Translation failed for Model '%s' input canonicalPropertyName is null", getClass().getName()));
+        }
         var leftHandTokens = canonicalPropertyName.split("\\.", 2);
         var key = leftHandTokens[0];
 
@@ -53,6 +56,7 @@ public abstract class TranslationMapping {
 
         return entry.toString();
     }
+
 
     protected void add(String fieldId, Object value) {
         fieldMap.put(fieldId, value);

@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.sql.translation;
 
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,17 +35,22 @@ public class SqlQueryStatement {
     private static final String OFFSET = "OFFSET ?";
     private static final String WHERE_TOKEN = "WHERE";
     private static final String AND_TOKEN = "AND";
+
+    private static final String ORDER_BY_TOKEN = "ORDER BY %s %s";
+
     private final String selectStatement;
     private final List<String> whereClauses = new ArrayList<>();
     private final List<Object> parameters = new ArrayList<>();
+
+    private String orderByClause = "";
 
     /**
      * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
      *
      * @param selectStatement The SELECT clause, e.g. {@code SELECT * FROM your_table}
-     * @param query a {@link QuerySpec} that contains a query in the canonical format
-     * @param rootModel A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
-     *         model/format
+     * @param query           a {@link QuerySpec} that contains a query in the canonical format
+     * @param rootModel       A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
+     *                        model/format
      */
     public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel) {
         this(selectStatement);
@@ -68,6 +74,7 @@ public class SqlQueryStatement {
     public String getQueryAsString() {
         return selectStatement + " " +
                 String.join(" ", whereClauses) + " " +
+                orderByClause +
                 LIMIT +
                 OFFSET +
                 ";";
@@ -86,6 +93,7 @@ public class SqlQueryStatement {
         parameters.add(param);
     }
 
+
     private void initialize(QuerySpec query, TranslationMapping rootModel) {
         whereClauses.clear();
         parameters.clear();
@@ -95,6 +103,18 @@ public class SqlQueryStatement {
 
         parameters.add(query.getLimit());
         parameters.add(query.getOffset());
+
+        orderByClause = parseSortField(query, rootModel);
+    }
+
+    private String parseSortField(QuerySpec query, TranslationMapping rootModel) {
+        if (query.getSortField() == null) {
+            return orderByClause;
+        } else {
+            var order = query.getSortOrder() == SortOrder.ASC ? "ASC" : "DESC";
+            var sortField = rootModel.getStatement(query.getSortField());
+            return String.format(ORDER_BY_TOKEN + " ", sortField, order);
+        }
     }
 
     /**
