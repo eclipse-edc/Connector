@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
+import static java.lang.String.format;
+
 /**
  * Implements a vault backed by Azure Vault.
  */
@@ -39,56 +41,51 @@ public class AzureVault implements Vault {
     private final SecretClient secretClient;
     private final Monitor monitor;
 
-    private AzureVault(TokenCredential credential, Monitor monitor, String keyVaultUri) {
-        this.monitor = monitor;
-        secretClient = new SecretClientBuilder()
-                .vaultUrl(keyVaultUri)
-                .credential(credential)
-                .buildClient();
-    }
-
     public static AzureVault authenticateWithSecret(Monitor monitor, String clientId, String tenantId, String clientSecret, String keyVaultName) {
-        String keyVaultUri = "https://" + keyVaultName + ".vault.azure.net";
+        var credential = new ClientSecretCredentialBuilder()
+                .clientId(clientId)
+                .tenantId(tenantId)
+                .clientSecret(clientSecret)
+                .build();
 
-        TokenCredential credential = new ClientSecretCredentialBuilder().clientId(clientId).tenantId(tenantId).clientSecret(clientSecret).build();
-
-        return new AzureVault(credential, monitor, keyVaultUri);
+        return new AzureVault(monitor, createSecretClient(credential, keyVaultName));
     }
 
     public static AzureVault authenticateWithCertificate(Monitor monitor, String clientId, String tenantId, String certificatePath, String keyVaultName) {
-        String keyVaultUri = "https://" + keyVaultName + ".vault.azure.net";
-
-        TokenCredential credential = new ClientCertificateCredentialBuilder()
+        var credential = new ClientCertificateCredentialBuilder()
                 .clientId(clientId)
                 .tenantId(tenantId)
                 .pfxCertificate(certificatePath, "")
                 .build();
 
-        return new AzureVault(credential, monitor, keyVaultUri);
+        return new AzureVault(monitor, createSecretClient(credential, keyVaultName));
     }
 
+    public AzureVault(Monitor monitor, SecretClient secretClient) {
+        this.monitor = monitor;
+        this.secretClient = secretClient;
+    }
 
     @Override
     public @Nullable String resolveSecret(String key) {
+        var sanitizedKey = sanitizeKey(key);
         try {
-            key = sanitizeKey(key);
-            var secret = secretClient.getSecret(key);
+            var secret = secretClient.getSecret(sanitizedKey);
             return secret.getValue();
         } catch (ResourceNotFoundException ex) {
-            monitor.severe("Secret not found!", ex);
+            monitor.debug(format("Secret %s not found", sanitizedKey));
             return null;
         } catch (Exception ex) {
-            monitor.severe("Error accessing secret:", ex);
+            monitor.severe("Error accessing secret " + key, ex);
             return null;
         }
-
     }
 
     @Override
     public Result<Void> storeSecret(String key, String value) {
         try {
-            key = sanitizeKey(key);
-            var secret = secretClient.setSecret(key, value);
+            var sanitizedKey = sanitizeKey(key);
+            secretClient.setSecret(sanitizedKey, value);
             monitor.debug("storing secret successful");
             return Result.success();
         } catch (Exception ex) {
@@ -99,10 +96,10 @@ public class AzureVault implements Vault {
 
     @Override
     public Result<Void> deleteSecret(String key) {
-        key = sanitizeKey(key);
+        var sanitizedKey = sanitizeKey(key);
         SyncPoller<DeletedSecret, Void> poller = null;
         try {
-            poller = secretClient.beginDeleteSecret(key);
+            poller = secretClient.beginDeleteSecret(sanitizedKey);
             monitor.debug("Begin deleting secret");
             poller.waitForCompletion(Duration.ofMinutes(1));
 
@@ -127,7 +124,7 @@ public class AzureVault implements Vault {
             return Result.failure(re.getMessage());
         } finally {
             try {
-                secretClient.purgeDeletedSecret(key);
+                secretClient.purgeDeletedSecret(sanitizedKey);
             } catch (Exception e) {
                 monitor.severe("Error purging secret from AzureVault", e);
             }
@@ -138,8 +135,16 @@ public class AzureVault implements Vault {
     private String sanitizeKey(String key) {
         if (key.contains(".")) {
             monitor.debug("AzureVault: key contained '.' which is not allowed. replaced with '-'");
-            key = key.replace(".", "-");
+            return key.replace(".", "-");
         }
         return key;
+    }
+
+    @NotNull
+    private static SecretClient createSecretClient(TokenCredential credential, String keyVaultName) {
+        return new SecretClientBuilder()
+                .vaultUrl("https://" + keyVaultName + ".vault.azure.net")
+                .credential(credential)
+                .buildClient();
     }
 }
