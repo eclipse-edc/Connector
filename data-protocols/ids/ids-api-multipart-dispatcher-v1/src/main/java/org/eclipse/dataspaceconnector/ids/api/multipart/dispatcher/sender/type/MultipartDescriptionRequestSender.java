@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,45 +27,33 @@ import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
-import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * IdsMultipartSender implementation for metadata requests. Sends IDS DescriptionRequestMessages and
- * expects an IDS DescriptionResponseMessage as the response.
+ * MultipartSenderDelegate for metadata requests.
  */
-public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, ModelClass> {
+public class MultipartDescriptionRequestSender implements MultipartSenderDelegate<MetadataRequest, ModelClass> {
 
-    public MultipartDescriptionRequestSender(@NotNull String connectorId,
-                                             @NotNull OkHttpClient httpClient,
-                                             @NotNull ObjectMapper objectMapper,
-                                             @NotNull Monitor monitor,
-                                             @NotNull IdentityService identityService,
-                                             @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+    private final SenderDelegateContext context;
+
+    public MultipartDescriptionRequestSender(SenderDelegateContext context) {
+        this.context = context;
     }
 
     @Override
-    public Class<MetadataRequest> messageType() {
+    public Class<MetadataRequest> getMessageType() {
         return MetadataRequest.class;
-    }
-
-    @Override
-    protected String retrieveRemoteConnectorAddress(MetadataRequest request) {
-        return request.getConnectorAddress();
     }
 
     /**
@@ -76,18 +64,23 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
      * @return a DescriptionRequestMessage.
      */
     @Override
-    protected Message buildMessageHeader(MetadataRequest request, DynamicAttributeToken token) {
+    public Message buildMessageHeader(MetadataRequest request, DynamicAttributeToken token) {
         return new DescriptionRequestMessageBuilder()
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
-                ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
+                ._issuerConnector_(context.getConnectorId())
+                ._senderAgent_(context.getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._requestedElement_(request.getRequestedAsset())
                 .build();
     }
-
+    
+    @Override
+    public String buildMessagePayload(MetadataRequest request) throws Exception {
+        return null;
+    }
+    
     /**
      * Parses the response content. Tries to parse the payload to the correct IDS information model type.
      *
@@ -96,8 +89,8 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
      * @throws Exception if parsing header or payload fails or the payload type cannot be determined.
      */
     @Override
-    protected MultipartResponse<ModelClass> getResponseContent(IdsMultipartParts parts) throws Exception {
-        ObjectMapper objectMapper = getObjectMapper();
+    public MultipartResponse<ModelClass> getResponseContent(IdsMultipartParts parts) throws Exception {
+        ObjectMapper objectMapper = context.getObjectMapper();
 
         ResponseMessage header = objectMapper.readValue(parts.getHeader(), ResponseMessage.class);
 
@@ -131,7 +124,7 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     }
 
     @Override
-    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+    public List<Class<? extends Message>> getAllowedResponseTypes() {
         return List.of(DescriptionResponseMessageImpl.class);
     }
 }

@@ -13,23 +13,19 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
-import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
@@ -38,32 +34,21 @@ import java.util.List;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
 /**
- * IdsMultipartSender implementation for transferring Endpoint Data Reference (EDR). Sends IDS NotificationMessage and
- * expects an IDS MessageProcessedMessage as the response.
+ * MultipartSenderDelegate for transferring Endpoint Data Reference (EDR).
  */
-public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, String> {
+public class MultipartEndpointDataReferenceRequestSender implements MultipartSenderDelegate<EndpointDataReferenceMessage, String> {
+
+    private final SenderDelegateContext context;
     private final TypeManager typeManager;
 
-    public MultipartEndpointDataReferenceRequestSender(@NotNull String connectorId,
-                                                       @NotNull OkHttpClient httpClient,
-                                                       @NotNull ObjectMapper objectMapper,
-                                                       @NotNull Monitor monitor,
-                                                       @NotNull IdentityService identityService,
-                                                       @NotNull IdsTransformerRegistry transformerRegistry,
-                                                       @NotNull TypeManager typeManager) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
-
+    public MultipartEndpointDataReferenceRequestSender(SenderDelegateContext context, TypeManager typeManager) {
+        this.context = context;
         this.typeManager = typeManager;
     }
 
     @Override
-    public Class<EndpointDataReferenceMessage> messageType() {
+    public Class<EndpointDataReferenceMessage> getMessageType() {
         return EndpointDataReferenceMessage.class;
-    }
-
-    @Override
-    protected String retrieveRemoteConnectorAddress(EndpointDataReferenceMessage request) {
-        return request.getConnectorAddress();
     }
 
     /**
@@ -74,12 +59,12 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
      * @return a ParticipantUpdateMessage.
      */
     @Override
-    protected Message buildMessageHeader(EndpointDataReferenceMessage request, DynamicAttributeToken token) {
+    public Message buildMessageHeader(EndpointDataReferenceMessage request, DynamicAttributeToken token) {
         return new ParticipantUpdateMessageBuilder()
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._securityToken_(token)
-                ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
+                ._issuerConnector_(context.getConnectorId())
+                ._senderAgent_(context.getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
     }
@@ -92,7 +77,7 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
      * @throws Exception if parsing the request fails.
      */
     @Override
-    protected String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
+    public String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
         // Note: EndpointDataReference is not an IDS object, so there is no need to serialize is with the IDS object mapper
         return typeManager.writeValueAsString(request.getEndpointDataReference());
     }
@@ -105,12 +90,12 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
      * @throws Exception if parsing header or payload fails.
      */
     @Override
-    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
-        return parseMultipartStringResponse(parts, getObjectMapper());
+    public MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
+        return parseMultipartStringResponse(parts, context.getObjectMapper());
     }
 
     @Override
-    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+    public List<Class<? extends Message>> getAllowedResponseTypes() {
         return List.of(MessageProcessedNotificationMessageImpl.class);
     }
 }

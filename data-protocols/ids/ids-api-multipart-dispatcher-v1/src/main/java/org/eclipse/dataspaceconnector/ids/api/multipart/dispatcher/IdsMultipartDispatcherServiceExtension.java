@@ -17,13 +17,15 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartCatalogDescriptionRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractOfferSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartEndpointDataReferenceRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartCatalogDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractAgreementSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractOfferSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractRejectionSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartEndpointDataReferenceRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
@@ -38,6 +40,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.util.Objects;
 
 public class IdsMultipartDispatcherServiceExtension implements ServiceExtension {
@@ -80,14 +83,17 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         var objectMapper = context.getTypeManager().getMapper("ids");
         var typeManager = context.getTypeManager();
 
-        var dispatcher = new IdsMultipartRemoteMessageDispatcher();
-        dispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
-        dispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        dispatcher.register(new MultipartContractOfferSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        dispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        dispatcher.register(new MultipartContractRejectionSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        dispatcher.register(new MultipartCatalogDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        dispatcher.register(new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, typeManager));
+        var senderContext = new SenderDelegateContext(URI.create(connectorId), objectMapper, transformerRegistry, idsWebhookAddress);
+
+        var sender = new IdsMultipartSender(monitor, httpClient, identityService, objectMapper);
+        var dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);
+        dispatcher.register(new MultipartArtifactRequestSender(senderContext, vault));
+        dispatcher.register(new MultipartDescriptionRequestSender(senderContext));
+        dispatcher.register(new MultipartContractOfferSender(senderContext));
+        dispatcher.register(new MultipartContractAgreementSender(senderContext));
+        dispatcher.register(new MultipartContractRejectionSender(senderContext));
+        dispatcher.register(new MultipartCatalogDescriptionRequestSender(senderContext));
+        dispatcher.register(new MultipartEndpointDataReferenceRequestSender(senderContext, typeManager));
 
         dispatcherRegistry.register(dispatcher);
     }

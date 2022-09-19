@@ -14,7 +14,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
@@ -22,13 +22,11 @@ import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.NotificationMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
@@ -45,26 +43,20 @@ import static org.mockito.Mockito.mock;
 class MultipartEndpointDataReferenceRequestSenderTest {
 
     private MultipartEndpointDataReferenceRequestSender sender;
+    private SenderDelegateContext senderContext;
     private ObjectMapper mapper;
 
     @BeforeEach
     public void setUp() {
-        var connectorId = UUID.randomUUID().toString();
-        var httpClient = mock(OkHttpClient.class);
-        var monitor = mock(Monitor.class);
+        var connectorId = URI.create(UUID.randomUUID().toString());
         var transformerRegistry = mock(IdsTransformerRegistry.class);
-        var identityService = mock(IdentityService.class);
+        var idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
 
         var typeManager = new TypeManager();
         mapper = IdsTypeManagerUtil.getIdsObjectMapper(typeManager);
-
-        sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, mapper, monitor, identityService, transformerRegistry, typeManager);
-    }
-
-    @Test
-    void retrieveRemoteConnectorAddress() {
-        var request = createEdrRequest();
-        assertThat(sender.retrieveRemoteConnectorAddress(request)).isEqualTo(request.getConnectorAddress());
+    
+        senderContext = new SenderDelegateContext(connectorId, mapper, transformerRegistry, idsWebhookAddress);
+        sender = new MultipartEndpointDataReferenceRequestSender(senderContext, typeManager);
     }
 
     @Test
@@ -78,8 +70,8 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var participantUpdateMessage = (ParticipantUpdateMessage) header;
         assertThat(participantUpdateMessage.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
         assertThat(participantUpdateMessage.getSecurityToken()).isEqualTo(datToken);
-        assertThat(participantUpdateMessage.getIssuerConnector()).isEqualTo(sender.getConnectorId());
-        assertThat(participantUpdateMessage.getSenderAgent()).isEqualTo(sender.getConnectorId());
+        assertThat(participantUpdateMessage.getIssuerConnector()).isEqualTo(senderContext.getConnectorId());
+        assertThat(participantUpdateMessage.getSenderAgent()).isEqualTo(senderContext.getConnectorId());
         assertThat(participantUpdateMessage.getRecipientAgent()).allMatch(uri -> uri.equals(URI.create(request.getConnectorId())));
     }
 

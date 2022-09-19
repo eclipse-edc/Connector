@@ -12,11 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.transform.IdsTransformerRegistryImpl;
 import org.eclipse.dataspaceconnector.ids.transform.type.contract.ContractOfferToIdsContractOfferTransformer;
@@ -25,16 +25,15 @@ import org.eclipse.dataspaceconnector.ids.transform.type.policy.PermissionToIdsP
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class MultipartContractOfferSenderTest {
     
@@ -43,11 +42,7 @@ class MultipartContractOfferSenderTest {
     
     @BeforeEach
     void setUp() {
-        var httpClient = mock(OkHttpClient.class);
-        var monitor = mock(Monitor.class);
-        var identityService = mock(IdentityService.class);
-        
-        var connectorId = "connector";
+        var connectorId = URI.create("https://connector");
         var webhookAddress = "https://webhook";
         
         var transformerRegistry = new IdsTransformerRegistryImpl();
@@ -57,7 +52,8 @@ class MultipartContractOfferSenderTest {
     
         objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
         
-        sender = new MultipartContractOfferSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, webhookAddress);
+        var senderContext = new SenderDelegateContext(connectorId, objectMapper, transformerRegistry, webhookAddress);
+        sender = new MultipartContractOfferSender(senderContext);
     }
     
     @Test
