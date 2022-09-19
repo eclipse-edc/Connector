@@ -15,11 +15,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import de.fraunhofer.iais.eis.DynamicAttributeToken;
-import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -28,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,8 +41,9 @@ class IdsMultipartSenderTest {
         var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
         var sender = new IdsMultipartSender(mock(Monitor.class), mock(OkHttpClient.class), identityService, objectMapper);
+        var senderDelegate = mock(MultipartSenderDelegate.class);
 
-        var result = sender.send(new TestRemoteMessage(), new TestSenderDelegate());
+        var result = sender.send(new TestRemoteMessage(), senderDelegate);
 
         assertThat(result).failsWithin(1, TimeUnit.SECONDS);
     }
@@ -65,31 +61,4 @@ class IdsMultipartSenderTest {
         }
     }
 
-    private class TestSenderDelegate implements MultipartSenderDelegate<TestRemoteMessage, String> {
-
-        @Override
-        public Class<TestRemoteMessage> getMessageType() {
-            return null;
-        }
-
-        @Override
-        public Message buildMessageHeader(TestRemoteMessage request, DynamicAttributeToken token) {
-            return null;
-        }
-    
-        @Override
-        public String buildMessagePayload(TestRemoteMessage request) throws Exception {
-            return null;
-        }
-    
-        @Override
-        public MultipartResponse<String> getResponseContent(IdsMultipartParts parts) {
-            return null;
-        }
-
-        @Override
-        public List<Class<? extends Message>> getAllowedResponseTypes() {
-            return null;
-        }
-    }
 }
