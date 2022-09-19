@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.CacheConfiguration;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeFilter;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
@@ -39,6 +40,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
+import static java.util.Optional.ofNullable;
+
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     private Monitor monitor;
     @Inject
@@ -52,6 +55,10 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     // get all known nodes from node directory - must be supplied by another extension
     @Inject
     private FederatedCacheNodeDirectory directory;
+    // optional filter function to select FC nodes eligible for crawling.
+    @Inject(required = false)
+    private FederatedCacheNodeFilter nodeFilter;
+
     private ExecutionPlan executionPlan;
     private NodeQueryAdapterRegistryImpl nodeQueryAdapterRegistry;
     private ExecutionManager executionManager;
@@ -100,17 +107,20 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
         executionPlan = cacheConfiguration.getExecutionPlan();
 
+        // by default only uses FC nodes that are not "self"
+        nodeFilter = ofNullable(nodeFilter).orElse(node -> !node.getName().equals(context.getConnectorId()));
+
         executionManager = ExecutionManager.Builder.newInstance()
                 .monitor(monitor)
                 .preExecutionTask(() -> {
                     store.deleteExpired();
                     store.expireAll();
                 })
-                .connectorId(context.getConnectorId())
                 .numCrawlers(numCrawlers)
                 .nodeQueryAdapterRegistry(createNodeQueryAdapterRegistry(context))
                 .onSuccess(this::persist)
                 .nodeDirectory(directory)
+                .nodeFilterFunction(nodeFilter)
                 .build();
     }
 

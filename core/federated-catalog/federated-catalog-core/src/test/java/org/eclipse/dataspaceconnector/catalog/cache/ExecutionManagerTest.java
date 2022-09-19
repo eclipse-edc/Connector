@@ -16,12 +16,14 @@ package org.eclipse.dataspaceconnector.catalog.cache;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerSuccessHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeFilter;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +46,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -165,20 +168,35 @@ class ExecutionManagerTest {
         verifyNoInteractions(nodeQueryAdapterRegistry);
     }
 
+    @Test
+    void executePlan_withCustomFiltering() {
+        when(nodeDirectoryMock.getAll()).thenReturn(List.of(createNode(), createNode(), createNode()));
+        var filter = mock(FederatedCacheNodeFilter.class);
+        manager = createManagerBuilder().nodeFilterFunction(filter).build();
+
+        manager.executePlan(simplePlan());
+
+        verify(filter, times(3)).test(any());
+    }
+
 
     private ExecutionPlan simplePlan() {
         return Runnable::run;
     }
 
     private ExecutionManager createManager() {
+        return createManagerBuilder()
+                .build();
+    }
+
+    @NotNull
+    private ExecutionManager.Builder createManagerBuilder() {
         return ExecutionManager.Builder.newInstance()
                 .nodeDirectory(nodeDirectoryMock)
                 .nodeQueryAdapterRegistry(nodeQueryAdapterRegistry)
-                .connectorId("test-connector")
                 .preExecutionTask(preExecutionTaskMock)
                 .postExecutionTask(postExecutionTask)
                 .monitor(monitorMock)
-                .onSuccess(successConsumerMock)
-                .build();
+                .onSuccess(successConsumerMock);
     }
 }
