@@ -16,6 +16,8 @@
 package org.eclipse.dataspaceconnector.spi.policy.store;
 
 import org.assertj.core.api.Assertions;
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -26,8 +28,10 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createAction;
 import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createDutyBuilder;
 import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createPermissionBuilder;
@@ -42,6 +46,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
     public PolicyDefinitionStoreTestBase() {
         System.setProperty("policydefinitionstore.supports.collectionQuery", String.valueOf(supportCollectionQuery()));
+        System.setProperty("policydefinitionstore.supports.collectionIndexQuery", String.valueOf(supportCollectionIndexQuery()));
         System.setProperty("policydefinitionstore.supports.sortorder", String.valueOf(supportSortOrder()));
 
     }
@@ -219,6 +224,7 @@ public abstract class PolicyDefinitionStoreTestBase {
     }
 
     @Test
+    @EnabledIfSystemProperty(named = "policydefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
     void find_queryByProhibitions_valueNotExist() {
         var p = createPolicyBuilder("test-policy")
                 .prohibition(createProhibitionBuilder("prohibition1")
@@ -346,6 +352,7 @@ public abstract class PolicyDefinitionStoreTestBase {
     }
 
     @Test
+    @EnabledIfSystemProperty(named = "policydefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
     void find_queryByDuties_valueNotExist() {
         var p = createPolicyBuilder("test-policy")
                 .duty(createDutyBuilder("prohibition1")
@@ -438,7 +445,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         getPolicyDefinitionStore().save(policy2);
         getPolicyDefinitionStore().save(policy3);
 
-        assertThat(getPolicyDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).containsExactly(policy2, policy3, policy1);
+        assertThat(getPolicyDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).usingRecursiveFieldByFieldElementComparator().containsExactly(policy2, policy3, policy1);
     }
 
     @Test
@@ -462,12 +469,67 @@ public abstract class PolicyDefinitionStoreTestBase {
                 .offset(1)
                 .limit(1)
                 .build();
-        assertThat(getPolicyDefinitionStore().findAll(uid)).containsExactly(policy3);
+        assertThat(getPolicyDefinitionStore().findAll(uid)).usingRecursiveFieldByFieldElementComparator().containsExactly(policy3);
     }
+
+    @Test
+    void findAll_verifyFiltering_invalidFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> createPolicy(getRandomId())).forEach(d -> getPolicyDefinitionStore().save(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+
+        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query)).isInstanceOfAny(IllegalArgumentException.class);
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "policydefinitionstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
+    void findAll_sorting_nonExistentProperty() {
+
+        IntStream.range(0, 10).mapToObj(i -> createPolicy(getRandomId())).forEach((d) -> getPolicyDefinitionStore().save(d));
+
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        var all = getPolicyDefinitionStore().findAll(query).collect(Collectors.toList());
+        assertThat(all).isEmpty();
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "policydefinitionstore.supports.collectionIndexQuery", matches = "true", disabledReason = "This test only runs if collections with index is supported")
+    void verify_readWriteFindAll() {
+        // add an object
+        var policy = createPolicy(getRandomId());
+        getPolicyDefinitionStore().save(policy);
+        assertThat(getPolicyDefinitionStore().findAll(QuerySpec.none())).usingRecursiveFieldByFieldElementComparator().containsExactly(policy);
+
+        // modify the object
+        var modifiedPolicy = PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+
+                        .permission(Permission.Builder.newInstance()
+                                .target("test-asset-id")
+                                .action(Action.Builder.newInstance()
+                                        .type("USE")
+                                        .build())
+                                .build())
+                        .build())
+                .id(policy.getUid())
+                .build();
+
+        getPolicyDefinitionStore().save(modifiedPolicy);
+
+        // re-read
+        var all = getPolicyDefinitionStore().findAll(QuerySpec.Builder.newInstance().filter("policy.permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
+        assertThat(all).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(modifiedPolicy);
+
+    }
+
 
     protected abstract PolicyDefinitionStore getPolicyDefinitionStore();
 
     protected abstract boolean supportCollectionQuery();
+
+    protected abstract boolean supportCollectionIndexQuery();
 
     protected abstract Boolean supportSortOrder();
 
