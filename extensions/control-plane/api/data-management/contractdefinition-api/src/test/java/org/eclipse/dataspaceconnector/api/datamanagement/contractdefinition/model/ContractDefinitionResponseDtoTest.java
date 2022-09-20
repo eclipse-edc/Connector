@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.mod
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +39,7 @@ class ContractDefinitionResponseDtoTest {
                 .contractPolicyId("test-contract-policyid")
                 .accessPolicyId("test-access-policyid")
                 .id("test-id")
-                .criteria(List.of(new Criterion("name", "beginsWith", "test")))
+                .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("name").operator("beginsWith").operandRight("test").build()))
                 .build();
 
         var str = objectMapper.writeValueAsString(dto);

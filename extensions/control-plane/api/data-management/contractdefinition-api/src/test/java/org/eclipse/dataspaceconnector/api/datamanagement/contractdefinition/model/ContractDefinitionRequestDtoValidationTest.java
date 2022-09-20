@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.mod
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,7 +43,7 @@ class ContractDefinitionRequestDtoValidationTest {
 
     @ParameterizedTest
     @ArgumentsSource(ValidArgsProvider.class)
-    void validate_valid(String id, String accessPolicyId, String contractPolicyId, List<Criterion> criteria) {
+    void validate_valid(String id, String accessPolicyId, String contractPolicyId, List<CriterionDto> criteria) {
         var dto = ContractDefinitionRequestDto.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
@@ -59,7 +58,7 @@ class ContractDefinitionRequestDtoValidationTest {
 
     @ParameterizedTest
     @ArgumentsSource(InvalidArgsProvider.class)
-    void validate_invalid(String id, String accessPolicyId, String contractPolicyId, List<Criterion> criteria) {
+    void validate_invalid(String id, String accessPolicyId, String contractPolicyId, List<CriterionDto> criteria) {
         var dto = ContractDefinitionRequestDto.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
@@ -75,9 +74,10 @@ class ContractDefinitionRequestDtoValidationTest {
     private static class ValidArgsProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            var criterion = CriterionDto.Builder.newInstance().operandLeft("foo").operator("=").operandRight("bar").build();
             return Stream.of(
-                    Arguments.of(null, "accessPolicy", "contractPolicy", List.of(new Criterion("foo", "=", "bar"))),
-                    Arguments.of("id", "accessPolicy", "contractPolicy", List.of(new Criterion("foo", "=", "bar"))),
+                    Arguments.of(null, "accessPolicy", "contractPolicy", List.of(criterion)),
+                    Arguments.of("id", "accessPolicy", "contractPolicy", List.of(criterion)),
                     Arguments.of("id", "accessPolicy", "contractPolicy", emptyList())
             );
         }
@@ -91,6 +91,7 @@ class ContractDefinitionRequestDtoValidationTest {
                     Arguments.of("id", null, "contractPolicy", emptyList()),
                     Arguments.of("id", "accessPolicy", null, emptyList()),
                     Arguments.of("id", "accessPolicy", "contractPolicy", null),
+                    Arguments.of("id", "accessPolicy", "contractPolicy", List.of(CriterionDto.Builder.newInstance().build())),
                     Arguments.of("id:123", "accessPolicy", "contractPolicy", emptyList())
             );
         }

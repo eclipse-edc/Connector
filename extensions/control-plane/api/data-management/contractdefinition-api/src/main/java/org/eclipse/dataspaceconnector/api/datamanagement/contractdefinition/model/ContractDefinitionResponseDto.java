@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.api.model.BaseResponseDto;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,7 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
     private String id;
     private String accessPolicyId;
     private String contractPolicyId;
-    private List<Criterion> criteria = new ArrayList<>();
+    private List<CriterionDto> criteria = new ArrayList<>();
 
     private ContractDefinitionResponseDto() {
     }
@@ -42,7 +41,7 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
         return contractPolicyId;
     }
 
-    public List<Criterion> getCriteria() {
+    public List<CriterionDto> getCriteria() {
         return criteria;
     }
 
@@ -71,7 +70,7 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
             return this;
         }
 
-        public Builder criteria(List<Criterion> criteria) {
+        public Builder criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
             return this;
         }

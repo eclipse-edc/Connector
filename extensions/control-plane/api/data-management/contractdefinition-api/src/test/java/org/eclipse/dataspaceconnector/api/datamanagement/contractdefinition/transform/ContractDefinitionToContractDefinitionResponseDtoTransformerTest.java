@@ -14,7 +14,9 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.CriterionDto;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.Test;
@@ -22,8 +24,12 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
 
@@ -38,6 +44,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
+        when(context.transform(isA(Criterion.class), eq(CriterionDto.class))).thenReturn(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build());
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
@@ -52,7 +59,8 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
         assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
         assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
         assertThat(dto.getCreatedAt()).isNotEqualTo(0L);
-        assertThat(dto.getCriteria()).containsExactlyElementsOf(contractDefinition.getSelectorExpression().getCriteria());
+        assertThat(dto.getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinition.getSelectorExpression().getCriteria());
+        verify(context, times(1)).transform(isA(Criterion.class), eq(CriterionDto.class));
     }
 
     @Test
