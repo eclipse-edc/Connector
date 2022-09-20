@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api;
 
 import org.eclipse.dataspaceconnector.api.auth.AllPassAuthenticationService;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
-import org.eclipse.dataspaceconnector.spi.system.Provider;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 

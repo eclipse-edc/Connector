@@ -19,7 +19,7 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.resourcemanager.AzureResourceManager;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.SettingResolver;
@@ -29,8 +29,12 @@ import java.util.Objects;
 /**
  * Provides Azure Identity SDK and Azure Resource Manager SDK objects configured based on runtime settings.
  */
-@Provides({AzureEnvironment.class, TokenCredential.class, AzureProfile.class, AzureResourceManager.class})
+@Provides({ AzureEnvironment.class, TokenCredential.class, AzureProfile.class, AzureResourceManager.class })
 public class AzureResourceManagerExtension implements ServiceExtension {
+
+    private static String requiredSetting(SettingResolver context, String s) {
+        return Objects.requireNonNull(context.getSetting(s, null), s);
+    }
 
     @Override
     public String name() {
@@ -55,9 +59,5 @@ public class AzureResourceManagerExtension implements ServiceExtension {
         context.registerService(TokenCredential.class, credential);
         context.registerService(AzureProfile.class, profile);
         context.registerService(AzureResourceManager.class, resourceManager);
-    }
-
-    private static String requiredSetting(SettingResolver context, String s) {
-        return Objects.requireNonNull(context.getSetting(s, null), s);
     }
 }

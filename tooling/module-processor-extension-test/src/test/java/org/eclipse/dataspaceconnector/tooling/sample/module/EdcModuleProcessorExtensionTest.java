@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.tooling.sample.module;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.tooling.module.domain.EdcModule;
-import org.eclipse.dataspaceconnector.tooling.module.domain.ServiceReference;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.EdcModule;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.ServiceReference;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

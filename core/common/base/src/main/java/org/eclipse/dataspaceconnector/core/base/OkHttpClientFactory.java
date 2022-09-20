@@ -18,8 +18,8 @@ import okhttp3.EventListener;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,7 @@ public class OkHttpClientFactory {
     /**
      * Create an OkHttpClient instance
      *
-     * @param context the service extension context
+     * @param context             the service extension context
      * @param okHttpEventListener used to instrument OkHttp client for collecting metrics, can be null
      * @return the OkHttpClient
      */

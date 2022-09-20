@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.tooling.module.processor.introspection;
 
-import org.eclipse.dataspaceconnector.spi.system.Extension;
-import org.eclipse.dataspaceconnector.spi.system.Spi;
-import org.eclipse.dataspaceconnector.tooling.module.domain.ModuleType;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.ModuleType;
 import org.eclipse.dataspaceconnector.tooling.module.processor.generator.JavadocConverter;
 import org.jetbrains.annotations.Nullable;
 

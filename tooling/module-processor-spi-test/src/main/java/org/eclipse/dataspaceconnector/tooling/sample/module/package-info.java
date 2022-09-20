@@ -15,9 +15,9 @@
 /**
  * This is a sample SPI package.
  */
-@Spi(value = NAME, categories = {"category"})
+@Spi(value = NAME, categories = { "category" })
 package org.eclipse.dataspaceconnector.tooling.sample.module;
 
-import org.eclipse.dataspaceconnector.spi.system.Spi;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
 
 import static org.eclipse.dataspaceconnector.tooling.sample.module.TestConstants.NAME;

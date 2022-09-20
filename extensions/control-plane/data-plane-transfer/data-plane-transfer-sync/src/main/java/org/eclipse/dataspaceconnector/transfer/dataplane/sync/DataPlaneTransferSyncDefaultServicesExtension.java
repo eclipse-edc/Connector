@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync;
 
-import org.eclipse.dataspaceconnector.spi.system.Provider;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;

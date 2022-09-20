@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.tooling.sample.module;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.system.Extension;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
 import static org.eclipse.dataspaceconnector.tooling.sample.module.SampleExtension.CATEGORY;
@@ -26,8 +26,8 @@ import static org.eclipse.dataspaceconnector.tooling.sample.module.SampleExtensi
 /**
  * This is sample documentation.
  */
-@Extension(value = NAME, categories = {CATEGORY})
-@Provides({ProvidedService1.class})
+@Extension(value = NAME, categories = { CATEGORY })
+@Provides({ ProvidedService1.class })
 public class SampleExtension implements ServiceExtension {
     public static final String NAME = "Sample Extension";
     public static final String CATEGORY = "sample";

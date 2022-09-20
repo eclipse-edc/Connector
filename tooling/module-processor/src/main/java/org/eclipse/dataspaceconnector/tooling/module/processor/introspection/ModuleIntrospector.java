@@ -14,17 +14,17 @@
 
 package org.eclipse.dataspaceconnector.tooling.module.processor.introspection;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.EdcSettingContext;
-import org.eclipse.dataspaceconnector.spi.system.Extension;
-import org.eclipse.dataspaceconnector.spi.system.ExtensionPoint;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Spi;
-import org.eclipse.dataspaceconnector.tooling.module.domain.ConfigurationSetting;
-import org.eclipse.dataspaceconnector.tooling.module.domain.ModuleType;
-import org.eclipse.dataspaceconnector.tooling.module.domain.Service;
-import org.eclipse.dataspaceconnector.tooling.module.domain.ServiceReference;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSettingContext;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.ConfigurationSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.ModuleType;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.Service;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.ServiceReference;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -43,7 +43,7 @@ import static org.eclipse.dataspaceconnector.tooling.module.processor.compiler.E
  * Contains methods for introspecting the current module using the Java Compiler API.
  */
 public class ModuleIntrospector {
-    private Elements elementUtils;
+    private final Elements elementUtils;
 
     public ModuleIntrospector(Elements elementUtils) {
         this.elementUtils = elementUtils;

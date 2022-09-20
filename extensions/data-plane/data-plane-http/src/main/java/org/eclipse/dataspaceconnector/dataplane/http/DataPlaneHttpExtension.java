@@ -23,9 +23,9 @@ import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpSinkRequestPar
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpSourceRequestParamsSupplier;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -34,25 +34,19 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  */
 public class DataPlaneHttpExtension implements ServiceExtension {
     private static final int DEFAULT_PART_SIZE = 5;
-
+    @EdcSetting
+    private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
     @Inject
     private OkHttpClient httpClient;
-
     @Inject
     @SuppressWarnings("rawtypes")
     private RetryPolicy retryPolicy;
-
     @Inject
     private PipelineService pipelineService;
-
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
-
     @Inject
     private Vault vault;
-
-    @EdcSetting
-    private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
 
     @Override
     public String name() {

@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.boot.system.testextensions;
 
 import org.eclipse.dataspaceconnector.boot.system.TestObject;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
 public class DependentExtension implements ServiceExtension {

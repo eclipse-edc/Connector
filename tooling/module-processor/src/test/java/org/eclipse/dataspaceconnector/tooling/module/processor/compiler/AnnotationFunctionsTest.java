@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.tooling.module.processor.compiler;
 
-import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 class AnnotationFunctionsTest {
 
     @Test
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     void validateTestMirrors() {
         var element = Mockito.mock(Element.class);
         var mirror = Mockito.mock(AnnotationMirror.class);
@@ -56,7 +56,7 @@ class AnnotationFunctionsTest {
     }
 
     @Test
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     void validateAttributeValues() {
         var elementUtils = Mockito.mock(Elements.class);
         var mirror = Mockito.mock(AnnotationMirror.class);
@@ -73,7 +73,7 @@ class AnnotationFunctionsTest {
     }
 
     @Test
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     void validateAttributeStringValues() {
         var elementUtils = Mockito.mock(Elements.class);
         var mirror = Mockito.mock(AnnotationMirror.class);
@@ -90,7 +90,7 @@ class AnnotationFunctionsTest {
     }
 
     @Test
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     void validateAttributeTypeValues() {
         var elementUtils = Mockito.mock(Elements.class);
         var mirror = Mockito.mock(AnnotationMirror.class);

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.events.azure;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class AzureEventGridConfig {

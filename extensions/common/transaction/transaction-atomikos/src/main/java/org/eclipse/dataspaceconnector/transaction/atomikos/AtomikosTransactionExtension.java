@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
@@ -35,7 +35,7 @@ import static org.eclipse.dataspaceconnector.transaction.atomikos.TransactionMan
 /**
  * Provides an implementation of a {@link DataSourceRegistry} and a {@link TransactionContext} backed by Atomikos.
  */
-@Provides({TransactionContext.class, DataSourceRegistry.class})
+@Provides({ TransactionContext.class, DataSourceRegistry.class })
 public class AtomikosTransactionExtension implements ServiceExtension {
     static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
     private AtomikosTransactionPlatform transactionPlatform;

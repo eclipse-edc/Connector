@@ -26,11 +26,11 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSin
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
 /**
  * Provides core services for the Data Plane Framework.
  */
-@Provides({DataPlaneManager.class, PipelineService.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class})
+@Provides({ DataPlaneManager.class, PipelineService.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class })
 public class DataPlaneFrameworkExtension implements ServiceExtension {
     private static final int IN_MEMORY_STORE_CAPACITY = 1000;
 
@@ -117,16 +117,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         context.registerService(DataPlaneManager.class, dataPlaneManager);
     }
 
-    @NotNull
-    private DataPlaneStore registerStore(ServiceExtensionContext context) {
-        if (store != null) {
-            return store;
-        }
-        var inMemoryStore = new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY);
-        context.registerService(DataPlaneStore.class, inMemoryStore);
-        return inMemoryStore;
-    }
-
     @Override
     public void start() {
         dataPlaneManager.start();
@@ -137,5 +127,15 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         if (dataPlaneManager != null) {
             dataPlaneManager.forceStop();
         }
+    }
+
+    @NotNull
+    private DataPlaneStore registerStore(ServiceExtensionContext context) {
+        if (store != null) {
+            return store;
+        }
+        var inMemoryStore = new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY);
+        context.registerService(DataPlaneStore.class, inMemoryStore);
+        return inMemoryStore;
     }
 }

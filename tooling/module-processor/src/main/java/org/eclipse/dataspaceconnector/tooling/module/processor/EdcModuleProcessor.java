@@ -15,10 +15,10 @@
 package org.eclipse.dataspaceconnector.tooling.module.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.system.Extension;
-import org.eclipse.dataspaceconnector.spi.system.Spi;
-import org.eclipse.dataspaceconnector.tooling.module.domain.EdcModule;
-import org.eclipse.dataspaceconnector.tooling.module.domain.ModuleType;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.EdcModule;
+import org.eclipse.dataspaceconnector.runtime.metamodel.domain.ModuleType;
 import org.eclipse.dataspaceconnector.tooling.module.processor.introspection.ModuleIntrospector;
 import org.eclipse.dataspaceconnector.tooling.module.processor.introspection.OverviewIntrospector;
 import org.jetbrains.annotations.Nullable;

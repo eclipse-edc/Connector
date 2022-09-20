@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.tooling.sample.module;
 
-import org.eclipse.dataspaceconnector.spi.system.ExtensionPoint;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 
 @ExtensionPoint
 public interface ExtensionService {

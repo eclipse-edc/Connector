@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.did.spi.document;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 
 import java.util.Arrays;
 import java.util.List;

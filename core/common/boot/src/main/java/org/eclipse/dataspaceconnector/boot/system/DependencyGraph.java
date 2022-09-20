@@ -15,11 +15,11 @@
 package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.boot.util.TopologicalSort;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Requires;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
-import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;

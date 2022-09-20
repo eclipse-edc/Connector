@@ -16,6 +16,6 @@ package org.eclipse.dataspaceconnector.boot.system.testextensions;
 
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
-@org.eclipse.dataspaceconnector.spi.system.BaseExtension
+@org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension
 public class BaseExtension implements ServiceExtension {
 }

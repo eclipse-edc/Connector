@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 
 import java.util.concurrent.TimeUnit;
 

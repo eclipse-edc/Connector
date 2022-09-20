@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerStatus
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageConsumerResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageProvisioner;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;

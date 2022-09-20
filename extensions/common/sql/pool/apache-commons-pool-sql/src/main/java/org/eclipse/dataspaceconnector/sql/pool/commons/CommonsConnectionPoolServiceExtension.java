@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.sql.pool.commons;
 
-import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
@@ -35,11 +35,35 @@ import javax.sql.DataSource;
 
 public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
-
+    private final List<CommonsConnectionPool> commonsConnectionPools = new LinkedList<>();
     @Inject
     private DataSourceRegistry dataSourceRegistry;
 
-    private final List<CommonsConnectionPool> commonsConnectionPools = new LinkedList<>();
+    private static void setIfProvidedString(String key, Consumer<String> setter, Config config) {
+        var value = config.getString(key, null);
+        if (value == null) {
+            return;
+        }
+        setter.accept(value);
+    }
+
+    private static void setIfProvidedInt(String key, Consumer<Integer> setter, Config config) {
+        var value = config.getInteger(key, null);
+        if (value == null) {
+            return;
+        }
+
+        setter.accept(value);
+    }
+
+    private static void setIfProvidedBoolean(String key, Consumer<Boolean> setter, Config config) {
+        var value = config.getString(key, null);
+        if (value == null) {
+            return;
+        }
+
+        setter.accept(Boolean.parseBoolean(value));
+    }
 
     @Override
     public String name() {
@@ -105,31 +129,5 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
         setIfProvidedString(CommonsConnectionPoolConfigKeys.POOL_TEST_QUERY, builder::testQuery, config);
 
         return new CommonsConnectionPool(unPooledDataSource, builder.build());
-    }
-
-    private static void setIfProvidedString(String key, Consumer<String> setter, Config config) {
-        var value = config.getString(key, null);
-        if (value == null) {
-            return;
-        }
-        setter.accept(value);
-    }
-
-    private static void setIfProvidedInt(String key, Consumer<Integer> setter, Config config) {
-        var value = config.getInteger(key, null);
-        if (value == null) {
-            return;
-        }
-
-        setter.accept(value);
-    }
-
-    private static void setIfProvidedBoolean(String key, Consumer<Boolean> setter, Config config) {
-        var value = config.getString(key, null);
-        if (value == null) {
-            return;
-        }
-
-        setter.accept(Boolean.parseBoolean(value));
     }
 }
