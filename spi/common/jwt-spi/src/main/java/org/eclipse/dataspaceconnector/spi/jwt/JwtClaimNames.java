@@ -21,42 +21,56 @@ package org.eclipse.dataspaceconnector.spi.jwt;
 public final class JwtClaimNames {
 
     /**
+     * "iss" (Issuer) Claim
+     *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1">RFC 7519 "iss" (Issuer) Claim</a>
      */
     public static final String ISSUER = "iss";
 
 
     /**
+     * "sub" (Subject) Claim
+     *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.2">RFC 7519 "sub" (Subject) Claim</a>
      */
     public static final String SUBJECT = "sub";
 
 
     /**
+     * "aud" (Audience) Claim
+     *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3">RFC 7519 "aud" (Audience) Claim</a>
      */
     public static final String AUDIENCE = "aud";
 
 
     /**
+     * "exp" (Expiration Time) Claim
+     *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4">RFC 7519 "exp" (Expiration Time) Claim</a>
      */
     public static final String EXPIRATION_TIME = "exp";
 
 
     /**
+     * "nbf" (Not Before) Claim
+     *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5">RFC 7519 "nbf" (Not Before) Claim</a>
      */
     public static final String NOT_BEFORE = "nbf";
 
 
     /**
+     * "iat" (Issued At) Claim
+     *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6">RFC 7519 "iat" (Issued At) Claim</a>
      */
     public static final String ISSUED_AT = "iat";
 
 
     /**
+     * "jti" (JWT ID) Claim
+     *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.7">RFC 7519 "jti" (JWT ID) Claim</a>
      */
     public static final String JWT_ID = "jti";

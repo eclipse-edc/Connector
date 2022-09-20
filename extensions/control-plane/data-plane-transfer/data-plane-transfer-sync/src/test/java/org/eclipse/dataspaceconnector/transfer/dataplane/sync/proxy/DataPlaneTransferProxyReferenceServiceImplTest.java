@@ -99,11 +99,10 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
 
         var decorator = decoratorCaptor.getValue();
 
-        // test the decorator
-        var claims = decorator.claims();;
-        assertThat(claims.get(CONTRACT_ID)).isEqualTo(contractId);
-        assertThat(claims.get(DATA_ADDRESS)).isEqualTo(encryptedDataAddress);
-        assertThat(claims.get(EXPIRATION_TIME)).isEqualTo(Date.from(now.plusSeconds(tokenValiditySeconds)));
+        assertThat(decorator.claims())
+                .containsEntry(CONTRACT_ID, contractId)
+                .containsEntry(DATA_ADDRESS, encryptedDataAddress)
+                .containsEntry(EXPIRATION_TIME, Date.from(now.plusSeconds(tokenValiditySeconds)));
 
         assertThat(result.succeeded()).isTrue();
         var edr = result.getContent();
