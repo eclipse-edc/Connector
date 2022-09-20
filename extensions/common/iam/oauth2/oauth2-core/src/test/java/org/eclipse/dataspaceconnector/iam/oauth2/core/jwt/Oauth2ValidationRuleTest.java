@@ -29,6 +29,10 @@ import java.util.List;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.NOT_BEFORE;
 
 class Oauth2ValidationRuleTest {
 
@@ -46,9 +50,9 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseNotBeforeTimeNotRespected() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("nbf", Date.from(now.plusSeconds(20)))
-                .claim("exp", Date.from(now.plusSeconds(600)))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(NOT_BEFORE, Date.from(now.plusSeconds(20)))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -61,8 +65,8 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseNotBeforeTimeNotProvided() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("exp", Date.from(now.plusSeconds(600)))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -75,9 +79,9 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseExpirationTimeNotRespected() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("nbf", Date.from(now))
-                .claim("exp", Date.from(now.minusSeconds(10)))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(NOT_BEFORE, Date.from(now))
+                .claim(EXPIRATION_TIME, Date.from(now.minusSeconds(10)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -90,8 +94,8 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseExpirationTimeNotProvided() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("nbf", Date.from(now))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(NOT_BEFORE, Date.from(now))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -104,9 +108,9 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseAudienceNotRespected() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of("fake-audience"))
-                .claim("nbf", Date.from(now))
-                .claim("exp", Date.from(now.plusSeconds(600)))
+                .claim(AUDIENCE, List.of("fake-audience"))
+                .claim(NOT_BEFORE, Date.from(now))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -119,8 +123,8 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseAudienceNotProvided() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("nbf", Date.from(now))
-                .claim("exp", Date.from(now.plusSeconds(600)))
+                .claim(NOT_BEFORE, Date.from(now))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -133,9 +137,9 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationOkWhenLeewayOnNotBefore() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("nbf", Date.from(now.plusSeconds(20)))
-                .claim("exp", Date.from(now.plusSeconds(600)))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(NOT_BEFORE, Date.from(now.plusSeconds(20)))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
                 .build();
 
         var configuration = Oauth2Configuration.Builder.newInstance()
@@ -152,9 +156,9 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationOk() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("nbf", Date.from(now))
-                .claim("exp", Date.from(now.plusSeconds(600)))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(NOT_BEFORE, Date.from(now))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -165,10 +169,10 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseIssuedAtAfterExpires() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("nbf", Date.from(now))
-                .claim("exp", Date.from(now.plusSeconds(60)))
-                .claim("iat", Date.from(now.plusSeconds(65)))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(NOT_BEFORE, Date.from(now))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
+                .claim(ISSUED_AT, Date.from(now.plusSeconds(65)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -180,10 +184,10 @@ class Oauth2ValidationRuleTest {
     @Test
     void validationKoBecauseIssuedAtInFuture() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("aud", List.of(TEST_AUDIENCE))
-                .claim("nbf", Date.from(now))
-                .claim("exp", Date.from(now.plusSeconds(60)))
-                .claim("iat", Date.from(now.plusSeconds(10)))
+                .claim(AUDIENCE, List.of(TEST_AUDIENCE))
+                .claim(NOT_BEFORE, Date.from(now))
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
+                .claim(ISSUED_AT, Date.from(now.plusSeconds(10)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());

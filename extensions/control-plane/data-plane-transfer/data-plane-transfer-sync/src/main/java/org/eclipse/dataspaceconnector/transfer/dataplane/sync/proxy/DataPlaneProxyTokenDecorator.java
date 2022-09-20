@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 
@@ -43,7 +44,7 @@ public class DataPlaneProxyTokenDecorator implements JwtDecorator {
     @Override
     public Map<String, Object> claims() {
         return Map.of(
-                "exp", expirationDate,
+                EXPIRATION_TIME, expirationDate,
                 CONTRACT_ID, contractId,
                 DATA_ADDRESS, encryptedDataAddress
         );

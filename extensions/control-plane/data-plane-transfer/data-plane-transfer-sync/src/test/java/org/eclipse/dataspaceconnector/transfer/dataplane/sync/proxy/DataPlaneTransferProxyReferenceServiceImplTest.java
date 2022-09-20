@@ -37,6 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,7 +103,7 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
         var claims = decorator.claims();;
         assertThat(claims.get(CONTRACT_ID)).isEqualTo(contractId);
         assertThat(claims.get(DATA_ADDRESS)).isEqualTo(encryptedDataAddress);
-        assertThat(claims.get("exp")).isEqualTo(Date.from(now.plusSeconds(tokenValiditySeconds)));
+        assertThat(claims.get(EXPIRATION_TIME)).isEqualTo(Date.from(now.plusSeconds(tokenValiditySeconds)));
 
         assertThat(result.succeeded()).isTrue();
         var edr = result.getContent();

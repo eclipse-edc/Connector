@@ -15,8 +15,6 @@
 package org.eclipse.dataspaceconnector.core.jwt;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
@@ -25,8 +23,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.HamcrestCondition;
 import org.eclipse.dataspaceconnector.spi.jwt.JwtDecorator;
 import org.eclipse.dataspaceconnector.spi.jwt.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +37,7 @@ import java.util.UUID;
 
 import static com.nimbusds.jose.JWSAlgorithm.RS256;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.PATH;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
 
 class TokenGenerationServiceImplTest {
 
@@ -71,8 +67,8 @@ class TokenGenerationServiceImplTest {
         var tested = signedJwt.getJWTClaimsSet().getClaims();
         assertThat(tested)
                 .containsEntry("foo", "bar")
-                .containsKey("exp")
-                .extracting(it -> it.get("exp")).isInstanceOf(Date.class);
+                .containsKey(EXPIRATION_TIME)
+                .hasEntrySatisfying(EXPIRATION_TIME, value -> assertThat(value).isInstanceOf(Date.class));
 
         assertThat(signedJwt.getHeader()).satisfies(header -> {
             assertThat(header.getAlgorithm()).isEqualTo(RS256);
@@ -89,7 +85,7 @@ class TokenGenerationServiceImplTest {
 
             @Override
             public Map<String, Object> claims() {
-                return Map.of("foo", "bar", "exp", Date.from(Instant.now().plusSeconds(60)));
+                return Map.of("foo", "bar", EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)));
             }
 
             @Override

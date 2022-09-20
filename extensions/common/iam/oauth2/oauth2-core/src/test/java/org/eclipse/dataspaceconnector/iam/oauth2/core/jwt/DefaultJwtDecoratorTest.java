@@ -26,6 +26,12 @@ import java.util.UUID;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUER;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.JWT_ID;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.SUBJECT;
 
 class DefaultJwtDecoratorTest {
 
@@ -52,12 +58,12 @@ class DefaultJwtDecoratorTest {
         var claims = decorator.claims();
 
         assertThat(claims)
-                .hasEntrySatisfying("aud", o -> assertThat(o).asInstanceOf(list(String.class)).contains(audience))
-                .hasFieldOrPropertyWithValue("iss", clientId)
-                .hasFieldOrPropertyWithValue("sub", clientId)
-                .containsKey("jti")
-                .hasEntrySatisfying("iat", issueDate -> assertThat((Date) issueDate).isEqualTo(now))
-                .hasEntrySatisfying("exp", expiration -> assertThat((Date) expiration).isEqualTo(now.plusSeconds(TOKEN_EXPIRATION)));
+                .hasEntrySatisfying(AUDIENCE, o -> assertThat(o).asInstanceOf(list(String.class)).contains(audience))
+                .hasFieldOrPropertyWithValue(ISSUER, clientId)
+                .hasFieldOrPropertyWithValue(SUBJECT, clientId)
+                .containsKey(JWT_ID)
+                .hasEntrySatisfying(ISSUED_AT, issueDate -> assertThat((Date) issueDate).isEqualTo(now))
+                .hasEntrySatisfying(EXPIRATION_TIME, expiration -> assertThat((Date) expiration).isEqualTo(now.plusSeconds(TOKEN_EXPIRATION)));
     }
 
     @Test

@@ -28,8 +28,6 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TokenValidationServiceImpl implements TokenValidationService {
@@ -61,7 +59,6 @@ public class TokenValidationServiceImpl implements TokenValidationService {
 
             var tokenBuilder = ClaimToken.Builder.newInstance();
             signedJwt.getJWTClaimsSet().getClaims().entrySet().stream()
-                    .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
                     .filter(entry -> entry.getValue() != null)
                     .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
 

@@ -11,6 +11,7 @@ import java.time.Instant;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
 
 class ExpirationDateValidationRuleTest {
 
@@ -30,7 +31,7 @@ class ExpirationDateValidationRuleTest {
     @Test
     void failsIfTokenIsExpired() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("exp", Date.from(now))
+                .claim(EXPIRATION_TIME, Date.from(now))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -42,7 +43,7 @@ class ExpirationDateValidationRuleTest {
     @Test
     void succeedIfTokenIsNotExpired() {
         var token = ClaimToken.Builder.newInstance()
-                .claim("exp", Date.from(now.plusMillis(1)))
+                .claim(EXPIRATION_TIME, Date.from(now.plusMillis(1)))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());

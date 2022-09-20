@@ -31,6 +31,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import static java.time.ZoneOffset.UTC;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.NOT_BEFORE;
 
 public class Oauth2ValidationRule implements TokenValidationRule {
     private final Oauth2Configuration configuration;
@@ -52,7 +56,7 @@ public class Oauth2ValidationRule implements TokenValidationRule {
         var claimsSet = toVerify.getClaims();
         List<String> errors = new ArrayList<>();
         String audience = configuration.getProviderAudience();
-        List<String> audiences = Optional.of(claimsSet).map(it -> it.get("aud")).map(List.class::cast).orElse(Collections.emptyList());
+        List<String> audiences = Optional.of(claimsSet).map(it -> it.get(AUDIENCE)).map(List.class::cast).orElse(Collections.emptyList());
         if (audiences.isEmpty()) {
             errors.add("Required audience (aud) claim is missing in token");
         } else if (!audiences.contains(audience)) {
@@ -61,14 +65,14 @@ public class Oauth2ValidationRule implements TokenValidationRule {
 
         Instant now = clock.instant();
         var leewayNow = now.plusSeconds(configuration.getNotBeforeValidationLeeway());
-        var notBefore = (Date) claimsSet.get("nbf");
+        var notBefore = (Date) claimsSet.get(NOT_BEFORE);
         if (notBefore == null) {
             errors.add("Required not before (nbf) claim is missing in token");
         } else if (leewayNow.isBefore(convertToUtcTime(notBefore))) {
             errors.add("Current date/time with leeway before the not before (nbf) claim in token");
         }
 
-        var expires = (Date) claimsSet.get("exp");
+        var expires = (Date) claimsSet.get(EXPIRATION_TIME);
         var expiresSet = expires != null;
         if (!expiresSet) {
             errors.add("Required expiration time (exp) claim is missing in token");
@@ -76,7 +80,7 @@ public class Oauth2ValidationRule implements TokenValidationRule {
             errors.add("Token has expired (exp)");
         }
 
-        var issuedAt = (Date) claimsSet.get("iat");
+        var issuedAt = (Date) claimsSet.get(ISSUED_AT);
         if (issuedAt != null) {
             if (expiresSet && issuedAt.toInstant().isAfter(expires.toInstant())) {
                 errors.add("Issued at (iat) claim is after expiration time (exp) claim in token");

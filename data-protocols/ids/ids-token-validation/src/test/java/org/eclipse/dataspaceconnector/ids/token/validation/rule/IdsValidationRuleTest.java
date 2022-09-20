@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;

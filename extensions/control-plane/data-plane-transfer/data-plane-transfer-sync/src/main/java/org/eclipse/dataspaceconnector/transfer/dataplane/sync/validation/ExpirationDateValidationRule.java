@@ -24,6 +24,8 @@ import java.time.Clock;
 import java.util.Date;
 import java.util.Map;
 
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+
 /**
  * Assert that token containing these claims is not expired yet.
  */
@@ -37,7 +39,7 @@ public class ExpirationDateValidationRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        var expiration = (Date) toVerify.getClaims().get("exp");
+        var expiration = (Date) toVerify.getClaims().get(EXPIRATION_TIME);
         if (expiration == null) {
             return Result.failure("Missing expiration time in token");
         }

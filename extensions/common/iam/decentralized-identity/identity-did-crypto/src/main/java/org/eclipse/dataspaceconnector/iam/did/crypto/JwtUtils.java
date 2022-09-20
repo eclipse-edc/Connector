@@ -34,14 +34,14 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUER;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.SUBJECT;
+
 /**
  * Convenience/helper class to generate and verify Signed JSON Web Tokens (JWTs) for communicating between connector instances.
  */
 public class JwtUtils {
-    // RFC 7519 Registered (standard) claims
-    private static final String ISSUER_CLAIM = "iss";
-    private static final String SUBJECT_CLAIM = "sub";
-    private static final String EXPIRATION_TIME_CLAIM = "exp";
 
     /**
      * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity
@@ -111,10 +111,7 @@ public class JwtUtils {
         var exactMatchClaims = new JWTClaimsSet.Builder()
                 .audience(audience)
                 .build();
-        var requiredClaims = Set.of(
-                ISSUER_CLAIM,
-                SUBJECT_CLAIM,
-                EXPIRATION_TIME_CLAIM);
+        var requiredClaims = Set.of(ISSUER, SUBJECT, EXPIRATION_TIME);
 
         var claimsVerifier = new DefaultJWTClaimsVerifier<>(exactMatchClaims, requiredClaims);
         try {

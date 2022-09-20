@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 
@@ -49,7 +50,7 @@ class DataPlaneProxyTokenDecoratorTest {
         assertThat(result)
                 .containsEntry(CONTRACT_ID, contractId)
                 .containsEntry(DATA_ADDRESS, encryptedDataAddress)
-                .containsEntry("exp", expiration);
+                .containsEntry(EXPIRATION_TIME, expiration);
     }
 
     @Test

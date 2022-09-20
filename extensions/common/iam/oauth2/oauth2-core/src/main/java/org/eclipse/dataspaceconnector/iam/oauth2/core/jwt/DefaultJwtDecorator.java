@@ -23,6 +23,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.Fingerprint.sha1Base64Fingerprint;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUER;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.JWT_ID;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.SUBJECT;
 
 public class DefaultJwtDecorator implements JwtDecorator {
 
@@ -48,12 +54,12 @@ public class DefaultJwtDecorator implements JwtDecorator {
     @Override
     public Map<String, Object> claims() {
         return Map.of(
-                "aud", List.of(audience),
-                "iss", clientId,
-                "sub", clientId,
-                "jti", UUID.randomUUID().toString(),
-                "iat", Date.from(clock.instant()),
-                "exp", Date.from(clock.instant().plusSeconds(expiration))
+                AUDIENCE, List.of(audience),
+                ISSUER, clientId,
+                SUBJECT, clientId,
+                JWT_ID, UUID.randomUUID().toString(),
+                ISSUED_AT, Date.from(clock.instant()),
+                EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(expiration))
         );
     }
 }
