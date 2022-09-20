@@ -13,7 +13,6 @@
  */
 
 val infoModelVersion: String by project
-val nimbusVersion: String by project
 
 plugins {
     `java-library`
@@ -27,8 +26,6 @@ dependencies {
     api(project(":spi:common:jwt-spi"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
-
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 }
 
 publishing {
