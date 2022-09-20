@@ -120,6 +120,9 @@ buildscript {
 }
 
 allprojects {
+    repositories {
+        mavenLocal()
+    }
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
@@ -169,6 +172,8 @@ allprojects {
             api("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
             api("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
             api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
+            api("${groupId}:runtime-metamodel:0.0.1")
+
 
             testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
             testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
