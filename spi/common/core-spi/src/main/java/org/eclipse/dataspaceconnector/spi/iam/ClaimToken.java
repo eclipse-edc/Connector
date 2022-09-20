@@ -19,7 +19,6 @@ import java.util.Map;
 
 /**
  * Models a token containing claims such as a JWT.
- * Currently only a String representation of claims values is supported.
  */
 public class ClaimToken {
     private final Map<String, Object> claims = new HashMap<>();

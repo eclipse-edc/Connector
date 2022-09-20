@@ -14,12 +14,11 @@
 
 package org.eclipse.dataspaceconnector.spi.jwt;
 
-import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,9 +26,5 @@ import java.util.Map;
  */
 @FunctionalInterface
 public interface TokenValidationRule {
-    Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify, @Nullable Map<String, Object> additional);
-
-    default Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify) {
-        return checkRule(toVerify, new HashMap<>());
-    }
+    Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional);
 }

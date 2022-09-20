@@ -47,7 +47,6 @@ public class TokenValidationServiceImpl implements TokenValidationService {
     public Result<ClaimToken> validate(TokenRepresentation tokenRepresentation) {
         var token = tokenRepresentation.getToken();
         var additional = tokenRepresentation.getAdditional();
-        JWTClaimsSet claimsSet;
         try {
             var signedJwt = SignedJWT.parse(token);
             var publicKeyId = signedJwt.getHeader().getKeyID();
@@ -61,10 +60,16 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return Result.failure("Token verification failed");
             }
 
-            claimsSet = signedJwt.getJWTClaimsSet();
+            var tokenBuilder = ClaimToken.Builder.newInstance();
+            signedJwt.getJWTClaimsSet().getClaims().entrySet().stream()
+                    .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
+                    .filter(entry -> entry.getValue() != null)
+                    .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
+
+            var claimToken = tokenBuilder.build();
 
             var errors = rulesRegistry.getRules().stream()
-                    .map(r -> r.checkRule(signedJwt, additional))
+                    .map(r -> r.checkRule(claimToken, additional))
                     .filter(Result::failed)
                     .map(Result::getFailureMessages)
                     .flatMap(Collection::stream)
@@ -74,13 +79,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return Result.failure(errors);
             }
 
-            var tokenBuilder = ClaimToken.Builder.newInstance();
-            claimsSet.getClaims().entrySet().stream()
-                    .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
-                    .filter(entry -> entry.getValue() != null)
-                    .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
-
-            return Result.success(tokenBuilder.build());
+            return Result.success(claimToken);
 
         } catch (JOSEException e) {
             return Result.failure(e.getMessage());

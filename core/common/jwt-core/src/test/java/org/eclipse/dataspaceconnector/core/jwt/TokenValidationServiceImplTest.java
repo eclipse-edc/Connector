@@ -71,9 +71,7 @@ class TokenValidationServiceImplTest {
     @Test
     void validationSuccess() throws JOSEException {
         var claims = createClaims(now);
-        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
-        var jwt = new SignedJWT(header, claims);
-        when(ruleMock.checkRule(any(), any())).thenReturn(Result.success(jwt));
+        when(ruleMock.checkRule(any(), any())).thenReturn(Result.success());
 
         var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()));
 

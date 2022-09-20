@@ -14,12 +14,9 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRule;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,8 +24,10 @@ import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static java.time.ZoneOffset.UTC;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class Oauth2ValidationRuleTest {
@@ -37,25 +36,22 @@ class Oauth2ValidationRuleTest {
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, UTC);
     private Oauth2ValidationRule rule;
-    private JWSHeader jwsHeader;
 
     @BeforeEach
     public void setUp() {
         var configuration = Oauth2Configuration.Builder.newInstance().providerAudience("test-audience").build();
         rule = new Oauth2ValidationRule(configuration, clock);
-        jwsHeader = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
     }
 
     @Test
     void validationKoBecauseNotBeforeTimeNotRespected() {
-        var claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .notBeforeTime(Date.from(now.plusSeconds(20)))
-                .expirationTime(Date.from(now.plusSeconds(600)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("nbf", Date.from(now.plusSeconds(20)))
+                .claim("exp", Date.from(now.plusSeconds(600)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -64,13 +60,12 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseNotBeforeTimeNotProvided() {
-        var claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .expirationTime(Date.from(now.plusSeconds(600)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("exp", Date.from(now.plusSeconds(600)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -79,14 +74,13 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseExpirationTimeNotRespected() {
-        var claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .notBeforeTime(Date.from(now))
-                .expirationTime(Date.from(now.minusSeconds(10)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("nbf", Date.from(now))
+                .claim("exp", Date.from(now.minusSeconds(10)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -95,13 +89,12 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseExpirationTimeNotProvided() {
-        var claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .notBeforeTime(Date.from(now))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("nbf", Date.from(now))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -110,14 +103,13 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseAudienceNotRespected() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience("fake-audience")
-                .notBeforeTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(600)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of("fake-audience"))
+                .claim("nbf", Date.from(now))
+                .claim("exp", Date.from(now.plusSeconds(600)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -126,13 +118,12 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseAudienceNotProvided() {
-        var claims = new JWTClaimsSet.Builder()
-                .notBeforeTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(600)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("nbf", Date.from(now))
+                .claim("exp", Date.from(now.plusSeconds(600)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -141,48 +132,46 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationOkWhenLeewayOnNotBefore() {
-        var claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .notBeforeTime(Date.from(now.plusSeconds(20)))
-                .expirationTime(Date.from(now.plusSeconds(600)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("nbf", Date.from(now.plusSeconds(20)))
+                .claim("exp", Date.from(now.plusSeconds(600)))
                 .build();
+
         var configuration = Oauth2Configuration.Builder.newInstance()
                 .providerAudience(TEST_AUDIENCE)
                 .notBeforeValidationLeeway(20)
                 .build();
         rule = new Oauth2ValidationRule(configuration, clock);
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isTrue();
     }
 
     @Test
     void validationOk() {
-        var claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .notBeforeTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(600)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("nbf", Date.from(now))
+                .claim("exp", Date.from(now.plusSeconds(600)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isTrue();
     }
 
     @Test
     void validationKoBecauseIssuedAtAfterExpires() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .notBeforeTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(60)))
-                .issueTime(Date.from(now.plusSeconds(65)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("nbf", Date.from(now))
+                .claim("exp", Date.from(now.plusSeconds(60)))
+                .claim("iat", Date.from(now.plusSeconds(65)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1).contains("Issued at (iat) claim is after expiration time (exp) claim in token");
@@ -190,15 +179,14 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseIssuedAtInFuture() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience(TEST_AUDIENCE)
-                .notBeforeTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(60)))
-                .issueTime(Date.from(now.plusSeconds(10)))
+        var token = ClaimToken.Builder.newInstance()
+                .claim("aud", List.of(TEST_AUDIENCE))
+                .claim("nbf", Date.from(now))
+                .claim("exp", Date.from(now.plusSeconds(60)))
+                .claim("iat", Date.from(now.plusSeconds(10)))
                 .build();
 
-        var jwt = new SignedJWT(jwsHeader, claims);
-        var result = rule.checkRule(jwt);
+        var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1).contains("Current date/time before issued at (iat) claim in token");

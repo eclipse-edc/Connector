@@ -14,14 +14,10 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +28,7 @@ import java.util.UUID;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,26 +39,23 @@ class ContractValidationRuleTest {
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
+    private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
 
-    private final ContractNegotiationStore contractNegotiationStoreMock = mock(ContractNegotiationStore.class);
     private ContractValidationRule rule;
-
 
     @BeforeEach
     public void setUp() {
-        rule = new ContractValidationRule(contractNegotiationStoreMock, clock);
+        rule = new ContractValidationRule(contractNegotiationStore, clock);
     }
 
     @Test
     void shouldSucceedIfContractIsStillValid() {
         var contractId = UUID.randomUUID().toString();
         var contractAgreement = createContractAgreement(contractId, now.plus(1, HOURS));
-        when(contractNegotiationStoreMock.findContractAgreement(contractId)).thenReturn(contractAgreement);
-        var claims = new JWTClaimsSet.Builder()
-                .claim(CONTRACT_ID, contractId)
-                .build();
+        when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(contractAgreement);
+        var claimToken = ClaimToken.Builder.newInstance().claim(CONTRACT_ID, contractId).build();
 
-        var result = rule.checkRule(createJwtWith(claims));
+        var result = rule.checkRule(claimToken, emptyMap());
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -70,41 +64,31 @@ class ContractValidationRuleTest {
     void shouldFailIfContractIsExpired() {
         var contractId = UUID.randomUUID().toString();
         var contractAgreement = createContractAgreement(contractId, now.minus(1, SECONDS));
-        when(contractNegotiationStoreMock.findContractAgreement(contractId)).thenReturn(contractAgreement);
-        var claims = new JWTClaimsSet.Builder()
-                .claim(CONTRACT_ID, contractId)
-                .build();
+        when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(contractAgreement);
+        var claimToken = ClaimToken.Builder.newInstance().claim(CONTRACT_ID, contractId).build();
 
-        var result = rule.checkRule(createJwtWith(claims));
+        var result = rule.checkRule(claimToken, emptyMap());
 
         assertThat(result.failed()).isTrue();
     }
 
     @Test
     void shouldFailIfContractIdClaimIsMissing() {
-        var claims = new JWTClaimsSet.Builder().build();
+        var claimToken = ClaimToken.Builder.newInstance().build();
 
-        var result = rule.checkRule(createJwtWith(claims));
+        var result = rule.checkRule(claimToken, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
     }
 
     @Test
     void shouldFailIfContractIdContractDoesNotExist() {
-        when(contractNegotiationStoreMock.findContractAgreement(any())).thenReturn(null);
-        var claims = new JWTClaimsSet.Builder()
-                .claim(CONTRACT_ID, "unknownContractId")
-                .build();
+        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(null);
+        var claimToken = ClaimToken.Builder.newInstance().claim(CONTRACT_ID, "unknownContractId").build();
 
-        var result = rule.checkRule(createJwtWith(claims));
+        var result = rule.checkRule(claimToken, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
-    }
-
-    @NotNull
-    private SignedJWT createJwtWith(JWTClaimsSet claims) {
-        var jwsHeader = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
-        return new SignedJWT(jwsHeader, claims);
     }
 
     private ContractAgreement createContractAgreement(String contractId, Instant endDate) {
