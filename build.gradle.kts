@@ -114,7 +114,8 @@ subprojects {
 
 buildscript {
     dependencies {
-        classpath("io.swagger.core.v3:swagger-gradle-plugin:2.1.13")
+        val swagger: String by project
+        classpath("io.swagger.core.v3:swagger-gradle-plugin:${swagger}")
     }
 }
 
