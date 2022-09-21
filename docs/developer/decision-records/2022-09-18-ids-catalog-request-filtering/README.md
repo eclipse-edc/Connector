@@ -7,7 +7,7 @@ Extend existing `CatalogRequest` object with list of criteria used to filter `As
 ## Rationale
 
 In a large scale environment, with multiple EDCs holding the information about hundreds of thousands of `Assets`, instead of 
-looping thought all of the `ContractOffers`, there is a need to narrow the results down to even single offer. For example, and 
+looping thought all of the `ContractOffers`, there is a need to narrow the results down to even single offer. For example, an 
 `Asset` might hold the 'special' type of data (like registry or database) and should be searchable by its type.
 
 ## Approach
