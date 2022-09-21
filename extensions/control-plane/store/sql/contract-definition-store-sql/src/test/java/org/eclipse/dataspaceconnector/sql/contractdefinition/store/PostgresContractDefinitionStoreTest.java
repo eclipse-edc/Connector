@@ -152,12 +152,17 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
 
 
     @Override
-    protected Boolean supportCollectionQuery() {
+    protected boolean supportsCollectionQuery() {
         return true;
     }
 
     @Override
-    protected Boolean supportSortOrder() {
+    protected boolean supportsCollectionIndexQuery() {
+        return false;
+    }
+
+    @Override
+    protected boolean supportsSortOrder() {
         return false;
     }
 }

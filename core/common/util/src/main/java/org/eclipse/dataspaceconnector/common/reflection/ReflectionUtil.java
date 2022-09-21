@@ -40,7 +40,7 @@ public class ReflectionUtil {
      *     someObject[2].someValue //someObject must impement the List interface
      * </pre>
      *
-     * @param object The object
+     * @param object       The object
      * @param propertyName The name of the field
      * @return The field's value.
      * @throws ReflectionException if the field does not exist or is not accessible
@@ -89,14 +89,14 @@ public class ReflectionUtil {
      * Utility function to get value of a field from an object. Essentially the same as
      * {@link ReflectionUtil#getFieldValue(String, Object)} but it does not throw an exception
      *
-     * @param object The object
+     * @param object       The object
      * @param propertyName The name of the field
      * @return The field's value. Returns null if the field does not exist or is inaccessible.
      */
     public static <T> T getFieldValueSilent(String propertyName, Object object) {
         try {
             return getFieldValue(propertyName, object);
-        } catch (ReflectionException ignored) {
+        } catch (ReflectionException | IndexOutOfBoundsException ignored) {
             return null;
         }
     }
@@ -125,7 +125,7 @@ public class ReflectionUtil {
      * Gets a field with a given name from all declared fields of a class including supertypes. Will include protected
      * and private fields.
      *
-     * @param clazz The class of the object
+     * @param clazz     The class of the object
      * @param fieldName The fieldname
      * @return A field with the given name, null if the field does not exist
      */

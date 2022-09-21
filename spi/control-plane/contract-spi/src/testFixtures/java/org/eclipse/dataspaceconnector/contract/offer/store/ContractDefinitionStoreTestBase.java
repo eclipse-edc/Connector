@@ -48,8 +48,10 @@ import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.S
 public abstract class ContractDefinitionStoreTestBase {
 
     public ContractDefinitionStoreTestBase() {
-        System.setProperty("contractdefinitionstore.supports.collectionQuery", String.valueOf(supportCollectionQuery()));
-        System.setProperty("contractdefinitionstore.supports.sortorder", String.valueOf(supportSortOrder()));
+        System.setProperty("contractdefinitionstore.supports.collectionQuery", String.valueOf(supportsCollectionQuery()));
+        System.setProperty("contractdefinitionstore.supports.sortorder", String.valueOf(supportsSortOrder()));
+        System.setProperty("contractdefinitionstore.supports.collectionIndexQuery", String.valueOf(supportsCollectionIndexQuery()));
+
     }
 
     @Test
@@ -454,11 +456,49 @@ public abstract class ContractDefinitionStoreTestBase {
                 .containsOnly(def5);
     }
 
+    @Test
+    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionIndexQuery", matches = "true", disabledReason = "This test only runs if collections with index is supported")
+    void find_queryBySelectorExpression_withIndex_right() {
+        var definitionsExpected = createContractDefinitions(20);
+        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        getContractDefinitionStore().save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter("selectorExpression.criteria[0].operandRight = foobar-asset")
+                .build();
+
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+
+        assertThat(definitionsRetrieved).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsOnly(definitionsExpected.get(5));
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionIndexQuery", matches = "true", disabledReason = "This test only runs if collections with index is supported")
+    void find_queryBySelectorExpression_withIndex_right_notFound() {
+        var definitionsExpected = createContractDefinitions(20);
+        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        getContractDefinitionStore().save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter("selectorExpression.criteria[1].operandRight = foobar-asset")
+                .build();
+
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+
+        assertThat(definitionsRetrieved).isEmpty();
+    }
+
     protected abstract ContractDefinitionStore getContractDefinitionStore();
 
-    protected abstract Boolean supportCollectionQuery();
+    protected abstract boolean supportsCollectionQuery();
 
-    protected abstract Boolean supportSortOrder();
+    protected abstract boolean supportsCollectionIndexQuery();
+
+    protected abstract boolean supportsSortOrder();
 
 
 }
