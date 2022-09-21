@@ -37,7 +37,7 @@ import java.util.UUID;
 
 import static com.nimbusds.jose.JWSAlgorithm.RS256;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 class TokenGenerationServiceImplTest {
 

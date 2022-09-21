@@ -29,10 +29,10 @@ import java.util.List;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.AUDIENCE;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUED_AT;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.NOT_BEFORE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.NOT_BEFORE;
 
 class Oauth2ValidationRuleTest {
 

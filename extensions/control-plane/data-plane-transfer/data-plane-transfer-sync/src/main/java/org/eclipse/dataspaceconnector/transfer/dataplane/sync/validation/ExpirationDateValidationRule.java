@@ -24,7 +24,7 @@ import java.time.Clock;
 import java.util.Date;
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 /**
  * Assert that token containing these claims is not expired yet.

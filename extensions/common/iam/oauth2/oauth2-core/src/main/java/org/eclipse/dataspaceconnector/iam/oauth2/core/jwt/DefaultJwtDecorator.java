@@ -23,12 +23,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.Fingerprint.sha1Base64Fingerprint;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.AUDIENCE;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.EXPIRATION_TIME;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUED_AT;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.ISSUER;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.JWT_ID;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtClaimNames.SUBJECT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.JWT_ID;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.SUBJECT;
 
 public class DefaultJwtDecorator implements JwtDecorator {
 

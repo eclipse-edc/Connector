@@ -18,7 +18,9 @@ package org.eclipse.dataspaceconnector.spi.jwt;
  * JSON Web Token Claim Names
  * ref. <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1">rfc7519 section-4.1</a>
  */
-public final class JwtClaimNames {
+public final class JwtRegisteredClaimNames {
+
+    private JwtRegisteredClaimNames() { }
 
     /**
      * "iss" (Issuer) Claim
