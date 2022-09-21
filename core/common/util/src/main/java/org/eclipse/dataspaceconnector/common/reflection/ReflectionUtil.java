@@ -17,8 +17,11 @@ package org.eclipse.dataspaceconnector.common.reflection;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -148,6 +151,117 @@ public class ReflectionUtil {
         List<Field> filteredFields = Arrays.stream(clazz.getDeclaredFields()).collect(Collectors.toList());
         result.addAll(filteredFields);
         return result;
+    }
+
+    /**
+     * Recursively gets all fields by navigating the path in dot notation starting by the provided class
+     * This method also navigate through collections of Objects by inspecting the generic type of the collection.
+     *
+     * @param clazz The class of the object
+     * @param path  The path in dot notation
+     * @return A list of {@link Field}s
+     */
+
+    public static List<Field> getAllFieldsRecursiveWithPath(Class<?> clazz, String path) {
+        var fields = new ArrayList<Field>();
+        if (clazz == null || path.isEmpty()) {
+            return fields;
+        }
+
+        var idx = path.indexOf(".");
+        var fieldName = path;
+        String rest = null;
+
+        if (idx != -1) {
+            fieldName = path.substring(0, idx);
+            rest = path.substring(idx + 1);
+        }
+
+
+        var field = getFieldRecursive(clazz, fieldName);
+        if (field != null) {
+            fields.add(field);
+            if (rest != null) {
+                fields.addAll(getAllFieldsRecursiveWithPath(getCollectionFieldType(field), rest));
+            }
+        }
+
+        return fields;
+    }
+
+    /**
+     * Return the type of the field. If it's a collection it returns the generic type
+     *
+     * @param field The input field
+     * @return The type of the field
+     */
+    @NotNull
+    private static Class<?> getCollectionFieldType(Field field) {
+        var target = field.getType();
+        if (Collection.class.isAssignableFrom(target)) {
+            Type t = field.getGenericType();
+            if (t instanceof ParameterizedType) {
+                var actualCollectionType = ((ParameterizedType) t).getActualTypeArguments()[0];
+                if (actualCollectionType instanceof Class) {
+                    target = (Class<?>) actualCollectionType;
+                }
+            }
+        }
+        return target;
+    }
+
+
+    /**
+     * Get the first type argument for the given target from the given clazz.
+     * It goes through the hierarchy starting from class and looking for target
+     * And return the first type argument of the target
+     *
+     * @param clazz The class of the object
+     * @return The type argument {@link Class} or null
+     */
+    public static Class<?> getSingleSuperTypeGenericArgument(Class<?> clazz, Class<?> target) {
+        Type supertype = clazz.getGenericSuperclass();
+        Class<?> superclass = clazz.getSuperclass();
+        while (superclass != null && superclass != Object.class) {
+            if (supertype instanceof ParameterizedType) {
+                ParameterizedType pt = (ParameterizedType) supertype;
+                if (pt.getRawType() == target) {
+                    return getSingleTypeArgument(supertype);
+                }
+            }
+
+            supertype = superclass.getGenericSuperclass();
+            superclass = superclass.getSuperclass();
+        }
+        return null;
+    }
+
+    /**
+     * If the Type is a ParameterizedType return the actual type of the first type parameter
+     *
+     * @param genericType The genericType
+     * @return The class of the type argument
+     */
+    private static Class<?> getSingleTypeArgument(Type genericType) {
+        if (genericType instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) genericType;
+            Type[] actualTypeArguments = pt.getActualTypeArguments();
+            if (actualTypeArguments.length == 1) {
+                Type actualTypeArgument = actualTypeArguments[0];
+
+                if (actualTypeArgument instanceof Class) {
+                    return (Class<?>) actualTypeArgument;
+                }
+                if (actualTypeArgument instanceof ParameterizedType) {
+                    ParameterizedType actualParametrizedType = (ParameterizedType) actualTypeArgument;
+                    Type rawType = actualParametrizedType.getRawType();
+                    if (rawType instanceof Class) {
+                        return (Class<?>) rawType;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 }

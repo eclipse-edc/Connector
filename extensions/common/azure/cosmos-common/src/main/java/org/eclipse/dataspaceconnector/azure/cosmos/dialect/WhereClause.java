@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.azure.cosmos.dialect;
 
 import com.azure.cosmos.models.SqlParameter;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,17 +39,27 @@ import java.util.List;
 class WhereClause implements Clause {
     private final String objectPrefix;
     private final List<SqlParameter> parameters = new ArrayList<>();
+    private final Class<? extends CosmosDocument<?>> target;
+
+    private ConditionExpressionParser parser = new ConditionExpressionParser();
     private String where = "";
 
-    WhereClause(List<Criterion> criteria, String objectPrefix) {
+    WhereClause() {
+        objectPrefix = null;
+        target = null;
+    }
+
+    WhereClause(Class<? extends CosmosDocument<?>> target, List<Criterion> criteria, String objectPrefix) {
         this.objectPrefix = objectPrefix;
+        this.target = target;
+        parser = new ConditionExpressionParser(target);
         if (criteria != null) {
             criteria.stream().distinct().forEach(this::parse);
         }
     }
 
-    WhereClause() {
-        objectPrefix = null;
+    WhereClause(List<Criterion> criteria, String objectPrefix) {
+        this(null, criteria, objectPrefix);
     }
 
     @Override
@@ -66,7 +77,7 @@ class WhereClause implements Clause {
     }
 
     private void parse(Criterion criterion) {
-        var expr = new CosmosConditionExpression(criterion, objectPrefix);
+        var expr = parser.parse(criterion, objectPrefix);
         var exprResult = expr.isValidExpression();
         if (exprResult.failed()) {
             throw new IllegalArgumentException("Cannot build WHERE clause, reason: " + String.join(", ", exprResult.getFailureMessages()));

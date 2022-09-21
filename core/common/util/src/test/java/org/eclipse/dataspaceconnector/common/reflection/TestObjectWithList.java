@@ -20,12 +20,23 @@ public class TestObjectWithList extends TestObject {
 
     private final List<TestObject> nestedObjects;
 
+    private final TestObject nestedObject;
+
     public TestObjectWithList(String description, int priority, List<TestObject> nestedObjects) {
+        this(description, priority, nestedObjects, null);
+    }
+
+    public TestObjectWithList(String description, int priority, List<TestObject> nestedObjects, TestObject nestedObject) {
         super(description, priority);
         this.nestedObjects = nestedObjects;
+        this.nestedObject = nestedObject;
     }
 
     public List<TestObject> getNestedObjects() {
         return nestedObjects;
+    }
+
+    public TestObject getNestedObject() {
+        return nestedObject;
     }
 }

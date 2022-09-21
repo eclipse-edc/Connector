@@ -54,7 +54,7 @@ import static org.mockito.Mockito.mock;
 public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinitionStoreTestBase {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
-    private static final String CONTAINER_PREFIX = "ContractDefinitionStore-";
+    private static final String CONTAINER_PREFIX = "ContractPolicyDefinitionStore-";
     private static final String TEST_PARTITION_KEY = "test-part-key";
     private static CosmosContainer container;
     private static CosmosDatabase database;
@@ -265,7 +265,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
 
     @Override
     protected boolean supportCollectionQuery() {
-        return false;
+        return true;
     }
 
     @Override
