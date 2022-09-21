@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add toBuilder method
  *
  */
 
@@ -37,8 +38,16 @@ public class S3BucketResourceDefinition extends ResourceDefinition {
     public String getBucketName() {
         return bucketName;
     }
-
-
+    
+    @Override
+    public Builder toBuilder() {
+        return Builder.newInstance()
+                .id(id)
+                .transferProcessId(transferProcessId)
+                .regionId(regionId)
+                .bucketName(bucketName);
+    }
+    
     public static class Builder extends ResourceDefinition.Builder<S3BucketResourceDefinition, Builder> {
 
         private Builder() {
