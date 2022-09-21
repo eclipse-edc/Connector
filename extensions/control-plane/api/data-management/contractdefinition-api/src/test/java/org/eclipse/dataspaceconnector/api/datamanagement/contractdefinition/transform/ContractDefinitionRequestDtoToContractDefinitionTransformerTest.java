@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.CriterionDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -23,8 +24,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
 
@@ -39,11 +44,13 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
+        when(context.transform(isA(CriterionDto.class), eq(Criterion.class))).thenReturn(new Criterion("left", "=", "right"));
+
         var contractDefinitionDto = ContractDefinitionRequestDto.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
-                .criteria(List.of(new Criterion("left", "=", "right")))
+                .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
                 .build();
 
         var contractDefinition = transformer.transform(contractDefinitionDto, context);
@@ -52,8 +59,9 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
         assertThat(contractDefinition.getId()).isEqualTo(contractDefinitionDto.getId());
         assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
-        assertThat(contractDefinition.getSelectorExpression().getCriteria()).containsExactlyElementsOf(contractDefinitionDto.getCriteria());
+        assertThat(contractDefinition.getSelectorExpression().getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinitionDto.getCriteria());
         assertThat(contractDefinition.getCreatedAt()).isNotEqualTo(0L); //should be set automatically
+        verify(context, times(1)).transform(isA(CriterionDto.class), eq(Criterion.class));
     }
 
     @Test

@@ -18,9 +18,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +34,9 @@ public class ContractDefinitionRequestDto {
     private String accessPolicyId;
     @NotNull(message = "contractPolicyId cannot be null")
     private String contractPolicyId;
+    @Valid
     @NotNull(message = "criteria cannot be null")
-    private List<Criterion> criteria = new ArrayList<>();
+    private List<CriterionDto> criteria = new ArrayList<>();
 
     private ContractDefinitionRequestDto() {
     }
@@ -57,7 +58,7 @@ public class ContractDefinitionRequestDto {
         return contractPolicyId;
     }
 
-    public List<Criterion> getCriteria() {
+    public List<CriterionDto> getCriteria() {
         return criteria;
     }
 
@@ -88,7 +89,7 @@ public class ContractDefinitionRequestDto {
             return this;
         }
 
-        public Builder criteria(List<Criterion> criteria) {
+        public Builder criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
             return this;
         }

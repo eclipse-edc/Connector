@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.CriterionDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -22,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 public class ContractDefinitionToContractDefinitionResponseDtoTransformer implements DtoTransformer<ContractDefinition, ContractDefinitionResponseDto> {
 
@@ -38,14 +41,16 @@ public class ContractDefinitionToContractDefinitionResponseDtoTransformer implem
     @Override
     public @Nullable ContractDefinitionResponseDto transform(@Nullable ContractDefinition object, @NotNull TransformerContext context) {
         return Optional.ofNullable(object)
-                .map(input -> ContractDefinitionResponseDto.Builder.newInstance()
-                        .id(object.getId())
-                        .accessPolicyId(object.getAccessPolicyId())
-                        .createdAt(object.getCreatedAt())
-                        .contractPolicyId(object.getContractPolicyId())
-                        .criteria(object.getSelectorExpression().getCriteria())
-                        .build()
-                )
+                .map(input -> {
+                    var criteria = object.getSelectorExpression().getCriteria().stream().map(it -> context.transform(it, CriterionDto.class)).collect(toList());
+                    return ContractDefinitionResponseDto.Builder.newInstance()
+                            .id(object.getId())
+                            .accessPolicyId(object.getAccessPolicyId())
+                            .createdAt(object.getCreatedAt())
+                            .contractPolicyId(object.getContractPolicyId())
+                            .criteria(criteria)
+                            .build();
+                })
                 .orElseGet(() -> {
                     context.reportProblem("input contract definition is null");
                     return null;
