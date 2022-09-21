@@ -41,9 +41,12 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RequestUtil.getInt;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RequestUtil.getFilter;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RequestUtil.getRange;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.descriptionResponse;
@@ -88,19 +91,16 @@ public class DescriptionRequestHandler implements Handler {
         // Get ID of requested element
         var requestedElement = IdsId.from(message.getRequestedElement());
 
-        //TODO: IDS REFACTORING: this should be a named property of the message object
-        // extract paging information, default to 0 ... Integer.MAX_VALUE
-        var from = getInt(message, Range.FROM, 0);
-        var to = getInt(message, Range.TO, Integer.MAX_VALUE);
-        var range = new Range(from, to);
+        var range = getRange(message);
+        var criteria = getFilter(message);
 
         // Retrieve and transform requested element
         Result<? extends ModelClass> result;
         if (requestedElement.failed() || requestedElement.getContent() == null ||
                 (requestedElement.getContent().getType() == IdsType.CONNECTOR)) {
-            result = getConnector(claimToken, range);
+            result = getConnector(claimToken, range, criteria);
         } else {
-            var retrievedObject = retrieveRequestedElement(requestedElement.getContent(), claimToken, range);
+            var retrievedObject = retrieveRequestedElement(requestedElement.getContent(), claimToken, range, criteria);
             if (retrievedObject == null) {
                 return createMultipartResponse(notFound(message, connectorId));
             }
@@ -118,8 +118,8 @@ public class DescriptionRequestHandler implements Handler {
         return createMultipartResponse(descriptionResponse(message, connectorId), result.getContent());
     }
 
-    private Result<Connector> getConnector(ClaimToken claimToken, Range range) {
-        return transformerRegistry.transform(connectorService.getConnector(claimToken, range), Connector.class);
+    private Result<Connector> getConnector(ClaimToken claimToken, Range range, List<Criterion> filters) {
+        return transformerRegistry.transform(connectorService.getConnector(claimToken, range, filters), Connector.class);
     }
 
     /**
@@ -131,14 +131,14 @@ public class DescriptionRequestHandler implements Handler {
      * @param range the range.
      * @return the requested element.
      */
-    private Object retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, Range range) {
+    private Object retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, Range range, List<Criterion> filters) {
         var type = idsId.getType();
         switch (type) {
             case ARTIFACT:
             case REPRESENTATION:
                 return assetIndex.findById(idsId.getValue());
             case CATALOG:
-                return catalogService.getDataCatalog(claimToken, range);
+                return catalogService.getDataCatalog(claimToken, range, filters);
             case RESOURCE:
                 var assetId = idsId.getValue();
                 var asset = assetIndex.findById(assetId);
@@ -149,8 +149,9 @@ public class DescriptionRequestHandler implements Handler {
                 var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
                         .claimToken(claimToken)
                         .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
+                        .range(range)
                         .build();
-                var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery, range).collect(toList());
+                var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).collect(toList());
 
                 return new OfferedAsset(asset, targetingContractOffers);
             default:

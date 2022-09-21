@@ -28,6 +28,11 @@ public class Range {
         this.to = to;
     }
 
+    public Range() {
+        this.from = 0;
+        this.to = Integer.MAX_VALUE;
+    }
+
     /**
      * The index of the last item to be included in the range. Note that the actual number may be lower if the range
      * overshoots the bounds of the collection

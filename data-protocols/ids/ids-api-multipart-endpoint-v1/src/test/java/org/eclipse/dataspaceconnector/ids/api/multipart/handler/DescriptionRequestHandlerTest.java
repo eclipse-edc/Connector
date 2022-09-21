@@ -46,6 +46,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,7 +122,7 @@ class DescriptionRequestHandlerTest {
                 .claimToken(ClaimToken.Builder.newInstance().build())
                 .build();
 
-        when(connectorService.getConnector(any(), any())).thenReturn(connector);
+        when(connectorService.getConnector(any(), any(), any())).thenReturn(connector);
         when(transformerRegistry.transform(connector, de.fraunhofer.iais.eis.Connector.class)).thenReturn(Result.success(idsConnector));
 
         var response = handler.handleRequest(request);
@@ -130,7 +131,7 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsConnector);
 
         verify(connectorService, times(1))
-                .getConnector(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo));
+                .getConnector(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo), any());
         verifyNoMoreInteractions(connectorService);
         verifyNoInteractions(catalogService, contractOfferService, assetIndex);
     }
@@ -144,7 +145,7 @@ class DescriptionRequestHandlerTest {
                 .claimToken(ClaimToken.Builder.newInstance().build())
                 .build();
 
-        when(catalogService.getDataCatalog(any(), any())).thenReturn(catalog);
+        when(catalogService.getDataCatalog(any(), any(), any())).thenReturn(catalog);
         when(transformerRegistry.transform(catalog, ResourceCatalog.class)).thenReturn(Result.success(idsCatalog));
 
         var response = handler.handleRequest(request);
@@ -153,7 +154,7 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsCatalog);
 
         verify(catalogService, times(1))
-                .getDataCatalog(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo));
+                .getDataCatalog(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo), any());
         verifyNoMoreInteractions(catalogService);
         verifyNoInteractions(connectorService, contractOfferService, assetIndex);
     }
@@ -164,10 +165,6 @@ class DescriptionRequestHandlerTest {
 
         var asset = Asset.Builder.newInstance().id(assetId).build();
         var idsResource = new ResourceBuilder().build();
-        var idsId = IdsId.Builder.newInstance()
-                .type(IdsType.RESOURCE)
-                .value(assetId)
-                .build();
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
@@ -178,7 +175,7 @@ class DescriptionRequestHandlerTest {
                 .build();
 
         when(assetIndex.findById(any())).thenReturn(asset);
-        when(contractOfferService.queryContractOffers(any(), any())).thenReturn(Stream.of(contractOffer));
+        when(contractOfferService.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
         when(transformerRegistry.transform(any(), eq(Resource.class))).thenReturn(Result.success(idsResource));
 
         var response = handler.handleRequest(request);
@@ -188,8 +185,7 @@ class DescriptionRequestHandlerTest {
 
         verify(assetIndex, times(1)).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
-        verify(contractOfferService, times(1))
-                .queryContractOffers(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo));
+        verify(contractOfferService, times(1)).queryContractOffers(any());
         verifyNoMoreInteractions(contractOfferService);
         verifyNoMoreInteractions(connectorService, catalogService);
     }
@@ -262,8 +258,7 @@ class DescriptionRequestHandlerTest {
                         .build())
                 ._requestedElement_(requestedElement)
                 .build();
-        message.setProperty(Range.FROM, rangeFrom);
-        message.setProperty(Range.TO, rangeTo);
+        message.setProperty(CatalogRequest.RANGE, new Range(rangeFrom, rangeTo));
         return message;
     }
 

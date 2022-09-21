@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       ZF Friedrichshafen AG - enable asset filtering
  *
  */
 
@@ -21,10 +22,12 @@ import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public class ConnectorServiceImpl implements ConnectorService {
@@ -45,10 +48,10 @@ public class ConnectorServiceImpl implements ConnectorService {
 
     @NotNull
     @Override
-    public Connector getConnector(@NotNull ClaimToken claimToken, Range range) {
+    public Connector getConnector(@NotNull ClaimToken claimToken, Range range, List<Criterion> filters) {
         Objects.requireNonNull(claimToken);
 
-        Catalog catalog = dataCatalogService.getDataCatalog(claimToken, range);
+        Catalog catalog = dataCatalogService.getDataCatalog(claimToken, range, filters);
 
         return Connector.Builder
                 .newInstance()

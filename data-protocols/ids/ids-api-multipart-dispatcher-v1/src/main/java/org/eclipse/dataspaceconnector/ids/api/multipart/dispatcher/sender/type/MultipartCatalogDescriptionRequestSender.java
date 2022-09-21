@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
- *
+ *       ZF Friedrichshafen AG - enable asset filtering
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.respon
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 
@@ -79,16 +78,16 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
         //TODO: IDS REFACTORING: incorporate this into the protocol itself
-        message.setProperty(Range.FROM, request.getRange().getFrom());
-        message.setProperty(Range.TO, request.getRange().getTo());
+        message.setProperty(CatalogRequest.RANGE, request.getRange());
+        message.setProperty(CatalogRequest.FILTER, request.getFilter());
         return message;
     }
-    
+
     @Override
     public String buildMessagePayload(CatalogRequest request) throws Exception {
         return null;
     }
-    
+
     /**
      * Parses the response content and extracts the catalog from the received self description.
      *

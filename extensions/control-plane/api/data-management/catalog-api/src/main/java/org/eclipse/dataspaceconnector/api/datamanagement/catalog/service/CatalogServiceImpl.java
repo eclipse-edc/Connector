@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft - initial API and implementation
+ *       ZF Friedrichshafen AG - enable asset filtering
  *
  */
 
@@ -36,6 +37,7 @@ public class CatalogServiceImpl implements CatalogService {
                 .connectorId(providerUrl)
                 .connectorAddress(providerUrl)
                 .range(spec.getRange())
+                .filter(spec.getFilterExpression())
                 .build();
 
         return dispatcher.send(Catalog.class, request, () -> null);

@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,14 +57,14 @@ class CatalogServiceImplTest {
                         .policy(Policy.Builder.newInstance().build())
                         .id("1")
                         .build());
-        when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class), any())).thenReturn(offers.stream());
+        when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
 
-        var result = dataCatalogService.getDataCatalog(claimToken, new Range(0, 100));
+        var result = dataCatalogService.getDataCatalog(claimToken, new Range(0, 100), new ArrayList<>());
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
         assertThat(result.getContractOffers()).hasSameElementsAs(offers);
-        verify(contractOfferService).queryContractOffers(any(ContractOfferQuery.class), any());
+        verify(contractOfferService).queryContractOffers(any(ContractOfferQuery.class));
     }
 
 }

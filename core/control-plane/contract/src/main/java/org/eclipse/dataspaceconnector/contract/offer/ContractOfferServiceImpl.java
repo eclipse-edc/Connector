@@ -12,7 +12,7 @@
  *       Microsoft Corporation - Refactoring
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *
+ *       ZF Friedrichshafen AG - enable asset filtering
  */
 
 package org.eclipse.dataspaceconnector.contract.offer;
@@ -24,8 +24,8 @@ import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -53,12 +54,13 @@ public class ContractOfferServiceImpl implements ContractOfferService {
 
     @Override
     @NotNull
-    public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query, Range range) {
+    public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
         var agent = agentService.createFor(query.getClaimToken());
 
-        return definitionService.definitionsFor(agent, range)
+        return definitionService.definitionsFor(agent, query.getRange())
                 .flatMap(definition -> {
-                    var assets = assetIndex.queryAssets(definition.getSelectorExpression());
+                    var assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                            .filter(Stream.concat(definition.getSelectorExpression().getCriteria().stream(), query.getCriteria().stream()).collect(Collectors.toList())).build());
                     return Optional.of(definition.getContractPolicyId())
                             .map(policyStore::findById)
                             .map(policy -> assets.map(asset -> createContractOffer(definition, policy.getPolicy(), asset)))

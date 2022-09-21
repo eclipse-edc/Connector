@@ -18,7 +18,10 @@ package org.eclipse.dataspaceconnector.ids.spi.service;
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.Connector;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.Range;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * The IDS service is able to create IDS compliant descriptions of resources. These descriptions may be used to create a
@@ -32,5 +35,5 @@ public interface ConnectorService {
      * @return connector description
      */
     @NotNull
-    Connector getConnector(@NotNull ClaimToken claimToken, Range range);
+    Connector getConnector(@NotNull ClaimToken claimToken, Range range, List<Criterion> filters);
 }
