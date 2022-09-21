@@ -62,14 +62,14 @@ public class SqlAssetIndex implements AssetIndex {
 
     @Override
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-        Objects.requireNonNull(expression);
+        Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
 
-        var criteria = expression.getCriteria();
-        var querySpec = QuerySpec.Builder.newInstance().filter(criteria)
-                .offset(0)
-                .limit(Integer.MAX_VALUE) // means effectively no limit
-                .build();
-        return queryAssets(querySpec);
+        // select everything ONLY if the special constant is used
+        if (expression == AssetSelectorExpression.SELECT_ALL) {
+            return queryAssets(QuerySpec.none());
+        }
+
+        return queryAssets(QuerySpec.Builder.newInstance().filter(expression.getCriteria()).build());
     }
 
     @Override
