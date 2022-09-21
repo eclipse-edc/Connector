@@ -16,12 +16,8 @@ plugins {
     `java-library`
 }
 
-val nimbusVersion: String by project
-
 dependencies {
     api(project(":spi:common:jwt-spi"))
-
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 }
 
 publishing {

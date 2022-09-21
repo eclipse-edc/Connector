@@ -14,21 +14,24 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.JWT_ID;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.SUBJECT;
 
 class DefaultJwtDecoratorTest {
 
@@ -36,7 +39,7 @@ class DefaultJwtDecoratorTest {
 
     private String audience;
     private String clientId;
-    private Instant now;
+    private final Instant now = Instant.now();
 
     private DefaultJwtDecorator decorator;
 
@@ -46,32 +49,28 @@ class DefaultJwtDecoratorTest {
         clientId = UUID.randomUUID().toString();
         byte[] certificate = new byte[50];
         new Random().nextBytes(certificate);
-        now = Instant.now();
         var clock = Clock.fixed(now, UTC);
         decorator = new DefaultJwtDecorator(audience, clientId, certificate, clock, TOKEN_EXPIRATION);
     }
 
     @Test
-    void decorate() {
-        JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
-        JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder();
+    void claims() {
+        var claims = decorator.claims();
 
-        decorator.decorate(headerBuilder, claimsBuilder);
-
-        JWSHeader header = headerBuilder.build();
-        JWTClaimsSet claims = claimsBuilder.build();
-
-        assertThat(header.getIncludedParams()).contains("x5t");
-        assertThat(claims.getClaims())
-                .hasEntrySatisfying("aud", o -> assertThat(List.class.cast(o)).contains(audience))
-                .hasFieldOrPropertyWithValue("iss", clientId)
-                .hasFieldOrPropertyWithValue("sub", clientId)
-                .containsKey("jti")
-                .hasEntrySatisfying("iat", issueDate -> assertDateIs((Date) issueDate, now))
-                .hasEntrySatisfying("exp", expiration -> assertDateIs((Date) expiration, now.plusSeconds(TOKEN_EXPIRATION)));
+        assertThat(claims)
+                .hasEntrySatisfying(AUDIENCE, o -> assertThat(o).asInstanceOf(list(String.class)).contains(audience))
+                .hasFieldOrPropertyWithValue(ISSUER, clientId)
+                .hasFieldOrPropertyWithValue(SUBJECT, clientId)
+                .containsKey(JWT_ID)
+                .hasEntrySatisfying(ISSUED_AT, issueDate -> assertThat((Date) issueDate).isEqualTo(now))
+                .hasEntrySatisfying(EXPIRATION_TIME, expiration -> assertThat((Date) expiration).isEqualTo(now.plusSeconds(TOKEN_EXPIRATION)));
     }
 
-    private static void assertDateIs(Date date1, Instant date2) {
-        assertThat(date1).isEqualTo(Date.from(date2));
+    @Test
+    void headers() {
+        var result = decorator.headers();
+
+        assertThat(result).containsKey("x5t");
     }
+
 }

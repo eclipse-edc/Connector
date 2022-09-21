@@ -14,24 +14,27 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.core.rule;
 
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.jwt.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.time.ZoneOffset.UTC;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.NOT_BEFORE;
 
 public class Oauth2ValidationRule implements TokenValidationRule {
     private final Oauth2Configuration configuration;
@@ -49,51 +52,47 @@ public class Oauth2ValidationRule implements TokenValidationRule {
      * @param additional No more additional information needed for this validation, can be null.
      */
     @Override
-    public Result<SignedJWT> checkRule(SignedJWT toVerify, @Nullable Map<String, Object> additional) {
-        try {
-            JWTClaimsSet claimsSet = toVerify.getJWTClaimsSet();
-            List<String> errors = new ArrayList<>();
-            String audience = configuration.getProviderAudience();
-            List<String> audiences = claimsSet.getAudience();
-            if (audiences.isEmpty()) {
-                errors.add("Required audience (aud) claim is missing in token");
-            } else if (!audiences.contains(audience)) {
-                errors.add("Token audience (aud) claim did not contain connector audience: " + audience);
-            }
+    public Result<Void> checkRule(ClaimToken toVerify, @Nullable Map<String, Object> additional) {
+        var claimsSet = toVerify.getClaims();
+        List<String> errors = new ArrayList<>();
+        String audience = configuration.getProviderAudience();
+        List<String> audiences = Optional.of(claimsSet).map(it -> it.get(AUDIENCE)).map(List.class::cast).orElse(Collections.emptyList());
+        if (audiences.isEmpty()) {
+            errors.add("Required audience (aud) claim is missing in token");
+        } else if (!audiences.contains(audience)) {
+            errors.add("Token audience (aud) claim did not contain connector audience: " + audience);
+        }
 
-            Instant now = clock.instant();
-            var leewayNow = now.plusSeconds(configuration.getNotBeforeValidationLeeway());
-            var notBefore = claimsSet.getNotBeforeTime();
-            if (notBefore == null) {
-                errors.add("Required not before (nbf) claim is missing in token");
-            } else if (leewayNow.isBefore(convertToUtcTime(notBefore))) {
-                errors.add("Current date/time with leeway before the not before (nbf) claim in token");
-            }
+        Instant now = clock.instant();
+        var leewayNow = now.plusSeconds(configuration.getNotBeforeValidationLeeway());
+        var notBefore = (Date) claimsSet.get(NOT_BEFORE);
+        if (notBefore == null) {
+            errors.add("Required not before (nbf) claim is missing in token");
+        } else if (leewayNow.isBefore(convertToUtcTime(notBefore))) {
+            errors.add("Current date/time with leeway before the not before (nbf) claim in token");
+        }
 
-            Date expires = claimsSet.getExpirationTime();
-            var expiresSet = expires != null;
-            if (!expiresSet) {
-                errors.add("Required expiration time (exp) claim is missing in token");
-            } else if (now.isAfter(convertToUtcTime(expires))) {
-                errors.add("Token has expired (exp)");
-            }
+        var expires = (Date) claimsSet.get(EXPIRATION_TIME);
+        var expiresSet = expires != null;
+        if (!expiresSet) {
+            errors.add("Required expiration time (exp) claim is missing in token");
+        } else if (now.isAfter(convertToUtcTime(expires))) {
+            errors.add("Token has expired (exp)");
+        }
 
-            Date issuedAt = claimsSet.getIssueTime();
-            if (issuedAt != null) {
-                if (expiresSet && issuedAt.toInstant().isAfter(expires.toInstant())) {
-                    errors.add("Issued at (iat) claim is after expiration time (exp) claim in token");
-                } else if (now.isBefore(convertToUtcTime(issuedAt))) {
-                    errors.add("Current date/time before issued at (iat) claim in token");
-                }
+        var issuedAt = (Date) claimsSet.get(ISSUED_AT);
+        if (issuedAt != null) {
+            if (expiresSet && issuedAt.toInstant().isAfter(expires.toInstant())) {
+                errors.add("Issued at (iat) claim is after expiration time (exp) claim in token");
+            } else if (now.isBefore(convertToUtcTime(issuedAt))) {
+                errors.add("Current date/time before issued at (iat) claim in token");
             }
+        }
 
-            if (errors.isEmpty()) {
-                return Result.success(toVerify);
-            } else {
-                return Result.failure(errors);
-            }
-        } catch (ParseException e) {
-            throw new EdcException("Oauth2ValidationRule: unable to parse SignedJWT (" + e.getMessage() + ")");
+        if (errors.isEmpty()) {
+            return Result.success();
+        } else {
+            return Result.failure(errors);
         }
     }
 

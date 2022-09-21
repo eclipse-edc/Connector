@@ -15,14 +15,13 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation;
 
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.jwt.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
@@ -43,13 +42,8 @@ public class ContractValidationRule implements TokenValidationRule {
     }
 
     @Override
-    public Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify, @Nullable Map<String, Object> additional) {
-        String contractId;
-        try {
-            contractId = toVerify.getJWTClaimsSet().getStringClaim(CONTRACT_ID);
-        } catch (ParseException e) {
-            return Result.failure("Failed to parse claims");
-        }
+    public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
+        String contractId = (String) toVerify.getClaims().get(CONTRACT_ID);
 
         if (contractId == null) {
             return Result.failure(String.format("Missing contract id claim `%s`", CONTRACT_ID));
@@ -64,6 +58,6 @@ public class ContractValidationRule implements TokenValidationRule {
             return Result.failure("Contract has expired");
         }
 
-        return Result.success(toVerify);
+        return Result.success();
     }
 }

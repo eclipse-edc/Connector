@@ -17,12 +17,8 @@ plugins {
     `maven-publish`
 }
 
-val nimbusVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
-
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 }
 
 publishing {

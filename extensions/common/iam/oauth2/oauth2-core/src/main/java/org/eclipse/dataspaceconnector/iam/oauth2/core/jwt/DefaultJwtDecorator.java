@@ -14,16 +14,21 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.util.Base64URL;
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.jwt.JwtDecorator;
 
 import java.time.Clock;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.Fingerprint.sha1Base64Fingerprint;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.JWT_ID;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.SUBJECT;
 
 public class DefaultJwtDecorator implements JwtDecorator {
 
@@ -42,13 +47,19 @@ public class DefaultJwtDecorator implements JwtDecorator {
     }
 
     @Override
-    public void decorate(JWSHeader.Builder header, JWTClaimsSet.Builder claimsSet) {
-        header.x509CertThumbprint(new Base64URL(sha1Base64Fingerprint(encodedCertificate)));
-        claimsSet.audience(audience)
-                .issuer(clientId)
-                .subject(clientId)
-                .jwtID(UUID.randomUUID().toString())
-                .issueTime(Date.from(clock.instant()))
-                .expirationTime(Date.from(clock.instant().plusSeconds(expiration)));
+    public Map<String, Object> headers() {
+        return Map.of("x5t", sha1Base64Fingerprint(encodedCertificate));
+    }
+
+    @Override
+    public Map<String, Object> claims() {
+        return Map.of(
+                AUDIENCE, List.of(audience),
+                ISSUER, clientId,
+                SUBJECT, clientId,
+                JWT_ID, UUID.randomUUID().toString(),
+                ISSUED_AT, Date.from(clock.instant()),
+                EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(expiration))
+        );
     }
 }

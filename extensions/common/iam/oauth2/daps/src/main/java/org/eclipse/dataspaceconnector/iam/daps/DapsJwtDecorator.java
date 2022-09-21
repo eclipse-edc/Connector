@@ -14,14 +14,24 @@
 
 package org.eclipse.dataspaceconnector.iam.daps;
 
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.jwt.JwtDecorator;
 
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
+
 public class DapsJwtDecorator implements JwtDecorator {
+
     @Override
-    public void decorate(JWSHeader.Builder header, JWTClaimsSet.Builder claimsSet) {
-        claimsSet.claim("@context", "https://w3id.org/idsa/contexts/context.jsonld")
-                .claim("@type", "ids:DatRequestToken");
+    public Map<String, Object> claims() {
+        return Map.of(
+                "@context", "https://w3id.org/idsa/contexts/context.jsonld",
+                "@type", "ids:DatRequestToken"
+        );
+    }
+
+    @Override
+    public Map<String, Object> headers() {
+        return emptyMap();
     }
 }

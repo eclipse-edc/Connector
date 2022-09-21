@@ -14,17 +14,16 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 
@@ -45,15 +44,19 @@ class DataPlaneProxyTokenDecoratorTest {
     }
 
     @Test
-    void decorate() throws ParseException {
-        var builder = new JWTClaimsSet.Builder();
+    void claims() {
+        var result = decorator.claims();
 
-        decorator.decorate(null, builder);
+        assertThat(result)
+                .containsEntry(CONTRACT_ID, contractId)
+                .containsEntry(DATA_ADDRESS, encryptedDataAddress)
+                .containsEntry(EXPIRATION_TIME, expiration);
+    }
 
-        var claims = builder.build();
-        assertThat(claims.getStringClaim(CONTRACT_ID)).isEqualTo(contractId);
-        assertThat(claims.getStringClaim(DATA_ADDRESS)).isEqualTo(encryptedDataAddress);
-        assertThat(claims.getExpirationTime()).isNotNull()
-                .isEqualTo(expiration);
+    @Test
+    void headers() {
+        var result = decorator.headers();
+
+        assertThat(result).isNotNull().isEmpty();
     }
 }

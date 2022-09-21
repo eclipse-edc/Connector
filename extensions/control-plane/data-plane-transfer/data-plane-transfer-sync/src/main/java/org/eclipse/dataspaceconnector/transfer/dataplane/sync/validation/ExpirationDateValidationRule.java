@@ -14,16 +14,17 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation;
 
-import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.jwt.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.util.Date;
 import java.util.Map;
+
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 /**
  * Assert that token containing these claims is not expired yet.
@@ -37,21 +38,17 @@ public class ExpirationDateValidationRule implements TokenValidationRule {
     }
 
     @Override
-    public Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify, @Nullable Map<String, Object> additional) {
-        try {
-            Date expiration = toVerify.getJWTClaimsSet().getExpirationTime();
-            if (expiration == null) {
-                return Result.failure("Missing expiration time in token");
-            }
-
-            // check contract expiration date
-            if (clock.instant().isAfter(expiration.toInstant())) {
-                return Result.failure("Token has expired");
-            }
-
-            return Result.success(toVerify);
-        } catch (ParseException exception) {
-            return Result.failure("Token could not be decoded");
+    public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
+        var expiration = (Date) toVerify.getClaims().get(EXPIRATION_TIME);
+        if (expiration == null) {
+            return Result.failure("Missing expiration time in token");
         }
+
+        // check contract expiration date
+        if (clock.instant().isAfter(expiration.toInstant())) {
+            return Result.failure("Token has expired on " + expiration);
+        }
+
+        return Result.success();
     }
 }

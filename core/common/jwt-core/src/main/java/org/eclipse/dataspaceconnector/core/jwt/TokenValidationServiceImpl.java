@@ -18,7 +18,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
@@ -29,8 +28,6 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TokenValidationServiceImpl implements TokenValidationService {
@@ -47,7 +44,6 @@ public class TokenValidationServiceImpl implements TokenValidationService {
     public Result<ClaimToken> validate(TokenRepresentation tokenRepresentation) {
         var token = tokenRepresentation.getToken();
         var additional = tokenRepresentation.getAdditional();
-        JWTClaimsSet claimsSet;
         try {
             var signedJwt = SignedJWT.parse(token);
             var publicKeyId = signedJwt.getHeader().getKeyID();
@@ -61,10 +57,15 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return Result.failure("Token verification failed");
             }
 
-            claimsSet = signedJwt.getJWTClaimsSet();
+            var tokenBuilder = ClaimToken.Builder.newInstance();
+            signedJwt.getJWTClaimsSet().getClaims().entrySet().stream()
+                    .filter(entry -> entry.getValue() != null)
+                    .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
+
+            var claimToken = tokenBuilder.build();
 
             var errors = rulesRegistry.getRules().stream()
-                    .map(r -> r.checkRule(signedJwt, additional))
+                    .map(r -> r.checkRule(claimToken, additional))
                     .filter(Result::failed)
                     .map(Result::getFailureMessages)
                     .flatMap(Collection::stream)
@@ -74,13 +75,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return Result.failure(errors);
             }
 
-            var tokenBuilder = ClaimToken.Builder.newInstance();
-            claimsSet.getClaims().entrySet().stream()
-                    .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
-                    .filter(entry -> entry.getValue() != null)
-                    .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
-
-            return Result.success(tokenBuilder.build());
+            return Result.success(claimToken);
 
         } catch (JOSEException e) {
             return Result.failure(e.getMessage());

@@ -16,14 +16,11 @@ plugins {
     `java-library`
 }
 
-val nimbusVersion: String by project
 val okHttpVersion: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:oauth2-spi"))
-
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 
     testImplementation(project(":extensions:common:vault:filesystem-vault"))
     testImplementation(project(":extensions:common:iam:oauth2:oauth2-core"))

@@ -14,36 +14,27 @@
 
 package org.eclipse.dataspaceconnector.iam.daps;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jwt.JWTClaimsSet;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DapsJwtDecoratorTest {
 
-    private DapsJwtDecorator decorator;
+    private final DapsJwtDecorator decorator = new DapsJwtDecorator();
 
-    @BeforeEach
-    void setUp() {
-        decorator = new DapsJwtDecorator();
+    @Test
+    void claims() {
+        var result = decorator.claims();
+
+        assertThat(result)
+                .hasFieldOrPropertyWithValue("@context", "https://w3id.org/idsa/contexts/context.jsonld")
+                .hasFieldOrPropertyWithValue("@type", "ids:DatRequestToken");
     }
 
     @Test
-    void decorate() {
-        JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
-        JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder();
+    void headers() {
+        var result = decorator.headers();
 
-        decorator.decorate(headerBuilder, claimsBuilder);
-
-        JWSHeader header = headerBuilder.build();
-        JWTClaimsSet claims = claimsBuilder.build();
-
-        assertThat(header.getIncludedParams()).hasSize(1);
-        assertThat(claims.getClaims())
-                .hasFieldOrPropertyWithValue("@context", "https://w3id.org/idsa/contexts/context.jsonld")
-                .hasFieldOrPropertyWithValue("@type", "ids:DatRequestToken");
+        assertThat(result).isNotNull().isEmpty();
     }
 }

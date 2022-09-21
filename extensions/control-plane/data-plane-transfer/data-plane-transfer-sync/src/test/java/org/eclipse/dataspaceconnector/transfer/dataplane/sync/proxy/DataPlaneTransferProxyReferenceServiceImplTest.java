@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.jwt.TokenGenerationService;
@@ -29,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
@@ -39,6 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,7 +70,7 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
      * OK test: check proxy creation.
      */
     @Test
-    void createProxy_success() throws ParseException {
+    void createProxy_success() {
         var id = UUID.randomUUID().toString();
         var address = DataAddress.Builder.newInstance().type("test-type").build();
         var addressStr = TYPE_MANAGER.writeValueAsString(address);
@@ -100,13 +99,10 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
 
         var decorator = decoratorCaptor.getValue();
 
-        // test the decorator
-        var builder = new JWTClaimsSet.Builder();
-        decorator.decorate(null, builder);
-        var claims = builder.build();
-        assertThat(claims.getStringClaim(CONTRACT_ID)).isEqualTo(contractId);
-        assertThat(claims.getStringClaim(DATA_ADDRESS)).isEqualTo(encryptedDataAddress);
-        assertThat(claims.getExpirationTime()).isEqualTo(Date.from(now.plusSeconds(tokenValiditySeconds)));
+        assertThat(decorator.claims())
+                .containsEntry(CONTRACT_ID, contractId)
+                .containsEntry(DATA_ADDRESS, encryptedDataAddress)
+                .containsEntry(EXPIRATION_TIME, Date.from(now.plusSeconds(tokenValiditySeconds)));
 
         assertThat(result.succeeded()).isTrue();
         var edr = result.getContent();

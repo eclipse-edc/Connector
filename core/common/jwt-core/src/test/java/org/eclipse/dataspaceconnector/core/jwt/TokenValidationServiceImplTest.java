@@ -33,10 +33,12 @@ import org.junit.jupiter.api.Test;
 
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,7 +48,7 @@ class TokenValidationServiceImplTest {
     private TokenValidationService tokenValidationService;
     private RSAKey key;
     private TokenValidationRule ruleMock;
-    private Date now;
+    private final Instant now = Instant.now();
     private String publicKeyId;
 
     @BeforeEach
@@ -65,22 +67,19 @@ class TokenValidationServiceImplTest {
         var rulesRegistry = new TokenValidationRulesRegistryImpl();
         rulesRegistry.addRule(ruleMock);
         tokenValidationService = new TokenValidationServiceImpl(resolver, rulesRegistry);
-        now = new Date();
     }
 
     @Test
     void validationSuccess() throws JOSEException {
         var claims = createClaims(now);
-        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
-        var jwt = new SignedJWT(header, claims);
-        when(ruleMock.checkRule(any(), any())).thenReturn(Result.success(jwt));
+        when(ruleMock.checkRule(any(), any())).thenReturn(Result.success());
 
         var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()));
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims())
                 .containsEntry("foo", "bar")
-                .containsEntry("exp", now.toString());
+                .hasEntrySatisfying(EXPIRATION_TIME, value -> assertThat((Date) value).isCloseTo(now, 1000));
     }
 
     @Test
@@ -105,10 +104,10 @@ class TokenValidationServiceImplTest {
         assertThat(result.getFailureMessages()).containsExactly("Rule validation failed!");
     }
 
-    private JWTClaimsSet createClaims(Date exp) {
+    private JWTClaimsSet createClaims(Instant exp) {
         return new JWTClaimsSet.Builder()
                 .claim("foo", "bar")
-                .expirationTime(exp)
+                .expirationTime(Date.from(exp))
                 .build();
     }
 
