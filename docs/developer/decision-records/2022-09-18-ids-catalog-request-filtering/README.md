@@ -22,8 +22,7 @@ As the logic for querying `AssetIndex` by `QuerySpec` is already in place, all w
 message.setProperty(CatalogRequest.FILTER, request.getFilter());
 ```
 
-Then, on the receiving end, it's simply extracted and converted to the list of `Criteria` and encapsulated (along with `Range`) into 
-`QuerySpec`:
+Then, on the receiving end, it's simply extracted:
 
 ```
 // in DescriptionRequestHandler.java 
@@ -31,6 +30,8 @@ var querySpec = ofNullable(message.getProperties().get(CatalogRequest.FILTER))
     .map(map -> objectMapper.convertValue(map, typeRef))
     .orElse(/*should never occur!!*/)
 ```
+
+Existing `ContractOfferQuery` will be used to transport both `Range` and filtering criteria to lower layers.
 
 And now, they can be applied to `AssetIndex` search query when constructing the `Catalog` response:
 
