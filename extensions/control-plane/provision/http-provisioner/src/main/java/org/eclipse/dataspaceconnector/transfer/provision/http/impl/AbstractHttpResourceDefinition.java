@@ -39,6 +39,11 @@ public abstract class AbstractHttpResourceDefinition extends ResourceDefinition 
     public String getTransferProcessId() {
         return transferProcessId;
     }
+    
+    protected <RD extends AbstractHttpResourceDefinition, B extends AbstractHttpResourceDefinition.Builder<RD, B>> B toBuilder(B builder) {
+        return super.toBuilder(builder)
+                .dataAddressType(dataAddressType);
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder<RD extends AbstractHttpResourceDefinition, B extends ResourceDefinition.Builder<RD, B>> extends ResourceDefinition.Builder<RD, B> {

@@ -51,6 +51,20 @@ public abstract class ResourceDefinition implements Polymorphic {
      * @return the builder.
      */
     public abstract <RD extends ResourceDefinition, B extends Builder<RD, B>> B toBuilder();
+    
+    /**
+     * Sets the base class properties on a sub class builder.
+     *
+     * @param builder the builder.
+     * @param <RD> the type of resource definition.
+     * @param <B> the respective builder type.
+     * @return the builder with class properties set.
+     */
+    protected <RD extends ResourceDefinition, B extends Builder<RD, B>> B toBuilder(B builder) {
+        return builder
+                .id(id)
+                .transferProcessId(transferProcessId);
+    }
 
     @JsonPOJOBuilder
     public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {

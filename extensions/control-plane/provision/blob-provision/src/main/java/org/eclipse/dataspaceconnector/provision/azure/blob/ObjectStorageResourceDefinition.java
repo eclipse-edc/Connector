@@ -34,11 +34,10 @@ public class ObjectStorageResourceDefinition extends ResourceDefinition {
     
     @Override
     public Builder toBuilder() {
-        return Builder.newInstance()
-                .id(id)
-                .transferProcessId(transferProcessId)
+        var builder = Builder.newInstance()
                 .containerName(containerName)
                 .accountName(accountName);
+        return super.toBuilder(builder);
     }
     
     public static class Builder extends ResourceDefinition.Builder<ObjectStorageResourceDefinition, Builder> {

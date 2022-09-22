@@ -40,11 +40,9 @@ public class HttpProviderResourceDefinition extends AbstractHttpResourceDefiniti
     
     @Override
     public Builder toBuilder() {
-        return Builder.newInstance()
-                .id(id)
-                .transferProcessId(transferProcessId)
-                .dataAddressType(dataAddressType)
+        var builder = Builder.newInstance()
                 .assetId(assetId);
+        return super.toBuilder(builder);
     }
     
     @JsonPOJOBuilder(withPrefix = "")

@@ -41,11 +41,10 @@ public class S3BucketResourceDefinition extends ResourceDefinition {
     
     @Override
     public Builder toBuilder() {
-        return Builder.newInstance()
-                .id(id)
-                .transferProcessId(transferProcessId)
+        var builder = Builder.newInstance()
                 .regionId(regionId)
                 .bucketName(bucketName);
+        return super.toBuilder(builder);
     }
     
     public static class Builder extends ResourceDefinition.Builder<S3BucketResourceDefinition, Builder> {
