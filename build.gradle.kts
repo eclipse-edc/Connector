@@ -54,6 +54,7 @@ val edcWebsiteUrl: String by project
 val edcScmUrl: String by project
 val groupId: String by project
 val defaultVersion: String by project
+val metaModelVersion: String by project
 
 // required by the nexus publishing plugin
 val projectVersion: String = (project.findProperty("edcVersion") ?: defaultVersion) as String
@@ -67,6 +68,9 @@ if (projectVersion.contains("SNAPSHOT")) {
 subprojects {
 
     repositories {
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
         mavenCentral()
         maven {
             url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
@@ -172,7 +176,7 @@ allprojects {
             api("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
             api("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
             api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
-            api("${groupId}:runtime-metamodel:0.0.1")
+            api("${groupId}:runtime-metamodel:${metaModelVersion}")
 
 
             testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
