@@ -54,16 +54,16 @@ public class Oauth2ValidationRule implements TokenValidationRule {
     @Override
     public Result<Void> checkRule(ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         var claimsSet = toVerify.getClaims();
-        List<String> errors = new ArrayList<>();
-        String audience = configuration.getProviderAudience();
-        List<String> audiences = Optional.of(claimsSet).map(it -> it.get(AUDIENCE)).map(List.class::cast).orElse(Collections.emptyList());
+        var errors = new ArrayList<String>();
+        var audience = configuration.getEndpointAudience();
+        var audiences = Optional.of(claimsSet).map(it -> it.get(AUDIENCE)).map(List.class::cast).orElse(Collections.emptyList());
         if (audiences.isEmpty()) {
             errors.add("Required audience (aud) claim is missing in token");
         } else if (!audiences.contains(audience)) {
             errors.add("Token audience (aud) claim did not contain connector audience: " + audience);
         }
 
-        Instant now = clock.instant();
+        var now = clock.instant();
         var leewayNow = now.plusSeconds(configuration.getNotBeforeValidationLeeway());
         var notBefore = (Date) claimsSet.get(NOT_BEFORE);
         if (notBefore == null) {

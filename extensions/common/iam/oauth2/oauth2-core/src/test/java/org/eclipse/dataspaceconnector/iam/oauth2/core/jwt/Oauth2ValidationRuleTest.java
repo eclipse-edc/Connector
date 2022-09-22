@@ -43,7 +43,7 @@ class Oauth2ValidationRuleTest {
 
     @BeforeEach
     public void setUp() {
-        var configuration = Oauth2Configuration.Builder.newInstance().providerAudience("test-audience").build();
+        var configuration = Oauth2Configuration.Builder.newInstance().endpointAudience("test-audience").build();
         rule = new Oauth2ValidationRule(configuration, clock);
     }
 
@@ -143,7 +143,7 @@ class Oauth2ValidationRuleTest {
                 .build();
 
         var configuration = Oauth2Configuration.Builder.newInstance()
-                .providerAudience(TEST_AUDIENCE)
+                .endpointAudience(TEST_AUDIENCE)
                 .notBeforeValidationLeeway(20)
                 .build();
         rule = new Oauth2ValidationRule(configuration, clock);
