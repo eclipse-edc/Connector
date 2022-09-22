@@ -36,15 +36,11 @@ import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.jetbrains.annotations.NotNull;
 
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.time.Clock;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * Provides OAuth2 client credentials flow support.
@@ -95,7 +91,7 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    @Inject(required = false)
+    @Inject
     private CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
 
     @Override
@@ -130,7 +126,7 @@ public class Oauth2Extension implements ServiceExtension {
                 jwtDecoratorRegistry,
                 context.getTypeManager(),
                 new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
-                Optional.ofNullable(credentialsRequestAdditionalParametersProvider).orElse(noopCredentialsRequestAdditionalParametersProvider())
+                credentialsRequestAdditionalParametersProvider
         );
 
         context.registerService(IdentityService.class, oauth2Service);
@@ -144,11 +140,6 @@ public class Oauth2Extension implements ServiceExtension {
     @Override
     public void shutdown() {
         providerKeyResolver.stop();
-    }
-
-    @NotNull
-    private CredentialsRequestAdditionalParametersProvider noopCredentialsRequestAdditionalParametersProvider() {
-        return p -> emptyMap();
     }
 
     private byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {

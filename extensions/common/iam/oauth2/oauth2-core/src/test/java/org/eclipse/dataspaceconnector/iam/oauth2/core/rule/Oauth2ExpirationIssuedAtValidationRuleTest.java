@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.iam.oauth2.core.rule;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -23,15 +22,12 @@ import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUED_AT;
-import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.NOT_BEFORE;
 
 class Oauth2ExpirationIssuedAtValidationRuleTest {
 
