@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.core.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.dataspaceconnector.core.jwt.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRulesRegistryImpl;
+import org.eclipse.dataspaceconnector.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;

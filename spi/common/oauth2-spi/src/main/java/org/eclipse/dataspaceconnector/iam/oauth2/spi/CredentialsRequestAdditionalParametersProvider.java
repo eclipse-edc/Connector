@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.oauth2.core.identity;
+package org.eclipse.dataspaceconnector.iam.oauth2.spi;
 
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.jetbrains.annotations.NotNull;
