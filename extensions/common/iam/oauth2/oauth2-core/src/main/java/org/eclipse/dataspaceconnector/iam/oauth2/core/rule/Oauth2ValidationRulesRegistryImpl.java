@@ -26,6 +26,8 @@ import java.time.Clock;
 public class Oauth2ValidationRulesRegistryImpl extends TokenValidationRulesRegistryImpl implements Oauth2ValidationRulesRegistry {
 
     public Oauth2ValidationRulesRegistryImpl(Oauth2Configuration configuration, Clock clock) {
-        this.addRule(new Oauth2ValidationRule(configuration, clock));
+        this.addRule(new Oauth2AudienceValidationRule(configuration.getEndpointAudience()));
+        this.addRule(new Oauth2NotBeforeValidationRule(clock, configuration.getNotBeforeValidationLeeway()));
+        this.addRule(new Oauth2ExpirationIssuedAtValidationRule(clock));
     }
 }

@@ -79,6 +79,7 @@ class Oauth2ServiceImplTest {
     private static final String PRIVATE_KEY_ALIAS = "pk-test";
     private static final String PUBLIC_CERTIFICATE_ALIAS = "cert-test";
     private static final String PROVIDER_AUDIENCE = "audience-test";
+    private static final String ENDPOINT_AUDIENCE = "endpoint-audience-test";
     private static final int OAUTH2_SERVER_PORT = getFreePort();
     private static final String OAUTH2_SERVER_URL = "http://localhost:" + OAUTH2_SERVER_PORT;
 
@@ -115,6 +116,7 @@ class Oauth2ServiceImplTest {
                 .privateKeyAlias(PRIVATE_KEY_ALIAS)
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
+                .endpointAudience(ENDPOINT_AUDIENCE)
                 .privateKeyResolver(privateKeyResolverMock)
                 .certificateResolver(certificateResolverMock)
                 .identityProviderKeyResolver(publicKeyResolverMock)
@@ -212,9 +214,9 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyValidJwt() {
-        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
+        var jwt = createJwt(ENDPOINT_AUDIENCE, Date.from(now.minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims()).hasSize(3).containsKeys(AUDIENCE, NOT_BEFORE, EXPIRATION_TIME);
