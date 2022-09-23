@@ -28,8 +28,8 @@ import java.util.List;
  */
 public class ContractOfferQuery {
     private ClaimToken claimToken;
-    private List<Criterion> criteria;
-    private Range range;
+    private List<Criterion> assetsCriteria;
+    private Range definitionsRange;
 
     private ContractOfferQuery() {
     }
@@ -42,18 +42,18 @@ public class ContractOfferQuery {
         return claimToken;
     }
 
-    public List<Criterion> getCriteria() {
-        return criteria;
+    public List<Criterion> getAssetsCriteria() {
+        return assetsCriteria;
     }
 
-    public Range getRange() {
-        return range;
+    public Range getDefinitionsRange() {
+        return definitionsRange;
     }
 
     public static final class Builder {
-        private final List<Criterion> criteria = new ArrayList<>();
+        private final List<Criterion> assetsCriteria = new ArrayList<>();
         private ClaimToken claimToken;
-        private Range range;
+        private Range definitionsRange;
 
         private Builder() {
         }
@@ -67,26 +67,26 @@ public class ContractOfferQuery {
             return this;
         }
 
-        public Builder criterion(Criterion criterion) {
-            criteria.add(criterion);
+        public Builder assetsCriterion(Criterion assetsCriterion) {
+            assetsCriteria.add(assetsCriterion);
             return this;
         }
 
-        public Builder criteria(Collection<Criterion> criteria) {
-            this.criteria.addAll(criteria);
+        public Builder assetsCriteria(Collection<Criterion> assetsCriteria) {
+            this.assetsCriteria.addAll(assetsCriteria);
             return this;
         }
 
-        public Builder range(Range range) {
-            this.range = range;
+        public Builder definitionsRange(Range definitionsRange) {
+            this.definitionsRange = definitionsRange;
             return this;
         }
 
         public ContractOfferQuery build() {
             ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
             contractOfferQuery.claimToken = claimToken;
-            contractOfferQuery.range = range;
-            contractOfferQuery.criteria = criteria;
+            contractOfferQuery.definitionsRange = definitionsRange;
+            contractOfferQuery.assetsCriteria = assetsCriteria;
             return contractOfferQuery;
         }
     }

@@ -148,8 +148,7 @@ public class DescriptionRequestHandler implements Handler {
 
                 var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
                         .claimToken(claimToken)
-                        .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
-                        .range(range)
+                        .assetsCriterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build();
                 var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).collect(toList());
 

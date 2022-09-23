@@ -41,7 +41,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -53,6 +52,8 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,6 +73,10 @@ class DescriptionRequestHandlerTest {
 
     private final int rangeFrom = 0;
     private final int rangeTo = 10;
+
+    private static final String PROPERTY = "property";
+    private static final String VALUE = "value";
+    private static final String EQUALS_SIGN = "=";
 
     private DescriptionRequestHandler handler;
 
@@ -154,7 +159,11 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsCatalog);
 
         verify(catalogService, times(1))
-                .getDataCatalog(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo), any());
+                .getDataCatalog(any(),
+                    argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo),
+                    argThat(filtersList -> filtersList.get(0).getOperandLeft().equals(PROPERTY) &&
+                        filtersList.get(0).getOperandRight().equals(VALUE) &&
+                        filtersList.get(0).getOperator().equals(EQUALS_SIGN)));
         verifyNoMoreInteractions(catalogService);
         verifyNoInteractions(connectorService, contractOfferService, assetIndex);
     }
@@ -258,7 +267,8 @@ class DescriptionRequestHandlerTest {
                         .build())
                 ._requestedElement_(requestedElement)
                 .build();
-        message.setProperty(CatalogRequest.RANGE, new Range(rangeFrom, rangeTo));
+        message.setProperty(CatalogRequest.RANGE, Map.of("from", rangeFrom, "to", rangeTo));
+        message.setProperty(CatalogRequest.FILTER, List.of(Map.of("operandLeft", PROPERTY, "operator", EQUALS_SIGN, "operandRight", VALUE)));
         return message;
     }
 

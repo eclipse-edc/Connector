@@ -54,7 +54,7 @@ public class CatalogServiceImpl implements CatalogService {
     @NotNull
     public Catalog getDataCatalog(ClaimToken claimToken, Range range, List<Criterion> filters) {
 
-        var query = ContractOfferQuery.Builder.newInstance().claimToken(claimToken).criteria(filters).range(range).build();
+        var query = ContractOfferQuery.Builder.newInstance().claimToken(claimToken).assetsCriteria(filters).definitionsRange(range).build();
 
         var offers = contractOfferService.queryContractOffers(query).collect(toList());
 

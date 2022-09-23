@@ -57,10 +57,11 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
         var agent = agentService.createFor(query.getClaimToken());
 
-        return definitionService.definitionsFor(agent, query.getRange())
+        return definitionService.definitionsFor(agent, query.getDefinitionsRange())
                 .flatMap(definition -> {
-                    var assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
-                            .filter(Stream.concat(definition.getSelectorExpression().getCriteria().stream(), query.getCriteria().stream()).collect(Collectors.toList())).build());
+                    var assetFilterQuery = QuerySpec.Builder.newInstance()
+                        .filter(Stream.concat(definition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList())).build();
+                    var assets = assetIndex.queryAssets(assetFilterQuery);
                     return Optional.of(definition.getContractPolicyId())
                             .map(policyStore::findById)
                             .map(policy -> assets.map(asset -> createContractOffer(definition, policy.getPolicy(), asset)))
