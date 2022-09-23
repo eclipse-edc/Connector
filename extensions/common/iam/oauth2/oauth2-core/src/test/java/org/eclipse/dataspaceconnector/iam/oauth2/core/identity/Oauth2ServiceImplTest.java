@@ -176,7 +176,7 @@ class Oauth2ServiceImplTest {
     void verifyNoAudienceToken() {
         var jwt = createJwt(null, Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -186,7 +186,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAudienceToken() {
         var jwt = createJwt("different.audience", Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -196,7 +196,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAttemptUseNotBeforeToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.plusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -206,7 +206,7 @@ class Oauth2ServiceImplTest {
     void verifyExpiredToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), Date.from(now.minusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
