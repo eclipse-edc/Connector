@@ -200,7 +200,10 @@ class HttpProviderProvisionerTest {
 
 
     private static class TestResourceDefinition extends ResourceDefinition {
-
+        @Override
+        public <RD extends ResourceDefinition, B extends Builder<RD, B>> B toBuilder() {
+            return null;
+        }
     }
 
     private static class TestProvisionedResource extends ProvisionedResource {

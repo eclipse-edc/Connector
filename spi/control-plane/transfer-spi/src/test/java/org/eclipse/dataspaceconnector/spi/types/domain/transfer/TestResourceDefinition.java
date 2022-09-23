@@ -22,7 +22,12 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 @JsonTypeName("dataspaceconnector:testresourcedefinition")
 @JsonDeserialize(builder = TestResourceDefinition.Builder.class)
 class TestResourceDefinition extends ResourceDefinition {
-
+    
+    @Override
+    public <RD extends ResourceDefinition, B extends ResourceDefinition.Builder<RD, B>> B toBuilder() {
+        return null;
+    }
+    
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ResourceDefinition.Builder<TestResourceDefinition, Builder> {
         private Builder() {

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add test
  *
  */
 
@@ -36,5 +37,19 @@ class HttpProviderResourceDefinitionTest {
         assertThat(deserialized.getTransferProcessId()).isEqualTo("1");
         assertThat(deserialized.getDataAddressType()).isEqualTo("test");
 
+    }
+    
+    @Test
+    void toBuilder_verifyEqualResourceDefinition() {
+        var definition = HttpProviderResourceDefinition.Builder.newInstance()
+                .id("id")
+                .transferProcessId("tp-id")
+                .assetId("asset")
+                .dataAddressType("type")
+                .build();
+        var builder = definition.toBuilder();
+        var rebuiltDefinition = builder.build();
+    
+        assertThat(rebuiltDefinition).usingRecursiveComparison().isEqualTo(definition);
     }
 }

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add toBuilder method
  *
  */
 
@@ -30,7 +31,14 @@ public class ObjectStorageResourceDefinition extends ResourceDefinition {
     public String getAccountName() {
         return accountName;
     }
-
+    
+    @Override
+    public Builder toBuilder() {
+        return initializeBuilder(new Builder())
+                .containerName(containerName)
+                .accountName(accountName);
+    }
+    
     public static class Builder extends ResourceDefinition.Builder<ObjectStorageResourceDefinition, Builder> {
 
         private Builder() {

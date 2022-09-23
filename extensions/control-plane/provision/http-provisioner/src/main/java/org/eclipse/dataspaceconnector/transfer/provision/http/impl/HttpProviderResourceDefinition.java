@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add toBuilder method
  *
  */
 
@@ -36,7 +37,13 @@ public class HttpProviderResourceDefinition extends AbstractHttpResourceDefiniti
     public String getAssetId() {
         return assetId;
     }
-
+    
+    @Override
+    public Builder toBuilder() {
+        return initializeBuilder(new Builder())
+                .assetId(assetId);
+    }
+    
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends AbstractHttpResourceDefinition.Builder<HttpProviderResourceDefinition, Builder> {
 

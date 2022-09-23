@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add toBuilder method
  *
  */
 
@@ -40,6 +41,29 @@ public abstract class ResourceDefinition implements Polymorphic {
 
     void setTransferProcessId(String transferProcessId) {
         this.transferProcessId = transferProcessId;
+    }
+    
+    /**
+     * Converts the resource definition to a builder to allow for easy modification.
+     *
+     * @param <RD> the type of resource definition.
+     * @param <B> the respective builder type.
+     * @return the builder.
+     */
+    public abstract <RD extends ResourceDefinition, B extends Builder<RD, B>> B toBuilder();
+    
+    /**
+     * Sets the base class properties on a sub class builder.
+     *
+     * @param builder the builder.
+     * @param <RD> the type of resource definition.
+     * @param <B> the respective builder type.
+     * @return the builder with class properties set.
+     */
+    protected <RD extends ResourceDefinition, B extends Builder<RD, B>> B initializeBuilder(B builder) {
+        return builder
+                .id(id)
+                .transferProcessId(transferProcessId);
     }
 
     @JsonPOJOBuilder
