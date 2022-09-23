@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 
 /**
  * Defines EDC data source configuration keys. All keys are prefixed by: edc.datasource.[ds name].[key]

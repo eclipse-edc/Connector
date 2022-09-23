@@ -1,8 +1,6 @@
 
 org.eclipse.dataspaceconnector:ids:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:module-domain:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:module-processor:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:core-base:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:core-boot:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jwt-core:0.0.1-SNAPSHOT

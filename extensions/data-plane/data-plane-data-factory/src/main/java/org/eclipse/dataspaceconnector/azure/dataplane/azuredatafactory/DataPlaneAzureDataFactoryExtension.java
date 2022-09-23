@@ -23,8 +23,8 @@ import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.SettingResolver;
@@ -63,6 +63,10 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
+
+    private static String requiredSetting(SettingResolver context, String s) {
+        return Objects.requireNonNull(context.getSetting(s, null), s);
+    }
 
     @Override
     public String name() {
@@ -110,9 +114,5 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
                 validator,
                 transferManager);
         registry.registerTransferService(transferService);
-    }
-
-    private static String requiredSetting(SettingResolver context, String s) {
-        return Objects.requireNonNull(context.getSetting(s, null), s);
     }
 }

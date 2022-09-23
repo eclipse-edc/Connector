@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.core.security.fs;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -77,7 +77,7 @@ public class FsVaultExtension implements ServiceExtension {
         if (KEYSTORE_PASSWORD == null) {
             throw new EdcException("Key store password was not specified");
         }
-        
+
         try (InputStream stream = Files.newInputStream(keyStorePath)) {
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(stream, KEYSTORE_PASSWORD.toCharArray());

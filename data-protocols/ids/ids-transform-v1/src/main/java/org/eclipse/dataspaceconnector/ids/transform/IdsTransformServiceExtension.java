@@ -46,7 +46,7 @@ import org.eclipse.dataspaceconnector.ids.transform.type.policy.PermissionFromId
 import org.eclipse.dataspaceconnector.ids.transform.type.policy.PermissionToIdsPermissionTransformer;
 import org.eclipse.dataspaceconnector.ids.transform.type.policy.ProhibitionFromIdsProhibitionTransformer;
 import org.eclipse.dataspaceconnector.ids.transform.type.policy.ProhibitionToIdsProhibitionTransformer;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 

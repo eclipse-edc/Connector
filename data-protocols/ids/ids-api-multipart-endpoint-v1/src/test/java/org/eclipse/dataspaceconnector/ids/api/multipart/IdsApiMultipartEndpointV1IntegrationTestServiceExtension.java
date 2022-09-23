@@ -20,6 +20,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart;
 
 import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -36,7 +37,6 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -127,12 +127,8 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public DataAddress resolveForAsset(String assetId) {
-            var asset = findById(assetId);
-            if (asset == null) {
-                return null;
-            }
-            return DataAddress.Builder.newInstance().type("test").build();
+        public void accept(AssetEntry item) {
+
         }
 
         @Override
@@ -141,8 +137,12 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public void accept(AssetEntry item) {
-
+        public DataAddress resolveForAsset(String assetId) {
+            var asset = findById(assetId);
+            if (asset == null) {
+                return null;
+            }
+            return DataAddress.Builder.newInstance().type("test").build();
         }
     }
 

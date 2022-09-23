@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
 import org.eclipse.dataspaceconnector.azure.cosmos.AbstractCosmosConfig;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class TransferProcessStoreCosmosConfig extends AbstractCosmosConfig {

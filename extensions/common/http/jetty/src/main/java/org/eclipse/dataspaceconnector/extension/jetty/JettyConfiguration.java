@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.extension.jetty;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
 import java.util.AbstractMap;

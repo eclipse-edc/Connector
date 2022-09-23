@@ -206,9 +206,3 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
-
-// modules for tooling -----------------------------------------------------------------------------
-include(":tooling:module-domain")
-include(":tooling:module-processor")
-include(":tooling:module-processor-extension-test")
-include(":tooling:module-processor-spi-test")
