@@ -111,7 +111,12 @@ public class TestFunctions {
     @JsonTypeName("dataspaceconnector:testresourcedef")
     @JsonDeserialize(builder = TestResourceDef.Builder.class)
     public static class TestResourceDef extends ResourceDefinition {
-
+    
+        @Override
+        public <RD extends ResourceDefinition, B extends ResourceDefinition.Builder<RD, B>> B toBuilder() {
+            return null;
+        }
+    
         @JsonPOJOBuilder(withPrefix = "")
         public static class Builder extends ResourceDefinition.Builder<TestResourceDef, Builder> {
             private Builder() {
