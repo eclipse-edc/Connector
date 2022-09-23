@@ -24,9 +24,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifie
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -36,10 +34,16 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.util.Map;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test the {@link DecentralizedIdentityService} with a key algorithm. See {@link WithP256Test} for concrete impl.
@@ -48,41 +52,91 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 abstract class DecentralizedIdentityServiceTest {
     private static final String DID_DOCUMENT = getResourceFileContentAsString("dids.json");
 
+    private JWK keyPair;
+    private CredentialsVerifier credentialsVerifierMock;
+    private DidResolverRegistry didResolverRegistryMock;
     private DecentralizedIdentityService identityService;
 
     @Test
     void generateAndVerifyJwtToken_valid() {
-        var result = identityService.obtainClientCredentials(TokenParameters.Builder.newInstance()
-                .scope("Foo")
-                .audience("Bar")
-                .build());
+        when(credentialsVerifierMock.getVerifiedCredentials(any())).thenReturn(Result.success(Map.of("region", "eu")));
+        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument((ECKey) keyPair.toPublicJWK())));
+
+        var result = identityService.obtainClientCredentials(defaultTokenParameters());
         assertTrue(result.succeeded());
 
-        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
         assertTrue(verificationResult.succeeded());
         assertEquals("eu", verificationResult.getContent().getClaims().get("region"));
     }
 
     @Test
+    void generateAndVerifyJwtToken_wrongPublicKey() {
+        var otherKeyPair = getKeyPair();
+        when(credentialsVerifierMock.getVerifiedCredentials(any())).thenReturn(Result.success(Map.of("region", "eu")));
+        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument((ECKey) otherKeyPair.toPublicJWK())));
+
+        var result = identityService.obtainClientCredentials(defaultTokenParameters());
+        assertTrue(result.succeeded());
+
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
+        assertTrue(verificationResult.failed());
+        assertThat(verificationResult.getFailureMessages()).contains("Token could not be verified!");
+    }
+
+    @Test
     void generateAndVerifyJwtToken_wrongAudience() {
-        var result = identityService.obtainClientCredentials(TokenParameters.Builder.newInstance()
+        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument((ECKey) keyPair.toPublicJWK())));
+
+        var result = identityService.obtainClientCredentials(defaultTokenParameters());
+
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar2");
+        assertTrue(verificationResult.failed());
+    }
+
+    @Test
+    void generateAndVerifyJwtToken_getVerifiedCredentialsFailed() {
+        var errorMsg = UUID.randomUUID().toString();
+        when(credentialsVerifierMock.getVerifiedCredentials(any())).thenReturn(Result.failure(errorMsg));
+        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument((ECKey) keyPair.toPublicJWK())));
+
+        var result = identityService.obtainClientCredentials(defaultTokenParameters());
+        assertTrue(result.succeeded());
+
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
+        assertTrue(verificationResult.failed());
+        assertThat(verificationResult.getFailureDetail()).contains(errorMsg);
+    }
+
+    private static TokenParameters defaultTokenParameters() {
+        return TokenParameters.Builder.newInstance()
                 .scope("Foo")
                 .audience("Bar")
-                .build());
+                .build();
+    }
 
-        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar2");
-        assertTrue(verificationResult.failed());
+    private static DidDocument createDidDocument(ECKey publicKey) {
+        try {
+            var did = new ObjectMapper().readValue(DID_DOCUMENT, DidDocument.class);
+            did.getVerificationMethod().add(VerificationMethod.Builder.create()
+                    .type("JsonWebKey2020")
+                    .id("test-key")
+                    .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().toString(), publicKey.getX().toString(), publicKey.getY().toString()))
+                    .build());
+            return did;
+        } catch (JsonProcessingException e) {
+            throw new AssertionError(e);
+        }
     }
 
     @BeforeEach
     void setUp() {
-        var keyPair = getKeyPair();
+        keyPair = getKeyPair();
         var privateKey = new EcPrivateKeyWrapper(keyPair.toECKey());
-
-        var didResolver = new TestResolverRegistry(DID_DOCUMENT, keyPair);
-        CredentialsVerifier verifier = document -> Result.success(Map.of("region", "eu"));
-        String didUrl = "random.did.url";
-        identityService = new DecentralizedIdentityService(didResolver, verifier, new ConsoleMonitor(), privateKey, didUrl, Clock.systemUTC());
+        didResolverRegistryMock = mock(DidResolverRegistry.class);
+        credentialsVerifierMock = mock(CredentialsVerifier.class);
+        var didUrl = "random.did.url";
+        identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), privateKey, didUrl, Clock.systemUTC());
     }
 
     @NotNull
@@ -95,36 +149,4 @@ abstract class DecentralizedIdentityServiceTest {
         }
 
     }
-
-    private static class TestResolverRegistry implements DidResolverRegistry {
-        private final String hubUrlDid;
-        private final JWK keyPair;
-
-        TestResolverRegistry(String hubUrlDid, JWK keyPair) {
-            this.hubUrlDid = hubUrlDid;
-            this.keyPair = keyPair;
-        }
-
-        @Override
-        public void register(DidResolver resolver) {
-
-        }
-
-        @Override
-        public Result<DidDocument> resolve(String didKey) {
-            try {
-                var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
-                ECKey key = (ECKey) keyPair.toPublicJWK();
-                did.getVerificationMethod().add(VerificationMethod.Builder.create()
-                        .type("JsonWebKey2020")
-                        .id("test-key")
-                        .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
-                        .build());
-                return Result.success(did);
-            } catch (JsonProcessingException e) {
-                throw new AssertionError(e);
-            }
-        }
-    }
-
 }

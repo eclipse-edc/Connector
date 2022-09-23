@@ -87,12 +87,16 @@ public class DecentralizedIdentityService implements IdentityService {
             monitor.debug("Verifying JWT with public key...");
             var verified = JwtUtils.verify(jwt, publicKeyWrapper, audience);
             if (verified.failed()) {
-                verified.getFailureMessages().forEach(m -> monitor.debug(() -> "Failure in token verification: " + m));
+                monitor.debug(() -> "Failure in token verification: " + verified.getFailureDetail());
                 return Result.failure("Token could not be verified!");
             }
 
             monitor.debug("verification successful! Fetching data from IdentityHub");
             var credentialsResult = credentialsVerifier.getVerifiedCredentials(didResult.getContent());
+            if (credentialsResult.failed()) {
+                monitor.debug(() -> "Failed to retrieve verified credentials: " + credentialsResult.getFailureDetail());
+                return Result.failure("Failed to get verifiable credentials: " + credentialsResult.getFailureDetail());
+            }
 
             monitor.debug("Building ClaimToken");
             var tokenBuilder = ClaimToken.Builder.newInstance();
