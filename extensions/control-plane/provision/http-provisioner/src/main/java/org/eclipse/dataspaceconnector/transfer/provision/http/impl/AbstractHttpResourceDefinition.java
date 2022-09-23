@@ -40,8 +40,8 @@ public abstract class AbstractHttpResourceDefinition extends ResourceDefinition 
         return transferProcessId;
     }
     
-    protected <RD extends AbstractHttpResourceDefinition, B extends AbstractHttpResourceDefinition.Builder<RD, B>> B toBuilder(B builder) {
-        return super.toBuilder(builder)
+    protected <RD extends AbstractHttpResourceDefinition, B extends AbstractHttpResourceDefinition.Builder<RD, B>> B initializeBuilder(B builder) {
+        return super.initializeBuilder(builder)
                 .dataAddressType(dataAddressType);
     }
 

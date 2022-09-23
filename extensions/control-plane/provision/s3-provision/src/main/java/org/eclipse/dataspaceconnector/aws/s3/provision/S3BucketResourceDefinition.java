@@ -41,10 +41,9 @@ public class S3BucketResourceDefinition extends ResourceDefinition {
     
     @Override
     public Builder toBuilder() {
-        var builder = Builder.newInstance()
+        return initializeBuilder(new Builder())
                 .regionId(regionId)
                 .bucketName(bucketName);
-        return super.toBuilder(builder);
     }
     
     public static class Builder extends ResourceDefinition.Builder<S3BucketResourceDefinition, Builder> {

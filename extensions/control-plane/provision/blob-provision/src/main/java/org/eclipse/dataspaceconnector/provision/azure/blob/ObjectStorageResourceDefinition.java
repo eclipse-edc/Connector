@@ -34,10 +34,9 @@ public class ObjectStorageResourceDefinition extends ResourceDefinition {
     
     @Override
     public Builder toBuilder() {
-        var builder = Builder.newInstance()
+        return initializeBuilder(new Builder())
                 .containerName(containerName)
                 .accountName(accountName);
-        return super.toBuilder(builder);
     }
     
     public static class Builder extends ResourceDefinition.Builder<ObjectStorageResourceDefinition, Builder> {

@@ -40,9 +40,8 @@ public class HttpProviderResourceDefinition extends AbstractHttpResourceDefiniti
     
     @Override
     public Builder toBuilder() {
-        var builder = Builder.newInstance()
+        return initializeBuilder(new Builder())
                 .assetId(assetId);
-        return super.toBuilder(builder);
     }
     
     @JsonPOJOBuilder(withPrefix = "")

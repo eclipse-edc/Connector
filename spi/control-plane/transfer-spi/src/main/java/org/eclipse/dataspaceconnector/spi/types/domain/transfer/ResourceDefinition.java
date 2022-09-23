@@ -60,7 +60,7 @@ public abstract class ResourceDefinition implements Polymorphic {
      * @param <B> the respective builder type.
      * @return the builder with class properties set.
      */
-    protected <RD extends ResourceDefinition, B extends Builder<RD, B>> B toBuilder(B builder) {
+    protected <RD extends ResourceDefinition, B extends Builder<RD, B>> B initializeBuilder(B builder) {
         return builder
                 .id(id)
                 .transferProcessId(transferProcessId);
