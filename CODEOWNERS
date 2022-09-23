@@ -76,5 +76,3 @@ styleguide.md @paullatzelsperger
 /system-tests/minikube/ @algattik
 /system-tests/runtimes/ @algattik
 /system-tests/tests/ @algattik
-
-/tooling/ @jimmarino
