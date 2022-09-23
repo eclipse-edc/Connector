@@ -108,7 +108,7 @@ public class FccTestExtension implements ServiceExtension {
         }
 
         @Override
-        public @Nullable String processIdForTransferId(String id) {
+        public @Nullable String processIdForDataRequestId(String id) {
             return null;
         }
 

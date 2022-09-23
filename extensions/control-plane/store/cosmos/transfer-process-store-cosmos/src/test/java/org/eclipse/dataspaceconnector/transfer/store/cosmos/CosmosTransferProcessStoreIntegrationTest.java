@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.implementation.BadRequestException;
+import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
@@ -29,11 +30,14 @@ import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmos
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.transfer.store.TestFunctions;
+import org.eclipse.dataspaceconnector.transfer.store.TransferProcessStoreTestBase;
 import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -59,7 +63,7 @@ import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.cr
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcessDocument;
 
 @AzureCosmosDbIntegrationTest
-class CosmosTransferProcessStoreIntegrationTest {
+class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTestBase {
 
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "transferprocessstore-itest_" + TEST_ID;
@@ -103,7 +107,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
         cosmosDbApi.uploadStoredProcedure("nextForState");
         cosmosDbApi.uploadStoredProcedure("lease");
-        store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy);
+        store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy, clock);
     }
 
     @AfterEach
@@ -329,7 +333,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     }
 
     @Test
-    @DisplayName("Verify that a leased entity can still be deleted")
+    @DisplayName("Verify that a leased entity can not be deleted")
     void nextForState_verifyDelete() {
         var tp = createTransferProcess("test-id", TransferProcessStates.IN_PROGRESS);
         var doc = new TransferProcessDocument(tp, partitionKey);
@@ -342,8 +346,8 @@ class CosmosTransferProcessStoreIntegrationTest {
         var leasedDoc = readDocument(tp.getId());
         assertThat(leasedDoc.getLease()).isNotNull();
 
-        store.delete(tp.getId());
-        assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).isEmpty();
+        assertThatThrownBy(() -> store.delete(tp.getId())).isInstanceOf(IllegalStateException.class);
+
     }
 
     @Test
@@ -368,13 +372,13 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         store.create(tp);
 
-        String processId = store.processIdForTransferId(transferId);
+        String processId = store.processIdForDataRequestId(transferId);
         assertThat(processId).isEqualTo("process-id");
     }
 
     @Test
     void processIdForTransferId_notExist() {
-        assertThat(store.processIdForTransferId("not-exist")).isNull();
+        assertThat(store.processIdForDataRequestId("not-exist")).isNull();
     }
 
     @Test
@@ -462,18 +466,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         doc.acquireLease("some-other-connector", clock);
         container.upsertItem(doc);
 
-        assertThatThrownBy(() -> store.delete(processId)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void delete_isLeasedBySelf() {
-        final String processId = "test-process-id";
-        var tp = createTransferProcess(processId);
-        var doc = new TransferProcessDocument(tp, partitionKey);
-        doc.acquireLease(connectorId, clock);
-        container.upsertItem(doc);
-
-        store.delete(processId);
+        assertThatThrownBy(() -> store.delete(processId)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -583,6 +576,59 @@ class CosmosTransferProcessStoreIntegrationTest {
         assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
         var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
         assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+    }
+
+    @Override
+    @Test
+    protected void findAll_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().create(TestFunctions.createTransferProcess("test-neg-" + i)));
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        assertThat(getTransferProcessStore().findAll(query).collect(Collectors.toList())).hasSize(10);
+    }
+
+
+    @Override
+    protected boolean supportsCollectionQuery() {
+        return false;
+    }
+
+    @Override
+    protected boolean supportsLikeOperator() {
+        return true;
+    }
+
+    @Override
+    protected boolean supportsInOperator() {
+        return true;
+    }
+
+    @Override
+    protected boolean supportsSortOrder() {
+        return true;
+    }
+
+    @Override
+    protected TransferProcessStore getTransferProcessStore() {
+        return store;
+    }
+
+    @Override
+    protected void lockEntity(String negotiationId, String owner, Duration duration) {
+
+
+        var document = readDocument(negotiationId);
+        document.acquireLease(owner, clock, duration);
+
+        var result = container.upsertItem(document, new PartitionKey(partitionKey), new CosmosItemRequestOptions());
+        assertThat(result.getStatusCode()).isEqualTo(200);
+    }
+
+    @Override
+    protected boolean isLockedBy(String negotiationId, String owner) {
+        var lease = readDocument(negotiationId).getLease();
+        return lease != null && lease.getLeasedBy().equals(owner) && !lease.isExpired(clock.millis());
     }
 
     private TransferProcessDocument convert(Object obj) {

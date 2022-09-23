@@ -12,14 +12,21 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.transferprocess.store;
+package org.eclipse.dataspaceconnector.transfer.store;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.util.UUID;
@@ -87,5 +94,51 @@ public class TestFunctions {
     public static DataAddress.Builder createDataAddressBuilder(String type) {
         return DataAddress.Builder.newInstance()
                 .type(type);
+    }
+
+    @NotNull
+    public static TransferProcess initialTransferProcess() {
+        return initialTransferProcess(UUID.randomUUID().toString(), "clientid");
+    }
+
+    @NotNull
+    public static TransferProcess initialTransferProcess(String processId, String dataRequestId) {
+        var process = createTransferProcess(processId, createDataRequestBuilder().id(dataRequestId).build());
+        process.transitionInitial();
+        return process;
+    }
+
+    @JsonTypeName("dataspaceconnector:testresourcedef")
+    @JsonDeserialize(builder = TestResourceDef.Builder.class)
+    public static class TestResourceDef extends ResourceDefinition {
+
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends ResourceDefinition.Builder<TestResourceDef, Builder> {
+            private Builder() {
+                super(new TestResourceDef());
+            }
+
+            @JsonCreator
+            public static Builder newInstance() {
+                return new Builder();
+            }
+        }
+    }
+
+    @JsonDeserialize(builder = TestProvisionedResource.Builder.class)
+    @JsonTypeName("dataspaceconnector:testprovisionedresource")
+    public static class TestProvisionedResource extends ProvisionedResource {
+
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends ProvisionedResource.Builder<TestProvisionedResource, Builder> {
+            private Builder() {
+                super(new TestProvisionedResource());
+            }
+
+            @JsonCreator
+            public static Builder newInstance() {
+                return new Builder();
+            }
+        }
     }
 }

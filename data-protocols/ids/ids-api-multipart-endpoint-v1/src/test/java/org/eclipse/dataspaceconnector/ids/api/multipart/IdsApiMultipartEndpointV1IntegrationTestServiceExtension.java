@@ -153,7 +153,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public @Nullable String processIdForTransferId(String id) {
+        public @Nullable String processIdForDataRequestId(String id) {
             return null;
         }
 

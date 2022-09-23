@@ -205,7 +205,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public @Nullable String processIdForTransferId(String id) {
+        public @Nullable String processIdForDataRequestId(String id) {
             return null;
         }
 

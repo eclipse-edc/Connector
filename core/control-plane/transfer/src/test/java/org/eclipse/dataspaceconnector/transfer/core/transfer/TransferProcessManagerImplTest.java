@@ -118,13 +118,11 @@ class TransferProcessManagerImplTest {
     private final PolicyArchive policyArchive = mock(PolicyArchive.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
-    @SuppressWarnings("unchecked")
     private final SendRetryManager<StatefulEntity<?>> sendRetryManager = mock(SendRetryManager.class);
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
     private TransferProcessManagerImpl manager;
 
-    @SuppressWarnings("unchecked")
     @BeforeEach
     void setup() {
         var observable = new TransferProcessObservableImpl();
@@ -156,7 +154,7 @@ class TransferProcessManagerImplTest {
      */
     @Test
     void verifyIdempotency() {
-        when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
+        when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
         var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
         manager.start();
@@ -165,12 +163,12 @@ class TransferProcessManagerImplTest {
         manager.stop();
 
         verify(transferProcessStore, times(1)).create(isA(TransferProcess.class));
-        verify(transferProcessStore, times(2)).processIdForTransferId(anyString());
+        verify(transferProcessStore, times(2)).processIdForDataRequestId(anyString());
     }
 
     @Test
     void verifyCreatedTimestamp() {
-        when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
+        when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
         var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
         manager.start();
@@ -199,7 +197,7 @@ class TransferProcessManagerImplTest {
             verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
         });
     }
-    
+
     @Test
     void initial_manifestEvaluationFailed_shouldTransitionToError() {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
@@ -208,9 +206,9 @@ class TransferProcessManagerImplTest {
                 .thenReturn(emptyList());
         when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
                 .thenReturn(Result.failure("error"));
-        
+
         manager.start();
-        
+
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verifyNoInteractions(provisionManager);
@@ -861,7 +859,7 @@ class TransferProcessManagerImplTest {
     private static class TokenTestProvisionResource extends TestProvisionedDataDestinationResource {
         TokenTestProvisionResource(String resourceName, String id) {
             super(resourceName, id);
-            this.hasToken = true;
+            hasToken = true;
         }
     }
 

@@ -52,7 +52,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
 
     @Override
     @Nullable
-    public String processIdForTransferId(String id) {
+    public String processIdForDataRequestId(String id) {
         return store.findAll()
                 .filter(p -> id.equals(p.getDataRequest().getId()))
                 .findFirst()
