@@ -16,30 +16,35 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
+import de.fraunhofer.iais.eis.BaseConnectorBuilder;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartCatalogDescriptionRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractAgreementSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractOfferSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartContractRejectionSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractAgreementTransformerOutput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.MessageProtocol;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -47,17 +52,17 @@ import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,52 +71,53 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
+@ExtendWith(EdcExtension.class)
+class MultipartDispatcherIntegrationTest {
+    private static final int PORT = getFreePort();
+    private static final int IDS_PORT = getFreePort();
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
-    private IdsTransformerRegistry transformerRegistry;
-    private IdsMultipartRemoteMessageDispatcher dispatcher;
+
+    private final IdsTransformerRegistry transformerRegistry = mock(IdsTransformerRegistry.class);
+    private final ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
+    private final ContractValidationService validationService = mock(ContractValidationService.class);
+    private final ConsumerContractNegotiationManager consumerContractNegotiationManager = mock(ConsumerContractNegotiationManager.class);
 
     @BeforeEach
-    void init() {
-        Monitor monitor = mock(Monitor.class);
+    void init(EdcExtension extension) {
+        extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
 
-        transformerRegistry = mock(IdsTransformerRegistry.class);
+        extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(PORT),
+                "web.http.path", "/api",
+                "web.http.ids.port", String.valueOf(IDS_PORT),
+                "web.http.ids.path", "/api/v1/ids",
+                "edc.ids.id", "urn:connector:" + CONNECTOR_ID,
+                "ids.webhook.address", "http://webhook"
+        ));
 
-        Vault vault = mock(Vault.class);
-        var httpClient = testOkHttpClient();
-
-        var idsWebhookAddress = "http://webhook/api";
-    
-        var senderContext = new SenderDelegateContext(URI.create(CONNECTOR_ID), objectMapper, transformerRegistry, idsWebhookAddress);
-
-        var sender = new IdsMultipartSender(monitor, httpClient, identityService, objectMapper);
-        dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);
-        dispatcher.register(new MultipartArtifactRequestSender(senderContext, vault));
-        dispatcher.register(new MultipartDescriptionRequestSender(senderContext));
-        dispatcher.register(new MultipartContractOfferSender(senderContext));
-        dispatcher.register(new MultipartContractAgreementSender(senderContext));
-        dispatcher.register(new MultipartContractRejectionSender(senderContext));
-        dispatcher.register(new MultipartCatalogDescriptionRequestSender(senderContext));
+        extension.registerServiceMock(IdsTransformerRegistry.class, transformerRegistry);
+        extension.registerServiceMock(ContractNegotiationStore.class, negotiationStore);
+        extension.registerServiceMock(ContractValidationService.class, validationService);
+        extension.registerServiceMock(ConsumerContractNegotiationManager.class, consumerContractNegotiationManager);
     }
 
     @Test
-    void testSendDescriptionRequestMessage() throws Exception {
+    void testSendDescriptionRequestMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var request = MetadataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .build();
+        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(getBaseConnector()));
 
-        var result = dispatcher.send(BaseConnector.class, request, () -> null).get();
+        var future = dispatcher.send(BaseConnector.class, request, () -> null);
 
-        assertThat(result).isNotNull();
-        assertThat(result).isInstanceOf(BaseConnector.class);
+        assertThat(future).succeedsWithin(5, SECONDS).isInstanceOf(BaseConnector.class);
     }
 
     @Test
-    void testSendArtifactRequestMessage() {
+    void testSendArtifactRequestMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var asset = Asset.Builder.newInstance().id("1").build();
-        addAsset(asset);
         when(negotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
@@ -121,6 +127,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .id("1:2").build());
+        when(validationService.validate(any(), any(ContractAgreement.class))).thenReturn(true);
 
         var request = DataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
@@ -131,11 +138,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
-        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        var future = dispatcher.send(null, request, () -> null);
+
+        assertThat(future).succeedsWithin(5, SECONDS);
     }
 
     @Test
-    void testSendContractOfferMessage() {
+    void testSendContractOfferMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
@@ -149,19 +158,19 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        var future = dispatcher.send(null, request, () -> null);
 
+        assertThat(future).failsWithin(5, SECONDS); // ContractOfferMessageImpl is not supported by MultipartController
         verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
-    void testSendContractRequestMessage() {
+    void testSendContractRequestMessage(RemoteMessageDispatcherRegistry dispatcher, AssetIndex assetIndex) {
         var policy = Policy.Builder.newInstance().build();
         var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(policy).build();
-
-        addAsset(Asset.Builder.newInstance().id("1").build());
-
+        assetIndex.accept(Asset.Builder.newInstance().id("1").build(), DataAddress.Builder.newInstance().type("any").build());
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
+        when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
 
         var request = ContractOfferRequest.Builder.newInstance()
                 .type(ContractOfferRequest.Type.INITIAL)
@@ -172,21 +181,25 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        var future = dispatcher.send(null, request, () -> null);
 
-        verify(transformerRegistry).transform(any(), any());
+        assertThat(future).succeedsWithin(5, SECONDS);
+        verify(transformerRegistry).transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class));
+        verify(transformerRegistry).transform(any(), eq(ContractOffer.class));
     }
 
     @Test
-    void testSendContractAgreementMessage() {
+    void testSendContractAgreementMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
                 .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString())
                 .build();
-
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
                 .thenReturn(Result.success(getIdsContractAgreement()));
+        when(transformerRegistry.transform(any(), eq(ContractAgreementTransformerOutput.class)))
+                .thenReturn(Result.success(ContractAgreementTransformerOutput.Builder.newInstance().build()));
+        when(consumerContractNegotiationManager.confirmed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
 
         var request = ContractAgreementRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
@@ -197,13 +210,15 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .policy(Policy.Builder.newInstance().build())
                 .build();
 
-        assertThatCode(() -> dispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
+        var future = dispatcher.send(null, request, () -> null);
 
-        verify(transformerRegistry, times(1)).transform(any(), any());
+        assertThat(future).succeedsWithin(5, SECONDS);
+        verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test
-    void testSendContractRejectionMessage() {
+    void testSendContractRejectionMessage(RemoteMessageDispatcherRegistry dispatcher) {
+        when(consumerContractNegotiationManager.declined(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
         var rejection = ContractRejection.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
@@ -212,21 +227,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        assertThatCode(() -> dispatcher.send(null, rejection, () -> null)).doesNotThrowAnyException();
+        var future = dispatcher.send(null, rejection, () -> null);
+
+        assertThat(future).succeedsWithin(5, SECONDS);
     }
 
-    @Override
-    protected Map<String, String> getSystemProperties() {
-        return new HashMap<>() {
-            {
-                put("web.http.port", String.valueOf(getPort()));
-                put("web.http.path", "/api");
-                put("web.http.ids.port", String.valueOf(getIdsPort()));
-                put("web.http.ids.path", "/api/v1/ids");
-                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
-                put("ids.webhook.address", "http://webhook");
-            }
-        };
+    protected String getUrl() {
+        return String.format("http://localhost:%s/api/v1/ids%s", IDS_PORT, MultipartController.PATH);
     }
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {
@@ -251,5 +258,31 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                         ._action_(Action.USE)
                         .build())
                 .build();
+    }
+
+    private BaseConnector getBaseConnector() {
+        return new BaseConnectorBuilder()
+                .build();
+    }
+
+    private ContractNegotiation createContractNegotiation(String id) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(id)
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("address")
+                .protocol("protocol")
+                .build();
+    }
+
+    public static class TestExtension implements ServiceExtension {
+        @Provider
+        public IdentityService identityService() {
+            var identityService = mock(IdentityService.class);
+            var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
+            var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
+            when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
+            when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+            return identityService;
+        }
     }
 }

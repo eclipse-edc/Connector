@@ -17,55 +17,119 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iais.eis.Contract;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
+import de.fraunhofer.iais.eis.ContractAgreementMessage;
+import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
+import de.fraunhofer.iais.eis.ContractRejectionMessage;
+import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
+import de.fraunhofer.iais.eis.ContractRequestMessage;
+import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
+import de.fraunhofer.iais.eis.DescriptionRequestMessage;
+import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
+import de.fraunhofer.iais.eis.DynamicAttributeToken;
+import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
+import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.PermissionBuilder;
+import jakarta.ws.rs.core.MediaType;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
+import okhttp3.Headers;
+import okhttp3.HttpUrl;
+import okhttp3.MultipartBody;
+import okhttp3.MultipartReader;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyType;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.junit.jupiter.api.BeforeAll;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.http.HttpHeaders;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ComponentTest
-public class MultipartControllerIntegrationTest extends AbstractMultipartControllerIntegrationTest {
+@ExtendWith(EdcExtension.class)
+public class MultipartControllerIntegrationTest {
+    private static final int IDS_PORT = getFreePort();
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private static final String CATALOG_ID = UUID.randomUUID().toString();
     private static final String INFOMODEL_VERSION = "4.1.3";
+    private final ObjectMapper objectMapper = getCustomizedObjectMapper();
 
-    private static OkHttpClient httpClient;
+    private final ContractOfferService contractOfferService = mock(ContractOfferService.class);
+    private final ConsumerContractNegotiationManager consumerContractNegotiationManager = mock(ConsumerContractNegotiationManager.class);
+    private final ProviderContractNegotiationManager providerContractNegotiationManager = mock(ProviderContractNegotiationManager.class);
 
-    @BeforeAll
-    static void setUp() {
-        httpClient = testOkHttpClient();
+    @BeforeEach
+    void init(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api",
+                "web.http.ids.port", String.valueOf(IDS_PORT),
+                "web.http.ids.path", "/api/v1/ids",
+                "edc.ids.id", "urn:connector:" + CONNECTOR_ID,
+                "edc.ids.catalog.id", "urn:catalog:" + CATALOG_ID
+        ));
+
+        extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
+        extension.registerServiceMock(ContractOfferService.class, contractOfferService);
+        extension.registerServiceMock(ProviderContractNegotiationManager.class, providerContractNegotiationManager);
+        extension.registerServiceMock(ConsumerContractNegotiationManager.class, consumerContractNegotiationManager);
     }
 
     @Test
-    void testRequestConnectorSelfDescriptionWithoutId() throws Exception {
-        // prepare
-        Request request = createRequest(getDescriptionRequestMessage());
+    void testRequestConnectorSelfDescriptionWithoutId(OkHttpClient httpClient) throws Exception {
+        var request = createRequest(getDescriptionRequestMessage());
 
-        // invoke
-        Response response = httpClient.newCall(request).execute();
+        var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -117,16 +181,13 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testRequestConnectorSelfDescriptionWithId() throws Exception {
-        // prepare
-        Request request = createRequest(getDescriptionRequestMessage(
+    void testRequestConnectorSelfDescriptionWithId(OkHttpClient httpClient) throws Exception {
+        var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CONNECTOR_ID).type(IdsType.CONNECTOR).build()
         ));
 
-        // invoke
-        Response response = httpClient.newCall(request).execute();
+        var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -178,25 +239,28 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testRequestDataCatalogWithAssets() throws Exception {
-        // prepare
-        String assetId = UUID.randomUUID().toString();
-        Asset asset = Asset.Builder.newInstance()
+    void testRequestDataCatalogWithAssets(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+        var assetId = UUID.randomUUID().toString();
+        var asset = Asset.Builder.newInstance()
                 .id(assetId)
                 .property("asset:prop:fileName", "test.txt")
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        addAsset(asset);
+        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        var contractOffer = ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .asset(asset)
+                .policy(createEverythingAllowedPolicy())
+                .build();
+        when(contractOfferService.queryContractOffers(any(), any())).thenReturn(Stream.of(contractOffer));
 
-        Request request = createRequest(getDescriptionRequestMessage(
+        var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build()
         ));
 
-        // invoke
-        Response response = httpClient.newCall(request).execute();
+        var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -251,16 +315,13 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testRequestDataCatalogNoAssets() throws Exception {
-        // prepare
-        Request request = createRequest(getDescriptionRequestMessage(
+    void testRequestDataCatalogNoAssets(OkHttpClient httpClient) throws Exception {
+        var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build()
         ));
 
-        // invoke
-        Response response = httpClient.newCall(request).execute();
+        var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -301,8 +362,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testRequestArtifact() throws Exception {
-        // prepare
+    void testRequestArtifact(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -310,16 +370,14 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        addAsset(asset);
+        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
-        Request request = createRequest(getDescriptionRequestMessage(
+        var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.ARTIFACT).build()
         ));
 
-        // invoke
-        Response response = httpClient.newCall(request).execute();
+        var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -362,8 +420,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testRequestRepresentation() throws Exception {
-        // prepare
+    void testRequestRepresentation(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -371,16 +428,14 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        addAsset(asset);
+        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
-        Request request = createRequest(getDescriptionRequestMessage(
+        var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.REPRESENTATION).build()
         ));
 
-        // invoke
-        Response response = httpClient.newCall(request).execute();
+        var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -427,8 +482,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testRequestResource() throws Exception {
-        // prepare
+    void testRequestResource(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -436,16 +490,20 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        addAsset(asset);
+        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        var contractOffer = ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .asset(asset)
+                .policy(createEverythingAllowedPolicy())
+                .build();
+        when(contractOfferService.queryContractOffers(any(), any())).thenReturn(Stream.of(contractOffer));
 
-        Request request = createRequest(getDescriptionRequestMessage(
+        var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.RESOURCE).build()
         ));
 
-        // invoke
-        Response response = httpClient.newCall(request).execute();
+        var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -497,8 +555,8 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testHandleContractRequest() throws Exception {
-        // prepare
+    void testHandleContractRequest(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+        when(providerContractNegotiationManager.requested(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
         var assetId = "1234";
         var request = createRequestWithPayload(getContractRequestMessage(),
                 new ContractRequestBuilder(URI.create("urn:contractrequest:2345"))
@@ -508,12 +566,11 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                                 ._target_(URI.create("urn:artifact:" + assetId))
                                 .build())
                         .build());
-        addAsset(Asset.Builder.newInstance().id(assetId).build());
+        var asset = Asset.Builder.newInstance().id(assetId).build();
+        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
-        // invoke
         var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -542,8 +599,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testHandleContractAgreement() throws Exception {
-        // prepare
+    void testHandleContractAgreement(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         var assetId = "1234";
         var request = createRequestWithPayload(getContractAgreementMessage(),
                 new ContractAgreementBuilder(URI.create("urn:contractagreement:1"))
@@ -556,12 +612,12 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                         ._contractEnd_(CalendarUtil.gregorianNow())
                         ._contractDate_(CalendarUtil.gregorianNow())
                         .build());
-        addAsset(Asset.Builder.newInstance().id(assetId).build());
+        var asset = Asset.Builder.newInstance().id(assetId).build();
+        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        when(consumerContractNegotiationManager.confirmed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
 
-        // invoke
         var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -591,14 +647,12 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     }
 
     @Test
-    void testHandleContractRejection() throws Exception {
-        // prepare
+    void testHandleContractRejection(OkHttpClient httpClient) throws Exception {
+        when(providerContractNegotiationManager.declined(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
         var request = createRequest(getContractRejectionMessage());
 
-        // invoke
         var response = httpClient.newCall(request).execute();
 
-        // verify
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
@@ -627,18 +681,212 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
     }
 
-    @Override
-    protected Map<String, String> getSystemProperties() {
-        return new HashMap<>() {
-            {
-                put("web.http.port", String.valueOf(getPort()));
-                put("web.http.path", "/api");
-                put("web.http.ids.port", String.valueOf(getIdsPort()));
-                put("web.http.ids.path", "/api/v1/ids");
-                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
-                put("edc.ids.catalog.id", "urn:catalog:" + CATALOG_ID);
+    private Policy createEverythingAllowedPolicy() {
+        var policyBuilder = Policy.Builder.newInstance();
+        var permissionBuilder = Permission.Builder.newInstance();
+        var actionBuilder = Action.Builder.newInstance();
+
+        policyBuilder.type(PolicyType.CONTRACT);
+        actionBuilder.type("USE");
+        permissionBuilder.target("1");
+
+        permissionBuilder.action(actionBuilder.build());
+        policyBuilder.permission(permissionBuilder.build());
+
+        policyBuilder.target("1");
+        return policyBuilder.build();
+    }
+
+    protected String getUrl() {
+        return String.format("http://localhost:%s/api/v1/ids%s", IDS_PORT, MultipartController.PATH);
+    }
+
+    protected DynamicAttributeToken getDynamicAttributeToken() {
+        return new DynamicAttributeTokenBuilder()._tokenValue_("fake").build();
+    }
+
+    protected String toJson(Message message) throws Exception {
+        return objectMapper.writeValueAsString(message);
+    }
+
+    protected String toJson(Contract contract) throws Exception {
+        return objectMapper.writeValueAsString(contract);
+    }
+
+    protected DescriptionRequestMessage getDescriptionRequestMessage() {
+        return getDescriptionRequestMessage(null);
+    }
+
+    protected DescriptionRequestMessage getDescriptionRequestMessage(IdsId idsId) {
+        DescriptionRequestMessageBuilder builder = new DescriptionRequestMessageBuilder()
+                ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"))
+                ._senderAgent_(URI.create("senderAgent"));
+
+        if (idsId != null) {
+            builder._requestedElement_(idsId.toUri());
+        }
+        return builder.build();
+    }
+
+    protected ContractRequestMessage getContractRequestMessage() {
+        var message = new ContractRequestMessageBuilder()
+                ._correlationMessage_(URI.create("urn:message:1"))
+                ._securityToken_(getDynamicAttributeToken())
+                ._senderAgent_(URI.create("senderAgent"))
+                ._issuerConnector_(URI.create("issuerConnector"))
+                .build();
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://someUrl");
+        return message;
+    }
+
+    protected ContractAgreementMessage getContractAgreementMessage() {
+        return new ContractAgreementMessageBuilder()
+                ._correlationMessage_(URI.create("urn:message:1"))
+                ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"))
+                ._senderAgent_(URI.create("senderAgent"))
+                .build();
+    }
+
+    protected ContractRejectionMessage getContractRejectionMessage() {
+        return new ContractRejectionMessageBuilder()
+                ._correlationMessage_(URI.create("urn:message:1"))
+                ._transferContract_(URI.create("urn:contractagreement:1"))
+                ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"))
+                ._senderAgent_(URI.create("senderAgent"))
+                .build();
+    }
+
+    // create the multipart-form-data request having the given message in its "header" multipart payload
+    protected Request createRequest(Message message) throws Exception {
+        Objects.requireNonNull(message);
+
+        MultipartBody multipartBody = new MultipartBody.Builder()
+                .setType(okhttp3.MediaType.get(MediaType.MULTIPART_FORM_DATA))
+                .addPart(createIdsMessageHeaderMultipart(message))
+                .build();
+
+        return new Request.Builder()
+                .url(Objects.requireNonNull(HttpUrl.parse(getUrl())))
+                .addHeader("Content-Type", MediaType.MULTIPART_FORM_DATA)
+                .post(multipartBody)
+                .build();
+    }
+
+    protected Request createRequestWithPayload(Message message, Contract payload) throws Exception {
+        Objects.requireNonNull(message);
+
+        MultipartBody multipartBody = new MultipartBody.Builder()
+                .setType(okhttp3.MediaType.get(MediaType.MULTIPART_FORM_DATA))
+                .addPart(createIdsMessageHeaderMultipart(message))
+                .addPart(createIdsMessagePayloadMultipart(payload))
+                .build();
+
+        return new Request.Builder()
+                .url(Objects.requireNonNull(HttpUrl.parse(getUrl())))
+                .addHeader("Content-Type", MediaType.MULTIPART_FORM_DATA)
+                .post(multipartBody)
+                .build();
+    }
+
+    // extract response to list of NamedMultipartContent container object
+    protected List<NamedMultipartContent> extractNamedMultipartContent(Response response) throws Exception {
+        List<NamedMultipartContent> namedMultipartContentList = new LinkedList<>();
+        try (MultipartReader multipartReader = new MultipartReader(Objects.requireNonNull(response.body()))) {
+            MultipartReader.Part part;
+            while ((part = multipartReader.nextPart()) != null) {
+                HttpHeaders httpHeaders = HttpHeaders.of(
+                        part.headers().toMultimap(),
+                        (a, b) -> a.equalsIgnoreCase("Content-Disposition")
+                );
+
+                String value = httpHeaders.firstValue("Content-Disposition").orElse(null);
+                if (value == null) {
+                    continue;
+                }
+
+                ContentDisposition contentDisposition = new ContentDisposition(value);
+                String multipartName = contentDisposition.getParameters().get("name");
+                if (multipartName == null) {
+                    continue;
+                }
+
+                namedMultipartContentList.add(new NamedMultipartContent(multipartName, part.body().readByteArray()));
             }
-        };
+        }
+
+        return namedMultipartContentList;
+    }
+
+    // create the "header" multipart payload
+    private MultipartBody.Part createIdsMessageHeaderMultipart(Message message) throws Exception {
+        Headers headers = new Headers.Builder()
+                .add("Content-Disposition", "form-data; name=\"header\"")
+                .build();
+
+        RequestBody requestBody = RequestBody.create(toJson(message),
+                okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
+
+        return MultipartBody.Part.create(headers, requestBody);
+    }
+
+    // create the "header" multipart payload
+    private MultipartBody.Part createIdsMessagePayloadMultipart(Contract contract) throws Exception {
+        Headers headers = new Headers.Builder()
+                .add("Content-Disposition", "form-data; name=\"payload\"")
+                .build();
+
+        RequestBody requestBody = RequestBody.create(toJson(contract),
+                okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
+
+        return MultipartBody.Part.create(headers, requestBody);
+    }
+
+    public static class NamedMultipartContent {
+        private final String name;
+        private final byte[] content;
+
+        NamedMultipartContent(String name, byte[] content) {
+            this.name = name;
+            this.content = content;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public byte[] getContent() {
+            return content;
+        }
+    }
+
+    private ObjectMapper getCustomizedObjectMapper() {
+        return IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
+    }
+
+    private ContractNegotiation createContractNegotiation(String id) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(id)
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("address")
+                .protocol("protocol")
+                .build();
+    }
+
+    public static class TestExtension implements ServiceExtension {
+
+        @Provider
+        public IdentityService identityService() {
+            var identityService = mock(IdentityService.class);
+            var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
+            var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
+            when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
+            when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+            return identityService;
+        }
+
     }
 
 }
