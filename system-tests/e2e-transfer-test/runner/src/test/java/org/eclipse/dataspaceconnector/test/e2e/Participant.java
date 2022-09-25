@@ -89,7 +89,9 @@ public class Participant {
                 .body(asset)
                 .when()
                 .post("/api/assets")
-                .then();
+                .then()
+                .statusCode(200)
+                .contentType(JSON).contentType(JSON);
     }
 
     public void createPolicy(PolicyDefinition policyDefinition) {
@@ -100,7 +102,8 @@ public class Participant {
                 .when()
                 .post("/api/policydefinitions")
                 .then()
-                .statusCode(200);
+                .statusCode(200)
+                .contentType(JSON).contentType(JSON);
     }
 
     public void createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId) {
@@ -117,7 +120,9 @@ public class Participant {
                 .body(contractDefinition)
                 .when()
                 .post("/api/contractdefinitions")
-                .then();
+                .then()
+                .statusCode(200)
+                .contentType(JSON).contentType(JSON);
     }
 
     public String negotiateContract(Participant provider, ContractOffer contractOffer) {

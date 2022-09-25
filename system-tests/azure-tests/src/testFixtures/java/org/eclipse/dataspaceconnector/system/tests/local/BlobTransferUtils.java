@@ -33,6 +33,7 @@ import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSim
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.PROVIDER_MANAGEMENT_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_ID;
+import static org.hamcrest.Matchers.is;
 
 public class BlobTransferUtils {
 
@@ -108,7 +109,8 @@ public class BlobTransferUtils {
                 .when()
                 .post(path)
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .contentType(JSON).contentType(JSON);
     }
 
     private static RequestSpecification givenProviderBaseRequest() {
