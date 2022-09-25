@@ -98,12 +98,14 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     void postPolicy(PolicyDefinitionStore policyStore) {
 
         baseRequest()
-                .body(createPolicy("id"))
+                .body(createPolicy("policydefinitionId"))
                 .contentType(JSON)
                 .post("/policydefinitions")
                 .then()
-                .statusCode(204);
-        assertThat(policyStore.findById("id")).isNotNull();
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is("policydefinitionId"));
+        assertThat(policyStore.findById("policydefinitionId")).isNotNull();
     }
 
     @Test

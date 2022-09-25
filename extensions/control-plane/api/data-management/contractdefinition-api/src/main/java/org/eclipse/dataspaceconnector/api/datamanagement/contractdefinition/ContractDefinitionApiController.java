@@ -24,6 +24,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
@@ -98,7 +99,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @POST
     @Override
-    public void createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
+    public ContractDefinitionId createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
         monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
@@ -110,6 +111,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         var result = service.create(contractDefinition);
         if (result.succeeded()) {
             monitor.debug(format("Contract definition created %s", result.getContent().getId()));
+            return new ContractDefinitionId(result.getContent().getId());
         } else {
             throw new ObjectExistsException(ContractDefinition.class, dto.getId());
         }

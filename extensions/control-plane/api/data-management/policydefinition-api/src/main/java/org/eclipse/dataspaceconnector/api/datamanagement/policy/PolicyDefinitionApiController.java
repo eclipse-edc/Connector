@@ -25,6 +25,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionId;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
@@ -99,7 +100,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     @POST
     @Override
-    public void createPolicy(PolicyDefinitionRequestDto requestDto) {
+    public PolicyDefinitionId createPolicy(PolicyDefinitionRequestDto requestDto) {
         var transformResult = transformerRegistry.transform(requestDto, PolicyDefinition.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
@@ -110,6 +111,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         var result = policyDefinitionService.create(definition);
         if (result.succeeded()) {
             monitor.debug(format("Policy definition created %s", definition.getId()));
+            return new PolicyDefinitionId(result.getContent().getId());
         } else {
             throw mapToException(result, PolicyDefinition.class, definition.getId());
         }

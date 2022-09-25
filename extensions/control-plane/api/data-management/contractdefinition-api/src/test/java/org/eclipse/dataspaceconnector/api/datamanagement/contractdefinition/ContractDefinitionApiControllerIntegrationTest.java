@@ -115,7 +115,9 @@ public class ContractDefinitionApiControllerIntegrationTest {
                 .contentType(JSON)
                 .post("/contractdefinitions")
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is("definitionId"));
         assertThat(store.findAll(QuerySpec.max())).isNotEmpty();
     }
 

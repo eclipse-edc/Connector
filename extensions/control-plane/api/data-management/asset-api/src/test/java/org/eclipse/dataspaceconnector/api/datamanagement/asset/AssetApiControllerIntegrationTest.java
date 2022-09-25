@@ -126,7 +126,9 @@ public class AssetApiControllerIntegrationTest {
                 .contentType(JSON)
                 .post("/assets")
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is("assetId"));
         assertThat(assetIndex.findById("assetId")).isNotNull();
     }
 
@@ -141,7 +143,9 @@ public class AssetApiControllerIntegrationTest {
                 .contentType(JSON)
                 .post("/assets")
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is("assetId"));
         assertThat(assetIndex.findById("assetId")).isNotNull();
     }
 
