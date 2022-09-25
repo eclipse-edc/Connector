@@ -57,7 +57,7 @@ public interface PolicyDefinitionApi {
     @Operation(description = "Creates a new policy definition",
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was created successfully. Returns the Policy Definition Id",
-                            content = @Content(schema= @Schema(implementation = PolicyDefinitionId.class))),
+                            content = @Content(schema = @Schema(implementation = PolicyDefinitionId.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",

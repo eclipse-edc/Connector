@@ -21,13 +21,11 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.serv
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -137,7 +135,7 @@ class ContractDefinitionApiControllerTest {
         when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(contractDefinition));
 
-        var contractDefinitionId= controller.createContractDefinition(dto);
+        var contractDefinitionId = controller.createContractDefinition(dto);
 
         assertThat(contractDefinitionId).isNotNull();
         assertThat(contractDefinitionId).isInstanceOf(ContractDefinitionId.class);
@@ -149,14 +147,14 @@ class ContractDefinitionApiControllerTest {
 
     @Test
     void createContractDefinition_returnExpectedId() {
-        var definedContractDefinitionId= UUID.randomUUID().toString();
+        var definedContractDefinitionId = UUID.randomUUID().toString();
         var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
         var contractDefinition = createContractDefinition(definedContractDefinitionId);
 
         when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(contractDefinition));
 
-        var contractDefinitionId= controller.createContractDefinition(dto);
+        var contractDefinitionId = controller.createContractDefinition(dto);
         assertThat(contractDefinitionId).isNotNull();
         assertThat(contractDefinitionId.getId()).isEqualTo(definedContractDefinitionId);
     }

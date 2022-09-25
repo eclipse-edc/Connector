@@ -100,7 +100,11 @@ paths:
               $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "200":
-          description: contract definition was created successfully
+          description: contract definition was created successfully. Returns the Contract Definition Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDefinitionId'
         "400":
           description: Request body was malformed
           content:
@@ -553,7 +557,11 @@ paths:
               $ref: '#/components/schemas/PolicyDefinitionRequestDto'
       responses:
         "200":
-          description: policy definition was created successfully
+          description: policy definition was created successfully. Returns the Policy Definition Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDefinitionId'
         "400":
           description: Request body was malformed
           content:
@@ -869,7 +877,11 @@ paths:
               $ref: '#/components/schemas/AssetEntryDto'
       responses:
         "200":
-          description: Asset was created successfully
+          description: Asset was created successfully. Returns the asset Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetId'
         "400":
           description: Request body was malformed
           content:
@@ -1570,6 +1582,12 @@ components:
           $ref: '#/components/schemas/AssetRequestDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
+    AssetId:
+      type: object
+      properties:
+        id:
+          type:
+            string
     AssetRequestDto:
       required:
       - properties
@@ -1639,6 +1657,12 @@ components:
           $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
+    ContractDefinitionId:
+      type: object
+      properties:
+        id:
+          type:
+            string
     ContractDefinitionRequestDto:
       required:
       - accessPolicyId
@@ -1975,6 +1999,11 @@ components:
           items:
             $ref: '#/components/schemas/Prohibition'
         target:
+          type: string
+    PolicyDefinitionId:
+      type: object
+      properties:
+        id:
           type: string
     PolicyDefinitionRequestDto:
       required:

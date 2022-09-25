@@ -100,7 +100,7 @@ public class Participant {
                 .when()
                 .post("/api/policydefinitions")
                 .then()
-                .statusCode(204);
+                .statusCode(200);
     }
 
     public void createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId) {

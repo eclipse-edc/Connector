@@ -134,7 +134,7 @@ class PolicyDefinitionApiControllerTest {
         when(transformerRegistry.transform(isA(PolicyDefinitionRequestDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(policyDefinition));
 
-        var policyDefinitionId= controller.createPolicy(dto);
+        var policyDefinitionId = controller.createPolicy(dto);
 
         assertThat(policyDefinitionId).isNotNull();
         assertThat(policyDefinitionId).isInstanceOf(PolicyDefinitionId.class);
@@ -145,7 +145,7 @@ class PolicyDefinitionApiControllerTest {
 
     @Test
     void createPolicy_returnExpectedId() {
-        var policyId= UUID.randomUUID().toString();
+        var policyId = UUID.randomUUID().toString();
         var dto = PolicyDefinitionRequestDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
         var policyDefinition = TestFunctions.createPolicy(policyId);
@@ -153,7 +153,7 @@ class PolicyDefinitionApiControllerTest {
         when(transformerRegistry.transform(isA(PolicyDefinitionRequestDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(policyDefinition));
 
-        var policyDefinitionId= controller.createPolicy(dto);
+        var policyDefinitionId = controller.createPolicy(dto);
         assertThat(policyDefinitionId).isNotNull();
         assertThat(policyDefinitionId.getId()).isEqualTo(policyId);
     }

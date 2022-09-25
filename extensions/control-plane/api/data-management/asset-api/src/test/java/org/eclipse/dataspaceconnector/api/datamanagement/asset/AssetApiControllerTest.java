@@ -16,7 +16,12 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.*;
+
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetId;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
@@ -68,7 +73,7 @@ public class AssetApiControllerTest {
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
 
-        var assetId= controller.createAsset(assetEntry);
+        var assetId = controller.createAsset(assetEntry);
 
         assertThat(assetId).isNotNull();
         assertThat(assetId).isInstanceOf(AssetId.class);
@@ -81,7 +86,7 @@ public class AssetApiControllerTest {
 
     @Test
     void createAsset_returnExpectedId() {
-        var assetId= UUID.randomUUID().toString();
+        var assetId = UUID.randomUUID().toString();
         var assetEntry = AssetEntryDto.Builder.newInstance()
                 .asset(AssetRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
@@ -92,7 +97,7 @@ public class AssetApiControllerTest {
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
 
-        var returnedAssetId= controller.createAsset(assetEntry);
+        var returnedAssetId = controller.createAsset(assetEntry);
         assertThat(returnedAssetId).isNotNull();
         assertThat(returnedAssetId.getId()).isEqualTo(assetId);
     }

@@ -37,7 +37,7 @@ public interface AssetApi {
     @Operation(description = "Creates a new asset together with a data address",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id",
-                            content = @Content(schema= @Schema(implementation = AssetId.class))),
+                            content = @Content(schema = @Schema(implementation = AssetId.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",

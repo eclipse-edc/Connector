@@ -19,6 +19,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy.model;
  */
 public class PolicyDefinitionId {
     private final String id;
+
     public PolicyDefinitionId(String id) {
         this.id = id;
     }
