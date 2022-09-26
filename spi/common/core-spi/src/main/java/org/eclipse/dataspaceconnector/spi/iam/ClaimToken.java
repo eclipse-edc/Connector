@@ -14,8 +14,15 @@
 
 package org.eclipse.dataspaceconnector.spi.iam;
 
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static java.time.ZoneOffset.UTC;
 
 /**
  * Models a token containing claims such as a JWT.
@@ -31,6 +38,54 @@ public class ClaimToken {
      */
     public Map<String, Object> getClaims() {
         return claims;
+    }
+
+    /**
+     * Get the claim value by name
+     *
+     * @param claimName the name of the claim
+     * @return the claim value, null if it does not exist
+     */
+    public Object getClaim(String claimName) {
+        return claims.get(claimName);
+    }
+
+    /**
+     * Get the date claim value by name cast to {@link String}
+     *
+     * @param claimName the name of the claim
+     * @return the claim value, null if it does not exist
+     */
+    public String getStringClaim(String claimName) {
+        return Optional.of(claims).map(it -> it.get(claimName)).map(String.class::cast).orElse(null);
+    }
+
+    /**
+     * Get the date claim value by name cast to {@link List}
+     *
+     * @param claimName the name of the claim
+     * @return the claim value, null if it does not exist
+     */
+    public List<?> getListClaim(String claimName) {
+        return Optional.of(claims).map(it -> it.get(claimName)).map(List.class::cast).orElse(Collections.emptyList());
+    }
+
+    /**
+     * Get the date claim value by name converted to {@link Instant}
+     *
+     * @param claimName the name of the claim
+     * @return the claim value, null if it does not exist
+     */
+    public Instant getInstantClaim(String claimName) {
+        return Optional.of(claims)
+                .map(it -> it.get(claimName))
+                .map(Date.class::cast)
+                .map(this::convertToUtcTime)
+                .orElse(null);
+    }
+
+    private Instant convertToUtcTime(Date date) {
+        return date.toInstant().atOffset(UTC).toInstant();
     }
 
     public static class Builder {

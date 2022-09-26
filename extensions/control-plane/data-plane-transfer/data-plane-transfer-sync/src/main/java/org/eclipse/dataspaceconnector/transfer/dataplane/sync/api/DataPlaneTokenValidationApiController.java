@@ -58,7 +58,7 @@ public class DataPlaneTokenValidationApiController implements DataPlaneTokenVali
             throw new NotAuthorizedException("Token validation failed: " + join(", ", result.getFailureMessages()));
         }
 
-        var obj = result.getContent().getClaims().get(DATA_ADDRESS);
+        var obj = result.getContent().getClaim(DATA_ADDRESS);
         if (!(obj instanceof String)) {
             throw new IllegalArgumentException(format("Missing claim `%s` in token", DATA_ADDRESS));
         }

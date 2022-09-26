@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.core.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.dataspaceconnector.core.jwt.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRulesRegistryImpl;
+import org.eclipse.dataspaceconnector.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -78,6 +79,7 @@ class Oauth2ServiceImplTest {
     private static final String PRIVATE_KEY_ALIAS = "pk-test";
     private static final String PUBLIC_CERTIFICATE_ALIAS = "cert-test";
     private static final String PROVIDER_AUDIENCE = "audience-test";
+    private static final String ENDPOINT_AUDIENCE = "endpoint-audience-test";
     private static final int OAUTH2_SERVER_PORT = getFreePort();
     private static final String OAUTH2_SERVER_URL = "http://localhost:" + OAUTH2_SERVER_PORT;
 
@@ -114,6 +116,7 @@ class Oauth2ServiceImplTest {
                 .privateKeyAlias(PRIVATE_KEY_ALIAS)
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
+                .endpointAudience(ENDPOINT_AUDIENCE)
                 .privateKeyResolver(privateKeyResolverMock)
                 .certificateResolver(certificateResolverMock)
                 .identityProviderKeyResolver(publicKeyResolverMock)
@@ -173,7 +176,7 @@ class Oauth2ServiceImplTest {
     void verifyNoAudienceToken() {
         var jwt = createJwt(null, Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -183,7 +186,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAudienceToken() {
         var jwt = createJwt("different.audience", Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -193,7 +196,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAttemptUseNotBeforeToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.plusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -203,7 +206,7 @@ class Oauth2ServiceImplTest {
     void verifyExpiredToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), Date.from(now.minusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -211,9 +214,9 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyValidJwt() {
-        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
+        var jwt = createJwt(ENDPOINT_AUDIENCE, Date.from(now.minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
 
-        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims()).hasSize(3).containsKeys(AUDIENCE, NOT_BEFORE, EXPIRATION_TIME);

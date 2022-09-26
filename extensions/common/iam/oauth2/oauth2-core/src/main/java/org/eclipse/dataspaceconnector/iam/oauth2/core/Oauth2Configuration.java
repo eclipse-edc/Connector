@@ -24,30 +24,19 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
  */
 public class Oauth2Configuration {
 
-    private final String tokenUrl;
-    private final String clientId;
-    private final PrivateKeyResolver privateKeyResolver;
-    private final CertificateResolver certificateResolver;
-    private final PublicKeyResolver identityProviderKeyResolver;
-    private final String privateKeyAlias;
-    private final String publicCertificateAlias;
-    private final String providerAudience;
-    private final int notBeforeValidationLeeway;
+    private String tokenUrl;
+    private String clientId;
+    private PrivateKeyResolver privateKeyResolver;
+    private CertificateResolver certificateResolver;
+    private PublicKeyResolver identityProviderKeyResolver;
+    private String privateKeyAlias;
+    private String publicCertificateAlias;
+    private String providerAudience;
+    private int notBeforeValidationLeeway;
+    private String endpointAudience;
 
-    public Oauth2Configuration(String tokenUrl, String clientId, PrivateKeyResolver privateKeyResolver,
-                               CertificateResolver certificateResolver, PublicKeyResolver identityProviderKeyResolver,
-                               String privateKeyAlias, String publicCertificateAlias, String providerAudience,
-                               int notBeforeValidationLeeway) {
+    private Oauth2Configuration() {
 
-        this.tokenUrl = tokenUrl;
-        this.clientId = clientId;
-        this.privateKeyResolver = privateKeyResolver;
-        this.certificateResolver = certificateResolver;
-        this.identityProviderKeyResolver = identityProviderKeyResolver;
-        this.privateKeyAlias = privateKeyAlias;
-        this.publicCertificateAlias = publicCertificateAlias;
-        this.providerAudience = providerAudience;
-        this.notBeforeValidationLeeway = notBeforeValidationLeeway;
     }
 
     public String getTokenUrl() {
@@ -86,16 +75,12 @@ public class Oauth2Configuration {
         return notBeforeValidationLeeway;
     }
 
+    public String getEndpointAudience() {
+        return endpointAudience;
+    }
+
     public static class Builder {
-        private String tokenUrl;
-        private String clientId;
-        private PrivateKeyResolver privateKeyResolver;
-        private CertificateResolver certificateResolver;
-        private PublicKeyResolver identityProviderKeyResolver;
-        private String privateKeyAlias;
-        private String publicCertificateAlias;
-        private String providerAudience;
-        private int notBeforeValidationLeeway;
+        private final Oauth2Configuration configuration = new Oauth2Configuration();
 
         private Builder() {
         }
@@ -105,17 +90,17 @@ public class Oauth2Configuration {
         }
 
         public Builder tokenUrl(String url) {
-            this.tokenUrl = url;
+            configuration.tokenUrl = url;
             return this;
         }
 
         public Builder clientId(String clientId) {
-            this.clientId = clientId;
+            configuration.clientId = clientId;
             return this;
         }
 
         public Builder privateKeyResolver(PrivateKeyResolver privateKeyResolver) {
-            this.privateKeyResolver = privateKeyResolver;
+            configuration.privateKeyResolver = privateKeyResolver;
             return this;
         }
 
@@ -123,7 +108,7 @@ public class Oauth2Configuration {
          * Resolves this runtime's certificate containing its public key.
          */
         public Builder certificateResolver(CertificateResolver certificateResolver) {
-            this.certificateResolver = certificateResolver;
+            configuration.certificateResolver = certificateResolver;
             return this;
         }
 
@@ -131,34 +116,37 @@ public class Oauth2Configuration {
          * Resolves the certificate containing the identity provider's public key.
          */
         public Builder identityProviderKeyResolver(PublicKeyResolver identityProviderKeyResolver) {
-            this.identityProviderKeyResolver = identityProviderKeyResolver;
+            configuration.identityProviderKeyResolver = identityProviderKeyResolver;
             return this;
         }
 
         public Builder privateKeyAlias(String privateKeyAlias) {
-            this.privateKeyAlias = privateKeyAlias;
+            configuration.privateKeyAlias = privateKeyAlias;
             return this;
         }
 
         public Builder publicCertificateAlias(String publicCertificateAlias) {
-            this.publicCertificateAlias = publicCertificateAlias;
+            configuration.publicCertificateAlias = publicCertificateAlias;
             return this;
         }
 
         public Builder providerAudience(String providerAudience) {
-            this.providerAudience = providerAudience;
+            configuration.providerAudience = providerAudience;
             return this;
         }
 
         public Builder notBeforeValidationLeeway(int notBeforeValidationLeeway) {
-            this.notBeforeValidationLeeway = notBeforeValidationLeeway;
+            configuration.notBeforeValidationLeeway = notBeforeValidationLeeway;
+            return this;
+        }
+
+        public Builder endpointAudience(String endpointAudience) {
+            configuration.endpointAudience = endpointAudience;
             return this;
         }
 
         public Oauth2Configuration build() {
-            return new Oauth2Configuration(tokenUrl, clientId, privateKeyResolver, certificateResolver,
-                    identityProviderKeyResolver, privateKeyAlias, publicCertificateAlias, providerAudience,
-                    notBeforeValidationLeeway);
+            return configuration;
         }
     }
 }

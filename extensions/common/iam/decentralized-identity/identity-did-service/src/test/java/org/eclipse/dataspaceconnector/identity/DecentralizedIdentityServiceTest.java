@@ -60,7 +60,7 @@ abstract class DecentralizedIdentityServiceTest {
 
         Result<ClaimToken> verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
         assertTrue(verificationResult.succeeded());
-        assertEquals("eu", verificationResult.getContent().getClaims().get("region"));
+        assertEquals("eu", verificationResult.getContent().getStringClaim("region"));
     }
 
     @Test
