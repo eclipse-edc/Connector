@@ -27,21 +27,18 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.M
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartEndpointDataReferenceRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.util.Objects;
+
+import static org.eclipse.dataspaceconnector.ids.core.util.ConnectorIdUtil.resolveConnectorId;
 
 public class IdsMultipartDispatcherServiceExtension implements ServiceExtension {
 
@@ -96,26 +93,6 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         dispatcher.register(new MultipartEndpointDataReferenceRequestSender(senderContext, typeManager));
 
         dispatcherRegistry.register(dispatcher);
-    }
-
-    private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
-        Objects.requireNonNull(context);
-
-        var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
-
-        // Hint: use stringified uri to keep uri path and query
-        var result = IdsId.from(value);
-        if (result.succeeded()) {
-            var idsId = result.getContent();
-            if (idsId.getType() == IdsType.CONNECTOR) {
-                return idsId.getValue();
-            }
-        } else {
-            var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
-            throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
-        }
-
-        return value;
     }
 
 }
