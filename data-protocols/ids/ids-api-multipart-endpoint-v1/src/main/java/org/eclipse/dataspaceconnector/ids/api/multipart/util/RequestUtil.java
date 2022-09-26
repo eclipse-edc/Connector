@@ -54,7 +54,7 @@ public class RequestUtil {
     }
 
     private static List<Criterion> mapToListOfCriterions(List<Map> maps) {
-        return maps.stream().map(map -> new Criterion(map.get("operandLeft"), (String) map.get("operator"), map.get("operandRight"))).collect(
-            Collectors.toList());
+        return maps.stream().map(map -> new Criterion(map.get("operandLeft"), (String) map.get("operator"), map.get("operandRight")))
+            .collect(Collectors.toList());
     }
 }
