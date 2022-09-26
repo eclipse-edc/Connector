@@ -29,8 +29,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataRefe
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
+import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -39,7 +39,6 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -57,10 +56,6 @@ import static org.eclipse.dataspaceconnector.ids.core.util.ConnectorIdUtil.resol
  */
 public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
-    @EdcSetting
-    public static final String EDC_IDS_ID = "edc.ids.id";
-    public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
-
     @Inject
     private Monitor monitor;
 
@@ -68,7 +63,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private WebService webService;
 
     @Inject
-    private IdentityService identityService;
+    private DynamicAttributeTokenService dynamicAttributeTokenService;
 
     @Inject
     private CatalogService dataCatalogService;
@@ -137,7 +132,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
         // create & register controller
-        var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers, idsApiConfiguration.getIdsWebhookAddress());
+        var multipartController = new MultipartController(monitor, connectorId, objectMapper, dynamicAttributeTokenService, handlers, idsApiConfiguration.getIdsWebhookAddress());
         webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }
 

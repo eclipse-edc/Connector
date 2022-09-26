@@ -17,9 +17,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.TokenFormat;
 import jakarta.ws.rs.core.MediaType;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -32,9 +30,8 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
+import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -53,19 +50,18 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
  * Sends IDS multipart messages.
  */
 public class IdsMultipartSender {
-    private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
 
     private Monitor monitor;
     private OkHttpClient httpClient;
-    private IdentityService identityService;
+    private DynamicAttributeTokenService tokenService;
     private ObjectMapper objectMapper;
 
     public IdsMultipartSender(Monitor monitor, OkHttpClient httpClient,
-                              IdentityService identityService,
+                              DynamicAttributeTokenService tokenService,
                               ObjectMapper objectMapper) {
         this.monitor = monitor;
         this.httpClient = httpClient;
-        this.identityService = identityService;
+        this.tokenService = tokenService;
         this.objectMapper = objectMapper;
     }
 
@@ -80,22 +76,14 @@ public class IdsMultipartSender {
         var remoteConnectorAddress = request.getConnectorAddress();
 
         // Get Dynamic Attribute Token
-        var tokenParameters = TokenParameters.Builder.newInstance()
-                .scope(TOKEN_SCOPE)
-                .audience(remoteConnectorAddress)
-                .build();
-        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
+        var tokenResult = tokenService.obtainDynamicAttributeToken(remoteConnectorAddress);
         if (tokenResult.failed()) {
             String message = "Failed to obtain token: " + String.join(",", tokenResult.getFailureMessages());
             monitor.severe(message);
             return failedFuture(new EdcException(message));
         }
-
-        var token = new DynamicAttributeTokenBuilder()
-                ._tokenFormat_(TokenFormat.JWT)
-                ._tokenValue_(tokenResult.getContent().getToken())
-                .build();
-
+    
+        var token = tokenResult.getContent();
 
         // Get recipient address
         var requestUrl = HttpUrl.parse(remoteConnectorAddress);
