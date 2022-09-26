@@ -253,7 +253,7 @@ public class MultipartControllerIntegrationTest {
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
                 .build();
-        when(contractOfferService.queryContractOffers(any(), any())).thenReturn(Stream.of(contractOffer));
+        when(contractOfferService.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build()
@@ -496,7 +496,7 @@ public class MultipartControllerIntegrationTest {
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
                 .build();
-        when(contractOfferService.queryContractOffers(any(), any())).thenReturn(Stream.of(contractOffer));
+        when(contractOfferService.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.RESOURCE).build()

@@ -74,7 +74,7 @@ class ContractOfferServiceImplTest {
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
-        var query = ContractOfferQuery.builder().range(DEFAULT_RANGE).claimToken(ClaimToken.Builder.newInstance().build()).build();
+        var query = ContractOfferQuery.builder().definitionsRange(DEFAULT_RANGE).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
         verify(agentService).createFor(isA(ClaimToken.class));
