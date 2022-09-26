@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
-import java.util.Date;
 import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
@@ -39,13 +38,13 @@ public class ExpirationDateValidationRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        var expiration = (Date) toVerify.getClaims().get(EXPIRATION_TIME);
+        var expiration = toVerify.getInstantClaim(EXPIRATION_TIME);
         if (expiration == null) {
             return Result.failure("Missing expiration time in token");
         }
 
         // check contract expiration date
-        if (clock.instant().isAfter(expiration.toInstant())) {
+        if (clock.instant().isAfter(expiration)) {
             return Result.failure("Token has expired on " + expiration);
         }
 

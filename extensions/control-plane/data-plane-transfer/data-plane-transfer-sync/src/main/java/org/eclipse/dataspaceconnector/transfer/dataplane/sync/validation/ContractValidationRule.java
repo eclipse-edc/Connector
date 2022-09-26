@@ -43,7 +43,7 @@ public class ContractValidationRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        String contractId = (String) toVerify.getClaims().get(CONTRACT_ID);
+        var contractId = toVerify.getStringClaim(CONTRACT_ID);
 
         if (contractId == null) {
             return Result.failure(String.format("Missing contract id claim `%s`", CONTRACT_ID));

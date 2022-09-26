@@ -22,15 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.Map;
 
-import static java.time.ZoneOffset.UTC;
 import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.ISSUED_AT;
 
+/**
+ * Token validation rule that checks if the token is not expired and if the "issued at" claim is valued correctly
+ */
 public class Oauth2ExpirationIssuedAtValidationRule implements TokenValidationRule {
 
     private final Clock clock;
@@ -42,19 +41,18 @@ public class Oauth2ExpirationIssuedAtValidationRule implements TokenValidationRu
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         var now = clock.instant();
-        var claims = toVerify.getClaims();
-        var expires = (Date) claims.get(EXPIRATION_TIME);
+        var expires = toVerify.getInstantClaim(EXPIRATION_TIME);
         if (expires == null) {
             return Result.failure("Required expiration time (exp) claim is missing in token");
-        } else if (now.isAfter(convertToUtcTime(expires))) {
+        } else if (now.isAfter(expires)) {
             return Result.failure("Token has expired (exp)");
         }
 
-        var issuedAt = (Date) claims.get(ISSUED_AT);
+        var issuedAt = toVerify.getInstantClaim(ISSUED_AT);
         if (issuedAt != null) {
-            if (issuedAt.toInstant().isAfter(expires.toInstant())) {
+            if (issuedAt.isAfter(expires)) {
                 return Result.failure("Issued at (iat) claim is after expiration time (exp) claim in token");
-            } else if (now.isBefore(convertToUtcTime(issuedAt))) {
+            } else if (now.isBefore(issuedAt)) {
                 return Result.failure("Current date/time before issued at (iat) claim in token");
             }
         }
@@ -62,7 +60,4 @@ public class Oauth2ExpirationIssuedAtValidationRule implements TokenValidationRu
         return Result.success();
     }
 
-    private static Instant convertToUtcTime(Date date) {
-        return ZonedDateTime.ofInstant(date.toInstant(), UTC).toInstant();
-    }
 }

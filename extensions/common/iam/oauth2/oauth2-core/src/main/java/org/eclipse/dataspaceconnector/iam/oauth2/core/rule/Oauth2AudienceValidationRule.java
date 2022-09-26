@@ -21,13 +21,13 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.eclipse.dataspaceconnector.spi.jwt.JwtRegisteredClaimNames.AUDIENCE;
 
+/**
+ * Token validation rule that checks if the "audience" of token contains the expected audience
+ */
 public class Oauth2AudienceValidationRule implements TokenValidationRule {
 
     private final String endpointAudience;
@@ -38,9 +38,7 @@ public class Oauth2AudienceValidationRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        var claims = toVerify.getClaims();
-
-        var audiences = Optional.of(claims).map(it -> it.get(AUDIENCE)).map(List.class::cast).orElse(Collections.emptyList());
+        var audiences = toVerify.getListClaim(AUDIENCE);
         if (audiences.isEmpty()) {
             return Result.failure("Required audience (aud) claim is missing in token");
         } else if (!audiences.contains(endpointAudience)) {

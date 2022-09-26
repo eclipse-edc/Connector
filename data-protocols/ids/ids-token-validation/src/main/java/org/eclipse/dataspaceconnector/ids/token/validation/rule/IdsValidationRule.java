@@ -53,10 +53,8 @@ public class IdsValidationRule implements TokenValidationRule {
     }
 
     private Result<Void> verifyTokenIds(ClaimToken jwt, String issuerConnector, @Nullable String securityProfile) {
-        var claims = jwt.getClaims();
-
         //referringConnector (DAT, optional) vs issuerConnector (Message-Header, mandatory)
-        var referringConnector = claims.get("referringConnector");
+        var referringConnector = jwt.getClaim("referringConnector");
 
         if (validateReferring && !issuerConnector.equals(referringConnector)) {
             return Result.failure("refferingConnector in token does not match issuerConnector in message");
@@ -64,7 +62,7 @@ public class IdsValidationRule implements TokenValidationRule {
 
         //securityProfile (DAT, mandatory) vs securityProfile (Message-Payload, optional)
         try {
-            var tokenSecurityProfile = claims.get("securityProfile");
+            var tokenSecurityProfile = jwt.getClaim("securityProfile");
 
             if (securityProfile != null && !securityProfile.equals(tokenSecurityProfile)) {
                 return Result.failure("securityProfile in token does not match securityProfile in payload");
