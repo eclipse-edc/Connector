@@ -65,10 +65,6 @@ public class CosmosAssetIndex implements AssetIndex {
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
 
-        if (expression.equals(AssetSelectorExpression.SELECT_ALL)) {
-            return queryAssets(QuerySpec.none());
-        }
-
         SqlQuerySpec query = queryBuilder.from(expression.getCriteria());
 
         var response = with(retryPolicy).get(() -> assetDb.queryItems(query));

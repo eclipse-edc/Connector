@@ -55,11 +55,6 @@ public class InMemoryAssetIndex implements AssetIndex {
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
 
-        // select everything ONLY if the special constant is used
-        if (expression == AssetSelectorExpression.SELECT_ALL) {
-            return queryAssets(QuerySpec.none());
-        }
-
         return queryAssets(QuerySpec.Builder.newInstance().filter(expression.getCriteria()).build());
     }
 
