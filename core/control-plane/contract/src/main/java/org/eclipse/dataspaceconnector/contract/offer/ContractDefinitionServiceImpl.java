@@ -19,7 +19,6 @@ package org.eclipse.dataspaceconnector.contract.offer;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyEngine;
@@ -55,10 +54,8 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
     @NotNull
     @Override
-    public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent, Range range) {
-        return definitionStore.findAll(QuerySpec.Builder.newInstance()
-                        .range(range)
-                        .build())
+    public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
+        return definitionStore.findAll(QuerySpec.max())
                 .filter(definition -> evaluateAccessPolicy(definition, agent));
     }
 
