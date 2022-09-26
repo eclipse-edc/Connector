@@ -115,8 +115,8 @@ class DynamicAttributeTokenServiceImplTest {
     }
     
     private ArgumentMatcher<TokenRepresentation> getTokenRepresentationMatcher(DynamicAttributeToken token, URI issuer) {
-        return tokenRepresentation -> tokenRepresentation.getToken().equals(token.getTokenValue())
-                && tokenRepresentation.getAdditional().get("issuerConnector").equals(issuer);
+        return tokenRepresentation -> tokenRepresentation.getToken().equals(token.getTokenValue()) &&
+                tokenRepresentation.getAdditional().get("issuerConnector").equals(issuer);
     }
     
 }

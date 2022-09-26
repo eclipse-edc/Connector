@@ -46,9 +46,8 @@ import java.util.List;
 /**
  * Implements the IDS Controller REST API.
  */
-@Provides({ CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
-        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class,
-        DynamicAttributeTokenService.class})
+@Provides({ IdsDescriptorService.class, CatalogService.class, ConnectorService.class,
+        IdsTransformerRegistry.class, DynamicAttributeTokenService.class})
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
