@@ -22,10 +22,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -49,20 +47,9 @@ class FederatedCatalogCacheEndToEndTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String PORT = String.valueOf(getFreePort());
 
-    @BeforeAll
-    static void setProps() {
-        //avoid conflicts with other REST API tests
-        System.setProperty("web.http.port", PORT);
-    }
-
-    @AfterAll
-    static void unsetProps() {
-        System.clearProperty("web.http.port");
-    }
-
     @BeforeEach
     void setup(EdcExtension extension) {
-        extension.registerSystemExtension(ServiceExtension.class, new FccTestExtension());
+        extension.setConfiguration(Map.of("web.http.port", PORT));
     }
 
     @Test

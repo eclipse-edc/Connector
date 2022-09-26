@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.boot.system.injection.lifecycle;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -25,9 +26,9 @@ import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
  * {@link ServiceExtension} implementors should not be constructed by just invoking their constructors, instead they need to go through
  * a lifecycle, which is what this class aims at doing. There are three major phases for initialization:
  * <ol>
- *     <li>inject dependencies: all fields annotated with {@link org.eclipse.dataspaceconnector.spi.system.Inject} are set</li>
+ *     <li>inject dependencies: all fields annotated with {@link Inject} are set</li>
  *     <li>initialize: invokes the {@link ServiceExtension#initialize(ServiceExtensionContext)} method</li>
- *     <li>provide: invokes all methods annotated with {@link org.eclipse.dataspaceconnector.spi.system.Provider} to register more services into the context</li>
+ *     <li>provide: invokes all methods annotated with {@link Provider} to register more services into the context</li>
  * </ol>
  * <p>
  * The sequence of these phases is actually important.
@@ -62,7 +63,7 @@ public class ExtensionLifecycleManager {
     }
 
     /**
-     * Scans the {@linkplain ServiceExtension} for methods annotated with {@linkplain org.eclipse.dataspaceconnector.spi.system.Provider}
+     * Scans the {@linkplain ServiceExtension} for methods annotated with {@linkplain Provider}
      * with the {@link Provider#isDefault()} flag set to {@code false}, invokes them and registers the bean into the {@link ServiceExtensionContext} if necessary.
      */
     public static PreparePhase provide(RegistrationPhase phase) {
