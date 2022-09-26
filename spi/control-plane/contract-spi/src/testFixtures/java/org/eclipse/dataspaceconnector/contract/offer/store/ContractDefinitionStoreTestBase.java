@@ -356,16 +356,6 @@ public abstract class ContractDefinitionStoreTestBase {
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
-    void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
-        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-
-        // must actually collect, otherwise the stream is not materialized
-        assertThat(getContractDefinitionStore().findAll(query).collect(Collectors.toList())).isEmpty();
-    }
-
-    @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
     void find_queryBySelectorExpression_left() {
         var definitionsExpected = createContractDefinitions(20);
@@ -490,6 +480,16 @@ public abstract class ContractDefinitionStoreTestBase {
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).isEmpty();
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
+    void findAll_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        // must actually collect, otherwise the stream is not materialized
+        assertThat(getContractDefinitionStore().findAll(query).collect(Collectors.toList())).isEmpty();
     }
 
     protected abstract ContractDefinitionStore getContractDefinitionStore();

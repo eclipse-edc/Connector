@@ -19,5 +19,13 @@ public class TestMapping extends TranslationMapping {
         add("field1", "edc_field_1");
         add("description", "edc_description");
         add("fooBar", "edc_foo_bar");
+        add("complex", new ComplexMapping());
+
+    }
+
+    public static class ComplexMapping extends TranslationMapping {
+        public ComplexMapping() {
+            add("field2", "edc_field_2");
+        }
     }
 }
