@@ -30,10 +30,8 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
-import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -42,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -58,26 +55,25 @@ public class MultipartController {
     public static final String PATH = "/data";
     private static final String HEADER = "header";
     private static final String PAYLOAD = "payload";
-    private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
 
     private final Monitor monitor;
     private final String connectorId;
     private final List<Handler> multipartHandlers;
     private final ObjectMapper objectMapper;
-    private final IdentityService identityService;
+    private final DynamicAttributeTokenService tokenService;
     private final String idsWebhookAddress;
 
     public MultipartController(@NotNull Monitor monitor,
                                @NotNull String connectorId,
                                @NotNull ObjectMapper objectMapper,
-                               @NotNull IdentityService identityService,
+                               @NotNull DynamicAttributeTokenService tokenService,
                                @NotNull List<Handler> multipartHandlers,
                                @NotNull String idsWebhookAddress) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.objectMapper = objectMapper;
         this.multipartHandlers = multipartHandlers;
-        this.identityService = identityService;
+        this.tokenService = tokenService;
         this.idsWebhookAddress = idsWebhookAddress;
     }
     
@@ -120,17 +116,9 @@ public class MultipartController {
             return buildMultipart(notAuthenticated(header, connectorId));
         }
     
-        // Prepare DAT validation: IDS token validation requires issuerConnector
-        var additional = new HashMap<String, Object>();
-        additional.put("issuerConnector", header.getIssuerConnector());
-
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
-                .token(dynamicAttributeToken.getTokenValue())
-                .additional(additional)
-                .build();
-    
         // Validate DAT
-        var verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
+        var verificationResult = tokenService
+                .verifyDynamicAttributeToken(dynamicAttributeToken, header.getIssuerConnector(), idsWebhookAddress);
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
             return buildMultipart(notAuthenticated(header, connectorId));
@@ -202,27 +190,22 @@ public class MultipartController {
     }
     
     /**
-     * Retrieves an identity token for the given message.
+     * Retrieves an identity token for the given message. Returns a token with value "invalid" if
+     * obtaining an identity token fails.
      *
      * @param header the message.
+     * @return the token.
      */
     private DynamicAttributeToken getToken(Message header) {
-        var tokenBuilder = new DynamicAttributeTokenBuilder()
-                ._tokenFormat_(TokenFormat.JWT);
-        
-        var tokenParameters = TokenParameters.Builder.newInstance()
-                .scope(TOKEN_SCOPE)
-                .audience(header.getIssuerConnector().toString())
-                .build();
-        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
-        
+        var tokenResult = tokenService.obtainDynamicAttributeToken(header.getIssuerConnector().toString());
         if (tokenResult.succeeded()) {
-            tokenBuilder._tokenValue_(tokenResult.getContent().getToken());
-        } else {
-            tokenBuilder._tokenValue_("invalid");
+            return tokenResult.getContent();
         }
-        
-        return tokenBuilder.build();
+    
+        return new DynamicAttributeTokenBuilder()
+                ._tokenFormat_(TokenFormat.JWT)
+                ._tokenValue_("invalid")
+                .build();
     }
 
     private byte[] toJson(Object object) {
