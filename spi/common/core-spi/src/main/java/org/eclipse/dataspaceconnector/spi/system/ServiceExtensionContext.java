@@ -27,6 +27,14 @@ import java.time.Clock;
 public interface ServiceExtensionContext extends SettingResolver {
 
     /**
+     * Freeze the context. It should mark the ServiceExtensionContext as read-only, preventing the registration
+     * of new services after the initialization phase
+     */
+    default void freeze() {
+
+    }
+
+    /**
      * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random
      * name is chosen.
      */
