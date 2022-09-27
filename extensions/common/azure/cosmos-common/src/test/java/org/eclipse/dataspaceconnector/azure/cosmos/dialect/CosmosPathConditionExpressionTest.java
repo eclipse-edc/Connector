@@ -21,58 +21,58 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CosmosConditionExpressionTest {
+class CosmosPathConditionExpressionTest {
 
 
     private final String objectPrefix = "test";
 
     @Test
     void isValidExpression() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "in", List.of("bar")), objectPrefix);
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "in", List.of("bar")), objectPrefix);
         assertThat(expr.isValidExpression().succeeded()).isTrue();
 
     }
 
     @Test
     void isValidExpression_wrongOperand() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "in", "bar"), objectPrefix);
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "in", "bar"), objectPrefix);
         assertThat(expr.isValidExpression().succeeded()).isFalse();
 
     }
 
     @Test
     void isValidExpression_invalidOperator() {
-        var expr2 = new CosmosConditionExpression(new Criterion("foo", "is_subset_of", List.of("bar")), objectPrefix);
+        var expr2 = new CosmosPathConditionExpression(new Criterion("foo", "is_subset_of", List.of("bar")), objectPrefix);
         assertThat(expr2.isValidExpression().succeeded()).isFalse();
     }
 
     @Test
     void toExpressionString_withList() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "in", List.of("bar", "baz")), objectPrefix);
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "in", List.of("bar", "baz")), objectPrefix);
         assertThat(expr.toExpressionString()).isEqualToIgnoringWhitespace("test.foo in (@foo0, @foo1)");
     }
 
     @Test
     void toExpressionString() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "=", "baz"), objectPrefix);
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "=", "baz"), objectPrefix);
         assertThat(expr.toExpressionString()).isEqualToIgnoringWhitespace("test.foo = @foo");
     }
 
     @Test
     void toExpressionString_withList_noPrefix() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "in", List.of("bar", "baz")));
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "in", List.of("bar", "baz")));
         assertThat(expr.toExpressionString()).isEqualToIgnoringWhitespace("foo in (@foo0, @foo1)");
     }
 
     @Test
     void toExpressionString_noPrefix() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "=", "baz"));
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "=", "baz"));
         assertThat(expr.toExpressionString()).isEqualToIgnoringWhitespace("foo = @foo");
     }
 
     @Test
     void toParameters() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "=", "baz"), objectPrefix);
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "=", "baz"), objectPrefix);
         assertThat(expr.getParameters()).hasSize(1).allSatisfy(c -> {
             assertThat(c.getName()).isEqualTo("@foo");
             assertThat(c.getValue(String.class)).isEqualTo("baz");
@@ -81,7 +81,7 @@ class CosmosConditionExpressionTest {
 
     @Test
     void toParameters_list() {
-        var expr = new CosmosConditionExpression(new Criterion("foo", "in", List.of("bar", "baz")), objectPrefix);
+        var expr = new CosmosPathConditionExpression(new Criterion("foo", "in", List.of("bar", "baz")), objectPrefix);
         assertThat(expr.getParameters()).hasSize(2)
                 .anySatisfy(c -> {
                     assertThat(c.getName()).isEqualTo("@foo0");

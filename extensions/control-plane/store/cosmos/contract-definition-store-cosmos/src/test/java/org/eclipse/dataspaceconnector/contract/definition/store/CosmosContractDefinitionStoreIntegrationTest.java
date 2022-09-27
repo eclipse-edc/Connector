@@ -20,6 +20,8 @@ import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
@@ -33,11 +35,13 @@ import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
@@ -50,6 +54,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.contract.offer.store.TestFunctions.createContractDefinitions;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 import static org.mockito.Mockito.mock;
 
@@ -337,6 +342,26 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
 
     }
 
+    @Test
+    @Disabled("Cosmos does not support yet matching a JSON")
+    void find_queryBySelectorExpression_entireCriterion() throws JsonProcessingException {
+        var definitionsExpected = createContractDefinitions(20);
+        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        var def5 = definitionsExpected.get(5);
+        def5.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        getContractDefinitionStore().save(definitionsExpected);
+
+        var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter("selectorExpression.criteria = " + json)
+                .build();
+
+        assertThat(getContractDefinitionStore().findAll(spec)).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsOnly(def5);
+    }
+
     @Override
     protected ContractDefinitionStore getContractDefinitionStore() {
         return store;
@@ -344,7 +369,7 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
 
     @Override
     protected boolean supportsCollectionQuery() {
-        return false;
+        return true;
     }
 
     @Override

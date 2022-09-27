@@ -396,6 +396,27 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
+    void find_queryBySelectorExpression_rightAndLeft() {
+        var definitionsExpected = createContractDefinitions(20);
+        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        getContractDefinitionStore().save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter(List.of(
+                        new Criterion("selectorExpression.criteria.operandLeft", "=", Asset.PROPERTY_ID),
+                        new Criterion("selectorExpression.criteria.operandRight", "=", "foobar-asset")))
+                .build();
+
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+
+        assertThat(definitionsRetrieved).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsOnly(definitionsExpected.get(5));
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
     void find_queryMultiple() {
         var definitionsExpected = createContractDefinitions(20);
         definitionsExpected.forEach(d -> d.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));

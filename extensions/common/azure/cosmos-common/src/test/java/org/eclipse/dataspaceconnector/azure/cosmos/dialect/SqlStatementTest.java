@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.cosmos.dialect;
 
+import org.eclipse.dataspaceconnector.azure.cosmos.TestCollectionDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.TestCosmosDocument;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.junit.jupiter.api.Test;
@@ -87,5 +88,16 @@ class SqlStatementTest {
 
         stmt.orderBy("priority", false);
         assertThat(stmt.getQueryAsString()).isEqualTo("SELECT * FROM TestCosmosDocument ORDER BY TestCosmosDocument.wrappedInstance.priority DESC OFFSET 10 LIMIT 15");
+    }
+
+    @Test
+    void getQuerySpec_withCollectionField() {
+        var stmt = new SqlStatement<>(TestCollectionDocument.class)
+                .where(List.of(new Criterion("embedded.collections.name", "=", "1")))
+                .offset(10)
+                .limit(15);
+        assertThat(stmt.getQueryAsString())
+                .isEqualTo("SELECT * FROM TestCollectionDocument WHERE EXISTS(SELECT VALUE t FROM t IN TestCollectionDocument.wrappedInstance.embedded.collections WHERE t.name = @embedded_collections_name) OFFSET 10 LIMIT 15");
+
     }
 }

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -126,8 +127,8 @@ class ReflectionUtilTest {
     void getAllFieldsRecursive() {
         var to = new TestObjectSubclass("test-desc", 1, "foobar");
 
-        assertThat(ReflectionUtil.getAllFieldsRecursive(to.getClass())).hasSize(3).extracting(Field::getName)
-                .containsExactlyInAnyOrder("description", "priority", "testProperty");
+        assertThat(ReflectionUtil.getAllFieldsRecursive(to.getClass())).hasSize(5).extracting(Field::getName)
+                .containsExactlyInAnyOrder("description", "priority", "testProperty", "listField", "embedded");
     }
 
     @Test
@@ -194,5 +195,54 @@ class ReflectionUtilTest {
     void getFieldValue_withArrayIndex_outOfBounds() {
         var o = new TestObjectWithList("test-desc", 0, List.of(new TestObject("to1", 420), new TestObject("to2", 69)));
         assertThatThrownBy(() -> ReflectionUtil.getFieldValue("nestedObjects[3]", o)).isInstanceOf(IndexOutOfBoundsException.class);
+    }
+
+    @Test
+    void getAllFieldsRecursiveWithPath_whenNotDeclared() {
+        assertThat(ReflectionUtil.getAllFieldsRecursiveWithPath(TestObjectWithList.class, "notExist")).isEmpty();
+    }
+
+    @Test
+    void getAllFieldsRecursiveWithPath() {
+        var fields = ReflectionUtil.getAllFieldsRecursiveWithPath(TestObjectSubSubclass.class, "anotherObject");
+        assertThat(fields).hasSize(1).extracting(Field::getName).containsExactly("anotherObject");
+    }
+
+    @Test
+    void getAllFieldsRecursiveWithPath_whenDottedNotationProvided() {
+        var fields = ReflectionUtil.getAllFieldsRecursiveWithPath(TestObjectWithList.class, "nestedObjects.description");
+        assertThat(fields).hasSize(2).extracting(Field::getName).containsExactly("nestedObjects", "description");
+    }
+
+    @Test
+    void getAllFieldsRecursiveWithPath_whenDottedNotationProvided_withNotExistent() {
+        var fields = ReflectionUtil.getAllFieldsRecursiveWithPath(TestObjectWithList.class, "nestedObjects.embedded.notExists");
+        assertThat(fields).hasSize(2).extracting(Field::getName).containsExactly("nestedObjects", "embedded");
+    }
+
+    @Test
+    void getAllFieldsRecursiveWithPath_whenDottedNotationProvided_withListInTheMiddle() {
+        var fields = ReflectionUtil.getAllFieldsRecursiveWithPath(TestObjectWithList.class, "nestedObject.listField.anotherDescription");
+        assertThat(fields).hasSize(3).extracting(Field::getName).containsExactly("nestedObject", "listField", "anotherDescription");
+    }
+
+    @Test
+    void getSingleSuperTypeGenericArgument() {
+        var fields = ReflectionUtil.getSingleSuperTypeGenericArgument(TestGenericSubclass.class, TestGenericObject.class);
+        assertThat(fields).isEqualTo(String.class);
+    }
+
+
+    @Test
+    void getSingleSuperTypeGenericArgument_whenNoGenericSuperclass() {
+        var fields = ReflectionUtil.getSingleSuperTypeGenericArgument(TestObjectWithList.class, TestObject.class);
+        assertThat(fields).isNull();
+    }
+
+    @Test
+    void getSingleSuperTypeGenericArgument_whenGenericClass() {
+        var genericList = new TestGenericArrayList<String>();
+        var fields = ReflectionUtil.getSingleSuperTypeGenericArgument(genericList.getClass(), ArrayList.class);
+        assertThat(fields).isNull();
     }
 }

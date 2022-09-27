@@ -58,7 +58,7 @@ public class SqlStatement<T extends CosmosDocument<?>> {
      * @param criteria A list of criteria
      */
     public SqlStatement<T> where(List<Criterion> criteria) {
-        whereClause = new WhereClause(criteria, String.join(".", objectType.getSimpleName(), wrapperPrefix));
+        whereClause = new WhereClause(objectType, criteria, String.join(".", objectType.getSimpleName(), wrapperPrefix));
         return this;
     }
 
