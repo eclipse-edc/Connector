@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.net.URI;
-import java.util.HashMap;
+import java.util.Map;
 
 public class DynamicAttributeTokenServiceImpl implements DynamicAttributeTokenService {
     
@@ -43,23 +43,18 @@ public class DynamicAttributeTokenServiceImpl implements DynamicAttributeTokenSe
                 .scope(TOKEN_SCOPE)
                 .audience(recipientAddress)
                 .build();
-        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
-        
-        if (tokenResult.failed()) {
-            return Result.failure("Failed to obtain identity token.");
-        }
-        
-        return Result.success(new DynamicAttributeTokenBuilder()
-                ._tokenFormat_(TokenFormat.JWT)
-                ._tokenValue_(tokenResult.getContent().getToken())
-                .build());
+        return identityService.obtainClientCredentials(tokenParameters)
+                .map(credentials -> new DynamicAttributeTokenBuilder()
+                        ._tokenFormat_(TokenFormat.JWT)
+                        ._tokenValue_(credentials.getToken())
+                        .build()
+                );
     }
     
     @Override
     public Result<ClaimToken> verifyDynamicAttributeToken(DynamicAttributeToken token, URI issuerConnector, String audience) {
         // Prepare DAT validation: IDS token validation requires issuerConnector
-        var additional = new HashMap<String, Object>();
-        additional.put("issuerConnector", issuerConnector);
+        var additional = Map.<String, Object>of("issuerConnector", issuerConnector);
     
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token.getTokenValue())
