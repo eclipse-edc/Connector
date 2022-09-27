@@ -27,7 +27,7 @@ import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferState;
-import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
@@ -97,7 +97,8 @@ public interface TransferProcessApi {
     @Operation(description = "Initiates a data transfer with the given parameters. Please note that successfully invoking this endpoint " +
             "only means that the transfer was initiated. Clients must poll the /{id}/state endpoint to track the state",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The transfer was successfully initiated. Returns the transfer process ID and created timestamp", content = @Content(schema = @Schema(implementation = StringResponseDto.class)),
+                    @ApiResponse(responseCode = "200", description = "The transfer was successfully initiated. Returns the transfer process ID and created timestamp",
+                            content = @Content(schema = @Schema(implementation = IdResponseDto.class)),
                             links = @Link(name = "poll-state", operationId = "getTransferProcessState", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
                             })
@@ -105,5 +106,5 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
-    StringResponseDto initiateTransfer(@Valid TransferRequestDto transferRequest);
+    IdResponseDto initiateTransfer(@Valid TransferRequestDto transferRequest);
 }

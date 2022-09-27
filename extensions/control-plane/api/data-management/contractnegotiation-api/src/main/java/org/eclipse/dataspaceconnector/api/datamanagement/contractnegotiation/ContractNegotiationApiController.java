@@ -30,7 +30,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
-import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
@@ -128,7 +128,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @POST
     @Override
-    public StringResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
+    public IdResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
         var transformResult = transformerRegistry.transform(initiateDto, ContractOfferRequest.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
@@ -137,7 +137,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         var request = transformResult.getContent();
 
         var contractNegotiation = service.initiateNegotiation(request);
-        return StringResponseDto.Builder.newInstance()
+        return IdResponseDto.Builder.newInstance()
                 .id(contractNegotiation.getId())
                 .createdAt(contractNegotiation.getCreatedAt())
                 .build();

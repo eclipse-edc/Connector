@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
-import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -138,7 +138,7 @@ class ContractDefinitionApiControllerTest {
         var contractDefinitionId = controller.createContractDefinition(dto);
 
         assertThat(contractDefinitionId).isNotNull();
-        assertThat(contractDefinitionId).isInstanceOf(StringResponseDto.class);
+        assertThat(contractDefinitionId).isInstanceOf(IdResponseDto.class);
         assertThat(contractDefinitionId.getId()).isNotEmpty();
         assertThat(contractDefinitionId.getCreatedAt()).isNotEqualTo(0L);
 

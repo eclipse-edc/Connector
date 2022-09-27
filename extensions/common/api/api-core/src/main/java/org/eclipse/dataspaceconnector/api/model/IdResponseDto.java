@@ -19,10 +19,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = String.class)
-public class StringResponseDto extends BaseResponseDto {
+public class IdResponseDto extends BaseResponseDto {
     private String id;
 
-    public StringResponseDto() {
+    public IdResponseDto() {
     }
 
     public String getId() {
@@ -30,9 +30,9 @@ public class StringResponseDto extends BaseResponseDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends BaseResponseDto.Builder<StringResponseDto, Builder> {
+    public static final class Builder extends BaseResponseDto.Builder<IdResponseDto, Builder> {
         private Builder() {
-            super(new StringResponseDto());
+            super(new IdResponseDto());
         }
 
         @JsonCreator

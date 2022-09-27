@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetReques
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
-import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -77,7 +77,7 @@ public class AssetApiControllerTest {
 
         assertThat(assetId).isNotNull();
         assertThat(assetId.getId()).isNotEmpty();
-        assertThat(assetId).isInstanceOf(StringResponseDto.class);
+        assertThat(assetId).isInstanceOf(IdResponseDto.class);
         assertThat(assetId.getCreatedAt()).isNotEqualTo(0L);
 
         verify(transformerRegistry).transform(any(), eq(Asset.class));

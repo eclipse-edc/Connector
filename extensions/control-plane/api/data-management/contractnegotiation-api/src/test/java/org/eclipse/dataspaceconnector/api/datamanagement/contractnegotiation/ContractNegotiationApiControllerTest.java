@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
-import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -193,7 +193,7 @@ class ContractNegotiationApiControllerTest {
         var negotiationId = controller.initiateContractNegotiation(request);
 
         assertThat(negotiationId.getId()).isEqualTo("negotiationId");
-        assertThat(negotiationId).isInstanceOf(StringResponseDto.class);
+        assertThat(negotiationId).isInstanceOf(IdResponseDto.class);
         assertThat(negotiationId.getId()).isNotEmpty();
         assertThat(negotiationId.getCreatedAt()).isNotEqualTo(0L);
     }

@@ -28,7 +28,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.T
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferState;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
-import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
@@ -132,7 +132,7 @@ public class TransferProcessApiController implements TransferProcessApi {
 
     @POST
     @Override
-    public StringResponseDto initiateTransfer(@Valid TransferRequestDto transferRequest) {
+    public IdResponseDto initiateTransfer(@Valid TransferRequestDto transferRequest) {
         var transformResult = transformerRegistry.transform(transferRequest, DataRequest.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
@@ -143,7 +143,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         var result = service.initiateTransfer(dataRequest);
         if (result.succeeded()) {
             monitor.debug(format("Transfer process initialised %s", result.getContent()));
-            return StringResponseDto.Builder.newInstance()
+            return IdResponseDto.Builder.newInstance()
                     .id(result.getContent())
                     //To be accurate createdAt should come from the transfer object
                     .createdAt(Clock.systemUTC().millis())
