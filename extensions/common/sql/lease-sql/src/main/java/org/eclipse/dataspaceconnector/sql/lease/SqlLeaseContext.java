@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.sql.lease;
 
 import org.eclipse.dataspaceconnector.spi.persistence.LeaseContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
@@ -106,9 +107,9 @@ public class SqlLeaseContext implements LeaseContext {
      */
     public @Nullable SqlLease getLease(String entityId) {
         var stmt = statements.getFindLeaseByEntityTemplate();
-        var leases = executeQuery(connection, this::mapLease, stmt, entityId);
-
-        return leases.stream().findFirst().orElse(null);
+        try (var leases = SqlQueryExecutor.executeQuery(connection, false, this::mapLease, stmt, entityId)) {
+            return leases.findFirst().orElse(null);
+        }
     }
 
     private SqlLease mapLease(ResultSet resultSet) throws SQLException {

@@ -80,11 +80,14 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         if (queryResult.failed()) {
             throw mapToException(queryResult, ContractNegotiation.class, null);
         }
-        return queryResult.getContent().stream()
-                .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .collect(Collectors.toList());
+
+        try (var stream = queryResult.getContent()) {
+            return stream
+                    .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(Collectors.toList());
+        }
     }
 
     @GET

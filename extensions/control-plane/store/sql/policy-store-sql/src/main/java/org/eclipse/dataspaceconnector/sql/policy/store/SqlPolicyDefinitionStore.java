@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.SqlPolicyStoreStatements;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +36,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
@@ -60,18 +60,20 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
 
     @Override
     public PolicyDefinition findById(String id) {
-        var query = QuerySpec.Builder.newInstance().filter("uid=" + id).build();
-        return single(findAll(query).collect(Collectors.toList()));
+        var query = QuerySpec.Builder.newInstance().filter("id=" + id).build();
+        try (var stream = findAll(query)) {
+            return stream.findFirst().orElse(null);
+        }
     }
 
     @Override
     public Stream<PolicyDefinition> findAll(QuerySpec querySpec) {
         Objects.requireNonNull(querySpec);
-        var queryStatement = statements.createQuery(querySpec);
 
-        try (var connection = getConnection()) {
-            return executeQuery(connection, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters()).stream();
-        } catch (Exception exception) {
+        try {
+            var queryStatement = statements.createQuery(querySpec);
+            return SqlQueryExecutor.executeQuery(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+        } catch (SQLException exception) {
             throw new EdcPersistenceException(exception);
         }
     }
@@ -179,18 +181,6 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
                 .policy(policy)
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .build();
-    }
-
-    /**
-     * Returns either a single element from the list, or null if empty. Throws an IllegalStateException if the list has
-     * more than 1 element
-     */
-    @Nullable
-    private <T> T single(List<T> list) {
-        if (list.size() > 1) {
-            throw new IllegalArgumentException("Expected result set size of 1 but got " + list.size());
-        }
-        return list.isEmpty() ? null : list.get(0);
     }
 
     private <T> String toJson(Object object, TypeReference<T> typeReference) {

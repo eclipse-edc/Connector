@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
-import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -26,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
+import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
 import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.dataspaceconnector.transfer.store.TestFunctions;
@@ -34,7 +34,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,7 +53,6 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.transfer.store.TestFunctions.createDataRequest;
 import static org.eclipse.dataspaceconnector.transfer.store.TestFunctions.createTransferProcess;
 import static org.eclipse.dataspaceconnector.transfer.store.TestFunctions.createTransferProcessBuilder;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -64,60 +62,48 @@ import static org.mockito.Mockito.when;
 @PostgresqlDbIntegrationTest
 class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     private static final String DATASOURCE_NAME = "transferprocess";
-    private static final String POSTGRES_USER = "postgres";
-    private static final String POSTGRES_PASSWORD = "password";
-    private static final String POSTGRES_DATABASE = "itest";
-    private TransactionContext transactionContext;
-    private Connection connection;
-    private DataSourceRegistry dataSourceRegistry;
+
+    private final Clock clock = Clock.systemUTC();
+    private final TransactionContext transactionContext = new NoopTransactionContext();
+    private final PostgresDialectStatements statements = new PostgresDialectStatements();
+    private final DataSource dataSource = mock(DataSource.class);
+    private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
+    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
     private LeaseUtil leaseUtil;
     private SqlTransferProcessStore store;
 
     @BeforeAll
     static void prepare() {
-        PostgresqlLocalInstance.createDatabase(POSTGRES_DATABASE);
+        PostgresqlLocalInstance.createTestDatabase();
     }
 
     @BeforeEach
-    void setUp() throws SQLException, IOException {
-        transactionContext = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-
-        var ds = new PGSimpleDataSource();
-        ds.setServerNames(new String[]{ "localhost" });
-        ds.setPortNumbers(new int[]{ 5432 });
-        ds.setUser(POSTGRES_USER);
-        ds.setPassword(POSTGRES_PASSWORD);
-        ds.setDatabaseName(POSTGRES_DATABASE);
-
-        // do not actually close
-        connection = spy(ds.getConnection());
+    void setUp() throws IOException, SQLException {
+        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(dataSource);
+        when(dataSource.getConnection()).thenReturn(connection);
         doNothing().when(connection).close();
 
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+        var typeManager = new TypeManager();
+        typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
+        typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        PostgresDialectStatements sqlStatements = new PostgresDialectStatements();
-        TypeManager manager = new TypeManager();
-        manager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
+        leaseUtil = new LeaseUtil(transactionContext, () -> connection, statements, clock);
+        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, typeManager.getMapper(), statements, "test-connector", clock);
 
-        leaseUtil = new LeaseUtil(transactionContext, this::getConnection, sqlStatements, Clock.systemUTC());
-
-        manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, manager.getMapper(), sqlStatements, "test-connector", Clock.systemUTC());
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        try {
-            transactionContext.execute(() -> {
-                executeQuery(connection, schema);
-                return null;
-            });
-        } catch (Exception exc) {
-            fail(exc);
-        }
+        transactionContext.execute(() -> executeQuery(connection, schema));
     }
 
+    @AfterEach
+    void tearDown() throws SQLException {
+        transactionContext.execute(() -> {
+            executeQuery(connection, "DROP TABLE " + statements.getTransferProcessTableName() + " CASCADE");
+            executeQuery(connection, "DROP TABLE " + statements.getDataRequestTable() + " CASCADE");
+            executeQuery(connection, "DROP TABLE " + statements.getLeaseTableName() + " CASCADE");
+        });
+        doCallRealMethod().when(connection).close();
+        connection.close();
+    }
 
     @Test
     void find_queryByDataRequest_propNotExist() {
@@ -217,19 +203,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         assertThatIllegalArgumentException().isThrownBy(() -> getTransferProcessStore().create(t1));
     }
 
-    @AfterEach
-    void tearDown() throws Exception {
-
-        transactionContext.execute(() -> {
-            var dialect = new PostgresDialectStatements();
-            executeQuery(connection, "DROP TABLE " + dialect.getTransferProcessTableName() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + dialect.getDataRequestTable() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + dialect.getLeaseTableName() + " CASCADE");
-        });
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
-
     @Override
     @Test
     protected void findAll_verifySorting_invalidProperty() {
@@ -280,14 +253,5 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     protected LeaseUtil getLeaseUtil() {
         return leaseUtil;
     }
-
-    protected Connection getConnection() {
-        try {
-            return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
 }

@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.AssetStatements;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,14 +35,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.AbstractMap;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toMap;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlAssetIndex implements AssetIndex {
@@ -77,12 +76,11 @@ public class SqlAssetIndex implements AssetIndex {
         Objects.requireNonNull(querySpec);
 
         return transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-
+            try {
                 var statement = assetStatements.createQuery(querySpec);
 
-                var ids = executeQuery(connection, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters());
-                return ids.stream().map(this::findById);
+                return SqlQueryExecutor.executeQuery(getConnection(), true, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters())
+                        .map(this::findById);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -99,11 +97,23 @@ public class SqlAssetIndex implements AssetIndex {
                 if (!existsById(assetId, connection)) {
                     return null;
                 }
-                var ts = single(executeQuery(connection, resultSet -> resultSet.getLong(assetStatements.getCreatedAtColumn()), assetStatements.getSelectAssetByIdTemplate(), assetId));
-                var assetProperties = executeQuery(connection, this::mapPropertyResultSet, assetStatements.getFindPropertyByIdTemplate(), assetId).stream().collect(Collectors.toMap(
-                        AbstractMap.SimpleImmutableEntry::getKey,
-                        AbstractMap.SimpleImmutableEntry::getValue));
-                return Asset.Builder.newInstance().id(assetId).properties(assetProperties).createdAt(ofNullable(ts).orElse(0L)).build();
+
+                var selectAssetByIdSql = assetStatements.getSelectAssetByIdTemplate();
+                var findPropertyByIdSql = assetStatements.getFindPropertyByIdTemplate();
+                try (
+                        var createdAtStream = SqlQueryExecutor.executeQuery(connection, false, this::mapCreatedAt, selectAssetByIdSql, assetId);
+                        var propertiesStream = SqlQueryExecutor.executeQuery(connection, false, this::mapPropertyResultSet, findPropertyByIdSql, assetId)
+                ) {
+                    var createdAt = createdAtStream.findFirst().orElse(0L);
+                    var assetProperties = propertiesStream
+                            .collect(toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
+
+                    return Asset.Builder.newInstance()
+                            .id(assetId)
+                            .properties(assetProperties)
+                            .createdAt(createdAt)
+                            .build();
+                }
             });
 
         } catch (Exception e) {
@@ -123,7 +133,6 @@ public class SqlAssetIndex implements AssetIndex {
 
         Objects.requireNonNull(asset);
         Objects.requireNonNull(dataAddress);
-
 
         var assetId = asset.getId();
         transactionContext.execute(() -> {
@@ -152,28 +161,26 @@ public class SqlAssetIndex implements AssetIndex {
                 throw new EdcPersistenceException(e);
             }
         });
-
-
     }
 
     @Override
     public Asset deleteById(String assetId) {
         Objects.requireNonNull(assetId);
 
-        try (var connection = getConnection()) {
-            var asset = findById(assetId);
-            if (asset == null) {
-                return null;
-            }
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var asset = findById(assetId);
+                if (asset == null) {
+                    return null;
+                }
 
-            transactionContext.execute(() -> {
                 executeQuery(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
-            });
 
-            return asset;
-        } catch (Exception e) {
-            throw new EdcPersistenceException(e.getMessage(), e);
-        }
+                return asset;
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        });
     }
 
     @Override
@@ -193,16 +200,22 @@ public class SqlAssetIndex implements AssetIndex {
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId);
 
-        try (var connection = getConnection()) {
-            var dataAddressList = transactionContext.execute(() -> executeQuery(connection, this::mapDataAddress, assetStatements.getFindDataAddressByIdTemplate(), assetId));
-            return single(dataAddressList);
-        } catch (Exception e) {
-            if (e instanceof EdcPersistenceException) {
-                throw (EdcPersistenceException) e;
-            } else {
-                throw new EdcPersistenceException(e.getMessage(), e);
+        return transactionContext.execute(() -> {
+            var sql = assetStatements.getFindDataAddressByIdTemplate();
+            try (var stream = SqlQueryExecutor.executeQuery(getConnection(), true, this::mapDataAddress, sql, assetId)) {
+                return stream.findFirst().orElse(null);
+            } catch (Exception e) {
+                if (e instanceof EdcPersistenceException) {
+                    throw (EdcPersistenceException) e;
+                } else {
+                    throw new EdcPersistenceException(e.getMessage(), e);
+                }
             }
-        }
+        });
+    }
+
+    private long mapCreatedAt(ResultSet resultSet) throws SQLException {
+        return resultSet.getLong(assetStatements.getCreatedAtColumn());
     }
 
     private int mapRowCount(ResultSet resultSet) throws SQLException {
@@ -218,17 +231,6 @@ public class SqlAssetIndex implements AssetIndex {
         return new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type));
     }
 
-    @Nullable
-    private <T> T single(List<T> list) {
-        if (list.size() == 0) {
-            return null;
-        } else if (list.size() > 1) {
-            throw new IllegalStateException("Expected result set size of 0 or 1 but got " + list.size());
-        } else {
-            return list.iterator().next();
-        }
-    }
-
     /**
      * Deserializes a value into an object using the object mapper. Note: if type is {@code java.lang.String} simply
      * {@code value.toString()} is returned.
@@ -242,14 +244,9 @@ public class SqlAssetIndex implements AssetIndex {
     }
 
     private boolean existsById(String assetId, Connection connection) {
-        var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, assetStatements.getCountAssetByIdClause(), assetId).iterator().next());
-
-        if (assetCount <= 0) {
-            return false;
-        } else if (assetCount > 1) {
-            throw new IllegalStateException("Expected result set size of 0 or 1 but got " + assetCount);
-        } else {
-            return true;
+        var sql = assetStatements.getCountAssetByIdClause();
+        try (var stream = SqlQueryExecutor.executeQuery(connection, false, this::mapRowCount, sql, assetId)) {
+            return stream.findFirst().orElse(0) > 0;
         }
     }
 

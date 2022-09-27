@@ -24,10 +24,11 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SqlQueryExecutorIntegrationTest {
 
@@ -54,15 +55,6 @@ public class SqlQueryExecutorIntegrationTest {
     }
 
     @Test
-    void testExecuteWithRowMapping() {
-        List<Long> result = SqlQueryExecutor.executeQuery(connection, (rs) -> rs.getLong(1), "SELECT 1;");
-
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.size());
-        Assertions.assertEquals(1, result.iterator().next());
-    }
-
-    @Test
     void testTransaction() throws SQLException {
         SqlQueryExecutor.executeQuery(connection, "SELECT COUNT(c), COUNT(*) FROM (VALUES (1), (NULL)) t(c);");
 
@@ -70,27 +62,43 @@ public class SqlQueryExecutorIntegrationTest {
     }
 
     @Test
+    void executeQueryStream_doesNotCloseConnection() throws SQLException {
+        var connection = DriverManager.getConnection("jdbc:h2:mem:test", new Properties());
+
+        var result = SqlQueryExecutor.executeQuery(connection, false, (rs) -> rs.getLong(1), "SELECT 1;");
+
+        assertThat(result).isNotNull().hasSize(1).contains(1L); // assert stream closes the stream
+        assertThat(connection.isClosed()).isFalse();
+    }
+
+    @Test
+    void executeQueryStream_closesConnection() throws SQLException {
+        var connection = DriverManager.getConnection("jdbc:h2:mem:test", new Properties());
+
+        var result = SqlQueryExecutor.executeQuery(connection, true, (rs) -> rs.getLong(1), "SELECT 1;");
+
+        assertThat(result).isNotNull().hasSize(1).contains(1L); // assert stream closes the stream
+        assertThat(connection.isClosed()).isTrue();
+    }
+
+    @Test
     void testTransactionAndResultSetMapper() throws SQLException {
-        String table = "kv_testTransactionAndResultSetMapper";
-        String schema = getTableSchema(table);
-        Kv kv = new Kv(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        var table = "kv_testTransactionAndResultSetMapper";
+        var schema = getTableSchema(table);
+        var kv = new Kv(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         SqlQueryExecutor.executeQuery(connection, schema);
         SqlQueryExecutor.executeQuery(connection, String.format("INSERT INTO %s (k, v) values (?, ?)", table), kv.key, kv.value);
 
         connection.commit();
 
-        List<Long> countResult = SqlQueryExecutor.executeQuery(connection, (rs) -> rs.getLong(1), String.format("SELECT COUNT(*) FROM %s", table));
+        var countResult = SqlQueryExecutor.executeQuery(connection, false, (rs) -> rs.getInt(1), String.format("SELECT COUNT(*) FROM %s", table));
 
-        Assertions.assertNotNull(countResult);
-        Assertions.assertEquals(1, countResult.size());
-        Assertions.assertEquals(1, countResult.iterator().next());
+        assertThat(countResult).hasSize(1).first().isEqualTo(1);
 
-        List<Kv> kvs = SqlQueryExecutor.executeQuery(connection, (rs) -> new Kv(rs.getString(1), rs.getString(2)), String.format("SELECT * FROM %s", table));
+        var kvs = SqlQueryExecutor.executeQuery(connection, false, (rs) -> new Kv(rs.getString(1), rs.getString(2)), String.format("SELECT * FROM %s", table));
 
-        Assertions.assertNotNull(kvs);
-        Assertions.assertEquals(1, kvs.size());
-        Assertions.assertEquals(kv, kvs.iterator().next());
+        assertThat(kvs).hasSize(1).first().isEqualTo(kv);
     }
 
     @Test

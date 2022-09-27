@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspaceconnector.spi.policy.store;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -59,7 +58,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         getPolicyDefinitionStore().save(policy);
 
         var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
-        Assertions.assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
+        assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
 
     @Test
@@ -82,11 +81,11 @@ public abstract class PolicyDefinitionStoreTestBase {
 
         getPolicyDefinitionStore().save(policy1);
         getPolicyDefinitionStore().save(policy2);
-        var policyFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var policyFromDb = getPolicyDefinitionStore().findAll(spec);
 
-        assertThat(1).isEqualTo(policyFromDb.size());
-        assertThat("Target2").isEqualTo(policyFromDb.get(0).getPolicy().getTarget());
-        Assertions.assertThat(policyFromDb.get(0)).extracting(PolicyDefinition::getCreatedAt).isEqualTo(policy2.getCreatedAt());
+        assertThat(policyFromDb).hasSize(1).first()
+                .satisfies(policy -> assertThat(policy.getPolicy().getTarget()).isEqualTo("Target2"))
+                .extracting(PolicyDefinition::getCreatedAt).isEqualTo(policy2.getCreatedAt());
     }
 
     @Test
@@ -97,13 +96,13 @@ public abstract class PolicyDefinitionStoreTestBase {
 
         var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
 
-        Assertions.assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
+        assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
 
     @Test
     @DisplayName("Find policy by ID when not exists")
     void findById_whenNonexistent() {
-        Assertions.assertThat(getPolicyDefinitionStore().findById("nonexistent")).isNull();
+        assertThat(getPolicyDefinitionStore().findById("nonexistent")).isNull();
     }
 
     @Test
@@ -119,9 +118,9 @@ public abstract class PolicyDefinitionStoreTestBase {
                 .offset(20)
                 .build();
 
-        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(policiesFromDb).hasSize(limit);
+        assertThat(policiesFromDb).hasSize(limit);
     }
 
     @Test
@@ -136,9 +135,9 @@ public abstract class PolicyDefinitionStoreTestBase {
                 .offset(pageSize)
                 .build();
 
-        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(policiesFromDb).isEmpty();
+        assertThat(policiesFromDb).isEmpty();
     }
 
     @Test
@@ -154,9 +153,9 @@ public abstract class PolicyDefinitionStoreTestBase {
                 .limit(limit)
                 .build();
 
-        var policiesFromDb = getPolicyDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = getPolicyDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(policiesFromDb).size().isLessThanOrEqualTo(limit);
+        assertThat(policiesFromDb).size().isLessThanOrEqualTo(limit);
     }
 
     @Test
@@ -167,15 +166,14 @@ public abstract class PolicyDefinitionStoreTestBase {
         getPolicyDefinitionStore().save(policy);
         assertThat(getPolicyDefinitionStore().findById(policy.getUid())).usingRecursiveComparison().isEqualTo(policy);
 
-
-        Assertions.assertThat(getPolicyDefinitionStore().deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
-        Assertions.assertThat(getPolicyDefinitionStore().findById(policy.getUid())).isNull();
+        assertThat(getPolicyDefinitionStore().deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
+        assertThat(getPolicyDefinitionStore().findById(policy.getUid())).isNull();
     }
 
     @Test
     @DisplayName("Delete a non existing policy")
     void deleteById_whenNonexistent() {
-        Assertions.assertThat(getPolicyDefinitionStore().deleteById("nonexistent")).isNull();
+        assertThat(getPolicyDefinitionStore().deleteById("nonexistent")).isNull();
     }
 
     @Test
@@ -478,7 +476,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
-        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query)).isInstanceOfAny(IllegalArgumentException.class);
+        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -521,9 +519,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         // re-read
         var all = getPolicyDefinitionStore().findAll(QuerySpec.Builder.newInstance().filter("policy.permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
         assertThat(all).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(modifiedPolicy);
-
     }
-
 
     protected abstract PolicyDefinitionStore getPolicyDefinitionStore();
 

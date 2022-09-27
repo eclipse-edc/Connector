@@ -25,11 +25,10 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 public class AssetServiceImpl implements AssetService {
     private static final String ASSET_ID_QUERY = "contractAgreement.assetId";
@@ -53,14 +52,14 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public ServiceResult<Collection<Asset>> query(QuerySpec query) {
+    public ServiceResult<Stream<Asset>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
             return ServiceResult.badRequest(result.getFailureMessages().toArray(new String[0]));
         }
 
-        return ServiceResult.success(transactionContext.execute(() -> index.queryAssets(query).collect(toList())));
+        return ServiceResult.success(transactionContext.execute(() -> index.queryAssets(query)));
     }
 
     @Override
@@ -83,9 +82,11 @@ public class AssetServiceImpl implements AssetService {
             var query = QuerySpec.Builder.newInstance()
                     .filter(List.of(new Criterion(ASSET_ID_QUERY, "=", assetId)))
                     .build();
-            var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);
-            if (negotiationsOnAsset.findAny().isPresent()) {
-                return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
+
+            try (var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query)) {
+                if (negotiationsOnAsset.findAny().isPresent()) {
+                    return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
+                }
             }
 
             var deleted = index.deleteById(assetId);

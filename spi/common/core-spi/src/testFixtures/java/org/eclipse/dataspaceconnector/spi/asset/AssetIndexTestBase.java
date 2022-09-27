@@ -72,7 +72,8 @@ public abstract class AssetIndexTestBase {
         var asset = getAsset("test-asset");
         getAssetIndex().accept(asset, getDataAddress());
 
-        var allAssets = getAssetIndex().queryAssets(QuerySpec.none()).collect(Collectors.toList());
+        var allAssets = getAssetIndex().queryAssets(QuerySpec.none());
+
         assertThat(allAssets).hasSize(1)
                 .allSatisfy(a -> assertThat(a.getCreatedAt()).isNotEqualTo(0));
     }
@@ -82,9 +83,11 @@ public abstract class AssetIndexTestBase {
     void acceptAssetAndDataAddress_exists() {
         var asset = getAsset("id1");
         getAssetIndex().accept(asset, getDataAddress());
-
         getAssetIndex().accept(asset, getDataAddress());
-        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+
+        var assets = getAssetIndex().queryAssets(QuerySpec.none());
+
+        assertThat(assets).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(asset);
     }
@@ -108,10 +111,11 @@ public abstract class AssetIndexTestBase {
     void acceptEntry_exists() {
         var asset = getAsset("id1");
         getAssetIndex().accept(new AssetEntry(asset, getDataAddress()));
-
-
         getAssetIndex().accept(asset, getDataAddress());
-        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+
+        var assets = getAssetIndex().queryAssets(QuerySpec.none());
+
+        assertThat(assets).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(asset);
     }
@@ -135,7 +139,7 @@ public abstract class AssetIndexTestBase {
         assertThat(assetDeleted).isNotNull();
         assertThat(assetDeleted).usingRecursiveComparison().isEqualTo(asset);
 
-        assertThat(getAssetIndex().queryAssets(QuerySpec.none()).count()).isEqualTo(0L);
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).isEmpty();
     }
 
     @Test
@@ -165,8 +169,7 @@ public abstract class AssetIndexTestBase {
                 .constraint(Asset.PROPERTY_ID, "in", List.of("id1", "id2"))
                 .build());
 
-        assertThat(assetsFound).isNotNull();
-        assertThat(assetsFound).hasSize(2);
+        assertThat(assetsFound).isNotNull().hasSize(2);
     }
 
     @Test
@@ -180,8 +183,7 @@ public abstract class AssetIndexTestBase {
         var exception = catchException(() -> getAssetIndex().queryAssets(AssetSelectorExpression.Builder.newInstance().constraint(Asset.PROPERTY_ID, "in", "(id1, id2)").build())
                 .collect(Collectors.toList())); // must collect, otherwise the stream may not get materialized
 
-        assertThat(exception)
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(exception).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -197,8 +199,7 @@ public abstract class AssetIndexTestBase {
                 .constraint(Asset.PROPERTY_ID, "LIKE", "id%")
                 .build());
 
-        assertThat(assetsFound).isNotNull();
-        assertThat(assetsFound).hasSize(2);
+        assertThat(assetsFound).isNotNull().hasSize(2);
     }
 
     @Test
@@ -226,8 +227,7 @@ public abstract class AssetIndexTestBase {
 
         var assetsFound = getAssetIndex().queryAssets(getQuerySpec());
 
-        assertThat(assetsFound).isNotNull();
-        assertThat(assetsFound.count()).isEqualTo(3);
+        assertThat(assetsFound).isNotNull().hasSize(3);
     }
 
     @Test
@@ -282,8 +282,7 @@ public abstract class AssetIndexTestBase {
 
         var assetsFound = getAssetIndex().queryAssets(getQuerySpec());
 
-        assertThat(assetsFound).isNotNull();
-        assertThat(assetsFound.count()).isEqualTo(2);
+        assertThat(assetsFound).isNotNull().hasSize(2);
     }
 
     @Test
@@ -298,7 +297,7 @@ public abstract class AssetIndexTestBase {
         asset.getProperties().put("contenttype", "whatever");
         getAssetIndex().accept(asset, getDataAddress());
 
-        var result = getAssetIndex().queryAssets(qs.build()).collect(Collectors.toList());
+        var result = getAssetIndex().queryAssets(qs.build());
         assertThat(result).usingRecursiveFieldByFieldElementComparator().containsOnly(asset);
 
     }

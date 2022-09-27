@@ -32,12 +32,11 @@ import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
@@ -63,14 +62,13 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     }
 
     @Override
-    public ServiceResult<Collection<PolicyDefinition>> query(QuerySpec query) {
+    public ServiceResult<Stream<PolicyDefinition>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
             return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return ServiceResult.success(transactionContext.execute(() ->
-                policyStore.findAll(query).collect(toList())));
+        return ServiceResult.success(transactionContext.execute(() -> policyStore.findAll(query)));
     }
 
 
@@ -87,16 +85,20 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
             }
 
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
-            var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter);
-            if (contractDefinitionOnPolicy.findAny().isPresent()) {
-                return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));
+            try (var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter)) {
+                if (contractDefinitionOnPolicy.findAny().isPresent()) {
+                    return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));
+                }
             }
 
+
             var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).build();
-            var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter);
-            if (accessDefinitionOnPolicy.findAny().isPresent()) {
-                return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));
+            try (var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter)) {
+                if (accessDefinitionOnPolicy.findAny().isPresent()) {
+                    return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));
+                }
             }
+
 
             var deleted = policyStore.deleteById(policyId);
             if (deleted == null) {

@@ -62,8 +62,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        assertThat(definitions).isNotNull();
-        assertThat(definitions).hasSize(1);
+        assertThat(definitions).isNotNull().hasSize(1);
     }
 
     @Test
@@ -87,8 +86,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        assertThat(definitions).isNotNull();
-        assertThat(definitions).hasSize(2);
+        assertThat(definitions).isNotNull().hasSize(2);
     }
 
     @Test
@@ -118,14 +116,11 @@ public abstract class ContractDefinitionStoreTestBase {
     void saveMany_allExist() {
         var definitionsCreated = createContractDefinitions(10);
         getContractDefinitionStore().save(definitionsCreated);
-
-        //
         getContractDefinitionStore().save(definitionsCreated);
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        assertThat(definitionsRetrieved).isNotNull();
-        assertThat(definitionsRetrieved).hasSize(definitionsCreated.size());
+        assertThat(definitionsRetrieved).isNotNull().hasSize(definitionsCreated.size());
     }
 
     @Test
@@ -134,7 +129,9 @@ public abstract class ContractDefinitionStoreTestBase {
         var definition = createContractDefinition("id", "policy1", "contract1");
 
         getContractDefinitionStore().update(definition);
+
         var existing = getContractDefinitionStore().findAll(QuerySpec.max());
+
         assertThat(existing).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(definition);
     }
 
@@ -149,10 +146,10 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
 
-        assertThat(definitions).isNotNull();
-        assertThat(definitions.size()).isEqualTo(1);
-        assertThat(definitions.get(0).getContractPolicyId()).isEqualTo(definition2.getContractPolicyId());
-        assertThat(definitions.get(0).getAccessPolicyId()).isEqualTo(definition2.getAccessPolicyId());
+        assertThat(definitions).isNotNull().hasSize(1).first().satisfies(definition -> {
+            assertThat(definition.getAccessPolicyId()).isEqualTo(definition2.getAccessPolicyId());
+            assertThat(definition.getContractPolicyId()).isEqualTo(definition2.getContractPolicyId());
+        });
     }
 
     @Test
@@ -163,8 +160,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        assertThat(definitionsRetrieved).isNotNull();
-        assertThat(definitionsRetrieved).hasSize(definitionsExpected.size());
+        assertThat(definitionsRetrieved).isNotNull().hasSize(definitionsExpected.size());
     }
 
     @ParameterizedTest
@@ -192,10 +188,9 @@ public abstract class ContractDefinitionStoreTestBase {
                 .offset(20)
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        assertThat(definitionsRetrieved).isNotNull();
-        assertThat(definitionsRetrieved.size()).isEqualTo(limit);
+        assertThat(definitionsRetrieved).isNotNull().hasSize(limit);
     }
 
     @Test
@@ -209,7 +204,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter("accessPolicyId = policy4")
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -227,7 +222,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter(List.of(new Criterion("accessPolicyId", "in", List.of("policy4", "policy5", "policy6"))))
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).hasSize(3)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -368,7 +363,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter(format("selectorExpression.criteria.operandLeft = %s", Asset.PROPERTY_ID))
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).hasSize(2)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -387,7 +382,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter("selectorExpression.criteria.operandRight = foobar-asset")
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -408,7 +403,7 @@ public abstract class ContractDefinitionStoreTestBase {
                         new Criterion("selectorExpression.criteria.operandRight", "=", "foobar-asset")))
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -427,7 +422,7 @@ public abstract class ContractDefinitionStoreTestBase {
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -444,7 +439,7 @@ public abstract class ContractDefinitionStoreTestBase {
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 
-        assertThat(getContractDefinitionStore().findAll(spec).collect(Collectors.toList())).isEmpty();
+        assertThat(getContractDefinitionStore().findAll(spec)).isEmpty();
     }
 
     @Test
@@ -479,7 +474,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter("selectorExpression.criteria[0].operandRight = foobar-asset")
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -498,7 +493,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter("selectorExpression.criteria[1].operandRight = foobar-asset")
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
         assertThat(definitionsRetrieved).isEmpty();
     }

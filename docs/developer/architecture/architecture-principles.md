@@ -57,3 +57,6 @@
 
 ### XII. Observability
 1. Services are [instrumented for collecting essential metrics](../metrics.md), in particular instances of `ExecutorService`.
+
+### XIII. Streams
+1. Always close explicitly `Stream` objects that are returned by a service/store, since they could carry a connection, and otherwise it will leak.

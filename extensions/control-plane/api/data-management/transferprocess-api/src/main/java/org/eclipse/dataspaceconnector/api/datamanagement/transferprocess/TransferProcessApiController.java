@@ -75,11 +75,14 @@ public class TransferProcessApiController implements TransferProcessApi {
         if (queryResult.failed()) {
             throw mapToException(queryResult, TransferProcess.class, null);
         }
-        return queryResult.getContent().stream()
-                .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .collect(Collectors.toList());
+
+        try (var stream = queryResult.getContent()) {
+            return stream
+                    .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(Collectors.toList());
+        }
     }
 
     @GET

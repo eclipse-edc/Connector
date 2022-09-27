@@ -19,9 +19,9 @@ plugins {
 }
 
 val apacheCommonsPool2Version: String by project
+val assertj: String by project
 val mockitoVersion: String by project
 val postgresVersion: String by project
-val assertj: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
@@ -32,6 +32,7 @@ dependencies {
     testImplementation(project(":extensions:common:junit"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:common:sql:lease-sql")))
+    testImplementation(testFixtures(project(":extensions:common:sql:common-sql")))
     testImplementation(testFixtures(project(":core:common:util")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
     testImplementation("org.assertj:assertj-core:${assertj}")

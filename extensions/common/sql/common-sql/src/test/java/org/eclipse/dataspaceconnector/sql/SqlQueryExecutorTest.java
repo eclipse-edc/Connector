@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Stream;
 
 class SqlQueryExecutorTest {
@@ -64,33 +63,6 @@ class SqlQueryExecutorTest {
         Assertions.assertEquals(0, result);
     }
 
-    @Test
-    void testExecuteMutatingQueryWithResultSetMapper() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
-        Mockito.when(connection.prepareStatement(DUMMY_SQL, Statement.RETURN_GENERATED_KEYS)).thenReturn(preparedStatement);
-        Mockito.when(preparedStatement.execute()).thenReturn(false);
-        Mockito.when(preparedStatement.getUpdateCount()).thenReturn(12345);
-        ResultSetMapper<?> mapper = Mockito.mock(ResultSetMapper.class);
-
-        List<?> result = SqlQueryExecutor.executeQuery(connection, mapper, DUMMY_SQL);
-
-        Assertions.assertNotNull(result);
-    }
-
-    @Test
-    void testExecuteSelectingQueryWithResultSetMapper() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
-        Mockito.when(connection.prepareStatement(DUMMY_SQL, Statement.RETURN_GENERATED_KEYS)).thenReturn(preparedStatement);
-        Mockito.when(preparedStatement.execute()).thenReturn(true);
-        ResultSetMapper<?> mapper = Mockito.mock(ResultSetMapper.class);
-
-        List<?> result = SqlQueryExecutor.executeQuery(connection, mapper, DUMMY_SQL);
-
-        Assertions.assertNotNull(result);
-    }
-
     @ParameterizedTest
     @ArgumentsSource(TestExecuteParametrizedArgumentProvider.class)
     void testExecuteParametrized(Object argument, MockitoPreparedStatementVerification verification) throws SQLException {
@@ -106,7 +78,6 @@ class SqlQueryExecutorTest {
         Assertions.assertNotNull(result);
         Assertions.assertEquals(0, result);
     }
-
 
     static class TestExecuteParametrizedArgumentProvider implements ArgumentsProvider {
         @Override

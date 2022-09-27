@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * Service that permits actions and queries on ContractDefinition entity.
@@ -39,7 +39,7 @@ public interface ContractDefinitionService {
      * @param query request
      * @return the collection of contract definitions that match the query
      */
-    ServiceResult<Collection<ContractDefinition>> query(QuerySpec query);
+    ServiceResult<Stream<ContractDefinition>> query(QuerySpec query);
 
     /**
      * Create a contract definition with its related data address. If a definition with the same id exists, returns

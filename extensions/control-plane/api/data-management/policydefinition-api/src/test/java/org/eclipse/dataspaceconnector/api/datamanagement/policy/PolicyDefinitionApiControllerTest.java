@@ -32,8 +32,8 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -88,7 +88,7 @@ class PolicyDefinitionApiControllerTest {
 
     @Test
     void getAllPolicies() {
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(TestFunctions.createPolicy("id"))));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(TestFunctions.createPolicy("id"))));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         var responseDto = PolicyDefinitionResponseDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
@@ -107,7 +107,7 @@ class PolicyDefinitionApiControllerTest {
     @Test
     void getAll_filtersOutFailedTransforms() {
         var policyDefinition = TestFunctions.createPolicy("id");
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(policyDefinition)));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(PolicyDefinition.class), eq(PolicyDefinitionResponseDto.class)))

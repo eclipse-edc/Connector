@@ -349,7 +349,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .mapToObj(i -> TestFunctions.createNegotiation("" + i))
                 .forEach(cn -> getContractNegotiationStore().save(cn));
 
-        var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(querySpec);
 
         assertThat(result).hasSize(10);
     }
@@ -365,7 +365,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .mapToObj(i -> TestFunctions.createNegotiation("" + i))
                 .forEach(cn -> getContractNegotiationStore().save(cn));
 
-        var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(querySpec);
 
         assertThat(result).hasSize(10)
                 .extracting(ContractNegotiation::getId)
@@ -383,7 +383,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = getContractNegotiationStore().queryNegotiations(query).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(query);
 
         assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
 
@@ -399,7 +399,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = getContractNegotiationStore().queryNegotiations(query).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(query);
 
         assertThat(result).isEmpty();
         assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.none())).isEmpty();
@@ -418,7 +418,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = getContractNegotiationStore().queryNegotiations(query).collect(Collectors.toList());
+        var result = getContractNegotiationStore().queryNegotiations(query);
 
         assertThat(result).hasSize(2)
                 .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");

@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 public interface ContractNegotiationService {
 
@@ -38,7 +38,7 @@ public interface ContractNegotiationService {
      * @param query request
      * @return the collection of contract negotiations that match the query
      */
-    ServiceResult<Collection<ContractNegotiation>> query(QuerySpec query);
+    ServiceResult<Stream<ContractNegotiation>> query(QuerySpec query);
 
     /**
      * Get negotiation state

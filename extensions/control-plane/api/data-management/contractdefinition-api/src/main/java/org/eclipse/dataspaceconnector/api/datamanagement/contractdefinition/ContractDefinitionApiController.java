@@ -76,7 +76,6 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         }
 
         return queryResult.getContent()
-                .stream()
                 .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)

@@ -22,10 +22,9 @@ import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 public class ContractDefinitionServiceImpl implements ContractDefinitionService {
     private final ContractDefinitionStore store;
@@ -46,13 +45,13 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     }
 
     @Override
-    public ServiceResult<Collection<ContractDefinition>> query(QuerySpec query) {
+    public ServiceResult<Stream<ContractDefinition>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
             return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return ServiceResult.success(transactionContext.execute(() -> store.findAll(query).collect(toList())));
+        return ServiceResult.success(transactionContext.execute(() -> store.findAll(query)));
     }
 
     @Override

@@ -150,9 +150,13 @@ public class DescriptionRequestHandler implements Handler {
                         .claimToken(claimToken)
                         .assetsCriterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build();
-                var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).collect(toList());
 
-                return new OfferedAsset(asset, targetingContractOffers);
+                try (var stream = contractOfferService.queryContractOffers(contractOfferQuery)) {
+                    var targetingContractOffers = stream.collect(toList());
+
+                    return new OfferedAsset(asset, targetingContractOffers);
+                }
+
             default:
                 return null;
         }
