@@ -100,11 +100,11 @@ paths:
               $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "200":
-          description: contract definition was created successfully. Returns the Contract Definition Id
+          description: contract definition was created successfully. Returns the Contract Definition Id and created timestamp
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractDefinitionId'
+                $ref: '#/components/schemas/StringResponseDto'
         "400":
           description: Request body was malformed
           content:
@@ -557,11 +557,11 @@ paths:
               $ref: '#/components/schemas/PolicyDefinitionRequestDto'
       responses:
         "200":
-          description: policy definition was created successfully. Returns the Policy Definition Id
+          description: policy definition was created successfully. Returns the Policy Definition Id and created timestamp
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionId'
+                $ref: '#/components/schemas/StringResponseDto'
         "400":
           description: Request body was malformed
           content:
@@ -877,11 +877,11 @@ paths:
               $ref: '#/components/schemas/AssetEntryDto'
       responses:
         "200":
-          description: Asset was created successfully. Returns the asset Id
+          description: Asset was created successfully. Returns the asset Id and created timestamp
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetId'
+                $ref: '#/components/schemas/StringResponseDto'
         "400":
           description: Request body was malformed
           content:
@@ -1060,11 +1060,11 @@ paths:
       responses:
         "200":
           description: The negotiation was successfully initiated. Returns the contract
-            negotiation ID
+            negotiation ID and created timestamp
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NegotiationId'
+                $ref: '#/components/schemas/StringResponseDto'
           links:
             poll-state:
               operationId: getNegotiationState
@@ -1365,12 +1365,12 @@ paths:
               $ref: '#/components/schemas/TransferRequestDto'
       responses:
         "200":
-          description: The transfer was successfully initiated. Returns the transfer
+          description: The transfer was successfully initiated. Returns the transfer Id and created timestamp
             process ID
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferId'
+                $ref: '#/components/schemas/StringResponseDto'
           links:
             poll-state:
               operationId: getTransferProcessState
@@ -1582,12 +1582,6 @@ components:
           $ref: '#/components/schemas/AssetRequestDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
-    AssetId:
-      type: object
-      properties:
-        id:
-          type:
-            string
     AssetRequestDto:
       required:
       - properties
@@ -1657,12 +1651,6 @@ components:
           $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
-    ContractDefinitionId:
-      type: object
-      properties:
-        id:
-          type:
-            string
     ContractDefinitionRequestDto:
       required:
       - accessPolicyId
@@ -1920,11 +1908,6 @@ components:
             $ref: '#/components/schemas/HealthCheckResult'
         isSystemHealthy:
           type: boolean
-    NegotiationId:
-      type: object
-      properties:
-        id:
-          type: string
     NegotiationInitiateRequestDto:
       required:
       - connectorAddress
@@ -2000,11 +1983,6 @@ components:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
-    PolicyDefinitionId:
-      type: object
-      properties:
-        id:
-          type: string
     PolicyDefinitionRequestDto:
       required:
       - policy
@@ -2064,6 +2042,13 @@ components:
           type: string
         resourceName:
           type: string
+    StringResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: long
     SelectionRequest:
       type: object
       properties:
@@ -2072,11 +2057,6 @@ components:
         source:
           $ref: '#/components/schemas/DataAddress'
         strategy:
-          type: string
-    TransferId:
-      type: object
-      properties:
-        id:
           type: string
     TransferProcessDto:
       type: object

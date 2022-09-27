@@ -27,9 +27,9 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetId;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
@@ -65,7 +65,7 @@ public class AssetApiController implements AssetApi {
 
     @POST
     @Override
-    public AssetId createAsset(@Valid AssetEntryDto assetEntryDto) {
+    public StringResponseDto createAsset(@Valid AssetEntryDto assetEntryDto) {
         var assetResult = transformerRegistry.transform(assetEntryDto.getAsset(), Asset.class);
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 
@@ -81,7 +81,10 @@ public class AssetApiController implements AssetApi {
 
         if (result.succeeded()) {
             monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
-            return new AssetId(result.getContent().getId());
+            return StringResponseDto.Builder.newInstance()
+                    .id(result.getContent().getId())
+                    .createdAt(result.getContent().getCreatedAt())
+                    .build();
         } else {
             throw mapToException(result, Asset.class, asset.getId());
         }

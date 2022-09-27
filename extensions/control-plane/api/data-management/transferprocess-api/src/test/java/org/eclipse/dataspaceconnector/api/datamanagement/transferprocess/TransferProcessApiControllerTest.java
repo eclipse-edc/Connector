@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -203,7 +204,7 @@ class TransferProcessApiControllerTest {
         when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.success(request));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(processId));
 
-        String result = controller.initiateTransfer(transferReq).getId();
+        var result = controller.initiateTransfer(transferReq);
 
         var dataRequestCaptor = ArgumentCaptor.forClass(DataRequest.class);
         verify(service).initiateTransfer(dataRequestCaptor.capture());
@@ -219,7 +220,10 @@ class TransferProcessApiControllerTest {
         assertThat(dataRequest.getTransferType()).isEqualTo(request.getTransferType());
         assertThat(dataRequest.isManagedResources()).isEqualTo(request.isManagedResources());
 
-        assertThat(result).isEqualTo(processId);
+        assertThat(result.getId()).isEqualTo(processId);
+        assertThat(result).isInstanceOf(StringResponseDto.class);
+        assertThat(result.getId()).isNotEmpty();
+        assertThat(result.getCreatedAt()).isNotEqualTo(0L);
     }
 
     @Test

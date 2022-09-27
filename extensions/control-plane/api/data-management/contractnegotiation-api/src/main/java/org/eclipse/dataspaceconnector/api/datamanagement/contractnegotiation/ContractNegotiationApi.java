@@ -26,9 +26,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
@@ -87,8 +87,8 @@ public interface ContractNegotiationApi {
     @Operation(description = "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint " +
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID",
-                            content = @Content(schema = @Schema(implementation = NegotiationId.class)),
+                    @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
+                            content = @Content(schema = @Schema(implementation = StringResponseDto.class)),
                             links = @Link(name = "poll-state", operationId = "getNegotiationState", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
                             })
@@ -96,7 +96,7 @@ public interface ContractNegotiationApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
-    NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto);
+    StringResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto);
 
 
     @Operation(description = "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +

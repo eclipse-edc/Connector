@@ -91,7 +91,7 @@ public class Participant {
                 .post("/api/assets")
                 .then()
                 .statusCode(200)
-                .contentType(JSON).contentType(JSON);
+                .contentType(JSON);
     }
 
     public void createPolicy(PolicyDefinition policyDefinition) {

@@ -27,10 +27,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
@@ -128,7 +128,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @POST
     @Override
-    public NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
+    public StringResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
         var transformResult = transformerRegistry.transform(initiateDto, ContractOfferRequest.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
@@ -137,7 +137,10 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         var request = transformResult.getContent();
 
         var contractNegotiation = service.initiateNegotiation(request);
-        return new NegotiationId(contractNegotiation.getId());
+        return StringResponseDto.Builder.newInstance()
+                .id(contractNegotiation.getId())
+                .createdAt(contractNegotiation.getCreatedAt())
+                .build();
     }
 
     @POST

@@ -40,7 +40,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @ExtendWith(EdcExtension.class)
 class ContractNegotiationApiControllerIntegrationTest {
@@ -158,15 +160,15 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .offer(createOffer())
                 .build();
 
-        var result = baseRequest()
+        baseRequest()
                 .contentType(JSON)
                 .body(request)
                 .post("/contractnegotiations")
                 .then()
                 .statusCode(200)
-                .extract().body().asString();
-
-        assertThat(result).isNotBlank();
+                .contentType(JSON)
+                .body("id", not(emptyString()))
+                .body("createdAt", not("0"));
     }
 
     @Test

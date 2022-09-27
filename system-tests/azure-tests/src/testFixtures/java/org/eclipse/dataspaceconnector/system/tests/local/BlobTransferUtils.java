@@ -109,7 +109,7 @@ public class BlobTransferUtils {
                 .post(path)
                 .then()
                 .statusCode(200)
-                .contentType(JSON).contentType(JSON);
+                .contentType(JSON);
     }
 
     private static RequestSpecification givenProviderBaseRequest() {

@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionId;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -137,8 +137,9 @@ class PolicyDefinitionApiControllerTest {
         var policyDefinitionId = controller.createPolicy(dto);
 
         assertThat(policyDefinitionId).isNotNull();
-        assertThat(policyDefinitionId).isInstanceOf(PolicyDefinitionId.class);
+        assertThat(policyDefinitionId).isInstanceOf(StringResponseDto.class);
         assertThat(policyDefinitionId.getId()).isNotEmpty();
+        assertThat(policyDefinitionId.getCreatedAt()).isNotEqualTo(0L);
 
         verify(service).create(isA(PolicyDefinition.class));
     }

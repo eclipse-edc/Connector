@@ -24,10 +24,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
@@ -99,7 +99,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @POST
     @Override
-    public ContractDefinitionId createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
+    public StringResponseDto createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
         monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
@@ -111,7 +111,10 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         var result = service.create(contractDefinition);
         if (result.succeeded()) {
             monitor.debug(format("Contract definition created %s", result.getContent().getId()));
-            return new ContractDefinitionId(result.getContent().getId());
+            return StringResponseDto.Builder.newInstance()
+                    .id(result.getContent().getId())
+                    .createdAt(result.getContent().getCreatedAt())
+                    .build();
         } else {
             throw new ObjectExistsException(ContractDefinition.class, dto.getId());
         }

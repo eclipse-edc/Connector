@@ -23,8 +23,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetId;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
@@ -36,14 +36,14 @@ public interface AssetApi {
 
     @Operation(description = "Creates a new asset together with a data address",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id",
-                            content = @Content(schema = @Schema(implementation = AssetId.class))),
+                    @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id and created timestamp",
+                            content = @Content(schema = @Schema(implementation = StringResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    AssetId createAsset(@Valid AssetEntryDto assetEntryDto);
+    StringResponseDto createAsset(@Valid AssetEntryDto assetEntryDto);
 
     @Operation(description = "Gets all assets according to a particular query",
             responses = {

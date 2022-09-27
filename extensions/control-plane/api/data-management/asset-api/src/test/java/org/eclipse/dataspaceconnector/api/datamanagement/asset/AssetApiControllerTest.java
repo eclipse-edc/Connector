@@ -18,11 +18,11 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetId;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -76,8 +76,9 @@ public class AssetApiControllerTest {
         var assetId = controller.createAsset(assetEntry);
 
         assertThat(assetId).isNotNull();
-        assertThat(assetId).isInstanceOf(AssetId.class);
         assertThat(assetId.getId()).isNotEmpty();
+        assertThat(assetId).isInstanceOf(StringResponseDto.class);
+        assertThat(assetId.getCreatedAt()).isNotEqualTo(0L);
 
         verify(transformerRegistry).transform(any(), eq(Asset.class));
         verify(transformerRegistry).transform(any(), eq(DataAddress.class));

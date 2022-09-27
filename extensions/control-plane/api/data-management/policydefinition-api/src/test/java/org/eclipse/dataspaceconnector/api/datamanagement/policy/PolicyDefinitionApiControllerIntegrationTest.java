@@ -33,6 +33,7 @@ import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunct
 import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createSelectorExpression;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @ExtendWith(EdcExtension.class)
 public class PolicyDefinitionApiControllerIntegrationTest {
@@ -104,7 +105,9 @@ public class PolicyDefinitionApiControllerIntegrationTest {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("id", is("policydefinitionId"));
+                .body("id", is("policydefinitionId"))
+                .body("createdAt", not("0"));
+
         assertThat(policyStore.findById("policydefinitionId")).isNotNull();
     }
 

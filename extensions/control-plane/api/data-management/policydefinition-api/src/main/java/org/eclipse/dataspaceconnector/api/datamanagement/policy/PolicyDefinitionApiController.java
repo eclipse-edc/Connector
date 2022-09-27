@@ -25,10 +25,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionId;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
+import org.eclipse.dataspaceconnector.api.model.StringResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -100,7 +100,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     @POST
     @Override
-    public PolicyDefinitionId createPolicy(PolicyDefinitionRequestDto requestDto) {
+    public StringResponseDto createPolicy(PolicyDefinitionRequestDto requestDto) {
         var transformResult = transformerRegistry.transform(requestDto, PolicyDefinition.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
@@ -111,7 +111,10 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         var result = policyDefinitionService.create(definition);
         if (result.succeeded()) {
             monitor.debug(format("Policy definition created %s", definition.getId()));
-            return new PolicyDefinitionId(result.getContent().getId());
+            return StringResponseDto.Builder.newInstance()
+                    .id(result.getContent().getId())
+                    .createdAt(result.getContent().getCreatedAt())
+                    .build();
         } else {
             throw mapToException(result, PolicyDefinition.class, definition.getId());
         }

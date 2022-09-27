@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @ExtendWith(EdcExtension.class)
 public class AssetApiControllerIntegrationTest {
@@ -128,7 +129,8 @@ public class AssetApiControllerIntegrationTest {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("id", is("assetId"));
+                .body("id", is("assetId"))
+                .body("createdAt", not("0"));
         assertThat(assetIndex.findById("assetId")).isNotNull();
     }
 
