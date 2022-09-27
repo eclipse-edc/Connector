@@ -18,14 +18,13 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +53,7 @@ class ConnectorServiceImplTest {
 
     @Test
     void getConnector() {
-        when(dataCatalogService.getDataCatalog(any(), any(), any())).thenReturn(mock(Catalog.class));
+        when(dataCatalogService.getDataCatalog(any(), any())).thenReturn(mock(Catalog.class));
         when(connectorServiceSettings.getId()).thenReturn(CONNECTOR_ID);
         when(connectorServiceSettings.getTitle()).thenReturn(CONNECTOR_TITLE);
         when(connectorServiceSettings.getDescription()).thenReturn(CONNECTOR_DESCRIPTION);
@@ -64,7 +63,7 @@ class ConnectorServiceImplTest {
         when(connectorServiceSettings.getCurator()).thenReturn(CONNECTOR_CURATOR);
         var claimToken = ClaimToken.Builder.newInstance().build();
 
-        var result = connectorService.getConnector(claimToken, new Range(0, 100), new ArrayList<>());
+        var result = connectorService.getConnector(claimToken, QuerySpec.none());
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CONNECTOR_ID);
@@ -75,7 +74,7 @@ class ConnectorServiceImplTest {
         assertThat(result.getMaintainer()).isEqualTo(CONNECTOR_MAINTAINER);
         assertThat(result.getCurator()).isEqualTo(CONNECTOR_CURATOR);
         assertThat(result.getConnectorVersion()).isEqualTo(CONNECTOR_VERSION);
-        verify(dataCatalogService).getDataCatalog(any(), any(), any());
+        verify(dataCatalogService).getDataCatalog(any(), any());
         verify(connectorServiceSettings).getId();
         verify(connectorServiceSettings).getTitle();
         verify(connectorServiceSettings).getDescription();

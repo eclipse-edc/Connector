@@ -36,6 +36,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Stream.concat;
+
 /**
  * Implementation of the {@link ContractOfferService}.
  */
@@ -60,7 +62,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
         return definitionService.definitionsFor(agent, query.getDefinitionsRange())
                 .flatMap(definition -> {
                     var assetFilterQuery = QuerySpec.Builder.newInstance()
-                            .filter(Stream.concat(definition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList())).build();
+                            .filter(concat(definition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList())).build();
                     var assets = assetIndex.queryAssets(assetFilterQuery);
                     return Optional.of(definition.getContractPolicyId())
                             .map(policyStore::findById)

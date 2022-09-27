@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.respon
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 
@@ -78,8 +79,7 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
         //TODO: IDS REFACTORING: incorporate this into the protocol itself
-        message.setProperty(CatalogRequest.RANGE, request.getRange());
-        message.setProperty(CatalogRequest.FILTER, request.getFilter());
+        message.setProperty(QuerySpec.QUERY_SPEC, QuerySpec.Builder.newInstance().filter(request.getFilter()).range(request.getRange()).build());
         return message;
     }
 

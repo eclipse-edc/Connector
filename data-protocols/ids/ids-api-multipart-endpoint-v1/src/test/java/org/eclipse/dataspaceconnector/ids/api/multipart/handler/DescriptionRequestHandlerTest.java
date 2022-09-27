@@ -42,6 +42,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -52,6 +53,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -127,7 +129,7 @@ class DescriptionRequestHandlerTest {
                 .claimToken(ClaimToken.Builder.newInstance().build())
                 .build();
 
-        when(connectorService.getConnector(any(), any(), any())).thenReturn(connector);
+        when(connectorService.getConnector(any(), any())).thenReturn(connector);
         when(transformerRegistry.transform(connector, de.fraunhofer.iais.eis.Connector.class)).thenReturn(Result.success(idsConnector));
 
         var response = handler.handleRequest(request);
@@ -136,7 +138,7 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsConnector);
 
         verify(connectorService, times(1))
-                .getConnector(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo), any());
+                .getConnector(any(), argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo));
         verifyNoMoreInteractions(connectorService);
         verifyNoInteractions(catalogService, contractOfferService, assetIndex);
     }
@@ -150,7 +152,7 @@ class DescriptionRequestHandlerTest {
                 .claimToken(ClaimToken.Builder.newInstance().build())
                 .build();
 
-        when(catalogService.getDataCatalog(any(), any(), any())).thenReturn(catalog);
+        when(catalogService.getDataCatalog(any(), any())).thenReturn(catalog);
         when(transformerRegistry.transform(catalog, ResourceCatalog.class)).thenReturn(Result.success(idsCatalog));
 
         var response = handler.handleRequest(request);
@@ -160,10 +162,10 @@ class DescriptionRequestHandlerTest {
 
         verify(catalogService, times(1))
                 .getDataCatalog(any(),
-                    argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo),
-                    argThat(filtersList -> filtersList.get(0).getOperandLeft().equals(PROPERTY) &&
-                        filtersList.get(0).getOperandRight().equals(VALUE) &&
-                        filtersList.get(0).getOperator().equals(EQUALS_SIGN)));
+                    argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo &&
+                        query.getFilterExpression().get(0).getOperandLeft().equals(PROPERTY) &&
+                        query.getFilterExpression().get(0).getOperandRight().equals(VALUE) &&
+                        query.getFilterExpression().get(0).getOperator().equals(EQUALS_SIGN)));
         verifyNoMoreInteractions(catalogService);
         verifyNoInteractions(connectorService, contractOfferService, assetIndex);
     }
@@ -267,8 +269,11 @@ class DescriptionRequestHandlerTest {
                         .build())
                 ._requestedElement_(requestedElement)
                 .build();
-        message.setProperty(CatalogRequest.RANGE, Map.of("from", rangeFrom, "to", rangeTo));
-        message.setProperty(CatalogRequest.FILTER, List.of(Map.of("operandLeft", PROPERTY, "operator", EQUALS_SIGN, "operandRight", VALUE)));
+
+        Map<String, Object> specsMap = new HashMap<>();
+        specsMap.put(CatalogRequest.RANGE, Map.of("from", rangeFrom, "to", rangeTo));
+        specsMap.put(QuerySpec.FILTER_EXPRESSION, List.of(Map.of("operandLeft", PROPERTY, "operator", EQUALS_SIGN, "operandRight", VALUE)));
+        message.setProperty(QuerySpec.QUERY_SPEC, specsMap);
         return message;
     }
 

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,25 +36,33 @@ public class RequestUtil {
      * @param message The message
      * @return either the property parsed into specific type, or the default value
      */
-    public static Range getRange(@NotNull DescriptionRequestMessage message) {
-        return ofNullable(message.getProperties())
-            .map(map -> map.get(CatalogRequest.RANGE))
+
+    public static QuerySpec getQuerySpec(@NotNull DescriptionRequestMessage message) {
+        Map specsMap = (Map) ofNullable(message.getProperties()).map(map -> map.get(QuerySpec.QUERY_SPEC)).orElse(Map.of());
+
+        QuerySpec.Builder querySpecBuilder = QuerySpec.Builder.newInstance();
+        querySpecBuilder.filter(getFilter(specsMap));
+        querySpecBuilder.range(getRange(specsMap));
+        return querySpecBuilder.build();
+    }
+
+    private static Range getRange(Map map) {
+        return ofNullable(map.get(CatalogRequest.RANGE))
             .map(v -> mapToRange((Map) v))
             .orElse(new Range());
     }
 
-    public static List<Criterion> getFilter(@NotNull DescriptionRequestMessage message) {
-        return ofNullable(message.getProperties())
-            .map(map -> map.get(CatalogRequest.FILTER))
-            .map(v -> mapToListOfCriterions((List<Map>) v))
+    private static List<Criterion> getFilter(Map map) {
+        return ofNullable(map.get(QuerySpec.FILTER_EXPRESSION))
+            .map(v -> mapToListOfCriteria((List<Map>) v))
             .orElse(Collections.emptyList());
     }
 
     private static Range mapToRange(Map map) {
-        return new Range((int) map.get("from"), (int) map.get("to"));
+        return new Range((int) map.get(Range.FROM), (int) map.get(Range.TO));
     }
 
-    private static List<Criterion> mapToListOfCriterions(List<Map> maps) {
+    private static List<Criterion> mapToListOfCriteria(List<Map> maps) {
         return maps.stream().map(map -> new Criterion(map.get("operandLeft"), (String) map.get("operator"), map.get("operandRight")))
             .collect(Collectors.toList());
     }

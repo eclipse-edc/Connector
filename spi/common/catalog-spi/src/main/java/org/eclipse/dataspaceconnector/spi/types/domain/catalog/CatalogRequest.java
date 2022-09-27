@@ -31,7 +31,6 @@ import java.util.Objects;
 @JsonDeserialize(builder = CatalogRequest.Builder.class)
 public class CatalogRequest implements RemoteMessage {
 
-    public static final String FILTER = "filter";
     public static final String RANGE = "range";
 
     private final String protocol;

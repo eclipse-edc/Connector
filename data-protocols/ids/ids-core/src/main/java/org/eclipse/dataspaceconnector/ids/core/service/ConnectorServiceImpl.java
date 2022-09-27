@@ -20,13 +20,11 @@ import org.eclipse.dataspaceconnector.ids.spi.domain.connector.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 public class ConnectorServiceImpl implements ConnectorService {
@@ -47,10 +45,10 @@ public class ConnectorServiceImpl implements ConnectorService {
 
     @NotNull
     @Override
-    public Connector getConnector(@NotNull ClaimToken claimToken, Range range, List<Criterion> filters) {
+    public Connector getConnector(@NotNull ClaimToken claimToken, QuerySpec querySpec) {
         Objects.requireNonNull(claimToken);
 
-        var catalog = dataCatalogService.getDataCatalog(claimToken, range, filters);
+        var catalog = dataCatalogService.getDataCatalog(claimToken, querySpec);
 
         return Connector.Builder
                 .newInstance()

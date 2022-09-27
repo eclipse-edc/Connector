@@ -16,12 +16,9 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * The IDS service is able to create a description of the EDC data catalog.
@@ -34,5 +31,5 @@ public interface CatalogService {
      * @return data catalog
      */
     @NotNull
-    Catalog getDataCatalog(ClaimToken claimToken, Range range, List<Criterion> filters);
+    Catalog getDataCatalog(ClaimToken claimToken, QuerySpec querySpec);
 }

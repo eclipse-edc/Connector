@@ -20,13 +20,11 @@ import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
@@ -52,9 +50,12 @@ public class CatalogServiceImpl implements CatalogService {
      */
     @Override
     @NotNull
-    public Catalog getDataCatalog(ClaimToken claimToken, Range range, List<Criterion> filters) {
+    public Catalog getDataCatalog(ClaimToken claimToken, QuerySpec querySpec) {
 
-        var query = ContractOfferQuery.Builder.newInstance().claimToken(claimToken).assetsCriteria(filters).definitionsRange(range).build();
+        var query = ContractOfferQuery.Builder.newInstance()
+                .claimToken(claimToken)
+                .assetsCriteria(querySpec.getFilterExpression())
+                .definitionsRange(querySpec.getRange()).build();
 
         var offers = contractOfferService.queryContractOffers(query).collect(toList());
 
