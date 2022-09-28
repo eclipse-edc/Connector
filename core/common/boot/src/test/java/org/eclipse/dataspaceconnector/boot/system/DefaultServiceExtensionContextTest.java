@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
@@ -30,13 +31,14 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class DefaultServiceExtensionContextTest {
 
-    private DefaultServiceExtensionContext context;
     private final ConfigurationExtension configuration = mock(ConfigurationExtension.class);
+    private DefaultServiceExtensionContext context;
 
     @BeforeEach
     void setUp() {
@@ -165,6 +167,18 @@ class DefaultServiceExtensionContextTest {
         } finally {
             System.clearProperty("some.key");
         }
+    }
+
+    @Test
+    void registerService_throwsWhenFrozen() {
+        when(configuration.getConfig()).thenReturn(ConfigFactory.empty());
+        context.initialize();
+
+        context.freeze();
+        assertThatThrownBy(() -> context.registerService(Object.class, new Object() {
+        })).isInstanceOf(EdcException.class).hasMessageStartingWith("Cannot register service");
+
+
     }
 
 }

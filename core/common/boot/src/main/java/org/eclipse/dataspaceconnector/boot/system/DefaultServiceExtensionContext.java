@@ -39,6 +39,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final List<ConfigurationExtension> configurationExtensions;
+    private boolean isReadOnly = false;
     private String connectorId;
     private Config config;
 
@@ -49,6 +50,16 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         registerService(Monitor.class, monitor);
         registerService(Telemetry.class, telemetry);
         registerService(Clock.class, Clock.systemUTC());
+    }
+
+    @Override
+    public Config getConfig(String path) {
+        return config.getConfig(path);
+    }
+
+    @Override
+    public void freeze() {
+        isReadOnly = true;
     }
 
     @Override
@@ -80,6 +91,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     @Override
     public <T> void registerService(Class<T> type, T service) {
+        if (isReadOnly) {
+            throw new EdcException("Cannot register service " + type.getName() + ", the ServiceExtensionContext is in read-only mode.");
+        }
         if (hasService(type)) {
             getMonitor().warning("A service of the type " + type.getCanonicalName() + " was already registered and has now been replaced with a " + service.getClass().getSimpleName() + " instance.");
         }
@@ -94,11 +108,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         });
         config = loadConfig();
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
-    }
-
-    @Override
-    public Config getConfig(String path) {
-        return config.getConfig(path);
     }
 
     // this method exists so that getting env vars can be mocked during testing
@@ -118,5 +127,4 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
         return config.merge(environmentConfig).merge(systemPropertyConfig);
     }
-
 }
