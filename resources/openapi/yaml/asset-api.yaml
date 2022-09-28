@@ -58,7 +58,12 @@ paths:
               $ref: '#/components/schemas/AssetEntryDto'
       responses:
         "200":
-          description: Asset was created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          description: Asset was created successfully. Returns the asset Id and created
+            timestamp
         "400":
           content:
             application/json:
@@ -211,3 +216,11 @@ components:
             type: string
       required:
       - properties
+    IdResponseDto:
+      type: object
+      properties:
+        createdAt:
+          type: integer
+          format: int64
+        id:
+          type: string

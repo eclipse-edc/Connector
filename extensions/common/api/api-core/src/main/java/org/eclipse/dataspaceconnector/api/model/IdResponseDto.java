@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-@JsonDeserialize(builder = String.class)
+@JsonDeserialize(builder = IdResponseDto.Builder.class)
 public class IdResponseDto extends BaseResponseDto {
     private String id;
 
