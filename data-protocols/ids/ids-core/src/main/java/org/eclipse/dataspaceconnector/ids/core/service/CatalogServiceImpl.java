@@ -55,7 +55,7 @@ public class CatalogServiceImpl implements CatalogService {
         var query = ContractOfferQuery.Builder.newInstance()
                 .claimToken(claimToken)
                 .assetsCriteria(querySpec.getFilterExpression())
-                .definitionsRange(querySpec.getRange()).build();
+                .range(querySpec.getRange()).build();
 
         var offers = contractOfferService.queryContractOffers(query).collect(toList());
 

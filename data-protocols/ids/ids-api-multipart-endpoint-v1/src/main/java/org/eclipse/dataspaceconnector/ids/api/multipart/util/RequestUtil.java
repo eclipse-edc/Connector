@@ -36,14 +36,11 @@ public class RequestUtil {
      * @param message The message
      * @return either the property parsed into specific type, or the default value
      */
-
     public static QuerySpec getQuerySpec(@NotNull DescriptionRequestMessage message) {
-        Map specsMap = (Map) ofNullable(message.getProperties()).map(map -> map.get(QuerySpec.QUERY_SPEC)).orElse(Map.of());
-
-        QuerySpec.Builder querySpecBuilder = QuerySpec.Builder.newInstance();
-        querySpecBuilder.filter(getFilter(specsMap));
-        querySpecBuilder.range(getRange(specsMap));
-        return querySpecBuilder.build();
+        return ofNullable(message.getProperties())
+            .map(map -> (Map) map.get(QuerySpec.QUERY_SPEC))
+            .map(spec -> QuerySpec.Builder.newInstance().filter(getFilter(spec)).range(getRange(spec)).build())
+            .orElse(QuerySpec.none());
     }
 
     private static Range getRange(Map map) {

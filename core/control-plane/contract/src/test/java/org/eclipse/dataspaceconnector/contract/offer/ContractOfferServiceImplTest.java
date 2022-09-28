@@ -27,15 +27,19 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -74,7 +78,7 @@ class ContractOfferServiceImplTest {
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
-        var query = ContractOfferQuery.builder().definitionsRange(DEFAULT_RANGE).claimToken(ClaimToken.Builder.newInstance().build()).build();
+        var query = ContractOfferQuery.builder().range(DEFAULT_RANGE).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
         verify(agentService).createFor(isA(ClaimToken.class));
@@ -100,5 +104,37 @@ class ContractOfferServiceImplTest {
         var result = contractOfferService.queryContractOffers(query);
 
         assertThat(result).hasSize(0);
+    }
+
+    @Test
+    void shouldGetContractOffersWithAssetFilteringApplied() {
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
+                .build();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class), any())).thenReturn(Stream.of(contractDefinition));
+        var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+
+        var query = ContractOfferQuery.builder()
+                .range(DEFAULT_RANGE)
+                .claimToken(ClaimToken.Builder.newInstance().build())
+                .assetsCriteria(List.of(new Criterion("asset:prop:id", "=", "2")))
+                .build();
+
+        var expectedQuerySpec =  QuerySpec.Builder.newInstance()
+                .filter(concat(contractDefinition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream())
+                      .collect(Collectors.toList())).build();
+
+        assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
+        verify(agentService).createFor(isA(ClaimToken.class));
+        verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class), eq(DEFAULT_RANGE));
+        verify(policyStore).findById("contract");
+        verify(assetIndex).queryAssets(eq(expectedQuerySpec));
     }
 }

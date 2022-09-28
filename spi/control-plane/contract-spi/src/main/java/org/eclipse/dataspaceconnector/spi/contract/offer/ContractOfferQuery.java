@@ -29,7 +29,7 @@ import java.util.List;
 public class ContractOfferQuery {
     private ClaimToken claimToken;
     private List<Criterion> assetsCriteria;
-    private Range definitionsRange;
+    private Range range;
 
     private ContractOfferQuery() {
     }
@@ -46,14 +46,14 @@ public class ContractOfferQuery {
         return assetsCriteria;
     }
 
-    public Range getDefinitionsRange() {
-        return definitionsRange;
+    public Range getRange() {
+        return range;
     }
 
     public static final class Builder {
         private final List<Criterion> assetsCriteria = new ArrayList<>();
         private ClaimToken claimToken;
-        private Range definitionsRange;
+        private Range range;
 
         private Builder() {
         }
@@ -77,15 +77,15 @@ public class ContractOfferQuery {
             return this;
         }
 
-        public Builder definitionsRange(Range definitionsRange) {
-            this.definitionsRange = definitionsRange;
+        public Builder range(Range range) {
+            this.range = range;
             return this;
         }
 
         public ContractOfferQuery build() {
             ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
             contractOfferQuery.claimToken = claimToken;
-            contractOfferQuery.definitionsRange = definitionsRange;
+            contractOfferQuery.range = range;
             contractOfferQuery.assetsCriteria = assetsCriteria;
             return contractOfferQuery;
         }
