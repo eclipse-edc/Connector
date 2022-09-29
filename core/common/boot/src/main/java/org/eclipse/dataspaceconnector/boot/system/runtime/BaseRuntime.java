@@ -58,8 +58,8 @@ public class BaseRuntime {
     protected final ServiceLocator serviceLocator;
     private final AtomicReference<HealthCheckResult> startupStatus = new AtomicReference<>(HealthCheckResult.failed("Startup not complete"));
     private final ExtensionLoader extensionLoader;
-    protected Monitor monitor;
     private final List<ServiceExtension> serviceExtensions = new ArrayList<>();
+    protected Monitor monitor;
 
     public BaseRuntime() {
         this(new ServiceLocatorImpl());
@@ -100,11 +100,16 @@ public class BaseRuntime {
         monitor = createMonitor();
         MonitorProvider.setInstance(monitor);
 
-        var telemetry = loadTelemetry();
+        var telemetry = createTelemetry();
 
         var context = createContext(typeManager, monitor, telemetry);
         initializeContext(context);
         return context;
+    }
+
+    @NotNull
+    protected Telemetry createTelemetry() {
+        return loadTelemetry();
     }
 
     /**
@@ -129,7 +134,11 @@ public class BaseRuntime {
      * Callback for any error that happened during runtime initialization
      */
     protected void onError(Exception e) {
-        monitor.severe("Error booting runtime", e);
+        monitor.severe(String.format("Error booting runtime: %s", e.getMessage()), e);
+        exit();
+    }
+
+    protected void exit() {
         System.exit(-1);  // stop the process
     }
 
