@@ -36,8 +36,7 @@ public class CatalogServiceImpl implements CatalogService {
                 .protocol("ids-multipart")
                 .connectorId(providerUrl)
                 .connectorAddress(providerUrl)
-                .range(spec.getRange())
-                .filter(spec.getFilterExpression())
+                .querySpec(spec)
                 .build();
 
         return dispatcher.send(Catalog.class, request, () -> null);

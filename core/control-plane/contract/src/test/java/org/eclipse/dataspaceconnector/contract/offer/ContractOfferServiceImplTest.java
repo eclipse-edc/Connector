@@ -112,7 +112,7 @@ class ContractOfferServiceImplTest {
                 .id("1")
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "assetName").build())
                 .build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
@@ -124,7 +124,7 @@ class ContractOfferServiceImplTest {
         var query = ContractOfferQuery.builder()
                 .range(DEFAULT_RANGE)
                 .claimToken(ClaimToken.Builder.newInstance().build())
-                .assetsCriteria(List.of(new Criterion("asset:prop:id", "=", "2")))
+                .assetsCriteria(List.of(new Criterion(Asset.PROPERTY_ID, "=", "2")))
                 .build();
 
         var expectedQuerySpec =  QuerySpec.Builder.newInstance()

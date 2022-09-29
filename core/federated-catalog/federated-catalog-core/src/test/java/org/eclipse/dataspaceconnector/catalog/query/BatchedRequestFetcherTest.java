@@ -70,10 +70,9 @@ class BatchedRequestFetcherTest {
 
         // verify the sequence of requests
         assertThat(captor.getAllValues())
-                .extracting(CatalogRequest::getRange)
+                .extracting(l -> l.getQuerySpec().getRange())
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(new Range(0, 5), new Range(5, 10), new Range(10, 15), new Range(15, 20));
-
     }
 
     private CatalogRequest createRequest() {

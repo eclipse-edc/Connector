@@ -79,7 +79,7 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
         //TODO: IDS REFACTORING: incorporate this into the protocol itself
-        message.setProperty(QuerySpec.QUERY_SPEC, QuerySpec.Builder.newInstance().filter(request.getFilter()).range(request.getRange()).build());
+        message.setProperty(QuerySpec.QUERY_SPEC, request.getQuerySpec());
         return message;
     }
 

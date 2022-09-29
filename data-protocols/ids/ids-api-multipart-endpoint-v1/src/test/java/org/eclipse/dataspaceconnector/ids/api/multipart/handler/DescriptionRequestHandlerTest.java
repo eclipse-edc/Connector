@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.ArtifactBuilder;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
@@ -46,7 +47,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,7 +97,7 @@ class DescriptionRequestHandlerTest {
         connectorService = mock(ConnectorService.class);
 
         handler = new DescriptionRequestHandler(mock(Monitor.class), CONNECTOR_ID, transformerRegistry,
-                assetIndex, catalogService, contractOfferService, connectorService);
+                assetIndex, catalogService, contractOfferService, connectorService, new ObjectMapper());
     }
 
     @Test
@@ -271,7 +271,8 @@ class DescriptionRequestHandlerTest {
                 .build();
 
         Map<String, Object> specsMap = new HashMap<>();
-        specsMap.put(CatalogRequest.RANGE, Map.of("from", rangeFrom, "to", rangeTo));
+        specsMap.put(QuerySpec.OFFSET, rangeFrom);
+        specsMap.put(QuerySpec.LIMIT, rangeFrom + rangeTo);
         specsMap.put(QuerySpec.FILTER_EXPRESSION, List.of(Map.of("operandLeft", PROPERTY, "operator", EQUALS_SIGN, "operandRight", VALUE)));
         message.setProperty(QuerySpec.QUERY_SPEC, specsMap);
         return message;

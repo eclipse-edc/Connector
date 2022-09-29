@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ public class QuerySpec {
 
     public static final String QUERY_SPEC = "querySpec";
     public static final String FILTER_EXPRESSION = "filterExpression";
+    public static final String OFFSET = "offset";
+    public static final String LIMIT = "limit";
 
     private int offset = 0;
     private int limit = 50;
@@ -89,6 +92,7 @@ public class QuerySpec {
         return limit;
     }
 
+    @JsonIgnore
     public Range getRange() {
         return new Range(offset, offset + limit);
     }

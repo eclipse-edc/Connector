@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
@@ -57,6 +58,7 @@ public class DescriptionRequestHandler implements Handler {
     private final CatalogService catalogService;
     private final ContractOfferService contractOfferService;
     private final ConnectorService connectorService;
+    private final ObjectMapper objectMapper;
 
     public DescriptionRequestHandler(
             @NotNull Monitor monitor,
@@ -65,7 +67,8 @@ public class DescriptionRequestHandler implements Handler {
             @NotNull AssetIndex assetIndex,
             @NotNull CatalogService catalogService,
             @NotNull ContractOfferService contractOfferService,
-            @NotNull ConnectorService connectorService) {
+            @NotNull ConnectorService connectorService,
+            @NotNull ObjectMapper objectMapper) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.transformerRegistry = transformerRegistry;
@@ -73,6 +76,7 @@ public class DescriptionRequestHandler implements Handler {
         this.catalogService = catalogService;
         this.contractOfferService = contractOfferService;
         this.connectorService = connectorService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -88,7 +92,7 @@ public class DescriptionRequestHandler implements Handler {
         // Get ID of requested element
         var requestedElement = IdsId.from(message.getRequestedElement());
 
-        var querySpec = getQuerySpec(message);
+        var querySpec = getQuerySpec(message, objectMapper);
 
         // Retrieve and transform requested element
         Result<? extends ModelClass> result;
