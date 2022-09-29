@@ -197,11 +197,14 @@ public class MultipartController {
      * @return the token.
      */
     private DynamicAttributeToken getToken(Message header) {
-        var tokenResult = tokenService.obtainDynamicAttributeToken(header.getIssuerConnector().toString());
-        if (tokenResult.succeeded()) {
-            return tokenResult.getContent();
+        if (header.getRecipientConnector() != null && !header.getRecipientConnector().isEmpty()) {
+            var recipient = header.getRecipientConnector().get(0);
+            var tokenResult = tokenService.obtainDynamicAttributeToken(recipient.toString());
+            if (tokenResult.succeeded()) {
+                return tokenResult.getContent();
+            }
         }
-    
+        
         return new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT)
                 ._tokenValue_("invalid")
