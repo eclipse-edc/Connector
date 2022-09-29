@@ -24,11 +24,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferId;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferState;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
@@ -39,6 +39,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -131,7 +132,7 @@ public class TransferProcessApiController implements TransferProcessApi {
 
     @POST
     @Override
-    public TransferId initiateTransfer(@Valid TransferRequestDto transferRequest) {
+    public IdResponseDto initiateTransfer(@Valid TransferRequestDto transferRequest) {
         var transformResult = transformerRegistry.transform(transferRequest, DataRequest.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
@@ -142,7 +143,11 @@ public class TransferProcessApiController implements TransferProcessApi {
         var result = service.initiateTransfer(dataRequest);
         if (result.succeeded()) {
             monitor.debug(format("Transfer process initialised %s", result.getContent()));
-            return new TransferId(result.getContent());
+            return IdResponseDto.Builder.newInstance()
+                    .id(result.getContent())
+                    //To be accurate createdAt should come from the transfer object
+                    .createdAt(Clock.systemUTC().millis())
+                    .build();
         } else {
             throw new InvalidRequestException(result.getFailureMessages());
         }

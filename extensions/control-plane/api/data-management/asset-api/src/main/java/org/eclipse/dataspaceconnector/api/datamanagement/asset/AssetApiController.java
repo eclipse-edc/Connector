@@ -29,6 +29,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
@@ -64,7 +65,7 @@ public class AssetApiController implements AssetApi {
 
     @POST
     @Override
-    public void createAsset(@Valid AssetEntryDto assetEntryDto) {
+    public IdResponseDto createAsset(@Valid AssetEntryDto assetEntryDto) {
         var assetResult = transformerRegistry.transform(assetEntryDto.getAsset(), Asset.class);
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 
@@ -80,6 +81,11 @@ public class AssetApiController implements AssetApi {
 
         if (result.succeeded()) {
             monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
+            var resultContent = result.getContent();
+            return IdResponseDto.Builder.newInstance()
+                    .id(resultContent.getId())
+                    .createdAt(resultContent.getCreatedAt())
+                    .build();
         } else {
             throw mapToException(result, Asset.class, asset.getId());
         }

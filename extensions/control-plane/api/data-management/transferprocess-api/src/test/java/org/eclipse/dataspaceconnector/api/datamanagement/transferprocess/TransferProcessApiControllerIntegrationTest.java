@@ -35,7 +35,9 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @ExtendWith(EdcExtension.class)
 class TransferProcessApiControllerIntegrationTest {
@@ -191,15 +193,15 @@ class TransferProcessApiControllerIntegrationTest {
                 .properties(Map.of("prop", "value"))
                 .build();
 
-        var result = baseRequest()
+        baseRequest()
                 .contentType(JSON)
                 .body(request)
                 .post("/transferprocess")
                 .then()
                 .statusCode(200)
-                .extract().body().asString();
-
-        assertThat(result).isNotBlank();
+                .contentType(JSON)
+                .body("id", not(emptyString()))
+                .body("createdAt", not("0"));
     }
 
     @Test

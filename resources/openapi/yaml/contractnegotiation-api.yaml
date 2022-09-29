@@ -64,9 +64,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NegotiationId'
+                $ref: '#/components/schemas/IdResponseDto'
           description: The negotiation was successfully initiated. Returns the contract
-            negotiation ID
+            negotiation ID and created timestamp
           links:
             poll-state:
               operationId: getNegotiationState
@@ -384,9 +384,12 @@ components:
           type: string
         uid:
           type: string
-    NegotiationId:
+    IdResponseDto:
       type: object
       properties:
+        createdAt:
+          type: integer
+          format: int64
         id:
           type: string
     NegotiationInitiateRequestDto:

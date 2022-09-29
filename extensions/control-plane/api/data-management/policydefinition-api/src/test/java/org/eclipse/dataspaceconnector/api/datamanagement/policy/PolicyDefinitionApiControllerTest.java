@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -132,9 +134,29 @@ class PolicyDefinitionApiControllerTest {
         when(transformerRegistry.transform(isA(PolicyDefinitionRequestDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(policyDefinition));
 
-        controller.createPolicy(dto);
+        var policyDefinitionId = controller.createPolicy(dto);
+
+        assertThat(policyDefinitionId).isNotNull();
+        assertThat(policyDefinitionId).isInstanceOf(IdResponseDto.class);
+        assertThat(policyDefinitionId.getId()).isNotEmpty();
+        assertThat(policyDefinitionId.getCreatedAt()).isNotEqualTo(0L);
 
         verify(service).create(isA(PolicyDefinition.class));
+    }
+
+    @Test
+    void createPolicy_returnExpectedId() {
+        var policyId = UUID.randomUUID().toString();
+        var dto = PolicyDefinitionRequestDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+
+        var policyDefinition = TestFunctions.createPolicy(policyId);
+
+        when(transformerRegistry.transform(isA(PolicyDefinitionRequestDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+        when(service.create(any())).thenReturn(ServiceResult.success(policyDefinition));
+
+        var policyDefinitionId = controller.createPolicy(dto);
+        assertThat(policyDefinitionId).isNotNull();
+        assertThat(policyDefinitionId.getId()).isEqualTo(policyId);
     }
 
     @Test

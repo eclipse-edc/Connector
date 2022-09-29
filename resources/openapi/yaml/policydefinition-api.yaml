@@ -58,7 +58,12 @@ paths:
               $ref: '#/components/schemas/PolicyDefinitionRequestDto'
       responses:
         "200":
-          description: policy definition was created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
         "400":
           content:
             application/json:
@@ -207,6 +212,14 @@ components:
         target:
           type: string
         uid:
+          type: string
+    IdResponseDto:
+      type: object
+      properties:
+        createdAt:
+          type: integer
+          format: int64
+        id:
           type: string
     Permission:
       type: object

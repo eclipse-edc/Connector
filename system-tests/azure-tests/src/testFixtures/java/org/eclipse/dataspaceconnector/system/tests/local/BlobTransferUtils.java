@@ -108,7 +108,8 @@ public class BlobTransferUtils {
                 .when()
                 .post(path)
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .contentType(JSON);
     }
 
     private static RequestSpecification givenProviderBaseRequest() {

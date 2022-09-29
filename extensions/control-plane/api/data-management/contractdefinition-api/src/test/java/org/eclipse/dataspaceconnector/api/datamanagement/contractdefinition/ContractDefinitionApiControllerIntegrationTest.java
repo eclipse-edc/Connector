@@ -36,6 +36,7 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @ExtendWith(EdcExtension.class)
 public class ContractDefinitionApiControllerIntegrationTest {
@@ -115,7 +116,10 @@ public class ContractDefinitionApiControllerIntegrationTest {
                 .contentType(JSON)
                 .post("/contractdefinitions")
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is("definitionId"))
+                .body("createdAt", not("0"));
         assertThat(store.findAll(QuerySpec.max())).isNotEmpty();
     }
 

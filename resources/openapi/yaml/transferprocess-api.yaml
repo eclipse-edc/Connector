@@ -63,9 +63,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferId'
+                $ref: '#/components/schemas/IdResponseDto'
           description: The transfer was successfully initiated. Returns the transfer
-            process ID
+            process ID and created timestamp
           links:
             poll-state:
               operationId: getTransferProcessState
@@ -263,9 +263,12 @@ components:
           type: string
         contractId:
           type: string
-    TransferId:
+    IdResponseDto:
       type: object
       properties:
+        createdAt:
+          type: integer
+          format: int64
         id:
           type: string
     TransferProcessDto:

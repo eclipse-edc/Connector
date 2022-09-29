@@ -16,11 +16,13 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
+
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,11 +73,34 @@ public class AssetApiControllerTest {
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
 
-        controller.createAsset(assetEntry);
+        var assetId = controller.createAsset(assetEntry);
+
+        assertThat(assetId).isNotNull();
+        assertThat(assetId.getId()).isNotEmpty();
+        assertThat(assetId).isInstanceOf(IdResponseDto.class);
+        assertThat(assetId.getCreatedAt()).isNotEqualTo(0L);
 
         verify(transformerRegistry).transform(any(), eq(Asset.class));
         verify(transformerRegistry).transform(any(), eq(DataAddress.class));
         verify(service).create(isA(Asset.class), isA(DataAddress.class));
+    }
+
+    @Test
+    void createAsset_returnExpectedId() {
+        var assetId = UUID.randomUUID().toString();
+        var assetEntry = AssetEntryDto.Builder.newInstance()
+                .asset(AssetRequestDto.Builder.newInstance().build())
+                .dataAddress(DataAddressDto.Builder.newInstance().build())
+                .build();
+
+        var asset = Asset.Builder.newInstance().id(assetId).build();
+        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
+        when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
+
+        var returnedAssetId = controller.createAsset(assetEntry);
+        assertThat(returnedAssetId).isNotNull();
+        assertThat(returnedAssetId.getId()).isEqualTo(assetId);
     }
 
     @Test

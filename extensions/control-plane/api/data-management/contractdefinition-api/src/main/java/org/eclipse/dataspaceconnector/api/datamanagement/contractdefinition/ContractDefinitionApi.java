@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
+import org.eclipse.dataspaceconnector.api.model.IdResponseDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
@@ -57,13 +58,14 @@ public interface ContractDefinitionApi {
 
     @Operation(description = "Creates a new contract definition",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "contract definition was created successfully"),
+                    @ApiResponse(responseCode = "200", description = "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
+                            content = @Content(schema = @Schema(implementation = IdResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    void createContractDefinition(@Valid ContractDefinitionRequestDto dto);
+    IdResponseDto createContractDefinition(@Valid ContractDefinitionRequestDto dto);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
