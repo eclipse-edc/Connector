@@ -55,26 +55,32 @@ val edcScmUrl: String by project
 val groupId: String by project
 val defaultVersion: String by project
 val metaModelVersion: String by project
+val annotationProcessorVersion: String by project
+// where our SNAPSHOT versions are published to and resolved from
+val snapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+// where our release versions are published to (staging)
+val releaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+
 
 // required by the nexus publishing plugin
+
 val projectVersion: String = (project.findProperty("edcVersion") ?: defaultVersion) as String
-
-var deployUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-
+var deployUrl = releaseUrl
 if (projectVersion.contains("SNAPSHOT")) {
-    deployUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+    deployUrl = snapshotUrl
 }
 
 subprojects {
 
     repositories {
         maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+            url = uri(snapshotUrl)
         }
         mavenCentral()
         maven {
             url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
         }
+        mavenLocal()
     }
     tasks.register<DependencyReportTask>("allDependencies") {}
 
@@ -117,20 +123,37 @@ subprojects {
 }
 
 buildscript {
+    repositories {
+        maven {
+            // can't use the snapshotUrl variable here, because buildscript has a different scope
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
+        mavenLocal()
+    }
     dependencies {
         val swagger: String by project
+        val autodocPluginVersion: String by project
+
         classpath("io.swagger.core.v3:swagger-gradle-plugin:${swagger}")
+        classpath("org.eclipse.dataspaceconnector.autodoc:org.eclipse.dataspaceconnector.autodoc.gradle.plugin:${autodocPluginVersion}")
     }
 }
 
 allprojects {
     repositories {
-        mavenLocal()
+        maven {
+            url = uri(snapshotUrl)
+        }
     }
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
+    apply(plugin = "${groupId}.autodoc")
 
+    // configure which version of the annotation processor to use. defaults to the same version as the plugin
+    configure<org.eclipse.dataspaceconnector.plugins.autodoc.AutodocExtension> {
+        processorVersion.set(annotationProcessorVersion)
+    }
 
     apply(plugin = "org.eclipse.dataspaceconnector.test-summary")
 
@@ -371,7 +394,7 @@ nexusPublishing {
     repositories {
         sonatype {
             nexusUrl.set(uri("https://oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://oss.sonatype.org/content/repositories/snapshots/"))
+            snapshotRepositoryUrl.set(uri(snapshotUrl))
             username.set(System.getenv("OSSRH_USER") ?: return@sonatype)
             password.set(System.getenv("OSSRH_PASSWORD") ?: return@sonatype)
         }
