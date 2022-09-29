@@ -81,16 +81,15 @@ public class ResponseUtil {
      * @return a MessageProcessedNotificationMessage.
      */
     public static MessageProcessedNotificationMessage messageProcessedNotification(@NotNull Message correlationMessage,
-                                                                                   @NotNull String connectorId) {
+                                                                                   @NotNull IdsId connectorId) {
         var messageId = getMessageId();
-        var connectorIdUri = getConnectorUrn(connectorId);
 
         return new MessageProcessedNotificationMessageBuilder(messageId)
                 ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
-                ._issuerConnector_(connectorIdUri)
-                ._senderAgent_(connectorIdUri)
+                ._issuerConnector_(connectorId.toUri())
+                ._senderAgent_(connectorId.toUri())
                 ._correlationMessage_(correlationMessage.getId())
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
@@ -105,16 +104,15 @@ public class ResponseUtil {
      * @return a RequestInProcessMessage.
      */
     public static RequestInProcessMessage requestInProcess(@NotNull Message correlationMessage,
-                                                           @NotNull String connectorId) {
+                                                           @NotNull IdsId connectorId) {
         var messageId = getMessageId();
-        var connectorIdUri = getConnectorUrn(connectorId);
 
         return new RequestInProcessMessageBuilder(messageId)
                 ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
-                ._issuerConnector_(connectorIdUri)
-                ._senderAgent_(connectorIdUri)
+                ._issuerConnector_(connectorId.toUri())
+                ._senderAgent_(connectorId.toUri())
                 ._correlationMessage_(correlationMessage.getId())
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
@@ -129,16 +127,15 @@ public class ResponseUtil {
      * @return a DescriptionResponseMessage.
      */
     public static DescriptionResponseMessage descriptionResponse(@NotNull Message correlationMessage,
-                                                                 @NotNull String connectorId) {
+                                                                 @NotNull IdsId connectorId) {
         var messageId = getMessageId();
-        var connectorIdUri = getConnectorUrn(connectorId);
 
         return new DescriptionResponseMessageBuilder(messageId)
                 ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
-                ._issuerConnector_(connectorIdUri)
-                ._senderAgent_(connectorIdUri)
+                ._issuerConnector_(connectorId.toUri())
+                ._senderAgent_(connectorId.toUri())
                 ._correlationMessage_(correlationMessage.getId())
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
@@ -158,7 +155,7 @@ public class ResponseUtil {
      */
     public static Message inProcessFromStatusResult(@NotNull StatusResult<?> statusResult,
                                                     @NotNull Message correlationMessage,
-                                                    @NotNull String connectorId) {
+                                                    @NotNull IdsId connectorId) {
         if (statusResult.succeeded()) {
             return requestInProcess(correlationMessage, connectorId);
         } else {
@@ -183,7 +180,7 @@ public class ResponseUtil {
      */
     public static Message processedFromStatusResult(@NotNull StatusResult<?> statusResult,
                                                     @NotNull Message correlationMessage,
-                                                    @NotNull String connectorId) {
+                                                    @NotNull IdsId connectorId) {
         if (statusResult.succeeded()) {
             return messageProcessedNotification(correlationMessage, connectorId);
         } else {
@@ -204,7 +201,7 @@ public class ResponseUtil {
      */
     @NotNull
     public static RejectionMessage notFound(@NotNull Message correlationMessage,
-                                            @NotNull String connectorId) {
+                                            @NotNull IdsId connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_FOUND)
                 .build();
@@ -219,7 +216,7 @@ public class ResponseUtil {
      */
     @NotNull
     public static RejectionMessage notAuthenticated(@NotNull Message correlationMessage,
-                                                    @NotNull String connectorId) {
+                                                    @NotNull IdsId connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_AUTHENTICATED)
                 .build();
@@ -234,7 +231,7 @@ public class ResponseUtil {
      */
     @NotNull
     public static RejectionMessage notAuthorized(@NotNull Message correlationMessage,
-                                                 @NotNull String connectorId) {
+                                                 @NotNull IdsId connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_AUTHORIZED)
                 .build();
@@ -249,7 +246,7 @@ public class ResponseUtil {
      */
     @NotNull
     public static RejectionMessage malformedMessage(@Nullable Message correlationMessage,
-                                                    @NotNull String connectorId) {
+                                                    @NotNull IdsId connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.MALFORMED_MESSAGE)
                 .build();
@@ -264,7 +261,7 @@ public class ResponseUtil {
      */
     @NotNull
     public static RejectionMessage messageTypeNotSupported(@NotNull Message correlationMessage,
-                                                           @NotNull String connectorId) {
+                                                           @NotNull IdsId connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED)
                 .build();
@@ -279,7 +276,7 @@ public class ResponseUtil {
      */
     @NotNull
     public static RejectionMessage badParameters(@NotNull Message correlationMessage,
-                                                 @NotNull String connectorId) {
+                                                 @NotNull IdsId connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.BAD_PARAMETERS)
                 .build();
@@ -294,7 +291,7 @@ public class ResponseUtil {
      */
     @NotNull
     public static RejectionMessage internalRecipientError(@NotNull Message correlationMessage,
-                                                          @NotNull String connectorId) {
+                                                          @NotNull IdsId connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.INTERNAL_RECIPIENT_ERROR)
                 .build();
@@ -309,17 +306,16 @@ public class ResponseUtil {
      */
     @NotNull
     private static RejectionMessageBuilder createRejectionMessageBuilder(@Nullable Message correlationMessage,
-                                                                         @NotNull String connectorId) {
+                                                                         @NotNull IdsId connectorId) {
 
         var messageId = getMessageId();
-        var connectorIdUri = getConnectorUrn(connectorId);
 
         var builder = new RejectionMessageBuilder(messageId)
                 ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
-                ._issuerConnector_(connectorIdUri)
-                ._senderAgent_(connectorIdUri);
+                ._issuerConnector_(connectorId.toUri())
+                ._senderAgent_(connectorId.toUri());
 
         if (correlationMessage != null) {
             builder._correlationMessage_(correlationMessage.getId());
@@ -337,15 +333,5 @@ public class ResponseUtil {
      */
     private static URI getMessageId() {
         return IdsId.Builder.newInstance().value(UUID.randomUUID().toString()).type(IdsType.MESSAGE).build().toUri();
-    }
-
-    /**
-     * Creates the connector URN from the connector ID.
-     *
-     * @param connectorId the connector ID.
-     * @return the connector URN.
-     */
-    private static URI getConnectorUrn(String connectorId) {
-        return IdsId.Builder.newInstance().value(connectorId).type(IdsType.CONNECTOR).build().toUri();
     }
 }

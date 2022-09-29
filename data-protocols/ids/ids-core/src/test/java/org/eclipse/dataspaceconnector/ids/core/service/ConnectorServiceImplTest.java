@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ConnectorServiceImplTest {
-    private static final String CONNECTOR_ID = "edc";
+    private static final IdsId CONNECTOR_ID = IdsId.from("urn:connector:edc").getContent();
     private static final String CONNECTOR_TITLE = "connectorTitle";
     private static final String CONNECTOR_DESCRIPTION = "connectorDescription";
     private static final SecurityProfile CONNECTOR_SECURITY_PROFILE = SecurityProfile.TRUST_PLUS_SECURITY_PROFILE;

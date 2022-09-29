@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenService;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -57,14 +58,14 @@ public class MultipartController {
     private static final String PAYLOAD = "payload";
 
     private final Monitor monitor;
-    private final String connectorId;
+    private final IdsId connectorId;
     private final List<Handler> multipartHandlers;
     private final ObjectMapper objectMapper;
     private final DynamicAttributeTokenService tokenService;
     private final String idsWebhookAddress;
 
     public MultipartController(@NotNull Monitor monitor,
-                               @NotNull String connectorId,
+                               @NotNull IdsId connectorId,
                                @NotNull ObjectMapper objectMapper,
                                @NotNull DynamicAttributeTokenService tokenService,
                                @NotNull List<Handler> multipartHandlers,

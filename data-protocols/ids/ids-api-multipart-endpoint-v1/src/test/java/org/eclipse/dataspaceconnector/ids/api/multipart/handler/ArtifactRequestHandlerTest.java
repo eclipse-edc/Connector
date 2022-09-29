@@ -24,6 +24,7 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -59,7 +60,7 @@ class ArtifactRequestHandlerTest {
     private ArtifactRequestHandler handler;
 
     private TransferProcessManager transferProcessManager;
-    private String connectorId;
+    private IdsId connectorId;
     private ContractValidationService contractValidationService;
     private ContractNegotiationStore contractNegotiationStore;
 
@@ -80,7 +81,7 @@ class ArtifactRequestHandlerTest {
     @BeforeEach
     public void setUp() {
         transferProcessManager = mock(TransferProcessManager.class);
-        connectorId = UUID.randomUUID().toString();
+        connectorId = IdsId.from("urn:connector:" + UUID.randomUUID()).getContent();
         Monitor monitor = mock(Monitor.class);
         contractValidationService = mock(ContractValidationService.class);
         contractNegotiationStore = mock(ContractNegotiationStore.class);
@@ -111,7 +112,7 @@ class ArtifactRequestHandlerTest {
 
         assertThat(drCapture.getValue().getId()).hasToString(artifactRequestId);
         assertThat(drCapture.getValue().getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
-        assertThat(drCapture.getValue().getConnectorId()).isEqualTo(connectorId);
+        assertThat(drCapture.getValue().getConnectorId()).isEqualTo(connectorId.toUri().toString());
         assertThat(drCapture.getValue().getAssetId()).isEqualTo(agreement.getAssetId());
         assertThat(drCapture.getValue().getContractId()).isEqualTo(agreement.getId());
         assertThat(drCapture.getValue().getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());

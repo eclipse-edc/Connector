@@ -52,7 +52,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil
 
 public class DescriptionRequestHandler implements Handler {
     private final Monitor monitor;
-    private final String connectorId;
+    private final IdsId connectorId;
     private final IdsTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
     private final CatalogService catalogService;
@@ -62,7 +62,7 @@ public class DescriptionRequestHandler implements Handler {
 
     public DescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull IdsId connectorId,
             @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull AssetIndex assetIndex,
             @NotNull CatalogService catalogService,

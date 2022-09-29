@@ -23,8 +23,6 @@ import de.fraunhofer.iais.eis.util.TypedLiteral;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,9 +51,8 @@ public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Co
         if (object == null) {
             return null;
         }
-
-        var id = IdsId.Builder.newInstance().value(object.getId()).type(IdsType.CONNECTOR).build().toUri();
-        var builder = new BaseConnectorBuilder(id);
+        
+        var builder = new BaseConnectorBuilder(object.getId().toUri());
 
         if (object.getDataCatalogs() != null) {
             var catalogs = new ArrayList<ResourceCatalog>();

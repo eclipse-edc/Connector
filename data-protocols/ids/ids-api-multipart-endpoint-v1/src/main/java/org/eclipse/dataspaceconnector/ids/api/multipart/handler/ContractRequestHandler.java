@@ -46,14 +46,14 @@ public class ContractRequestHandler implements Handler {
 
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
-    private final String connectorId;
+    private final IdsId connectorId;
     private final ProviderContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
 
     public ContractRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull IdsId connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ProviderContractNegotiationManager negotiationManager,
             @NotNull IdsTransformerRegistry transformerRegistry,

@@ -22,6 +22,7 @@ import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.ResponseMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,8 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ResponseUtilTest {
-    private final String connectorId = "38bfeade-3566-11ec-8d3d-0242ac130003";
-    private final URI connectorIdUri = URI.create("urn:connector:" + connectorId);
+    private final IdsId connectorId = IdsId.from("urn:connector:38bfeade-3566-11ec-8d3d-0242ac130003").getContent();
     private final URI correlationMessageId = URI.create("urn:message:7c35205e-3566-11ec-8d3d-0242ac130003");
     private final URI senderAgent = URI.create("urn:sender:7c352356-3566-11ec-8d3d-0242ac130003");
     private final URI issuerConnector = URI.create("urn:issuer:7c35255e-3566-11ec-8d3d-0242ac130003");
@@ -270,7 +270,7 @@ class ResponseUtilTest {
     private void assertConnectorIdPropertiesMapped(Message message) {
         assertThat(message).isNotNull();
 
-        assertThat(message.getIssuerConnector()).isEqualTo(connectorIdUri);
-        assertThat(message.getSenderAgent()).isEqualTo(connectorIdUri);
+        assertThat(message.getIssuerConnector()).isEqualTo(connectorId.toUri());
+        assertThat(message.getSenderAgent()).isEqualTo(connectorId.toUri());
     }
 }
