@@ -8,14 +8,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *        Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.common.util.junit.annotations;
+package org.eclipse.dataspaceconnector.core.security.hashicorpvault.annotations;
 
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,11 +23,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Common annotation for integration testing.  It applies integration-test Junit Tag.
+ * Composite annotation for HashicorpVault integration testing. It applies specific Junit Tag.
  */
-@Target({ElementType.ANNOTATION_TYPE})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Test
-@Tag("IntegrationTest")
-public @interface IntegrationTest {
+@IntegrationTest
+@Tag("HashicorpVaultTest")
+public @interface HashicorpVaultTest {
 }
