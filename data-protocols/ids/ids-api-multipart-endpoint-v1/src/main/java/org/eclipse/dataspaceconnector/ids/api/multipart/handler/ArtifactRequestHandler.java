@@ -161,7 +161,7 @@ public class ArtifactRequestHandler implements Handler {
                 .id(message.getId().toString())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .dataDestination(dataDestination)
-                .connectorId(connectorId.toUri().toString())
+                .connectorId(connectorId.toString())
                 .assetId(contractAgreement.getAssetId())
                 .contractId(contractAgreement.getId())
                 .properties(props)

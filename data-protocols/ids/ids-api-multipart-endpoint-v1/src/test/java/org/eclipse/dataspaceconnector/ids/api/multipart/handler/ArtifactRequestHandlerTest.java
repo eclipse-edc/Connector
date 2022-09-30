@@ -112,7 +112,7 @@ class ArtifactRequestHandlerTest {
 
         assertThat(drCapture.getValue().getId()).hasToString(artifactRequestId);
         assertThat(drCapture.getValue().getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
-        assertThat(drCapture.getValue().getConnectorId()).isEqualTo(connectorId.toUri().toString());
+        assertThat(drCapture.getValue().getConnectorId()).isEqualTo(connectorId.toString());
         assertThat(drCapture.getValue().getAssetId()).isEqualTo(agreement.getAssetId());
         assertThat(drCapture.getValue().getContractId()).isEqualTo(agreement.getId());
         assertThat(drCapture.getValue().getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
