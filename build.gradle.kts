@@ -34,7 +34,7 @@ repositories {
 
 dependencies {
     "swaggerCodegen"("org.openapitools:openapi-generator-cli:6.2.0")
-    "swaggerUI"("org.webjars:swagger-ui:4.14.0")
+    "swaggerUI"("org.webjars:swagger-ui:4.14.2")
 }
 
 val jetBrainsAnnotationsVersion: String by project
