@@ -2,20 +2,20 @@
 
 ## Decision
 
-This record wants to describe what it would take to switch the current way we are using to retrieve objects from sql query,
-that fetches everything in memory and then creates a `Stream` out of the resulting `List`, to a version where a `Stream`
-is actually used to iterate over the `ResultSet`.
+We decided to switch the current way we are using to retrieve objects from sql query - that fetches everything in memory 
+and then creates a `Stream` out of the resulting `List` - to a version where a `Stream` is actually used to iterate 
+over the `ResultSet`.
 
 ## Rationale
 
 Now that the EDC is being used by teams that are pushing its limits with heavy workloads we noticed, especially on catalog request,
 that a lot of time is wasted fetching all the rows in memory and then opening a stream later on.
-A `SplitIterator` could be used to create a stream that actually fetches items lazily.
+A `Spliterator` could be used to create a stream that actually fetches items lazily.
 
 
 ## Approach
 
-To obtain streaming we would add a method in the `SqlQueryExecutor` that creates a stream with a `SplitIterator` that iterates on the `ResultSet`.
+To obtain streaming we would add a method in the `SqlQueryExecutor` that creates a stream with a `Spliterator` that iterates on the `ResultSet`.
 
 Here are some code snippets starting from the bottom to the top:
 
