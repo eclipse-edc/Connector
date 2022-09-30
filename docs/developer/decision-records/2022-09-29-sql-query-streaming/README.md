@@ -27,7 +27,7 @@ public final class SqlQueryExecutor {
 
     ...
 
-    public static <T> Stream<T> executeQueryStream(Connection connection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
+    public static <T> Stream<T> executeQueryStream(Connection connection, boolean closeConnection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
         try {
             var statement = connection.prepareStatement(sql);
             statement.setFetchSize(5000);
@@ -48,11 +48,16 @@ public final class SqlQueryExecutor {
                 }
 
             }, false).onClose(() -> {
-                // close connection/statement/resultSet    
+                // close statement/resultSet    
+                if (closeConnection) {
+                    // close connection
+                }
             });
         } catch (SQLException sqlEx) {
-            // close connection/statement/resultSet if opened
-
+            // close statement/resultSet if opened
+            if (closeConnection) {
+                // close connection
+            }
             throw new EdcPersistenceException(sqlEx);
         }
     }
@@ -76,7 +81,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             try {
                 var connection = getConnection();
                 var queryStmt = statements.createQuery(spec);
-                return executeQueryStream(connection, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
+                return executeQueryStream(connection, true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
