@@ -79,6 +79,9 @@ class DescriptionRequestHandlerTest {
     private static final String PROPERTY = "property";
     private static final String VALUE = "value";
     private static final String EQUALS_SIGN = "=";
+    private static final String FILTER_EXPRESSION = "filterExpression";
+    private static final String OFFSET = "offset";
+    private static final String LIMIT = "limit";
 
     private DescriptionRequestHandler handler;
 
@@ -271,9 +274,9 @@ class DescriptionRequestHandlerTest {
                 .build();
 
         Map<String, Object> specsMap = new HashMap<>();
-        specsMap.put(QuerySpec.OFFSET, rangeFrom);
-        specsMap.put(QuerySpec.LIMIT, rangeFrom + rangeTo);
-        specsMap.put(QuerySpec.FILTER_EXPRESSION, List.of(Map.of("operandLeft", PROPERTY, "operator", EQUALS_SIGN, "operandRight", VALUE)));
+        specsMap.put(OFFSET, rangeFrom);
+        specsMap.put(LIMIT, rangeFrom + rangeTo);
+        specsMap.put(FILTER_EXPRESSION, List.of(Map.of("operandLeft", PROPERTY, "operator", EQUALS_SIGN, "operandRight", VALUE)));
         message.setProperty(QuerySpec.QUERY_SPEC, specsMap);
         return message;
     }
