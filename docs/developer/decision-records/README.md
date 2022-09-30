@@ -37,3 +37,5 @@
 - [2022-08-11 Versioning and Artifacts](2022-08-11-versioning_and_artifacts/)
 - [2022-08-17 Remove H2 Database Tests](2022-08-17-remove_h2_database_tests/)
 - [2022-09-18 IDS catalog request filtering](2022-09-18-ids-catalog-request-filtering/)
+- [2022-09-23 Extract metamodel and autodoc](2022-09-23-extract-metamodel-and-autodoc/)
+- [2022-09-29 Sql Query Streaming](2022-09-29-sql-query-streaming)
