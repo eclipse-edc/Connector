@@ -20,7 +20,7 @@ To obtain streaming we would add a method in the `SqlQueryExecutor` that creates
 Here are some code snippets starting from the bottom to the top:
 
 The `SqlQueryExecutor.executeQueryStream` method:
-(note: `Connection`/`Statement`/`ResultSet` needs to be closed when the stream has been closed (this event is caught by the `onClose` method)
+(note: `Statement`/`ResultSet` needs to be closed when the stream has been closed through the `onClose` method, the `Connection` closure would be attached to this event if `closeConnection` is true)
 
 ```java
 public final class SqlQueryExecutor {
@@ -66,8 +66,7 @@ public final class SqlQueryExecutor {
 }
 ```
 
-A caller of the `executeQueryStream` method, please note that the `Connection` must not be closed by the caller as it's done
-currently with the `try-as-resources` statement.
+A caller of the `executeQueryStream` method, please note that the `Connection` is not closed by the caller anymore.
 
 ```java
 public class SqlContractDefinitionStore implements ContractDefinitionStore {
@@ -77,7 +76,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return transactionContext.execute(() -> {
-            // try (var connection = getConnection()) { // this is the old way, not needed now as the connection will be closed by the stream itself
+            // try (var connection = getConnection()) { // the connection will be closed by the stream itself
             try {
                 var connection = getConnection();
                 var queryStmt = statements.createQuery(spec);
