@@ -6,6 +6,7 @@ paths:
       parameters:
       - in: query
         name: providerUrl
+        required: true
         schema:
           type: string
       - in: query
