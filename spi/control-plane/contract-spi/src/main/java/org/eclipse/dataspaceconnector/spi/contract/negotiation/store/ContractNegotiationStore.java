@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
  * Stores {@link ContractNegotiation}s and their associated types such as {@link ContractAgreement}s.
  * <p>
  */
+@ExtensionPoint
 public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
 
     /**

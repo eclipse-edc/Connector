@@ -14,10 +14,12 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.observe;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
 
 /**
  * Manages and invokes {@link TransferProcessListener}s when an event related to a transfer process is emitted.
  */
+@ExtensionPoint
 public interface TransferProcessObservable extends Observable<TransferProcessListener> {
 }

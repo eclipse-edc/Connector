@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.M
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type.MultipartEndpointDataReferenceRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -39,8 +40,10 @@ import java.net.URI;
 
 import static org.eclipse.dataspaceconnector.ids.core.util.ConnectorIdUtil.resolveConnectorId;
 
+@Extension(value = IdsMultipartDispatcherServiceExtension.NAME)
 public class IdsMultipartDispatcherServiceExtension implements ServiceExtension {
 
+    public static final String NAME = "IDS Multipart Dispatcher API";
     @Inject
     private Monitor monitor;
 
@@ -64,7 +67,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
 
     @Override
     public String name() {
-        return "IDS Multipart Dispatcher API";
+        return NAME;
     }
 
     @Override

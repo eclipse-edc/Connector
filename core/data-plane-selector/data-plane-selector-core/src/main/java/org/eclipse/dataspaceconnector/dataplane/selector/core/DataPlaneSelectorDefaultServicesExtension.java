@@ -16,17 +16,21 @@ package org.eclipse.dataspaceconnector.dataplane.selector.core;
 
 import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstanceStore;
 import org.eclipse.dataspaceconnector.dataplane.selector.store.DefaultDataPlaneInstanceStore;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
 /**
  * Provides default service implementations for fallback
+ * Omitted {@link Extension} since this module contains the extension {@link DataPlaneSelectorExtension}
  */
 public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Plane Selector Default Services";
+
     @Override
     public String name() {
-        return "Data Plane Selector Default Services";
+        return NAME;
     }
 
     @Provider(isDefault = true)

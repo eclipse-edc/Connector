@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.asset;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 /**
  * Resolves a {@link DataAddress} that is associated with an Asset.
  */
 @FunctionalInterface
+@ExtensionPoint
 public interface DataAddressResolver {
     /**
      * Resolves a {@link DataAddress} for a given {@code Asset}. A {@code DataAddress} can be understood as a pointer into

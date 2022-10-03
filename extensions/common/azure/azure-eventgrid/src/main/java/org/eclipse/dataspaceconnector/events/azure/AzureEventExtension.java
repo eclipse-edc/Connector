@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.events.azure;
 
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.messaging.eventgrid.EventGridPublisherClientBuilder;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -25,8 +26,10 @@ import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObserv
 
 import java.util.Objects;
 
+@Extension(value = AzureEventExtension.NAME)
 public class AzureEventExtension implements ServiceExtension {
 
+    public static final String NAME = "Azure Events";
     @Inject
     private Monitor monitor;
 
@@ -35,7 +38,7 @@ public class AzureEventExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Azure Events";
+        return NAME;
     }
 
     @Override

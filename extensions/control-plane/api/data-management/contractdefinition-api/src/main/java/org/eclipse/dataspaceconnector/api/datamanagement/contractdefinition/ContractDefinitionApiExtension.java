@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.tran
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.CriterionDtoToCriterionTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.CriterionToCriterionDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -37,7 +38,9 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import java.time.Clock;
 
 @Provides(ContractDefinitionService.class)
+@Extension(value = ContractDefinitionApiExtension.NAME)
 public class ContractDefinitionApiExtension implements ServiceExtension {
+    public static final String NAME = "Data Management API: Contract Definition";
     @Inject
     WebService webService;
 
@@ -61,7 +64,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Management API: Contract Definition";
+        return NAME;
     }
 
     @Override

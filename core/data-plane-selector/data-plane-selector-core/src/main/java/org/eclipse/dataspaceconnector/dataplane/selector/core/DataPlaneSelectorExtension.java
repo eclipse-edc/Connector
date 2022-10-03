@@ -21,12 +21,14 @@ import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstance
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.RandomSelectionStrategy;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategyRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 @Provides({ DataPlaneSelector.class, SelectionStrategyRegistry.class, DataPlaneSelectorService.class })
+@Extension(value = "DataPlane core selector")
 public class DataPlaneSelectorExtension implements ServiceExtension {
 
     @Inject

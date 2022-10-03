@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.dataplane.selector.client;
 
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * Main interaction interface for an EDC runtime (=control plane) to communicate with the DPF selector.
  */
+@ExtensionPoint
 public interface DataPlaneSelectorClient {
 
     /**

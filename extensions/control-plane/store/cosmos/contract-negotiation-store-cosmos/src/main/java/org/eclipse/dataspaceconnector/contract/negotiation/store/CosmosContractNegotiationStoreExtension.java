@@ -18,6 +18,7 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -30,8 +31,10 @@ import java.time.Clock;
 
 
 @Provides({ ContractNegotiationStore.class })
+@Extension(value = CosmosContractNegotiationStoreExtension.NAME)
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
+    public static final String NAME = "CosmosDB ContractNegotiation Store";
     @Inject
     private Vault vault;
 
@@ -43,7 +46,7 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
 
     @Override
     public String name() {
-        return "CosmosDB ContractNegotiation Store";
+        return NAME;
     }
 
     @Override

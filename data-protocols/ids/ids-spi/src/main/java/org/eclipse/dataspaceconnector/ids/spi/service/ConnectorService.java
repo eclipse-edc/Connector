@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.Connector;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * The IDS service is able to create IDS compliant descriptions of resources. These descriptions may be used to create a
  * self-description or answer a Description Request Message.
  */
+@ExtensionPoint
 public interface ConnectorService {
 
     /**

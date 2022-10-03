@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ import java.util.Collection;
 /**
  * The following interface is created for the implementation of the policy definition endpoint.
  */
-
+@ExtensionPoint
 public interface PolicyDefinitionService {
 
     /**

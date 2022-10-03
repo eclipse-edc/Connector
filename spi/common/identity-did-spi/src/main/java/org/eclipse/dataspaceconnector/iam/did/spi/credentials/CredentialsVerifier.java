@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.credentials;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map;
  * Obtains and verifies credentials associated with a DID according to an implementation-specific trust model.
  */
 @FunctionalInterface
+@ExtensionPoint
 public interface CredentialsVerifier {
 
 

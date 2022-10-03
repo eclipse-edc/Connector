@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.policy.store;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 /**
  * Persists {@link Policy}.
  */
+@ExtensionPoint
 public interface PolicyDefinitionStore {
 
     /**

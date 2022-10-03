@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -36,8 +37,10 @@ import java.util.Objects;
 /**
  * Registers a {@link TransferService} for performing data transfers with Azure Data Factory.
  */
+@Extension(value = DataPlaneAzureDataFactoryExtension.NAME)
 public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Plane Azure Data Factory";
     @EdcSetting
     private static final String KEY_VAULT_LINKED_SERVICE_NAME = "edc.data.factory.key.vault.linkedservicename";
     @EdcSetting
@@ -46,7 +49,6 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
     private static final String KEY_VAULT_RESOURCE_ID = "edc.data.factory.key.vault.resource.id";
     @EdcSetting
     private static final String DATA_FACTORY_POLL_DELAY = "edc.data.factory.poll.delay.ms";
-
     @Inject
     private TransferServiceRegistry registry;
 
@@ -70,7 +72,7 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane Azure Data Factory";
+        return NAME;
     }
 
     @Override

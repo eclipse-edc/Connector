@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.spi;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * Internal datastore where all the catalogs from all the other connectors are stored by the FederatedCatalogCache.
  */
+@ExtensionPoint
 public interface FederatedCacheStore {
 
     /**

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.cosmos.policy.store;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -28,8 +29,10 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 @Provides({ PolicyDefinitionStore.class })
+@Extension(value = CosmosPolicyStoreExtension.NAME)
 public class CosmosPolicyStoreExtension implements ServiceExtension {
 
+    public static final String NAME = "CosmosDB Policy Store";
     @Inject
     private RetryPolicy<Object> retryPolicy;
 
@@ -43,7 +46,7 @@ public class CosmosPolicyStoreExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "CosmosDB Policy Store";
+        return NAME;
     }
 
     @Override

@@ -15,11 +15,13 @@
 
 package org.eclipse.dataspaceconnector.spi.command;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Links together a Command and its handler class
  */
+@ExtensionPoint
 public interface CommandHandlerRegistry {
 
     /**
@@ -30,6 +32,5 @@ public interface CommandHandlerRegistry {
     /**
      * Returns a handler that can process the command.
      */
-    @Nullable
-    <C extends Command> CommandHandler<C> get(Class<C> commandClass);
+    @Nullable <C extends Command> CommandHandler<C> get(Class<C> commandClass);
 }

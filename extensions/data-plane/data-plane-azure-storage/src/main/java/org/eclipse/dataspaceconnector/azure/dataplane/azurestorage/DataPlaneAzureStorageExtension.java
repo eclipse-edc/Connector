@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.Azur
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -28,8 +29,10 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 /**
  * Provides support for reading data from an Azure Storage Blob endpoint and sending data to an Azure Storage Blob endpoint.
  */
+@Extension(value = DataPlaneAzureStorageExtension.NAME)
 public class DataPlaneAzureStorageExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Plane Azure Storage";
     @Inject
     private RetryPolicy retryPolicy;
 
@@ -47,7 +50,7 @@ public class DataPlaneAzureStorageExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane Azure Storage";
+        return NAME;
     }
 
     @Override

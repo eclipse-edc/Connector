@@ -14,11 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.validation;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 import java.lang.reflect.Method;
 
 /**
  * Provides an interface where customers can register functions to intercept Jersey resource methods, for example for performing their own validation logic.
  */
+@ExtensionPoint
 public interface InterceptorFunctionRegistry {
 
     /**

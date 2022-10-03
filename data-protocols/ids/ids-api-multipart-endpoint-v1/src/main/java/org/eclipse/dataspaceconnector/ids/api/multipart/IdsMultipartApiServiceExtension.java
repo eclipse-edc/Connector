@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -54,8 +55,10 @@ import static org.eclipse.dataspaceconnector.ids.core.util.ConnectorIdUtil.resol
 /**
  * ServiceExtension providing IDS multipart related API controllers
  */
+@Extension(value = IdsMultipartApiServiceExtension.NAME)
 public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
+    public static final String NAME = "IDS Multipart API";
     @Inject
     private Monitor monitor;
 
@@ -109,7 +112,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "IDS Multipart API";
+        return NAME;
     }
 
     @Override

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.message;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
  * The registry may support multiple protocols and communication patterns, for example HTTP-based and classic message-oriented variants. Consequently, some protocols may be
  * non-blocking, others my be synchronous request-response.
  */
+@ExtensionPoint
 public interface RemoteMessageDispatcherRegistry {
 
     /**

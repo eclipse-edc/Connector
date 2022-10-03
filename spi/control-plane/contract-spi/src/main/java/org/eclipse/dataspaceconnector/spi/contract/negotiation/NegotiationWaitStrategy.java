@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 
 /**
@@ -22,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
  * Implementations may choose to enforce an incremental backoff period when successive errors are encountered.
  */
 @FunctionalInterface
+@ExtensionPoint
 public interface NegotiationWaitStrategy extends WaitStrategy {
 
 

@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.ids.api.configuration;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.WebServer;
@@ -28,6 +29,7 @@ import static java.lang.String.format;
  * Provides configuration information for IDS API endpoints to other extensions.
  */
 @Provides(IdsApiConfiguration.class)
+@Extension(value = IdsApiConfigurationExtension.NAME)
 public class IdsApiConfigurationExtension implements ServiceExtension {
     @EdcSetting
     public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
@@ -38,13 +40,14 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
 
     public static final int DEFAULT_IDS_PORT = 8282;
     public static final String DEFAULT_IDS_API_PATH = "/api/v1/ids";
+    public static final String NAME = "IDS API Configuration";
 
     @Inject
     private WebServer webServer;
 
     @Override
     public String name() {
-        return "IDS API Configuration";
+        return NAME;
     }
 
     @Override

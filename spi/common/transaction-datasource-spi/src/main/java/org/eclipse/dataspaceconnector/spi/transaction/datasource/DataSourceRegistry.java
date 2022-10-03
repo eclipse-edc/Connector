@@ -14,11 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.transaction.datasource;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 import javax.sql.DataSource;
 
 /**
  * A registry of configured data sources.
  */
+@ExtensionPoint
 public interface DataSourceRegistry {
 
     /**

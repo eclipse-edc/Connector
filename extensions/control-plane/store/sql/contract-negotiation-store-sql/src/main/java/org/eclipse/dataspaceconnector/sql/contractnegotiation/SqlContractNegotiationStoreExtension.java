@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -28,6 +29,7 @@ import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postg
 import java.time.Clock;
 
 @Provides({ ContractNegotiationStore.class })
+@Extension(value = "SQL contract negotiation store")
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";

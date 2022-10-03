@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,13 +12,16 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
+package org.eclipse.dataspaceconnector.spi.transfer.status;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A registry of {@link StatusChecker}s. Status checkers are responsible for determining if a transfer process is complete.
  */
+@ExtensionPoint
 public interface StatusCheckerRegistry {
 
     /**

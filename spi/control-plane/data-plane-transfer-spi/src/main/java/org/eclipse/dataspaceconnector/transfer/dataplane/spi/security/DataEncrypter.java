@@ -14,10 +14,13 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.spi.security;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 /**
  * Interface for encryption/decryption of sensible data.
  * This is especially used to secure the data address encoded as claim in the security token.
  */
+@ExtensionPoint
 public interface DataEncrypter {
     String encrypt(String raw);
 

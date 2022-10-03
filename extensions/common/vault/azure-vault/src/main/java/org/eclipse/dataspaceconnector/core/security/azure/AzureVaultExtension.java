@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.core.security.azure;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
@@ -27,26 +28,24 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import static org.eclipse.dataspaceconnector.common.string.StringUtils.isNullOrEmpty;
 
 @Provides({ Vault.class, PrivateKeyResolver.class, CertificateResolver.class })
+@Extension(value = AzureVaultExtension.NAME)
 public class AzureVaultExtension implements ServiceExtension {
 
+    public static final String NAME = "Azure Vault";
     @EdcSetting
     private static final String VAULT_CLIENT_ID = "edc.vault.clientid";
-
     @EdcSetting
     private static final String VAULT_TENANT_ID = "edc.vault.tenantid";
-
     @EdcSetting
     private static final String VAULT_NAME = "edc.vault.name";
-
     @EdcSetting
     private static final String VAULT_CLIENT_SECRET = "edc.vault.clientsecret";
-
     @EdcSetting
     private static final String VAULT_CERTIFICATE = "edc.vault.certificate";
 
     @Override
     public String name() {
-        return "Azure Vault";
+        return NAME;
     }
 
     @Override

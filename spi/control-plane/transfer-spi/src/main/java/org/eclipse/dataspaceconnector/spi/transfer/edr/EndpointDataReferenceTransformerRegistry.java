@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.edr;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Registry for {@link EndpointDataReferenceTransformer}.
  */
+@ExtensionPoint
 public interface EndpointDataReferenceTransformerRegistry {
     /**
      * Adds a new {@link EndpointDataReferenceTransformer} into the registry.

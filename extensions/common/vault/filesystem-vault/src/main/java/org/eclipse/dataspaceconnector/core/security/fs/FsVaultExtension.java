@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.core.security.fs;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
@@ -30,6 +31,7 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.eclipse.dataspaceconnector.core.security.fs.FsConfiguration.KEYSTORE_LOCATION;
 import static org.eclipse.dataspaceconnector.core.security.fs.FsConfiguration.KEYSTORE_PASSWORD;
 import static org.eclipse.dataspaceconnector.core.security.fs.FsConfiguration.PERSISTENT_VAULT;
@@ -40,11 +42,14 @@ import static org.eclipse.dataspaceconnector.core.security.fs.FsConfiguration.VA
  */
 @BaseExtension
 @Provides({ Vault.class, PrivateKeyResolver.class, CertificateResolver.class })
+@Extension(value = FsVaultExtension.NAME)
 public class FsVaultExtension implements ServiceExtension {
+
+    public static final String NAME = "FS Vault";
 
     @Override
     public String name() {
-        return "FS Vault";
+        return NAME;
     }
 
     @Override
@@ -53,7 +58,8 @@ public class FsVaultExtension implements ServiceExtension {
         context.registerService(Vault.class, vault);
 
         KeyStore keyStore = loadKeyStore();
-        var privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
+        var keystorePassword = propOrEnv(KEYSTORE_PASSWORD, null);
+        var privateKeyResolver = new FsPrivateKeyResolver(keystorePassword, keyStore);
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
 
         var certificateResolver = new FsCertificateResolver(keyStore);
@@ -61,26 +67,30 @@ public class FsVaultExtension implements ServiceExtension {
     }
 
     private Vault initializeVault() {
-        var vaultPath = Paths.get(VAULT_LOCATION);
+        var vaultLocation = propOrEnv(VAULT_LOCATION, "dataspaceconnector-vault.properties");
+        var vaultPath = Paths.get(vaultLocation);
         if (!Files.exists(vaultPath)) {
-            throw new EdcException("Vault file does not exist: " + VAULT_LOCATION);
+            throw new EdcException("Vault file does not exist: " + vaultLocation);
         }
-        return new FsVault(vaultPath, PERSISTENT_VAULT);
+        var persistentVault = Boolean.parseBoolean(propOrEnv(PERSISTENT_VAULT, "true"));
+        return new FsVault(vaultPath, persistentVault);
     }
 
     private KeyStore loadKeyStore() {
-        var keyStorePath = Paths.get(KEYSTORE_LOCATION);
+        var keyStoreLocation = propOrEnv(KEYSTORE_LOCATION, "dataspaceconnector-keystore.jks");
+        var keyStorePath = Paths.get(keyStoreLocation);
         if (!Files.exists(keyStorePath)) {
-            throw new EdcException("Key store does not exist: " + KEYSTORE_LOCATION);
+            throw new EdcException("Key store does not exist: " + keyStoreLocation);
         }
 
-        if (KEYSTORE_PASSWORD == null) {
+        var keystorePassword = propOrEnv(KEYSTORE_PASSWORD, null);
+        if (keystorePassword == null) {
             throw new EdcException("Key store password was not specified");
         }
 
         try (InputStream stream = Files.newInputStream(keyStorePath)) {
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(stream, KEYSTORE_PASSWORD.toCharArray());
+            keyStore.load(stream, keystorePassword.toCharArray());
             return keyStore;
         } catch (IOException | GeneralSecurityException e) {
             throw new EdcException(e);

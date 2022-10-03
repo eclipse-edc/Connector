@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManag
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service.ContractAgreementServiceImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -26,8 +27,10 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
+@Extension(value = ContractAgreementApiExtension.NAME)
 public class ContractAgreementApiExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Management API: Contract Agreement";
     @Inject
     WebService webService;
 
@@ -46,7 +49,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Management API: Contract Agreement";
+        return NAME;
     }
 
     @Override

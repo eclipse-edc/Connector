@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.sql.pool.commons;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -33,7 +34,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
+@Extension(value = CommonsConnectionPoolServiceExtension.NAME)
 public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
+    public static final String NAME = "Commons Connection Pool";
     static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
     private final List<CommonsConnectionPool> commonsConnectionPools = new LinkedList<>();
     @Inject
@@ -67,7 +70,7 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Commons Connection Pool";
+        return NAME;
     }
 
     @Override

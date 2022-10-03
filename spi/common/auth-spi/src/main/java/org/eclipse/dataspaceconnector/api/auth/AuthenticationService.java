@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.api.auth;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 
 import java.util.List;
 import java.util.Map;
 
 @FunctionalInterface
+@ExtensionPoint
 public interface AuthenticationService {
 
     /**

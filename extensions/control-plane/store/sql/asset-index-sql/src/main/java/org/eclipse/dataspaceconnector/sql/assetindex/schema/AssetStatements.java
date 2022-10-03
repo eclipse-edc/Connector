@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.sql.assetindex.schema;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 /**
  * Defines queries used by the SqlAssetIndexServiceExtension.
  */
+@ExtensionPoint
 public interface AssetStatements {
 
     /**

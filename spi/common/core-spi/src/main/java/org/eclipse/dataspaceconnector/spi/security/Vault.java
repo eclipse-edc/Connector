@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.security;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides secrets such as certificates and keys to the runtime.
  */
+@ExtensionPoint
 public interface Vault {
 
     /**

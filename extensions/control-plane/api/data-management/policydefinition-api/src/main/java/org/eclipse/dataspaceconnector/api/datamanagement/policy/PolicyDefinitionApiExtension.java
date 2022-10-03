@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDe
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.transform.PolicyDefinitionRequestDtoToPolicyDefinitionTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.transform.PolicyDefinitionToPolicyDefinitionResponseDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -35,8 +36,10 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import java.time.Clock;
 
 @Provides(PolicyDefinitionService.class)
+@Extension(value = PolicyDefinitionApiExtension.NAME)
 public class PolicyDefinitionApiExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Management API: Policy";
     @Inject
     private DtoTransformerRegistry transformerRegistry;
     @Inject
@@ -56,7 +59,7 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Management API: Policy";
+        return NAME;
     }
 
     @Override

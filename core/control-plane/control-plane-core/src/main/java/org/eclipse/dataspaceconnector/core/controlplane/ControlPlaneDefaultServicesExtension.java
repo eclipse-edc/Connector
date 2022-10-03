@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.core.controlplane.defaults.contractdefinit
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.negotiationstore.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.policystore.InMemoryPolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.transferprocessstore.InMemoryTransferProcessStore;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -34,14 +35,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * Provides default service implementations for fallback
  */
+@Extension(value = ControlPlaneDefaultServicesExtension.NAME)
 public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
+    public static final String NAME = "Control Plane Default Services";
     private InMemoryAssetIndex assetIndex;
     private InMemoryContractDefinitionStore contractDefinitionStore;
 
     @Override
     public String name() {
-        return "Control Plane Default Services";
+        return NAME;
     }
 
     @Provider(isDefault = true)

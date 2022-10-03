@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.transfer.flow;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Manages data flows and dispatches to {@link DataFlowController}s.
  */
+@ExtensionPoint
 public interface DataFlowManager {
 
     /**

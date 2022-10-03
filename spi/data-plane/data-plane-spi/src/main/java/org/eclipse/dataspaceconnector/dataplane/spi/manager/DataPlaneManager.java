@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.dataplane.spi.manager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -26,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Manages the execution of data plane requests.
  */
+@ExtensionPoint
 public interface DataPlaneManager {
 
     /**

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.spi;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +24,7 @@ import java.util.Map;
  * Permits to add custom form parameters for oauth2 client credentials request
  */
 @FunctionalInterface
+@ExtensionPoint
 public interface CredentialsRequestAdditionalParametersProvider {
 
     /**

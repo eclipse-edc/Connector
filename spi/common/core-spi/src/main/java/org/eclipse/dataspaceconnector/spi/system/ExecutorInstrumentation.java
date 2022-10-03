@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -25,6 +27,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * modules can provide implementations of the {@link ExecutorInstrumentation} sub-interface,
  * such as for collecting metrics.
  */
+@ExtensionPoint
 public interface ExecutorInstrumentation {
     /**
      * Default implementation that does not provide any instrumentation. Extension

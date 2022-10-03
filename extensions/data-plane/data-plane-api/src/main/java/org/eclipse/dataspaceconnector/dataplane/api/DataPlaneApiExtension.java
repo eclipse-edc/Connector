@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlanePublicAp
 import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClientImpl;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -33,13 +34,13 @@ import java.util.concurrent.Executors;
  * - Control API: set of endpoints to trigger/monitor/cancel data transfers that should be accessible only from the Control Plane.
  * - Public API: generic endpoint open to other participants of the Dataspace and used to proxy a data request to the actual data source.
  */
+@Extension(value = DataPlaneApiExtension.NAME)
 public class DataPlaneApiExtension implements ServiceExtension {
+    public static final String NAME = "Data Plane API";
     @EdcSetting
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
-
     private static final String CONTROL = "control";
     private static final String PUBLIC = "public";
-
     @Inject
     private DataPlaneManager dataPlaneManager;
 
@@ -51,7 +52,7 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane API";
+        return NAME;
     }
 
     @Override

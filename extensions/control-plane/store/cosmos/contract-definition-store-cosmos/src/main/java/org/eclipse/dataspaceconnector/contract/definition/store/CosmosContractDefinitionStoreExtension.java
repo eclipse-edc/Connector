@@ -18,6 +18,7 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
@@ -29,8 +30,10 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 @Provides({ ContractDefinitionStore.class })
+@Extension(value = CosmosContractDefinitionStoreExtension.NAME)
 public class CosmosContractDefinitionStoreExtension implements ServiceExtension {
 
+    public static final String NAME = "CosmosDB ContractDefinition Store";
     @Inject
     private Vault vault;
 
@@ -48,7 +51,7 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
 
     @Override
     public String name() {
-        return "CosmosDB ContractDefinition Store";
+        return NAME;
     }
 
     @Override

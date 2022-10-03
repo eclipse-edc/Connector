@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -26,20 +27,20 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.dataspaceconnector.spi.transfer.status.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 
 /**
  * Provides data transfer {@link org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner}s backed by AWS services.
  */
+@Extension(value = AwsProvisionExtension.NAME)
 public class AwsProvisionExtension implements ServiceExtension {
 
+    public static final String NAME = "AWS Provision";
     @EdcSetting
     private static final String PROVISION_MAX_RETRY = "edc.aws.provision.retry.retries.max";
-
     @EdcSetting
     private static final String PROVISION_MAX_ROLE_SESSION_DURATION = "edc.aws.provision.role.duration.session.max";
-
     @Inject
     private Vault vault;
     @Inject
@@ -49,7 +50,7 @@ public class AwsProvisionExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "AWS Provision";
+        return NAME;
     }
 
     @Override
@@ -58,7 +59,7 @@ public class AwsProvisionExtension implements ServiceExtension {
 
         var provisionManager = context.getService(ProvisionManager.class);
 
-        @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
+        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
 
         int maxRetries = context.getSetting(PROVISION_MAX_RETRY, 10);
         int roleMaxSessionDuration = context.getSetting(PROVISION_MAX_ROLE_SESSION_DURATION, 3600);

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.security;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.security.cert.X509Certificate;
@@ -21,6 +22,7 @@ import java.security.cert.X509Certificate;
 /**
  * Resolves X509 certificates.
  */
+@ExtensionPoint
 public interface CertificateResolver {
 
     /**

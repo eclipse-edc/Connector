@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpSourceRequestP
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -32,14 +33,15 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 /**
  * Provides support for reading data from an HTTP endpoint and sending data to an HTTP endpoint.
  */
+@Extension(value = DataPlaneHttpExtension.NAME)
 public class DataPlaneHttpExtension implements ServiceExtension {
+    public static final String NAME = "Data Plane HTTP";
     private static final int DEFAULT_PART_SIZE = 5;
     @EdcSetting
     private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
     @Inject
     private OkHttpClient httpClient;
     @Inject
-    @SuppressWarnings("rawtypes")
     private RetryPolicy retryPolicy;
     @Inject
     private PipelineService pipelineService;
@@ -50,7 +52,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane HTTP";
+        return NAME;
     }
 
     @Override
@@ -58,7 +60,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
 
-        @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, new HttpSourceRequestParamsSupplier(vault));
+        var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, new HttpSourceRequestParamsSupplier(vault));
         pipelineService.registerFactory(sourceFactory);
 
         var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, new HttpSinkRequestParamsSupplier(vault));

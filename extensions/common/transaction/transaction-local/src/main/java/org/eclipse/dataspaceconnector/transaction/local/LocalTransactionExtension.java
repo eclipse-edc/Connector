@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transaction.local;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -24,10 +25,14 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
  * Support for transaction context backed by one or more local resources, including a {@link DataSourceRegistry}.
  */
 @Provides({ DataSourceRegistry.class, TransactionContext.class })
+@Extension(value = LocalTransactionExtension.NAME)
 public class LocalTransactionExtension implements ServiceExtension {
+
+    public static final String NAME = "Local Transaction";
+
     @Override
     public String name() {
-        return "Local Transaction";
+        return NAME;
     }
 
     @Override

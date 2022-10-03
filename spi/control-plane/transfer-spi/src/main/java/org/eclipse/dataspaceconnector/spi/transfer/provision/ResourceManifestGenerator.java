@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -25,8 +26,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 /**
  * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy constraints associated with transfer requests.
  */
+@ExtensionPoint
 public interface ResourceManifestGenerator {
-    
+
     @PolicyScope
     String MANIFEST_VERIFICATION_SCOPE = "provision.manifest.verify";
 

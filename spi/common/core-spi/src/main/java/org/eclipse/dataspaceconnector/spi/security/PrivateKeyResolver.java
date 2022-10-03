@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.security;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
@@ -22,6 +23,7 @@ import java.util.function.Function;
  * Resolves security keys by type.
  */
 @FunctionalInterface
+@ExtensionPoint
 public interface PrivateKeyResolver {
 
     /**

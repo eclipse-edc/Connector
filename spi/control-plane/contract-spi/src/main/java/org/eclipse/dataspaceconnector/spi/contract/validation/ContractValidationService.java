@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.validation;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -25,14 +26,15 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Validates {@link ContractOffer}s and {@link ContractAgreement}s.
  */
+@ExtensionPoint
 public interface ContractValidationService {
-    
+
     @PolicyScope
     String NEGOTIATION_SCOPE = "contract.negotiation";
 
     /**
      * Validates and sanitizes the contract offer for the consumer represented by the given claims.
-     *
+     * <p>
      * The original offer must be validated and sanitized to avoid policy and asset injection attacks by malicious consumers.
      */
     @NotNull

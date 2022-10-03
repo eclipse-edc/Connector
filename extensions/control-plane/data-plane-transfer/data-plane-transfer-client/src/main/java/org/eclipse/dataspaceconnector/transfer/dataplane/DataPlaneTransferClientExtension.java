@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -34,11 +35,12 @@ import java.util.Objects;
 /**
  * Provides client to delegate data transfer to Data Plane.
  */
+@Extension(value = DataPlaneTransferClientExtension.NAME)
 public class DataPlaneTransferClientExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Plane Transfer Client";
     @EdcSetting
     private static final String DPF_SELECTOR_STRATEGY = "edc.transfer.client.selector.strategy";
-
     @Inject(required = false)
     private DataPlaneSelectorClient selectorClient;
 
@@ -59,7 +61,7 @@ public class DataPlaneTransferClientExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane Transfer Client";
+        return NAME;
     }
 
     @Override

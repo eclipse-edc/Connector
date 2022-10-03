@@ -16,21 +16,19 @@ package org.eclipse.dataspaceconnector.core.security.fs;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
-
 public final class FsConfiguration {
 
     @EdcSetting
-    static final String VAULT_LOCATION = propOrEnv("edc.vault", "dataspaceconnector-vault.properties");
+    static final String VAULT_LOCATION = "edc.vault";
 
     @EdcSetting
-    static final String KEYSTORE_LOCATION = propOrEnv("edc.keystore", "dataspaceconnector-keystore.jks");
+    static final String KEYSTORE_LOCATION = "edc.keystore";
 
     @EdcSetting
-    static final String KEYSTORE_PASSWORD = propOrEnv("edc.keystore.password", null);
+    static final String KEYSTORE_PASSWORD = "edc.keystore.password";
 
     @EdcSetting
-    static final boolean PERSISTENT_VAULT = Boolean.parseBoolean(propOrEnv("edc.vault.persistent", "true"));
+    static final String PERSISTENT_VAULT = "edc.vault.persistent";
 
 
     private FsConfiguration() {

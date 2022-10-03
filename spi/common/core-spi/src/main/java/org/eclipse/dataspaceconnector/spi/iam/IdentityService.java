@@ -16,12 +16,14 @@
 
 package org.eclipse.dataspaceconnector.spi.iam;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 /**
  * Obtains client security tokens from an identity provider.
  * Providers may implement different authorization protocols such as OAuth2.
  */
+@ExtensionPoint
 public interface IdentityService {
 
     /**
@@ -36,7 +38,7 @@ public interface IdentityService {
      * Verifies a JWT bearer token.
      *
      * @param tokenRepresentation A token representation including the token to verify.
-     * @param audience Expected audience.
+     * @param audience            Expected audience.
      * @return Result of the validation.
      */
     Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience);

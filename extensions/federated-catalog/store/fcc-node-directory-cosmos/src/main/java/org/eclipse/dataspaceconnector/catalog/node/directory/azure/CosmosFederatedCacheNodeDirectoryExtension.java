@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -30,8 +31,10 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
  * Provides a persistent implementation of the {@link FederatedCacheNodeDirectory} using CosmosDB.
  */
 @Provides(FederatedCacheNodeDirectory.class)
+@Extension(value = CosmosFederatedCacheNodeDirectoryExtension.NAME)
 public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtension {
 
+    public static final String NAME = "CosmosDB Federated Cache Node Directory";
     @Inject
     private Vault vault;
 
@@ -40,7 +43,7 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
 
     @Override
     public String name() {
-        return "CosmosDB Federated Cache Node Directory";
+        return NAME;
     }
 
     @Override

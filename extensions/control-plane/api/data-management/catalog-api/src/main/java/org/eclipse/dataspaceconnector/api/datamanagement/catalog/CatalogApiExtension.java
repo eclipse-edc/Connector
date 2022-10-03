@@ -17,13 +17,16 @@ package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+@Extension(value = CatalogApiExtension.NAME)
 public class CatalogApiExtension implements ServiceExtension {
+    public static final String NAME = "Data Management API: Catalog";
     @Inject
     private WebService webService;
 
@@ -38,7 +41,7 @@ public class CatalogApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Management API: Catalog";
+        return NAME;
     }
 
     @Override

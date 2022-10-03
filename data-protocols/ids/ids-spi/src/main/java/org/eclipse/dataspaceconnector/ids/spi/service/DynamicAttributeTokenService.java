@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
@@ -24,8 +25,9 @@ import java.net.URI;
  * Wrapper for the {@link org.eclipse.dataspaceconnector.spi.iam.IdentityService} that handles
  * {@link DynamicAttributeToken}s.
  */
+@ExtensionPoint
 public interface DynamicAttributeTokenService {
-    
+
     /**
      * Obtains a client token as a DynamicAttributeToken.
      *
@@ -33,15 +35,15 @@ public interface DynamicAttributeTokenService {
      * @return the token result.
      */
     Result<DynamicAttributeToken> obtainDynamicAttributeToken(String recipientAddress);
-    
+
     /**
      * Verifies a received DynamicAttributeToken.
      *
-     * @param token the token to verify.
+     * @param token           the token to verify.
      * @param issuerConnector the connector that sent the token.
-     * @param audience the token audience.
+     * @param audience        the token audience.
      * @return the result of the validation.
      */
     Result<ClaimToken> verifyDynamicAttributeToken(DynamicAttributeToken token, URI issuerConnector, String audience);
-    
+
 }

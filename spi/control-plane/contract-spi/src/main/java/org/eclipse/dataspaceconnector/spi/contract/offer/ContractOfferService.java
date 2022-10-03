@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,6 +23,8 @@ import java.util.stream.Stream;
 /**
  * Resolves contract offers.
  */
+
+@ExtensionPoint
 public interface ContractOfferService {
 
     /**

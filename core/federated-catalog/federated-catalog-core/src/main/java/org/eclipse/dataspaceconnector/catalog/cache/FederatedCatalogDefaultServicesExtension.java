@@ -26,12 +26,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Provides default service implementations for fallback
+ * Omitted {@link org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension since there this module already contains {@link FederatedCatalogCacheExtension} }
  */
 public class FederatedCatalogDefaultServicesExtension implements ServiceExtension {
 
+    public static final String NAME = "Federated Catalog Default Services";
+
     @Override
     public String name() {
-        return "Federated Catalog Default Services";
+        return NAME;
     }
 
     @Provider(isDefault = true)

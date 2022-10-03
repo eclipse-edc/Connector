@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
@@ -30,6 +31,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 @Provides({ Vault.class, PrivateKeyResolver.class, CertificateResolver.class })
+@Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
 
     @EdcSetting(value = "The URL of the Hashicorp Vault", required = true)
@@ -37,6 +39,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @EdcSetting(value = "The token used to access the Hashicorp Vault", required = true)
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
+    public static final String NAME = "Hashicorp Vault";
 
     @Inject
     private OkHttpClient okHttpClient;
@@ -50,7 +53,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Hashicorp Vault";
+        return NAME;
     }
 
     @Provider

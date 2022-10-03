@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
@@ -21,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.Transfer
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
  */
+@ExtensionPoint
 public interface TransferProcessManager {
 
     /**

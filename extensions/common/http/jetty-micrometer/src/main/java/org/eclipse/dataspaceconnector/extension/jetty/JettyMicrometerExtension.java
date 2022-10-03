@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.extension.jetty;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -25,12 +26,14 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  * An extension that registers Micrometer {@link JettyConnectionMetrics} into Jetty to
  * provide server metrics.
  */
+@Extension(value = JettyMicrometerExtension.NAME)
 public class JettyMicrometerExtension implements ServiceExtension {
 
     @EdcSetting
     public static final String ENABLE_METRICS = "edc.metrics.enabled";
     @EdcSetting
     public static final String ENABLE_JETTY_METRICS = "edc.metrics.jetty.enabled";
+    public static final String NAME = "Jetty Micrometer Metrics";
 
     @Inject
     private JettyService jettyService;
@@ -40,7 +43,7 @@ public class JettyMicrometerExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Jetty Micrometer Metrics";
+        return NAME;
     }
 
     @Override
