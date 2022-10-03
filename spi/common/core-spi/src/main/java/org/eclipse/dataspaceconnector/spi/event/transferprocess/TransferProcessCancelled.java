@@ -47,6 +47,10 @@ public class TransferProcessCancelled extends Event<TransferProcessCancelled.Pay
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a TransferProcess Cancelled Event
+     *
+     */
     public static class Payload extends TransferProcessEventPayload {
     }
 }

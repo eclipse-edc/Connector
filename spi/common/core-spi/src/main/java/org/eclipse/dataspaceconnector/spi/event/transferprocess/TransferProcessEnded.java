@@ -47,6 +47,10 @@ public class TransferProcessEnded extends Event<TransferProcessEnded.Payload> {
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a TransferProcess Ended Event
+     *
+     */
     public static class Payload extends TransferProcessEventPayload {
     }
 }

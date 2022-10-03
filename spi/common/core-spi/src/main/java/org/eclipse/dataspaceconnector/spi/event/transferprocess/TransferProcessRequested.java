@@ -47,6 +47,10 @@ public class TransferProcessRequested extends Event<TransferProcessRequested.Pay
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a TransferProcess Requested Event
+     *
+     */
     public static class Payload extends TransferProcessEventPayload {
     }
 }

@@ -17,6 +17,11 @@ package org.eclipse.dataspaceconnector.spi.event.transferprocess;
 
 import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
+/**
+ *  Class as organizational between level to catch events of type TransferProcess to catch them together in an Event Subscriber
+ *  Contains data related to transfer processes
+ *
+ */
 public class TransferProcessEventPayload extends EventPayload {
     protected String transferProcessId;
 

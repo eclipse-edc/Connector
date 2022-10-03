@@ -48,6 +48,10 @@ public class AssetCreated extends Event<AssetCreated.Payload> {
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a Asset Creation Event
+     *
+     */
     public static class Payload extends AssetEventPayload {
 
     }

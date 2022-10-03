@@ -17,6 +17,11 @@ package org.eclipse.dataspaceconnector.spi.event.asset;
 
 import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
+/**
+ *  Class as organizational between level to catch events of type Asset to catch them together in an Event Subscriber
+ *  Contains data related to asset events
+ *
+ */
 public class AssetEventPayload extends EventPayload {
     protected String assetId;
 

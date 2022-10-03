@@ -47,6 +47,10 @@ public class TransferProcessFailed extends Event<TransferProcessFailed.Payload> 
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a TransferProcess Failed Event
+     *
+     */
     public static class Payload extends TransferProcessEventPayload {
     }
 }

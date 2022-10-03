@@ -41,13 +41,23 @@ public class ExampleEventSubscriber implements EventSubscriber {
 }
 ```
 
-All the events are subclass of the `Event` abstract class so to filter events it's enough to check the type at runtime.
+To filter events, the payload classes of the events can be used. There are 5 "Intermediate superclasses" (AssetEventPayload, 
+ContractDefinitionEventPayload, ContractNegotiationEventPayload, PolicyDefinitionEventPayload, TransferProcessEventPayload) of 
+which one payload class inherits in each case. These intermediate superclasses inherit again from the class EventPayload. Thus, 
+in addition to filtering on a specific event, such as TransferProcessCompleted, it is possible to react to a group of events 
+that generally have to do with Assets, ContractDefinition, ContractNegotiation, PolicyDefinition and TransferProcess. You can 
+also filter for the EventClass directly, like seen in the example for the event AssetCreated.
+
 ```java
 public class ExampleEventSubscriber implements EventSubscriber {
     
     public void on(Event event) {
-        if (event instanceof AssertCreated) {
-            // react only to AssertCreated events
+        if (event instanceof AssetCreated) {
+            // react only to AssetCreated events
+        }
+        
+        if (event.getPayload() instanceof TransferProcessEventPayload) {
+            // react on Events related to TransferProcessEvents
         }
     }
     

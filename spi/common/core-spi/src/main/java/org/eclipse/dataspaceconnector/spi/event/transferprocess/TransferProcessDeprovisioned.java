@@ -47,6 +47,10 @@ public class TransferProcessDeprovisioned extends Event<TransferProcessDeprovisi
         }
     }
 
+    /**
+     * This class contains all event specific attributes of a TransferProcess Deprovisioned Event
+     *
+     */
     public static class Payload extends TransferProcessEventPayload {
     }
 }
