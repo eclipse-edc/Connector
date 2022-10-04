@@ -14,7 +14,9 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.Optional.ofNullable;
@@ -25,14 +27,13 @@ public class RequestUtil {
      * Extracts an arbitrary property from a {@link DescriptionRequestMessage}
      *
      * @param message The message
-     * @param propertyName the name of the property
-     * @param defaultValue If the message does not contain that property the default value is returned.
-     * @return either the property parsed into an Integer, or the default value
+     * @param objectMapper The objectMapper
+     * @return either the property parsed into specific type, or the default value
      */
-    public static int getInt(@NotNull DescriptionRequestMessage message, String propertyName, int defaultValue) {
+    public static QuerySpec getQuerySpec(@NotNull DescriptionRequestMessage message, ObjectMapper objectMapper) {
         return ofNullable(message.getProperties())
-                .map(map -> map.get(propertyName))
-                .map(v -> Integer.parseInt(v.toString()))
-                .orElse(defaultValue);
+            .map(map -> map.get(QuerySpec.QUERY_SPEC))
+            .map(specEntry -> objectMapper.convertValue(specEntry, QuerySpec.class))
+            .orElse(QuerySpec.none());
     }
 }

@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
  * is tunnelled through to the database level.
  */
 public class QuerySpec {
+
+    public static final String QUERY_SPEC = "querySpec";
+
     private int offset = 0;
     private int limit = 50;
     private List<Criterion> filterExpression = new ArrayList<>();

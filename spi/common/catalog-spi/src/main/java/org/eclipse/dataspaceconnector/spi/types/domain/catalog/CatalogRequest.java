@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.spi.types.domain.catalog;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.eclipse.dataspaceconnector.spi.message.Range;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,13 +32,14 @@ public class CatalogRequest implements RemoteMessage {
     private final String protocol;
     private final String connectorId;
     private final String connectorAddress;
-    private final Range range;
+    private final QuerySpec querySpec;
 
-    private CatalogRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress, @Nullable Range range) {
+    private CatalogRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress,
+            @Nullable QuerySpec querySpec) {
         this.protocol = protocol;
         this.connectorId = connectorId;
         this.connectorAddress = connectorAddress;
-        this.range = range;
+        this.querySpec = querySpec;
     }
 
     @NotNull
@@ -58,30 +59,27 @@ public class CatalogRequest implements RemoteMessage {
         return connectorId;
     }
 
-    public Range getRange() {
-        return range;
+    public QuerySpec getQuerySpec() {
+        return querySpec;
     }
 
-
     public Builder toBuilder() {
-        return new Builder(protocol, connectorId, connectorAddress, range);
+        return new Builder(protocol, connectorId, connectorAddress, querySpec);
     }
 
     public static class Builder {
         private String protocol;
         private String connectorId;
         private String connectorAddress;
-        private Range range;
+        private QuerySpec querySpec;
 
-        private Builder() {
+        private Builder() {}
 
-        }
-
-        private Builder(String protocol, String connectorId, String connectorAddress, Range range) {
+        private Builder(String protocol, String connectorId, String connectorAddress, QuerySpec querySpec) {
             this.protocol = protocol;
             this.connectorId = connectorId;
             this.connectorAddress = connectorAddress;
-            this.range = range;
+            this.querySpec = querySpec;
         }
 
         @JsonCreator
@@ -104,8 +102,8 @@ public class CatalogRequest implements RemoteMessage {
             return this;
         }
 
-        public CatalogRequest.Builder range(Range range) {
-            this.range = range;
+        public CatalogRequest.Builder querySpec(QuerySpec querySpec) {
+            this.querySpec = querySpec;
             return this;
         }
 
@@ -114,7 +112,7 @@ public class CatalogRequest implements RemoteMessage {
             Objects.requireNonNull(connectorId, "connectorId");
             Objects.requireNonNull(connectorAddress, "connectorAddress");
 
-            return new CatalogRequest(protocol, connectorId, connectorAddress, range);
+            return new CatalogRequest(protocol, connectorId, connectorAddress, querySpec);
         }
     }
 }

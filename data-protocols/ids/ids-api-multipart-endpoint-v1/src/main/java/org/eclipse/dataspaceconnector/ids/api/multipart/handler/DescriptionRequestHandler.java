@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
@@ -34,16 +35,16 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RequestUtil.getInt;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RequestUtil.getQuerySpec;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.descriptionResponse;
@@ -57,6 +58,7 @@ public class DescriptionRequestHandler implements Handler {
     private final CatalogService catalogService;
     private final ContractOfferService contractOfferService;
     private final ConnectorService connectorService;
+    private final ObjectMapper objectMapper;
 
     public DescriptionRequestHandler(
             @NotNull Monitor monitor,
@@ -65,7 +67,8 @@ public class DescriptionRequestHandler implements Handler {
             @NotNull AssetIndex assetIndex,
             @NotNull CatalogService catalogService,
             @NotNull ContractOfferService contractOfferService,
-            @NotNull ConnectorService connectorService) {
+            @NotNull ConnectorService connectorService,
+            @NotNull ObjectMapper objectMapper) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.transformerRegistry = transformerRegistry;
@@ -73,6 +76,7 @@ public class DescriptionRequestHandler implements Handler {
         this.catalogService = catalogService;
         this.contractOfferService = contractOfferService;
         this.connectorService = connectorService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -88,19 +92,15 @@ public class DescriptionRequestHandler implements Handler {
         // Get ID of requested element
         var requestedElement = IdsId.from(message.getRequestedElement());
 
-        //TODO: IDS REFACTORING: this should be a named property of the message object
-        // extract paging information, default to 0 ... Integer.MAX_VALUE
-        var from = getInt(message, Range.FROM, 0);
-        var to = getInt(message, Range.TO, Integer.MAX_VALUE);
-        var range = new Range(from, to);
+        var querySpec = getQuerySpec(message, objectMapper);
 
         // Retrieve and transform requested element
         Result<? extends ModelClass> result;
         if (requestedElement.failed() || requestedElement.getContent() == null ||
                 (requestedElement.getContent().getType() == IdsType.CONNECTOR)) {
-            result = getConnector(claimToken, range);
+            result = getConnector(claimToken, querySpec);
         } else {
-            var retrievedObject = retrieveRequestedElement(requestedElement.getContent(), claimToken, range);
+            var retrievedObject = retrieveRequestedElement(requestedElement.getContent(), claimToken, querySpec);
             if (retrievedObject == null) {
                 return createMultipartResponse(notFound(message, connectorId));
             }
@@ -118,8 +118,8 @@ public class DescriptionRequestHandler implements Handler {
         return createMultipartResponse(descriptionResponse(message, connectorId), result.getContent());
     }
 
-    private Result<Connector> getConnector(ClaimToken claimToken, Range range) {
-        return transformerRegistry.transform(connectorService.getConnector(claimToken, range), Connector.class);
+    private Result<Connector> getConnector(ClaimToken claimToken, QuerySpec querySpec) {
+        return transformerRegistry.transform(connectorService.getConnector(claimToken, querySpec), Connector.class);
     }
 
     /**
@@ -128,17 +128,17 @@ public class DescriptionRequestHandler implements Handler {
      *
      * @param idsId the ID.
      * @param claimToken the claim token of the requesting connector.
-     * @param range the range.
+     * @param querySpec the QuerySpec containing Range and/or filtering criteria.
      * @return the requested element.
      */
-    private Object retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, Range range) {
+    private Object retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, QuerySpec querySpec) {
         var type = idsId.getType();
         switch (type) {
             case ARTIFACT:
             case REPRESENTATION:
                 return assetIndex.findById(idsId.getValue());
             case CATALOG:
-                return catalogService.getDataCatalog(claimToken, range);
+                return catalogService.getDataCatalog(claimToken, querySpec);
             case RESOURCE:
                 var assetId = idsId.getValue();
                 var asset = assetIndex.findById(assetId);
@@ -148,9 +148,9 @@ public class DescriptionRequestHandler implements Handler {
 
                 var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
                         .claimToken(claimToken)
-                        .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
+                        .assetsCriterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build();
-                var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery, range).collect(toList());
+                var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).collect(toList());
 
                 return new OfferedAsset(asset, targetingContractOffers);
             default:

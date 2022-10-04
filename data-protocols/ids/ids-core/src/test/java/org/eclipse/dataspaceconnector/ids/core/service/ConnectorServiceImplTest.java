@@ -18,8 +18,8 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class ConnectorServiceImplTest {
         when(connectorServiceSettings.getCurator()).thenReturn(CONNECTOR_CURATOR);
         var claimToken = ClaimToken.Builder.newInstance().build();
 
-        var result = connectorService.getConnector(claimToken, new Range(0, 100));
+        var result = connectorService.getConnector(claimToken, QuerySpec.none());
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CONNECTOR_ID);

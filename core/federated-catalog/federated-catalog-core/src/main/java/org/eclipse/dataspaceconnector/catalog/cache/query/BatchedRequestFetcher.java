@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.catalog.cache.query;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -53,7 +54,7 @@ public class BatchedRequestFetcher {
     @NotNull
     public CompletableFuture<List<ContractOffer>> fetch(CatalogRequest catalogRequest, int from, int batchSize) {
         var range = new Range(from, from + batchSize);
-        var rq = catalogRequest.toBuilder().range(range).build();
+        var rq = catalogRequest.toBuilder().querySpec(QuerySpec.Builder.newInstance().range(range).build()).build();
 
         return dispatcherRegistry.send(Catalog.class, rq, () -> null)
                 .thenApply(Catalog::getContractOffers)
@@ -72,11 +73,4 @@ public class BatchedRequestFetcher {
         list1.addAll(list2);
         return list1;
     }
-
-
-    private Catalog getCatalog(CatalogRequest catalogRequest, int from, int to) {
-        var future = dispatcherRegistry.send(Catalog.class, catalogRequest.toBuilder().range(new Range(from, to)).build(), () -> null);
-        return future.join();
-    }
-
 }

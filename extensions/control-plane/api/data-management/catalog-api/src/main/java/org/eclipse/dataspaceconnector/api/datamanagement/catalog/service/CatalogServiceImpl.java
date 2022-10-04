@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft - initial API and implementation
+ *       ZF Friedrichshafen AG - enable asset filtering
  *
  */
 
@@ -35,7 +36,7 @@ public class CatalogServiceImpl implements CatalogService {
                 .protocol("ids-multipart")
                 .connectorId(providerUrl)
                 .connectorAddress(providerUrl)
-                .range(spec.getRange())
+                .querySpec(spec)
                 .build();
 
         return dispatcher.send(Catalog.class, request, () -> null);

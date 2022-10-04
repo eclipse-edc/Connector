@@ -9,13 +9,14 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       ZF Friedrichshafen AG - enable asset filtering
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,5 +31,5 @@ public interface CatalogService {
      * @return data catalog
      */
     @NotNull
-    Catalog getDataCatalog(ClaimToken claimToken, Range range);
+    Catalog getDataCatalog(ClaimToken claimToken, QuerySpec querySpec);
 }

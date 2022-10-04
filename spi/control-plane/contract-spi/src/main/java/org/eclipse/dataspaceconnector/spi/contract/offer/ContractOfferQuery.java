@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
@@ -27,9 +28,8 @@ import java.util.List;
  */
 public class ContractOfferQuery {
     private ClaimToken claimToken;
-    private List<Criterion> criteria;
-    private long offset;
-    private long limit;
+    private List<Criterion> assetsCriteria;
+    private Range range;
 
     private ContractOfferQuery() {
     }
@@ -42,23 +42,18 @@ public class ContractOfferQuery {
         return claimToken;
     }
 
-    public List<Criterion> getCriteria() {
-        return criteria;
+    public List<Criterion> getAssetsCriteria() {
+        return assetsCriteria;
     }
 
-    public long getOffset() {
-        return offset;
-    }
-
-    public long getLimit() {
-        return limit;
+    public Range getRange() {
+        return range;
     }
 
     public static final class Builder {
-        private final List<Criterion> criteria = new ArrayList<>();
+        private final List<Criterion> assetsCriteria = new ArrayList<>();
         private ClaimToken claimToken;
-        private long offset;
-        private long limit;
+        private Range range;
 
         private Builder() {
         }
@@ -72,32 +67,26 @@ public class ContractOfferQuery {
             return this;
         }
 
-        public Builder criterion(Criterion criterion) {
-            criteria.add(criterion);
+        public Builder assetsCriterion(Criterion assetsCriterion) {
+            assetsCriteria.add(assetsCriterion);
             return this;
         }
 
-        public Builder criteria(Collection<Criterion> criteria) {
-            this.criteria.addAll(criteria);
+        public Builder assetsCriteria(Collection<Criterion> assetsCriteria) {
+            this.assetsCriteria.addAll(assetsCriteria);
             return this;
         }
 
-        public Builder offset(long offset) {
-            this.offset = offset;
-            return this;
-        }
-
-        public Builder limit(long limit) {
-            this.limit = limit;
+        public Builder range(Range range) {
+            this.range = range;
             return this;
         }
 
         public ContractOfferQuery build() {
             ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
             contractOfferQuery.claimToken = claimToken;
-            contractOfferQuery.offset = offset;
-            contractOfferQuery.limit = limit;
-            contractOfferQuery.criteria = criteria;
+            contractOfferQuery.range = range;
+            contractOfferQuery.assetsCriteria = assetsCriteria;
             return contractOfferQuery;
         }
     }

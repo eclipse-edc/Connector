@@ -53,7 +53,6 @@ class CatalogApiControllerTest {
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(new QuerySpec()));
     }
 
-
     @Test
     void shouldGetTheCatalog() {
         var controller = new CatalogApiController(service, transformerRegistry, monitor);

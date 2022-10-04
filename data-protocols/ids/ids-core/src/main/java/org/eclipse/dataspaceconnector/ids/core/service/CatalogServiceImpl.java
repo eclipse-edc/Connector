@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       ZF Friedrichshafen AG - enable asset filtering
  *
  */
 
@@ -19,8 +20,8 @@ import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,10 +50,14 @@ public class CatalogServiceImpl implements CatalogService {
      */
     @Override
     @NotNull
-    public Catalog getDataCatalog(ClaimToken claimToken, Range range) {
-        var query = ContractOfferQuery.Builder.newInstance().claimToken(claimToken).build();
+    public Catalog getDataCatalog(ClaimToken claimToken, QuerySpec querySpec) {
 
-        var offers = contractOfferService.queryContractOffers(query, range).collect(toList());
+        var query = ContractOfferQuery.Builder.newInstance()
+                .claimToken(claimToken)
+                .assetsCriteria(querySpec.getFilterExpression())
+                .range(querySpec.getRange()).build();
+
+        var offers = contractOfferService.queryContractOffers(query).collect(toList());
 
         return Catalog.Builder.newInstance().id(dataCatalogId).contractOffers(offers).build();
     }

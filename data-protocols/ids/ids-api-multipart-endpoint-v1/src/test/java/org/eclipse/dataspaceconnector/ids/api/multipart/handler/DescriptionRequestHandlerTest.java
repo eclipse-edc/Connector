@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.ArtifactBuilder;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
@@ -41,8 +42,8 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -52,6 +53,9 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,6 +76,13 @@ class DescriptionRequestHandlerTest {
     private final int rangeFrom = 0;
     private final int rangeTo = 10;
 
+    private static final String PROPERTY = "property";
+    private static final String VALUE = "value";
+    private static final String EQUALS_SIGN = "=";
+    private static final String FILTER_EXPRESSION = "filterExpression";
+    private static final String OFFSET = "offset";
+    private static final String LIMIT = "limit";
+
     private DescriptionRequestHandler handler;
 
     private IdsTransformerRegistry transformerRegistry;
@@ -89,7 +100,7 @@ class DescriptionRequestHandlerTest {
         connectorService = mock(ConnectorService.class);
 
         handler = new DescriptionRequestHandler(mock(Monitor.class), CONNECTOR_ID, transformerRegistry,
-                assetIndex, catalogService, contractOfferService, connectorService);
+                assetIndex, catalogService, contractOfferService, connectorService, new ObjectMapper());
     }
 
     @Test
@@ -130,7 +141,7 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsConnector);
 
         verify(connectorService, times(1))
-                .getConnector(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo));
+                .getConnector(any(), argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo));
         verifyNoMoreInteractions(connectorService);
         verifyNoInteractions(catalogService, contractOfferService, assetIndex);
     }
@@ -153,7 +164,11 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsCatalog);
 
         verify(catalogService, times(1))
-                .getDataCatalog(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo));
+                .getDataCatalog(any(),
+                    argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo &&
+                        query.getFilterExpression().get(0).getOperandLeft().equals(PROPERTY) &&
+                        query.getFilterExpression().get(0).getOperandRight().equals(VALUE) &&
+                        query.getFilterExpression().get(0).getOperator().equals(EQUALS_SIGN)));
         verifyNoMoreInteractions(catalogService);
         verifyNoInteractions(connectorService, contractOfferService, assetIndex);
     }
@@ -164,10 +179,6 @@ class DescriptionRequestHandlerTest {
 
         var asset = Asset.Builder.newInstance().id(assetId).build();
         var idsResource = new ResourceBuilder().build();
-        var idsId = IdsId.Builder.newInstance()
-                .type(IdsType.RESOURCE)
-                .value(assetId)
-                .build();
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
@@ -178,7 +189,7 @@ class DescriptionRequestHandlerTest {
                 .build();
 
         when(assetIndex.findById(any())).thenReturn(asset);
-        when(contractOfferService.queryContractOffers(any(), any())).thenReturn(Stream.of(contractOffer));
+        when(contractOfferService.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
         when(transformerRegistry.transform(any(), eq(Resource.class))).thenReturn(Result.success(idsResource));
 
         var response = handler.handleRequest(request);
@@ -188,8 +199,7 @@ class DescriptionRequestHandlerTest {
 
         verify(assetIndex, times(1)).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
-        verify(contractOfferService, times(1))
-                .queryContractOffers(any(), argThat(range -> range.getFrom() == rangeFrom && range.getTo() == rangeTo));
+        verify(contractOfferService, times(1)).queryContractOffers(any());
         verifyNoMoreInteractions(contractOfferService);
         verifyNoMoreInteractions(connectorService, catalogService);
     }
@@ -262,8 +272,12 @@ class DescriptionRequestHandlerTest {
                         .build())
                 ._requestedElement_(requestedElement)
                 .build();
-        message.setProperty(Range.FROM, rangeFrom);
-        message.setProperty(Range.TO, rangeTo);
+
+        Map<String, Object> specsMap = new HashMap<>();
+        specsMap.put(OFFSET, rangeFrom);
+        specsMap.put(LIMIT, rangeFrom + rangeTo);
+        specsMap.put(FILTER_EXPRESSION, List.of(Map.of("operandLeft", PROPERTY, "operator", EQUALS_SIGN, "operandRight", VALUE)));
+        message.setProperty(QuerySpec.QUERY_SPEC, specsMap);
         return message;
     }
 
