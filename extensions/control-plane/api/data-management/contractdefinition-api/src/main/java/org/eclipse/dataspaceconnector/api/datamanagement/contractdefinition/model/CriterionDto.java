@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;

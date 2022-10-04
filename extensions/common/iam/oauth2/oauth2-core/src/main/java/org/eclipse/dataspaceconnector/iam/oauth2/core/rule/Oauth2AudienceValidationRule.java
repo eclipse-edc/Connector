@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.iam.oauth2.core.rule;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
