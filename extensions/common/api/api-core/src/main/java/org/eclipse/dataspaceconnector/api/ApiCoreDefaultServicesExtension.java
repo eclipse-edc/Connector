@@ -16,18 +16,22 @@ package org.eclipse.dataspaceconnector.api;
 
 import org.eclipse.dataspaceconnector.api.auth.AllPassAuthenticationService;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 /**
  * Provides default service implementations for fallback
+ * Omitted {@link Extension} since this module contains the extension {@link ApiCoreExtension}
  */
 public class ApiCoreDefaultServicesExtension implements ServiceExtension {
 
+    public static final String NAME = "Api Core Default Services";
+
     @Override
     public String name() {
-        return "Api Core Default Services";
+        return NAME;
     }
 
     @Provider(isDefault = true)

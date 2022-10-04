@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,4 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api;
+@Spi(value = "DataSource services")
+package org.eclipse.dataspaceconnector.spi.transaction.datasource;
+
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;

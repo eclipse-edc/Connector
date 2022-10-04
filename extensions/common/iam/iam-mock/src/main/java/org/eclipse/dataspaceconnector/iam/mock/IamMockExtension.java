@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.mock;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -23,11 +24,14 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  * An IAM provider mock used for testing.
  */
 @Provides(IdentityService.class)
+@Extension(value = IamMockExtension.NAME)
 public class IamMockExtension implements ServiceExtension {
+
+    public static final String NAME = "Mock IAM";
 
     @Override
     public String name() {
-        return "Mock IAM";
+        return NAME;
     }
 
     @Override

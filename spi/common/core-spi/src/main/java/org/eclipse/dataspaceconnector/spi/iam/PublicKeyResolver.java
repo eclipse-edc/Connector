@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.iam;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.security.PublicKey;
@@ -22,6 +23,7 @@ import java.security.PublicKey;
  * Resolves an RSA public key.
  */
 @FunctionalInterface
+@ExtensionPoint
 public interface PublicKeyResolver {
 
     /**

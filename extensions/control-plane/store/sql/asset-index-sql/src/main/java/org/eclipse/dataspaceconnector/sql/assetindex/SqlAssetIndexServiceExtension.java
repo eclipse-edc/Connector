@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.sql.assetindex;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -27,6 +28,7 @@ import org.eclipse.dataspaceconnector.sql.assetindex.schema.AssetStatements;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.postgres.PostgresDialectStatements;
 
 @Provides({ AssetIndex.class, DataAddressResolver.class })
+@Extension(value = "SQL asset index")
 public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
     @Inject

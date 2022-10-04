@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.identity;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
@@ -33,8 +34,10 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.DID_URL_SETTING;
 
 @Provides(IdentityService.class)
+@Extension(value = DecentralizedIdentityServiceExtension.NAME)
 public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
+    public static final String NAME = "Distributed Identity Service";
     @Inject
     private DidResolverRegistry resolverRegistry;
 
@@ -46,7 +49,7 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Distributed Identity Service";
+        return NAME;
     }
 
     @Provider

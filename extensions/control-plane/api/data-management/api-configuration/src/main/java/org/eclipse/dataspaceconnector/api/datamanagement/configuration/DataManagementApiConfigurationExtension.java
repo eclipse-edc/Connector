@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.configuration;
 
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -25,11 +26,12 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import static java.lang.String.format;
 
 @Provides(DataManagementApiConfiguration.class)
+@Extension(value = DataManagementApiConfigurationExtension.NAME)
 public class DataManagementApiConfigurationExtension implements ServiceExtension {
 
     public static final String WEB_DATA_CONFIG = "web.http.data";
+    public static final String NAME = "Data Management API configuration";
     private static final String DEFAULT_DATAMANAGEMENT_ALIAS = "default";
-
     @Inject
     private WebService webService;
 
@@ -38,7 +40,7 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
 
     @Override
     public String name() {
-        return "Data Management API configuration";
+        return NAME;
     }
 
     @Override

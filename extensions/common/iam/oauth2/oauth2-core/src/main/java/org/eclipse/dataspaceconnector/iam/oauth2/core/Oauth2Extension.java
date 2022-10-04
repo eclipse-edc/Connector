@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.iam.oauth2.spi.CredentialsRequestAdditiona
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -46,37 +47,29 @@ import java.util.concurrent.TimeUnit;
  * Provides OAuth2 client credentials flow support.
  */
 @Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class, Oauth2ValidationRulesRegistry.class })
+@Extension(value = Oauth2Extension.NAME)
 public class Oauth2Extension implements ServiceExtension {
 
+    public static final String NAME = "OAuth2";
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
-
     @EdcSetting
     private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
-
     @EdcSetting(value = "outgoing tokens 'aud' claim value, by default it's the connector id")
     private static final String PROVIDER_AUDIENCE = "edc.oauth.provider.audience";
-
     @EdcSetting(value = "incoming tokens 'aud' claim required value, by default it's the provider audience value")
     private static final String ENDPOINT_AUDIENCE = "edc.oauth.endpoint.audience";
-
     @EdcSetting
     private static final String PUBLIC_KEY_ALIAS = "edc.oauth.public.key.alias";
-
     @EdcSetting
     private static final String PRIVATE_KEY_ALIAS = "edc.oauth.private.key.alias";
-
     @EdcSetting
     private static final String PROVIDER_JWKS_REFRESH = "edc.oauth.provider.jwks.refresh"; // in minutes
-
     @EdcSetting
     private static final String TOKEN_URL = "edc.oauth.token.url";
-
     @EdcSetting
     private static final String CLIENT_ID = "edc.oauth.client.id";
-
     @EdcSetting
     private static final String NOT_BEFORE_LEEWAY = "edc.oauth.validation.nbf.leeway";
-
     private IdentityProviderKeyResolver providerKeyResolver;
 
     @Inject
@@ -96,7 +89,7 @@ public class Oauth2Extension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "OAuth2";
+        return NAME;
     }
 
     @Override

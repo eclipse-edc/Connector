@@ -38,6 +38,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.dataspaceconnector.spi.transfer.status.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -49,7 +50,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataD
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;

@@ -15,12 +15,14 @@
 package org.eclipse.dataspaceconnector.dataplane.spi.registry;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages the registration and selection of data flow transfer services.
  */
+@ExtensionPoint
 public interface TransferServiceRegistry {
     /**
      * Adds a {@link TransferService} to the collection of services that can perform data transfers.

@@ -14,10 +14,13 @@
 
 package org.eclipse.dataspaceconnector.spi.event;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 /**
  * Central component of the eventing system, the implementation keeps a list of subscribers and notifies them with
  * every events that gets published
  */
+@ExtensionPoint
 public interface EventRouter {
 
     /**

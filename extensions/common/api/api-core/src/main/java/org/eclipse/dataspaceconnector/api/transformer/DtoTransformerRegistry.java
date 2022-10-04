@@ -14,11 +14,13 @@
 
 package org.eclipse.dataspaceconnector.api.transformer;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.transformer.TypeTransformerRegistry;
 
 /**
  * Marker interface to allow for a type-safe registry that only holds implementations of the {@link DtoTransformer} interface.
  * This is useful because the registry should be registered in the {@link org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext}
  */
+@ExtensionPoint
 public interface DtoTransformerRegistry extends TypeTransformerRegistry<DtoTransformer<?, ?>> {
 }

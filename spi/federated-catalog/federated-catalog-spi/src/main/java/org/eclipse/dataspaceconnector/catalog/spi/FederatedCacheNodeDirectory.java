@@ -14,11 +14,14 @@
 
 package org.eclipse.dataspaceconnector.catalog.spi;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 import java.util.List;
 
 /**
  * A global list of all FederatedCacheNodes that are available in a data space, much like a "phone book" for catalog endpoints.
  */
+@ExtensionPoint
 public interface FederatedCacheNodeDirectory {
 
     /**

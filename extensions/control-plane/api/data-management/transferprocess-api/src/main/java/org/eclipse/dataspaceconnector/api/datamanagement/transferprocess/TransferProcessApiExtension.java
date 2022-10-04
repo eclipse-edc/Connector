@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transfo
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform.TransferProcessToTransferProcessDtoTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform.TransferRequestDtoToDataRequestTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -31,7 +32,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 @Provides(TransferProcessService.class)
+@Extension(value = TransferProcessApiExtension.NAME)
 public class TransferProcessApiExtension implements ServiceExtension {
+    public static final String NAME = "Data Management API: Transfer Process";
     @Inject
     private WebService webService;
 
@@ -52,7 +55,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Management API: Transfer Process";
+        return NAME;
     }
 
     @Override

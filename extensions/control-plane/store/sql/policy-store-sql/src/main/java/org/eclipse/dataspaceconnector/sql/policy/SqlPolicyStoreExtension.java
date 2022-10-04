@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.policy;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
@@ -27,6 +28,7 @@ import org.eclipse.dataspaceconnector.sql.policy.store.schema.SqlPolicyStoreStat
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresDialectStatements;
 
 @Provides(PolicyDefinitionStore.class)
+@Extension("SQL policy store")
 public class SqlPolicyStoreExtension implements ServiceExtension {
 
     @EdcSetting(required = true)

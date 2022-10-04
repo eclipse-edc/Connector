@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.core.jwt.TokenValidationRulesRegistryImpl;
 import org.eclipse.dataspaceconnector.core.jwt.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -53,13 +54,13 @@ import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTr
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
 
+@Extension(value = DataPlaneTransferSyncExtension.NAME)
 public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Plane Transfer Sync";
     @EdcSetting
     private static final String DPF_SELECTOR_STRATEGY = "edc.transfer.client.selector.strategy";
-
     private static final String API_CONTEXT_ALIAS = "validation";
-
     @Inject
     private DataPlaneSelectorClient selectorClient;
 
@@ -92,7 +93,7 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane Transfer Sync";
+        return NAME;
     }
 
     @Override

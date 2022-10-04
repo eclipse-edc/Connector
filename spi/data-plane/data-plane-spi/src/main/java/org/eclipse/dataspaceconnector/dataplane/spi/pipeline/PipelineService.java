@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -23,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Transfers data from a source to a sink.
  */
+@ExtensionPoint
 public interface PipelineService {
 
     /**

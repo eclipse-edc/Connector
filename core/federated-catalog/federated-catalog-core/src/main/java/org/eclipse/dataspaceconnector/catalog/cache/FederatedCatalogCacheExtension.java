@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -42,7 +43,9 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 import static java.util.Optional.ofNullable;
 
+@Extension(value = FederatedCatalogCacheExtension.NAME)
 public class FederatedCatalogCacheExtension implements ServiceExtension {
+    public static final String NAME = "Federated Catalog Cache";
     private Monitor monitor;
     @Inject
     private FederatedCacheStore store;
@@ -67,7 +70,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Federated Catalog Cache";
+        return NAME;
     }
 
     @Provider

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -22,12 +23,15 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.sync.security.NoopDataE
 
 /**
  * Provides default service implementations for fallback
+ * Omitted {@link Extension since this module already contains {@link DataPlaneTransferSyncExtension}}
  */
 public class DataPlaneTransferSyncDefaultServicesExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Plane Transfer Sync Default Services";
+
     @Override
     public String name() {
-        return "Data Plane Transfer Sync Default Services";
+        return NAME;
     }
 
     @Provider(isDefault = true)

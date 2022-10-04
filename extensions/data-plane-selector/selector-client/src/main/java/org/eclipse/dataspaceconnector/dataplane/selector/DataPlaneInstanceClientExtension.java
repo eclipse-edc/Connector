@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelecto
 import org.eclipse.dataspaceconnector.dataplane.selector.client.EmbeddedDataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.RemoteDataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -31,6 +32,7 @@ import java.util.Objects;
 import static java.lang.String.format;
 
 @Provides(DataPlaneSelectorClient.class)
+@Extension(value = "DataPlane instance client")
 public class DataPlaneInstanceClientExtension implements ServiceExtension {
 
     @EdcSetting

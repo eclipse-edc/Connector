@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.azure.blob.core;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -24,17 +25,19 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 @Provides(BlobStoreApi.class)
+@Extension(value = BlobStoreCoreExtension.NAME)
 public class BlobStoreCoreExtension implements ServiceExtension {
 
     @EdcSetting
     public static final String EDC_BLOBSTORE_ENDPOINT_TEMPLATE = "edc.blobstore.endpoint.template";
+    public static final String NAME = "Azure BlobStore Core";
 
     @Inject
     private Vault vault;
 
     @Override
     public String name() {
-        return "Azure BlobStore Core";
+        return NAME;
     }
 
     @Override

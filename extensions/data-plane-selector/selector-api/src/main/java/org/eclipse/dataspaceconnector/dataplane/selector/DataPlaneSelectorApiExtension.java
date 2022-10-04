@@ -16,11 +16,13 @@ package org.eclipse.dataspaceconnector.dataplane.selector;
 
 import org.eclipse.dataspaceconnector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstanceImpl;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+@Extension(value = "DataPlane selector API")
 public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
     public static final String DATAPLANE_SELECTOR_CONTEXTALIAS = "dataplane";

@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.spi.transfer.status.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 
 import java.util.HashMap;
 import java.util.Map;

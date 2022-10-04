@@ -18,6 +18,7 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -31,8 +32,10 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
  * Provides a persistent implementation of the {@link org.eclipse.dataspaceconnector.spi.asset.AssetIndex} using CosmosDB.
  */
 @Provides({ AssetIndex.class, DataAddressResolver.class })
+@Extension(value = CosmosAssetIndexExtension.NAME)
 public class CosmosAssetIndexExtension implements ServiceExtension {
 
+    public static final String NAME = "CosmosDB Asset Index";
     @Inject
     private Vault vault;
     @Inject
@@ -40,7 +43,7 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "CosmosDB Asset Index";
+        return NAME;
     }
 
     @Override

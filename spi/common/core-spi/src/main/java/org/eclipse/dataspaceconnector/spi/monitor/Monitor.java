@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.monitor;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -21,6 +23,7 @@ import java.util.function.Supplier;
 /**
  * System monitoring and logging interface.
  */
+@ExtensionPoint
 public interface Monitor {
 
     default void severe(Supplier<String> supplier, Throwable... errors) {
@@ -33,7 +36,7 @@ public interface Monitor {
     default void severe(Map<String, Object> data) {
     }
 
-    
+
     default void warning(Supplier<String> supplier, Throwable... errors) {
     }
 

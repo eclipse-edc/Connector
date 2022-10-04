@@ -15,11 +15,13 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 /**
  * Delegates to a {@link DidResolver} to resolve a DID document.
  */
+@ExtensionPoint
 public interface DidResolverRegistry {
 
     /**

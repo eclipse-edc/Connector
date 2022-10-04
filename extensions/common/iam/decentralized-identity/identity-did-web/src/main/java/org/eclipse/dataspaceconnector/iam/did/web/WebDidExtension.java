@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.web.resolution.WebDidResolver;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -32,7 +33,10 @@ import static org.eclipse.dataspaceconnector.iam.did.web.ConfigurationKeys.DNS_O
 /**
  * Initializes support for resolving Web DIDs.
  */
+
+@Extension(value = WebDidExtension.NAME)
 public class WebDidExtension implements ServiceExtension {
+    public static final String NAME = "Web DID";
     /**
      * Set to {@code false} to create DID URLs with {@code http} instead of {@code https} scheme.
      * Defaults to {@code true}.
@@ -41,13 +45,12 @@ public class WebDidExtension implements ServiceExtension {
      */
     @EdcSetting
     private static final String USE_HTTPS_SCHEME = "edc.iam.did.web.use.https";
-
     @Inject
     private DidResolverRegistry resolverRegistry;
 
     @Override
     public String name() {
-        return "Web DID";
+        return NAME;
     }
 
     @Override

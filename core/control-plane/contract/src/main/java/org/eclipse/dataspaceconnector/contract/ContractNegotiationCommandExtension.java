@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.negotiation.command.handlers.CancelNegotiationCommandHandler;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
@@ -29,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  */
 @CoreExtension
 @Provides({ CommandHandlerRegistry.class })
+@Extension(value = "Contract Negotiation command handler")
 public class ContractNegotiationCommandExtension implements ServiceExtension {
 
     @Inject

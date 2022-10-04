@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.auth;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -29,6 +30,7 @@ import static java.lang.String.format;
  * Extension that registers an AuthenticationService that uses API Keys
  */
 @Provides(AuthenticationService.class)
+@Extension(value = "Basic authentication")
 public class BasicAuthenticationExtension implements ServiceExtension {
 
     @EdcSetting

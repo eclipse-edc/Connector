@@ -22,12 +22,15 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
 /**
  * Provides default service implementations for fallback
+ * Omitted {@link org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension} since this module already contains {@link Oauth2Extension}
  */
 public class Oauth2DefaultServicesExtension implements ServiceExtension {
 
+    public static final String NAME = "OAuth2 Core Default Services";
+
     @Override
     public String name() {
-        return "OAuth2 Core Default Services";
+        return NAME;
     }
 
     @Provider(isDefault = true)

@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.iam.did.resolution.DidResolverRegistryImpl
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -32,14 +33,16 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 
 @Provides({ DidResolverRegistry.class, DidPublicKeyResolver.class })
+@Extension(value = IdentityDidCoreExtension.NAME)
 public class IdentityDidCoreExtension implements ServiceExtension {
 
+    public static final String NAME = "Identity Did Core";
     @Inject
     private PrivateKeyResolver privateKeyResolver;
 
     @Override
     public String name() {
-        return "Identity Did Core";
+        return NAME;
     }
 
     @Override

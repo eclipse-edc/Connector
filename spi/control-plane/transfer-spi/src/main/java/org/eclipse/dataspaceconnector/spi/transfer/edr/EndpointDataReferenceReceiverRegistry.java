@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.edr;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Registry for {@link EndpointDataReferenceReceiver}.
  */
+@ExtensionPoint
 public interface EndpointDataReferenceReceiverRegistry {
     /**
      * Adds a new {@link EndpointDataReferenceReceiver} into the registry.

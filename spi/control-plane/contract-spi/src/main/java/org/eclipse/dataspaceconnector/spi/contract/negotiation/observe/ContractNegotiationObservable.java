@@ -14,10 +14,13 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.observe;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
 
 /**
  * Manages and invokes {@link ContractNegotiationListener}s when an event related to a contract negotiation process is emitted.
  */
+
+@ExtensionPoint
 public interface ContractNegotiationObservable extends Observable<ContractNegotiationListener> {
 }

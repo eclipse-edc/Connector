@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.provision.http;
 
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -34,8 +35,10 @@ import static org.eclipse.dataspaceconnector.transfer.provision.http.config.Prov
 /**
  * The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
  */
+@Extension(value = HttpProvisionerExtension.NAME)
 public class HttpProvisionerExtension implements ServiceExtension {
 
+    public static final String NAME = "HTTP Provisioning";
     @Inject
     protected ProvisionManager provisionManager;
     @Inject
@@ -52,7 +55,6 @@ public class HttpProvisionerExtension implements ServiceExtension {
     /**
      * Default ctor.
      */
-    @SuppressWarnings("unused")
     public HttpProvisionerExtension() {
     }
 
@@ -65,7 +67,7 @@ public class HttpProvisionerExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "HTTP Provisioning";
+        return NAME;
     }
 
     @Override

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.transferprocess;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -29,6 +30,7 @@ import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.postgres.
 import java.time.Clock;
 
 @Provides(TransferProcessStore.class)
+@Extension(value = "SQL transfer process store")
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
     @EdcSetting

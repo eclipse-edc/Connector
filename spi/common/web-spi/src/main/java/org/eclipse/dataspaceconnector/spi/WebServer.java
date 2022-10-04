@@ -14,9 +14,12 @@
 
 package org.eclipse.dataspaceconnector.spi;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 /**
  * Manages the runtime web (HTTP) server.
  */
+@ExtensionPoint
 public interface WebServer {
 
     /**

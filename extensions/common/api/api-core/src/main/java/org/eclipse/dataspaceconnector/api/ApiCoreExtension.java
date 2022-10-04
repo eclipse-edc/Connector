@@ -17,16 +17,20 @@ package org.eclipse.dataspaceconnector.api;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistryImpl;
 import org.eclipse.dataspaceconnector.api.transformer.QuerySpecDtoToQuerySpecTransformer;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 @Provides(DtoTransformerRegistry.class)
+@Extension(value = ApiCoreExtension.NAME)
 public class ApiCoreExtension implements ServiceExtension {
+
+    public static final String NAME = "API Core";
 
     @Override
     public String name() {
-        return "API Core";
+        return NAME;
     }
 
     @Override

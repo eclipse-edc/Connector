@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.sql.policy.store.schema;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
@@ -21,6 +22,7 @@ import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 /**
  * Statement templates and SQL table+column names required for the PolicyStore.
  */
+@ExtensionPoint
 public interface SqlPolicyStoreStatements {
 
     /**

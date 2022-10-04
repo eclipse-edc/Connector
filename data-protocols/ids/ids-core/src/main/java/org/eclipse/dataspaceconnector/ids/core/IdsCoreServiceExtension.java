@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -47,17 +48,17 @@ import java.util.List;
  * Implements the IDS Controller REST API.
  */
 @Provides({ IdsDescriptorService.class, CatalogService.class, ConnectorService.class,
-        IdsTransformerRegistry.class, DynamicAttributeTokenService.class})
+        IdsTransformerRegistry.class, DynamicAttributeTokenService.class })
+@Extension(value = IdsCoreServiceExtension.NAME)
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
     public static final String EDC_IDS_CATALOG_ID = "edc.ids.catalog.id";
 
     public static final String DEFAULT_EDC_IDS_CATALOG_ID = "urn:catalog:default";
-
+    public static final String NAME = "IDS Core";
     private static final String WARNING_USING_DEFAULT_SETTING = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
     private static final String ERROR_INVALID_SETTING = "IDS Settings: Invalid setting for '%s'. Was %s'.";
-
     private Monitor monitor;
 
     @Inject
@@ -71,7 +72,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "IDS Core";
+        return NAME;
     }
 
     @Override
@@ -109,7 +110,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         context.registerService(ConnectorService.class, connectorService);
 
         context.registerService(IdsDescriptorService.class, new IdsDescriptorServiceImpl());
-    
+
         context.registerService(DynamicAttributeTokenService.class, new DynamicAttributeTokenServiceImpl(identityService));
     }
 

@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.logger;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
 
 /**
  * Extension adding logging monitor.
  */
+@Extension("Logger monitor")
 public class LoggerMonitorExtension implements MonitorExtension {
 
     @Override

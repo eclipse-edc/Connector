@@ -17,10 +17,12 @@ package org.eclipse.dataspaceconnector.azure.blob.core.api;
 import com.azure.core.credential.AzureSasCredential;
 import com.azure.storage.blob.models.BlobItem;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@ExtensionPoint
 public interface BlobStoreApi {
 
     void createContainer(String accountName, String containerName);

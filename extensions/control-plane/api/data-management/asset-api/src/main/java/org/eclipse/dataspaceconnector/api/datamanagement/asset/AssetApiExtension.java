@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetTo
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.DataAddressDtoToDataAddressTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -38,8 +39,10 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import java.time.Clock;
 
 @Provides(AssetService.class)
+@Extension(value = AssetApiExtension.NAME)
 public class AssetApiExtension implements ServiceExtension {
 
+    public static final String NAME = "Data Management API: Asset";
     @Inject
     WebService webService;
 
@@ -66,7 +69,7 @@ public class AssetApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Management API: Asset";
+        return NAME;
     }
 
     @Override

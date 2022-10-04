@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.store;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * Persists {@link DidDocument}s.
  */
+@ExtensionPoint
 public interface DidStore {
 
     /**

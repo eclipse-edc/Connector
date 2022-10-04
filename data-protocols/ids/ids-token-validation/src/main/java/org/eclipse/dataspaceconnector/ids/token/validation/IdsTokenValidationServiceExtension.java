@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.token.validation;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.dataspaceconnector.ids.token.validation.rule.IdsValidationRule;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -24,17 +25,19 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 /**
  * ServiceExtension providing extended IDS token validation
  */
+@Extension(value = IdsTokenValidationServiceExtension.NAME)
 public final class IdsTokenValidationServiceExtension implements ServiceExtension {
 
     @EdcSetting
     public static final String EDC_IDS_VALIDATION_REFERRINGCONNECTOR = "edc.ids.validation.referringconnector";
+    public static final String NAME = "IDS Token Validation";
 
     @Inject
     private Oauth2ValidationRulesRegistry oauth2ValidationRulesRegistry;
 
     @Override
     public String name() {
-        return "IDS Token Validation";
+        return NAME;
     }
 
 

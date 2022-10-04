@@ -19,6 +19,7 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.resourcemanager.AzureResourceManager;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -30,7 +31,10 @@ import java.util.Objects;
  * Provides Azure Identity SDK and Azure Resource Manager SDK objects configured based on runtime settings.
  */
 @Provides({ AzureEnvironment.class, TokenCredential.class, AzureProfile.class, AzureResourceManager.class })
+@Extension(value = AzureResourceManagerExtension.NAME)
 public class AzureResourceManagerExtension implements ServiceExtension {
+
+    public static final String NAME = "Azure Resource Manager";
 
     private static String requiredSetting(SettingResolver context, String s) {
         return Objects.requireNonNull(context.getSetting(s, null), s);
@@ -38,7 +42,7 @@ public class AzureResourceManagerExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Azure Resource Manager";
+        return NAME;
     }
 
     @Override

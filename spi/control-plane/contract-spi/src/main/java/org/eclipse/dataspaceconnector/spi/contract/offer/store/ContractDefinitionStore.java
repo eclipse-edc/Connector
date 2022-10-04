@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
 /**
  * Persists {@link ContractDefinition}s.
  */
+@ExtensionPoint
 public interface ContractDefinitionStore {
 
     /**
@@ -78,6 +80,6 @@ public interface ContractDefinitionStore {
     }
 
     default void accept(ContractDefinition item) {
-        this.save(item);
+        save(item);
     }
 }

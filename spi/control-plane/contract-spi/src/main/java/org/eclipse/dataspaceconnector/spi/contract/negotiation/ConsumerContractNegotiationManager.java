@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -28,6 +29,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
  * <p>
  * All operations are idempotent.
  */
+
+@ExtensionPoint
 public interface ConsumerContractNegotiationManager extends ContractNegotiationManager {
 
     /**

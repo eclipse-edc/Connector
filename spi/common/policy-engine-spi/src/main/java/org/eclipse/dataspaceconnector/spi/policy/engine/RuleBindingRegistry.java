@@ -16,10 +16,12 @@ package org.eclipse.dataspaceconnector.spi.policy.engine;
 
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Manages rule bindings to policy scopes.
  */
+@ExtensionPoint
 public interface RuleBindingRegistry {
 
     /**

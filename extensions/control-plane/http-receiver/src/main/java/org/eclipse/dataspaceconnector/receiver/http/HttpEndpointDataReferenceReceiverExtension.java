@@ -18,23 +18,23 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
 
+@Extension(value = HttpEndpointDataReferenceReceiverExtension.NAME)
 public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtension {
 
+    public static final String NAME = "Http Endpoint Data Reference Receiver";
     @EdcSetting
     private static final String HTTP_RECEIVER_ENDPOINT = "edc.receiver.http.endpoint";
-
     @EdcSetting
     private static final String HTTP_RECEIVER_AUTH_KEY = "edc.receiver.http.auth-key";
-
     @EdcSetting
     private static final String HTTP_RECEIVER_AUTH_CODE = "edc.receiver.http.auth-code";
-
     @Inject
     private EndpointDataReferenceReceiverRegistry receiverRegistry;
 
@@ -42,12 +42,11 @@ public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtens
     private OkHttpClient httpClient;
 
     @Inject
-    @SuppressWarnings("rawtypes")
     private RetryPolicy retryPolicy;
 
     @Override
     public String name() {
-        return "Http Endpoint Data Reference Receiver";
+        return NAME;
     }
 
     @Override

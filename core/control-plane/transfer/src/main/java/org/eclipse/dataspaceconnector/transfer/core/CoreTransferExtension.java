@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.transfer.core;
 import org.eclipse.dataspaceconnector.common.statemachine.retry.EntitySendRetryManager;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -41,12 +42,12 @@ import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObserv
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.transfer.status.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.AddProvisionedResourceCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionCompleteCommandHandler;
@@ -69,16 +70,16 @@ import java.time.Clock;
 @Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
         TransferProcessObservable.class, DataFlowManager.class, ProvisionManager.class,
         EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformerRegistry.class })
+@Extension(value = CoreTransferExtension.NAME)
 public class CoreTransferExtension implements ServiceExtension {
+    public static final String NAME = "Core Transfer";
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
-
     @EdcSetting
     private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
     @EdcSetting
     private static final String TRANSFER_SEND_RETRY_LIMIT = "edc.transfer.send.retry.limit";
     @EdcSetting
     private static final String TRANSFER_SEND_RETRY_BASE_DELAY_MS = "edc.transfer.send.retry.base-delay.ms";
-
     @Inject
     private TransferProcessStore transferProcessStore;
 
@@ -110,7 +111,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Core Transfer";
+        return NAME;
     }
 
     @Override

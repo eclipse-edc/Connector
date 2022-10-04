@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
@@ -28,6 +29,7 @@ import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.Contra
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.PostgresDialectStatements;
 
 @Provides({ ContractDefinitionStore.class })
+@Extension(value = "SQL contract definition store")
 public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
     /**

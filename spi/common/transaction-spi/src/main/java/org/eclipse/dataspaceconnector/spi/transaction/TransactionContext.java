@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.spi.transaction;
 
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 /**
  * Implementations execute code within a transactional boundary. A {@code TransactionContext} provides a consistent programming model for local and global (e.g. JTA) transaction
  * infrastructure. Specifically, client code executes transactional code in the same way whether the context is backed by a local resource such as a single JDBC connection pool
@@ -24,6 +26,7 @@ package org.eclipse.dataspaceconnector.spi.transaction;
  * <p>
  * Transactional semantics will vary by implementation. For example, an implementation may only support atomicity when a single resource is enlisted in a transaction.
  */
+@ExtensionPoint
 public interface TransactionContext {
 
     /**

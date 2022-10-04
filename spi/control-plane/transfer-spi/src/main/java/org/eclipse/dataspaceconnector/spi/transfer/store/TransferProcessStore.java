@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.store;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -24,6 +25,7 @@ import java.util.stream.Stream;
 /**
  * Manages persistent storage of {@link TransferProcess} state.
  */
+@ExtensionPoint
 public interface TransferProcessStore extends StateEntityStore<TransferProcess> {
 
     /**

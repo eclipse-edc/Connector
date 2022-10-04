@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -42,25 +43,22 @@ import java.util.concurrent.Executors;
  * Provides core services for the Data Plane Framework.
  */
 @Provides({ DataPlaneManager.class, PipelineService.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class })
+@Extension(value = DataPlaneFrameworkExtension.NAME)
 public class DataPlaneFrameworkExtension implements ServiceExtension {
+    public static final String NAME = "Data Plane Framework";
     private static final int IN_MEMORY_STORE_CAPACITY = 1000;
-
     @EdcSetting
     private static final String QUEUE_CAPACITY = "edc.dataplane.queue.capacity";
     private static final int DEFAULT_QUEUE_CAPACITY = 10000;
-
     @EdcSetting
     private static final String WORKERS = "edc.dataplane.workers";
     private static final int DEFAULT_WORKERS = 10;
-
     @EdcSetting
     private static final String WAIT_TIMEOUT = "edc.dataplane.wait";
     private static final long DEFAULT_WAIT_TIMEOUT = 1000;
-
     @EdcSetting
     private static final String TRANSFER_THREADS = "edc.dataplane.transfer.threads";
     private static final int DEFAULT_TRANSFER_THREADS = 10;
-
     private DataPlaneManagerImpl dataPlaneManager;
 
     @Inject(required = false)
@@ -74,7 +72,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane Framework";
+        return NAME;
     }
 
     @Override

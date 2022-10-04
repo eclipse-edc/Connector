@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyScope;
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
  * <p>
  * A runtime extension may implement custom logic to determine which contract definitions are returned.
  */
+@ExtensionPoint
 public interface ContractDefinitionService {
 
     @PolicyScope

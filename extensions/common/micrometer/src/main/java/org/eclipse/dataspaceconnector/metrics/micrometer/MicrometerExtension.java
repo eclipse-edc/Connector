@@ -25,6 +25,7 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import okhttp3.EventListener;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -32,6 +33,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 @BaseExtension
 @Provides({ EventListener.class, ExecutorInstrumentation.class, MeterRegistry.class })
+@Extension(value = MicrometerExtension.NAME)
 public class MicrometerExtension implements ServiceExtension {
 
     @EdcSetting
@@ -42,12 +44,12 @@ public class MicrometerExtension implements ServiceExtension {
     public static final String ENABLE_OKHTTP_METRICS = "edc.metrics.okhttp.enabled";
     @EdcSetting
     public static final String ENABLE_EXECUTOR_METRICS = "edc.metrics.executor.enabled";
-
+    public static final String NAME = "Micrometer Metrics";
     private static final String OKHTTP_REQUESTS_METRIC_NAME = "okhttp.requests";
 
     @Override
     public String name() {
-        return "Micrometer Metrics";
+        return NAME;
     }
 
     @Override

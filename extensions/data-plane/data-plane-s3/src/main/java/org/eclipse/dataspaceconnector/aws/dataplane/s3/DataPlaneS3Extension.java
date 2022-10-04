@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -23,8 +24,10 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.concurrent.Executors;
 
+@Extension(value = DataPlaneS3Extension.NAME)
 public class DataPlaneS3Extension implements ServiceExtension {
 
+    public static final String NAME = "Data Plane S3 Storage";
     @Inject
     private PipelineService pipelineService;
 
@@ -36,7 +39,7 @@ public class DataPlaneS3Extension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane S3 Storage";
+        return NAME;
     }
 
     @Override

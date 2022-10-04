@@ -15,17 +15,19 @@
 package org.eclipse.dataspaceconnector.azure.cosmos;
 
 import com.azure.cosmos.CosmosClient;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
 /**
- * Provides a `CosmosClient` instance. 
+ * Provides a `CosmosClient` instance.
  * This is mainly intended for usage in test scenarios, where a {@code CosmosClient} is used, that requires special setup (for example with the emulator).
  */
+@ExtensionPoint
 public interface CosmosClientProvider {
     /**
      * Create a CosmosDB client
      *
-     * @param vault the vault instance
+     * @param vault         the vault instance
      * @param configuration the configuration
      * @return a CosmosDB client instance
      */

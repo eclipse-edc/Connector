@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFuncti
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
@@ -59,6 +60,7 @@ import java.time.Duration;
         Clock.class,
         Telemetry.class
 })
+@Extension(value = CoreServicesExtension.NAME)
 public class CoreServicesExtension implements ServiceExtension {
 
     @EdcSetting
@@ -71,11 +73,10 @@ public class CoreServicesExtension implements ServiceExtension {
     public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
     @EdcSetting
     public static final String HOSTNAME_SETTING = "edc.hostname";
-
+    public static final String NAME = "Core Services";
     private static final long DEFAULT_DURATION = 60;
     private static final int DEFAULT_TP_SIZE = 3;
     private static final String DEFAULT_HOSTNAME = "localhost";
-
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
@@ -90,7 +91,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Core Services";
+        return NAME;
     }
 
     @Override

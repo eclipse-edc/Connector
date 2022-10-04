@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The IDS service is able to create a description of the EDC data catalog.
  */
+@ExtensionPoint
 public interface CatalogService {
 
     /**

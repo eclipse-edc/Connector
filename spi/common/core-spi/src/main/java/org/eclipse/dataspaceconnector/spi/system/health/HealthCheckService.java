@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.system.health;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+
 /**
  * Provides information about the connector's health status.
  * The three different health aspects are based on <a href=https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#types-of-probe>Kubernetes' definition.</a>
@@ -22,6 +24,7 @@ package org.eclipse.dataspaceconnector.spi.system.health;
  * cause bottlenecks and can clog the system. Instead, all providers should be queried ("crawled") in a periodic manner and the results
  * should be cached internally.
  */
+@ExtensionPoint
 public interface HealthCheckService {
 
     void addLivenessProvider(LivenessProvider provider);

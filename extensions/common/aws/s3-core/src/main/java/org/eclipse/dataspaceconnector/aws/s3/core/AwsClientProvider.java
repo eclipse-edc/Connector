@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.aws.s3.core;
 
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -24,16 +25,17 @@ import software.amazon.awssdk.services.sts.StsAsyncClient;
  * Provide various AWS client shapes
  * <br>
  * Caching by region:
- *  - S3Client
- *  - S3AsyncClient
- *  - StsAsyncClient
+ * - S3Client
+ * - S3AsyncClient
+ * - StsAsyncClient
  * <br>
- *  Single instance for the aws-global region:
- *   - IamAsyncClient
+ * Single instance for the aws-global region:
+ * - IamAsyncClient
  * <br>
- *  Instantiated on-fly given a SecretToken:
- *   - S3Client
+ * Instantiated on-fly given a SecretToken:
+ * - S3Client
  */
+@ExtensionPoint
 public interface AwsClientProvider {
 
     /**

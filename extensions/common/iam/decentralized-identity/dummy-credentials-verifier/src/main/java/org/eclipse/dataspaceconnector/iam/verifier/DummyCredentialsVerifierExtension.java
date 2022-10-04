@@ -28,6 +28,7 @@ package org.eclipse.dataspaceconnector.iam.verifier;
  */
 
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -38,11 +39,14 @@ import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.D
 
 
 @Provides(CredentialsVerifier.class)
+@Extension(value = DummyCredentialsVerifierExtension.NAME)
 public class DummyCredentialsVerifierExtension implements ServiceExtension {
+
+    public static final String NAME = "ION Credentials Verifier";
 
     @Override
     public String name() {
-        return "ION Credentials Verifier";
+        return NAME;
     }
 
     @Override

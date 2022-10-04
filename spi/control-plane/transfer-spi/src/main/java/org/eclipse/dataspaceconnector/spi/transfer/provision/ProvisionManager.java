@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
@@ -27,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Manages resource provisioning for a data transfer.
  */
+@ExtensionPoint
 public interface ProvisionManager {
 
     /**

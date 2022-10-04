@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -33,8 +34,10 @@ import java.time.Clock;
  * Provides an in-memory implementation of the {@link org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore} for testing.
  */
 @Provides(TransferProcessStore.class)
+@Extension(value = CosmosTransferProcessStoreExtension.NAME)
 public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
+    public static final String NAME = "Cosmos Transfer Process Store";
     @Inject
     private RetryPolicy<Object> retryPolicy;
 
@@ -51,7 +54,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Cosmos Transfer Process Store";
+        return NAME;
     }
 
     @Override
