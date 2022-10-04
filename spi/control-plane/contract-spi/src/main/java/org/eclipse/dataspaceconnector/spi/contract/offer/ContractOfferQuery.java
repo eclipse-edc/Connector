@@ -27,9 +27,9 @@ import java.util.List;
  * A query that returns contract offers for the given parameters.
  */
 public class ContractOfferQuery {
+    private final List<Criterion> assetsCriteria = new ArrayList<>();
     private ClaimToken claimToken;
-    private List<Criterion> assetsCriteria;
-    private Range range;
+    private Range range = new Range();
 
     private ContractOfferQuery() {
     }
@@ -51,11 +51,10 @@ public class ContractOfferQuery {
     }
 
     public static final class Builder {
-        private final List<Criterion> assetsCriteria = new ArrayList<>();
-        private ClaimToken claimToken;
-        private Range range;
+        private final ContractOfferQuery instance;
 
         private Builder() {
+            instance = new ContractOfferQuery();
         }
 
         public static Builder newInstance() {
@@ -63,31 +62,27 @@ public class ContractOfferQuery {
         }
 
         public Builder claimToken(ClaimToken claimToken) {
-            this.claimToken = claimToken;
+            instance.claimToken = claimToken;
             return this;
         }
 
         public Builder assetsCriterion(Criterion assetsCriterion) {
-            assetsCriteria.add(assetsCriterion);
+            instance.assetsCriteria.add(assetsCriterion);
             return this;
         }
 
         public Builder assetsCriteria(Collection<Criterion> assetsCriteria) {
-            this.assetsCriteria.addAll(assetsCriteria);
+            instance.assetsCriteria.addAll(assetsCriteria);
             return this;
         }
 
         public Builder range(Range range) {
-            this.range = range;
+            instance.range = range;
             return this;
         }
 
         public ContractOfferQuery build() {
-            ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
-            contractOfferQuery.claimToken = claimToken;
-            contractOfferQuery.range = range;
-            contractOfferQuery.assetsCriteria = assetsCriteria;
-            return contractOfferQuery;
+            return instance;
         }
     }
 }

@@ -175,13 +175,13 @@ class ContractOfferServiceImplTest {
 
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
-        var query = getQuery();
 
         var from = 25;
         var to = 50;
+        var query = getQuery(new Range(from, to));
 
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
-        assertThat(contractOfferService.queryContractOffers(query, new Range(from, to))).isEmpty();
+        assertThat(contractOfferService.queryContractOffers(query)).isEmpty();
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(assetIndex, never()).queryAssets(isA(QuerySpec.class));
@@ -216,12 +216,13 @@ class ContractOfferServiceImplTest {
                 .id("1")
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "assetName").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "1").build())
                 .build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class), any())).thenReturn(Stream.of(contractDefinition));
+        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
+        when(assetIndex.countAssets(isA(QuerySpec.class))).thenReturn(1000L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
@@ -232,8 +233,9 @@ class ContractOfferServiceImplTest {
                 .build();
 
         var expectedQuerySpec = QuerySpec.Builder.newInstance()
-                .filter(concat(contractDefinition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream())
-                        .collect(Collectors.toList())).build();
+                .filter(concat(contractDefinition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()))
+                .range(DEFAULT_RANGE)
+                .build();
 
         assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
         verify(agentService).createFor(isA(ClaimToken.class));

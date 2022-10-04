@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -35,7 +34,10 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Stream.concat;
 
 /**
  * Implementation of the {@link ContractOfferService}.
@@ -55,16 +57,20 @@ public class ContractOfferServiceImpl implements ContractOfferService {
 
     @Override
     @NotNull
-    public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query, Range range) {
+    public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
         var agent = agentService.createFor(query.getClaimToken());
         var numSeenAssets = new AtomicLong(0);
+        var range = query.getRange();
         var limit = range.getTo() - range.getFrom();
         var skip = new AtomicInteger(range.getFrom());
 
         return definitionService.definitionsFor(agent)
                 .takeWhile(d -> numSeenAssets.get() < range.getTo())
                 .flatMap(definition -> {
-                    var querySpecBuilder = QuerySpec.Builder.newInstance().filter(definition.getSelectorExpression().getCriteria());
+                    var criteria = definition.getSelectorExpression().getCriteria();
+
+                    var querySpecBuilder = QuerySpec.Builder.newInstance()
+                            .filter(concat(criteria.stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()));
 
                     var querySpec = querySpecBuilder.build();
                     var numAssets = assetIndex.countAssets(querySpec);

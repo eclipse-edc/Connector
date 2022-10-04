@@ -89,12 +89,12 @@ class ContractOfferServiceImplIntegrationTest {
 
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
-        var query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         var from = 20;
         var to = 50;
+        var query = ContractOfferQuery.builder().range(new Range(from, to)).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
-        assertThat(contractOfferService.queryContractOffers(query, new Range(from, to))).hasSize(to - from);
+        assertThat(contractOfferService.queryContractOffers(query)).hasSize(to - from);
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService, times(1)).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore).findById("contract");
@@ -115,14 +115,12 @@ class ContractOfferServiceImplIntegrationTest {
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2));
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
-
-        var query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
-
         var from = 14;
         var to = 50;
+        var query = ContractOfferQuery.builder().range(new Range(from, to)).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         // 4 definitions, 10 assets each = 40 offers total -> offset 20 ==> result = 20
-        assertThat(contractOfferService.queryContractOffers(query, new Range(from, to))).hasSize(4);
+        assertThat(contractOfferService.queryContractOffers(query)).hasSize(4);
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore, atLeastOnce()).findById("contract");
@@ -138,13 +136,12 @@ class ContractOfferServiceImplIntegrationTest {
 
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
-        var query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
-
         var from = 25;
         var to = 50;
+        var query = ContractOfferQuery.builder().range(new Range(from, to)).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
-        assertThat(contractOfferService.queryContractOffers(query, new Range(from, to))).isEmpty();
+        assertThat(contractOfferService.queryContractOffers(query)).isEmpty();
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore, never()).findById("contract");
