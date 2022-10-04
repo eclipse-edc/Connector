@@ -144,7 +144,7 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
         var privateKey = privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class);
         Objects.requireNonNull(privateKey, "Failed to resolve private key with alias: " + privateKeyAlias);
 
-        var publicKeyAlias = config.getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, privateKeyAlias + "-pub");
+        var publicKeyAlias = config.getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS);
         var publicKeyPem = vault.resolveSecret(publicKeyAlias);
         Objects.requireNonNull(publicKeyPem, "Failed to resolve public key secret with alias: " + publicKeyPem);
         var publicKey = PublicKeyParser.from(publicKeyPem);
