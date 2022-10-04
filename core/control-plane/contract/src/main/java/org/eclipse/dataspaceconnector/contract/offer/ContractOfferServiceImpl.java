@@ -13,6 +13,8 @@
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *       ZF Friedrichshafen AG - enable asset filtering
+ *       Fraunhofer Institute for Software and Systems Engineering - add criteria validation
+ *
  */
 
 package org.eclipse.dataspaceconnector.contract.offer;
@@ -20,6 +22,7 @@ package org.eclipse.dataspaceconnector.contract.offer;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
@@ -60,10 +63,22 @@ public class ContractOfferServiceImpl implements ContractOfferService {
         var agent = agentService.createFor(query.getClaimToken());
 
         return definitionService.definitionsFor(agent, query.getRange())
+                // ignore definitions with missing criteria (only if not SELECT_ALL)
+                .filter(definition -> (definition.getSelectorExpression().getCriteria() != null &&
+                        !definition.getSelectorExpression().getCriteria().isEmpty()) ||
+                        definition.getSelectorExpression() == AssetSelectorExpression.SELECT_ALL)
                 .flatMap(definition -> {
-                    var assetFilterQuery = QuerySpec.Builder.newInstance()
-                            .filter(concat(definition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList())).build();
-                    var assets = assetIndex.queryAssets(assetFilterQuery);
+                    Stream<Asset> assets;
+                    if (definition.getSelectorExpression() == AssetSelectorExpression.SELECT_ALL) {
+                        // select everything if the special constant is used
+                        assets = assetIndex.queryAssets(QuerySpec.none());
+                    } else {
+                        var assetFilterQuery = QuerySpec.Builder.newInstance()
+                                .filter(concat(definition.getSelectorExpression().getCriteria().stream(),
+                                        query.getAssetsCriteria().stream()).collect(Collectors.toList())).build();
+                        assets = assetIndex.queryAssets(assetFilterQuery);
+                    }
+
                     return Optional.of(definition.getContractPolicyId())
                             .map(policyStore::findById)
                             .map(policy -> assets.map(asset -> createContractOffer(definition, policy.getPolicy(), asset)))
