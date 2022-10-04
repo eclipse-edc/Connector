@@ -47,7 +47,7 @@ public class CatalogApiController implements CatalogApi {
 
     @Override
     @GET
-    public void getCatalog(@QueryParam("providerUrl") String providerUrl, @Valid @BeanParam QuerySpecDto querySpecDto, @Suspended AsyncResponse response) {
+    public void getCatalog(@jakarta.validation.constraints.NotNull(message = PROVIDER_URL_NOT_NULL_MESSAGE) @QueryParam("providerUrl") String providerUrl, @Valid @BeanParam QuerySpecDto querySpecDto, @Suspended AsyncResponse response) {
 
         @NotNull QuerySpec spec;
         if (querySpecDto != null) {

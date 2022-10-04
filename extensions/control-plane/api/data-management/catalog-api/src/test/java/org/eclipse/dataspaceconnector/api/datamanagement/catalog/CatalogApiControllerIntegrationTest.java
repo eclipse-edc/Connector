@@ -88,6 +88,25 @@ public class CatalogApiControllerIntegrationTest {
                 .body("contractOffers.size()", is(1));
     }
 
+    @Test
+    void getProviderCatalog_shouldFailWithoutProviderUrl() {
+        var contractOffer = ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
+                .build();
+        var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
+        var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
+        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
+                .thenReturn(completedFuture(emptyCatalog));
+
+        baseRequest()
+                .get("/catalog")
+                .then()
+                .statusCode(400)
+                .body("message[0]", is("providerUrl must not be null"));
+    }
+
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
