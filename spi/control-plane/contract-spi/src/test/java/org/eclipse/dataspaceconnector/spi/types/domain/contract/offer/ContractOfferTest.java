@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,26 +26,13 @@ class ContractOfferTest {
     void setUp() {
     }
 
-    @Test
-    void verifyMutualExclusivity() {
-        var p = ContractOffer.Builder.newInstance().id("test-offer");
-
-        assertThatThrownBy(() -> ContractOffer.Builder.newInstance()
-                .id("some-id")
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().build())
-                .assetId("violating-id")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Asset and AssetId are mutually exclusive");
-    }
 
     @Test
     void verifyRequiredFields() {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().build()).isInstanceOf(NullPointerException.class);
 
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
-                .assetId("test-assetId")
+                .asset(Asset.Builder.newInstance().id("test-assetId").build())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Policy must not be null!");

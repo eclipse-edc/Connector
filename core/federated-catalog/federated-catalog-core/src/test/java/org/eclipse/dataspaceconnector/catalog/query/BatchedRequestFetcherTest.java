@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -92,7 +93,7 @@ class BatchedRequestFetcherTest {
                 .mapToObj(i -> ContractOffer.Builder.newInstance()
                         .id("id" + i)
                         .policy(Policy.Builder.newInstance().build())
-                        .assetId("asset" + i)
+                        .asset(Asset.Builder.newInstance().id("asset" + i).build())
                         .build())
                 .collect(Collectors.toList());
 

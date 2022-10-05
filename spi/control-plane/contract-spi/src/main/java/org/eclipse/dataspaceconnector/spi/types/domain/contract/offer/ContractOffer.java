@@ -41,16 +41,8 @@ public class ContractOffer {
 
     /**
      * The offered asset
-     * Must be mutually exclusive with {@link ContractOffer#getAssetId()} ()}
      */
     private Asset asset;
-    /**
-     * Refers to the asset that is offered. Note that this is only to be used during the actual negotiation and cannot
-     * be
-     * used in the initial offer from the provider to the consumer.
-     * Must be mutually exclusive with {@link ContractOffer#getAsset()}
-     */
-    private String assetId;
     /**
      * The participant who provides the offered data
      */
@@ -76,10 +68,6 @@ public class ContractOffer {
      */
     private ZonedDateTime contractEnd;
 
-    @Nullable
-    public String getAssetId() {
-        return assetId;
-    }
 
     @NotNull
     public String getId() {
@@ -156,7 +144,6 @@ public class ContractOffer {
         private ZonedDateTime offerEnd;
         private ZonedDateTime contractStart;
         private ZonedDateTime contractEnd;
-        private String assetId;
 
         private Builder() {
         }
@@ -212,17 +199,8 @@ public class ContractOffer {
         }
 
 
-        public Builder assetId(String assetId) {
-            this.assetId = assetId;
-            return this;
-        }
-
         public ContractOffer build() {
             Objects.requireNonNull(id);
-
-            if (assetId != null && asset != null) {
-                throw new IllegalArgumentException("Asset and AssetId are mutually exclusive");
-            }
 
             if (policy == null) {
                 throw new IllegalArgumentException("Policy must not be null!");
@@ -238,7 +216,6 @@ public class ContractOffer {
             offer.offerEnd = offerEnd;
             offer.contractStart = contractStart;
             offer.contractEnd = contractEnd;
-            offer.assetId = assetId;
             return offer;
         }
     }
