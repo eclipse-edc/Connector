@@ -18,15 +18,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.GcsStoreSchema;
+import org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 
-import static org.eclipse.dataspaceconnector.gcp.lib.storage.GcsStoreSchema.BUCKET_NAME;
-import static org.eclipse.dataspaceconnector.gcp.lib.storage.GcsStoreSchema.LOCATION;
-import static org.eclipse.dataspaceconnector.gcp.lib.storage.GcsStoreSchema.SERVICE_ACCOUNT_EMAIL;
-import static org.eclipse.dataspaceconnector.gcp.lib.storage.GcsStoreSchema.SERVICE_ACCOUNT_NAME;
-import static org.eclipse.dataspaceconnector.gcp.lib.storage.GcsStoreSchema.STORAGE_CLASS;
+import static org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema.BUCKET_NAME;
+import static org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema.LOCATION;
+import static org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema.SERVICE_ACCOUNT_EMAIL;
+import static org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema.SERVICE_ACCOUNT_NAME;
+import static org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema.STORAGE_CLASS;
 
 @JsonDeserialize(builder = GcsProvisionedResource.Builder.class)
 @JsonTypeName("dataspaceconnector:gcsgrovisionedresource")

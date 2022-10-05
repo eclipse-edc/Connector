@@ -14,18 +14,20 @@
 
 package org.eclipse.dataspaceconnector.gcp.storage.provision;
 
-import org.eclipse.dataspaceconnector.gcp.lib.common.BucketWrapper;
-import org.eclipse.dataspaceconnector.gcp.lib.common.GcpExtensionException;
-import org.eclipse.dataspaceconnector.gcp.lib.common.ServiceAccountWrapper;
-import org.eclipse.dataspaceconnector.gcp.lib.iam.IamService;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.GcsAccessToken;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.StorageService;
+import org.eclipse.dataspaceconnector.gcp.core.common.BucketWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
+import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.iam.IamService;
+import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
+import org.eclipse.dataspaceconnector.gcp.core.storage.StorageService;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,45 +66,49 @@ class GcsProvisionerTest {
 
     @Test
     void provisionSuccess() {
-        GcsResourceDefinition resourceDefinition = createResourceDefinition("id", "location",
-                "storage-class", "transfer-id");
-        String bucketName = resourceDefinition.getId();
-        String bucketLocation = resourceDefinition.getLocation();
+        String resourceDefinitionId = "id";
+        String location = "location";
+        String storageClass = "storage-class";
+        String transferProcessId = UUID.randomUUID().toString();
+        var resourceDefinition = createResourceDefinition(resourceDefinitionId, location,
+                storageClass, transferProcessId);
+        var bucketName = resourceDefinition.getId();
+        var bucketLocation = resourceDefinition.getLocation();
 
-        BucketWrapper bucket = new BucketWrapper(bucketName);
-        ServiceAccountWrapper serviceAccount = new ServiceAccountWrapper("test-sa", "sa-name");
-        GcsAccessToken token = new GcsAccessToken("token", 123);
+        var bucket = new BucketWrapper(bucketName);
+        var serviceAccount = new ServiceAccountWrapper("test-sa", "sa-name", "description");
+        var token = new GcsAccessToken("token", 123);
 
-        when(storageServiceMock.getOrCreateBucket(bucketName, bucketLocation)).thenReturn(bucket);
+        when(storageServiceMock.getOrCreateEmptyBucket(bucketName, bucketLocation)).thenReturn(bucket);
         when(storageServiceMock.isEmpty(bucketName)).thenReturn(true);
-        when(iamServiceMock.getOrCreateServiceAccount(anyString())).thenReturn(serviceAccount);
+        when(iamServiceMock.getOrCreateServiceAccount(anyString(), anyString())).thenReturn(serviceAccount);
         doNothing().when(storageServiceMock).addProviderPermissions(bucket, serviceAccount);
         when(iamServiceMock.createAccessToken(serviceAccount)).thenReturn(token);
 
         var response = provisioner.provision(resourceDefinition, testPolicy).join().getContent();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(GcsProvisionedResource.class, resource -> {
-            assertThat(resource.getId()).isEqualTo("id");
-            assertThat(resource.getTransferProcessId()).isEqualTo("transfer-id");
-            assertThat(resource.getLocation()).isEqualTo("location");
-            assertThat(resource.getStorageClass()).isEqualTo("storage-class");
+            assertThat(resource.getId()).isEqualTo(resourceDefinitionId);
+            assertThat(resource.getTransferProcessId()).isEqualTo(transferProcessId);
+            assertThat(resource.getLocation()).isEqualTo(location);
+            assertThat(resource.getStorageClass()).isEqualTo(storageClass);
         });
         assertThat(response.getSecretToken()).isInstanceOfSatisfying(GcsAccessToken.class, secretToken -> {
             assertThat(secretToken.getToken()).isEqualTo("token");
         });
 
-        verify(storageServiceMock).getOrCreateBucket(bucketName, bucketLocation);
+        verify(storageServiceMock).getOrCreateEmptyBucket(bucketName, bucketLocation);
         verify(storageServiceMock).addProviderPermissions(bucket, serviceAccount);
         verify(iamServiceMock).createAccessToken(serviceAccount);
     }
 
     @Test
     void provisionFailsIfBucketNotEmpty() {
-        GcsResourceDefinition resourceDefinition = createResourceDefinition();
-        String bucketName = resourceDefinition.getId();
-        String bucketLocation = resourceDefinition.getLocation();
+        var resourceDefinition = createResourceDefinition();
+        var bucketName = resourceDefinition.getId();
+        var bucketLocation = resourceDefinition.getLocation();
 
-        when(storageServiceMock.getOrCreateBucket(bucketName, bucketLocation)).thenReturn(new BucketWrapper(bucketName));
+        when(storageServiceMock.getOrCreateEmptyBucket(bucketName, bucketLocation)).thenReturn(new BucketWrapper(bucketName));
         when(storageServiceMock.isEmpty(bucketName)).thenReturn(false);
 
         var response = provisioner.provision(resourceDefinition, testPolicy).join();
@@ -110,7 +116,7 @@ class GcsProvisionerTest {
         assertThat(response.failed()).isTrue();
         assertThat(response.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
 
-        verify(storageServiceMock).getOrCreateBucket(bucketName, bucketLocation);
+        verify(storageServiceMock).getOrCreateEmptyBucket(bucketName, bucketLocation);
         verify(storageServiceMock, times(0)).addProviderPermissions(any(), any());
         verify(iamServiceMock, times(0)).createAccessToken(any());
     }
@@ -118,11 +124,11 @@ class GcsProvisionerTest {
 
     @Test
     void provisionFailsBecauseOfApiError() {
-        GcsResourceDefinition resourceDefinition = createResourceDefinition();
-        String bucketName = resourceDefinition.getId();
-        String bucketLocation = resourceDefinition.getLocation();
+        var resourceDefinition = createResourceDefinition();
+        var bucketName = resourceDefinition.getId();
+        var bucketLocation = resourceDefinition.getLocation();
 
-        doThrow(new GcpExtensionException("some error")).when(storageServiceMock).getOrCreateBucket(bucketName, bucketLocation);
+        doThrow(new GcpException("some error")).when(storageServiceMock).getOrCreateEmptyBucket(bucketName, bucketLocation);
 
         var response = provisioner.provision(resourceDefinition, testPolicy).join();
         assertThat(response.failed()).isTrue();
@@ -137,13 +143,14 @@ class GcsProvisionerTest {
 
     @Test
     void deprovisionSuccess() {
-        String email = "test-email";
-        String name = "test-name";
-        String id = "test-id";
-        ServiceAccountWrapper serviceAccount = new ServiceAccountWrapper(email, name);
+        var email = "test-email";
+        var name = "test-name";
+        var id = "test-id";
+        var description = "sa-description";
+        var serviceAccount = new ServiceAccountWrapper(email, name, description);
 
         doNothing().when(iamServiceMock).deleteServiceAccountIfExists(argThat(matches(serviceAccount)));
-        GcsProvisionedResource resource = createGcsProvisionedResource(email, name, id);
+        var resource = createGcsProvisionedResource(email, name, id);
 
         var response = provisioner.deprovision(resource, testPolicy).join().getContent();
         verify(iamServiceMock).deleteServiceAccountIfExists(argThat(matches(serviceAccount)));
@@ -176,13 +183,14 @@ class GcsProvisionerTest {
 
     @Test
     void deprovisionFails() {
-        String email = "test-email";
-        String name = "test-name";
-        String id = "test-id";
-        ServiceAccountWrapper serviceAccount = new ServiceAccountWrapper(email, name);
+        var email = "test-email";
+        var name = "test-name";
+        var id = "test-id";
+        var description = "sa-description";
+        var serviceAccount = new ServiceAccountWrapper(email, name, description);
         GcsProvisionedResource resource = createGcsProvisionedResource(email, name, id);
 
-        doThrow(new GcpExtensionException("some error"))
+        doThrow(new GcpException("some error"))
                 .when(iamServiceMock)
                 .deleteServiceAccountIfExists(argThat(matches(serviceAccount)));
         var response = provisioner.deprovision(resource, testPolicy).join();

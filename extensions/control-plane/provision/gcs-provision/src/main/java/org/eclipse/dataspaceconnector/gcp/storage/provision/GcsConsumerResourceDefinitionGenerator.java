@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.gcp.storage.provision;
 
-import org.eclipse.dataspaceconnector.gcp.lib.storage.GcsStoreSchema;
+import org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -25,7 +25,8 @@ import static java.util.UUID.randomUUID;
 
 public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceDefinitionGenerator {
     @Override
-    public @Nullable ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
+    public @Nullable
+    ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
         if (dataRequest.getDataDestination() == null || dataRequest.getDestinationType() == null || !GcsStoreSchema.TYPE.equals(dataRequest.getDestinationType())) {
             return null;
         }

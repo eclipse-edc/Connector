@@ -14,13 +14,10 @@
 
 package org.eclipse.dataspaceconnector.gcp.storage.provision;
 
-import org.eclipse.dataspaceconnector.gcp.lib.iam.IamClientFactory;
-import org.eclipse.dataspaceconnector.gcp.lib.iam.IamService;
-import org.eclipse.dataspaceconnector.gcp.lib.iam.IamServiceImpl;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.DefaultStorageClientFactory;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.StorageClientFactory;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.StorageService;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.StorageServiceImpl;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+import org.eclipse.dataspaceconnector.gcp.core.iam.IamServiceImpl;
+import org.eclipse.dataspaceconnector.gcp.core.storage.StorageServiceImpl;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -31,28 +28,36 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 
 public class GcsProvisionExtension implements ServiceExtension {
 
-    @EdcSetting(required = true)
+    @EdcSetting(value = "The GCP project ID", required = true)
     private static final String GCP_PROJECT_ID = "edc.gcp.projectId";
 
     @Inject
-    ProvisionManager provisionManager;
+    private ProvisionManager provisionManager;
 
-    IamService iamService;
-    StorageService storageService;
     private Monitor monitor;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        String projectId = context.getConfig().getString(GCP_PROJECT_ID);
-        StorageClientFactory storageFactory = new DefaultStorageClientFactory(projectId);
-        storageService = new StorageServiceImpl(storageFactory, monitor);
-        IamClientFactory iamFactory = new IamClientFactory();
-        iamService = new IamServiceImpl(iamFactory, monitor, projectId);
+        var projectId = context.getConfig().getString(GCP_PROJECT_ID);
+        var storageClient = createDefaultStorageClient(projectId);
+        var storageService = new StorageServiceImpl(storageClient, monitor);
+        var iamService = IamServiceImpl.Builder.newInstance(monitor, projectId).build();
 
         var provisioner = new GcsProvisioner(monitor, storageService, iamService);
         provisionManager.register(provisioner);
+    }
+
+
+    /**
+     * Creates {@link Storage} for the specified project using application default credentials
+     *
+     * @param projectId The project that should be used for storage operations
+     * @return {@link Storage}
+     */
+    private Storage createDefaultStorageClient(String projectId) {
+        return StorageOptions.newBuilder().setProjectId(projectId).build().getService();
     }
 
     @Override

@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.gcp.storage.provision;
 
-import org.eclipse.dataspaceconnector.gcp.lib.common.BucketWrapper;
-import org.eclipse.dataspaceconnector.gcp.lib.common.GcpExtensionException;
-import org.eclipse.dataspaceconnector.gcp.lib.common.ServiceAccountWrapper;
-import org.eclipse.dataspaceconnector.gcp.lib.iam.IamService;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.GcsAccessToken;
-import org.eclipse.dataspaceconnector.gcp.lib.storage.StorageService;
+import org.eclipse.dataspaceconnector.gcp.core.common.BucketWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
+import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.iam.IamService;
+import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
+import org.eclipse.dataspaceconnector.gcp.core.storage.StorageService;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
@@ -29,17 +29,17 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedRes
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsProvisionedResource> {
 
-    private Monitor monitor;
-    private StorageService storageService;
-    private IamService iamService;
+    private final Monitor monitor;
+    private final StorageService storageService;
+    private final IamService iamService;
 
     public GcsProvisioner(Monitor monitor, StorageService storageService, IamService iamService) {
         this.monitor = monitor;
@@ -60,25 +60,26 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
     @Override
     public CompletableFuture<StatusResult<ProvisionResponse>> provision(
             GcsResourceDefinition resourceDefinition, Policy policy) {
-        String bucketName = resourceDefinition.getId();
-        String bucketLocation = resourceDefinition.getLocation();
+        var bucketName = resourceDefinition.getId();
+        var bucketLocation = resourceDefinition.getLocation();
 
         monitor.debug("GCS Bucket request submitted: " + bucketName);
 
-        String resourceName = resourceDefinition.getId() + "-bucket";
+        var resourceName = resourceDefinition.getId() + "-bucket";
+        var processId = resourceDefinition.getTransferProcessId();
         try {
-            BucketWrapper bucket = storageService.getOrCreateBucket(bucketName, bucketLocation);
+            var bucket = storageService.getOrCreateEmptyBucket(bucketName, bucketLocation);
             if (!storageService.isEmpty(bucketName)) {
                 return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, String.format("Bucket: %s already exists and is not empty.", bucketName)));
             }
-            ServiceAccountWrapper serviceAccount = createServiceAccount();
-            GcsAccessToken token = createBucketAccessToken(bucket, serviceAccount);
+            var serviceAccount = createServiceAccount(processId, bucketName);
+            var token = createBucketAccessToken(bucket, serviceAccount);
 
-            GcsProvisionedResource resource = getProvisionedResource(resourceDefinition, resourceName, serviceAccount);
+            var resource = getProvisionedResource(resourceDefinition, resourceName, serviceAccount);
 
             var response = ProvisionResponse.Builder.newInstance().resource(resource).secretToken(token).build();
             return CompletableFuture.completedFuture(StatusResult.success(response));
-        } catch (GcpExtensionException e) {
+        } catch (GcpException e) {
             return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, e.toString()));
         }
     }
@@ -89,8 +90,8 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
         try {
             iamService.deleteServiceAccountIfExists(
                     new ServiceAccountWrapper(provisionedResource.getServiceAccountEmail(),
-                            provisionedResource.getServiceAccountName()));
-        } catch (GcpExtensionException e) {
+                            provisionedResource.getServiceAccountName(), ""));
+        } catch (GcpException e) {
             return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
                     String.format("Deprovision failed with: %s", e.getMessage())));
         }
@@ -99,10 +100,24 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
                         .provisionedResourceId(provisionedResource.getId()).build()));
     }
 
-    private ServiceAccountWrapper createServiceAccount() {
-        String uniqueId = UUID.randomUUID().toString().replace("-", "").substring(0, 26);
-        String saName = "edc-" + uniqueId;
-        return iamService.getOrCreateServiceAccount(saName);
+    private ServiceAccountWrapper createServiceAccount(String processId, String buckedName) {
+        var serviceAccountName = sanitizeServiceAccountName(processId);
+        var uniqueServiceAccountDescription = generateUniqueServiceAccountDescription(processId, buckedName);
+        return iamService.getOrCreateServiceAccount(serviceAccountName, uniqueServiceAccountDescription);
+    }
+
+    @NotNull
+    private String sanitizeServiceAccountName(String processId) {
+        // service account ID must be between 6 and 30 characters and can contain lowercase alphanumeric characters and dashes
+        String processIdWithoutConstantChars = processId.replace("-", "");
+        var maxAllowedSubstringLength = Math.min(26, processIdWithoutConstantChars.length());
+        var uniqueId = processIdWithoutConstantChars.substring(0, maxAllowedSubstringLength);
+        return "edc-" + uniqueId;
+    }
+
+    @NotNull
+    private String generateUniqueServiceAccountDescription(String transferProcessId, String bucketName) {
+        return String.format("transferProcess:%s\nbucket:%s", transferProcessId, bucketName);
     }
 
     private GcsAccessToken createBucketAccessToken(BucketWrapper bucket, ServiceAccountWrapper serviceAccount) {
