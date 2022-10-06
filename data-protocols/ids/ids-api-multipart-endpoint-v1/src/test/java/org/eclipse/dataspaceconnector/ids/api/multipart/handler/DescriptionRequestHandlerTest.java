@@ -71,18 +71,16 @@ import static org.mockito.Mockito.when;
 
 class DescriptionRequestHandlerTest {
 
-    private final int rangeFrom = 0;
-    private final int rangeTo = 10;
-    
-    private IdsId connectorId;
-
+    private static final String CONNECTOR_ID = "urn:connector:edc";
     private static final String PROPERTY = "property";
     private static final String VALUE = "value";
     private static final String EQUALS_SIGN = "=";
     private static final String FILTER_EXPRESSION = "filterExpression";
     private static final String OFFSET = "offset";
     private static final String LIMIT = "limit";
-
+    private final int rangeFrom = 0;
+    private final int rangeTo = 10;
+    private IdsId connectorId;
     private DescriptionRequestHandler handler;
 
     private IdsTransformerRegistry transformerRegistry;
@@ -94,7 +92,7 @@ class DescriptionRequestHandlerTest {
     @BeforeEach
     void init() {
         connectorId = IdsId.from("urn:connector:edc").getContent();
-    
+
         transformerRegistry = mock(IdsTransformerRegistry.class);
         assetIndex = mock(AssetIndex.class);
         catalogService = mock(CatalogService.class);
@@ -167,10 +165,10 @@ class DescriptionRequestHandlerTest {
 
         verify(catalogService, times(1))
                 .getDataCatalog(any(),
-                    argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo &&
-                        query.getFilterExpression().get(0).getOperandLeft().equals(PROPERTY) &&
-                        query.getFilterExpression().get(0).getOperandRight().equals(VALUE) &&
-                        query.getFilterExpression().get(0).getOperator().equals(EQUALS_SIGN)));
+                        argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo &&
+                                query.getFilterExpression().get(0).getOperandLeft().equals(PROPERTY) &&
+                                query.getFilterExpression().get(0).getOperandRight().equals(VALUE) &&
+                                query.getFilterExpression().get(0).getOperator().equals(EQUALS_SIGN)));
         verifyNoMoreInteractions(catalogService);
         verifyNoInteractions(connectorService, contractOfferService, assetIndex);
     }
@@ -184,6 +182,7 @@ class DescriptionRequestHandlerTest {
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id("test-asset").build())
                 .build();
         var request = MultipartRequest.Builder.newInstance()
                 .header(descriptionRequestMessage(URI.create("urn:resource:" + assetId)))

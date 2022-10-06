@@ -50,6 +50,15 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     private OfferedAssetToIdsResourceTransformer transformer;
 
+    @NotNull
+    private static ContractOffer createContractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .build();
+    }
+
     @BeforeEach
     void setUp() {
         transformer = new OfferedAssetToIdsResourceTransformer();
@@ -80,14 +89,6 @@ class OfferedAssetToIdsResourceTransformerTest {
         assertThat(result.getContractOffer()).hasSize(2);
         verify(context).transform(any(Asset.class), eq(Representation.class));
         verify(context, times(2)).transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class));
-    }
-
-    @NotNull
-    private static ContractOffer createContractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .build();
     }
 
 }

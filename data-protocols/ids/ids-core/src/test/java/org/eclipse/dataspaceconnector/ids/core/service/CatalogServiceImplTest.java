@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,10 +51,12 @@ class CatalogServiceImplTest {
         var offers = Arrays.asList(
                 ContractOffer.Builder.newInstance()
                         .policy(Policy.Builder.newInstance().build())
+                        .asset(Asset.Builder.newInstance().id("test-asset").build())
                         .id("1")
                         .build(),
                 ContractOffer.Builder.newInstance()
                         .policy(Policy.Builder.newInstance().build())
+                        .asset(Asset.Builder.newInstance().id("test-asset").build())
                         .id("1")
                         .build());
         when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());

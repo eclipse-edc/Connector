@@ -145,7 +145,7 @@ class MultipartDispatcherIntegrationTest {
 
     @Test
     void testSendContractOfferMessage(RemoteMessageDispatcherRegistry dispatcher) {
-        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
+        var contractOffer = contractOffer("id");
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
 
@@ -166,8 +166,7 @@ class MultipartDispatcherIntegrationTest {
 
     @Test
     void testSendContractRequestMessage(RemoteMessageDispatcherRegistry dispatcher, AssetIndex assetIndex) {
-        var policy = Policy.Builder.newInstance().build();
-        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(policy).build();
+        var contractOffer = contractOffer("id");
         assetIndex.accept(Asset.Builder.newInstance().id("1").build(), DataAddress.Builder.newInstance().type("any").build());
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
@@ -234,6 +233,14 @@ class MultipartDispatcherIntegrationTest {
 
     protected String getUrl() {
         return String.format("http://localhost:%s/api/v1/ids%s", IDS_PORT, MultipartController.PATH);
+    }
+
+    protected ContractOffer contractOffer(String id) {
+        return ContractOffer.Builder.newInstance()
+                .id(id)
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .build();
     }
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {

@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -43,7 +44,8 @@ public class TestFunctions {
                 .id(id)
                 .type(ContractNegotiation.Type.CONSUMER)
                 .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
-                        .policy(Policy.Builder.newInstance().build()).build()))
+                        .policy(Policy.Builder.newInstance().build())
+                        .asset(Asset.Builder.newInstance().id("test-asset").build()).build()))
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .protocol("ids-multipart");

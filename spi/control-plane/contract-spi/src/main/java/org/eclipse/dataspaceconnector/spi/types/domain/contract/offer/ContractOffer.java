@@ -135,17 +135,11 @@ public class ContractOffer {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private Asset asset;
-        private Policy policy;
-        private String id;
-        private URI provider;
-        private URI consumer;
-        private ZonedDateTime offerStart;
-        private ZonedDateTime offerEnd;
-        private ZonedDateTime contractStart;
-        private ZonedDateTime contractEnd;
+
+        private final ContractOffer contractOffer;
 
         private Builder() {
+            contractOffer = new ContractOffer();
         }
 
         @JsonCreator
@@ -154,69 +148,57 @@ public class ContractOffer {
         }
 
         public Builder id(String id) {
-            this.id = id;
+            contractOffer.id = id;
             return this;
         }
 
         public Builder provider(URI provider) {
-            this.provider = provider;
+            contractOffer.provider = provider;
             return this;
         }
 
         public Builder consumer(URI consumer) {
-            this.consumer = consumer;
+            contractOffer.consumer = consumer;
             return this;
         }
 
         public Builder asset(Asset asset) {
-            this.asset = asset;
+            contractOffer.asset = asset;
             return this;
         }
 
         public Builder offerStart(ZonedDateTime date) {
-            offerStart = date;
+            contractOffer.offerStart = date;
             return this;
         }
 
         public Builder offerEnd(ZonedDateTime date) {
-            offerEnd = date;
+            contractOffer.offerEnd = date;
             return this;
         }
 
         public Builder contractStart(ZonedDateTime date) {
-            contractStart = date;
+            contractOffer.contractStart = date;
             return this;
         }
 
         public Builder contractEnd(ZonedDateTime date) {
-            contractEnd = date;
+            contractOffer.contractEnd = date;
             return this;
         }
 
         public Builder policy(Policy policy) {
-            this.policy = policy;
+            contractOffer.policy = policy;
             return this;
         }
 
 
         public ContractOffer build() {
-            Objects.requireNonNull(id);
+            Objects.requireNonNull(contractOffer.id);
+            Objects.requireNonNull(contractOffer.asset, "Asset must not be null");
+            Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
 
-            if (policy == null) {
-                throw new IllegalArgumentException("Policy must not be null!");
-            }
-
-            ContractOffer offer = new ContractOffer();
-            offer.id = id;
-            offer.policy = policy;
-            offer.asset = asset;
-            offer.provider = provider;
-            offer.consumer = consumer;
-            offer.offerStart = offerStart;
-            offer.offerEnd = offerEnd;
-            offer.contractStart = contractStart;
-            offer.contractEnd = contractEnd;
-            return offer;
+            return contractOffer;
         }
     }
 }
