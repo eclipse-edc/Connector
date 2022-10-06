@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,12 +67,14 @@ public class ContractOfferServiceImpl implements ContractOfferService {
                 // ignore definitions with missing criteria (only if not SELECT_ALL)
                 .filter(definition -> (definition.getSelectorExpression().getCriteria() != null &&
                         !definition.getSelectorExpression().getCriteria().isEmpty()) ||
-                        definition.getSelectorExpression() == AssetSelectorExpression.SELECT_ALL)
+                        definition.getSelectorExpression().equals(AssetSelectorExpression.SELECT_ALL))
                 .flatMap(definition -> {
                     Stream<Asset> assets;
-                    if (definition.getSelectorExpression() == AssetSelectorExpression.SELECT_ALL) {
-                        // select everything if the special constant is used
-                        assets = assetIndex.queryAssets(QuerySpec.none());
+                    if (definition.getSelectorExpression().equals(AssetSelectorExpression.SELECT_ALL)) {
+                        // select everything for a given assetId
+                        var assetFilterQuery = QuerySpec.Builder.newInstance()
+                                .filter(new ArrayList<>(query.getAssetsCriteria())).build();
+                        assets = assetIndex.queryAssets(assetFilterQuery);
                     } else {
                         var assetFilterQuery = QuerySpec.Builder.newInstance()
                                 .filter(concat(definition.getSelectorExpression().getCriteria().stream(),
