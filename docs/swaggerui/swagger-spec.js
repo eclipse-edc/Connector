@@ -2361,9 +2361,6 @@ window.swaggerSpec={
           "asset" : {
             "$ref" : "#/components/schemas/Asset"
           },
-          "assetId" : {
-            "type" : "string"
-          },
           "consumer" : {
             "type" : "string",
             "format" : "uri"

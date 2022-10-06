@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ public class CatalogApiControllerIntegrationTest {
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString())
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
@@ -93,7 +94,7 @@ public class CatalogApiControllerIntegrationTest {
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString())
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();

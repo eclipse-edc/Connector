@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +61,7 @@ class CatalogApiControllerTest {
         var offer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString())
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
         var url = "test.url";
