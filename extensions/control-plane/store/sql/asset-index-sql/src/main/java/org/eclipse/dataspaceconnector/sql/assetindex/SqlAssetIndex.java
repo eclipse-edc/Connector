@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.AssetStatements;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +41,7 @@ import javax.sql.DataSource;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 public class SqlAssetIndex implements AssetIndex {
 
@@ -79,7 +79,7 @@ public class SqlAssetIndex implements AssetIndex {
             try {
                 var statement = assetStatements.createQuery(querySpec);
 
-                return SqlQueryExecutor.executeQuery(getConnection(), true, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters())
+                return executeQuery(getConnection(), true, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters())
                         .map(this::findById);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -101,8 +101,8 @@ public class SqlAssetIndex implements AssetIndex {
                 var selectAssetByIdSql = assetStatements.getSelectAssetByIdTemplate();
                 var findPropertyByIdSql = assetStatements.getFindPropertyByIdTemplate();
                 try (
-                        var createdAtStream = SqlQueryExecutor.executeQuery(connection, false, this::mapCreatedAt, selectAssetByIdSql, assetId);
-                        var propertiesStream = SqlQueryExecutor.executeQuery(connection, false, this::mapPropertyResultSet, findPropertyByIdSql, assetId)
+                        var createdAtStream = executeQuery(connection, false, this::mapCreatedAt, selectAssetByIdSql, assetId);
+                        var propertiesStream = executeQuery(connection, false, this::mapPropertyResultSet, findPropertyByIdSql, assetId)
                 ) {
                     var createdAt = createdAtStream.findFirst().orElse(0L);
                     var assetProperties = propertiesStream
@@ -190,7 +190,7 @@ public class SqlAssetIndex implements AssetIndex {
 
             var queryAsString = statement.getQueryAsString().replace("SELECT * ", "SELECT COUNT (*) ");
 
-            return single(executeQuery(connection, r -> r.getLong(1), queryAsString, statement.getParameters()));
+            return executeQuerySingle(connection, true, r -> r.getLong(1), queryAsString, statement.getParameters());
         } catch (SQLException e) {
             throw new EdcPersistenceException(e);
         }
@@ -203,7 +203,7 @@ public class SqlAssetIndex implements AssetIndex {
         return transactionContext.execute(() -> {
             var sql = assetStatements.getFindDataAddressByIdTemplate();
             try {
-                return SqlQueryExecutor.executeQuerySingle(getConnection(), true, this::mapDataAddress, sql, assetId);
+                return executeQuerySingle(getConnection(), true, this::mapDataAddress, sql, assetId);
             } catch (Exception e) {
                 if (e instanceof EdcPersistenceException) {
                     throw (EdcPersistenceException) e;
@@ -245,7 +245,7 @@ public class SqlAssetIndex implements AssetIndex {
 
     private boolean existsById(String assetId, Connection connection) {
         var sql = assetStatements.getCountAssetByIdClause();
-        try (var stream = SqlQueryExecutor.executeQuery(connection, false, this::mapRowCount, sql, assetId)) {
+        try (var stream = executeQuery(connection, false, this::mapRowCount, sql, assetId)) {
             return stream.findFirst().orElse(0) > 0;
         }
     }

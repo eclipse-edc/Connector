@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.ContractDefinitionStatements;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +40,7 @@ import javax.sql.DataSource;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
@@ -65,7 +65,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
             try {
                 var queryStmt = statements.createQuery(spec);
-                return SqlQueryExecutor.executeQuery(getConnection(), true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
+                return executeQuery(getConnection(), true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -175,7 +175,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     private boolean existsById(Connection connection, String definitionId) {
         var sql = statements.getCountTemplate();
-        try (var stream = SqlQueryExecutor.executeQuery(connection, false, this::mapCount, sql, definitionId)) {
+        try (var stream = executeQuery(connection, false, this::mapCount, sql, definitionId)) {
             return stream.findFirst().orElse(0L) > 0;
         }
     }
@@ -186,7 +186,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     private ContractDefinition findById(Connection connection, String id) {
         var sql = statements.getFindByTemplate();
-        return SqlQueryExecutor.executeQuerySingle(connection, false, this::mapResultSet, sql, id);
+        return executeQuerySingle(connection, false, this::mapResultSet, sql, id);
     }
 
     private DataSource getDataSource() {

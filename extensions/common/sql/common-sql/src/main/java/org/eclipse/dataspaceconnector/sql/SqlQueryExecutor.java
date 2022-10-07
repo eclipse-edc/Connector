@@ -60,7 +60,7 @@ public final class SqlQueryExecutor {
     }
 
     public static <T> T executeQuerySingle(Connection connection, boolean closeConnection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
-        try (var stream = SqlQueryExecutor.executeQuery(connection, closeConnection, resultSetMapper, sql, arguments)) {
+        try (var stream = executeQuery(connection, closeConnection, resultSetMapper, sql, arguments)) {
             return stream.findFirst().orElse(null);
         }
     }
@@ -95,7 +95,7 @@ public final class SqlQueryExecutor {
             setArguments(statement, arguments);
             var resultSet = statement.executeQuery();
             doorKeeper.takeCareOf(resultSet);
-            var splititerator = createSplititerator(resultSetMapper, resultSet);
+            var splititerator = createSpliterator(resultSetMapper, resultSet);
             return stream(splititerator, false).onClose(doorKeeper::close);
         } catch (SQLException sqlEx) {
             try {
@@ -109,7 +109,7 @@ public final class SqlQueryExecutor {
     }
 
     @NotNull
-    private static <T> Spliterators.AbstractSpliterator<T> createSplititerator(ResultSetMapper<T> resultSetMapper, ResultSet resultSet) {
+    private static <T> Spliterators.AbstractSpliterator<T> createSpliterator(ResultSetMapper<T> resultSetMapper, ResultSet resultSet) {
         return new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED) {
             @Override
             public boolean tryAdvance(Consumer<? super T> action) {

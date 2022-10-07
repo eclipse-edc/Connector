@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.SqlPolicyStoreStatements;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +39,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
 
@@ -63,7 +63,7 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
         var query = QuerySpec.Builder.newInstance().filter("id=" + id).build();
         try {
             var queryStatement = statements.createQuery(query);
-            return SqlQueryExecutor.executeQuerySingle(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+            return executeQuerySingle(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
         } catch (SQLException exception) {
             throw new EdcPersistenceException(exception);
         }
@@ -75,7 +75,7 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
 
         try {
             var queryStatement = statements.createQuery(querySpec);
-            return SqlQueryExecutor.executeQuery(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+            return executeQuery(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
         } catch (SQLException exception) {
             throw new EdcPersistenceException(exception);
         }

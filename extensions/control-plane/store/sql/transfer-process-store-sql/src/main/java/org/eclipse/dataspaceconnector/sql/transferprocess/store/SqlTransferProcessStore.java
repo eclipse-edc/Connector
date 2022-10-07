@@ -29,7 +29,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResou
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
 import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +45,7 @@ import javax.sql.DataSource;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 /**
  * Implementation of the {@link TransferProcessStore} based on SQL.
@@ -79,7 +79,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
 
             try (
                     var connection = getConnection();
-                    var stream = SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, stmt, state, now, max)
+                    var stream = executeQuery(connection, true, this::mapTransferProcess, stmt, state, now, max)
             ) {
                 var transferProcesses = stream.collect(toList());
                 transferProcesses.forEach(t -> leaseContext.by(leaseHolderName).withConnection(connection).acquireLease(t.getId()));
@@ -104,7 +104,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
         return transactionContext.execute(() -> {
             var stmt = statements.getProcessIdForTransferIdTemplate();
             try {
-                return SqlQueryExecutor.executeQuerySingle(getConnection(), true, (rs) -> rs.getString(statements.getIdColumn()), stmt, transferId);
+                return executeQuerySingle(getConnection(), true, (rs) -> rs.getString(statements.getIdColumn()), stmt, transferId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -185,7 +185,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
         return transactionContext.execute(() -> {
             try {
                 var statement = statements.createQuery(querySpec);
-                return SqlQueryExecutor.executeQuery(getConnection(), true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
+                return executeQuery(getConnection(), true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

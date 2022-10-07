@@ -22,7 +22,7 @@ import java.util.Stack;
  * The DoorKeeper takes care to close all the registered {@link AutoCloseable} components from the last to the first
  * Wrapping eventually checked exceptions with an unchecked {@link EdcException}
  */
-public class DoorKeeper implements AutoCloseable {
+class DoorKeeper implements AutoCloseable {
     private final Stack<AutoCloseable> closeables = new Stack<>();
 
     /**
