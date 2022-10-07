@@ -36,8 +36,6 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.net.URI;
-
 import static org.eclipse.dataspaceconnector.ids.core.util.ConnectorIdUtil.resolveConnectorId;
 
 @Extension(value = IdsMultipartDispatcherServiceExtension.NAME)
@@ -78,7 +76,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         var objectMapper = context.getTypeManager().getMapper("ids");
         var typeManager = context.getTypeManager();
 
-        var senderContext = new SenderDelegateContext(URI.create(connectorId), objectMapper, transformerRegistry, idsWebhookAddress);
+        var senderContext = new SenderDelegateContext(connectorId, objectMapper, transformerRegistry, idsWebhookAddress);
 
         var sender = new IdsMultipartSender(monitor, httpClient, dynamicAttributeTokenService, objectMapper);
         var dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);

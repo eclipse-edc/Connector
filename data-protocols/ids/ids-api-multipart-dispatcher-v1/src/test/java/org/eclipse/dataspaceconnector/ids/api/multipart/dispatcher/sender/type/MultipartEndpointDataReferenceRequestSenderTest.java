@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.respon
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
@@ -48,7 +49,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
 
     @BeforeEach
     public void setUp() {
-        var connectorId = URI.create(UUID.randomUUID().toString());
+        var connectorId = IdsId.from("urn:connector:edc").getContent();
         var transformerRegistry = mock(IdsTransformerRegistry.class);
         var idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
 
@@ -70,8 +71,8 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var participantUpdateMessage = (ParticipantUpdateMessage) header;
         assertThat(participantUpdateMessage.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
         assertThat(participantUpdateMessage.getSecurityToken()).isEqualTo(datToken);
-        assertThat(participantUpdateMessage.getIssuerConnector()).isEqualTo(senderContext.getConnectorId());
-        assertThat(participantUpdateMessage.getSenderAgent()).isEqualTo(senderContext.getConnectorId());
+        assertThat(participantUpdateMessage.getIssuerConnector()).isEqualTo(senderContext.getConnectorId().toUri());
+        assertThat(participantUpdateMessage.getSenderAgent()).isEqualTo(senderContext.getConnectorId().toUri());
         assertThat(participantUpdateMessage.getRecipientAgent()).allMatch(uri -> uri.equals(URI.create(request.getConnectorId())));
     }
 

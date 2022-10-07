@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -32,13 +33,13 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil
 public class ContractRejectionHandler implements Handler {
 
     private final Monitor monitor;
-    private final String connectorId;
+    private final IdsId connectorId;
     private final ProviderContractNegotiationManager providerNegotiationManager;
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
 
     public ContractRejectionHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull IdsId connectorId,
             @NotNull ProviderContractNegotiationManager providerNegotiationManager,
             @NotNull ConsumerContractNegotiationManager consumerNegotiationManager) {
         this.monitor = monitor;

@@ -71,10 +71,10 @@ import static org.mockito.Mockito.when;
 
 class DescriptionRequestHandlerTest {
 
-    private static final String CONNECTOR_ID = "urn:connector:edc";
-
     private final int rangeFrom = 0;
     private final int rangeTo = 10;
+    
+    private IdsId connectorId;
 
     private static final String PROPERTY = "property";
     private static final String VALUE = "value";
@@ -93,13 +93,15 @@ class DescriptionRequestHandlerTest {
 
     @BeforeEach
     void init() {
+        connectorId = IdsId.from("urn:connector:edc").getContent();
+    
         transformerRegistry = mock(IdsTransformerRegistry.class);
         assetIndex = mock(AssetIndex.class);
         catalogService = mock(CatalogService.class);
         contractOfferService = mock(ContractOfferService.class);
         connectorService = mock(ConnectorService.class);
 
-        handler = new DescriptionRequestHandler(mock(Monitor.class), CONNECTOR_ID, transformerRegistry,
+        handler = new DescriptionRequestHandler(mock(Monitor.class), connectorId, transformerRegistry,
                 assetIndex, catalogService, contractOfferService, connectorService, new ObjectMapper());
     }
 

@@ -69,8 +69,8 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
                     ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                     ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
-                    ._issuerConnector_(context.getConnectorId())
-                    ._senderAgent_(context.getConnectorId())
+                    ._issuerConnector_(context.getConnectorId().toUri())
+                    ._senderAgent_(context.getConnectorId().toUri())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
@@ -82,8 +82,8 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
                     ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                     ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
-                    ._issuerConnector_(context.getConnectorId())
-                    ._senderAgent_(context.getConnectorId())
+                    ._issuerConnector_(context.getConnectorId().toUri())
+                    ._senderAgent_(context.getConnectorId().toUri())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();

@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -28,6 +27,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static org.eclipse.dataspaceconnector.ids.core.util.ConnectorIdUtil.resolveConnectorId;
 
 public class ConnectorServiceSettings {
 
@@ -59,9 +60,8 @@ public class ConnectorServiceSettings {
 
     private final Monitor monitor;
     private final ServiceExtensionContext serviceExtensionContext;
-
-    // TODO Shouldn't the connector ID be an URI? Ask Denis
-    private String id;
+    
+    private IdsId id;
     private String title;
     private String description;
     private SecurityProfile securityProfile;
@@ -108,7 +108,7 @@ public class ConnectorServiceSettings {
     }
 
     @Nullable
-    public String getId() {
+    public IdsId getId() {
         return id;
     }
 
@@ -143,25 +143,12 @@ public class ConnectorServiceSettings {
     }
 
     private String setConnectorId() {
-        String value = serviceExtensionContext.getSetting(EDC_IDS_ID, null);
-
-        if (value == null) {
-            String message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
-            monitor.warning(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
-            value = DEFAULT_EDC_IDS_ID;
+        try {
+            id = resolveConnectorId(serviceExtensionContext);
+            return null;
+        } catch (EdcException e) {
+            return e.getMessage();
         }
-
-        // Hint: use stringified uri to keep uri path and query
-        var result = IdsId.from(value);
-        if (result.succeeded()) {
-            var idsId = result.getContent();
-            if (idsId.getType() == IdsType.CONNECTOR) {
-                id = idsId.getValue();
-                return null;
-            }
-        }
-
-        return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);
     }
 
     private void initTitle() {

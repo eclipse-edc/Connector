@@ -39,7 +39,7 @@ public class ConnectorIdUtil {
      * @return the connector's ID.
      * @throws EdcException if a configuration value is present for the IDS ID but is not a valid URN.
      */
-    public static String resolveConnectorId(ServiceExtensionContext context) {
+    public static IdsId resolveConnectorId(ServiceExtensionContext context) {
         var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
     
         // Hint: use stringified uri to keep uri path and query
@@ -47,14 +47,12 @@ public class ConnectorIdUtil {
         if (result.succeeded()) {
             var idsId = result.getContent();
             if (idsId.getType() == IdsType.CONNECTOR) {
-                return idsId.getValue();
+                return idsId;
             }
-        } else {
-            var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
-            throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
         }
-    
-        return value;
+        
+        var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
+        throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
     }
     
 }

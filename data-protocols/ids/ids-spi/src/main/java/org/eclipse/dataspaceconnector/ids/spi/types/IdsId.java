@@ -80,6 +80,16 @@ public class IdsId {
     public URI toUri() {
         return URI.create(String.join(DELIMITER, SCHEME, this.getType().getValue(), this.getValue()));
     }
+    
+    /**
+     * Converts an IDS id to a URI and returns it as a string.
+     *
+     * @return the IDS id as URI string.
+     */
+    @Override
+    public String toString() {
+        return toUri().toString();
+    }
 
     /**
      * Builds an IDS id from a given URI.

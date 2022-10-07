@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.ids.spi.domain.connector;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +29,7 @@ import java.util.List;
  */
 @JsonDeserialize(builder = Connector.Builder.class)
 public class Connector {
-    private final String id;
+    private final IdsId id;
     private final String title;
     private final String description;
     private final String connectorVersion;
@@ -39,7 +40,7 @@ public class Connector {
     private final URI curator;
 
     public Connector(
-            @Nullable String id,
+            @Nullable IdsId id,
             @Nullable String title,
             @Nullable String description,
             @Nullable String connectorVersion,
@@ -60,7 +61,7 @@ public class Connector {
     }
 
     @Nullable
-    public String getId() {
+    public IdsId getId() {
         return id;
     }
 
@@ -106,7 +107,7 @@ public class Connector {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private String id;
+        private IdsId id;
         private String title;
         private String description;
         private String connectorVersion;
@@ -123,7 +124,7 @@ public class Connector {
             return new Builder();
         }
 
-        public Builder id(@Nullable String id) {
+        public Builder id(@Nullable IdsId id) {
             this.id = id;
             return this;
         }

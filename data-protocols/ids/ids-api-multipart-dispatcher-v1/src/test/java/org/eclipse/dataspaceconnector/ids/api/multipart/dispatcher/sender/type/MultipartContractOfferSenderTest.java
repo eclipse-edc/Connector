@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.ContractRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.transform.IdsTransformerRegistryImpl;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.transform.type.contract.ContractOfferToIdsContractOfferTransformer;
 import org.eclipse.dataspaceconnector.ids.transform.type.policy.ActionToIdsActionTransformer;
 import org.eclipse.dataspaceconnector.ids.transform.type.policy.PermissionToIdsPermissionTransformer;
@@ -32,8 +33,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MultipartContractOfferSenderTest {
@@ -43,7 +42,7 @@ class MultipartContractOfferSenderTest {
 
     @BeforeEach
     void setUp() {
-        var connectorId = URI.create("https://connector");
+        var connectorId = IdsId.from("urn:connector:edc").getContent();
         var webhookAddress = "https://webhook";
 
         var transformerRegistry = new IdsTransformerRegistryImpl();

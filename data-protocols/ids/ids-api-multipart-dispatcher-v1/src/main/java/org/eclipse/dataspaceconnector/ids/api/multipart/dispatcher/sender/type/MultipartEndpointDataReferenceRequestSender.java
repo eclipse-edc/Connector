@@ -63,8 +63,8 @@ public class MultipartEndpointDataReferenceRequestSender implements MultipartSen
         return new ParticipantUpdateMessageBuilder()
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._securityToken_(token)
-                ._issuerConnector_(context.getConnectorId())
-                ._senderAgent_(context.getConnectorId())
+                ._issuerConnector_(context.getConnectorId().toUri())
+                ._senderAgent_(context.getConnectorId().toUri())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
     }

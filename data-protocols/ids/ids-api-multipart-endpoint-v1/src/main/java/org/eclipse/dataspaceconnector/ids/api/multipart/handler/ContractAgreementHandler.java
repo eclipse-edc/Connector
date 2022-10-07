@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractAgreementTransformerOutput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -40,13 +41,13 @@ public class ContractAgreementHandler implements Handler {
 
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
-    private final String connectorId;
+    private final IdsId connectorId;
     private final ConsumerContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
 
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull IdsId connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
             @NotNull IdsTransformerRegistry transformerRegistry) {

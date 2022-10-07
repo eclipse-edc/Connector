@@ -48,7 +48,7 @@ class MultipartArtifactRequestSenderTest {
     @BeforeEach
     public void setUp() {
         var vault = mock(Vault.class);
-        var connectorId = URI.create(UUID.randomUUID().toString());
+        var connectorId = IdsId.from("urn:connector:edc").getContent();
         var transformerRegistry = mock(IdsTransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
 
@@ -71,8 +71,8 @@ class MultipartArtifactRequestSenderTest {
         assertThat(message.getId()).hasToString(request.getId());
         assertThat(message.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
         assertThat(message.getSecurityToken()).isEqualTo(token);
-        assertThat(message.getIssuerConnector()).isEqualTo(senderContext.getConnectorId());
-        assertThat(message.getSenderAgent()).isEqualTo(senderContext.getConnectorId());
+        assertThat(message.getIssuerConnector()).isEqualTo(senderContext.getConnectorId().toUri());
+        assertThat(message.getSenderAgent()).isEqualTo(senderContext.getConnectorId().toUri());
         assertThat(message.getRecipientConnector()).containsExactly(URI.create(request.getConnectorId()));
         assertThat(((ArtifactRequestMessage) message).getRequestedArtifact().compareTo(artifactId)).isZero();
         assertThat(message.getTransferContract().compareTo(contractId)).isZero();

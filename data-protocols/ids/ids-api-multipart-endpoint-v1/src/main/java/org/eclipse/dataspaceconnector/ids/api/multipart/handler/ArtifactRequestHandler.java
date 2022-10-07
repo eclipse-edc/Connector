@@ -46,7 +46,7 @@ import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEB
 public class ArtifactRequestHandler implements Handler {
 
     private final TransferProcessManager transferProcessManager;
-    private final String connectorId;
+    private final IdsId connectorId;
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final ContractValidationService contractValidationService;
@@ -55,7 +55,7 @@ public class ArtifactRequestHandler implements Handler {
 
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull IdsId connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ContractNegotiationStore contractNegotiationStore,
             @NotNull ContractValidationService contractValidationService,
@@ -161,7 +161,7 @@ public class ArtifactRequestHandler implements Handler {
                 .id(message.getId().toString())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .dataDestination(dataDestination)
-                .connectorId(connectorId)
+                .connectorId(connectorId.toString())
                 .assetId(contractAgreement.getAssetId())
                 .contractId(contractAgreement.getId())
                 .properties(props)

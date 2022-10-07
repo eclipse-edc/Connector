@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiver;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
@@ -40,13 +41,13 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil
 public class EndpointDataReferenceHandler implements Handler {
 
     private final Monitor monitor;
-    private final String connectorId;
+    private final IdsId connectorId;
     private final EndpointDataReferenceReceiverRegistry receiverRegistry;
     private final EndpointDataReferenceTransformerRegistry transformerRegistry;
     private final TypeManager typeManager;
 
     public EndpointDataReferenceHandler(@NotNull Monitor monitor,
-                                        @NotNull String connectorId,
+                                        @NotNull IdsId connectorId,
                                         @NotNull EndpointDataReferenceReceiverRegistry receiverRegistry,
                                         @NotNull EndpointDataReferenceTransformerRegistry transformerRegistry,
                                         @NotNull TypeManager typeManager) {

@@ -21,6 +21,7 @@ import de.fraunhofer.iais.eis.ParticipantCertificateRevokedMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -54,7 +55,7 @@ class EndpointDataReferenceHandlerTest {
     @BeforeEach
     public void setUp() {
         var monitor = mock(Monitor.class);
-        var connectorId = "test-connector-id";
+        var connectorId = IdsId.from("urn:connector:edc").getContent();
         receiverRegistry = mock(EndpointDataReferenceReceiverRegistry.class);
         transformerRegistry = mock(EndpointDataReferenceTransformerRegistry.class);
         var typeManager = new TypeManager();
