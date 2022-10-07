@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.contract.offer;
 
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.engine.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +38,7 @@ public interface ContractDefinitionService {
      * Returns the definitions for the given participant agent.
      */
     @NotNull
-    Stream<ContractDefinition> definitionsFor(ParticipantAgent agent, Range range);
+    Stream<ContractDefinition> definitionsFor(ParticipantAgent agent);
 
     /**
      * Returns a contract definition for the agent associated with the given contract definition id. If the definition

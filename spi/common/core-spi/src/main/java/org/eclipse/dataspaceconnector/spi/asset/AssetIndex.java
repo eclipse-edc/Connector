@@ -85,4 +85,11 @@ public interface AssetIndex extends DataAddressResolver {
      */
     Asset deleteById(String assetId);
 
+    /**
+     * Counts all assets that are selected by the given query
+     *
+     * @param querySpec the query
+     * @return the number of assets (potentially 0)
+     */
+    long countAssets(QuerySpec querySpec);
 }

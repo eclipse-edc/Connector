@@ -12,7 +12,7 @@
  *       Microsoft Corporation - Refactoring
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *       ZF Friedrichshafen AG - enable asset filtering
+ *
  */
 
 package org.eclipse.dataspaceconnector.contract.offer;
@@ -32,7 +32,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,16 +59,44 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     @NotNull
     public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
         var agent = agentService.createFor(query.getClaimToken());
+        var numSeenAssets = new AtomicLong(0);
+        var range = query.getRange();
+        var limit = range.getTo() - range.getFrom();
+        var skip = new AtomicInteger(range.getFrom());
 
-        return definitionService.definitionsFor(agent, query.getRange())
+        return definitionService.definitionsFor(agent)
+                .takeWhile(d -> numSeenAssets.get() < range.getTo())
                 .flatMap(definition -> {
-                    var assetFilterQuery = QuerySpec.Builder.newInstance()
-                            .filter(concat(definition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList())).build();
-                    var assets = assetIndex.queryAssets(assetFilterQuery);
-                    return Optional.of(definition.getContractPolicyId())
-                            .map(policyStore::findById)
-                            .map(policy -> assets.map(asset -> createContractOffer(definition, policy.getPolicy(), asset)))
-                            .orElseGet(Stream::empty);
+                    var criteria = definition.getSelectorExpression().getCriteria();
+
+                    var querySpecBuilder = QuerySpec.Builder.newInstance()
+                            .filter(concat(criteria.stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()));
+
+                    var querySpec = querySpecBuilder.build();
+                    var numAssets = assetIndex.countAssets(querySpec);
+
+                    if (skip.get() > 0) {
+                        querySpecBuilder.offset(skip.get());
+                    }
+                    if (numAssets + numSeenAssets.get() > limit) {
+                        querySpecBuilder.limit(limit);
+                    }
+
+                    if (skip.get() < numAssets) {
+                        var byId = policyStore.findById(definition.getContractPolicyId());
+                        if (byId == null) { //policy not found
+                            return Stream.empty();
+                        }
+                        var assets = assetIndex.queryAssets(querySpecBuilder.build());
+                        numSeenAssets.addAndGet(numAssets);
+                        skip.addAndGet(Long.valueOf(-numAssets).intValue());
+                        return assets.map(a -> createContractOffer(definition, byId.getPolicy(), a));
+
+                    } else {
+                        numSeenAssets.addAndGet(numAssets);
+                        skip.addAndGet(Long.valueOf(-numAssets).intValue());
+                        return Stream.empty();
+                    }
                 });
     }
 

@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -97,8 +98,9 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public DataAddress resolveForAsset(String assetId) {
-        return queryByIdInternal(assetId).map(AssetDocument::getDataAddress).orElse(null);
+    public void accept(AssetEntry item) {
+        var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
+        assetDb.saveItem(assetDocument);
     }
 
     @Override
@@ -113,9 +115,32 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public void accept(AssetEntry item) {
-        var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
-        assetDb.saveItem(assetDocument);
+    public long countAssets(QuerySpec querySpec) {
+        var expr = querySpec.getFilterExpression();
+
+        var sortField = querySpec.getSortField();
+        var limit = querySpec.getLimit();
+        var sortAsc = querySpec.getSortOrder() == SortOrder.ASC;
+
+        var sqlQuery = queryBuilder.from(expr, sortField, sortAsc, limit, querySpec.getOffset());
+        var stmt = sqlQuery.getQueryText().replace("SELECT * ", "SELECT COUNT(1) ");
+        sqlQuery.setQueryText(stmt);
+        var response = with(retryPolicy).get(() -> assetDb.queryItems(sqlQuery));
+        return response.findFirst().map(o -> extractCount(o)).orElse(0L);
+    }
+
+    @Override
+    public DataAddress resolveForAsset(String assetId) {
+        return queryByIdInternal(assetId).map(AssetDocument::getDataAddress).orElse(null);
+    }
+
+    private long extractCount(Object result) {
+        if (result instanceof Map) {
+            var map = (Map) result;
+            return (Long) map.values().stream().findFirst().orElse(0L);
+        }
+
+        return 0L;
     }
 
     // we need to read the AssetDocument as Object, because no custom JSON deserialization can be registered

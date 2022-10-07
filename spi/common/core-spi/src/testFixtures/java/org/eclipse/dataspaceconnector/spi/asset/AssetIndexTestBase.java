@@ -30,8 +30,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchException;
 
@@ -136,6 +136,21 @@ public abstract class AssetIndexTestBase {
         assertThat(assetDeleted).usingRecursiveComparison().isEqualTo(asset);
 
         assertThat(getAssetIndex().queryAssets(QuerySpec.none()).count()).isEqualTo(0L);
+    }
+
+    @Test
+    void count_withResults() {
+        var assets = range(0, 5).mapToObj(i -> getAsset("id" + i));
+        assets.forEach(a -> getAssetIndex().accept(a, getDataAddress()));
+
+        var count = getAssetIndex().countAssets(QuerySpec.none());
+        assertThat(count).isEqualTo(5);
+    }
+
+    @Test
+    void count_withNoResults() {
+        var count = getAssetIndex().countAssets(QuerySpec.none());
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
@@ -260,7 +275,7 @@ public abstract class AssetIndexTestBase {
     @Test
     @DisplayName("Query assets with query spec and short asset count")
     void queryAsset_querySpecShortCount() {
-        IntStream.range(1, 5).forEach((item) -> {
+        range(1, 5).forEach((item) -> {
             var asset = getAsset("id" + item);
             getAssetIndex().accept(asset, getDataAddress());
         });

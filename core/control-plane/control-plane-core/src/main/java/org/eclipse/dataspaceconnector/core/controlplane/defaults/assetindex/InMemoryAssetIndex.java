@@ -114,25 +114,6 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public DataAddress resolveForAsset(String assetId) {
-        Objects.requireNonNull(assetId, "assetId");
-        lock.readLock().lock();
-        try {
-            return dataAddresses.get(assetId);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    public Map<String, Asset> getAssets() {
-        return Collections.unmodifiableMap(cache);
-    }
-
-    public Map<String, DataAddress> getDataAddresses() {
-        return Collections.unmodifiableMap(dataAddresses);
-    }
-
-    @Override
     public void accept(AssetEntry item) {
         lock.writeLock().lock();
         try {
@@ -150,6 +131,30 @@ public class InMemoryAssetIndex implements AssetIndex {
         } finally {
             lock.writeLock().unlock();
         }
+    }
+
+    @Override
+    public long countAssets(QuerySpec querySpec) {
+        return queryAssets(querySpec).count();
+    }
+
+    @Override
+    public DataAddress resolveForAsset(String assetId) {
+        Objects.requireNonNull(assetId, "assetId");
+        lock.readLock().lock();
+        try {
+            return dataAddresses.get(assetId);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public Map<String, Asset> getAssets() {
+        return Collections.unmodifiableMap(cache);
+    }
+
+    public Map<String, DataAddress> getDataAddresses() {
+        return Collections.unmodifiableMap(dataAddresses);
     }
 
     private @Nullable Comparable asComparable(Object property) {

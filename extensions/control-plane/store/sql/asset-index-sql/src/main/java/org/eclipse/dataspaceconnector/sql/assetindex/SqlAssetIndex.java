@@ -177,6 +177,19 @@ public class SqlAssetIndex implements AssetIndex {
     }
 
     @Override
+    public long countAssets(QuerySpec querySpec) {
+        try (var connection = getConnection()) {
+            var statement = assetStatements.createQuery(querySpec);
+
+            var queryAsString = statement.getQueryAsString().replace("SELECT * ", "SELECT COUNT (*) ");
+
+            return single(executeQuery(connection, r -> r.getLong(1), queryAsString, statement.getParameters()));
+        } catch (SQLException e) {
+            throw new EdcPersistenceException(e);
+        }
+    }
+
+    @Override
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId);
 
