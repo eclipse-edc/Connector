@@ -12,6 +12,7 @@
  *       Microsoft Corporation - Refactoring
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       ZF Friedrichshafen AG - enable asset filtering
  *
  */
 

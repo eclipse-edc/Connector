@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;

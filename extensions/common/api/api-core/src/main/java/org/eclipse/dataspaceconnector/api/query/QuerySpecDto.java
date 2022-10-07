@@ -69,11 +69,7 @@ public class QuerySpecDto {
             return false;
         }
 
-        if (sortField != null && sortField.isBlank()) {
-            return false;
-        }
-
-        return true;
+        return sortField == null || !sortField.isBlank();
     }
 
     public static final class Builder {
