@@ -61,8 +61,11 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
     @Override
     public PolicyDefinition findById(String id) {
         var query = QuerySpec.Builder.newInstance().filter("id=" + id).build();
-        try (var stream = findAll(query)) {
-            return stream.findFirst().orElse(null);
+        try {
+            var queryStatement = statements.createQuery(query);
+            return SqlQueryExecutor.executeQuerySingle(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+        } catch (SQLException exception) {
+            throw new EdcPersistenceException(exception);
         }
     }
 

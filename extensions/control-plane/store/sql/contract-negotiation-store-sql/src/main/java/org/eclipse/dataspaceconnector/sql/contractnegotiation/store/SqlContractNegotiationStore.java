@@ -94,8 +94,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     public @Nullable ContractAgreement findContractAgreement(String contractId) {
         return transactionContext.execute(() -> {
             var stmt = statements.getFindContractAgreementTemplate();
-            try (var stream = SqlQueryExecutor.executeQuery(getConnection(), true, this::mapContractAgreement, stmt, contractId)) {
-                return stream.findFirst().orElse(null);
+            try {
+                return SqlQueryExecutor.executeQuerySingle(getConnection(), true, this::mapContractAgreement, stmt, contractId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -205,10 +205,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
 
     private @Nullable ContractNegotiation findInternal(Connection connection, String id) {
         var sql = statements.getFindTemplate();
-
-        try (var stream = SqlQueryExecutor.executeQuery(connection, false, this::mapContractNegotiation, sql, id)) {
-            return stream.findFirst().orElse(null);
-        }
+        return SqlQueryExecutor.executeQuerySingle(connection, false, this::mapContractNegotiation, sql, id);
     }
 
     private void update(Connection connection, String negotiationId, ContractNegotiation updatedValues) {

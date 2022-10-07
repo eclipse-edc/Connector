@@ -186,9 +186,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     private ContractDefinition findById(Connection connection, String id) {
         var sql = statements.getFindByTemplate();
-        try (var stream = SqlQueryExecutor.executeQuery(connection, false, this::mapResultSet, sql, id)) {
-            return stream.findFirst().orElse(null);
-        }
+        return SqlQueryExecutor.executeQuerySingle(connection, false, this::mapResultSet, sql, id);
     }
 
     private DataSource getDataSource() {

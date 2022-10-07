@@ -103,8 +103,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     public @Nullable String processIdForDataRequestId(String transferId) {
         return transactionContext.execute(() -> {
             var stmt = statements.getProcessIdForTransferIdTemplate();
-            try (var stream = SqlQueryExecutor.executeQuery(getConnection(), true, (rs) -> rs.getString(statements.getIdColumn()), stmt, transferId)) {
-                return single(stream.collect(toList()));
+            try {
+                return SqlQueryExecutor.executeQuerySingle(getConnection(), true, (rs) -> rs.getString(statements.getIdColumn()), stmt, transferId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

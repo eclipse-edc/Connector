@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -55,6 +56,12 @@ public final class SqlQueryExecutor {
             return statement.execute() ? 0 : statement.getUpdateCount();
         } catch (Exception exception) {
             throw new EdcPersistenceException(exception.getMessage(), exception);
+        }
+    }
+
+    public static <T> T executeQuerySingle(Connection connection, boolean closeConnection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
+        try (var stream = SqlQueryExecutor.executeQuery(connection, closeConnection, resultSetMapper, sql, arguments)) {
+            return stream.findFirst().orElse(null);
         }
     }
 

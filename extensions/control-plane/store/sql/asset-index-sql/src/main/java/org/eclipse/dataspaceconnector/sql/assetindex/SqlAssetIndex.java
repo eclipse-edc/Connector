@@ -202,8 +202,8 @@ public class SqlAssetIndex implements AssetIndex {
 
         return transactionContext.execute(() -> {
             var sql = assetStatements.getFindDataAddressByIdTemplate();
-            try (var stream = SqlQueryExecutor.executeQuery(getConnection(), true, this::mapDataAddress, sql, assetId)) {
-                return stream.findFirst().orElse(null);
+            try {
+                return SqlQueryExecutor.executeQuerySingle(getConnection(), true, this::mapDataAddress, sql, assetId);
             } catch (Exception e) {
                 if (e instanceof EdcPersistenceException) {
                     throw (EdcPersistenceException) e;

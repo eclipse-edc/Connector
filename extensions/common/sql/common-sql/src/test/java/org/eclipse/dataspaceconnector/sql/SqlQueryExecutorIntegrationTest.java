@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,15 +9,14 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Test
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
 package org.eclipse.dataspaceconnector.sql;
 
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.h2.Driver;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,15 +27,13 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SqlQueryExecutorIntegrationTest {
 
     private Connection connection;
-
-    static {
-        Driver.load();
-    }
 
     @BeforeEach
     void setUp() throws SQLException {
@@ -45,69 +42,70 @@ public class SqlQueryExecutorIntegrationTest {
 
     @AfterEach
     void tearDown() throws SQLException {
-        connection.rollback();
-        connection.close();
+        if (!connection.isClosed()) {
+            connection.rollback();
+            connection.close();
+        }
     }
 
     @Test
-    void testExecute() {
-        SqlQueryExecutor.executeQuery(connection, "SELECT 1;");
-    }
+    void executeQuery_doesNotCloseConnection() throws SQLException {
+        ResultSetMapper<Long> mapper = (rs) -> rs.getLong(1);
+        var sql = "SELECT 1;";
 
-    @Test
-    void testTransaction() throws SQLException {
-        SqlQueryExecutor.executeQuery(connection, "SELECT COUNT(c), COUNT(*) FROM (VALUES (1), (NULL)) t(c);");
-
-        connection.commit();
-    }
-
-    @Test
-    void executeQueryStream_doesNotCloseConnection() throws SQLException {
-        var connection = DriverManager.getConnection("jdbc:h2:mem:test", new Properties());
-
-        var result = SqlQueryExecutor.executeQuery(connection, false, (rs) -> rs.getLong(1), "SELECT 1;");
+        var result = SqlQueryExecutor.executeQuery(connection, false, mapper, sql);
 
         assertThat(result).isNotNull().hasSize(1).contains(1L); // assert stream closes the stream
         assertThat(connection.isClosed()).isFalse();
     }
 
     @Test
-    void executeQueryStream_closesConnection() throws SQLException {
-        var connection = DriverManager.getConnection("jdbc:h2:mem:test", new Properties());
+    void executeQuery_closesConnection() throws SQLException {
+        ResultSetMapper<Long> mapper = (rs) -> rs.getLong(1);
+        var sql = "SELECT 1;";
 
-        var result = SqlQueryExecutor.executeQuery(connection, true, (rs) -> rs.getLong(1), "SELECT 1;");
+        var result = SqlQueryExecutor.executeQuery(connection, true, mapper, sql);
 
         assertThat(result).isNotNull().hasSize(1).contains(1L); // assert stream closes the stream
         assertThat(connection.isClosed()).isTrue();
     }
 
     @Test
-    void testTransactionAndResultSetMapper() throws SQLException {
+    void executeQuerySingle() {
+        SqlQueryExecutor.executeQuery(connection, "CREATE TABLE test (data VARCHAR(80) primary key not null);");
+        SqlQueryExecutor.executeQuery(connection, "INSERT INTO test values ('value');");
+        var sql = "SELECT data FROM test WHERE data = ?";
+        ResultSetMapper<String> mapper = rs -> rs.getString(1);
+
+        var found = SqlQueryExecutor.executeQuerySingle(connection, false, mapper, sql, "value");
+        assertThat(found).isEqualTo("value");
+
+        var notFound = SqlQueryExecutor.executeQuerySingle(connection, false, mapper, sql, "any other");
+        assertThat(notFound).isEqualTo(null);
+    }
+
+    @Test
+    void testTransactionAndResultSetMapper() {
         var table = "kv_testTransactionAndResultSetMapper";
-        var schema = getTableSchema(table);
         var kv = new Kv(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-        SqlQueryExecutor.executeQuery(connection, schema);
-        SqlQueryExecutor.executeQuery(connection, String.format("INSERT INTO %s (k, v) values (?, ?)", table), kv.key, kv.value);
+        SqlQueryExecutor.executeQuery(connection, getTableSchema(table));
+        SqlQueryExecutor.executeQuery(connection, format("INSERT INTO %s (k, v) values (?, ?)", table), kv.key, kv.value);
 
-        connection.commit();
-
-        var countResult = SqlQueryExecutor.executeQuery(connection, false, (rs) -> rs.getInt(1), String.format("SELECT COUNT(*) FROM %s", table));
-
+        var countResult = SqlQueryExecutor.executeQuery(connection, false, (rs) -> rs.getInt(1), format("SELECT COUNT(*) FROM %s", table));
         assertThat(countResult).hasSize(1).first().isEqualTo(1);
 
-        var kvs = SqlQueryExecutor.executeQuery(connection, false, (rs) -> new Kv(rs.getString(1), rs.getString(2)), String.format("SELECT * FROM %s", table));
-
+        var kvs = SqlQueryExecutor.executeQuery(connection, false, (rs) -> new Kv(rs.getString(1), rs.getString(2)), format("SELECT * FROM %s", table));
         assertThat(kvs).hasSize(1).first().isEqualTo(kv);
     }
 
     @Test
     void testInvalidSql() {
-        Assertions.assertThrows(EdcPersistenceException.class, () -> SqlQueryExecutor.executeQuery(connection, "Lorem ipsum dolor sit amet"));
+        assertThatThrownBy(() -> SqlQueryExecutor.executeQuery(connection, "Lorem ipsum dolor sit amet")).isInstanceOf(EdcPersistenceException.class);
     }
 
     private String getTableSchema(String tableName) {
-        return String.format("" +
+        return format("" +
                 "CREATE TABLE %s (\n" +
                 "    k VARCHAR(80) PRIMARY KEY NOT NULL,\n" +
                 "    v VARCHAR(80) NOT NULL\n" +
