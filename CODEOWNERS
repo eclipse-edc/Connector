@@ -8,9 +8,9 @@
 # Each line is a file pattern followed by one or more contact persons. The last matching pattern has the most precedence.
 # For more details, read the following article on GitHub: https://help.github.com/articles/about-codeowners/.
 
-CONTRIBUTING.md @MoritzKeppler @juliapampus @alexandrudanciu @mspiekermann
-contribution_categories.md @paullatzelsperger @mspiekermann
-LICENSE @MoritzKeppler @juliapampus @alexandrudanciu @mspiekermann
+CONTRIBUTING.md @juliapampus @alexandrudanciu @mspiekermann
+contribution_categories.md @paullatzelsperger @juliapampus
+LICENSE @alexandrudanciu @mspiekermann
 NOTICE.md @alexandrudanciu @mspiekermann
 onboarding.md @paullatzelsperger
 openapi.md @paullatzelsperger
@@ -18,19 +18,19 @@ pr_etiquette.md @paullatzelsperger
 SECURITY.md @alexandrudanciu @mspiekermann
 styleguide.md @paullatzelsperger
 
-.github/actions/ @algattik
+.github/actions/ @paullatzelsperger
 .github/ISSUE_TEMPLATE @juliapampus @paullatzelsperger
-.github/workflows/ @paullatzelsperger @ndr-brt @algattik @ouphi
+.github/workflows/ @paullatzelsperger @ndr-brt
 
-/buildSrc/ @paullatzelsperger @marcgs
+/buildSrc/ @paullatzelsperger
 
 /core/common/base/ @jimmarino @paullatzelsperger @ndr-brt
 /core/common/boot/ @jimmarino @paullatzelsperger
 /core/common/policy-engine/ @jimmarino @ronjaquensel
 /core/common/policy-evaluator/ @jimmarino @juliapampus @ronjaquensel
-/core/common/state-machine/ @ndr-brt @algattik
+/core/common/state-machine/ @ndr-brt
 
-/data-protocols/ids/ @ronjaquensel @juliapampus @DominikPinsel @denisneuling
+/data-protocols/ids/ @ronjaquensel @juliapampus
 /data-protocols/ids/ids-jsonld-serdes/ @juliapampus
 
 /docs/ @juliapampus
@@ -43,10 +43,10 @@ styleguide.md @paullatzelsperger
 /extensions/common/http/ @paullatzelsperger
 /extensions/common/iam/decentralized-identity/ @paullatzelsperger
 /extensions/common/iam/oauth2/ @bscholtes1A
-/extensions/common/junit/ @paullatzelsperger @algattik
-/extensions/common/micrometer/ @algattik
-/extensions/common/monitor/ @cpeeyush
-/extensions/common/sql/ @bcronin90 @denisneuling @paullatzelsperger
+/extensions/common/junit/ @paullatzelsperger
+/extensions/common/micrometer/ @jimmarino
+/extensions/common/monitor/ @jimmarino
+/extensions/common/sql/ @ndr-brt @paullatzelsperger
 /extensions/common/transaction/ @jimmarino
 /extensions/common/vault/ @paullatzelsperger
 /extensions/control-plane/ @paullatzelsperger
@@ -64,15 +64,10 @@ styleguide.md @paullatzelsperger
 /samples/02-health-endpoint/ @paullatzelsperger
 /samples/03-configuration/ @paullatzelsperger
 /samples/04.0-file-transfer/ @ronjaquensel
-/samples/04.1-file-transfer-listener/ @algattik
+/samples/04.1-file-transfer-listener/ @paullatzelsperger
 /samples/04.2-modify-transferprocess/ @paullatzelsperger
-/samples/04.3-open-telemetry/ @algattik
+/samples/04.3-open-telemetry/ @jimmarino
 /samples/05-file-transfer-cloud/ @paullatzelsperger
 /samples/other/ @paullatzelsperger
 
-/system-tests/azure-data-factory-tests/ @cpeeyush
-/system-tests/azure-tests/ @algattik
-/system-tests/e2e-transfer-test/ @ndr-brt
-/system-tests/minikube/ @algattik
-/system-tests/runtimes/ @algattik
-/system-tests/tests/ @algattik
+/system-tests/ @ndr-brt
