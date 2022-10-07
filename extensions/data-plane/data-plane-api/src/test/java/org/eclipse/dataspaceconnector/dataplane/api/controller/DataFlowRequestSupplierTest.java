@@ -34,14 +34,18 @@ class DataFlowRequestSupplierTest {
 
     private final DataFlowRequestSupplier supplier = new DataFlowRequestSupplier();
 
+    private static DataAddress createDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type").build();
+    }
+
     @Test
     void verifyMapping_noInputBody() {
         var contextApi = mock(ContainerRequestContextApi.class);
         var address = createDataAddress();
 
         var method = HttpMethod.GET;
-        var queryParams = FAKER.lorem().word();
-        var path = FAKER.lorem().word();
+        var queryParams = "test-queryparams";
+        var path = "test-path";
 
         when(contextApi.method()).thenReturn(method);
         when(contextApi.queryParams()).thenReturn(queryParams);
@@ -67,8 +71,8 @@ class DataFlowRequestSupplierTest {
         var address = createDataAddress();
 
         var method = HttpMethod.GET;
-        var queryParams = FAKER.lorem().word();
-        var path = FAKER.lorem().word();
+        var queryParams = "test-queryparams";
+        var path = "test-path";
         var body = FAKER.lorem().sentence();
 
         when(contextApi.method()).thenReturn(method);
@@ -90,9 +94,5 @@ class DataFlowRequestSupplierTest {
                 DataFlowRequestSchema.BODY, body,
                 DataFlowRequestSchema.MEDIA_TYPE, MediaType.TEXT_PLAIN
         ));
-    }
-
-    private static DataAddress createDataAddress() {
-        return DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build();
     }
 }

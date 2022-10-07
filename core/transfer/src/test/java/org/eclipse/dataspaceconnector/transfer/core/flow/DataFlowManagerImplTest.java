@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.flow;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -31,15 +30,14 @@ import static org.mockito.Mockito.when;
 
 class DataFlowManagerImplTest {
 
-    private static final Faker FAKER = new Faker();
 
     @Test
     void should_initiate_flow_on_correct_controller() {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
-        var dataRequest = DataRequest.Builder.newInstance().destinationType(FAKER.lorem().word()).build();
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("test-type").build();
         var policy = Policy.Builder.newInstance().build();
-        var dataAddress = DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
 
         when(controller.canHandle(any(), any())).thenReturn(true);
         when(controller.initiateFlow(any(), any(), any())).thenReturn(StatusResult.success());
@@ -54,8 +52,8 @@ class DataFlowManagerImplTest {
     void should_return_fatal_error_if_no_controller_can_handle_the_request() {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
-        var dataRequest = DataRequest.Builder.newInstance().destinationType(FAKER.lorem().word()).build();
-        var dataAddress = DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build();
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("test-type").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
         var policy = Policy.Builder.newInstance().build();
 
         when(controller.canHandle(any(), any())).thenReturn(false);
@@ -71,11 +69,11 @@ class DataFlowManagerImplTest {
     void should_catch_exceptions_and_return_fatal_error() {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
-        var dataRequest = DataRequest.Builder.newInstance().destinationType(FAKER.lorem().word()).build();
-        var dataAddress = DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build();
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("test-type").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
         var policy = Policy.Builder.newInstance().build();
 
-        var errorMsg = FAKER.lorem().sentence();
+        var errorMsg = "test-error";
         when(controller.canHandle(any(), any())).thenReturn(true);
         when(controller.initiateFlow(any(), any(), any())).thenThrow(new EdcException(errorMsg));
         manager.register(controller);

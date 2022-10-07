@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.logger;
 
-import com.github.javafaker.Faker;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,9 +36,8 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class LoggerMonitorTest {
 
-    static Faker faker = new Faker();
-    final String message = faker.lorem().sentence();
-    final String extraParams = faker.lorem().sentence();
+    final String message = "test message";
+    final String extraParams = "extra params";
     TestLogHandler handler = new TestLogHandler();
     LoggerMonitor sut = new LoggerMonitor();
 
@@ -92,7 +90,7 @@ public class LoggerMonitorTest {
 
         assertThat(handler.getRecords())
                 .extracting(LogRecord::getMessage, LogRecord::getLevel, LogRecord::getThrown, LogRecord::getParameters)
-                .containsExactly(tuple(message, Level.SEVERE, null, new Object[]{extraParams}));
+                .containsExactly(tuple(message, Level.SEVERE, null, new Object[]{ extraParams }));
     }
 
     @Test
@@ -157,8 +155,8 @@ public class LoggerMonitorTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(faker.lorem().sentence(), new Throwable[]{new RuntimeException()}),
-                    Arguments.of(faker.lorem().sentence(), new Throwable[]{new RuntimeException(), new Exception()})
+                    Arguments.of("random text 1", new Throwable[]{ new RuntimeException() }),
+                    Arguments.of("random text 2", new Throwable[]{ new RuntimeException(), new Exception() })
             );
         }
     }

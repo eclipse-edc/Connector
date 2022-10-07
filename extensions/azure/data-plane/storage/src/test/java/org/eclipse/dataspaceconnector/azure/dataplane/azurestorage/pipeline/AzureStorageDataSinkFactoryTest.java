@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
@@ -26,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
 
+import java.util.Random;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,19 +37,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AzureStorageDataSinkFactoryTest {
-    static Faker faker = new Faker();
-    BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
-    Vault vault = mock(Vault.class);
-    TypeManager typeManager = new TypeManager();
-    AzureStorageDataSinkFactory factory = new AzureStorageDataSinkFactory(blobStoreApi, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), vault, typeManager);
-    DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
-    DataFlowRequest.Builder invalidRequest = createRequest(faker.lorem().word());
-    DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
+    private final BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
+    private final Vault vault = mock(Vault.class);
+    private final TypeManager typeManager = new TypeManager();
+    private final AzureStorageDataSinkFactory factory = new AzureStorageDataSinkFactory(blobStoreApi, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), vault, typeManager);
+    private final DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
+    private final DataFlowRequest.Builder invalidRequest = createRequest("test-type");
+    private final DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
 
-    String accountName = createAccountName();
-    String containerName = createContainerName();
-    String keyName = faker.lorem().word();
-    AzureSasToken token = new AzureSasToken(faker.lorem().word(), faker.random().nextLong());
+    private final String accountName = createAccountName();
+    private final String containerName = createContainerName();
+    private final String keyName = "test-keyname";
+    private final AzureSasToken token = new AzureSasToken("test-sas", new Random().nextLong());
 
     @Test
     void canHandle_whenBlobRequest_returnsTrue() {

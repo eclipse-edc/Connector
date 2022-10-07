@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.aws.testfixtures.TestS3ClientProvider;
@@ -42,7 +41,6 @@ import static org.mockito.Mockito.mock;
 @IntegrationTest
 public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
-    static Faker faker = new Faker();
 
     private final String sourceBucketName = "source-" + UUID.randomUUID();
     private final String destinationBucketName = "destination-" + UUID.randomUUID();
@@ -61,7 +59,7 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
     @Test
     void shouldCopyFromSourceToSink() {
-        putStringOnBucket(sourceBucketName, "key", faker.lorem().sentence());
+        putStringOnBucket(sourceBucketName, "key", "test-content");
 
         var s3ClientProvider = new TestS3ClientProvider(getCredentials(), S3_ENDPOINT);
 

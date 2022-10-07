@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage;
 
 import com.azure.core.util.BinaryData;
-import com.github.javafaker.Faker;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
@@ -52,15 +51,14 @@ import static org.mockito.Mockito.when;
 @AzureStorageIntegrationTest
 class AzureDataPlaneCopyIntegrationTest extends AbstractAzureBlobTest {
 
-    static Faker faker = new Faker();
     private final TypeManager typeManager = new TypeManager();
 
-    String account1KeyName = faker.lorem().word() + "1";
-    String account2KeyName = faker.lorem().word() + "2";
+    String account1KeyName = "key1";
+    String account2KeyName = "key2";
     RetryPolicy<Object> policy = RetryPolicy.builder().withMaxRetries(1).build();
     String sinkContainerName = createContainerName();
     String blobName = createBlobName();
-    String content = faker.lorem().sentence();
+    String content = "test-content";
     ExecutorService executor = Executors.newFixedThreadPool(2);
     Monitor monitor = mock(Monitor.class);
     Vault vault = mock(Vault.class);

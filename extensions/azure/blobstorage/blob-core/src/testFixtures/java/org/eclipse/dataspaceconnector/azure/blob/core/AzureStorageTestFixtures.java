@@ -18,14 +18,19 @@ import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
+import java.util.UUID;
+
 public class AzureStorageTestFixtures {
 
     private static final Faker FAKER = new Faker();
 
+    private AzureStorageTestFixtures() {
+    }
+
     public static DataFlowRequest.Builder createRequest(String type) {
         return DataFlowRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .processId(FAKER.internet().uuid())
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(createDataAddress(type).build())
                 .destinationDataAddress(createDataAddress(type).build());
     }
@@ -52,9 +57,6 @@ public class AzureStorageTestFixtures {
 
     public static String createSharedAccessSignature() {
         return FAKER.lorem().characters();
-    }
-
-    private AzureStorageTestFixtures() {
     }
 
 }

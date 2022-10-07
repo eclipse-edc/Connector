@@ -167,7 +167,6 @@ allprojects {
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.mockito:mockito-core:${mockitoVersion}")
             testImplementation("org.assertj:assertj-core:${assertj}")
-            testImplementation("com.github.javafaker:javafaker:${faker}")
         }
 
         if (!project.hasProperty("skip.signing")) {
@@ -223,13 +222,13 @@ allprojects {
 
     tasks.withType<Test> {
         // Target all type of test e.g. -DrunAllTests="true"
-        val runAllTests: String = System.getProperty("runAllTests", "false");
+        val runAllTests: String = System.getProperty("runAllTests", "false")
         if (runAllTests == "true") {
             useJUnitPlatform()
         } else {
             // Target specific set of tests by specifying junit tags on command-line e.g. -DincludeTags="tag-name1,tag-name2"
-            val includeTagProperty = System.getProperty("includeTags");
-            val includeTags: Array<String> = includeTagProperty?.split(",")?.toTypedArray() ?: emptyArray();
+            val includeTagProperty = System.getProperty("includeTags")
+            val includeTags: Array<String> = includeTagProperty?.split(",")?.toTypedArray() ?: emptyArray()
 
             if (includeTags.isNotEmpty()) {
                 useJUnitPlatform {

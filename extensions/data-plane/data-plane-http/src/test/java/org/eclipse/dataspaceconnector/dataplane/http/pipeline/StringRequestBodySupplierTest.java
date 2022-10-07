@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -24,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class StringRequestBodySupplierTest {
 
-    private static final Faker FAKER = new Faker();
 
     @Test
     void verifyExceptionThrownIfNullBody() {
@@ -33,7 +31,7 @@ class StringRequestBodySupplierTest {
 
     @Test
     void verifySuccessSupply() throws IOException {
-        var body = FAKER.lorem().word();
+        var body = "test-body";
         var supplier = new StringRequestBodySupplier(body);
 
         try (var is = supplier.get()) {

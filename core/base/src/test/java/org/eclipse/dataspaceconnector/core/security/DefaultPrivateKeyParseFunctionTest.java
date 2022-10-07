@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.core.security;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,38 +22,15 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class DefaultPrivateKeyParseFunctionTest {
 
-    private static final Faker FAKER = new Faker();
 
     private DefaultPrivateKeyParseFunction parseFunction;
-
-    @BeforeEach
-    public void setUp() {
-        parseFunction = new DefaultPrivateKeyParseFunction();
-    }
-
-    @Test
-    void verifyParseInvalidPemThrowsException() {
-        assertThatExceptionOfType(EdcException.class)
-                .isThrownBy(() -> parseFunction.apply(FAKER.internet().uuid()))
-                .withMessageContaining("Object cannot be null");
-    }
-
-    @ParameterizedTest(name = "{index} {1}")
-    @CsvSource({"rsa-privatekey.pem, RSA", "ec-privatekey.pem, EC"})
-    void verifyParseSuccess(String keyFileName, String expectedAlgo) throws IOException {
-        var pem = loadResourceFile(keyFileName);
-
-        var key = parseFunction.apply(pem);
-
-        assertThat(key).isNotNull();
-        assertThat(key.getAlgorithm()).isEqualTo(expectedAlgo);
-    }
 
     /**
      * Load content from a resource file.
@@ -65,5 +41,28 @@ class DefaultPrivateKeyParseFunctionTest {
                                 DefaultPrivateKeyParseFunctionTest.class.getClassLoader().getResourceAsStream(file)
                         )
                         .readAllBytes());
+    }
+
+    @BeforeEach
+    public void setUp() {
+        parseFunction = new DefaultPrivateKeyParseFunction();
+    }
+
+    @Test
+    void verifyParseInvalidPemThrowsException() {
+        assertThatExceptionOfType(EdcException.class)
+                .isThrownBy(() -> parseFunction.apply(UUID.randomUUID().toString()))
+                .withMessageContaining("Object cannot be null");
+    }
+
+    @ParameterizedTest(name = "{index} {1}")
+    @CsvSource({ "rsa-privatekey.pem, RSA", "ec-privatekey.pem, EC" })
+    void verifyParseSuccess(String keyFileName, String expectedAlgo) throws IOException {
+        var pem = loadResourceFile(keyFileName);
+
+        var key = parseFunction.apply(pem);
+
+        assertThat(key).isNotNull();
+        assertThat(key.getAlgorithm()).isEqualTo(expectedAlgo);
     }
 }

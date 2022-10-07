@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
@@ -25,14 +24,14 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 class TransferRequestDtoToDataRequestTransformerTest {
 
-    private static Faker faker = new Faker();
-    private DtoTransformer<TransferRequestDto, DataRequest> transformer = new TransferRequestDtoToDataRequestTransformer();
+    private final DtoTransformer<TransferRequestDto, DataRequest> transformer = new TransferRequestDtoToDataRequestTransformer();
 
     @Test
     void getInputType() {
@@ -48,7 +47,7 @@ class TransferRequestDtoToDataRequestTransformerTest {
     void transform() {
         var context = mock(TransformerContext.class);
         var transferReq = transferRequestDto()
-                .id(faker.lorem().word())
+                .id(UUID.randomUUID().toString())
                 .build();
         var dataRequest = transformer.transform(transferReq, context);
         assertThat(dataRequest.getId()).isEqualTo(transferReq.getId());
@@ -76,13 +75,13 @@ class TransferRequestDtoToDataRequestTransformerTest {
     @NotNull
     private TransferRequestDto.Builder transferRequestDto() {
         return TransferRequestDto.Builder.newInstance()
-                .connectorAddress(faker.internet().url())
-                .assetId(faker.lorem().word())
-                .contractId(faker.lorem().word())
-                .protocol(faker.lorem().word())
-                .dataDestination(DataAddress.Builder.newInstance().type(faker.lorem().word()).build())
-                .connectorId(faker.lorem().word())
-                .properties(Map.of(faker.lorem().word(), faker.lorem().word()));
+                .connectorAddress("test.url")
+                .assetId(UUID.randomUUID().toString())
+                .contractId(UUID.randomUUID().toString())
+                .protocol("prorocol")
+                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
+                .connectorId(UUID.randomUUID().toString())
+                .properties(Map.of("key1", "value1"));
     }
 
 }

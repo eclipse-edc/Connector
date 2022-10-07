@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
@@ -26,31 +25,30 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
 
 public class TransferProcessTransformerTestData {
-    static Faker faker = new Faker();
 
     DtoTransformerRegistry registry = mock(DtoTransformerRegistry.class);
     TransformerContext context = new DtoTransformerRegistryImpl.DtoTransformerContext(registry);
-    String id = faker.lorem().word();
-    TransferProcess.Type type = faker.options().option(TransferProcess.Type.class);
-    TransferProcessStates state = faker.options().option(TransferProcessStates.class);
-    long stateTimestamp = faker.random().nextLong();
-    long createdTimestamp = faker.random().nextLong();
-    String errorDetail = faker.lorem().word();
+    String id = UUID.randomUUID().toString();
+    TransferProcess.Type type = TransferProcess.Type.CONSUMER;
+    TransferProcessStates state = TransferProcessStates.REQUESTING;
+    long stateTimestamp = Instant.now().toEpochMilli();
+    long createdTimestamp = Instant.now().toEpochMilli();
+    String errorDetail = "test-error";
 
-    Map<String, String> dataDestinationProperties = Map.of(faker.lorem().word(), faker.lorem().word());
-    String dataDestinationType = faker.lorem().word();
+    Map<String, String> dataDestinationProperties = Map.of("key1", "value1");
+    String dataDestinationType = "test-type";
     DataAddress.Builder dataDestination = DataAddress.Builder.newInstance().type(dataDestinationType).properties(dataDestinationProperties);
     DataRequest dataRequest = DataRequest.Builder.newInstance()
             .dataDestination(dataDestination.build())
             .build();
-    DataRequestDto dataRequestDto = DataRequestDto.Builder.newInstance().build();
-
     public TransferProcess.Builder entity = TransferProcess.Builder.newInstance()
             .id(id)
             .type(type)
@@ -59,7 +57,7 @@ public class TransferProcessTransformerTestData {
             .createdTimestamp(createdTimestamp)
             .errorDetail(errorDetail)
             .dataRequest(dataRequest);
-
+    DataRequestDto dataRequestDto = DataRequestDto.Builder.newInstance().build();
     TransferProcessDto.Builder dto = TransferProcessDto.Builder.newInstance()
             .id(id)
             .type(type.name())

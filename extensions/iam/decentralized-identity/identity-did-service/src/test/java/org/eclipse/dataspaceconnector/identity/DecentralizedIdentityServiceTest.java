@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.identity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
@@ -49,10 +48,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 
 abstract class DecentralizedIdentityServiceTest {
-    private static final Faker FAKER = new Faker();
     private static final String DID_DOCUMENT = getResourceFileContentAsString("dids.json");
 
-    String didUrl = FAKER.internet().url();
+    String didUrl = "test.url";
     private DecentralizedIdentityService identityService;
 
     @Test

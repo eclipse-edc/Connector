@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.api;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -26,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 class DataPlaneTokenValidationApiControllerTest {
 
-    private static final Faker FAKER = new Faker();
 
     private static final TypeManager TYPE_MANAGER = new TypeManager();
 
@@ -54,12 +53,12 @@ class DataPlaneTokenValidationApiControllerTest {
 
     @Test
     void verifyValidateSuccess() {
-        var token = FAKER.internet().uuid();
-        var encryptedDataAddress = FAKER.internet().uuid();
-        var decryptedDataAddress = DataAddress.Builder.newInstance().type(FAKER.internet().uuid()).build();
+        var token = UUID.randomUUID().toString();
+        var encryptedDataAddress = UUID.randomUUID().toString();
+        var decryptedDataAddress = DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
         var claims = ClaimToken.Builder.newInstance()
                 .claims(Map.of(
-                                FAKER.lorem().word(), FAKER.lorem().word(),
+                                "key1", "value1",
                                 DATA_ADDRESS, encryptedDataAddress
                         )
                 )
@@ -77,8 +76,8 @@ class DataPlaneTokenValidationApiControllerTest {
 
     @Test
     void verifyTokenValidationFailureThrowsException() {
-        var token = FAKER.internet().uuid();
-        var errorMsg = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
+        var errorMsg = UUID.randomUUID().toString();
 
         when(tokenValidationServiceMock.validate(token)).thenReturn(Result.failure(errorMsg));
 
@@ -89,10 +88,10 @@ class DataPlaneTokenValidationApiControllerTest {
 
     @Test
     void verifyMissingAddressThrowsException() {
-        var token = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
         var claims = ClaimToken.Builder.newInstance()
                 .claims(Map.of(
-                                FAKER.lorem().word(), FAKER.lorem().word()
+                                "key1", "value1"
                         )
                 )
                 .build();

@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
-import com.github.javafaker.Faker;
 import jakarta.ws.rs.container.AsyncResponse;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
@@ -44,7 +43,6 @@ import static org.mockito.Mockito.when;
 
 class CatalogApiControllerTest {
 
-    private static final Faker FAKER = Faker.instance();
     private final CatalogService service = mock(CatalogService.class);
     private final Monitor monitor = mock(Monitor.class);
     private DtoTransformerRegistry transformerRegistry;
@@ -66,7 +64,7 @@ class CatalogApiControllerTest {
                 .assetId(UUID.randomUUID().toString())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
-        var url = FAKER.internet().url();
+        var url = "test.url";
         when(service.getByProviderUrl(eq(url), any())).thenReturn(completedFuture(catalog));
 
         controller.getCatalog(url, new QuerySpecDto(), response);
@@ -78,7 +76,7 @@ class CatalogApiControllerTest {
     void shouldResumeWithExceptionIfGetCatalogFails() {
         var controller = new CatalogApiController(service, transformerRegistry, monitor);
         var response = mock(AsyncResponse.class);
-        var url = FAKER.internet().url();
+        var url = "test-url";
         when(service.getByProviderUrl(eq(url), any())).thenReturn(failedFuture(new EdcException("error")));
 
         controller.getCatalog(url, new QuerySpecDto(), response);

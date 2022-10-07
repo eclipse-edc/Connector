@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.edr;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
@@ -31,7 +30,6 @@ import static org.mockito.Mockito.when;
 
 class EndpointDataReferenceTransformerRegistryImplTest {
 
-    private static final Faker FAKER = new Faker();
 
     private EndpointDataReferenceTransformer transformer1;
     private EndpointDataReferenceTransformer transformer2;
@@ -94,7 +92,7 @@ class EndpointDataReferenceTransformerRegistryImplTest {
 
     @Test
     void transform_transformerFailed_shouldReturnFailedResult() {
-        var errorMsg = FAKER.lorem().sentence();
+        var errorMsg = "test-error";
         var inputEdr = createEndpointDataReference();
 
         when(transformer1.canHandle(inputEdr)).thenReturn(true);

@@ -38,6 +38,7 @@ import org.mockserver.verify.VerificationTimes;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,7 +92,7 @@ class RemoteDataPlaneTransferClientTest {
     public void init() {
         var okHttpClient = testOkHttpClient();
         selectorClientMock = mock(DataPlaneSelectorClient.class);
-        var selectionStrategy = FAKER.internet().uuid();
+        var selectionStrategy = UUID.randomUUID().toString();
         transferClient = new RemoteDataPlaneTransferClient(okHttpClient, selectorClientMock, selectionStrategy, RetryPolicy.ofDefaults(), MAPPER);
     }
 
@@ -144,7 +145,7 @@ class RemoteDataPlaneTransferClientTest {
 
         // config data plane mock server
         var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(flowRequest));
-        var errorMsg = FAKER.internet().uuid();
+        var errorMsg = UUID.randomUUID().toString();
         dataPlaneClientAndServer.when(httpRequest, once()).respond(withResponse(errorMsg));
 
         var result = transferClient.transfer(flowRequest);

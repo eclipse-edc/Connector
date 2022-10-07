@@ -15,11 +15,12 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azuredatafactory;
 
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
+
+import java.util.Random;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,19 +32,18 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class DataFactoryPipelineFactoryTest {
-    static final Faker FAKER = new Faker();
 
-    DataFactoryClient client = mock(DataFactoryClient.class, RETURNS_DEEP_STUBS);
-    TypeManager typeManager = new TypeManager();
-    KeyVaultClient keyVaultClient = mock(KeyVaultClient.class);
-    AzureSasToken azureSasToken = new AzureSasToken(FAKER.lorem().word(), FAKER.number().randomNumber());
-    KeyVaultSecret writeOnlySasSecret = new KeyVaultSecret(FAKER.lorem().word(), typeManager.writeValueAsString(azureSasToken));
-    KeyVaultSecret destinationSecret = new KeyVaultSecret(FAKER.lorem().word(), FAKER.lorem().word());
+    private final DataFactoryClient client = mock(DataFactoryClient.class, RETURNS_DEEP_STUBS);
+    private final TypeManager typeManager = new TypeManager();
+    private final KeyVaultClient keyVaultClient = mock(KeyVaultClient.class);
+    private final AzureSasToken azureSasToken = new AzureSasToken("test-sas", new Random().nextLong());
+    private final KeyVaultSecret writeOnlySasSecret = new KeyVaultSecret("test-name", typeManager.writeValueAsString(azureSasToken));
+    private final KeyVaultSecret destinationSecret = new KeyVaultSecret("test-name", "test-value");
 
-    DataFlowRequest request = AzureDataFactoryTransferRequestValidatorTest.requestWithProperties;
+    private final DataFlowRequest request = AzureDataFactoryTransferRequestValidatorTest.requestWithProperties;
 
-    String keyVaultLinkedService = FAKER.lorem().word();
-    DataFactoryPipelineFactory factory = new DataFactoryPipelineFactory(keyVaultLinkedService, keyVaultClient, client, typeManager);
+    private final String keyVaultLinkedService = "test-service";
+    private final DataFactoryPipelineFactory factory = new DataFactoryPipelineFactory(keyVaultLinkedService, keyVaultClient, client, typeManager);
 
     @Test
     void createPipeline() {

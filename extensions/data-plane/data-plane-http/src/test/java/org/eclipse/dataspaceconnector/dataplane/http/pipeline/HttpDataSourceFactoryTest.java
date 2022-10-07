@@ -17,7 +17,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures;
@@ -29,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress.DATA_TYPE;
@@ -36,14 +36,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class HttpDataSourceFactoryTest {
-
-    private static final Faker FAKER = new Faker();
     private static final OkHttpClient HTTP_CLIENT = mock(OkHttpClient.class);
     private static final RetryPolicy<Object> RETRY_POLICY = RetryPolicy.ofDefaults();
 
     private final HttpRequestParamsSupplier supplierMock = mock(HttpRequestParamsSupplier.class);
 
     private HttpDataSourceFactory factory;
+
+    private static DataFlowRequest createRequest(DataAddress source) {
+        return DataFlowRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(source)
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
+                .build();
+    }
 
     @BeforeEach
     void setUp() {
@@ -62,8 +69,8 @@ class HttpDataSourceFactoryTest {
 
     @Test
     void verifyValidationFailsIfSupplierThrows() {
-        var errorMsg = FAKER.lorem().sentence();
-        var request = createRequest(DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build());
+        var errorMsg = "test-error-msg";
+        var request = createRequest(DataAddress.Builder.newInstance().type("test-type").build());
 
         when(supplierMock.apply(request)).thenThrow(new EdcException(errorMsg));
 
@@ -76,7 +83,7 @@ class HttpDataSourceFactoryTest {
     @Test
     void verifySuccessSourceCreation() {
         var address = HttpDataAddress.Builder.newInstance()
-                .name(FAKER.lorem().word())
+                .name("test-name")
                 .build();
         var request = createRequest(address);
         var params = mock(HttpRequestParams.class);
@@ -104,14 +111,5 @@ class HttpDataSourceFactoryTest {
                 throw new AssertionError("Comparison failed for field: " + f.getName());
             }
         });
-    }
-
-    private static DataFlowRequest createRequest(DataAddress source) {
-        return DataFlowRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .processId(FAKER.internet().uuid())
-                .sourceDataAddress(source)
-                .destinationDataAddress(DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build())
-                .build();
     }
 }

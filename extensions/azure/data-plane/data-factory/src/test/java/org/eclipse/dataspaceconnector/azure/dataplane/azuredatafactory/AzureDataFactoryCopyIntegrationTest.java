@@ -22,7 +22,6 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.sas.BlobContainerSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.azure.storage.common.StorageSharedKeyCredential;
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureDataFactoryIntegrationTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
@@ -180,11 +179,10 @@ class AzureDataFactoryCopyIntegrationTest {
 
     static class Account {
 
-        static final Faker FAKER = new Faker();
         final String name;
         final String key;
         final BlobServiceClient client;
-        final String containerName = FAKER.lorem().characters(35, 40, false, false);
+        final String containerName = "cont" + UUID.randomUUID();
 
         Account(AzureResourceManager azure, EdcExtension edc, String setting) {
             String accountId = Objects.requireNonNull(edc.getContext().getConfig().getString(setting), setting);

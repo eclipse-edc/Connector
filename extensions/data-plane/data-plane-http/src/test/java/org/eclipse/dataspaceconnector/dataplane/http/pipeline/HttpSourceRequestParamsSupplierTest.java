@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpMethod;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -32,9 +32,21 @@ import static org.mockito.Mockito.mock;
 
 class HttpSourceRequestParamsSupplierTest {
 
-    private static final Faker FAKER = new Faker();
 
     private HttpSourceRequestParamsSupplier supplier;
+
+    private static DataFlowRequest createRequest(DataAddress source) {
+        return createRequest(source, Map.of());
+    }
+
+    private static DataFlowRequest createRequest(DataAddress source, Map<String, String> props) {
+        return DataFlowRequest.Builder.newInstance()
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(source)
+                .destinationDataAddress(mock(DataAddress.class))
+                .properties(props)
+                .build();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -53,7 +65,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractMethod() {
-        var method = FAKER.lorem().word();
+        var method = "test-method";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyMethod(Boolean.TRUE.toString())
                 .build();
@@ -76,7 +88,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractMethodDefault() {
-        var method = FAKER.lorem().word();
+        var method = "test-method";
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address, Map.of(DataFlowRequestSchema.METHOD, method));
 
@@ -87,7 +99,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractPath() {
-        var path = FAKER.lorem().word();
+        var path = "test-path";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyPath(Boolean.TRUE.toString())
                 .build();
@@ -112,7 +124,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractPathFilteredByProxy() {
-        var path = FAKER.lorem().word();
+        var path = "test-path";
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address, Map.of(DataFlowRequestSchema.PATH, path));
 
@@ -123,7 +135,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractQueryParams() {
-        var queryParams = FAKER.lorem().word();
+        var queryParams = "test-queryparams";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyQueryParams(Boolean.TRUE.toString())
                 .build();
@@ -148,7 +160,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractQueryParamsFilteredByProxy() {
-        var queryParams = FAKER.lorem().word();
+        var queryParams = "test-queryparams";
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address, Map.of(DataFlowRequestSchema.QUERY_PARAMS, queryParams));
 
@@ -159,7 +171,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractContentType() {
-        var contentType = FAKER.lorem().word();
+        var contentType = "test-contentType";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyBody(Boolean.TRUE.toString())
                 .build();
@@ -184,7 +196,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractContentFilteredByProxy() {
-        var contentType = FAKER.lorem().word();
+        var contentType = "test-contentType";
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address, Map.of(DataFlowRequestSchema.MEDIA_TYPE, contentType));
 
@@ -195,7 +207,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractBody() {
-        var body = FAKER.lorem().word();
+        var body = "test-body";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyBody(Boolean.TRUE.toString())
                 .build();
@@ -208,7 +220,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractBodyEmpty() {
-        var body = FAKER.lorem().word();
+        var body = "test-body";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyBody(Boolean.TRUE.toString())
                 .build();
@@ -221,25 +233,12 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractBodyFilteredByProxy() {
-        var body = FAKER.lorem().word();
+        var body = "test-body";
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address, Map.of(DataFlowRequestSchema.BODY, body));
 
         var result = supplier.extractBody(address, request);
 
         assertThat(result).isNull();
-    }
-
-    private static DataFlowRequest createRequest(DataAddress source) {
-        return createRequest(source, Map.of());
-    }
-
-    private static DataFlowRequest createRequest(DataAddress source, Map<String, String> props) {
-        return DataFlowRequest.Builder.newInstance()
-                .processId(FAKER.internet().uuid())
-                .sourceDataAddress(source)
-                .destinationDataAddress(mock(DataAddress.class))
-                .properties(props)
-                .build();
     }
 }

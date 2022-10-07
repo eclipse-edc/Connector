@@ -48,6 +48,7 @@ import org.mockserver.verify.VerificationTimes;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
@@ -110,8 +111,8 @@ class DataPlaneApiIntegrationTest {
     @Test
     void controlApi_should_callDataPlaneManager_if_requestIsValid() {
         var flowRequest = DataFlowRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .processId(FAKER.internet().uuid())
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(testDestAddress())
                 .destinationDataAddress(testDestAddress())
                 .build();
@@ -133,8 +134,8 @@ class DataPlaneApiIntegrationTest {
     void controlApi_should_returnBadRequest_if_requestIsInValid() {
         var errorMsg = FAKER.lorem().word();
         var flowRequest = DataFlowRequest.Builder.newInstance()
-                .id(FAKER.internet().uuid())
-                .processId(FAKER.internet().uuid())
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(testDestAddress())
                 .destinationDataAddress(testDestAddress())
                 .build();
@@ -165,7 +166,7 @@ class DataPlaneApiIntegrationTest {
 
     @Test
     void publicApi_should_returnForbidden_if_tokenValidationFails() {
-        var token = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
 
         var validationServerRequest = new HttpRequest().withHeader(AUTHORIZATION, token);
         tokenValidationServer.when(validationServerRequest, once()).respond(new HttpResponse().withStatusCode(400));
@@ -183,8 +184,8 @@ class DataPlaneApiIntegrationTest {
 
     @Test
     void publicApi_should_returnBadRequest_if_requestValidationFails() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
-        var errorMsg = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
+        var errorMsg = UUID.randomUUID().toString();
         tokenValidationServer.when(new HttpRequest().withHeader(AUTHORIZATION, token), once())
                 .respond(new HttpResponse()
                         .withStatusCode(200)
@@ -205,8 +206,8 @@ class DataPlaneApiIntegrationTest {
 
     @Test
     void publicApi_should_returnInternalServerError_if_transferFails() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
-        var errorMsg = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
+        var errorMsg = UUID.randomUUID().toString();
         tokenValidationServer.when(new HttpRequest().withHeader(AUTHORIZATION, token), once())
                 .respond(new HttpResponse()
                         .withStatusCode(200)
@@ -229,8 +230,8 @@ class DataPlaneApiIntegrationTest {
 
     @Test
     void publicApi_should_returnInternalServerError_if_transferThrows() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
-        var errorMsg = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
+        var errorMsg = UUID.randomUUID().toString();
         tokenValidationServer.when(new HttpRequest().withHeader(AUTHORIZATION, token), once())
                 .respond(new HttpResponse()
                         .withStatusCode(200)
@@ -253,7 +254,7 @@ class DataPlaneApiIntegrationTest {
 
     @Test
     void publicApi_should_returnDataFromSource_if_transferSuccessful() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
         var address = testDestAddress();
         var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
 

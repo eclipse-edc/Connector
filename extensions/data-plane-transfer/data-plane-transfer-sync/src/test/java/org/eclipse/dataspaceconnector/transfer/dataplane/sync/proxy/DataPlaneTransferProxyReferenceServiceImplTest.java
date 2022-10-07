@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.github.javafaker.Faker;
 import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
@@ -35,6 +34,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +47,6 @@ import static org.mockito.Mockito.when;
 
 class DataPlaneTransferProxyReferenceServiceImplTest {
 
-    private static final Faker FAKER = new Faker();
 
     private static final TypeManager TYPE_MANAGER = new TypeManager();
 
@@ -60,7 +59,7 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
     @BeforeEach
     public void setUp() {
         tokenGeneratorMock = mock(TokenGenerationService.class);
-        tokenValiditySeconds = FAKER.random().nextLong(100);
+        tokenValiditySeconds = 100L;
         encrypterMock = mock(DataEncrypter.class);
         Clock clock = Clock.fixed(now, UTC);
         proxyManager = new DataPlaneTransferProxyReferenceServiceImpl(tokenGeneratorMock, TYPE_MANAGER, tokenValiditySeconds, encrypterMock, clock);
@@ -71,13 +70,13 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
      */
     @Test
     void createProxy_success() throws ParseException {
-        var id = FAKER.internet().uuid();
-        var address = DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build();
+        var id = UUID.randomUUID().toString();
+        var address = DataAddress.Builder.newInstance().type("test-type").build();
         var addressStr = TYPE_MANAGER.writeValueAsString(address);
-        var encryptedDataAddress = FAKER.internet().uuid();
-        var contractId = FAKER.internet().uuid();
-        var proxyEndpoint = FAKER.internet().url();
-        var generatedToken = TokenRepresentation.Builder.newInstance().token(FAKER.internet().uuid()).build();
+        var encryptedDataAddress = UUID.randomUUID().toString();
+        var contractId = UUID.randomUUID().toString();
+        var proxyEndpoint = "test.url";
+        var generatedToken = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
 
         var decoratorCaptor = ArgumentCaptor.forClass(DataPlaneProxyTokenDecorator.class);
 
@@ -89,8 +88,8 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
                 .contentAddress(address)
                 .contractId(contractId)
                 .proxyEndpoint(proxyEndpoint)
-                .property(FAKER.lorem().word(), FAKER.internet().uuid())
-                .property(FAKER.lorem().word(), FAKER.internet().uuid())
+                .property("key1", UUID.randomUUID().toString())
+                .property("key2", UUID.randomUUID().toString())
                 .build();
 
         var result = proxyManager.createProxyReference(proxyCreationRequest);
@@ -123,11 +122,11 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
      */
     @Test
     void tokenGenerationFails_shouldReturnFailedResult() {
-        var errorMsg = FAKER.lorem().sentence();
+        var errorMsg = "test-error";
         var request = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
-                .contentAddress(DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build())
-                .contractId(FAKER.internet().uuid())
-                .proxyEndpoint(FAKER.internet().url())
+                .contentAddress(DataAddress.Builder.newInstance().type("test-type").build())
+                .contractId(UUID.randomUUID().toString())
+                .proxyEndpoint("test.url")
                 .build();
 
         when(tokenGeneratorMock.generate(any(DataPlaneProxyTokenDecorator.class))).thenReturn(Result.failure(errorMsg));

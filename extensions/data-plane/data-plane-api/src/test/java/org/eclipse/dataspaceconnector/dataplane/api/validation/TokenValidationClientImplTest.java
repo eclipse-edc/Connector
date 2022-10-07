@@ -30,6 +30,8 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.MediaType;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
@@ -71,9 +73,9 @@ class TokenValidationClientImplTest {
 
     @Test
     void verifySuccessTokenValidation() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
         var address = DataAddress.Builder.newInstance()
-                .type(FAKER.lorem().word())
+                .type("test-type")
                 .build();
 
         validationClientAndServer.when(new HttpRequest().withHeader(HttpHeaders.AUTHORIZATION, token), once())
@@ -90,9 +92,9 @@ class TokenValidationClientImplTest {
 
     @Test
     void verifyFailedResultReturnedIfServerResponseIsUnsuccessful() throws JsonProcessingException {
-        var token = FAKER.internet().uuid();
+        var token = UUID.randomUUID().toString();
         var address = DataAddress.Builder.newInstance()
-                .type(FAKER.lorem().word())
+                .type("test-type")
                 .build();
 
         validationClientAndServer.when(new HttpRequest().withHeader(HttpHeaders.AUTHORIZATION, token), once())

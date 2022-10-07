@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspaceconnector.iam.did.crypto.credentials;
 
-import com.github.javafaker.Faker;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
@@ -52,12 +51,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class VerifiableCredentialFactoryTest {
-    private static final Faker FAKER = new Faker();
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
     private EcPrivateKeyWrapper privateKey;
     private EcPublicKeyWrapper publicKey;
+
+    @NotNull
+    private static Arguments jwtCase(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String name) {
+        return Arguments.of(builderOperator, expectSuccess, name);
+    }
 
     @BeforeEach
     void setup() throws JOSEException {
@@ -103,7 +106,7 @@ class VerifiableCredentialFactoryTest {
     @Test
     void verifyJwt_OnVerificationFailure_fails() throws Exception {
         var jwt = mock(SignedJWT.class);
-        var message = FAKER.lorem().sentence();
+        var message = "test-message";
         when(jwt.verify(any())).thenThrow(new JOSEException(message));
         assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages())
                 .containsExactly("Unable to verify JWT token. " + message);
@@ -113,7 +116,7 @@ class VerifiableCredentialFactoryTest {
     @Test
     void verifyJwt_OnInvalidClaims_fails() throws Exception {
         var jwt = mock(SignedJWT.class);
-        var message = FAKER.lorem().sentence();
+        var message = "test-message";
         when(jwt.verify(any())).thenReturn(true);
         when(jwt.getJWTClaimsSet()).thenThrow(new ParseException(message, 0));
         assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages())
@@ -140,6 +143,11 @@ class VerifiableCredentialFactoryTest {
         }
     }
 
+    private JWK getJwk(String resourceName) throws JOSEException {
+        String privateKeyPem = getResourceFileContentAsString(resourceName);
+        return JWK.parseFromPEMEncodedObjects(privateKeyPem);
+    }
+
     static class ClaimsArgs implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -161,15 +169,5 @@ class VerifiableCredentialFactoryTest {
                     jwtCase(b -> b.claim("foo", "bar"), true, "additional claim")
             );
         }
-    }
-
-    @NotNull
-    private static Arguments jwtCase(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String name) {
-        return Arguments.of(builderOperator, expectSuccess, name);
-    }
-
-    private JWK getJwk(String resourceName) throws JOSEException {
-        String privateKeyPem = getResourceFileContentAsString(resourceName);
-        return JWK.parseFromPEMEncodedObjects(privateKeyPem);
     }
 }

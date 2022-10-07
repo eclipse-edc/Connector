@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import okio.BufferedSink;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
@@ -28,11 +27,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class StreamingRequestBodyTest {
-    private static final Faker FAKER = new Faker();
 
     @Test
     void verifyStreamingTransfer() throws IOException {
-        var content = FAKER.lorem().word();
+        var content = "test-content";
         var sink = mock(BufferedSink.class);
         var outputStream = new ByteArrayOutputStream();
 

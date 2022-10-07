@@ -47,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
@@ -105,7 +106,7 @@ public class DataPlaneHttpToHttpIntegrationTests {
                     "web.http.public.port", valueOf(DPF_PUBLIC_API_PORT),
                     "web.http.control.port", valueOf(DPF_CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH,
-                    "edc.dataplane.token.validation.endpoint", FAKER.internet().url() // not used
+                    "edc.dataplane.token.validation.endpoint", "test.url" // not used
             ));
     /**
      * HTTP Source mock server.
@@ -140,8 +141,8 @@ public class DataPlaneHttpToHttpIntegrationTests {
     @Test
     void transfer_success() {
         // Arrange
-        var body = FAKER.internet().uuid();
-        var processId = FAKER.internet().uuid();
+        var body = UUID.randomUUID().toString();
+        var processId = UUID.randomUUID().toString();
         httpSourceClientAndServer.when(getRequest(), once())
                 .respond(withResponse(HttpStatusCode.OK_200, body));
 
@@ -174,10 +175,10 @@ public class DataPlaneHttpToHttpIntegrationTests {
     void transfer_WithSourceQueryParams_Success() {
         // Arrange
         // HTTP Source Request & Response
-        var body = FAKER.internet().uuid();
-        var processId = FAKER.internet().uuid();
+        var body = UUID.randomUUID().toString();
+        var processId = UUID.randomUUID().toString();
         var queryParams = Map.of(
-                FAKER.lorem().word(), FAKER.internet().url(),
+                FAKER.lorem().word(), "test.url",
                 FAKER.lorem().word(), FAKER.lorem().word()
         );
 
@@ -216,7 +217,7 @@ public class DataPlaneHttpToHttpIntegrationTests {
     void transfer_invalidInput_failure() {
         // Arrange
         // Request without processId to initiate transfer.
-        var processId = FAKER.internet().uuid();
+        var processId = UUID.randomUUID().toString();
         var invalidRequest = transferRequestPayload(processId).remove("processId");
 
         // Act & Assert
@@ -233,7 +234,7 @@ public class DataPlaneHttpToHttpIntegrationTests {
     @Test
     void transfer_sourceNotAvailable_noInteractionWithSink() {
         // Arrange
-        var processId = FAKER.internet().uuid();
+        var processId = UUID.randomUUID().toString();
         // HTTP Source Request & Error Response
         httpSourceClientAndServer.when(getRequest())
                 .error(withDropConnection());
@@ -260,13 +261,13 @@ public class DataPlaneHttpToHttpIntegrationTests {
     @Test
     void transfer_sourceTemporaryDropConnection_success() {
         // Arrange
-        var processId = FAKER.internet().uuid();
+        var processId = UUID.randomUUID().toString();
         // First two calls to HTTP Source returns a failure response.
         httpSourceClientAndServer.when(getRequest(), exactly(2))
                 .error(withDropConnection());
 
         // Next call to HTTP Source returns a valid response.
-        var body = FAKER.internet().uuid();
+        var body = UUID.randomUUID().toString();
         httpSourceClientAndServer.when(getRequest(), once())
                 .respond(withResponse(HttpStatusCode.OK_200, body));
 
@@ -301,8 +302,8 @@ public class DataPlaneHttpToHttpIntegrationTests {
     void transfer_sinkTemporaryDropsConnection_noRetry() {
         // Arrange
         // HTTP Source Request & Response
-        var body = FAKER.internet().uuid();
-        var processId = FAKER.internet().uuid();
+        var body = UUID.randomUUID().toString();
+        var processId = UUID.randomUUID().toString();
         httpSourceClientAndServer.when(getRequest(), once())
                 .respond(withResponse(HttpStatusCode.OK_200, body));
 

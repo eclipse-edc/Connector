@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.common.statemachine.retry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
@@ -28,6 +27,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Clock;
+import java.util.Date;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -39,11 +39,10 @@ import static org.mockito.Mockito.when;
 
 class EntitySendRetryManagerTest {
 
-    private final Faker faker = new Faker();
 
     private final Monitor monitor = mock(Monitor.class);
     private final WaitStrategy delayStrategy = mock(WaitStrategy.class);
-    private final int sendRetryLimit = faker.number().numberBetween(5, 10);
+    private final int sendRetryLimit = 7;
 
     private final Clock clock = mock(Clock.class);
     private final Supplier<WaitStrategy> waitStrategy = () -> delayStrategy;
@@ -73,10 +72,10 @@ class EntitySendRetryManagerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-2, -1, 0, 1, 2})
+    @ValueSource(ints = { -2, -1, 0, 1, 2 })
     void retriesExhausted(int retriesLeft) {
         var stateCount = sendRetryLimit - retriesLeft;
-        var stateTimestamp = faker.number().randomNumber();
+        var stateTimestamp = new Date().getTime();
         var process = TestEntity.Builder.newInstance()
                 .id("any")
                 .stateCount(stateCount)
@@ -111,23 +110,23 @@ class EntitySendRetryManagerTest {
         @JsonPOJOBuilder(withPrefix = "")
         public static class Builder extends StatefulEntity.Builder<TestEntity, Builder> {
 
-            @Override
-            public Builder self() {
-                return this;
-            }
-
             private Builder(TestEntity entity) {
                 super(entity);
-            }
-
-            @Override
-            protected TestEntity build() {
-                return super.build();
             }
 
             @JsonCreator
             public static Builder newInstance() {
                 return new Builder(new TestEntity());
+            }
+
+            @Override
+            public Builder self() {
+                return this;
+            }
+
+            @Override
+            protected TestEntity build() {
+                return super.build();
             }
         }
     }

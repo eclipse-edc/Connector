@@ -19,7 +19,6 @@ import com.azure.resourcemanager.datafactory.models.CreateRunResponse;
 import com.azure.resourcemanager.datafactory.models.PipelineResource;
 import com.azure.resourcemanager.datafactory.models.PipelineRun;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
-import com.github.javafaker.Faker;
 import org.assertj.core.api.ObjectAssert;
 import org.bouncycastle.util.test.UncloseableOutputStream;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
@@ -41,6 +40,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,21 +52,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AzureDataFactoryTransferManagerTest {
-    static final Faker FAKER = new Faker();
 
-    Monitor monitor = mock(Monitor.class);
-    Clock clock = mock(Clock.class);
-    Instant fixedInstant = Instant.EPOCH;
-    DataFactoryClient client = mock(DataFactoryClient.class);
-    DataFactoryPipelineFactory pipelineFactory = mock(DataFactoryPipelineFactory.class);
-    BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
-    TypeManager typeManager = new TypeManager();
-    KeyVaultClient keyVaultClient = mock(KeyVaultClient.class);
-    KeyVaultSecret keyVaultSecret = mock(KeyVaultSecret.class);
-    AzureSasToken sasToken = new AzureSasToken(FAKER.lorem().word(), FAKER.number().randomNumber());
-    BlobAdapter blobAdapter = mock(BlobAdapter.class);
-    Duration maxDuration = Duration.ofMillis(FAKER.number().numberBetween(1, 10));
-    AzureDataFactoryTransferManager transferManager = new AzureDataFactoryTransferManager(
+    private final Monitor monitor = mock(Monitor.class);
+    private final Clock clock = mock(Clock.class);
+    private final Instant fixedInstant = Instant.EPOCH;
+    private final DataFactoryClient client = mock(DataFactoryClient.class);
+    private final DataFactoryPipelineFactory pipelineFactory = mock(DataFactoryPipelineFactory.class);
+    private final BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
+    private final TypeManager typeManager = new TypeManager();
+    private final KeyVaultClient keyVaultClient = mock(KeyVaultClient.class);
+    private final KeyVaultSecret keyVaultSecret = mock(KeyVaultSecret.class);
+    private final AzureSasToken sasToken = new AzureSasToken("test-sas", new Random().nextLong());
+    private final BlobAdapter blobAdapter = mock(BlobAdapter.class);
+    private final Duration maxDuration = Duration.ofMillis(7);
+    private final AzureDataFactoryTransferManager transferManager = new AzureDataFactoryTransferManager(
             monitor,
             client,
             pipelineFactory,
@@ -76,12 +76,29 @@ class AzureDataFactoryTransferManagerTest {
             keyVaultClient,
             Duration.ofMillis(0));
 
-    DataFlowRequest request = AzureDataFactoryTransferRequestValidatorTest.requestWithProperties;
+    private final DataFlowRequest request = AzureDataFactoryTransferRequestValidatorTest.requestWithProperties;
 
-    PipelineResource pipeline = mock(PipelineResource.class);
-    CreateRunResponse runResponse = mock(CreateRunResponse.class);
-    String runId = FAKER.lorem().characters();
-    PipelineRun run = mock(PipelineRun.class);
+    private final PipelineResource pipeline = mock(PipelineResource.class);
+    private final CreateRunResponse runResponse = mock(CreateRunResponse.class);
+    private final String runId = UUID.randomUUID().toString();
+    private final PipelineRun run = mock(PipelineRun.class);
+
+    static Stream<Arguments> successStates() {
+        return Stream.of(
+                arguments(List.of("Succeeded")),
+                arguments(List.of("Queued", "InProgress", "Succeeded"))
+        );
+    }
+
+    static Stream<Arguments> failureStates() {
+        return Stream.of(
+                arguments(List.of("Failed")),
+                arguments(List.of("Queued", "InProgress", "Failed")),
+                arguments(List.of("Queued", "InProgress", "Canceling", "Cancelled")),
+                arguments(List.of("Cancelled")),
+                arguments(List.of("Queued", "InProgress", "some-status"))
+        );
+    }
 
     @BeforeEach
     void setUp() {
@@ -115,13 +132,6 @@ class AzureDataFactoryTransferManagerTest {
                 .matches(StatusResult::succeeded, "is succeeded");
     }
 
-    static Stream<Arguments> successStates() {
-        return Stream.of(
-                arguments(List.of("Succeeded")),
-                arguments(List.of("Queued", "InProgress", "Succeeded"))
-        );
-    }
-
     @ParameterizedTest
     @MethodSource("failureStates")
     void transfer_failure(List<String> states) {
@@ -144,17 +154,6 @@ class AzureDataFactoryTransferManagerTest {
                 .matches(StatusResult::failed);
         assertThatTransferResult()
                 .satisfies(r -> assertThat(r.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY));
-    }
-
-
-    static Stream<Arguments> failureStates() {
-        return Stream.of(
-                arguments(List.of("Failed")),
-                arguments(List.of("Queued", "InProgress", "Failed")),
-                arguments(List.of("Queued", "InProgress", "Canceling", "Cancelled")),
-                arguments(List.of("Cancelled")),
-                arguments(List.of("Queued", "InProgress", FAKER.lorem().word()))
-        );
     }
 
     @Test

@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform.TransferProcessTransformerTestData;
@@ -38,9 +37,8 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class TransferProcessApiExtensionTest {
-    static Faker faker = new Faker();
-    TransferProcessTransformerTestData data = new TransferProcessTransformerTestData();
-    String contextAlias = faker.lorem().word();
+    private final TransferProcessTransformerTestData data = new TransferProcessTransformerTestData();
+    private final String contextAlias = "testcontext";
 
     @Test
     void initialize(ServiceExtensionContext context, ObjectFactory factory) {

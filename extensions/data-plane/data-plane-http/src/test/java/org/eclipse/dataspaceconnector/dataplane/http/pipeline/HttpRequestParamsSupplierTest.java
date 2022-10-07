@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.MediaType;
 import org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures;
@@ -32,6 +31,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import static io.netty.handler.codec.http.HttpHeaders.Values.APPLICATION_JSON;
 import static io.netty.handler.codec.http.HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED;
@@ -43,10 +43,17 @@ import static org.mockito.Mockito.when;
 
 class HttpRequestParamsSupplierTest {
 
-    private static final Faker FAKER = new Faker();
 
     private final Vault vaultMock = Mockito.mock(Vault.class);
     private TestHttpRequestParamsSupplier supplier;
+
+    private static DataFlowRequest createRequest(DataAddress source) {
+        return DataFlowRequest.Builder.newInstance()
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
+                .sourceDataAddress(source)
+                .processId(UUID.randomUUID().toString())
+                .build();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -64,9 +71,9 @@ class HttpRequestParamsSupplierTest {
     @Test
     void verifySecretFromAddressIsUsed() {
         var dataAddress = HttpDataAddress.Builder.newInstance()
-                .authKey(FAKER.lorem().word())
-                .authCode(FAKER.lorem().word())
-                .baseUrl("http://" + FAKER.internet().url())
+                .authKey("test-authkey")
+                .authCode("test-authcode")
+                .baseUrl("http://" + "test.domain")
                 .build();
         var request = createRequest(dataAddress);
 
@@ -83,12 +90,12 @@ class HttpRequestParamsSupplierTest {
 
     @Test
     void verifySecretIsRetrievedFromVault() {
-        var secretName = FAKER.lorem().word();
-        var secret = FAKER.lorem().word();
+        var secretName = "test-secret-name";
+        var secret = "test-secret";
         var dataAddress = HttpDataAddress.Builder.newInstance()
-                .authKey(FAKER.lorem().word())
+                .authKey("test-authkey")
                 .secretName(secretName)
-                .baseUrl("http://" + FAKER.internet().url())
+                .baseUrl("http://" + "test.url")
                 .build();
         var request = createRequest(dataAddress);
 
@@ -109,9 +116,9 @@ class HttpRequestParamsSupplierTest {
 
     @Test
     void verifyAdditionalHeadersAreRetrievedFromAddress() {
-        var additionalHeaders = Map.of(FAKER.lorem().word(), FAKER.lorem().word());
+        var additionalHeaders = Map.of("key1", "value1");
         var builder = HttpDataAddress.Builder.newInstance()
-                .baseUrl("http://" + FAKER.internet().url());
+                .baseUrl("http://" + "test.url");
         additionalHeaders.forEach(builder::addAdditionalHeader);
         var request = createRequest(builder.build());
 
@@ -127,7 +134,7 @@ class HttpRequestParamsSupplierTest {
     @Test
     void verifyAbstractMethodsInvokation() throws IOException {
         var dataAddress = HttpDataAddress.Builder.newInstance()
-                .baseUrl("http://" + FAKER.internet().url())
+                .baseUrl("http://" + "test.url")
                 .build();
         var request = createRequest(dataAddress);
 
@@ -141,14 +148,6 @@ class HttpRequestParamsSupplierTest {
         assertThat(httpRequest.method()).isEqualTo(supplier.method);
     }
 
-    private static DataFlowRequest createRequest(DataAddress source) {
-        return DataFlowRequest.Builder.newInstance()
-                .destinationDataAddress(DataAddress.Builder.newInstance().type(FAKER.lorem().word()).build())
-                .sourceDataAddress(source)
-                .processId(FAKER.internet().uuid())
-                .build();
-    }
-
     public static final class TestHttpRequestParamsSupplier extends HttpRequestParamsSupplier {
 
         private final String method;
@@ -160,10 +159,10 @@ class HttpRequestParamsSupplierTest {
         private TestHttpRequestParamsSupplier(Vault vault) {
             super(vault);
             this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
-            this.path = FAKER.lorem().word();
-            this.queryParams = FAKER.lorem().word();
+            this.path = "test-path";
+            this.queryParams = "test-params";
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
-            this.body = FAKER.lorem().word();
+            this.body = "test-body";
         }
 
         @Override

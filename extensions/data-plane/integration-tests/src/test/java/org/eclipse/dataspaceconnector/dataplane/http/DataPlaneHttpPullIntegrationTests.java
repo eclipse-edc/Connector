@@ -45,6 +45,7 @@ import org.mockserver.model.MediaType;
 import org.mockserver.verify.VerificationTimes;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -203,7 +204,7 @@ public class DataPlaneHttpPullIntegrationTests {
 
         Scenario(String method) {
             this.method = method;
-            token = FAKER.internet().uuid();
+            token = UUID.randomUUID().toString();
             dataplaneRequest = given()
                     .baseUri(DPF_PUBLIC_API_HOST)
                     .basePath(DPF_DATA_PATH)

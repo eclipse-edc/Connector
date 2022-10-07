@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
-import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
@@ -51,22 +50,21 @@ import static org.mockito.Mockito.when;
 
 class AzureStorageDataSinkTest {
 
-    static Faker faker = new Faker();
-    Monitor monitor = mock(Monitor.class);
-    ExecutorService executor = Executors.newFixedThreadPool(2);
-    BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
-    DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
+    private final Monitor monitor = mock(Monitor.class);
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private final BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
+    private final DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
 
-    String accountName = createAccountName();
-    String containerName = createContainerName();
-    String sharedAccessSignature = createSharedAccessSignature();
+    private final String accountName = createAccountName();
+    private final String containerName = createContainerName();
+    private final String sharedAccessSignature = createSharedAccessSignature();
 
-    String blobName = createBlobName();
-    String content = faker.lorem().sentence();
+    private final String blobName = createBlobName();
+    private final String content = "test-content";
 
-    Exception exception = new TestCustomException(faker.lorem().sentence());
+    private final Exception exception = new TestCustomException("test-error");
 
-    AzureStorageDataSink dataSink = AzureStorageDataSink.Builder.newInstance()
+    private final AzureStorageDataSink dataSink = AzureStorageDataSink.Builder.newInstance()
             .accountName(accountName)
             .containerName(containerName)
             .sharedAccessSignature(sharedAccessSignature)
@@ -75,11 +73,11 @@ class AzureStorageDataSinkTest {
             .executorService(executor)
             .monitor(monitor)
             .build();
-    BlobAdapter destination = mock(BlobAdapter.class);
-    BlobAdapter completionMarker = mock(BlobAdapter.class);
-    InputStreamDataSource part = new InputStreamDataSource(blobName, new ByteArrayInputStream(content.getBytes(UTF_8)));
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    OutputStream completionMarkerOutput = mock(OutputStream.class);
+    private final BlobAdapter destination = mock(BlobAdapter.class);
+    private final BlobAdapter completionMarker = mock(BlobAdapter.class);
+    private final InputStreamDataSource part = new InputStreamDataSource(blobName, new ByteArrayInputStream(content.getBytes(UTF_8)));
+    private final ByteArrayOutputStream output = new ByteArrayOutputStream();
+    private final OutputStream completionMarkerOutput = mock(OutputStream.class);
 
     @BeforeEach
     void setUp() {
