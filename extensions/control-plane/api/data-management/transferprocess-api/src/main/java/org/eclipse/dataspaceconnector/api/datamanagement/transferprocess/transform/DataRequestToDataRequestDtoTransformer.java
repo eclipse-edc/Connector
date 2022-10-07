@@ -42,6 +42,7 @@ public class DataRequestToDataRequestDtoTransformer implements DtoTransformer<Da
             return null;
         }
         return DataRequestDto.Builder.newInstance()
+                .id(object.getId())
                 .assetId(object.getAssetId())
                 .contractId(object.getContractId())
                 .connectorId(object.getConnectorId())

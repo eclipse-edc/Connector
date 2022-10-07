@@ -1845,6 +1845,8 @@ components:
           type: string
         contractId:
           type: string
+        id:
+          type: string
     DeprovisionedResource:
       type: object
       properties:
