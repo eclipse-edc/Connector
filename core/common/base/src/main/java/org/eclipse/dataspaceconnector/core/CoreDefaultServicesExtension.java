@@ -34,6 +34,8 @@ import org.eclipse.dataspaceconnector.spi.system.vault.NoopPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.vault.NoopVault;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DefaultDataSourceRegistry;
 
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
@@ -67,6 +69,13 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     public TransactionContext defaultTransactionContext(ServiceExtensionContext context) {
         context.getMonitor().warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
         return new NoopTransactionContext();
+    }
+
+    @Provider(isDefault = true)
+    public DataSourceRegistry dataSourceRegistry(ServiceExtensionContext context) {
+        context.getMonitor().warning("No DataSourceRegistry registered, DefaultDataSourceRegistry will be used, not suitable for production environments");
+        return new DefaultDataSourceRegistry();
+
     }
 
     @Provider(isDefault = true)
