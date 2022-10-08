@@ -2540,6 +2540,9 @@ window.swaggerSpec={
           },
           "contractId" : {
             "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
           }
         }
       },

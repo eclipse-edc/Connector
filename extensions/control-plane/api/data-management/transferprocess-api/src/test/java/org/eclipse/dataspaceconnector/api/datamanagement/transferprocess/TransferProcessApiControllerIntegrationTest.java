@@ -38,6 +38,8 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+
 
 @ExtendWith(EdcExtension.class)
 class TransferProcessApiControllerIntegrationTest {
@@ -85,7 +87,8 @@ class TransferProcessApiControllerIntegrationTest {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("id", is(PROCESS_ID));
+                .body("id", is(PROCESS_ID))
+                .body("dataRequest.id", notNullValue());
 
     }
 
@@ -249,7 +252,7 @@ class TransferProcessApiControllerIntegrationTest {
     private TransferProcess createTransferProcess(String processId) {
         return createTransferProcessBuilder()
                 .id(processId)
-                .dataRequest(DataRequest.Builder.newInstance().destinationType("file").build())
+                .dataRequest(DataRequest.Builder.newInstance().id("id").destinationType("file").build())
                 .build();
     }
 

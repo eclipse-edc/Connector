@@ -20,11 +20,16 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = DataRequestDto.Builder.class)
 public class DataRequestDto {
+    private String id;
     private String assetId;
     private String contractId;
     private String connectorId;
 
     private DataRequestDto() {
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getAssetId() {
@@ -51,6 +56,11 @@ public class DataRequestDto {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            dataRequestDto.id = id;
+            return this;
         }
 
         public Builder assetId(String assetId) {

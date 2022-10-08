@@ -263,6 +263,8 @@ components:
           type: string
         contractId:
           type: string
+        id:
+          type: string
     IdResponseDto:
       type: object
       properties:

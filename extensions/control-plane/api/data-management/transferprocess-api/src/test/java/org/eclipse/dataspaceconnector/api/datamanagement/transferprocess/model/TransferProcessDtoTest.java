@@ -32,8 +32,12 @@ class TransferProcessDtoTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var drq = DataRequestDto.Builder.newInstance().assetId("test-asset").connectorId("test-conn")
-                .contractId("test-contract").build();
+        var drq = DataRequestDto.Builder.newInstance()
+                .assetId("test-asset")
+                .connectorId("test-conn")
+                .contractId("test-contract")
+                .id("request-test-id")
+                .build();
         var dto = TransferProcessDto.Builder.newInstance()
                 .id("test-id")
                 .errorDetail("some-error")
