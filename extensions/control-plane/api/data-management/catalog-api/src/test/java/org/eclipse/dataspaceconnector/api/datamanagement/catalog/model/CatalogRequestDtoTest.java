@@ -16,13 +16,13 @@ package org.eclipse.dataspaceconnector.api.datamanagement.catalog.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.api.datamanagement.catalog.TestFunctions.createCriterionDto;
 
 class CatalogRequestDtoTest {
 
@@ -36,7 +36,7 @@ class CatalogRequestDtoTest {
                 .offset(69)
                 .sortField("someField")
                 .sortOrder(SortOrder.DESC)
-                .filter(List.of(new Criterion("foo", "=", "bar"), new Criterion("bar", "<", "baz")))
+                .filter(List.of(createCriterionDto("foo", "=", "bar"), createCriterionDto("bar", "<", "baz")))
                 .build();
 
         var json = MAPPER.writeValueAsString(dto);

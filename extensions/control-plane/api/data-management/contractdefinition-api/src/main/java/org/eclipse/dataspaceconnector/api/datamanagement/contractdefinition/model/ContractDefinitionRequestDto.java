@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 
 import java.util.ArrayList;
 import java.util.List;

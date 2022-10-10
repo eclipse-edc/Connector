@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.mod
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

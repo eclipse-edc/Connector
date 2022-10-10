@@ -2266,7 +2266,7 @@ window.swaggerSpec={
           "filter" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/Criterion"
+              "$ref" : "#/components/schemas/CriterionDto"
             }
           },
           "limit" : {

@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -45,6 +44,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.api.datamanagement.catalog.TestFunctions.createCriterionDto;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.is;
@@ -136,7 +136,7 @@ public class CatalogApiControllerIntegrationTest {
                 .sortField("someField")
                 .sortOrder(SortOrder.DESC)
                 .providerUrl("some.provider.url")
-                .filter(List.of(new Criterion("fooProp", "", "bar"), new Criterion("bazProp", "in", List.of("blip", "blup", "blop"))))
+                .filter(List.of(createCriterionDto("fooProp", "", "bar"), createCriterionDto("bazProp", "in", List.of("blip", "blup", "blop"))))
                 .build();
 
         baseRequest()
@@ -155,7 +155,8 @@ public class CatalogApiControllerIntegrationTest {
         assertThat(rq.getLimit()).isEqualTo(requestDto.getLimit());
         assertThat(rq.getSortField()).isEqualTo(requestDto.getSortField());
         assertThat(rq.getSortOrder()).isEqualTo(requestDto.getSortOrder());
-        assertThat(rq.getFilterExpression()).isEqualTo(requestDto.getFilter());
+        // technically we're comparing a Criterion and a CriterionDto, but they have the same fields, so recursive comp. works
+        assertThat(rq.getFilterExpression()).usingRecursiveFieldByFieldElementComparator().isEqualTo(requestDto.getFilter());
     }
 
     @Test
@@ -204,6 +205,7 @@ public class CatalogApiControllerIntegrationTest {
                 .then()
                 .statusCode(400);
     }
+
 
     private RequestSpecification baseRequest() {
         return given()

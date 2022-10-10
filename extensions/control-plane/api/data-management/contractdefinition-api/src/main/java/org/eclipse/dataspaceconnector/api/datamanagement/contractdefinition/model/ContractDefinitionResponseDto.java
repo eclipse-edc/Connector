@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.api.model.BaseResponseDto;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 
 import java.util.ArrayList;
 import java.util.List;

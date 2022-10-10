@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class CatalogRequestDto {
     @Positive(message = "limit must be greater than 0")
     private Integer limit = 50;
     private SortOrder sortOrder = SortOrder.ASC;
-    private List<Criterion> filter = new ArrayList<>();
+    private List<CriterionDto> filter = new ArrayList<>();
     private String sortField;
     @NotNull
     private String providerUrl;
@@ -55,7 +55,7 @@ public class CatalogRequestDto {
         return sortOrder;
     }
 
-    public List<Criterion> getFilter() {
+    public List<CriterionDto> getFilter() {
         return filter;
     }
 
@@ -101,7 +101,7 @@ public class CatalogRequestDto {
             return this;
         }
 
-        public Builder filter(List<Criterion> criteria) {
+        public Builder filter(List<CriterionDto> criteria) {
             instance.filter = criteria;
             return this;
         }

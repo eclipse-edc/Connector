@@ -71,16 +71,12 @@ public class CatalogApiController implements CatalogApi {
     @POST
     @Path("/request")
     public void requestCatalog(@RequestBody(required = true) CatalogRequestDto requestDto, @Suspended AsyncResponse response) {
+        var result = transformerRegistry.transform(requestDto, QuerySpec.class);
 
-        var query = QuerySpec.Builder.newInstance()
-                .filter(requestDto.getFilter())
-                .limit(requestDto.getLimit())
-                .offset(requestDto.getOffset())
-                .sortOrder(requestDto.getSortOrder())
-                .sortField((requestDto.getSortField()))
-                .build();
-
-        performQuery(requestDto.getProviderUrl(), query, response);
+        if (result.failed()) {
+            throw new InvalidRequestException(result.getFailureMessages());
+        }
+        performQuery(requestDto.getProviderUrl(), result.getContent(), response);
     }
 
     private void performQuery(String providerUrl, QuerySpec spec, AsyncResponse response) {

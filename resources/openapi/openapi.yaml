@@ -1644,7 +1644,7 @@ components:
         filter:
           type: array
           items:
-            $ref: '#/components/schemas/Criterion'
+            $ref: '#/components/schemas/CriterionDto'
         limit:
           type: integer
           format: int32

@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -38,6 +37,7 @@ import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.eclipse.dataspaceconnector.api.datamanagement.catalog.TestFunctions.createCriterionDto;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -98,15 +98,16 @@ class CatalogApiControllerTest {
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
         var url = "test.url";
-        
+
         when(service.getByProviderUrl(eq(url), any())).thenReturn(completedFuture(catalog));
 
         var request = CatalogRequestDto.Builder.newInstance()
                 .providerUrl(url)
                 .sortField("test-field")
                 .sortOrder(SortOrder.DESC)
-                .filter(List.of(new Criterion("foo", "=", "bar")))
+                .filter(List.of(createCriterionDto("foo", "=", "bar")))
                 .build();
+
         controller.requestCatalog(request, response);
 
         verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));

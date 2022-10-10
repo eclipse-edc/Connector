@@ -100,7 +100,7 @@ components:
         filter:
           type: array
           items:
-            $ref: '#/components/schemas/Criterion'
+            $ref: '#/components/schemas/CriterionDto'
         limit:
           type: integer
           format: int32
@@ -154,7 +154,7 @@ components:
         provider:
           type: string
           format: uri
-    Criterion:
+    CriterionDto:
       type: object
       properties:
         operandLeft:
@@ -163,6 +163,9 @@ components:
           type: object
         operator:
           type: string
+      required:
+      - operandLeft
+      - operator
     Duty:
       type: object
       properties:
