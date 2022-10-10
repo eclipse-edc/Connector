@@ -216,9 +216,9 @@ class ContractValidationServiceImplTest {
         var offer = createContractOffer().build();
         when(policyEquality.test(any(), any())).thenReturn(true);
 
-        boolean result = validationService.validateConfirmed(claimToken, agreement, offer);
+        var result = validationService.validateConfirmed(claimToken, agreement, offer);
 
-        assertThat(result).isTrue();
+        assertThat(result.succeeded()).isTrue();
     }
 
     @Test
@@ -227,9 +227,9 @@ class ContractValidationServiceImplTest {
         var agreement = createContractAgreement().id("not a valid id").build();
         var offer = createContractOffer().build();
 
-        boolean result = validationService.validateConfirmed(claimToken, agreement, offer);
+        var result = validationService.validateConfirmed(claimToken, agreement, offer);
 
-        assertThat(result).isFalse();
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -239,9 +239,9 @@ class ContractValidationServiceImplTest {
         var offer = createContractOffer().build();
         when(policyEquality.test(any(), any())).thenReturn(false);
 
-        boolean result = validationService.validateConfirmed(claimToken, agreement, offer);
+        var result = validationService.validateConfirmed(claimToken, agreement, offer);
 
-        assertThat(result).isFalse();
+        assertThat(result.failed()).isTrue();
     }
 
     @NotNull

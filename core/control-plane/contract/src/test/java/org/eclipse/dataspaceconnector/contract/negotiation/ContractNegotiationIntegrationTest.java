@@ -138,7 +138,7 @@ class ContractNegotiationIntegrationTest {
         ContractOffer offer = getContractOffer();
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
-                any(ContractOffer.class))).thenReturn(true);
+                any(ContractOffer.class))).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -223,7 +223,7 @@ class ContractNegotiationIntegrationTest {
 
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
-                any(ContractOffer.class))).thenReturn(false);
+                any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -268,7 +268,7 @@ class ContractNegotiationIntegrationTest {
         when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
-                eq(counterOffer))).thenReturn(true);
+                eq(counterOffer))).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -380,7 +380,7 @@ class ContractNegotiationIntegrationTest {
 
         // Mock validation of agreement on consumer side
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
-                eq(consumerCounterOffer))).thenReturn(true);
+                eq(consumerCounterOffer))).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
         providerManager.start();

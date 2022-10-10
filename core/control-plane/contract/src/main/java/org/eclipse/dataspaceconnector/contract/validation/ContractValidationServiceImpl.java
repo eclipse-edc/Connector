@@ -149,13 +149,17 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public boolean validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
+    public Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
-            return false;
+            return Result.failure(format("ContractId %s does not follow the expected schema.", agreement.getId()));
         }
 
-        return policyEquality.test(agreement.getPolicy(), latestOffer.getPolicy());
+        if (!policyEquality.test(agreement.getPolicy(), latestOffer.getPolicy())) {
+            return Result.failure("Policy in the contract agreement is not equal to the one in the contract offer");
+        }
+
+        return Result.success();
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {

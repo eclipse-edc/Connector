@@ -202,7 +202,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
-        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(true);
+        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
 
         var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, def.getPolicy());
 
@@ -222,7 +222,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         var policy = Policy.Builder.newInstance().build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
-        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(false);
+        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
         var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, policy);
 

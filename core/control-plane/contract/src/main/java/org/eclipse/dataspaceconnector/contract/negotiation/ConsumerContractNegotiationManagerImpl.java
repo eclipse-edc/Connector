@@ -186,10 +186,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         var result = validationService.validateConfirmed(token, agreement, latestOffer);
-        if (!result) {
+        if (result.failed()) {
             // TODO Add contract offer possibility.
-            monitor.debug("[Consumer] Contract agreement received. Validation failed.");
-            negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
+            var message = "Contract agreement received. Validation failed: " + result.getFailureDetail();
+            monitor.debug("[Consumer] " + message);
+            negotiation.setErrorDetail(message);
             negotiation.transitionDeclining();
             negotiationStore.save(negotiation);
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
