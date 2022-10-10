@@ -52,7 +52,8 @@ public interface ContractValidationService {
     boolean validate(ClaimToken token, ContractAgreement agreement);
 
     /**
-     * During the negotiation process, it may be necessary to validate a contract agreement against an offer that is only persisted by the contract negotiation and not known to the ContractDefinitionService.
+     * When the negotiation has been confirmed by the provider, needs to be validated to ensure that is the same of the
+     * one that was required in the offer
      */
-    boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer);
+    boolean validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer);
 }

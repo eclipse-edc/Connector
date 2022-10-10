@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -177,15 +178,12 @@ class ContractValidationServiceImplTest {
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var agreement = ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString())
+        var agreement = createContractAgreement()
                 .contractStartDate(now.getEpochSecond())
                 .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(now.getEpochSecond())
-                .id("1:2").build();
+                .id("1:2")
+                .build();
 
         boolean isValid = validationService.validate(claimToken, agreement);
 
@@ -211,23 +209,73 @@ class ContractValidationServiceImplTest {
         assertThat(isValid).isFalse();
     }
 
+    @Test
+    void validateConfirmed_succeed() {
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement().id("1:2").build();
+        var offer = createContractOffer().build();
+        when(policyEquality.test(any(), any())).thenReturn(true);
+
+        boolean result = validationService.validateConfirmed(claimToken, agreement, offer);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void validateConfirmed_failsIfIdIsNotValid() {
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement().id("not a valid id").build();
+        var offer = createContractOffer().build();
+
+        boolean result = validationService.validateConfirmed(claimToken, agreement, offer);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void validateConfirmed_failsIfPoliciesAreNotEqual() {
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement().id("1:2").build();
+        var offer = createContractOffer().build();
+        when(policyEquality.test(any(), any())).thenReturn(false);
+
+        boolean result = validationService.validateConfirmed(claimToken, agreement, offer);
+
+        assertThat(result).isFalse();
+    }
+
+    @NotNull
+    private static ContractOffer.Builder createContractOffer() {
+        return ContractOffer.Builder.newInstance().id("1:2")
+                .asset(Asset.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().build())
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"));
+    }
+
     private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(getContractDefinition());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var agreement = ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString())
+        var agreement = createContractAgreement()
+                .id("1:2")
                 .contractSigningDate(signingDate)
                 .contractStartDate(startDate)
                 .contractEndDate(endDate)
-                .id("1:2").build();
+                .build();
 
         return validationService.validate(claimToken, agreement);
+    }
+
+    private static ContractAgreement.Builder createContractAgreement() {
+        return ContractAgreement.Builder.newInstance().id("1")
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .policy(Policy.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString());
+
     }
 
     private ContractDefinition getContractDefinition() {

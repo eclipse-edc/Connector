@@ -150,15 +150,13 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-        // TODO implement validation against latest offer within the negotiation
+    public boolean validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
         var contractIdTokens = parseContractId(agreement.getId());
         if (contractIdTokens.length != 2) {
             return false; // not a valid id
         }
 
-        var agent = agentService.createFor(token);
-        return policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent).succeeded();
+        return policyEquality.test(agreement.getPolicy(), latestOffer.getPolicy());
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {

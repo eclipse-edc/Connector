@@ -137,7 +137,7 @@ class ContractNegotiationIntegrationTest {
         consumerNegotiationId = "consumerNegotiationId";
         ContractOffer offer = getContractOffer();
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
-        when(validationService.validate(eq(token), any(ContractAgreement.class),
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
                 any(ContractOffer.class))).thenReturn(true);
 
         // Start provider and consumer negotiation managers
@@ -169,7 +169,7 @@ class ContractNegotiationIntegrationTest {
 
 
                     verify(validationService, atLeastOnce()).validate(token, offer);
-                    verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
                 });
     }
 
@@ -222,7 +222,7 @@ class ContractNegotiationIntegrationTest {
         var offer = getContractOffer();
 
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
-        when(validationService.validate(eq(token), any(ContractAgreement.class),
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
                 any(ContractOffer.class))).thenReturn(false);
 
         // Start provider and consumer negotiation managers
@@ -254,7 +254,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(providerNegotiation.getContractAgreement()).isNull();
 
                     verify(validationService, atLeastOnce()).validate(token, offer);
-                    verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
                 });
     }
 
@@ -267,7 +267,7 @@ class ContractNegotiationIntegrationTest {
 
         when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-        when(validationService.validate(eq(token), any(ContractAgreement.class),
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
                 eq(counterOffer))).thenReturn(true);
 
         // Start provider and consumer negotiation managers
@@ -305,7 +305,7 @@ class ContractNegotiationIntegrationTest {
 
                     verify(validationService, atLeastOnce()).validate(token, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
                 });
     }
 
@@ -355,7 +355,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(providerNegotiation.getContractAgreement()).isNull();
                     verify(validationService, atLeastOnce()).validate(token, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
                 });
     }
 
@@ -379,7 +379,7 @@ class ContractNegotiationIntegrationTest {
         when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
 
         // Mock validation of agreement on consumer side
-        when(validationService.validate(eq(token), any(ContractAgreement.class),
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class),
                 eq(consumerCounterOffer))).thenReturn(true);
 
         // Start provider and consumer negotiation managers
@@ -422,7 +422,7 @@ class ContractNegotiationIntegrationTest {
                     verify(validationService, atLeastOnce()).validate(token, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
-                    verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
+                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
                 });
     }
 
