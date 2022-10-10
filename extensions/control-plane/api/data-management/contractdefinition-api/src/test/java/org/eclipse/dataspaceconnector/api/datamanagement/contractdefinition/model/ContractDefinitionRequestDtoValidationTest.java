@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.mod
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;

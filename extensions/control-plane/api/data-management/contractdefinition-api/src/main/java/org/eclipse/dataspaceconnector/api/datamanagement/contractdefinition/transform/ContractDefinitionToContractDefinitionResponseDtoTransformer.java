@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.CriterionDto;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;

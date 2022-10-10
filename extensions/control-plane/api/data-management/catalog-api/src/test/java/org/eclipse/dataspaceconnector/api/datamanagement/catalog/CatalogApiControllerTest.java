@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
 import jakarta.ws.rs.container.AsyncResponse;
+import org.eclipse.dataspaceconnector.api.datamanagement.catalog.model.CatalogRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -22,6 +23,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -35,6 +37,7 @@ import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.eclipse.dataspaceconnector.api.datamanagement.catalog.TestFunctions.createCriterionDto;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -82,5 +85,31 @@ class CatalogApiControllerTest {
         controller.getCatalog(url, new QuerySpecDto(), response);
 
         verify(response).resume(isA(EdcException.class));
+    }
+
+    @Test
+    void shouldPostCatalogRequest() {
+        var controller = new CatalogApiController(service, transformerRegistry, monitor);
+        var response = mock(AsyncResponse.class);
+        var offer = ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .build();
+        var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
+        var url = "test.url";
+
+        when(service.getByProviderUrl(eq(url), any())).thenReturn(completedFuture(catalog));
+
+        var request = CatalogRequestDto.Builder.newInstance()
+                .providerUrl(url)
+                .sortField("test-field")
+                .sortOrder(SortOrder.DESC)
+                .filter(List.of(createCriterionDto("foo", "=", "bar")))
+                .build();
+
+        controller.requestCatalog(request, response);
+
+        verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
     }
 }

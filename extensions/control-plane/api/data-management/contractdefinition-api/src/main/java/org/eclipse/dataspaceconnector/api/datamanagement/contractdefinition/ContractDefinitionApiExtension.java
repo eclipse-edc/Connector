@@ -21,8 +21,6 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.serv
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionRequestDtoToContractDefinitionTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionToContractDefinitionResponseDtoTransformer;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.CriterionDtoToCriterionTransformer;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.CriterionToCriterionDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
@@ -69,8 +67,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        transformerRegistry.register(new CriterionToCriterionDtoTransformer());
-        transformerRegistry.register(new CriterionDtoToCriterionTransformer());
+
         transformerRegistry.register(new ContractDefinitionToContractDefinitionResponseDtoTransformer());
         transformerRegistry.register(new ContractDefinitionRequestDtoToContractDefinitionTransformer());
 

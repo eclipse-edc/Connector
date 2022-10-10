@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /catalog:
     get:
+      deprecated: true
       operationId: getCatalog
       parameters:
       - in: query
@@ -43,6 +44,24 @@ paths:
           description: Gets contract offers (=catalog) of a single connector
       tags:
       - Catalog
+  /catalog/request:
+    post:
+      operationId: requestCatalog
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/CatalogRequestDto'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+          description: Gets contract offers (=catalog) of a single connector
+      tags:
+      - Catalog
 components:
   schemas:
     Action:
@@ -75,6 +94,30 @@ components:
             $ref: '#/components/schemas/ContractOffer'
         id:
           type: string
+    CatalogRequestDto:
+      type: object
+      properties:
+        filter:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        providerUrl:
+          type: string
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      required:
+      - providerUrl
     Constraint:
       type: object
       discriminator:
@@ -111,6 +154,18 @@ components:
         provider:
           type: string
           format: uri
+    CriterionDto:
+      type: object
+      properties:
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      required:
+      - operandLeft
+      - operator
     Duty:
       type: object
       properties:

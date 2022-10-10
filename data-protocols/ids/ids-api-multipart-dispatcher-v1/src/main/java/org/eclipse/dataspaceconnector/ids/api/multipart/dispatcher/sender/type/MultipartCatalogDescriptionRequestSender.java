@@ -10,6 +10,7 @@
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *       ZF Friedrichshafen AG - enable asset filtering
+ *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.type;
@@ -53,11 +54,6 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
 
     public MultipartCatalogDescriptionRequestSender(SenderDelegateContext context) {
         this.context = context;
-    }
-
-    @Override
-    public Class<CatalogRequest> getMessageType() {
-        return CatalogRequest.class;
     }
 
     /**
@@ -127,6 +123,11 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
     @Override
     public List<Class<? extends Message>> getAllowedResponseTypes() {
         return List.of(DescriptionResponseMessageImpl.class);
+    }
+
+    @Override
+    public Class<CatalogRequest> getMessageType() {
+        return CatalogRequest.class;
     }
 
     private BaseConnector getBaseConnector(IdsMultipartParts parts) {

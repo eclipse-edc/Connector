@@ -14,15 +14,18 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.api.datamanagement.catalog.model.CatalogRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -61,6 +64,22 @@ public class CatalogApiController implements CatalogApi {
             monitor.debug("No paging parameters were supplied, using 0...Integer.MAX_VALUE");
         }
 
+        performQuery(providerUrl, spec, response);
+    }
+
+    @Override
+    @POST
+    @Path("/request")
+    public void requestCatalog(@RequestBody(required = true) CatalogRequestDto requestDto, @Suspended AsyncResponse response) {
+        var result = transformerRegistry.transform(requestDto, QuerySpec.class);
+
+        if (result.failed()) {
+            throw new InvalidRequestException(result.getFailureMessages());
+        }
+        performQuery(requestDto.getProviderUrl(), result.getContent(), response);
+    }
+
+    private void performQuery(String providerUrl, QuerySpec spec, AsyncResponse response) {
         service.getByProviderUrl(providerUrl, spec)
                 .whenComplete((content, throwable) -> {
                     if (throwable == null) {

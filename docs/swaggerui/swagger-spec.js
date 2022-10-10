@@ -20,148 +20,6 @@ window.swaggerSpec={
     "description" : "The public API of the Data Plane is a data proxy enabling a data consumer to actively querydata from the provider data source (e.g. backend Rest API, internal database...) through its Data Planeinstance. Thus the Data Plane is the only entry/output door for the data, which avoids the provider to exposedirectly its data externally.The Data Plane public API being a proxy, it supports all verbs (i.e. GET, POST, PUT, PATCH, DELETE), whichcan then conveyed until the data source is required. This is especially useful when the actual data sourceis a Rest API itself.In the same manner, any set of arbitrary query parameters, path parameters and request body are supported (in the limits fixed by the HTTP server) and can also conveyed to the actual data source."
   } ],
   "paths" : {
-    "/callback/{processId}/deprovision" : {
-      "post" : {
-        "tags" : [ "HTTP Provisioner Webhook" ],
-        "operationId" : "callDeprovisionWebhook",
-        "parameters" : [ {
-          "name" : "processId",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/DeprovisionedResource"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/callback/{processId}/provision" : {
-      "post" : {
-        "tags" : [ "HTTP Provisioner Webhook" ],
-        "operationId" : "callProvisionWebhook",
-        "parameters" : [ {
-          "name" : "processId",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ProvisionerWebhookRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/catalog" : {
-      "get" : {
-        "tags" : [ "Catalog" ],
-        "operationId" : "getCatalog",
-        "parameters" : [ {
-          "name" : "providerUrl",
-          "in" : "query",
-          "required" : true,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "offset",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "limit",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "filter",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "sort",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "ASC", "DESC" ]
-          }
-        }, {
-          "name" : "sortField",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "default" : {
-            "description" : "Gets contract offers (=catalog) of a single connector",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Catalog"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/policydefinitions" : {
       "get" : {
         "tags" : [ "Policy" ],
@@ -397,6 +255,588 @@ window.swaggerSpec={
           },
           "409" : {
             "description" : "The policy definition cannot be deleted, because it is referenced by a contract definition",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instances" : {
+      "get" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "getAll",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DataPlaneInstance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "addEntry",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DataPlaneInstance"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/instances/select" : {
+      "post" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "find",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SelectionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DataPlaneInstance"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/health" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
+        "operationId" : "checkHealth",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/liveness" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
+        "operationId" : "getLiveness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/readiness" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a readiness probe to determine whether the runtime is able to accept requests.",
+        "operationId" : "getReadiness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/startup" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a startup probe to determine whether the runtime has completed startup.",
+        "operationId" : "getStartup",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/token" : {
+      "get" : {
+        "tags" : [ "Token Validation" ],
+        "description" : "Checks that the provided token has been signed by the present entity and asserts its validity. If token is valid, then the data address contained in its claims is decrypted and returned back to the caller.",
+        "operationId" : "validate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Token is valid"
+          },
+          "400" : {
+            "description" : "Request was malformed"
+          },
+          "403" : {
+            "description" : "Token is invalid"
+          }
+        }
+      }
+    },
+    "/contractnegotiations" : {
+      "get" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Returns all contract negotiations according to a query",
+        "operationId" : "getNegotiations",
+        "parameters" : [ {
+          "name" : "offset",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "filter",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ]
+          }
+        }, {
+          "name" : "sortField",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractNegotiationDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
+        "operationId" : "initiateContractNegotiation",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NegotiationInitiateRequestDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IdResponseDto"
+                }
+              }
+            },
+            "links" : {
+              "poll-state" : {
+                "operationId" : "getNegotiationState",
+                "parameters" : {
+                  "id" : "$response.body#/id"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractnegotiations/{id}" : {
+      "get" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Gets an contract negotiation with the given ID",
+        "operationId" : "getNegotiation",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The contract negotiation",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContractNegotiationDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "An contract negotiation with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractnegotiations/{id}/agreement" : {
+      "get" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Gets a contract agreement for a contract negotiation with the given ID",
+        "operationId" : "getAgreementForNegotiation",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The contract agreement that is attached to the negotiation, or null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContractNegotiationDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "An contract negotiation with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractnegotiations/{id}/cancel" : {
+      "post" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
+        "operationId" : "cancelNegotiation",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Request to cancel the Contract negotiation was successfully received",
+            "links" : {
+              "poll-state" : {
+                "operationId" : "getNegotiationState"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "A contract negotiation with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractnegotiations/{id}/decline" : {
+      "post" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Requests cancelling the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
+        "operationId" : "declineNegotiation",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Request to decline the Contract negotiation was successfully received",
+            "links" : {
+              "poll-state" : {
+                "operationId" : "getNegotiationState"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "A contract negotiation with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractnegotiations/{id}/state" : {
+      "get" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Gets the state of a contract negotiation with the given ID",
+        "operationId" : "getNegotiationState",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The contract negotiation's state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NegotiationState"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "An contract negotiation with the given ID does not exist",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -942,12 +1382,86 @@ window.swaggerSpec={
         }
       }
     },
-    "/assets" : {
-      "get" : {
-        "tags" : [ "Asset" ],
-        "description" : "Gets all assets according to a particular query",
-        "operationId" : "getAllAssets",
+    "/callback/{processId}/deprovision" : {
+      "post" : {
+        "tags" : [ "HTTP Provisioner Webhook" ],
+        "operationId" : "callDeprovisionWebhook",
         "parameters" : [ {
+          "name" : "processId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeprovisionedResource"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/callback/{processId}/provision" : {
+      "post" : {
+        "tags" : [ "HTTP Provisioner Webhook" ],
+        "operationId" : "callProvisionWebhook",
+        "parameters" : [ {
+          "name" : "processId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProvisionerWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/catalog" : {
+      "get" : {
+        "tags" : [ "Catalog" ],
+        "operationId" : "getCatalog",
+        "parameters" : [ {
+          "name" : "providerUrl",
+          "in" : "query",
+          "required" : true,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "offset",
           "in" : "query",
           "required" : false,
@@ -997,346 +1511,41 @@ window.swaggerSpec={
           }
         } ],
         "responses" : {
-          "200" : {
+          "default" : {
+            "description" : "Gets contract offers (=catalog) of a single connector",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/AssetResponseDto"
-                  }
+                  "$ref" : "#/components/schemas/Catalog"
                 }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "Asset" ],
-        "description" : "Creates a new asset together with a data address",
-        "operationId" : "createAsset",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/AssetEntryDto"
               }
             }
           }
         },
-        "responses" : {
-          "200" : {
-            "description" : "Asset was created successfully. Returns the asset Id and created timestamp",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/IdResponseDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "409" : {
-            "description" : "Could not create asset, because an asset with that ID already exists",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
+        "deprecated" : true
       }
     },
-    "/assets/{id}" : {
-      "get" : {
-        "tags" : [ "Asset" ],
-        "description" : "Gets an asset with the given ID",
-        "operationId" : "getAsset",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "The asset",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/AssetResponseDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "An asset with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "Asset" ],
-        "description" : "Removes an asset with the given ID if possible. Deleting an asset is only possible if that asset is not yet referenced by a contract agreement, in which case an error is returned. DANGER ZONE: Note that deleting assets can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
-        "operationId" : "removeAsset",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Asset was deleted successfully"
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "An asset with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "409" : {
-            "description" : "The asset cannot be deleted, because it is referenced by a contract agreement",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instances" : {
-      "get" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "getAll",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/DataPlaneInstance"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
+    "/catalog/request" : {
       "post" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "addEntry",
+        "tags" : [ "Catalog" ],
+        "operationId" : "requestCatalog",
         "requestBody" : {
           "content" : {
-            "application/json" : {
+            "*/*" : {
               "schema" : {
-                "$ref" : "#/components/schemas/DataPlaneInstance"
+                "$ref" : "#/components/schemas/CatalogRequestDto"
               }
             }
-          }
+          },
+          "required" : true
         },
         "responses" : {
           "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/instances/select" : {
-      "post" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "find",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/SelectionRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
+            "description" : "Gets contract offers (=catalog) of a single connector",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/DataPlaneInstance"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/health" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
-        "operationId" : "checkHealth",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/liveness" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
-        "operationId" : "getLiveness",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/readiness" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a readiness probe to determine whether the runtime is able to accept requests.",
-        "operationId" : "getReadiness",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/startup" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a startup probe to determine whether the runtime has completed startup.",
-        "operationId" : "getStartup",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
+                  "$ref" : "#/components/schemas/Catalog"
                 }
               }
             }
@@ -1690,39 +1899,11 @@ window.swaggerSpec={
         }
       }
     },
-    "/token" : {
+    "/assets" : {
       "get" : {
-        "tags" : [ "Token Validation" ],
-        "description" : "Checks that the provided token has been signed by the present entity and asserts its validity. If token is valid, then the data address contained in its claims is decrypted and returned back to the caller.",
-        "operationId" : "validate",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Token is valid"
-          },
-          "400" : {
-            "description" : "Request was malformed"
-          },
-          "403" : {
-            "description" : "Token is invalid"
-          }
-        }
-      }
-    },
-    "/contractnegotiations" : {
-      "get" : {
-        "tags" : [ "Contract Negotiation" ],
-        "description" : "Returns all contract negotiations according to a query",
-        "operationId" : "getNegotiations",
+        "tags" : [ "Asset" ],
+        "description" : "Gets all assets according to a particular query",
+        "operationId" : "getAllAssets",
         "parameters" : [ {
           "name" : "offset",
           "in" : "query",
@@ -1779,55 +1960,8 @@ window.swaggerSpec={
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ContractNegotiationDto"
+                    "$ref" : "#/components/schemas/AssetResponseDto"
                   }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "Contract Negotiation" ],
-        "description" : "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
-        "operationId" : "initiateContractNegotiation",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/NegotiationInitiateRequestDto"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/IdResponseDto"
-                }
-              }
-            },
-            "links" : {
-              "poll-state" : {
-                "operationId" : "getNegotiationState",
-                "parameters" : {
-                  "id" : "$response.body#/id"
                 }
               }
             }
@@ -1846,144 +1980,33 @@ window.swaggerSpec={
             }
           }
         }
-      }
-    },
-    "/contractnegotiations/{id}" : {
-      "get" : {
-        "tags" : [ "Contract Negotiation" ],
-        "description" : "Gets an contract negotiation with the given ID",
-        "operationId" : "getNegotiation",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "The contract negotiation",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ContractNegotiationDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "An contract negotiation with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/contractnegotiations/{id}/agreement" : {
-      "get" : {
-        "tags" : [ "Contract Negotiation" ],
-        "description" : "Gets a contract agreement for a contract negotiation with the given ID",
-        "operationId" : "getAgreementForNegotiation",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "The contract agreement that is attached to the negotiation, or null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ContractNegotiationDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "An contract negotiation with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/contractnegotiations/{id}/cancel" : {
+      },
       "post" : {
-        "tags" : [ "Contract Negotiation" ],
-        "description" : "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
-        "operationId" : "cancelNegotiation",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
+        "tags" : [ "Asset" ],
+        "description" : "Creates a new asset together with a data address",
+        "operationId" : "createAsset",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AssetEntryDto"
+              }
+            }
           }
-        } ],
+        },
         "responses" : {
           "200" : {
-            "description" : "Request to cancel the Contract negotiation was successfully received",
-            "links" : {
-              "poll-state" : {
-                "operationId" : "getNegotiationState"
+            "description" : "Asset was created successfully. Returns the asset Id and created timestamp",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IdResponseDto"
+                }
               }
             }
           },
           "400" : {
-            "description" : "Request was malformed, e.g. id was null",
+            "description" : "Request body was malformed",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1995,8 +2018,8 @@ window.swaggerSpec={
               }
             }
           },
-          "404" : {
-            "description" : "A contract negotiation with the given ID does not exist",
+          "409" : {
+            "description" : "Could not create asset, because an asset with that ID already exists",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -2011,64 +2034,11 @@ window.swaggerSpec={
         }
       }
     },
-    "/contractnegotiations/{id}/decline" : {
-      "post" : {
-        "tags" : [ "Contract Negotiation" ],
-        "description" : "Requests cancelling the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
-        "operationId" : "declineNegotiation",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Request to decline the Contract negotiation was successfully received",
-            "links" : {
-              "poll-state" : {
-                "operationId" : "getNegotiationState"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "A contract negotiation with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/contractnegotiations/{id}/state" : {
+    "/assets/{id}" : {
       "get" : {
-        "tags" : [ "Contract Negotiation" ],
-        "description" : "Gets the state of a contract negotiation with the given ID",
-        "operationId" : "getNegotiationState",
+        "tags" : [ "Asset" ],
+        "description" : "Gets an asset with the given ID",
+        "operationId" : "getAsset",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -2081,11 +2051,11 @@ window.swaggerSpec={
         } ],
         "responses" : {
           "200" : {
-            "description" : "The contract negotiation's state",
+            "description" : "The asset",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/NegotiationState"
+                  "$ref" : "#/components/schemas/AssetResponseDto"
                 }
               }
             }
@@ -2104,7 +2074,66 @@ window.swaggerSpec={
             }
           },
           "404" : {
-            "description" : "An contract negotiation with the given ID does not exist",
+            "description" : "An asset with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Asset" ],
+        "description" : "Removes an asset with the given ID if possible. Deleting an asset is only possible if that asset is not yet referenced by a contract agreement, in which case an error is returned. DANGER ZONE: Note that deleting assets can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
+        "operationId" : "removeAsset",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Asset was deleted successfully"
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "An asset with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "The asset cannot be deleted, because it is referenced by a contract agreement",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -2227,6 +2256,36 @@ window.swaggerSpec={
           },
           "id" : {
             "type" : "string"
+          }
+        }
+      },
+      "CatalogRequestDto" : {
+        "required" : [ "providerUrl" ],
+        "type" : "object",
+        "properties" : {
+          "filter" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CriterionDto"
+            }
+          },
+          "limit" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "offset" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "providerUrl" : {
+            "type" : "string"
+          },
+          "sortField" : {
+            "type" : "string"
+          },
+          "sortOrder" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ]
           }
         }
       },
