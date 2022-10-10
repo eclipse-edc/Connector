@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 /**
  * SQL-based implementation of the LeaseContext.
@@ -106,9 +107,7 @@ public class SqlLeaseContext implements LeaseContext {
      */
     public @Nullable SqlLease getLease(String entityId) {
         var stmt = statements.getFindLeaseByEntityTemplate();
-        var leases = executeQuery(connection, this::mapLease, stmt, entityId);
-
-        return leases.stream().findFirst().orElse(null);
+        return executeQuerySingle(connection, false, this::mapLease, stmt, entityId);
     }
 
     private SqlLease mapLease(ResultSet resultSet) throws SQLException {

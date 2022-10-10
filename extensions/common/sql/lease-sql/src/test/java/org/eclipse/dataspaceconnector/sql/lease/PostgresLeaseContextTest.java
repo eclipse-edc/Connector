@@ -15,24 +15,21 @@
 package org.eclipse.dataspaceconnector.sql.lease;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
-import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
-import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.sql.ResultSetMapper;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Clock;
-import java.util.Objects;
 import javax.sql.DataSource;
 
 import static java.time.ZoneOffset.UTC;
@@ -45,57 +42,28 @@ import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
 class PostgresLeaseContextTest extends LeaseContextTest {
-    private static final String DATASOURCE_NAME = "lease-test";
-    private static final String POSTGRES_USER = "postgres";
-    private static final String POSTGRES_PASSWORD = "password";
-    private static final String POSTGRES_DATABASE = "itest";
-    private SqlLeaseContext leaseContext;
-    private TransactionContext transactionContext;
-    private Connection connection;
+    private final TransactionContext transactionContext = new NoopTransactionContext();
+    private final TestEntityLeaseStatements dialect = new TestEntityLeaseStatements();
+    private final DataSource dataSource = mock(DataSource.class);
+    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
     private SqlLeaseContextBuilder builder;
-    private TestEntityLeaseStatements dialect;
+    private SqlLeaseContext leaseContext;
 
     @BeforeAll
     static void prepare() {
-        PostgresqlLocalInstance.createDatabase(POSTGRES_DATABASE);
+        PostgresqlLocalInstance.createTestDatabase();
     }
 
     @BeforeEach
-    void setup() throws SQLException {
-        dialect = new TestEntityLeaseStatements();
-
-        transactionContext = new NoopTransactionContext();
-        DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
-
-
-        var ds = new PGSimpleDataSource();
-        ds.setServerNames(new String[]{ "localhost" });
-        ds.setPortNumbers(new int[]{ 5432 });
-        ds.setUser(POSTGRES_USER);
-        ds.setPassword(POSTGRES_PASSWORD);
-        ds.setDatabaseName(POSTGRES_DATABASE);
-
-        // do not actually close
-        connection = spy(ds.getConnection());
+    void setup() throws SQLException, IOException {
+        when(dataSource.getConnection()).thenReturn(connection);
         doNothing().when(connection).close();
 
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+        var schema = Files.readString(Paths.get("./src/test/resources/schema.sql"));
+        transactionContext.execute(() -> executeQuery(connection, schema));
 
-        TypeManager manager = new TypeManager();
-
-        manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         builder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, Clock.fixed(now, UTC));
         leaseContext = createLeaseContext(LEASE_HOLDER);
-
     }
 
     @AfterEach
@@ -139,9 +107,9 @@ class PostgresLeaseContextTest extends LeaseContextTest {
         return transactionContext.execute(() -> {
             var stmt = "SELECT * FROM " + dialect.getEntityTableName() + " WHERE id=?";
 
-            var res = executeQuery(connection, map(), stmt, id);
-
-            return res.stream().findFirst().orElse(null);
+            try (var stream = SqlQueryExecutor.executeQuery(connection, false, map(), stmt, id)) {
+                return stream.findFirst().orElse(null);
+            }
         });
     }
 

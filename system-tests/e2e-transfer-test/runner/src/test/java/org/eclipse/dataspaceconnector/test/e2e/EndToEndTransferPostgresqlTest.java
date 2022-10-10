@@ -15,24 +15,23 @@
 package org.eclipse.dataspaceconnector.test.e2e;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
-import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
+import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance.PASSWORD;
-import static org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance.USER;
+import static org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance.PASSWORD;
+import static org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance.USER;
 
 @PostgresqlDbIntegrationTest
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
@@ -109,7 +108,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
                 .collect(Collectors.toList());
 
 
-        try (Connection connection = DriverManager.getConnection(consumer.jdbcUrl(), USER, PASSWORD)) {
+        try (var connection = DriverManager.getConnection(consumer.jdbcUrl(), USER, PASSWORD)) {
             for (var script : scripts) {
                 var sql = Files.readString(script);
 

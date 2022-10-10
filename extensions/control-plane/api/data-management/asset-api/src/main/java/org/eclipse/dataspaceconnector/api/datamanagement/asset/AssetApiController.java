@@ -109,13 +109,13 @@ public class AssetApiController implements AssetApi {
             throw mapToException(queryResult, QuerySpec.class, null);
         }
 
-        var assets = queryResult.getContent();
-
-        return assets.stream()
-                .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .collect(toList());
+        try (var assets = queryResult.getContent()) {
+            return assets
+                    .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(toList());
+        }
     }
 
     @GET

@@ -21,10 +21,9 @@ import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 public class ContractAgreementServiceImpl implements ContractAgreementService {
     private final ContractNegotiationStore store;
@@ -43,13 +42,13 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
     }
 
     @Override
-    public ServiceResult<Collection<ContractAgreement>> query(QuerySpec query) {
+    public ServiceResult<Stream<ContractAgreement>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
             return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
 
-        return ServiceResult.success(transactionContext.execute(() -> store.queryAgreements(query).collect(toList())));
+        return ServiceResult.success(transactionContext.execute(() -> store.queryAgreements(query)));
     }
 }

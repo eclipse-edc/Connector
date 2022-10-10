@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.sql.assetindex;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
-import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndexTestBase;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
@@ -27,13 +26,13 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -51,7 +50,6 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.assetindex.TestFunctions.createAsset;
 import static org.eclipse.dataspaceconnector.sql.assetindex.TestFunctions.createAssetBuilder;
 import static org.eclipse.dataspaceconnector.sql.assetindex.TestFunctions.createDataAddress;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -60,67 +58,42 @@ import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
 class PostgresAssetIndexTest extends AssetIndexTestBase {
-    protected static final String DATASOURCE_NAME = "asset";
-    private static final String POSTGRES_USER = "postgres";
-    private static final String POSTGRES_PASSWORD = "password";
-    private static final String POSTGRES_DATABASE = "itest";
-    private BaseSqlDialectStatements sqlStatements;
-    private TransactionContext transactionContext;
-    private Connection connection;
+
+    private static final String DATASOURCE_NAME = "asset";
+
+    private final TransactionContext transactionContext = new NoopTransactionContext();
+    private final BaseSqlDialectStatements sqlStatements = new PostgresDialectStatements();
+    private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
+    private final DataSource dataSource = mock(DataSource.class);
+    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
     private SqlAssetIndex sqlAssetIndex;
 
     @BeforeAll
     static void prepare() {
-        PostgresqlLocalInstance.createDatabase(POSTGRES_DATABASE);
+        PostgresqlLocalInstance.createTestDatabase();
     }
 
-
     @BeforeEach
-    void setUp() throws SQLException, IOException {
-        transactionContext = new NoopTransactionContext();
-        DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
-
-
-        var ds = new PGSimpleDataSource();
-        ds.setServerNames(new String[]{ "localhost" });
-        ds.setPortNumbers(new int[]{ 5432 });
-        ds.setUser(POSTGRES_USER);
-        ds.setPassword(POSTGRES_PASSWORD);
-        ds.setDatabaseName(POSTGRES_DATABASE);
-
-        // do not actually close
-        connection = spy(ds.getConnection());
+    void setUp() throws IOException, SQLException {
+        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(dataSource);
+        when(dataSource.getConnection()).thenReturn(connection);
         doNothing().when(connection).close();
 
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+        var typeManager = new TypeManager();
+        typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        sqlStatements = new PostgresDialectStatements();
-        TypeManager manager = new TypeManager();
-
-        manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
         sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), sqlStatements);
 
         var schema = Files.readString(Paths.get("docs/schema.sql"));
-        try {
-            transactionContext.execute(() -> {
-                executeQuery(connection, schema);
-                return null;
-            });
-        } catch (Exception exc) {
-            fail(exc);
-        }
+        transactionContext.execute(() -> executeQuery(connection, schema));
     }
 
     @AfterEach
-    void tearDown() throws Exception {
-
+    void tearDown() throws SQLException {
         transactionContext.execute(() -> {
-            var dialect = new PostgresDialectStatements();
-            executeQuery(connection, "DROP TABLE " + dialect.getAssetTable() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + dialect.getDataAddressTable() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + dialect.getAssetPropertyTable() + " CASCADE");
+            executeQuery(connection, "DROP TABLE " + sqlStatements.getAssetTable() + " CASCADE");
+            executeQuery(connection, "DROP TABLE " + sqlStatements.getDataAddressTable() + " CASCADE");
+            executeQuery(connection, "DROP TABLE " + sqlStatements.getAssetPropertyTable() + " CASCADE");
         });
         doCallRealMethod().when(connection).close();
         connection.close();
@@ -198,4 +171,5 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
             return asset;
         }).collect(Collectors.toList());
     }
+
 }

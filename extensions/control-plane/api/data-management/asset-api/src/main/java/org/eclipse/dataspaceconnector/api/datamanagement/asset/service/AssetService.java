@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 public interface AssetService {
 
@@ -37,7 +37,7 @@ public interface AssetService {
      * @param query request
      * @return the collection of assets that matches the query
      */
-    ServiceResult<Collection<Asset>> query(QuerySpec query);
+    ServiceResult<Stream<Asset>> query(QuerySpec query);
 
     /**
      * Create an asset with its related data address

@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * Mediates access to and modification of {@link TransferProcess}es.
@@ -43,7 +43,7 @@ public interface TransferProcessService {
      * @param query request
      * @return the collection of transferProcesses that match the query
      */
-    ServiceResult<Collection<TransferProcess>> query(QuerySpec query);
+    ServiceResult<Stream<TransferProcess>> query(QuerySpec query);
 
     /**
      * Returns the state of a transferProcess by its id.

@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.sql.policy.store;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
-import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStoreTestBase;
@@ -25,12 +24,12 @@ import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,7 +44,6 @@ import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createPoli
 import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createPolicyBuilder;
 import static org.eclipse.dataspaceconnector.spi.policy.TestFunctions.createQuery;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -58,66 +56,38 @@ import static org.mockito.Mockito.when;
  */
 @PostgresqlDbIntegrationTest
 class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
-    protected static final String DATASOURCE_NAME = "policydefinition";
-    private static final String POSTGRES_USER = "postgres";
-    private static final String POSTGRES_PASSWORD = "password";
-    private static final String POSTGRES_DATABASE = "itest";
-    protected DataSourceRegistry dataSourceRegistry;
-    protected Connection connection;
-    private TransactionContext txManager;
+    private static final String DATASOURCE_NAME = "policydefinition";
+
+    private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
+    private final TransactionContext txManager = new NoopTransactionContext();
+    private final PostgresDialectStatements statements = new PostgresDialectStatements();
+    private final DataSource dataSource = mock(DataSource.class);
+    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
     private SqlPolicyDefinitionStore sqlPolicyStore;
 
     @BeforeAll
     static void prepare() {
-        PostgresqlLocalInstance.createDatabase(POSTGRES_DATABASE);
+        PostgresqlLocalInstance.createTestDatabase();
     }
 
-
     @BeforeEach
-    void setUp() throws SQLException, IOException {
-        txManager = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-
-        var ds = new PGSimpleDataSource();
-        ds.setServerNames(new String[]{ "localhost" });
-        ds.setPortNumbers(new int[]{ 5432 });
-        ds.setUser(POSTGRES_USER);
-        ds.setPassword(POSTGRES_PASSWORD);
-        ds.setDatabaseName(POSTGRES_DATABASE);
-
-        // do not actually close
-        connection = spy(ds.getConnection());
+    void setUp() throws IOException, SQLException {
+        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(dataSource);
+        when(dataSource.getConnection()).thenReturn(connection);
         doNothing().when(connection).close();
 
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+        var typeManager = new TypeManager();
+        typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        var statements = new PostgresDialectStatements();
-        TypeManager manager = new TypeManager();
-
-        manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements);
+        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, typeManager, statements);
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        try {
-            txManager.execute(() -> {
-                executeQuery(connection, schema);
-                return null;
-            });
-        } catch (Exception exc) {
-            fail(exc);
-        }
+        txManager.execute(() -> executeQuery(connection, schema));
     }
 
     @AfterEach
-    void tearDown() throws Exception {
-
-        txManager.execute(() -> {
-            var dialect = new PostgresDialectStatements();
-            executeQuery(connection, "DROP TABLE " + dialect.getPolicyTable() + " CASCADE");
-        });
+    void tearDown() throws SQLException {
+        txManager.execute(() -> executeQuery(connection, "DROP TABLE " + statements.getPolicyTable() + " CASCADE"));
         doCallRealMethod().when(connection).close();
         connection.close();
     }
@@ -172,4 +142,5 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     protected Boolean supportSortOrder() {
         return true;
     }
+
 }

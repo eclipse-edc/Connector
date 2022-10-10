@@ -34,13 +34,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
@@ -63,10 +63,9 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         return transactionContext.execute(() -> {
             Objects.requireNonNull(spec);
 
-            try (var connection = getConnection()) {
+            try {
                 var queryStmt = statements.createQuery(spec);
-                var definitions = executeQuery(connection, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
-                return definitions.stream();
+                return executeQuery(getConnection(), true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -175,22 +174,19 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     }
 
     private boolean existsById(Connection connection, String definitionId) {
-        return transactionContext.execute(() -> executeQuery(connection, (resultSet) -> resultSet.getLong(1), statements.getCountTemplate(), definitionId).iterator().next() > 0);
+        var sql = statements.getCountTemplate();
+        try (var stream = executeQuery(connection, false, this::mapCount, sql, definitionId)) {
+            return stream.findFirst().orElse(0L) > 0;
+        }
+    }
+
+    private long mapCount(ResultSet resultSet) throws SQLException {
+        return resultSet.getLong(1);
     }
 
     private ContractDefinition findById(Connection connection, String id) {
-        return transactionContext.execute(() -> single(executeQuery(connection, this::mapResultSet, statements.getFindByTemplate(), id)));
-    }
-
-    private <T> T single(List<T> list) {
-        if (list.isEmpty()) {
-            return null;
-        }
-        if (list.size() == 1) {
-            return list.get(0);
-        }
-        throw new IllegalStateException("Expected result set size of 1 but got " + list.size());
-
+        var sql = statements.getFindByTemplate();
+        return executeQuerySingle(connection, false, this::mapResultSet, sql, id);
     }
 
     private DataSource getDataSource() {

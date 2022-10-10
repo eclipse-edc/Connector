@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
-import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
@@ -24,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
+import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 

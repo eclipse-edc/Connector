@@ -38,14 +38,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 /**
  * Implementation of the {@link TransferProcessStore} based on SQL.
@@ -73,38 +73,38 @@ public class SqlTransferProcessStore implements TransferProcessStore {
 
     @Override
     public @NotNull List<TransferProcess> nextForState(int state, int max) {
-        var list = new ArrayList<TransferProcess>();
         var now = clock.millis();
-        transactionContext.execute(() -> {
-            try (var conn = getConnection()) {
-                var stmt = statements.getNextForStateTemplate();
+        return transactionContext.execute(() -> {
+            var stmt = statements.getNextForStateTemplate();
 
-                var tmpResult = executeQuery(conn, this::mapTransferProcess, stmt, state, now, max);
-                list.addAll(tmpResult);
-                list.forEach(t -> leaseContext.by(leaseHolderName).withConnection(conn).acquireLease(t.getId()));
+            try (
+                    var connection = getConnection();
+                    var stream = executeQuery(connection, true, this::mapTransferProcess, stmt, state, now, max)
+            ) {
+                var transferProcesses = stream.collect(toList());
+                transferProcesses.forEach(t -> leaseContext.by(leaseHolderName).withConnection(connection).acquireLease(t.getId()));
+                return transferProcesses;
 
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
-
-        return list;
     }
 
     @Override
     public @Nullable TransferProcess find(String id) {
         return transactionContext.execute(() -> {
             var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
-            return single(findAll(q).collect(Collectors.toList()));
+            return single(findAll(q).collect(toList()));
         });
     }
 
     @Override
     public @Nullable String processIdForDataRequestId(String transferId) {
         return transactionContext.execute(() -> {
-            try (var conn = getConnection()) {
-                var stmt = statements.getProcessIdForTransferIdTemplate();
-                return single(executeQuery(conn, (rs) -> rs.getString(statements.getIdColumn()), stmt, transferId));
+            var stmt = statements.getProcessIdForTransferIdTemplate();
+            try {
+                return executeQuerySingle(getConnection(), true, (rs) -> rs.getString(statements.getIdColumn()), stmt, transferId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -183,9 +183,9 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     @Override
     public Stream<TransferProcess> findAll(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
-            try (var conn = getConnection()) {
+            try {
                 var statement = statements.createQuery(querySpec);
-                return executeQuery(conn, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters()).stream().distinct();
+                return executeQuery(getConnection(), true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

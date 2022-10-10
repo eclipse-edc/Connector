@@ -81,10 +81,9 @@ class ContractOfferServiceImplTest {
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
-        var query = getQuery();
+        var offers = contractOfferService.queryContractOffers(getQuery());
 
-        assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
-
+        assertThat(offers).hasSize(2);
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(assetIndex).queryAssets(isA(QuerySpec.class));
@@ -100,9 +99,7 @@ class ContractOfferServiceImplTest {
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(Asset.Builder.newInstance().build()));
         when(policyStore.findById(any())).thenReturn(null);
 
-        var query = getQuery();
-
-        var result = contractOfferService.queryContractOffers(query);
+        var result = contractOfferService.queryContractOffers(getQuery());
 
         assertThat(result).hasSize(0);
     }
@@ -116,15 +113,14 @@ class ContractOfferServiceImplTest {
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
         when(assetIndex.countAssets(any())).thenReturn(100L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> range(20, 50).mapToObj(i -> createAsset("asset" + i).build()));
-
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
-
 
         var from = 20;
         var to = 50;
-        var query = getQuery(new Range(from, to));
 
-        assertThat(contractOfferService.queryContractOffers(query)).hasSize(to - from)
+        var offers = contractOfferService.queryContractOffers(getQuery(from, to));
+
+        assertThat(offers).hasSize(to - from)
                 .extracting(ContractOffer::getAsset)
                 .extracting(Asset::getId)
                 .allSatisfy(id -> {
@@ -144,19 +140,17 @@ class ContractOfferServiceImplTest {
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
-
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> range(0, 10).mapToObj(i -> createAsset("asset" + i).build()));
         when(assetIndex.countAssets(any())).thenReturn(10L);
-
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
-
 
         var from = 20;
         var to = 50;
-        var query = getQuery(new Range(from, to));
+
+        var offers = contractOfferService.queryContractOffers(getQuery(from, to));
 
         // 4 definitions, 10 assets each = 40 offers total -> offset 20 ==> result = 20
-        assertThat(contractOfferService.queryContractOffers(query)).hasSize(20);
+        assertThat(offers).hasSize(20);
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(assetIndex, atLeastOnce()).queryAssets(isA(QuerySpec.class));
@@ -172,16 +166,15 @@ class ContractOfferServiceImplTest {
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
         when(assetIndex.countAssets(any())).thenReturn(10L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> range(0, 10).mapToObj(i -> createAsset("asset" + i).build()));
-
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
-
 
         var from = 25;
         var to = 50;
-        var query = getQuery(new Range(from, to));
+
+        var offers = contractOfferService.queryContractOffers(getQuery(from, to));
 
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
-        assertThat(contractOfferService.queryContractOffers(query)).isEmpty();
+        assertThat(offers).isEmpty();
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(assetIndex, never()).queryAssets(isA(QuerySpec.class));
@@ -202,7 +195,7 @@ class ContractOfferServiceImplTest {
         var from = 20;
         var to = 50;
 
-        var offers = contractOfferService.queryContractOffers(getQuery(new Range(from, to)));
+        var offers = contractOfferService.queryContractOffers(getQuery(from, to));
 
         assertThat(offers).hasSize(to - from);
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
@@ -232,15 +225,16 @@ class ContractOfferServiceImplTest {
                 .assetsCriteria(List.of(new Criterion(Asset.PROPERTY_ID, "=", "2")))
                 .build();
 
+        var offers = contractOfferService.queryContractOffers(query);
+
+        assertThat(offers).hasSize(2);
+        verify(agentService).createFor(isA(ClaimToken.class));
+        verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
+        verify(policyStore).findById("contract");
         var expectedQuerySpec = QuerySpec.Builder.newInstance()
                 .filter(concat(contractDefinition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()))
                 .range(DEFAULT_RANGE)
                 .build();
-
-        assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
-        verify(agentService).createFor(isA(ClaimToken.class));
-        verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
-        verify(policyStore).findById("contract");
         verify(assetIndex).queryAssets(eq(expectedQuerySpec));
     }
 
@@ -249,8 +243,11 @@ class ContractOfferServiceImplTest {
         return ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
     }
 
-    private ContractOfferQuery getQuery(Range range) {
-        return ContractOfferQuery.builder().range(range).claimToken(ClaimToken.Builder.newInstance().build()).build();
+    private ContractOfferQuery getQuery(int from, int to) {
+        return ContractOfferQuery.builder()
+                .range(new Range(from, to))
+                .claimToken(ClaimToken.Builder.newInstance().build())
+                .build();
     }
 
     private ContractDefinition.Builder getContractDefBuilder(String id) {

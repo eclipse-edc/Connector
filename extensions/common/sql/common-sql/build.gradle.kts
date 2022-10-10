@@ -19,11 +19,14 @@ plugins {
 }
 
 val h2Version: String by project
+val postgresVersion: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
     implementation(project(":core:common:util"))
+
     testImplementation("com.h2database:h2:${h2Version}")
+    testFixturesImplementation("org.postgresql:postgresql:${postgresVersion}")
 }
 
 publishing {

@@ -73,11 +73,13 @@ public class ContractAgreementApiController implements ContractAgreementApi {
             throw mapToException(queryResult, ContractDefinition.class, null);
         }
 
-        return queryResult.getContent().stream()
-                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .collect(Collectors.toList());
+        try (var stream = queryResult.getContent()) {
+            return stream
+                    .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(Collectors.toList());
+        }
     }
 
     @GET

@@ -43,7 +43,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -74,7 +73,7 @@ class ContractNegotiationApiControllerTest {
     @Test
     void getAll() {
         var contractNegotiation = createContractNegotiation("negotiationId");
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractNegotiation)));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractNegotiation)));
         var dto = ContractNegotiationDto.Builder.newInstance().id(contractNegotiation.getId()).build();
         when(transformerRegistry.transform(any(), eq(ContractNegotiationDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
@@ -92,7 +91,7 @@ class ContractNegotiationApiControllerTest {
     @Test
     void getAll_filtersOutFailedTransforms() {
         var contractNegotiation = createContractNegotiation("negotiationId");
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractNegotiation)));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractNegotiation)));
         when(transformerRegistry.transform(isA(ContractNegotiation.class), eq(ContractNegotiationDto.class)))
                 .thenReturn(Result.failure("failure"));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))

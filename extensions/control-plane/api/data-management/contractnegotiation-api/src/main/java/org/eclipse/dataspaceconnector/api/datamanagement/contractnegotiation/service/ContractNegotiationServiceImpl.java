@@ -27,12 +27,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 
-import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
 public class ContractNegotiationServiceImpl implements ContractNegotiationService {
 
@@ -54,13 +53,13 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     }
 
     @Override
-    public ServiceResult<Collection<ContractNegotiation>> query(QuerySpec query) {
+    public ServiceResult<Stream<ContractNegotiation>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
             return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return ServiceResult.success(transactionContext.execute(() -> store.queryNegotiations(query).collect(toList())));
+        return ServiceResult.success(transactionContext.execute(() -> store.queryNegotiations(query)));
     }
 
     @Override

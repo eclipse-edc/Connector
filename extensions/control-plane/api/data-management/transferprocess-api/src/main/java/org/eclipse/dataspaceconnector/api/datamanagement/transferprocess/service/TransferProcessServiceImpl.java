@@ -33,14 +33,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.Deprovis
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessStore transferProcessStore;
@@ -61,13 +60,13 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public ServiceResult<Collection<TransferProcess>> query(QuerySpec query) {
+    public ServiceResult<Stream<TransferProcess>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
             return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return ServiceResult.success(transactionContext.execute(() -> transferProcessStore.findAll(query).collect(toList())));
+        return ServiceResult.success(transactionContext.execute(() -> transferProcessStore.findAll(query)));
     }
 
     @Override

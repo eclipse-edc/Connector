@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
@@ -30,15 +29,12 @@ import java.util.Objects;
 import static java.util.stream.Collectors.toList;
 
 public class CatalogServiceImpl implements CatalogService {
-    private final Monitor monitor;
     private final String dataCatalogId;
     private final ContractOfferService contractOfferService;
 
     public CatalogServiceImpl(
-            @NotNull Monitor monitor,
             @NotNull String dataCatalogId,
             @NotNull ContractOfferService contractOfferService) {
-        this.monitor = Objects.requireNonNull(monitor);
         this.dataCatalogId = Objects.requireNonNull(dataCatalogId);
         this.contractOfferService = Objects.requireNonNull(contractOfferService);
     }
@@ -57,8 +53,11 @@ public class CatalogServiceImpl implements CatalogService {
                 .assetsCriteria(querySpec.getFilterExpression())
                 .range(querySpec.getRange()).build();
 
-        var offers = contractOfferService.queryContractOffers(query).collect(toList());
-
-        return Catalog.Builder.newInstance().id(dataCatalogId).contractOffers(offers).build();
+        try (var offers = contractOfferService.queryContractOffers(query)) {
+            return Catalog.Builder.newInstance()
+                    .id(dataCatalogId)
+                    .contractOffers(offers.collect(toList()))
+                    .build();
+        }
     }
 }

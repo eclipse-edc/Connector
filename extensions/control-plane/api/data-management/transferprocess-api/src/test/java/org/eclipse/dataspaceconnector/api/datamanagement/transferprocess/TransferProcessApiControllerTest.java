@@ -40,7 +40,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -74,7 +73,7 @@ class TransferProcessApiControllerTest {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         var querySpec = QuerySpecDto.Builder.newInstance().build();
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
 
         var transferProcesses = controller.getAllTransferProcesses(querySpec);
 
@@ -89,7 +88,7 @@ class TransferProcessApiControllerTest {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.failure("failure"));
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
 
         var transferProcesses = controller.getAllTransferProcesses(QuerySpecDto.Builder.newInstance().build());
 

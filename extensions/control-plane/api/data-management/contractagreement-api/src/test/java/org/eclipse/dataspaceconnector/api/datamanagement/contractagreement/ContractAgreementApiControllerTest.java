@@ -30,8 +30,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,7 +59,7 @@ class ContractAgreementApiControllerTest {
     @Test
     void getAll() {
         var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractAgreement)));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
         var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
         when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
@@ -76,7 +76,7 @@ class ContractAgreementApiControllerTest {
     @Test
     void getAll_filtersOutFailedTransforms() {
         var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractAgreement)));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class)))
