@@ -149,7 +149,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
+    public Result<Void> validateConfirmed(ContractAgreement agreement, ContractOffer latestOffer) {
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
             return Result.failure(format("ContractId %s does not follow the expected schema.", agreement.getId()));

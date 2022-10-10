@@ -185,7 +185,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             return StatusResult.failure(FATAL_ERROR);
         }
 
-        var result = validationService.validateConfirmed(token, agreement, latestOffer);
+        var result = validationService.validateConfirmed(agreement, latestOffer);
         if (result.failed()) {
             // TODO Add contract offer possibility.
             var message = "Contract agreement received. Validation failed: " + result.getFailureDetail();

@@ -211,35 +211,32 @@ class ContractValidationServiceImplTest {
 
     @Test
     void validateConfirmed_succeed() {
-        var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement().id("1:2").build();
         var offer = createContractOffer().build();
         when(policyEquality.test(any(), any())).thenReturn(true);
 
-        var result = validationService.validateConfirmed(claimToken, agreement, offer);
+        var result = validationService.validateConfirmed(agreement, offer);
 
         assertThat(result.succeeded()).isTrue();
     }
 
     @Test
     void validateConfirmed_failsIfIdIsNotValid() {
-        var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement().id("not a valid id").build();
         var offer = createContractOffer().build();
 
-        var result = validationService.validateConfirmed(claimToken, agreement, offer);
+        var result = validationService.validateConfirmed(agreement, offer);
 
         assertThat(result.failed()).isTrue();
     }
 
     @Test
     void validateConfirmed_failsIfPoliciesAreNotEqual() {
-        var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement().id("1:2").build();
         var offer = createContractOffer().build();
         when(policyEquality.test(any(), any())).thenReturn(false);
 
-        var result = validationService.validateConfirmed(claimToken, agreement, offer);
+        var result = validationService.validateConfirmed(agreement, offer);
 
         assertThat(result.failed()).isTrue();
     }
