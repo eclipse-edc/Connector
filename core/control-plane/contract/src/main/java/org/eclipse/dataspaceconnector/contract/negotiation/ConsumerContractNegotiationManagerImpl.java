@@ -44,8 +44,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.spi.contract.ContractId.DEFINITION_PART;
-import static org.eclipse.dataspaceconnector.spi.contract.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
@@ -352,12 +350,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         //TODO this is a dummy agreement used to approve the provider's offer, real agreement will be created and sent by provider
         var lastOffer = negotiation.getLastContractOffer();
 
-        var contractIdTokens = parseContractId(lastOffer.getId());
-        if (contractIdTokens.length != 2) {
+        var contractId = ContractId.parse(lastOffer.getId());
+        if (!contractId.isValid()) {
             monitor.severe("ConsumerContractNegotiationManagerImpl.approveContractOffers(): Offer Id not correctly formatted.");
             return false;
         }
-        var definitionId = contractIdTokens[DEFINITION_PART];
+        var definitionId = contractId.definitionPart();
 
         var policy = lastOffer.getPolicy();
         var agreement = ContractAgreement.Builder.newInstance()

@@ -19,6 +19,7 @@ package org.eclipse.dataspaceconnector.contract.validation;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEquality;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -32,8 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.spi.contract.ContractId.DEFINITION_PART;
-import static org.eclipse.dataspaceconnector.spi.contract.ContractId.parseContractId;
 
 /**
  * Implementation of the {@link ContractValidationService}.
@@ -67,13 +66,13 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure("Mandatory attributes are missing.");
         }
 
-        var contractIdTokens = parseContractId(offer.getId());
-        if (contractIdTokens.length != 2) {
+        var contractId = ContractId.parse(offer.getId());
+        if (!contractId.isValid()) {
             return Result.failure("Invalid id: " + offer.getId());
         }
 
         var agent = agentService.createFor(token);
-        var contractDefinition = contractDefinitionService.definitionFor(agent, contractIdTokens[DEFINITION_PART]);
+        var contractDefinition = contractDefinitionService.definitionFor(agent, contractId.definitionPart());
         if (contractDefinition == null) {
             return Result.failure("The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
@@ -112,8 +111,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure("Mandatory attributes are missing.");
         }
 
-        var contractIdTokens = parseContractId(offer.getId());
-        if (contractIdTokens.length != 2) {
+        var contractId = ContractId.parse(offer.getId());
+        if (!contractId.isValid()) {
             return Result.failure("Invalid id: " + offer.getId());
         }
 
@@ -130,9 +129,9 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public boolean validate(ClaimToken token, ContractAgreement agreement) {
-        var contractIdTokens = parseContractId(agreement.getId());
-        if (contractIdTokens.length != 2) {
-            return false; // not a valid id
+        var contractId = ContractId.parse(agreement.getId());
+        if (!contractId.isValid()) {
+            return false;
         }
 
         if (!isStarted(agreement) || isExpired(agreement)) {
@@ -140,7 +139,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var agent = agentService.createFor(token);
-        var contractDefinition = contractDefinitionService.definitionFor(agent, contractIdTokens[DEFINITION_PART]);
+        var contractDefinition = contractDefinitionService.definitionFor(agent, contractId.definitionPart());
         if (contractDefinition == null) {
             return false;
         }
@@ -151,9 +150,9 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public boolean validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-        var contractIdTokens = parseContractId(agreement.getId());
-        if (contractIdTokens.length != 2) {
-            return false; // not a valid id
+        var contractId = ContractId.parse(agreement.getId());
+        if (!contractId.isValid()) {
+            return false;
         }
 
         return policyEquality.test(agreement.getPolicy(), latestOffer.getPolicy());

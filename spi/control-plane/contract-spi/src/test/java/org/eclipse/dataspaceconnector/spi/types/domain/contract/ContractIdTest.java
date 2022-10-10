@@ -22,7 +22,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ContractIdTest {
 
     @Test
-    void verifyIdGeneration() {
-        assertThat(ContractId.parseContractId(ContractId.createContractId("foo"))[ContractId.DEFINITION_PART]).isEqualTo("foo");
+    void isValid() {
+        var id = ContractId.parse("thisis:avalidid");
+
+        assertThat(id.isValid()).isTrue();
+    }
+
+    @Test
+    void isValid_falseIfNoColonPresent() {
+        var id = ContractId.parse("thisisaninvalidid");
+
+        assertThat(id.isValid()).isFalse();
+    }
+
+    @Test
+    void isValid_falseIfTooManyColonsPresent() {
+        var id = ContractId.parse("thisis:an:invalidid");
+
+        assertThat(id.isValid()).isFalse();
+    }
+
+    @Test
+    void definitionPart_returnsTheFirstPartOfTheId() {
+        var id = ContractId.parse("definitionPart:agreementPart");
+
+        assertThat(id.definitionPart()).isEqualTo("definitionPart");
     }
 }
