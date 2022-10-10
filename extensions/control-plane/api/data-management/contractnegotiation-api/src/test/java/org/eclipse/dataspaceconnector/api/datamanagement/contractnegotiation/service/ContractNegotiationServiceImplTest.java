@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.command.CancelNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -192,7 +193,11 @@ class ContractNegotiationServiceImplTest {
                 .connectorId("connectorId")
                 .connectorAddress("address")
                 .protocol("protocol")
-                .contractOffer(ContractOffer.Builder.newInstance().id(UUID.randomUUID().toString()).policy(Policy.Builder.newInstance().build()).build())
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .policy(Policy.Builder.newInstance().build())
+                        .asset(Asset.Builder.newInstance().id("test-asset").build())
+                        .build())
                 .build();
 
         var result = service.initiateNegotiation(request);

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,17 @@ class ContractOfferTest {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .asset(Asset.Builder.newInstance().id("test-assetId").build())
                 .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Policy must not be null!");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Policy must not be null");
+    }
+
+
+    @Test
+    void verifyAssetNotNull() {
+        assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
+                .policy(Policy.Builder.newInstance().build())
+                .build())
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Asset must not be null");
     }
 }
