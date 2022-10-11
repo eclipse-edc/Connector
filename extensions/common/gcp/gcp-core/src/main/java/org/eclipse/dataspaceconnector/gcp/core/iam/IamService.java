@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.gcp.core.iam;
 
 
-import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
 import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
 
 /**
@@ -27,9 +27,9 @@ public interface IamService {
      *
      * @param serviceAccountName        the name for the service account. Limited to 30 chars
      * @param serviceAccountDescription the unique description for the service account that is used to avoid reuse of service accounts
-     * @return the {@link ServiceAccountWrapper} describing the service account
+     * @return the {@link GcpServiceAccount} describing the service account
      */
-    ServiceAccountWrapper getOrCreateServiceAccount(String serviceAccountName, String serviceAccountDescription);
+    GcpServiceAccount getOrCreateServiceAccount(String serviceAccountName, String serviceAccountDescription);
 
     /**
      * Creates a temporary valid OAunth2.0 access token for the service account
@@ -37,7 +37,7 @@ public interface IamService {
      * @param serviceAccount The service account the token should be created for
      * @return {@link GcsAccessToken}
      */
-    GcsAccessToken createAccessToken(ServiceAccountWrapper serviceAccount);
+    GcsAccessToken createAccessToken(GcpServiceAccount serviceAccount);
 
     /**
      * Delete the specified service account if it exists.
@@ -45,5 +45,5 @@ public interface IamService {
      *
      * @param serviceAccount The service account that should be deleted
      */
-    void deleteServiceAccountIfExists(ServiceAccountWrapper serviceAccount);
+    void deleteServiceAccountIfExists(GcpServiceAccount serviceAccount);
 }

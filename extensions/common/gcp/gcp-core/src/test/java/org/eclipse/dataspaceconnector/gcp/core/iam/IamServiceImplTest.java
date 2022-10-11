@@ -24,7 +24,7 @@ import com.google.cloud.iam.credentials.v1.IamCredentialsClient;
 import com.google.iam.admin.v1.CreateServiceAccountRequest;
 import com.google.iam.admin.v1.ServiceAccount;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
-import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,14 +51,14 @@ class IamServiceImplTest {
     private IamService iamApi;
     private IAMClient iamClient;
     private IamCredentialsClient iamCredentialsClient;
-    private ServiceAccountWrapper testServiceAccount;
+    private GcpServiceAccount testServiceAccount;
 
     @BeforeEach
     void setUp() {
         var monitor = Mockito.mock(Monitor.class);
         iamClient = Mockito.mock(IAMClient.class);
         iamCredentialsClient = Mockito.mock(IamCredentialsClient.class);
-        testServiceAccount = new ServiceAccountWrapper(serviceAccountEmail, serviceAccountName, serviceAccountDescription);
+        testServiceAccount = new GcpServiceAccount(serviceAccountEmail, serviceAccountName, serviceAccountDescription);
         iamApi = IamServiceImpl.Builder.newInstance(monitor, projectId)
                 .iamClientSupplier(() -> iamClient)
                 .iamCredentialsClientSupplier(() -> iamCredentialsClient)
@@ -70,7 +70,7 @@ class IamServiceImplTest {
         var serviceAccount = ServiceAccount.newBuilder().setEmail(serviceAccountEmail).build();
         when(iamClient.createServiceAccount(any(CreateServiceAccountRequest.class))).thenReturn(serviceAccount);
 
-        ServiceAccountWrapper createdServiceAccount = iamApi.getOrCreateServiceAccount(serviceAccountName, serviceAccountDescription);
+        GcpServiceAccount createdServiceAccount = iamApi.getOrCreateServiceAccount(serviceAccountName, serviceAccountDescription);
 
         assertThat(createdServiceAccount.getEmail()).isEqualTo(serviceAccountEmail);
         assertThat(createdServiceAccount.getDescription()).isEqualTo(serviceAccountDescription);
@@ -116,7 +116,7 @@ class IamServiceImplTest {
 
     @Test
     void testDeleteServiceAccount() {
-        var serviceAccount = new ServiceAccountWrapper(serviceAccountEmail, serviceAccountName, serviceAccountDescription);
+        var serviceAccount = new GcpServiceAccount(serviceAccountEmail, serviceAccountName, serviceAccountDescription);
         doNothing().when(iamClient).deleteServiceAccount(serviceAccountName);
 
         iamApi.deleteServiceAccountIfExists(serviceAccount);

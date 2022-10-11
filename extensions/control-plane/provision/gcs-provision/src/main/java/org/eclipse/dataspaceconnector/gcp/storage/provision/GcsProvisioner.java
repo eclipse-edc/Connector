@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.gcp.storage.provision;
 
-import org.eclipse.dataspaceconnector.gcp.core.common.BucketWrapper;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
-import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcsBucket;
 import org.eclipse.dataspaceconnector.gcp.core.iam.IamService;
 import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
 import org.eclipse.dataspaceconnector.gcp.core.storage.StorageService;
@@ -89,7 +89,7 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
             GcsProvisionedResource provisionedResource, Policy policy) {
         try {
             iamService.deleteServiceAccountIfExists(
-                    new ServiceAccountWrapper(provisionedResource.getServiceAccountEmail(),
+                    new GcpServiceAccount(provisionedResource.getServiceAccountEmail(),
                             provisionedResource.getServiceAccountName(), ""));
         } catch (GcpException e) {
             return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
@@ -100,7 +100,7 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
                         .provisionedResourceId(provisionedResource.getId()).build()));
     }
 
-    private ServiceAccountWrapper createServiceAccount(String processId, String buckedName) {
+    private GcpServiceAccount createServiceAccount(String processId, String buckedName) {
         var serviceAccountName = sanitizeServiceAccountName(processId);
         var uniqueServiceAccountDescription = generateUniqueServiceAccountDescription(processId, buckedName);
         return iamService.getOrCreateServiceAccount(serviceAccountName, uniqueServiceAccountDescription);
@@ -120,12 +120,12 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
         return String.format("transferProcess:%s\nbucket:%s", transferProcessId, bucketName);
     }
 
-    private GcsAccessToken createBucketAccessToken(BucketWrapper bucket, ServiceAccountWrapper serviceAccount) {
+    private GcsAccessToken createBucketAccessToken(GcsBucket bucket, GcpServiceAccount serviceAccount) {
         storageService.addProviderPermissions(bucket, serviceAccount);
         return iamService.createAccessToken(serviceAccount);
     }
 
-    private GcsProvisionedResource getProvisionedResource(GcsResourceDefinition resourceDefinition, String resourceName, ServiceAccountWrapper serviceAccount) {
+    private GcsProvisionedResource getProvisionedResource(GcsResourceDefinition resourceDefinition, String resourceName, GcpServiceAccount serviceAccount) {
         return GcsProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getId())
                 .resourceDefinitionId(resourceDefinition.getId())

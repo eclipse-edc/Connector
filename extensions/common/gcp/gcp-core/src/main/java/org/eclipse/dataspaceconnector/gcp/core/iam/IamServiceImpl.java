@@ -26,7 +26,7 @@ import com.google.iam.admin.v1.ProjectName;
 import com.google.iam.admin.v1.ServiceAccount;
 import com.google.protobuf.Duration;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
-import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
 import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
@@ -56,7 +56,7 @@ public class IamServiceImpl implements IamService {
     }
 
     @Override
-    public ServiceAccountWrapper getOrCreateServiceAccount(String serviceAccountName, String serviceAccountDescription) {
+    public GcpServiceAccount getOrCreateServiceAccount(String serviceAccountName, String serviceAccountDescription) {
         var requestedServiceAccount = ServiceAccount.newBuilder()
                 .setDisplayName(serviceAccountName)
                 .setDescription(serviceAccountDescription)
@@ -70,7 +70,7 @@ public class IamServiceImpl implements IamService {
         try (var client = iamClientSupplier.get()) {
             var serviceAccount = client.createServiceAccount(request);
             monitor.debug("Created service account: " + serviceAccount.getEmail());
-            return new ServiceAccountWrapper(serviceAccount.getEmail(), serviceAccount.getName(), serviceAccountDescription);
+            return new GcpServiceAccount(serviceAccount.getEmail(), serviceAccount.getName(), serviceAccountDescription);
         } catch (ApiException e) {
             if (e.getStatusCode().getCode() == StatusCode.Code.ALREADY_EXISTS) {
                 return getServiceAccount(serviceAccountName, serviceAccountDescription);
@@ -80,7 +80,7 @@ public class IamServiceImpl implements IamService {
         }
     }
 
-    private ServiceAccountWrapper getServiceAccount(String serviceAccountName, String serviceAccountDescription) {
+    private GcpServiceAccount getServiceAccount(String serviceAccountName, String serviceAccountDescription) {
         try (var client = iamClientSupplier.get()) {
             var serviceAccountEmail = getServiceAccountEmail(serviceAccountName, gcpProjectId);
             var name = ServiceAccountName.of(gcpProjectId, serviceAccountEmail).toString();
@@ -90,12 +90,12 @@ public class IamServiceImpl implements IamService {
                 monitor.severe(errorMessage);
                 throw new GcpException(errorMessage);
             }
-            return new ServiceAccountWrapper(response.getEmail(), response.getName(), response.getDescription());
+            return new GcpServiceAccount(response.getEmail(), response.getName(), response.getDescription());
         }
     }
 
     @Override
-    public GcsAccessToken createAccessToken(ServiceAccountWrapper serviceAccount) {
+    public GcsAccessToken createAccessToken(GcpServiceAccount serviceAccount) {
         try (var iamCredentialsClient = iamCredentialsClientSupplier.get()) {
             var name = ServiceAccountName.of("-", serviceAccount.getEmail());
             var lifetime = Duration.newBuilder().setSeconds(ONE_HOUR_IN_S).build();
@@ -114,7 +114,7 @@ public class IamServiceImpl implements IamService {
     }
 
     @Override
-    public void deleteServiceAccountIfExists(ServiceAccountWrapper serviceAccount) {
+    public void deleteServiceAccountIfExists(GcpServiceAccount serviceAccount) {
         try (var client = iamClientSupplier.get()) {
             client.deleteServiceAccount(serviceAccount.getName());
             monitor.debug("Deleted service account: " + serviceAccount.getEmail());

@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.gcp.core.storage;
 
 import com.google.cloud.storage.Storage;
-import org.eclipse.dataspaceconnector.gcp.core.common.BucketWrapper;
-import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcsBucket;
 
 /**
  * Wrapper around Google Cloud Storage API for decoupling.
@@ -32,7 +32,7 @@ public interface StorageService {
      * @param location   The location where the data in the bucket will be stored
      * @return {@link Storage}
      */
-    BucketWrapper getOrCreateEmptyBucket(String bucketName, String location);
+    GcsBucket getOrCreateEmptyBucket(String bucketName, String location);
 
     /**
      * Attaches a new role binding to the bucket that grants the service account the specified role on the bucket
@@ -41,7 +41,7 @@ public interface StorageService {
      * @param serviceAccount The service account that should be granted the role on the bucket
      * @param role           The role that should be granted
      */
-    void addRoleBinding(BucketWrapper bucket, ServiceAccountWrapper serviceAccount, String role);
+    void addRoleBinding(GcsBucket bucket, GcpServiceAccount serviceAccount, String role);
 
     /**
      * Grants the service account, that will be used by the data provider, the required permissions to upload data to the bucket
@@ -49,7 +49,7 @@ public interface StorageService {
      * @param bucket         The bucket to which the service account will be granted permissions
      * @param serviceAccount The service account that should be granted the permissions on the bucket
      */
-    void addProviderPermissions(BucketWrapper bucket, ServiceAccountWrapper serviceAccount);
+    void addProviderPermissions(GcsBucket bucket, GcpServiceAccount serviceAccount);
 
     /**
      * Deletes the bucket if it exists.

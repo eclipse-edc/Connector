@@ -19,10 +19,10 @@ import com.google.cloud.storage.BucketInfo;
 /**
  * Wrapper around  {@link BucketInfo} in order to decouple from GCP API.
  */
-public class BucketWrapper {
+public class GcsBucket {
     private final String name;
 
-    public BucketWrapper(String name) {
+    public GcsBucket(String name) {
         this.name = name;
     }
 

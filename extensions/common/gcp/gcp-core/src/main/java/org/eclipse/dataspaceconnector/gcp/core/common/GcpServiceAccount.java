@@ -19,12 +19,12 @@ import com.google.iam.admin.v1.ServiceAccount;
 /**
  * Wrapper around  {@link ServiceAccount} in order to decouple from GCP API.
  */
-public class ServiceAccountWrapper {
+public class GcpServiceAccount {
     private final String email;
     private final String name;
     private final String description;
 
-    public ServiceAccountWrapper(String email, String name, String description) {
+    public GcpServiceAccount(String email, String name, String description) {
         this.email = email;
         this.name = name;
         this.description = description;

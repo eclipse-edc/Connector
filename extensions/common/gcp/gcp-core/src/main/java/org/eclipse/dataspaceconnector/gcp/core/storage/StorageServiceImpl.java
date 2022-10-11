@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.gcp.core.storage;
 import com.google.cloud.Binding;
 import com.google.cloud.storage.BucketInfo;
 import com.google.cloud.storage.Storage;
-import org.eclipse.dataspaceconnector.gcp.core.common.BucketWrapper;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
-import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcsBucket;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public BucketWrapper getOrCreateEmptyBucket(String bucketName, String location) {
+    public GcsBucket getOrCreateEmptyBucket(String bucketName, String location) {
         var bucket = storageClient.get(bucketName);
         if (bucket == null) {
             monitor.debug("Creating new bucket " + bucketName);
@@ -45,11 +45,11 @@ public class StorageServiceImpl implements StorageService {
             throw new GcpException("Bucket " + bucketName + " already exists but in wrong location");
         }
 
-        return new BucketWrapper(bucket.getName());
+        return new GcsBucket(bucket.getName());
     }
 
     @Override
-    public void addRoleBinding(BucketWrapper bucket, ServiceAccountWrapper serviceAccount, String role) {
+    public void addRoleBinding(GcsBucket bucket, GcpServiceAccount serviceAccount, String role) {
         var originalPolicy = storageClient.getIamPolicy(bucket.getName());
         var bindings = new ArrayList<>(originalPolicy.getBindingsList());
 
@@ -68,7 +68,7 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public void addProviderPermissions(BucketWrapper bucket, ServiceAccountWrapper serviceAccount) {
+    public void addProviderPermissions(GcsBucket bucket, GcpServiceAccount serviceAccount) {
         addRoleBinding(bucket, serviceAccount, "roles/storage.objectCreator");
     }
 

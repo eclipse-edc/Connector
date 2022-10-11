@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.gcp.storage.provision;
 
-import org.eclipse.dataspaceconnector.gcp.core.common.BucketWrapper;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
-import org.eclipse.dataspaceconnector.gcp.core.common.ServiceAccountWrapper;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcsBucket;
 import org.eclipse.dataspaceconnector.gcp.core.iam.IamService;
 import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
 import org.eclipse.dataspaceconnector.gcp.core.storage.StorageService;
@@ -75,8 +75,8 @@ class GcsProvisionerTest {
         var bucketName = resourceDefinition.getId();
         var bucketLocation = resourceDefinition.getLocation();
 
-        var bucket = new BucketWrapper(bucketName);
-        var serviceAccount = new ServiceAccountWrapper("test-sa", "sa-name", "description");
+        var bucket = new GcsBucket(bucketName);
+        var serviceAccount = new GcpServiceAccount("test-sa", "sa-name", "description");
         var token = new GcsAccessToken("token", 123);
 
         when(storageServiceMock.getOrCreateEmptyBucket(bucketName, bucketLocation)).thenReturn(bucket);
@@ -108,7 +108,7 @@ class GcsProvisionerTest {
         var bucketName = resourceDefinition.getId();
         var bucketLocation = resourceDefinition.getLocation();
 
-        when(storageServiceMock.getOrCreateEmptyBucket(bucketName, bucketLocation)).thenReturn(new BucketWrapper(bucketName));
+        when(storageServiceMock.getOrCreateEmptyBucket(bucketName, bucketLocation)).thenReturn(new GcsBucket(bucketName));
         when(storageServiceMock.isEmpty(bucketName)).thenReturn(false);
 
         var response = provisioner.provision(resourceDefinition, testPolicy).join();
@@ -147,7 +147,7 @@ class GcsProvisionerTest {
         var name = "test-name";
         var id = "test-id";
         var description = "sa-description";
-        var serviceAccount = new ServiceAccountWrapper(email, name, description);
+        var serviceAccount = new GcpServiceAccount(email, name, description);
 
         doNothing().when(iamServiceMock).deleteServiceAccountIfExists(argThat(matches(serviceAccount)));
         var resource = createGcsProvisionedResource(email, name, id);
@@ -187,7 +187,7 @@ class GcsProvisionerTest {
         var name = "test-name";
         var id = "test-id";
         var description = "sa-description";
-        var serviceAccount = new ServiceAccountWrapper(email, name, description);
+        var serviceAccount = new GcpServiceAccount(email, name, description);
         GcsProvisionedResource resource = createGcsProvisionedResource(email, name, id);
 
         doThrow(new GcpException("some error"))
@@ -200,7 +200,7 @@ class GcsProvisionerTest {
         assertThat(response.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
     }
 
-    private ArgumentMatcher<ServiceAccountWrapper> matches(ServiceAccountWrapper serviceAccount) {
+    private ArgumentMatcher<GcpServiceAccount> matches(GcpServiceAccount serviceAccount) {
         return argument -> argument.getEmail().equals(serviceAccount.getEmail()) && argument.getName().equals(serviceAccount.getName());
     }
 }
