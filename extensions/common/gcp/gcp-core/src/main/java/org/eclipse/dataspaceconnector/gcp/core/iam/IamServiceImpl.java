@@ -133,8 +133,8 @@ public class IamServiceImpl implements IamService {
     }
 
     public static class Builder {
-        private String gcpProjectId;
-        private Monitor monitor;
+        private final String gcpProjectId;
+        private final Monitor monitor;
         private Supplier<IAMClient> iamClientSupplier;
         private Supplier<IamCredentialsClient> iamCredentialsClientSupplier;
 
@@ -172,7 +172,7 @@ public class IamServiceImpl implements IamService {
         /**
          * Supplier of {@link IAMClient} using application default credentials
          */
-        private static Supplier<IAMClient> defaultIamClientSupplier() {
+        private Supplier<IAMClient> defaultIamClientSupplier() {
             return () -> {
                 try {
                     return IAMClient.create();
@@ -185,7 +185,7 @@ public class IamServiceImpl implements IamService {
         /**
          * Supplier of {@link IamCredentialsClient} using application default credentials
          */
-        private static Supplier<IamCredentialsClient> defaultIamCredentialsClientSupplier() {
+        private Supplier<IamCredentialsClient> defaultIamCredentialsClientSupplier() {
             return () -> {
                 try {
                     return IamCredentialsClient.create();
