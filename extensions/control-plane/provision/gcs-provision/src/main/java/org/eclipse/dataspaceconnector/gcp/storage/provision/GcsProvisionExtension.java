@@ -38,6 +38,11 @@ public class GcsProvisionExtension implements ServiceExtension {
     private ResourceManifestGenerator manifestGenerator;
 
     @Override
+    public String name() {
+        return "GCP storage provisioner";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
