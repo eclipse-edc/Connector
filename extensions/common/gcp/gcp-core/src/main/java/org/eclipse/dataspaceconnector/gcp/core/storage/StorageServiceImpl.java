@@ -89,8 +89,6 @@ public class StorageServiceImpl implements StorageService {
     @Override
     public boolean isEmpty(String bucket) {
         var blobs = storageClient.list(bucket, Storage.BlobListOption.pageSize(1)).getValues();
-        var blobList = new ArrayList<>();
-        blobs.forEach(blobList::add);
-        return blobList.isEmpty();
+        return !blobs.iterator().hasNext();
     }
 }
