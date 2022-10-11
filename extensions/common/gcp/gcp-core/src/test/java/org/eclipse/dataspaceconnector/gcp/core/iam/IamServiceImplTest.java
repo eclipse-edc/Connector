@@ -72,6 +72,7 @@ class IamServiceImplTest {
         when(iamClient.createServiceAccount(any(CreateServiceAccountRequest.class))).thenReturn(serviceAccount);
 
         ServiceAccountWrapper createdServiceAccount = iamApi.getOrCreateServiceAccount(serviceAccountName, serviceAccountDescription);
+
         assertThat(createdServiceAccount.getEmail()).isEqualTo(serviceAccountEmail);
         assertThat(createdServiceAccount.getDescription()).isEqualTo(serviceAccountDescription);
     }
@@ -82,7 +83,9 @@ class IamServiceImplTest {
         var createError = apiExceptionWithStatusCode(StatusCode.Code.ALREADY_EXISTS);
         when(iamClient.createServiceAccount(any(CreateServiceAccountRequest.class))).thenThrow(createError);
         when(iamClient.getServiceAccount(eq(String.format("projects/%s/serviceAccounts/%s", projectId, serviceAccountEmail)))).thenReturn(serviceAccount);
+
         var createdServiceAccount = iamApi.getOrCreateServiceAccount(serviceAccountName, serviceAccountDescription);
+
         assertThat(createdServiceAccount.getEmail()).isEqualTo(serviceAccountEmail);
         assertThat(createdServiceAccount.getDescription()).isEqualTo(serviceAccountDescription);
     }
@@ -106,7 +109,10 @@ class IamServiceImplTest {
                 argThat(x -> x.getLifetime().getSeconds() == 3600)
         );
         when(iamCredentialsClient.generateAccessToken(expectedRequest)).thenReturn(expectedKey);
-        assertThat(iamApi.createAccessToken(testServiceAccount).getToken()).isEqualTo(expectedTokenString);
+
+        var accessToken = iamApi.createAccessToken(testServiceAccount);
+
+        assertThat(accessToken.getToken()).isEqualTo(expectedTokenString);
     }
 
     @Test
@@ -126,6 +132,7 @@ class IamServiceImplTest {
                 .when(iamClient).deleteServiceAccount(serviceAccountName);
 
         iamApi.deleteServiceAccountIfExists(testServiceAccount);
+
         verify(iamClient, times(1)).deleteServiceAccount(serviceAccountName);
     }
 
