@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.gcp.core.common.GcsBucket;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class StorageServiceImpl implements StorageService {
 
@@ -37,11 +38,12 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public GcsBucket getOrCreateEmptyBucket(String bucketName, String location) {
-        var bucket = storageClient.get(bucketName);
-        if (bucket == null) {
-            monitor.debug("Creating new bucket " + bucketName);
-            bucket = storageClient.create(BucketInfo.newBuilder(bucketName).setLocation(location).build());
-        } else if (!bucket.getLocation().equals(location)) {
+        var bucket = Optional.ofNullable(storageClient.get(bucketName))
+                .orElseGet(() -> {
+                    monitor.debug("Creating new bucket " + bucketName);
+                    return storageClient.create(BucketInfo.newBuilder(bucketName).setLocation(location).build());
+                });
+        if (!bucket.getLocation().equals(location)) {
             throw new GcpException("Bucket " + bucketName + " already exists but in wrong location");
         }
 
