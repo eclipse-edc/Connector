@@ -54,21 +54,6 @@ class IamServiceImplTest {
     private IamCredentialsClient iamCredentialsClient;
     private ServiceAccountWrapper testServiceAccount;
 
-    private static ApiException apiExceptionWithStatusCode(StatusCode.Code code) {
-        return ApiExceptionFactory.createException(
-                new Exception(), new StatusCode() {
-                    @Override
-                    public Code getCode() {
-                        return code;
-                    }
-
-                    @Override
-                    public Object getTransportCode() {
-                        return null;
-                    }
-                }, false);
-    }
-
     @BeforeEach
     void setUp() {
         var monitor = Mockito.mock(Monitor.class);
@@ -152,5 +137,20 @@ class IamServiceImplTest {
 
         assertThatThrownBy(() -> iamApi.deleteServiceAccountIfExists(testServiceAccount))
                 .isInstanceOf(GcpException.class);
+    }
+
+    private ApiException apiExceptionWithStatusCode(StatusCode.Code code) {
+        return ApiExceptionFactory.createException(
+                new Exception(), new StatusCode() {
+                    @Override
+                    public Code getCode() {
+                        return code;
+                    }
+
+                    @Override
+                    public Object getTransportCode() {
+                        return null;
+                    }
+                }, false);
     }
 }
