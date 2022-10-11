@@ -21,7 +21,7 @@ plugins {
     jacoco
     signing
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
-    id("org.eclipse.dataspaceconnector.module-names")
+    id("org.eclipse.dataspaceconnector.module-names") version "0.0.1-SNAPSHOT"
     id("com.autonomousapps.dependency-analysis") version "1.13.1" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
@@ -34,7 +34,7 @@ repositories {
 
 dependencies {
     "swaggerCodegen"("org.openapitools:openapi-generator-cli:6.2.0")
-    "swaggerUI"("org.webjars:swagger-ui:4.14.0")
+    "swaggerUI"("org.webjars:swagger-ui:4.14.2")
 }
 
 val jetBrainsAnnotationsVersion: String by project
@@ -61,7 +61,6 @@ val snapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
 // where our release versions are published to (staging)
 val releaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
-
 // required by the nexus publishing plugin
 
 val projectVersion: String = (project.findProperty("edcVersion") ?: defaultVersion) as String
@@ -71,17 +70,6 @@ if (projectVersion.contains("SNAPSHOT")) {
 }
 
 subprojects {
-
-    repositories {
-        maven {
-            url = uri(snapshotUrl)
-        }
-        mavenCentral()
-        maven {
-            url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
-        }
-        mavenLocal()
-    }
     tasks.register<DependencyReportTask>("allDependencies") {}
 
     // (re-)create a file that contains all maven publications
@@ -141,8 +129,13 @@ buildscript {
 
 allprojects {
     repositories {
+        mavenLocal()
         maven {
             url = uri(snapshotUrl)
+        }
+        mavenCentral()
+        maven {
+            url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
         }
     }
     apply(plugin = "maven-publish")
