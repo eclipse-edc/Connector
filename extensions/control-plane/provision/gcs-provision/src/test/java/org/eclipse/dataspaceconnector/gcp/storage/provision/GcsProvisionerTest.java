@@ -66,10 +66,10 @@ class GcsProvisionerTest {
 
     @Test
     void provisionSuccess() {
-        String resourceDefinitionId = "id";
-        String location = "location";
-        String storageClass = "storage-class";
-        String transferProcessId = UUID.randomUUID().toString();
+        var resourceDefinitionId = "id";
+        var location = "location";
+        var storageClass = "storage-class";
+        var transferProcessId = UUID.randomUUID().toString();
         var resourceDefinition = createResourceDefinition(resourceDefinitionId, location,
                 storageClass, transferProcessId);
         var bucketName = resourceDefinition.getId();
