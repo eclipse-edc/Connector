@@ -39,7 +39,7 @@ public class StorageServiceImpl implements StorageService {
     public BucketWrapper getOrCreateEmptyBucket(String bucketName, String location) {
         var bucket = storageClient.get(bucketName);
         if (bucket == null) {
-            monitor.info("Creating new bucket " + bucketName);
+            monitor.debug("Creating new bucket " + bucketName);
             bucket = storageClient.create(BucketInfo.newBuilder(bucketName).setLocation(location).build());
         } else if (!bucket.getLocation().equals(location)) {
             throw new GcpException("Bucket " + bucketName + " already exists but in wrong location");
@@ -64,7 +64,7 @@ public class StorageServiceImpl implements StorageService {
                 .setVersion(3)
                 .build();
         storageClient.setIamPolicy(bucket.getName(), updatedPolicy);
-        monitor.info("Added role binding to bucket " + bucket.getName() + "\n" + roleBinding);
+        monitor.debug("Added role binding " + roleBinding + " binding to bucket " + bucket.getName());
     }
 
     @Override
@@ -76,10 +76,10 @@ public class StorageServiceImpl implements StorageService {
     public boolean deleteBucket(String bucketName) {
         var deleted = storageClient.delete(bucketName);
         if (deleted) {
-            monitor.info("The bucket " + bucketName + "was deleted");
+            monitor.debug("The bucket " + bucketName + "was deleted");
             return true;
         } else {
-            monitor.info("Bucket " + bucketName + "not found");
+            monitor.debug("Bucket " + bucketName + "not found");
             return false;
         }
     }

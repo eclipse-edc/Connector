@@ -69,13 +69,13 @@ public class IamServiceImpl implements IamService {
 
         try (var client = iamClientSupplier.get()) {
             var serviceAccount = client.createServiceAccount(request);
-            monitor.info("Created service account: " + serviceAccount.getEmail());
+            monitor.debug("Created service account: " + serviceAccount.getEmail());
             return new ServiceAccountWrapper(serviceAccount.getEmail(), serviceAccount.getName(), serviceAccountDescription);
         } catch (ApiException e) {
             if (e.getStatusCode().getCode() == StatusCode.Code.ALREADY_EXISTS) {
                 return getServiceAccount(serviceAccountName, serviceAccountDescription);
             }
-            monitor.severe("Unable to create service account: \n" + e);
+            monitor.severe("Unable to create service account", e);
             throw new GcpException("Unable to create service account", e);
         }
     }
@@ -105,7 +105,7 @@ public class IamServiceImpl implements IamService {
                     .setLifetime(lifetime)
                     .build();
             var response = iamCredentialsClient.generateAccessToken(request);
-            monitor.info("Created access token for " + serviceAccount.getEmail());
+            monitor.debug("Created access token for " + serviceAccount.getEmail());
             var expirationMillis = response.getExpireTime().getSeconds() * 1000;
             return new GcsAccessToken(response.getAccessToken(), expirationMillis);
         } catch (Exception e) {
@@ -117,13 +117,13 @@ public class IamServiceImpl implements IamService {
     public void deleteServiceAccountIfExists(ServiceAccountWrapper serviceAccount) {
         try (var client = iamClientSupplier.get()) {
             client.deleteServiceAccount(serviceAccount.getName());
-            monitor.info("Deleted service account: " + serviceAccount.getEmail());
+            monitor.debug("Deleted service account: " + serviceAccount.getEmail());
         } catch (ApiException e) {
             if (e.getStatusCode().getCode() == StatusCode.Code.NOT_FOUND) {
-                monitor.severe("Service account not found: \n" + e);
+                monitor.severe("Service account not found", e);
                 return;
             }
-            monitor.severe("Unable to delete service account: \n" + e);
+            monitor.severe("Unable to delete service account", e);
             throw new GcpException(e);
         }
     }
