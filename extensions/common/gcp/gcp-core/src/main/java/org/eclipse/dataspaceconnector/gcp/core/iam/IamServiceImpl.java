@@ -25,9 +25,9 @@ import com.google.iam.admin.v1.CreateServiceAccountRequest;
 import com.google.iam.admin.v1.ProjectName;
 import com.google.iam.admin.v1.ServiceAccount;
 import com.google.protobuf.Duration;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpAccessToken;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
-import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -95,7 +95,7 @@ public class IamServiceImpl implements IamService {
     }
 
     @Override
-    public GcsAccessToken createAccessToken(GcpServiceAccount serviceAccount) {
+    public GcpAccessToken createAccessToken(GcpServiceAccount serviceAccount) {
         try (var iamCredentialsClient = iamCredentialsClientSupplier.get()) {
             var name = ServiceAccountName.of("-", serviceAccount.getEmail());
             var lifetime = Duration.newBuilder().setSeconds(ONE_HOUR_IN_S).build();
@@ -107,7 +107,7 @@ public class IamServiceImpl implements IamService {
             var response = iamCredentialsClient.generateAccessToken(request);
             monitor.debug("Created access token for " + serviceAccount.getEmail());
             var expirationMillis = response.getExpireTime().getSeconds() * 1000;
-            return new GcsAccessToken(response.getAccessToken(), expirationMillis);
+            return new GcpAccessToken(response.getAccessToken(), expirationMillis);
         } catch (Exception e) {
             throw new GcpException("Error creating service account token:\n" + e);
         }

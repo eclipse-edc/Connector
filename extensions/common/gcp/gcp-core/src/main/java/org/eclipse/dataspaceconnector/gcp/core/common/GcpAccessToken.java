@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.gcp.core.storage;
+package org.eclipse.dataspaceconnector.gcp.core.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -20,12 +20,12 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 
 import java.util.Map;
 
-@JsonTypeName("dataspaceconnector:gcstoken")
-public class GcsAccessToken implements SecretToken {
+@JsonTypeName("dataspaceconnector:gcptoken")
+public class GcpAccessToken implements SecretToken {
     private final String token;
     private final long expiration;
 
-    public GcsAccessToken(@JsonProperty("token") String writeOnlyToken, @JsonProperty("expiration") long expiration) {
+    public GcpAccessToken(@JsonProperty("token") String writeOnlyToken, @JsonProperty("expiration") long expiration) {
         token = writeOnlyToken;
         this.expiration = expiration;
     }

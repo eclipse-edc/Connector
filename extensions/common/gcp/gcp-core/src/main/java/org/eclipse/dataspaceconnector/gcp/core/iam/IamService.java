@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.gcp.core.iam;
 
 
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpAccessToken;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
-import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
 
 /**
  * Wrapper around GCP IAM-API for decoupling.
@@ -35,9 +35,9 @@ public interface IamService {
      * Creates a temporary valid OAunth2.0 access token for the service account
      *
      * @param serviceAccount The service account the token should be created for
-     * @return {@link GcsAccessToken}
+     * @return {@link GcpAccessToken}
      */
-    GcsAccessToken createAccessToken(GcpServiceAccount serviceAccount);
+    GcpAccessToken createAccessToken(GcpServiceAccount serviceAccount);
 
     /**
      * Delete the specified service account if it exists.

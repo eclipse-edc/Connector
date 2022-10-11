@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.gcp.storage.provision;
 
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpAccessToken;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpServiceAccount;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcsBucket;
 import org.eclipse.dataspaceconnector.gcp.core.iam.IamService;
-import org.eclipse.dataspaceconnector.gcp.core.storage.GcsAccessToken;
 import org.eclipse.dataspaceconnector.gcp.core.storage.StorageService;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -77,7 +77,7 @@ class GcsProvisionerTest {
 
         var bucket = new GcsBucket(bucketName);
         var serviceAccount = new GcpServiceAccount("test-sa", "sa-name", "description");
-        var token = new GcsAccessToken("token", 123);
+        var token = new GcpAccessToken("token", 123);
 
         when(storageServiceMock.getOrCreateEmptyBucket(bucketName, bucketLocation)).thenReturn(bucket);
         when(storageServiceMock.isEmpty(bucketName)).thenReturn(true);
@@ -93,7 +93,7 @@ class GcsProvisionerTest {
             assertThat(resource.getLocation()).isEqualTo(location);
             assertThat(resource.getStorageClass()).isEqualTo(storageClass);
         });
-        assertThat(response.getSecretToken()).isInstanceOfSatisfying(GcsAccessToken.class, secretToken -> {
+        assertThat(response.getSecretToken()).isInstanceOfSatisfying(GcpAccessToken.class, secretToken -> {
             assertThat(secretToken.getToken()).isEqualTo("token");
         });
 
