@@ -37,7 +37,7 @@ import java.util.function.Supplier;
 
 public class IamServiceImpl implements IamService {
 
-    public static final ImmutableList<String> OAUTH_SCOPE = ImmutableList.of("https://www.googleapis.com/auth/cloud-platform");
+    private static final ImmutableList<String> OAUTH_SCOPE = ImmutableList.of("https://www.googleapis.com/auth/cloud-platform");
     private static final long ONE_HOUR_IN_S = TimeUnit.HOURS.toSeconds(1);
     private final String gcpProjectId;
     private final Supplier<IAMClient> iamClientSupplier;
