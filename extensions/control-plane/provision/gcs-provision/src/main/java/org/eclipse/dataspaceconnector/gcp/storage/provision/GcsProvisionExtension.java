@@ -62,12 +62,4 @@ public class GcsProvisionExtension implements ServiceExtension {
     private Storage createDefaultStorageClient(String projectId) {
         return StorageOptions.newBuilder().setProjectId(projectId).build().getService();
     }
-
-    //    @Override
-    //    public void start() {
-    //    }
-    //
-    //    @Override
-    //    public void shutdown() {
-    //    }
 }
