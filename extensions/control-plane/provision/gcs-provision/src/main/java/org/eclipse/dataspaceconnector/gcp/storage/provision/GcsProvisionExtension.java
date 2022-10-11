@@ -60,13 +60,11 @@ public class GcsProvisionExtension implements ServiceExtension {
         return StorageOptions.newBuilder().setProjectId(projectId).build().getService();
     }
 
-    @Override
-    public void start() {
-        monitor.info("started GCP storage provisioner");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("shutdown GCP storage provisioner");
-    }
+    //    @Override
+    //    public void start() {
+    //    }
+    //
+    //    @Override
+    //    public void shutdown() {
+    //    }
 }
