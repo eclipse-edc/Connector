@@ -23,8 +23,6 @@ val googleCloudIamCredentialsVersion: String by project
 dependencies {
     api(project(":spi:common:core-spi"))
     implementation(project(":core:common:util"))
-    implementation(project(":extensions:common:configuration:filesystem-configuration"))
-
     implementation(project(":extensions:common:gcp:gcp-core"))
 
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
