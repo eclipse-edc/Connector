@@ -12,7 +12,7 @@ runs:
       run: ${{ inputs.command }}
 
     - name: Upload Test Results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: always()
       with:
         name: Test Results ${{ github.job }}
