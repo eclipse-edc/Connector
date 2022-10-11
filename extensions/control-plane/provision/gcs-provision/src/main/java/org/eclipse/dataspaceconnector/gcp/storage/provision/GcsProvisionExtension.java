@@ -20,10 +20,10 @@ import org.eclipse.dataspaceconnector.gcp.core.iam.IamServiceImpl;
 import org.eclipse.dataspaceconnector.gcp.core.storage.StorageServiceImpl;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 
 
 public class GcsProvisionExtension implements ServiceExtension {
@@ -34,11 +34,12 @@ public class GcsProvisionExtension implements ServiceExtension {
     @Inject
     private ProvisionManager provisionManager;
 
-    private Monitor monitor;
+    @Inject
+    private ResourceManifestGenerator manifestGenerator;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
+        var monitor = context.getMonitor();
 
         var projectId = context.getConfig().getString(GCP_PROJECT_ID);
         var storageClient = createDefaultStorageClient(projectId);
@@ -47,6 +48,8 @@ public class GcsProvisionExtension implements ServiceExtension {
 
         var provisioner = new GcsProvisioner(monitor, storageService, iamService);
         provisionManager.register(provisioner);
+
+        manifestGenerator.registerGenerator(new GcsConsumerResourceDefinitionGenerator());
     }
 
 
