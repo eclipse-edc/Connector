@@ -33,7 +33,6 @@ import org.mockito.Mockito;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalMatchers.and;
-import static org.mockito.Answers.RETURNS_SMART_NULLS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doNothing;
@@ -57,8 +56,8 @@ class IamServiceImplTest {
     @BeforeEach
     void setUp() {
         var monitor = Mockito.mock(Monitor.class);
-        iamClient = Mockito.mock(IAMClient.class, RETURNS_SMART_NULLS);
-        iamCredentialsClient = Mockito.mock(IamCredentialsClient.class, RETURNS_SMART_NULLS);
+        iamClient = Mockito.mock(IAMClient.class);
+        iamCredentialsClient = Mockito.mock(IamCredentialsClient.class);
         testServiceAccount = new ServiceAccountWrapper(serviceAccountEmail, serviceAccountName, serviceAccountDescription);
         iamApi = IamServiceImpl.Builder.newInstance(monitor, projectId)
                 .iamClientSupplier(() -> iamClient)
