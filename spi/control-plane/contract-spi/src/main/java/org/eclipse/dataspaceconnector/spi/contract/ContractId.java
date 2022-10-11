@@ -41,7 +41,8 @@ public final class ContractId {
     }
 
     /**
-     * Return a {@link ContractId} instance parsed from the passed string
+     * Return a {@link ContractId} instance parsed from the passed string, that should be in the
+     * <code>[definition-id]:UUID</code> format
      *
      * @param id the string representation of the id
      * @return the {@link ContractId} instance that represent the id

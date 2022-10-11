@@ -52,8 +52,8 @@ public interface ContractValidationService {
     boolean validate(ClaimToken token, ContractAgreement agreement);
 
     /**
-     * When the negotiation has been confirmed by the provider, needs to be validated to ensure that is the same of the
-     * one that was required in the offer
+     * When the negotiation has been confirmed by the provider, the consumer must validate it ensuring that is the same
+     * one that was sent in the offer
      */
     Result<Void> validateConfirmed(ContractAgreement agreement, ContractOffer latestOffer);
 }
