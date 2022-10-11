@@ -27,7 +27,7 @@ dependencies {
 
     implementation(project(":extensions:common:gcp:gcp-core"))
 
-    api("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
     implementation("com.google.cloud:google-iam-admin:${googleCloudIamAdminVersion}")
     implementation("com.google.cloud:google-cloud-iamcredentials:${googleCloudIamCredentialsVersion}")
