@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /transferprocess:
     get:
+      deprecated: true
       description: Returns all transfer process according to a query
       operationId: getAllTransferProcesses
       parameters:
@@ -79,6 +80,33 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
+      tags:
+      - Transfer Process
+  /transferprocess/request:
+    post:
+      description: Returns all transfer process according to a query
+      operationId: queryAllTransferProcesses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request was malformed
       tags:
       - Transfer Process
   /transferprocess/{id}:
@@ -240,6 +268,18 @@ components:
           type: string
         type:
           type: string
+    CriterionDto:
+      type: object
+      properties:
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      required:
+      - operandLeft
+      - operator
     DataAddress:
       type: object
       properties:
@@ -273,6 +313,28 @@ components:
           format: int64
         id:
           type: string
+    QuerySpecDto:
+      type: object
+      properties:
+        filter:
+          type: string
+        filterExpression:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
     TransferProcessDto:
       type: object
       properties:

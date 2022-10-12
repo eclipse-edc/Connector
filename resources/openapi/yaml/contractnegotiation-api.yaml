@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /contractnegotiations:
     get:
+      deprecated: true
       description: Returns all contract negotiations according to a query
       operationId: getNegotiations
       parameters:
@@ -80,6 +81,33 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
+      tags:
+      - Contract Negotiation
+  /contractnegotiations/request:
+    post:
+      description: Returns all contract negotiations according to a query
+      operationId: queryNegotiations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request was malformed
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}:
@@ -363,6 +391,18 @@ components:
       - assetId
       - offerId
       - policy
+    CriterionDto:
+      type: object
+      properties:
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      required:
+      - operandLeft
+      - operator
     Duty:
       type: object
       properties:
@@ -484,3 +524,25 @@ components:
           type: string
         uid:
           type: string
+    QuerySpecDto:
+      type: object
+      properties:
+        filter:
+          type: string
+        filterExpression:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
