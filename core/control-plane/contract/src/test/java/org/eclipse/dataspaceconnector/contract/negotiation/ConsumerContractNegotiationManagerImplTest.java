@@ -202,7 +202,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
-        when(validationService.validate(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(true);
+        when(validationService.validateConfirmed(eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
 
         var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, def.getPolicy());
 
@@ -211,7 +211,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 negotiation.getState() == CONFIRMED.code() &&
                         negotiation.getContractAgreement() == contractAgreement
         ));
-        verify(validationService).validate(eq(token), eq(contractAgreement), any(ContractOffer.class));
+        verify(validationService).validateConfirmed(eq(contractAgreement), any(ContractOffer.class));
         verify(listener).confirmed(any());
     }
 
@@ -222,7 +222,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         var policy = Policy.Builder.newInstance().build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
-        when(validationService.validate(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(false);
+        when(validationService.validateConfirmed(eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
         var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, policy);
 
@@ -231,7 +231,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 negotiation.getState() == DECLINING.code() &&
                         negotiation.getContractAgreement() == null
         ));
-        verify(validationService).validate(eq(token), eq(contractAgreement), any(ContractOffer.class));
+        verify(validationService).validateConfirmed(eq(contractAgreement), any(ContractOffer.class));
     }
 
     @Test

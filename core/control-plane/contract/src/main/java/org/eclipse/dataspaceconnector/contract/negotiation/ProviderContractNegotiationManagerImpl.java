@@ -41,8 +41,6 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static org.eclipse.dataspaceconnector.spi.contract.ContractId.DEFINITION_PART;
-import static org.eclipse.dataspaceconnector.spi.contract.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
@@ -341,12 +339,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         if (retrievedAgreement == null) {
             var lastOffer = negotiation.getLastContractOffer();
 
-            var contractIdTokens = parseContractId(lastOffer.getId());
-            if (contractIdTokens.length != 2) {
+            var contractId = ContractId.parse(lastOffer.getId());
+            if (!contractId.isValid()) {
                 monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
                 return false;
             }
-            var definitionId = contractIdTokens[DEFINITION_PART];
+            var definitionId = contractId.definitionPart();
 
             policy = lastOffer.getPolicy();
             //TODO move to own service
