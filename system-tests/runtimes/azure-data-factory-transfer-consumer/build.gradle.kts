@@ -23,17 +23,17 @@ val rsApi: String by project
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
 
-    implementation(project(":extensions:common:api:observability"))
+    implementation(project(":extensions:common:api:api-observability"))
 
-    implementation(project(":extensions:common:configuration:filesystem-configuration"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:common:iam:iam-mock"))
 
-    implementation(project(":extensions:control-plane:api:data-management"))
+    implementation(project(":extensions:control-plane:api:data-management-api"))
 
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":extensions:control-plane:provision:blob-provision"))
-    implementation(project(":extensions:common:vault:azure-vault"))
+    implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":core:common:util"))
 
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

@@ -22,7 +22,7 @@ plugins {
 
 dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
-    api(project(":extensions:common:azure:blob-core"))
+    api(project(":extensions:common:azure:azure-blob-core"))
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":core:common:util"))
 
@@ -30,7 +30,7 @@ dependencies {
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
-    testImplementation(testFixtures(project(":extensions:common:azure:blob-core")))
+    testImplementation(testFixtures(project(":extensions:common:azure:azure-blob-core")))
 }
 
 publishing {

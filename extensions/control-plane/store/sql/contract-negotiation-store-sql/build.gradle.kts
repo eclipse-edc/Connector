@@ -25,12 +25,12 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:common-sql"))
-    implementation(project(":extensions:common:sql:lease-sql"))
+    implementation(project(":extensions:common:sql:sql-core"))
+    implementation(project(":extensions:common:sql:sql-lease"))
 
 
     testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":extensions:common:sql:lease-sql")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":core:common:util")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
@@ -40,8 +40,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("contractnegotiation-store-sql") {
-            artifactId = "contractnegotiation-store-sql"
+        create<MavenPublication>("contract-negotiation-store-sql") {
+            artifactId = "contract-negotiation-store-sql"
             from(components["java"])
         }
     }

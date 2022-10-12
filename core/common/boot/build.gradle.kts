@@ -32,8 +32,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("core-boot") {
-            artifactId = "core-boot"
+        create<MavenPublication>("boot") {
+            artifactId = "boot"
             from(components["java"])
         }
     }

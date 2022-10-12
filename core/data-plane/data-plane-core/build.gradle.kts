@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:web-spi"))
-    api(project(":core:common:base"))
+    api(project(":core:common:connector-core"))
     api(project(":core:common:boot"))
     api(project(":extensions:common:http"))
     api(project(":core:data-plane:data-plane-framework"))

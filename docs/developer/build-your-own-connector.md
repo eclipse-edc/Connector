@@ -96,5 +96,5 @@ The *data-plane* will need extensions to being able to read/write data from/to d
 - `data-plane-api`: will make the *data-plane* expose APIs that are needed to actually transfer data
 - `data-plane-http`: support HTTP protocol
 - `data-plane-azure-storage`: support [Azure Blob Storage](https://azure.microsoft.com/products/storage/blobs/) service
-- `data-plane-s3`: support [AWS S3](https://aws.amazon.com/s3/) service
+- `data-plane-aws-s3`: support [AWS S3](https://aws.amazon.com/s3/) service
 - other custom provided *data-plane* extensions

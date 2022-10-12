@@ -32,8 +32,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("common-util") {
-            artifactId = "common-util"
+        create<MavenPublication>("util") {
+            artifactId = "util"
             from(components["java"])
         }
     }

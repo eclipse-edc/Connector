@@ -25,21 +25,21 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:common-sql"))
+    implementation(project(":extensions:common:sql:sql-core"))
 
     testImplementation(project(":extensions:common:junit"))
     testImplementation(project(":spi:common:policy-model"))
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":core:common:util")))
-    testImplementation(testFixtures(project(":extensions:common:sql:common-sql")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("contractdefinition-store-sql") {
-            artifactId = "contractdefinition-store-sql"
+        create<MavenPublication>("contract-definition-store-sql") {
+            artifactId = "contract-definition-store-sql"
             from(components["java"])
         }
     }

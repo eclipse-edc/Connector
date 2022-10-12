@@ -25,7 +25,7 @@ dependencies {
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":extensions:common:iam:iam-mock"))
-    implementation(project(":extensions:common:configuration:filesystem-configuration"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

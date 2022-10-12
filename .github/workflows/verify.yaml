@@ -280,13 +280,13 @@ jobs:
       - uses: ./.github/actions/setup-build
 
       - run: |
-          export DAPS_RESOURCES=${{ github.workspace }}/extensions/common/iam/oauth2/daps/src/test/resources
+          export DAPS_RESOURCES=${{ github.workspace }}/extensions/common/iam/oauth2/oauth2-daps/src/test/resources
           docker run -d --rm -p 4567:4567 -v $DAPS_RESOURCES/config:/opt/config -v $DAPS_RESOURCES/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.4.2
 
       - name: Daps Integration Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew -p extensions/common/iam/oauth2/daps test -DincludeTags="DapsIntegrationTest"
+          command: ./gradlew -p extensions/common/iam/oauth2/oauth2-daps test -DincludeTags="DapsIntegrationTest"
 
   Postgresql-Integration-Tests:
     runs-on: ubuntu-latest
@@ -373,7 +373,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           command: |
-            ./gradlew -p extensions/common/micrometer test -DincludeTags="OpenTelemetryIntegrationTest"
+            ./gradlew -p extensions/common/micrometer/micrometer-core/ test -DincludeTags="OpenTelemetryIntegrationTest"
             ./gradlew -p system-tests/tests test -DincludeTags="OpenTelemetryIntegrationTest"
 
   Check-Cloud-Environments:
@@ -431,7 +431,7 @@ jobs:
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         with:
           command: |
-            ./gradlew -p extensions/data-plane/data-plane-data-factory test -DincludeTags="AzureDataFactoryIntegrationTest"
+            ./gradlew -p extensions/data-plane/data-plane-azure-data-factory test -DincludeTags="AzureDataFactoryIntegrationTest"
             ./gradlew -p system-tests/azure-data-factory-tests test -DincludeTags="AzureDataFactoryIntegrationTest"
 
       - name: "Publish Gatling report"

@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:common:identity-did-spi"))
     api(project(":extensions:common:iam:decentralized-identity:identity-did-core"))
     api(project(":extensions:common:iam:decentralized-identity:identity-did-service"))
-    api(project(":extensions:common:iam:decentralized-identity:identity-common-test"))
+    api(project(":extensions:common:iam:decentralized-identity:identity-did-test"))
 }
 
 publishing {

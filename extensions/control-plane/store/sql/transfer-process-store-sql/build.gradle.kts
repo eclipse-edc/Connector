@@ -27,8 +27,8 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:common-sql"))
-    implementation(project(":extensions:common:sql:lease-sql"))
+    implementation(project(":extensions:common:sql:sql-core"))
+    implementation(project(":extensions:common:sql:sql-lease"))
 
     testImplementation(project(":extensions:common:junit"))
     testImplementation("org.assertj:assertj-core:${assertj}")
@@ -36,8 +36,8 @@ dependencies {
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
     testImplementation(testFixtures(project(":core:common:util")))
     testImplementation(testFixtures(project(":spi:control-plane:transfer-spi")))
-    testImplementation(testFixtures(project(":extensions:common:sql:lease-sql")))
-    testImplementation(testFixtures(project(":extensions:common:sql:common-sql")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 
 }
 

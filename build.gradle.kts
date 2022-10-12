@@ -379,7 +379,7 @@ if (project.hasProperty("dependency.analysis")) {
                 }
                 onIncorrectConfiguration {
                     exclude(
-                        // some common dependencies are intentionally exported by core:base for simplicity
+                        // some common dependencies are intentionally exported by core:common:connector-core for simplicity
                         "com.squareup.okhttp3:okhttp",
                         "dev.failsafe:failsafe",
                     )

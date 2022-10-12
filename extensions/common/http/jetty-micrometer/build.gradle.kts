@@ -21,7 +21,7 @@ val micrometerVersion: String by project
 
 dependencies {
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
-    implementation(project(":extensions:common:http:jetty"))
+    implementation(project(":extensions:common:http:jetty-core"))
     api("io.micrometer:micrometer-core:${micrometerVersion}")
 
     api(project(":spi:common:core-spi"))

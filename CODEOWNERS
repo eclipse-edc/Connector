@@ -24,7 +24,7 @@ styleguide.md @paullatzelsperger
 
 /buildSrc/ @paullatzelsperger
 
-/core/common/base/ @jimmarino @paullatzelsperger @ndr-brt
+/core/common/connector-core/ @jimmarino @paullatzelsperger @ndr-brt
 /core/common/boot/ @jimmarino @paullatzelsperger
 /core/common/policy-engine/ @jimmarino @ronjaquensel
 /core/common/policy-evaluator/ @jimmarino @juliapampus @ronjaquensel

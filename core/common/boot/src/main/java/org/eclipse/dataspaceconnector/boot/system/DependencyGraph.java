@@ -167,7 +167,7 @@ public class DependencyGraph {
     private List<ServiceExtension> sortByType(List<ServiceExtension> loadedExtensions) {
         var baseDependencies = loadedExtensions.stream().filter(e -> e.getClass().getAnnotation(BaseExtension.class) != null).collect(Collectors.toList());
         if (baseDependencies.isEmpty()) {
-            throw new EdcException("No base dependencies were found on the classpath. Please add the \"core:base\" module to your classpath!");
+            throw new EdcException("No base dependencies were found on the classpath. Please add the \"core:common:connector-core\" module to your classpath!");
         }
 
         return loadedExtensions.stream().sorted(new ServiceExtensionComparator()).collect(Collectors.toList());

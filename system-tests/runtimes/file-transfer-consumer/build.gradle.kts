@@ -26,9 +26,9 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:control-plane:api:data-management"))
-    implementation(project(":extensions:common:api:observability"))
-    implementation(project(":extensions:common:configuration:filesystem-configuration"))
+    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:common:api:api-observability"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:common:iam:iam-mock"))
 
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

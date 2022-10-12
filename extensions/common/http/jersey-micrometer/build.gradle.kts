@@ -19,7 +19,7 @@ plugins {
 val micrometerVersion: String by project
 
 dependencies {
-    implementation(project(":extensions:common:http:jersey"))
+    implementation(project(":extensions:common:http:jersey-core"))
     implementation("io.micrometer:micrometer-core:${micrometerVersion}")
 }
 

@@ -18,11 +18,11 @@ plugins {
 
 //This file serves as BOM for cosmos db for control plane
 dependencies {
-    api(project(":extensions:control-plane:store:cosmos:assetindex-cosmos"))
+    api(project(":extensions:control-plane:store:cosmos:asset-index-cosmos"))
     api(project(":extensions:control-plane:store:cosmos:contract-definition-store-cosmos"))
     api(project(":extensions:control-plane:store:cosmos:contract-negotiation-store-cosmos"))
     api(project(":extensions:control-plane:store:cosmos:policy-store-cosmos"))
-    api(project(":extensions:common:azure:cosmos-common"))
+    api(project(":extensions:common:azure:azure-cosmos-core"))
     api(project(":extensions:control-plane:store:cosmos:transfer-process-store-cosmos"))
 }
 
