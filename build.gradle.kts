@@ -120,11 +120,11 @@ buildscript {
     }
     dependencies {
         val swagger: String by project
-        val gradlePluginVersion: String by project
+        val edcGradlePluginsVersion: String by project
 
         classpath("io.swagger.core.v3:swagger-gradle-plugin:${swagger}")
-        classpath("org.eclipse.dataspaceconnector.autodoc:org.eclipse.dataspaceconnector.autodoc.gradle.plugin:${gradlePluginVersion}")
-        classpath("org.eclipse.dataspaceconnector.test-summary:org.eclipse.dataspaceconnector.test-summary.gradle.plugin:${gradlePluginVersion}")
+        classpath("org.eclipse.dataspaceconnector.autodoc:org.eclipse.dataspaceconnector.autodoc.gradle.plugin:${edcGradlePluginsVersion}")
+        classpath("org.eclipse.dataspaceconnector.test-summary:org.eclipse.dataspaceconnector.test-summary.gradle.plugin:${edcGradlePluginsVersion}")
     }
 }
 
