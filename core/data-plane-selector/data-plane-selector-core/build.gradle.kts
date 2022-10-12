@@ -23,6 +23,9 @@ dependencies {
     api(project(":core:common:base"))
     api(project(":core:common:boot"))
     implementation(project(":core:common:util"))
+
+    testImplementation(testFixtures(project(":spi:data-plane-selector:data-plane-selector-spi")))
+
 }
 
 publishing {

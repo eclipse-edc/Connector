@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.dataplane.selector.core;
 
 import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstanceStore;
-import org.eclipse.dataspaceconnector.dataplane.selector.store.DefaultDataPlaneInstanceStore;
+import org.eclipse.dataspaceconnector.dataplane.selector.store.InMemoryDataPlaneInstanceStore;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -35,6 +35,6 @@ public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtensi
 
     @Provider(isDefault = true)
     public DataPlaneInstanceStore instanceStore() {
-        return new DefaultDataPlaneInstanceStore();
+        return new InMemoryDataPlaneInstanceStore();
     }
 }

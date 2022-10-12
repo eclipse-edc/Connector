@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelectorServic
 import org.eclipse.dataspaceconnector.dataplane.selector.core.DataPlaneSelectorImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstanceImpl;
-import org.eclipse.dataspaceconnector.dataplane.selector.store.DefaultDataPlaneInstanceStore;
+import org.eclipse.dataspaceconnector.dataplane.selector.store.InMemoryDataPlaneInstanceStore;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategy;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategyRegistry;
@@ -58,7 +58,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
     public static final MediaType JSON_TYPE = MediaType.parse("application/json");
     private static int port;
     private static DataplaneSelectorApiController controller;
-    private static DefaultDataPlaneInstanceStore store;
+    private static InMemoryDataPlaneInstanceStore store;
     private static JettyConfiguration config;
     private static Monitor monitor;
     private final TypeReference<List<DataPlaneInstance>> listTypeRef = new TypeReference<>() {
@@ -82,7 +82,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
 
         selectionStrategyRegistry = new DefaultSelectionStrategyRegistry(); //in-memory
 
-        store = new DefaultDataPlaneInstanceStore();
+        store = new InMemoryDataPlaneInstanceStore();
         var selector = new DataPlaneSelectorImpl(store);
         var service = new DataPlaneSelectorServiceImpl(selector, store, selectionStrategyRegistry);
         controller = new DataplaneSelectorApiController(service);
