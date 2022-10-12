@@ -16,14 +16,12 @@
 package org.eclipse.dataspaceconnector.ids.core;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
 import org.eclipse.dataspaceconnector.ids.core.service.DynamicAttributeTokenServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.transform.IdsTransformerRegistryImpl;
-import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenService;
@@ -47,8 +45,8 @@ import java.util.List;
 /**
  * Implements the IDS Controller REST API.
  */
-@Provides({ IdsDescriptorService.class, CatalogService.class, ConnectorService.class,
-        IdsTransformerRegistry.class, DynamicAttributeTokenService.class })
+@Provides({ CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class,
+        DynamicAttributeTokenService.class })
 @Extension(value = IdsCoreServiceExtension.NAME)
 public class IdsCoreServiceExtension implements ServiceExtension {
 
@@ -108,8 +106,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         var connectorService = new ConnectorServiceImpl(monitor, connectorServiceSettings, dataCatalogService);
         context.registerService(ConnectorService.class, connectorService);
-
-        context.registerService(IdsDescriptorService.class, new IdsDescriptorServiceImpl());
 
         context.registerService(DynamicAttributeTokenService.class, new DynamicAttributeTokenServiceImpl(identityService));
     }
