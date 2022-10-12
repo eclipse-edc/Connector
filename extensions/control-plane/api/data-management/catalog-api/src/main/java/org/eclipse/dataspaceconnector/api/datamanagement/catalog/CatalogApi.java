@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.model.CatalogRequestDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -36,10 +37,11 @@ public interface CatalogApi {
     @Operation(responses = {
             @ApiResponse(content = @Content(mediaType = "application/json", schema = @Schema(implementation = Catalog.class)), description = "Gets contract offers (=catalog) of a single connector")
     }, deprecated = true)
+    @Deprecated
     void getCatalog(@NotNull(message = PROVIDER_URL_NOT_NULL_MESSAGE) String providerUrl, @Valid QuerySpecDto querySpec, AsyncResponse response);
 
     @Operation(responses = {
             @ApiResponse(content = @Content(mediaType = "application/json", schema = @Schema(implementation = Catalog.class)), description = "Gets contract offers (=catalog) of a single connector")
     })
-    void requestCatalog(@Valid @NotNull CatalogRequestDto requestDto, AsyncResponse response);
+    void requestCatalog(@Valid @NotNull CatalogRequestDto requestDto, @Suspended AsyncResponse response);
 }

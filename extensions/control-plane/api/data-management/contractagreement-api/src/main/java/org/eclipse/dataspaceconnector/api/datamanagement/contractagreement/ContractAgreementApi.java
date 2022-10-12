@@ -38,9 +38,20 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            }, deprecated = true
+    )
+    @Deprecated
+    List<ContractAgreementDto> getAllAgreements(@Valid QuerySpecDto querySpecDto);
+
+    @Operation(description = "Gets all contract agreements according to a particular query",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    List<ContractAgreementDto> getAllAgreements(@Valid QuerySpecDto querySpecDto);
+    List<ContractAgreementDto> queryAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract agreement with the given ID",
             responses = {

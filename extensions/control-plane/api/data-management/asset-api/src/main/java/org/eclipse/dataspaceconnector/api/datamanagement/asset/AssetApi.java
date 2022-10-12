@@ -51,8 +51,18 @@ public interface AssetApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            })
+            }, deprecated = true)
+    @Deprecated
     List<AssetResponseDto> getAllAssets(@Valid QuerySpecDto querySpecDto);
+
+    @Operation(description = " all assets according to a particular query",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetResponseDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            })
+    List<AssetResponseDto> requestAssets(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an asset with the given ID",
             responses = {

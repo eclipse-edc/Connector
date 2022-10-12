@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
@@ -61,28 +62,18 @@ public class TransferProcessApiController implements TransferProcessApi {
         this.transformerRegistry = transformerRegistry;
     }
 
+    @POST
+    @Path("/request")
+    @Override
+    public List<TransferProcessDto> queryAllTransferProcesses(@Valid QuerySpecDto querySpecDto) {
+        return queryTransferProcesses(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
+    }
+
     @GET
+    @Deprecated
     @Override
     public List<TransferProcessDto> getAllTransferProcesses(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
-
-        var spec = result.getContent();
-
-        var queryResult = service.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, TransferProcess.class, null);
-        }
-
-        try (var stream = queryResult.getContent()) {
-            return stream
-                    .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(Collectors.toList());
-        }
+        return queryTransferProcesses(querySpecDto);
     }
 
     @GET
@@ -153,6 +144,28 @@ public class TransferProcessApiController implements TransferProcessApi {
                     .build();
         } else {
             throw new InvalidRequestException(result.getFailureMessages());
+        }
+    }
+
+    private List<TransferProcessDto> queryTransferProcesses(QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            throw new InvalidRequestException(result.getFailureMessages());
+        }
+
+        var spec = result.getContent();
+
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, TransferProcess.class, null);
+        }
+
+        try (var stream = queryResult.getContent()) {
+            return stream
+                    .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(Collectors.toList());
         }
     }
 

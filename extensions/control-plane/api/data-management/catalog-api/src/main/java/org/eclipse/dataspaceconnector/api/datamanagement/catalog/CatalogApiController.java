@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
@@ -34,6 +33,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
+import static java.util.Optional.ofNullable;
+
 @Path("/catalog")
 @Produces({ MediaType.APPLICATION_JSON })
 public class CatalogApiController implements CatalogApi {
@@ -50,6 +51,7 @@ public class CatalogApiController implements CatalogApi {
 
     @Override
     @GET
+    @Deprecated
     public void getCatalog(@jakarta.validation.constraints.NotNull(message = PROVIDER_URL_NOT_NULL_MESSAGE) @QueryParam("providerUrl") String providerUrl, @Valid @BeanParam QuerySpecDto querySpecDto, @Suspended AsyncResponse response) {
 
         @NotNull QuerySpec spec;
@@ -70,9 +72,9 @@ public class CatalogApiController implements CatalogApi {
     @Override
     @POST
     @Path("/request")
-    public void requestCatalog(@RequestBody(required = true) CatalogRequestDto requestDto, @Suspended AsyncResponse response) {
-        var result = transformerRegistry.transform(requestDto, QuerySpec.class);
+    public void requestCatalog(@Valid @jakarta.validation.constraints.NotNull CatalogRequestDto requestDto, @Suspended AsyncResponse response) {
 
+        var result = transformerRegistry.transform(ofNullable(requestDto.getQuerySpec()).orElse(QuerySpecDto.Builder.newInstance().build()), QuerySpec.class);
         if (result.failed()) {
             throw new InvalidRequestException(result.getFailureMessages());
         }
