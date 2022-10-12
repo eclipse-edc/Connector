@@ -22,7 +22,7 @@ val googleCloudStorageVersion: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
 
     implementation("com.google.cloud:google-iam-admin:${googleCloudIamAdminVersion}")
     implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
