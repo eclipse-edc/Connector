@@ -14,12 +14,11 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.core.security.hashicorpvault.annotations.HashicorpVaultTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -30,8 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_TOKEN;
 import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_URL;
 
-@IntegrationTest
-@Tag("HashicorpVaultIntegrationTest")
+@HashicorpVaultTest
 @ExtendWith(EdcExtension.class)
 class HashicorpVaultIntegrationTest {
     private static final String VAULT_TEST_URL = "http://127.0.0.1:8200";

@@ -14,16 +14,17 @@
 
 package org.eclipse.dataspaceconnector.system.tests.remote;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.system.tests.remote.annotations.MinikubeIntegrationTest;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
 
+
 /**
  * Runs {@see FileTransferAsClientSimulation}.
  */
-@IntegrationTest
+@MinikubeIntegrationTest
 public class FileTransferAsClientIntegrationTest {
 
     @Test
