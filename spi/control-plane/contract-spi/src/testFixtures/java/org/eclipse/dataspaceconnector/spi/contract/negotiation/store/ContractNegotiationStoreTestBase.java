@@ -516,28 +516,6 @@ public abstract class ContractNegotiationStoreTestBase {
     }
 
     @Test
-    void getAgreementsForDefinitionId() {
-        var contractAgreement = TestFunctions.createContract(ContractId.createContractId("definitionId"));
-        var negotiation = TestFunctions.createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-        getContractNegotiationStore().save(negotiation);
-
-        var result = getContractNegotiationStore().getAgreementsForDefinitionId("definitionId");
-
-        assertThat(result).hasSize(1);
-    }
-
-    @Test
-    void getAgreementsForDefinitionId_notFound() {
-        var contractAgreement = TestFunctions.createContract(ContractId.createContractId("otherDefinitionId"));
-        var negotiation = TestFunctions.createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-        getContractNegotiationStore().save(negotiation);
-
-        var result = getContractNegotiationStore().getAgreementsForDefinitionId("definitionId");
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void queryAgreements_noQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = TestFunctions.createContract(ContractId.createContractId(UUID.randomUUID().toString()));

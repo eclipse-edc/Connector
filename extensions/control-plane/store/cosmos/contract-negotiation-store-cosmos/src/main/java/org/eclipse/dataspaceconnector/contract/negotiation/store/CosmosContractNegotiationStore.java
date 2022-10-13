@@ -152,17 +152,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
-        var query = "SELECT * FROM c WHERE c.wrappedInstance.contractAgreement.id LIKE @agreementId";
-        var param = new SqlParameter("@agreementId", definitionId + ":%");
-
-        var spec = new SqlQuerySpec(query, param);
-        return with(retryPolicy).get(() -> cosmosDbApi.queryItems(spec))
-                .map(this::toNegotiation)
-                .map(ContractNegotiation::getContractAgreement);
-    }
-
-    @Override
     public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
         var criteria = querySpec.getFilterExpression().stream()
                 .map(it -> it.withLeftOperand(op -> "contractAgreement." + op))

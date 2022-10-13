@@ -460,28 +460,6 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     }
 
     @Test
-    void getAgreementsForDefinitionId() {
-        var contractAgreement = createContractBuilder().id(ContractId.createContractId("definitionId")).build();
-        var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-        store.save(negotiation);
-
-        var result = store.getAgreementsForDefinitionId("definitionId");
-
-        assertThat(result).hasSize(1);
-    }
-
-    @Test
-    void getAgreementsForDefinitionId_notFound() {
-        var contractAgreement = createContractBuilder().id(ContractId.createContractId("otherDefinitionId")).build();
-        var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-        store.save(negotiation);
-
-        var result = store.getAgreementsForDefinitionId("definitionId");
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void queryAgreements_noQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();

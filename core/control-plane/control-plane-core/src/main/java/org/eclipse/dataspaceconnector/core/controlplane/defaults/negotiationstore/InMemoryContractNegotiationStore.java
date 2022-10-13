@@ -92,10 +92,6 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
         return negotiationQueryResolver.query(store.findAll(), querySpec);
     }
 
-    @Override
-    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
-        return getAgreements().filter(it -> it.getId().startsWith(definitionId + ":"));
-    }
 
     @Override
     public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
