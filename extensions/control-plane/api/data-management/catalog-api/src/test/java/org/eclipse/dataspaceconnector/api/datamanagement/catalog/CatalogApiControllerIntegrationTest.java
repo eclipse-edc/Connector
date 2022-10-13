@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.model.CatalogRequestDto;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
@@ -131,17 +132,19 @@ public class CatalogApiControllerIntegrationTest {
                 .thenReturn(completedFuture(emptyCatalog));
 
         var requestDto = CatalogRequestDto.Builder.newInstance()
-                .limit(29)
-                .offset(13)
-                .sortField("someField")
-                .sortOrder(SortOrder.DESC)
+                .querySpec(QuerySpecDto.Builder.newInstance()
+                        .limit(29)
+                        .offset(13)
+                        .filterExpression(List.of(createCriterionDto("fooProp", "", "bar"), createCriterionDto("bazProp", "in", List.of("blip", "blup", "blop"))))
+                        .sortField("someField")
+                        .sortOrder(SortOrder.DESC).build())
                 .providerUrl("some.provider.url")
-                .filter(List.of(createCriterionDto("fooProp", "", "bar"), createCriterionDto("bazProp", "in", List.of("blip", "blup", "blop"))))
+
                 .build();
 
         baseRequest()
+                .contentType(JSON)
                 .body(requestDto)
-                .contentType("application/json")
                 .post("/catalog/request")
                 .then()
                 .statusCode(200)
@@ -151,12 +154,14 @@ public class CatalogApiControllerIntegrationTest {
         var requestCaptor = ArgumentCaptor.forClass(CatalogRequest.class);
         verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture(), any(MessageContext.class));
         var rq = requestCaptor.getValue().getQuerySpec();
-        assertThat(rq.getOffset()).isEqualTo(requestDto.getOffset());
-        assertThat(rq.getLimit()).isEqualTo(requestDto.getLimit());
-        assertThat(rq.getSortField()).isEqualTo(requestDto.getSortField());
-        assertThat(rq.getSortOrder()).isEqualTo(requestDto.getSortOrder());
+
+        var query = requestDto.getQuerySpec();
+        assertThat(rq.getOffset()).isEqualTo(query.getOffset());
+        assertThat(rq.getLimit()).isEqualTo(query.getLimit());
+        assertThat(rq.getSortField()).isEqualTo(query.getSortField());
+        assertThat(rq.getSortOrder()).isEqualTo(query.getSortOrder());
         // technically we're comparing a Criterion and a CriterionDto, but they have the same fields, so recursive comp. works
-        assertThat(rq.getFilterExpression()).usingRecursiveFieldByFieldElementComparator().isEqualTo(requestDto.getFilter());
+        assertThat(rq.getFilterExpression()).usingRecursiveFieldByFieldElementComparator().isEqualTo(query.getFilterExpression());
     }
 
     @Test

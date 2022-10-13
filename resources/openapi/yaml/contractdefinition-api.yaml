@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /contractdefinitions:
     get:
+      deprecated: true
       description: Returns all contract definitions according to a query
       operationId: getAllContractDefinitions
       parameters:
@@ -81,6 +82,33 @@ paths:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Could not create contract definition, because a contract definition\
             \ with that ID already exists"
+      tags:
+      - Contract Definition
+  /contractdefinitions/request:
+    post:
+      description: Returns all contract definitions according to a query
+      operationId: queryAllContractDefinitions
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractDefinitionResponseDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request was malformed
       tags:
       - Contract Definition
   /contractdefinitions/{id}:
@@ -217,3 +245,25 @@ components:
           format: int64
         id:
           type: string
+    QuerySpecDto:
+      type: object
+      properties:
+        filter:
+          type: string
+        filterExpression:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC

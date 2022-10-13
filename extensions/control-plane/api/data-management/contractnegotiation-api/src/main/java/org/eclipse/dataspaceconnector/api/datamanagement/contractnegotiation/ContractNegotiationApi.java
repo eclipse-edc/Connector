@@ -43,9 +43,20 @@ public interface ContractNegotiationApi {
                     @ApiResponse(responseCode = "200",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
+            deprecated = true
+    )
+    @Deprecated
+    List<ContractNegotiationDto> getNegotiations(@Valid QuerySpecDto querySpecDto);
+
+    @Operation(description = "Returns all contract negotiations according to a query",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<ContractNegotiationDto> getNegotiations(@Valid QuerySpecDto querySpecDto);
+    List<ContractNegotiationDto> queryNegotiations(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract negotiation with the given ID",
             responses = {

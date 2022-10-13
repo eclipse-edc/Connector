@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -33,12 +34,14 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
@@ -56,7 +59,34 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
     @GET
     @Override
+    @Deprecated
     public List<ContractAgreementDto> getAllAgreements(@Valid @BeanParam QuerySpecDto querySpecDto) {
+        return queryContractAgreements(querySpecDto);
+    }
+
+    @POST
+    @Path("/request")
+    @Override
+    public List<ContractAgreementDto> queryAllAgreements(@Valid QuerySpecDto querySpecDto) {
+        return queryContractAgreements(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
+    }
+
+    @GET
+    @Path("{id}")
+    @Override
+    public ContractAgreementDto getContractAgreement(@PathParam("id") String id) {
+        monitor.debug(format("get contract agreement with ID %s", id));
+
+        return Optional.of(id)
+                .map(service::findById)
+                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
+    }
+
+    @NotNull
+    private List<ContractAgreementDto> queryContractAgreements(QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
             throw new InvalidRequestException(result.getFailureMessages());
@@ -80,20 +110,6 @@ public class ContractAgreementApiController implements ContractAgreementApi {
                     .map(Result::getContent)
                     .collect(Collectors.toList());
         }
-    }
-
-    @GET
-    @Path("{id}")
-    @Override
-    public ContractAgreementDto getContractAgreement(@PathParam("id") String id) {
-        monitor.debug(format("get contract agreement with ID %s", id));
-
-        return Optional.of(id)
-                .map(service::findById)
-                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }
 
 

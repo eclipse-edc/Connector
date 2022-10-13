@@ -104,6 +104,44 @@ class TransferProcessApiControllerTest {
     }
 
     @Test
+    void queryAll() {
+        var transferProcess = transferProcess();
+        var dto = transferProcessDto(transferProcess);
+        when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
+
+        var transferProcesses = controller.queryAllTransferProcesses(querySpec);
+
+        assertThat(transferProcesses).containsExactly(dto);
+        verify(service).query(argThat(s -> s.getOffset() == 10));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
+    }
+
+    @Test
+    void queryAll_filtersOutFailedTransforms() {
+        var transferProcess = transferProcess();
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.failure("failure"));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
+
+        var transferProcesses = controller.queryAllTransferProcesses(QuerySpecDto.Builder.newInstance().build());
+
+        assertThat(transferProcesses).isEmpty();
+    }
+
+    @Test
+    void queryAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.queryAllTransferProcesses(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
     void getById() {
         String id = "tp-id";
         var transferProcess = transferProcess(id);

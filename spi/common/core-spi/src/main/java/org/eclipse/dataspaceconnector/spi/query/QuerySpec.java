@@ -174,6 +174,7 @@ public class QuerySpec {
             return this;
         }
 
+        @Deprecated
         public Builder filter(String filterExpression) {
 
             if (filterExpression != null) {

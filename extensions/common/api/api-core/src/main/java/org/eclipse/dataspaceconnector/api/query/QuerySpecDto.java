@@ -14,12 +14,21 @@
 
 package org.eclipse.dataspaceconnector.api.query;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.ws.rs.QueryParam;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@JsonDeserialize(builder = QuerySpecDto.Builder.class)
 public class QuerySpecDto {
 
     @QueryParam("offset")
@@ -31,17 +40,16 @@ public class QuerySpecDto {
     private Integer limit = 50;
 
     @QueryParam("filter")
+    @Deprecated
     private String filter;
+
+    private List<CriterionDto> filterExpression = new ArrayList<>();
 
     @QueryParam("sort")
     private SortOrder sortOrder = SortOrder.ASC;
 
     @QueryParam("sortField")
     private String sortField;
-
-    public QuerySpecDto() {
-
-    }
 
     public Integer getOffset() {
         return offset;
@@ -51,6 +59,7 @@ public class QuerySpecDto {
         return limit;
     }
 
+    @Deprecated
     public String getFilter() {
         return filter;
     }
@@ -63,6 +72,7 @@ public class QuerySpecDto {
         return sortField;
     }
 
+    @JsonIgnore
     @AssertTrue
     public boolean isValid() {
         if (filter != null && filter.isBlank()) {
@@ -72,6 +82,11 @@ public class QuerySpecDto {
         return sortField == null || !sortField.isBlank();
     }
 
+    public List<CriterionDto> getFilterExpression() {
+        return filterExpression;
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private final QuerySpecDto querySpec;
 
@@ -79,6 +94,7 @@ public class QuerySpecDto {
             querySpec = new QuerySpecDto();
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
@@ -103,8 +119,14 @@ public class QuerySpecDto {
             return this;
         }
 
+        @Deprecated
         public Builder filter(String filter) {
             querySpec.filter = filter;
+            return this;
+        }
+
+        public Builder filterExpression(List<CriterionDto> filterExpression) {
+            querySpec.filterExpression = filterExpression;
             return this;
         }
 

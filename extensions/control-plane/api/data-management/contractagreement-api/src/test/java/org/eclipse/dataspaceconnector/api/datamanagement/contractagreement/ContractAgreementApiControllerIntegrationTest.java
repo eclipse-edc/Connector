@@ -16,6 +16,8 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -26,12 +28,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.spi.query.SortOrder.ASC;
 import static org.hamcrest.CoreMatchers.is;
 
 @ExtendWith(EdcExtension.class)
@@ -81,6 +85,47 @@ public class ContractAgreementApiControllerIntegrationTest {
                 .get("/contractagreements?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void queryAllContractAgreements(ContractNegotiationStore store) {
+        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/contractagreements/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAllContractAgreements_withPaging(ContractNegotiationStore store) {
+        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().offset(0).limit(15).sortOrder(ASC).build())
+                .post("/contractagreements/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", Matchers.is(1));
+    }
+
+    @Test
+    void queryAllContractAgreements_withFilter(ContractNegotiationStore store) {
+        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().filterExpression(List.of(CriterionDto.from("id", "=", "agreementId"))).build())
+                .post("/contractagreements/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", Matchers.is(1));
     }
 
     @Test

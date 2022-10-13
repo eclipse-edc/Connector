@@ -40,9 +40,20 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            }, deprecated = true
+    )
+    @Deprecated
+    List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid QuerySpecDto querySpecDto);
+
+    @Operation(description = "Returns all contract definitions according to a query",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionResponseDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid QuerySpecDto querySpecDto);
+    List<ContractDefinitionResponseDto> queryAllContractDefinitions(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {

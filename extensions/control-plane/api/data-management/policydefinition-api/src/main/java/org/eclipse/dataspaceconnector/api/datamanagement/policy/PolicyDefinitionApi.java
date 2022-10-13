@@ -40,6 +40,16 @@ public interface PolicyDefinitionApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
+    List<PolicyDefinitionResponseDto> queryAllPolicies(@Valid QuerySpecDto querySpecDto);
+
+    @Operation(description = "Returns all policy definitions according to a query",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
+            deprecated = true
+    )
+    @Deprecated
     List<PolicyDefinitionResponseDto> getAllPolicies(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",

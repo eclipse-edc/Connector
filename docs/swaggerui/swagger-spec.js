@@ -100,7 +100,8 @@ window.swaggerSpec={
               }
             }
           }
-        }
+        },
+        "deprecated" : true
       },
       "post" : {
         "tags" : [ "Policy" ],
@@ -141,6 +142,49 @@ window.swaggerSpec={
           },
           "409" : {
             "description" : "Could not create policy definition, because a contract definition with that ID already exists",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/policydefinitions/request" : {
+      "post" : {
+        "tags" : [ "Policy" ],
+        "description" : "Returns all policy definitions according to a query",
+        "operationId" : "queryAllPolicies",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PolicyDefinitionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -530,7 +574,8 @@ window.swaggerSpec={
               }
             }
           }
-        }
+        },
+        "deprecated" : true
       },
       "post" : {
         "tags" : [ "Contract Negotiation" ],
@@ -566,6 +611,49 @@ window.swaggerSpec={
           },
           "400" : {
             "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractnegotiations/request" : {
+      "post" : {
+        "tags" : [ "Contract Negotiation" ],
+        "description" : "Returns all contract negotiations according to a query",
+        "operationId" : "queryNegotiations",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractNegotiationDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1088,6 +1176,50 @@ window.swaggerSpec={
               }
             }
           }
+        },
+        "deprecated" : true
+      }
+    },
+    "/contractagreements/request" : {
+      "post" : {
+        "tags" : [ "Contract Agreement" ],
+        "description" : "Gets all contract agreements according to a particular query",
+        "operationId" : "queryAllAgreements",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractAgreementDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1226,7 +1358,8 @@ window.swaggerSpec={
               }
             }
           }
-        }
+        },
+        "deprecated" : true
       },
       "post" : {
         "tags" : [ "Contract Definition" ],
@@ -1267,6 +1400,49 @@ window.swaggerSpec={
           },
           "409" : {
             "description" : "Could not create contract definition, because a contract definition with that ID already exists",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractdefinitions/request" : {
+      "post" : {
+        "tags" : [ "Contract Definition" ],
+        "description" : "Returns all contract definitions according to a query",
+        "operationId" : "queryAllContractDefinitions",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1633,7 +1809,8 @@ window.swaggerSpec={
               }
             }
           }
-        }
+        },
+        "deprecated" : true
       },
       "post" : {
         "tags" : [ "Transfer Process" ],
@@ -1669,6 +1846,49 @@ window.swaggerSpec={
           },
           "400" : {
             "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess/request" : {
+      "post" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Returns all transfer process according to a query",
+        "operationId" : "queryAllTransferProcesses",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TransferProcessDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1979,7 +2199,8 @@ window.swaggerSpec={
               }
             }
           }
-        }
+        },
+        "deprecated" : true
       },
       "post" : {
         "tags" : [ "Asset" ],
@@ -2020,6 +2241,49 @@ window.swaggerSpec={
           },
           "409" : {
             "description" : "Could not create asset, because an asset with that ID already exists",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets/request" : {
+      "post" : {
+        "tags" : [ "Asset" ],
+        "description" : " all assets according to a particular query",
+        "operationId" : "requestAssets",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AssetResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request body was malformed",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -2263,29 +2527,11 @@ window.swaggerSpec={
         "required" : [ "providerUrl" ],
         "type" : "object",
         "properties" : {
-          "filter" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/CriterionDto"
-            }
-          },
-          "limit" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "offset" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
           "providerUrl" : {
             "type" : "string"
           },
-          "sortField" : {
-            "type" : "string"
-          },
-          "sortOrder" : {
-            "type" : "string",
-            "enum" : [ "ASC", "DESC" ]
+          "querySpec" : {
+            "$ref" : "#/components/schemas/QuerySpecDto"
           }
         }
       },
@@ -2894,6 +3140,35 @@ window.swaggerSpec={
           },
           "resourceName" : {
             "type" : "string"
+          }
+        }
+      },
+      "QuerySpecDto" : {
+        "type" : "object",
+        "properties" : {
+          "filter" : {
+            "type" : "string"
+          },
+          "filterExpression" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CriterionDto"
+            }
+          },
+          "limit" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "offset" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sortField" : {
+            "type" : "string"
+          },
+          "sortOrder" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ]
           }
         }
       },

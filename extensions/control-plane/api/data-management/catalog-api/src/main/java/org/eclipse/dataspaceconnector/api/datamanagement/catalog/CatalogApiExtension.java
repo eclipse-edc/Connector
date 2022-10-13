@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogServiceImpl;
-import org.eclipse.dataspaceconnector.api.datamanagement.catalog.transform.CatalogRequestDtoToQuerySpecTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
@@ -47,7 +46,6 @@ public class CatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        transformerRegistry.register(new CatalogRequestDtoToQuerySpecTransformer());
         var service = new CatalogServiceImpl(dispatcher);
         webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, context.getMonitor()));
     }

@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -25,7 +27,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -78,6 +82,51 @@ class TransferProcessApiControllerIntegrationTest {
                 .then()
                 .statusCode(400);
     }
+
+
+    @Test
+    void queryAllTransferProcesses(TransferProcessStore store) {
+        store.create(createTransferProcess(PROCESS_ID));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/transferprocess/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAllTransferProcesses_withPaging(TransferProcessStore store) {
+        IntStream.range(0, 10)
+                .forEach(i -> store.create(createTransferProcess(PROCESS_ID + i)));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().limit(5).offset(3).build())
+                .post("/transferprocess/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(5));
+    }
+
+    @Test
+    void queryAllTransferProcesses_withFilter(TransferProcessStore store) {
+        IntStream.range(0, 10)
+                .forEach(i -> store.create(createTransferProcess(PROCESS_ID + i)));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().filterExpression(List.of(CriterionDto.from("id", "in", List.of(PROCESS_ID + 1, PROCESS_ID + 2)))).build())
+                .post("/transferprocess/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(2));
+    }
+
 
     @Test
     void getSingleTransferProcess(TransferProcessStore store) {

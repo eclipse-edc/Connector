@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /policydefinitions:
     get:
+      deprecated: true
       description: Returns all policy definitions according to a query
       operationId: getAllPolicies
       parameters:
@@ -81,6 +82,33 @@ paths:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Could not create policy definition, because a contract definition\
             \ with that ID already exists"
+      tags:
+      - Policy
+  /policydefinitions/request:
+    post:
+      description: Returns all policy definitions according to a query
+      operationId: queryAllPolicies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request was malformed
       tags:
       - Policy
   /policydefinitions/{id}:
@@ -192,6 +220,18 @@ components:
           type: string
       required:
       - edctype
+    CriterionDto:
+      type: object
+      properties:
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      required:
+      - operandLeft
+      - operator
     Duty:
       type: object
       properties:
@@ -313,3 +353,25 @@ components:
           type: string
         uid:
           type: string
+    QuerySpecDto:
+      type: object
+      properties:
+        filter:
+          type: string
+        filterExpression:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC

@@ -19,10 +19,13 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -32,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -94,6 +98,53 @@ public class AssetApiControllerIntegrationTest {
                 .get("/assets?limit=0&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void queryAllAssets(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/assets/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAllAssetsQuery(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().limit(1).offset(0).filterExpression(List.of(CriterionDto.from("asset:prop:id", "=", "id"))).sortOrder(SortOrder.DESC).sortField("properties.asset:prop:id"))
+                .post("/assets/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAll_noResults(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().limit(1).offset(0).filterExpression(List.of(CriterionDto.from("asset:prop:id", "=", "notexist"))).sortOrder(SortOrder.DESC).sortField("properties.asset:prop:id"))
+                .post("/assets/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
     }
 
     @Test

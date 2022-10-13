@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /contractagreements:
     get:
+      deprecated: true
       description: Gets all contract agreements according to a particular query
       operationId: getAllAgreements
       parameters:
@@ -30,6 +31,33 @@ paths:
         name: sortField
         schema:
           type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractAgreementDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+      tags:
+      - Contract Agreement
+  /contractagreements/request:
+    post:
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAllAgreements
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
           content:
@@ -142,6 +170,18 @@ components:
       - id
       - policy
       - providerAgentId
+    CriterionDto:
+      type: object
+      properties:
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      required:
+      - operandLeft
+      - operator
     Duty:
       type: object
       properties:
@@ -234,3 +274,25 @@ components:
           type: string
         uid:
           type: string
+    QuerySpecDto:
+      type: object
+      properties:
+        filter:
+          type: string
+        filterExpression:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC

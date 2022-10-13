@@ -14,11 +14,18 @@
 
 package org.eclipse.dataspaceconnector.api.transformer;
 
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QuerySpecDto, QuerySpec> {
 
@@ -33,13 +40,35 @@ public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QueryS
     }
 
     @Override
-    public @Nullable QuerySpec transform(@Nullable QuerySpecDto object, @NotNull TransformerContext context) {
-        return QuerySpec.Builder.newInstance()
-                .limit(object.getLimit())
-                .offset(object.getOffset())
-                .filter(object.getFilter())
-                .sortField(object.getSortField())
-                .sortOrder(object.getSortOrder())
-                .build();
+    public @Nullable QuerySpec transform(@Nullable QuerySpecDto query, @NotNull TransformerContext context) {
+        var builder = QuerySpec.Builder.newInstance()
+                .limit(query.getLimit())
+                .offset(query.getOffset())
+                .sortField(query.getSortField())
+                .sortOrder(query.getSortOrder());
+
+        // use filter string
+        builder.filter(query.getFilter());
+
+        // overwrite with filter expression, if present
+        if (!query.getFilterExpression().isEmpty()) {
+            var result = transformFilter(query.getFilterExpression(), context);
+            if (result.succeeded()) {
+                builder.filter(result.getContent());
+            } else {
+                context.reportProblem(result.getFailureDetail());
+                return null;
+            }
+        }
+        return builder.build();
+    }
+
+    private Result<List<Criterion>> transformFilter(List<CriterionDto> filterExpression, TransformerContext context) {
+        var transformed = filterExpression.stream()
+                .map(dto -> context.transform(dto, Criterion.class))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return transformed.size() == filterExpression.size() ? Result.success(transformed) : Result.failure("Some elements could not be transformed");
     }
 }

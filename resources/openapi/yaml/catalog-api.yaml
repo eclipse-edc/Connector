@@ -97,25 +97,10 @@ components:
     CatalogRequestDto:
       type: object
       properties:
-        filter:
-          type: array
-          items:
-            $ref: '#/components/schemas/CriterionDto'
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
         providerUrl:
           type: string
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
+        querySpec:
+          $ref: '#/components/schemas/QuerySpecDto'
       required:
       - providerUrl
     Constraint:
@@ -258,3 +243,25 @@ components:
           type: string
         uid:
           type: string
+    QuerySpecDto:
+      type: object
+      properties:
+        filter:
+          type: string
+        filterExpression:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC

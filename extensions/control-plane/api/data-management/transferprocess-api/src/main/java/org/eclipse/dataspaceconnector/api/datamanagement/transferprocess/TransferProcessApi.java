@@ -43,6 +43,17 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
+    List<TransferProcessDto> queryAllTransferProcesses(@Valid QuerySpecDto querySpecDto);
+
+    @Operation(description = "Returns all transfer process according to a query",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = TransferProcessDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
+            deprecated = true
+    )
+    @Deprecated
     List<TransferProcessDto> getAllTransferProcesses(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an transfer process with the given ID",

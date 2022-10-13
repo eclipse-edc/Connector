@@ -31,6 +31,16 @@ public class CriterionDto {
 
     }
 
+    /**
+     * Utility method to easily create a CriterionDto that wraps the builder
+     */
+    public static CriterionDto from(Object left, String op, Object right) {
+        return CriterionDto.Builder.newInstance().operandLeft(left)
+                .operator(op)
+                .operandRight(right)
+                .build();
+    }
+
     public Object getOperandLeft() {
         return operandLeft;
     }

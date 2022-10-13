@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
@@ -93,29 +94,16 @@ public class AssetApiController implements AssetApi {
 
     @GET
     @Override
+    @Deprecated
     public List<AssetResponseDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (transformationResult.failed()) {
-            throw new InvalidRequestException(transformationResult.getFailureMessages());
-        }
+        return queryAssets(querySpecDto);
+    }
 
-        var spec = transformationResult.getContent();
-
-        monitor.debug(format("get all Assets from %s", spec));
-
-        var queryResult = service.query(spec);
-
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, QuerySpec.class, null);
-        }
-
-        try (var assets = queryResult.getContent()) {
-            return assets
-                    .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(toList());
-        }
+    @POST
+    @Override
+    @Path("/request")
+    public List<AssetResponseDto> requestAssets(@Valid QuerySpecDto querySpecDto) {
+        return queryAssets(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
     }
 
     @GET
@@ -141,6 +129,31 @@ public class AssetApiController implements AssetApi {
             monitor.debug(format("Asset deleted %s", id));
         } else {
             throw mapToException(result, Asset.class, id);
+        }
+    }
+
+    private List<AssetResponseDto> queryAssets(QuerySpecDto querySpecDto) {
+        var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (transformationResult.failed()) {
+            throw new InvalidRequestException(transformationResult.getFailureMessages());
+        }
+
+        var spec = transformationResult.getContent();
+
+        monitor.debug(format("get all Assets from %s", spec));
+
+        var queryResult = service.query(spec);
+
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, QuerySpec.class, null);
+        }
+
+        try (var assets = queryResult.getContent()) {
+            return assets
+                    .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(toList());
         }
     }
 }

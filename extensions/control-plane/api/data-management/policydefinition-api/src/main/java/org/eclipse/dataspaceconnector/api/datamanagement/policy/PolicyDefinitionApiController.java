@@ -44,6 +44,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
@@ -61,30 +62,18 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         this.transformerRegistry = transformerRegistry;
     }
 
+    @POST
+    @Path("/request")
+    @Override
+    public List<PolicyDefinitionResponseDto> queryAllPolicies(@Valid QuerySpecDto querySpecDto) {
+        return queryPolicies(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
+    }
+
     @GET
     @Override
+    @Deprecated
     public List<PolicyDefinitionResponseDto> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
-
-        var spec = result.getContent();
-
-        monitor.debug(format("get all policies %s", spec));
-
-        var queryResult = policyDefinitionService.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, PolicyDefinition.class, null);
-        }
-
-        try (var stream = queryResult.getContent()) {
-            return stream
-                    .map(it -> transformerRegistry.transform(it, PolicyDefinitionResponseDto.class))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(Collectors.toList());
-        }
+        return queryPolicies(querySpecDto);
     }
 
     @GET
@@ -133,6 +122,30 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
             monitor.debug(format("Policy deleted %s", id));
         } else {
             throw mapToException(result, PolicyDefinition.class, id);
+        }
+    }
+
+    private List<PolicyDefinitionResponseDto> queryPolicies(QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            throw new InvalidRequestException(result.getFailureMessages());
+        }
+
+        var spec = result.getContent();
+
+        monitor.debug(format("get all policies %s", spec));
+
+        var queryResult = policyDefinitionService.query(spec);
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, PolicyDefinition.class, null);
+        }
+
+        try (var stream = queryResult.getContent()) {
+            return stream
+                    .map(it -> transformerRegistry.transform(it, PolicyDefinitionResponseDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(Collectors.toList());
         }
     }
 
