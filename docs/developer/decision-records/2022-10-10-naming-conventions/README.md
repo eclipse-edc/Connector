@@ -41,7 +41,7 @@ The EDC project has checks in place to make sure module IDs are unique.
 
 In addition, the _module name_ should give a hint what is in the module, without being too verbose. The
 earlier example would be a bad one, because "transfer-process" does not indicate what the contents could
-be. This is especially important because Maven's _artifactId_ must be equal to module names.
+be. This is especially important because we require the Maven's _artifactId_ to be equal to module names.
 
 Here are some bad examples:
 - `:core:common:transfer-process:validation`: bad because "validation" is likely to be not unique and isolated it only indicates that it has to do with validation, but not in _what context_.
@@ -53,7 +53,7 @@ Refactoring these bad examples, we could arrive at these:
 
 > Rule 2: Module names should indicate what the contents are.
 
-> Rule 3: Module names must be identical to the Maven artifactId (published one).
+> Rule 3: Module names must be identical to the Maven artifactId (if one is published).
 
 ### Maven artifactId
 
@@ -70,7 +70,7 @@ Following Oracle's [Java package naming conventions](https://docs.oracle.com/jav
 EDC's base package name is `org.eclipse.edc`, followed by domain and then function. For example, the
 Policy SPI should be located at `org.eclipse.edc.policy.spi` rather than `org.eclipse.edc.spi.policy`.
 Here, `policy` is the "domain", i.e. the thematic context, and `spi` would be the "function", i.e. what
-kind of package it is or: what purpose it serves.
+kind of package it is or what purpose it serves.
 
 The module name could be a helpful reference for the package name, replacing dashes with dots.
 
