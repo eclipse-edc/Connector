@@ -14,34 +14,94 @@
 
 package org.eclipse.dataspaceconnector.gcp.dataplane.gcs;
 
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.StorageOptions;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpAccessToken;
+import org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema;
+import org.eclipse.dataspaceconnector.gcp.dataplane.gcs.validation.GcsSinkDataAddressValidationRule;
+import org.eclipse.dataspaceconnector.gcp.dataplane.gcs.validation.ValidationRule;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 
 public class GcsDataSinkFactory implements DataSinkFactory {
+    private final ValidationRule<DataAddress> validation = new GcsSinkDataAddressValidationRule();
+    private final ExecutorService executorService;
+    private final Monitor monitor;
+    private final Vault vault;
+    private final TypeManager typeManager;
+    private final String projectId;
+
     public GcsDataSinkFactory(ExecutorService executorService, Monitor monitor, Vault vault, TypeManager typeManager, String projectId) {
+        this.executorService = executorService;
+        this.monitor = monitor;
+        this.vault = vault;
+        this.typeManager = typeManager;
+        this.projectId = projectId;
     }
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return false;
+        return GcsStoreSchema.TYPE.equals(request.getDestinationDataAddress().getType());
     }
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
-        return null;
+        var destination = request.getDestinationDataAddress();
+        return validation.apply(destination).map(it -> true);
     }
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        return null;
+        var validationResult = validate(request);
+        if (validationResult.failed()) {
+            throw new EdcException(String.join(", ", validationResult.getFailureMessages()));
+        }
+
+        //Get credential from the token if it exists otherwise use the default credentials of the system.
+        var destination = request.getDestinationDataAddress();
+
+        GoogleCredentials googleCredentials;
+
+        if (destination.getKeyName() != null && !destination.getKeyName().isEmpty()) {
+            var credentialsContent = vault.resolveSecret(destination.getKeyName());
+            var gcsAccessToken = typeManager.readValue(credentialsContent, GcpAccessToken.class);
+            googleCredentials = GoogleCredentials.create(
+                    new AccessToken(gcsAccessToken.getToken(),
+                            new Date(gcsAccessToken.getExpiration()))
+            );
+        } else {
+            try {
+                googleCredentials = GoogleCredentials.getApplicationDefault();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        var storageClient = StorageOptions.newBuilder()
+                .setProjectId(projectId)
+                .setCredentials(googleCredentials)
+                .build().getService();
+
+        return GcsDataSink.Builder.newInstance()
+                .storageClient(storageClient)
+                .bucketName(destination.getProperty(GcsStoreSchema.BUCKET_NAME))
+                .blobName(destination.getProperty(GcsStoreSchema.BLOB_NAME))
+                .requestId(request.getId())
+                .executorService(executorService)
+                .monitor(monitor)
+                .build();
     }
 }

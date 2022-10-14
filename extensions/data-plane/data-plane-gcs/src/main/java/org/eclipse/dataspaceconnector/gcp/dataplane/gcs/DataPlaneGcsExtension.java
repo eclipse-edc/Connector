@@ -49,11 +49,8 @@ public class DataPlaneGcsExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var executorService = Executors.newFixedThreadPool(10);
-
         var monitor = context.getMonitor();
-
         var projectId = context.getConfig().getString(GCP_PROJECT_ID);
-
 
         var sourceFactory = new GcsDataSourceFactory(monitor, projectId);
         pipelineService.registerFactory(sourceFactory);

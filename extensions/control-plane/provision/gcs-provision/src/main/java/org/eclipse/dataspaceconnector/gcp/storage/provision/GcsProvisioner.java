@@ -125,7 +125,7 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
         return iamService.createAccessToken(serviceAccount);
     }
 
-    private GcsProvisionedResource getProvisionedResource(GcsResourceDefinition resourceDefinition, String resourceName, String bucketName,GcpServiceAccount serviceAccount) {
+    private GcsProvisionedResource getProvisionedResource(GcsResourceDefinition resourceDefinition, String resourceName, String bucketName, GcpServiceAccount serviceAccount) {
         return GcsProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getId())
                 .resourceDefinitionId(resourceDefinition.getId())

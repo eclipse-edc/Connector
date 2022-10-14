@@ -14,21 +14,78 @@
 
 package org.eclipse.dataspaceconnector.gcp.dataplane.gcs;
 
+import org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class GcsDataSourceFactoryTest {
 
+    Monitor monitor = mock(Monitor.class);
+    String projectId = TestFunctions.createProjectId();
+    private final GcsDataSourceFactory factory =
+            new GcsDataSourceFactory(monitor, projectId);
+
     @Test
-    void canHandle() {
+    void canHandle_returnsTrueWhenExpectedType() {
+        var dataAddress = TestFunctions.createDataAddress(GcsStoreSchema.TYPE)
+                .build();
+        var result = factory.canHandle(TestFunctions.createRequest(dataAddress));
+
+        assertThat(result).isTrue();
     }
 
     @Test
-    void validate() {
+    void canHandle_returnsFalseWhenUnexpectedType() {
+        var dataAddress = TestFunctions.createDataAddress("Not Google Storage")
+                .build();
+
+        var result = factory.canHandle(TestFunctions.createRequest(dataAddress));
+
+        assertThat(result).isFalse();
     }
 
     @Test
-    void createSource() {
+    void validate_ShouldSucceedIfPropertiesAreValid() {
+        var source = TestFunctions.createDataAddress(GcsStoreSchema.TYPE)
+                .property(GcsStoreSchema.BUCKET_NAME, "validBucketName")
+                .property(GcsStoreSchema.BLOB_NAME, "validBlobName")
+                .build();
+
+        var request = TestFunctions.createRequest(source);
+
+        var result = factory.validate(request);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidInputs")
+    void validate_shouldFailIfPropertiesAreMissing(String bucketName, String blobName) {
+        var source = TestFunctions.createDataAddress(GcsStoreSchema.TYPE)
+                .property(GcsStoreSchema.BUCKET_NAME, bucketName)
+                .property(GcsStoreSchema.BLOB_NAME, blobName)
+                .build();
+
+        var request = TestFunctions.createRequest(source);
+
+        var result = factory.validate(request);
+
+        assertThat(result.failed()).isTrue();
+    }
+
+    private static Stream<Arguments> invalidInputs() {
+        return Stream.of(
+                Arguments.of("validBucketName", ""),
+                Arguments.of(" ", "validBlobName"),
+                Arguments.of("", " ")
+        );
     }
 }
