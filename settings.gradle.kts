@@ -42,6 +42,7 @@ include(":core:control-plane:contract")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:transfer")
 
+include(":core:data-plane:data-plane-common")
 include(":core:data-plane:data-plane-core")
 include(":core:data-plane:data-plane-framework")
 

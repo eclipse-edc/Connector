@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
+import org.eclipse.dataspaceconnector.dataplane.common.sink.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;

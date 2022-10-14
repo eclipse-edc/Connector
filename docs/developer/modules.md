@@ -11,6 +11,7 @@ org.eclipse.dataspaceconnector:common-util:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contract:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:control-plane-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transfer:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:data-plane-common:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-framework:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-selector-core:0.0.1-SNAPSHOT
