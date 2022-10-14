@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *
+ *       SAP SE - Improvements
  */
 
 package org.eclipse.dataspaceconnector.common.configuration;
@@ -28,14 +28,14 @@ public class ConfigurationFunctions {
     public static String propOrEnv(String key, String defaultValue) {
         String value = System.getProperty(key);
         if (!StringUtils.isNullOrBlank(value)) {
-            return value;
+            return value.strip();
         }
         String upperKey = key.toUpperCase().replace('.', '_');
         value = System.getenv(upperKey);
         if (!StringUtils.isNullOrBlank(value)) {
-            return value;
+            return value.strip();
         }
-        return defaultValue;
+        return defaultValue.strip();
     }
 
 }

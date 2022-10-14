@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - Improvements
  *
  */
 
@@ -34,18 +35,26 @@ class ConfigurationFunctionsTest {
     public static final String ENV_VAR_1 = "EDC_KEY1";
     public static final String ENV_VAR_2 = "EDC_KEY2";
     public static final String EDC_VAR_3 = "EDC_KEY3";
+    public static final String EDC_VAR_4 = "EDC_KEY4";
+
     private static final String SYS_PROP_1 = "edc.key1";
     private static final String SYS_PROP_2 = "edc.key2";
     private static final String SYS_PROP_3 = "edc.key3";
+    private static final String SYS_PROP_4 = "edc.key4";
+
+    public static final String NONEXISTENT = "nonexistent";
+
     public static final String VALUE_1 = "value1";
 
     @AfterEach
     @ClearEnvironmentVariable(key = ENV_VAR_1)
     @ClearEnvironmentVariable(key = ENV_VAR_2)
     @ClearEnvironmentVariable(key = EDC_VAR_3)
+    @ClearEnvironmentVariable(key = EDC_VAR_4)
     @ClearSystemProperty(key = SYS_PROP_1)
     @ClearSystemProperty(key = SYS_PROP_2)
     @ClearSystemProperty(key = SYS_PROP_3)
+    @ClearSystemProperty(key = SYS_PROP_4)
     public void cleanUp() {
         // clear env vars and system properties
     }
@@ -55,6 +64,7 @@ class ConfigurationFunctionsTest {
     @SetSystemProperty(key = SYS_PROP_1, value = VALUE_1)
     @SetSystemProperty(key = SYS_PROP_2, value = "")
     @SetSystemProperty(key = SYS_PROP_3, value = "    ")
+    @SetSystemProperty(key = SYS_PROP_4, value = VALUE_1 + "    ")
     public void returnSystemProperty(String key, String expected) {
         String resultValue = ConfigurationFunctions.propOrEnv(key, DEFAULT);
         assertThat(resultValue).isEqualTo(expected);
@@ -64,23 +74,20 @@ class ConfigurationFunctionsTest {
     @SetEnvironmentVariable(key = ENV_VAR_1, value = VALUE_1)
     @SetEnvironmentVariable(key = ENV_VAR_2, value = "")
     @SetEnvironmentVariable(key = EDC_VAR_3, value = "    ")
+    @SetEnvironmentVariable(key = EDC_VAR_4, value = VALUE_1 + "    ")
     @MethodSource("envVarsSource")
     public void returnEnv(String key, String expected) {
         String resultValue = ConfigurationFunctions.propOrEnv(key, DEFAULT);
         assertThat(resultValue).isEqualTo(expected);
     }
 
-    @Test
-    public void returnDefaultEnv_NullValue() {
-        String resultValue = ConfigurationFunctions.propOrEnv("nonexistent", DEFAULT);
-        assertThat(resultValue).isEqualTo(DEFAULT);
-    }
-
     private static Stream<Arguments> propertiesSource() {
         return Stream.of(
                 Arguments.of(SYS_PROP_1, VALUE_1),
                 Arguments.of(SYS_PROP_2, DEFAULT),
-                Arguments.of(SYS_PROP_3, DEFAULT)
+                Arguments.of(SYS_PROP_3, DEFAULT),
+                Arguments.of(SYS_PROP_4, VALUE_1),
+                Arguments.of(NONEXISTENT, DEFAULT)
         );
     }
 
@@ -89,7 +96,9 @@ class ConfigurationFunctionsTest {
                 Arguments.of(ENV_VAR_1, VALUE_1),
                 Arguments.of(SYS_PROP_1, VALUE_1),
                 Arguments.of(ENV_VAR_2, DEFAULT),
-                Arguments.of(EDC_VAR_3, DEFAULT)
+                Arguments.of(EDC_VAR_3, DEFAULT),
+                Arguments.of(EDC_VAR_4, VALUE_1),
+                Arguments.of(NONEXISTENT, DEFAULT)
         );
     }
 }
