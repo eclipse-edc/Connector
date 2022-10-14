@@ -27,10 +27,10 @@ import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRules
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
@@ -52,23 +52,23 @@ public class Oauth2Extension implements ServiceExtension {
 
     public static final String NAME = "OAuth2";
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
-    @EdcSetting
+    @Setting
     private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
-    @EdcSetting(value = "outgoing tokens 'aud' claim value, by default it's the connector id")
+    @Setting(value = "outgoing tokens 'aud' claim value, by default it's the connector id")
     private static final String PROVIDER_AUDIENCE = "edc.oauth.provider.audience";
-    @EdcSetting(value = "incoming tokens 'aud' claim required value, by default it's the provider audience value")
+    @Setting(value = "incoming tokens 'aud' claim required value, by default it's the provider audience value")
     private static final String ENDPOINT_AUDIENCE = "edc.oauth.endpoint.audience";
-    @EdcSetting
+    @Setting
     private static final String PUBLIC_KEY_ALIAS = "edc.oauth.public.key.alias";
-    @EdcSetting
+    @Setting
     private static final String PRIVATE_KEY_ALIAS = "edc.oauth.private.key.alias";
-    @EdcSetting
+    @Setting
     private static final String PROVIDER_JWKS_REFRESH = "edc.oauth.provider.jwks.refresh"; // in minutes
-    @EdcSetting
+    @Setting
     private static final String TOKEN_URL = "edc.oauth.token.url";
-    @EdcSetting
+    @Setting
     private static final String CLIENT_ID = "edc.oauth.client.id";
-    @EdcSetting
+    @Setting
     private static final String NOT_BEFORE_LEEWAY = "edc.oauth.validation.nbf.leeway";
     private IdentityProviderKeyResolver providerKeyResolver;
 

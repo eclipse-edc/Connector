@@ -166,15 +166,15 @@ public @interface Extension {
 }
 ```
 
-The annotation processor uses the existing `@EdcSetting`, `@Provides`, and `@Inject` annotations.
-An `@EdcSettingContext` provides for `ConfigMap` support:
+The annotation processor uses the existing `@Setting`, `@Provides`, and `@Inject` annotations.
+An `@SettingContext` provides for `ConfigMap` support:
 
 ```java
 
 @Target({ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface EdcSettingContext {
+public @interface SettingContext {
     String value();
 }
 ```
@@ -193,10 +193,10 @@ including the `PREFIX` symbol):
 ```java
 private static final String PREFIX="edc.core.";
 
-@EdcSetting("Specifies the maximum number of retries")
+@Setting("Specifies the maximum number of retries")
 public static final String MAX_RETRIES=PREFIX+"retry.retries.max";
 
-@EdcSetting
+@Setting
 public static final String BACKOFF_MIN_MILLIS="edc.core.retry.backoff.min";
 ```
 

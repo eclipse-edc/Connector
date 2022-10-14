@@ -28,10 +28,10 @@ import org.eclipse.dataspaceconnector.ids.spi.service.DynamicAttributeTokenServi
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -50,7 +50,7 @@ import java.util.List;
 @Extension(value = IdsCoreServiceExtension.NAME)
 public class IdsCoreServiceExtension implements ServiceExtension {
 
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_CATALOG_ID = "edc.ids.catalog.id";
 
     public static final String DEFAULT_EDC_IDS_CATALOG_ID = "urn:catalog:default";

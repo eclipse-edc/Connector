@@ -19,10 +19,10 @@ import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.OkHttpClientFactory;
 import org.eclipse.dataspaceconnector.core.event.EventExecutorServiceContainer;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -46,11 +46,11 @@ import java.util.concurrent.Executors;
  */
 public class CoreDefaultServicesExtension implements ServiceExtension {
 
-    @EdcSetting(value = "Maximum retries for the retry policy before a failure is propagated")
+    @Setting(value = "Maximum retries for the retry policy before a failure is propagated")
     public static final String MAX_RETRIES = "edc.core.retry.retries.max";
-    @EdcSetting(value = "Minimum number of milliseconds for exponential backoff")
+    @Setting(value = "Minimum number of milliseconds for exponential backoff")
     public static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
-    @EdcSetting(value = "Maximum number of milliseconds for exponential backoff. ")
+    @Setting(value = "Maximum number of milliseconds for exponential backoff. ")
     public static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
     public static final String NAME = "Core Default Services";
 

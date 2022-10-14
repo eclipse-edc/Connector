@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.did.spi.document;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +28,7 @@ public interface DidConstants {
             DidConstants.JSON_WEB_KEY_2020,
             DidConstants.RSA_VERIFICATION_KEY_2018,
             DidConstants.ED_25519_VERIFICATION_KEY_2018);
-    @EdcSetting
+    @Setting
     String DID_URL_SETTING = "edc.identity.did.url";
 
 }

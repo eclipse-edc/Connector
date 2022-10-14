@@ -16,10 +16,10 @@
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -35,7 +35,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
     /**
      * Name of the datasource to use for accessing contract definitions.
      */
-    @EdcSetting(required = true)
+    @Setting(required = true)
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.contractdefinition.name";
 
     @Inject

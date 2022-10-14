@@ -14,34 +14,34 @@
 
 package org.eclipse.dataspaceconnector.sql.pool.commons;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 interface CommonsConnectionPoolConfigKeys {
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_MAX_IDLE_CONNECTIONS = "pool.maxIdleConnections";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_MAX_TOTAL_CONNECTIONS = "pool.maxTotalConnections";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_MIN_IDLE_CONNECTIONS = "pool.minIdleConnections";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_TEST_CONNECTION_ON_BORROW = "pool.testConnectionOnBorrow";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_TEST_CONNECTION_ON_CREATE = "pool.testConnectionOnCreate";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_TEST_CONNECTION_ON_RETURN = "pool.testConnectionOnReturn";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_TEST_CONNECTION_WHILE_IDLE = "pool.testConnectionWhileIdle";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String POOL_TEST_QUERY = "pool.testQuery";
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     String URL = "url";
 }

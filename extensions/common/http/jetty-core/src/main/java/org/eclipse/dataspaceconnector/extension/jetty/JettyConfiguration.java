@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.extension.jetty;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
 import java.util.AbstractMap;
@@ -30,7 +30,7 @@ public class JettyConfiguration {
     public static final String DEFAULT_PATH = "/api";
     public static final String DEFAULT_CONTEXT_NAME = "default";
     public static final int DEFAULT_PORT = 8181;
-    @EdcSetting
+    @Setting
     private static final String HTTP_PORT = "web.http.port";
     private final String keystorePassword;
     private final String keymanagerPassword;

@@ -14,56 +14,56 @@
 
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 /**
  * Defines EDC data source configuration keys. All keys are prefixed by: edc.datasource.[ds name].[key]
  */
 public interface DataSourceConfigurationKeys {
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     String DRIVER_CLASS = "driver.class";
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     String URL = "url";
 
-    @EdcSetting
+    @Setting
     String DS_TYPE = "type";
 
-    @EdcSetting
+    @Setting
     String USERNAME = "username";
 
-    @EdcSetting
+    @Setting
     String PASSWORD = "password";
 
-    @EdcSetting
+    @Setting
     String POOL_SIZE = "pool.size";
 
-    @EdcSetting
+    @Setting
     String MAX_POOL_SIZE = "max.pool.size";
 
-    @EdcSetting
+    @Setting
     String MIN_POOL_SIZE = "min.pool.size";
 
-    @EdcSetting
+    @Setting
     String CONNECTION_TIMEOUT = "connection.timeout";
 
-    @EdcSetting
+    @Setting
     String LOGIN_TIMEOUT = "login.timeout";
 
-    @EdcSetting
+    @Setting
     String MAINTENANCE_INTERVAL = "maintenance.interval";
 
-    @EdcSetting
+    @Setting
     String MAX_IDLE = "max.idle";
 
-    @EdcSetting
+    @Setting
     String REAP = "reap";
 
-    @EdcSetting
+    @Setting
     String QUERY = "query";
 
-    @EdcSetting
+    @Setting
     String DRIVER_PROPERTIES = "properties";
 
 

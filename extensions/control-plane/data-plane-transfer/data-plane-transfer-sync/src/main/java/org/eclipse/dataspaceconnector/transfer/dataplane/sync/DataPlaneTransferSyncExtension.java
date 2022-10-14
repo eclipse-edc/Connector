@@ -19,9 +19,9 @@ import org.eclipse.dataspaceconnector.core.jwt.TokenGenerationServiceImpl;
 import org.eclipse.dataspaceconnector.core.jwt.TokenValidationRulesRegistryImpl;
 import org.eclipse.dataspaceconnector.core.jwt.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -58,7 +58,7 @@ import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTr
 public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Transfer Sync";
-    @EdcSetting
+    @Setting
     private static final String DPF_SELECTOR_STRATEGY = "edc.transfer.client.selector.strategy";
     private static final String API_CONTEXT_ALIAS = "validation";
     @Inject

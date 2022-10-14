@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.provision.http.config;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 import org.eclipse.dataspaceconnector.transfer.provision.http.config.ProvisionerConfiguration.ProvisionerType;
@@ -38,16 +38,16 @@ public class ConfigParser {
 
     private static final String HTTP_PROVISIONER_ENTRIES = CONFIG_PREFIX + ".entries";
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     private static final String PROVISIONER_TYPE = "provisioner.type";
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     private static final String DATA_ADDRESS_TYPE = "data.address.type";
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     private static final String ENDPOINT_URL = "endpoint";
 
-    @EdcSetting
+    @Setting
     private static final String POLICY_SCOPE = "policy.scope";
 
     private ConfigParser() {

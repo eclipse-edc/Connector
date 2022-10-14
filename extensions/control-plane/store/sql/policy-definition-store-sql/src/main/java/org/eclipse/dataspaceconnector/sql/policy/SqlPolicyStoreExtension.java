@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.sql.policy;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -31,7 +31,7 @@ import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresD
 @Extension("SQL policy store")
 public class SqlPolicyStoreExtension implements ServiceExtension {
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.policy.name";
 
     @Inject

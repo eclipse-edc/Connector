@@ -14,20 +14,20 @@
 
 package org.eclipse.dataspaceconnector.extension.jersey;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 /**
  * Jersey extension configuration class
  */
 public class JerseyConfiguration {
-    @EdcSetting
+    @Setting
     public static final String CORS_CONFIG_ORIGINS_SETTING = "edc.web.rest.cors.origins";
-    @EdcSetting
+    @Setting
     public static final String CORS_CONFIG_ENABLED_SETTING = "edc.web.rest.cors.enabled";
-    @EdcSetting
+    @Setting
     public static final String CORS_CONFIG_HEADERS_SETTING = "edc.web.rest.cors.headers";
-    @EdcSetting
+    @Setting
     public static final String CORS_CONFIG_METHODS_SETTING = "edc.web.rest.cors.methods";
     private String allowedOrigins;
     private String allowedHeaders;

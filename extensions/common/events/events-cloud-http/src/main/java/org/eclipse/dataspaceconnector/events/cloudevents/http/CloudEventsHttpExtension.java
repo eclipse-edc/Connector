@@ -16,9 +16,9 @@ package org.eclipse.dataspaceconnector.events.cloudevents.http;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.system.Hostname;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -30,7 +30,7 @@ import java.time.Clock;
 @Extension(value = "Cloud events HTTP")
 public class CloudEventsHttpExtension implements ServiceExtension {
 
-    @EdcSetting(required = true)
+    @Setting(required = true)
     static final String EDC_EVENTS_CLOUDEVENTS_ENDPOINT = "edc.events.cloudevents.endpoint";
 
     @Inject

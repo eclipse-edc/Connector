@@ -18,9 +18,9 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -37,9 +37,9 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 public class AwsProvisionExtension implements ServiceExtension {
 
     public static final String NAME = "AWS Provision";
-    @EdcSetting
+    @Setting
     private static final String PROVISION_MAX_RETRY = "edc.aws.provision.retry.retries.max";
-    @EdcSetting
+    @Setting
     private static final String PROVISION_MAX_ROLE_SESSION_DURATION = "edc.aws.provision.role.duration.session.max";
     @Inject
     private Vault vault;

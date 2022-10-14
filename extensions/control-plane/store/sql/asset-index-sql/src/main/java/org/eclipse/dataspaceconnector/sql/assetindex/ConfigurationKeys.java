@@ -15,7 +15,7 @@
 
 package org.eclipse.dataspaceconnector.sql.assetindex;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 /**
  * Defines configuration keys used by the SqlAssetIndexServiceExtension.
@@ -25,7 +25,7 @@ public interface ConfigurationKeys {
     /**
      * Name of the datasource to use for accessing assets.
      */
-    @EdcSetting(required = true)
+    @Setting(required = true)
     String DATASOURCE_SETTING_NAME = "edc.datasource.asset.name";
 
 }

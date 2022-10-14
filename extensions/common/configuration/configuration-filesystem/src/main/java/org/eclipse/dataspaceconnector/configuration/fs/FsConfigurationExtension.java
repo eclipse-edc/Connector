@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.configuration.fs;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
@@ -39,7 +39,7 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
 public class FsConfigurationExtension implements ConfigurationExtension {
 
     public static final String NAME = "FS Configuration";
-    @EdcSetting
+    @Setting
     private static final String FS_CONFIG = "edc.fs.config";
     private Config config;
     private Path configFile;

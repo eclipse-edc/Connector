@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.receiver.http;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -29,11 +29,11 @@ import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceRece
 public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtension {
 
     public static final String NAME = "Http Endpoint Data Reference Receiver";
-    @EdcSetting
+    @Setting
     private static final String HTTP_RECEIVER_ENDPOINT = "edc.receiver.http.endpoint";
-    @EdcSetting
+    @Setting
     private static final String HTTP_RECEIVER_AUTH_KEY = "edc.receiver.http.auth-key";
-    @EdcSetting
+    @Setting
     private static final String HTTP_RECEIVER_AUTH_CODE = "edc.receiver.http.auth-code";
     @Inject
     private EndpointDataReferenceReceiverRegistry receiverRegistry;

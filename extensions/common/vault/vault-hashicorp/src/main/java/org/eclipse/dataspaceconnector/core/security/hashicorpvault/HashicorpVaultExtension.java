@@ -16,11 +16,11 @@ package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
@@ -34,10 +34,10 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
 
-    @EdcSetting(value = "The URL of the Hashicorp Vault", required = true)
+    @Setting(value = "The URL of the Hashicorp Vault", required = true)
     public static final String VAULT_URL = "edc.vault.hashicorp.url";
 
-    @EdcSetting(value = "The token used to access the Hashicorp Vault", required = true)
+    @Setting(value = "The token used to access the Hashicorp Vault", required = true)
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
     public static final String NAME = "Hashicorp Vault";
 

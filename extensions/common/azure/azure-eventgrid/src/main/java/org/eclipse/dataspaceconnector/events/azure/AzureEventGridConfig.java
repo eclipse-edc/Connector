@@ -14,16 +14,16 @@
 
 package org.eclipse.dataspaceconnector.events.azure;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class AzureEventGridConfig {
     public static final String DEFAULT_SYSTEM_TOPIC_NAME = "connector-events";
     public static final String DEFAULT_ENDPOINT_NAME_TEMPLATE = "https://%s.westeurope-1.eventgrid.azure.net/api/events";
 
-    @EdcSetting
+    @Setting
     public static final String TOPIC_NAME_SETTING = "edc.events.topic.name";
-    @EdcSetting
+    @Setting
     public static final String TOPIC_ENDPOINT_SETTING = "edc.events.topic.endpoint";
     private final ServiceExtensionContext context;
 

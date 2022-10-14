@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.sql.transferprocess;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -33,7 +33,7 @@ import java.time.Clock;
 @Extension(value = "SQL transfer process store")
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
-    @EdcSetting
+    @Setting
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.transferprocess.name";
     private static final String DEFAULT_DATASOURCE_NAME = "transferprocess";
 

@@ -15,18 +15,18 @@
 package org.eclipse.dataspaceconnector.assetindex.azure;
 
 import org.eclipse.dataspaceconnector.azure.cosmos.AbstractCosmosConfig;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class AssetIndexCosmosConfig extends AbstractCosmosConfig {
 
-    @EdcSetting
+    @Setting
     private static final String COSMOS_ACCOUNTNAME_SETTING = "edc.assetindex.cosmos.account-name";
-    @EdcSetting
+    @Setting
     private static final String COSMOS_DBNAME_SETTING = "edc.assetindex.cosmos.database-name";
-    @EdcSetting
+    @Setting
     private static final String COSMOS_PREFERRED_REGION_SETTING = "edc.assetindex.cosmos.preferred-region";
-    @EdcSetting
+    @Setting
     private static final String COSMOS_CONTAINER_NAME_SETTING = "edc.assetindex.cosmos.container-name";
 
     /**

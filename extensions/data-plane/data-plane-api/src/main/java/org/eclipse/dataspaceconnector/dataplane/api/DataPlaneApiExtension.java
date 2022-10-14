@@ -19,9 +19,9 @@ import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlaneControlA
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlanePublicApiController;
 import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClientImpl;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
 @Extension(value = DataPlaneApiExtension.NAME)
 public class DataPlaneApiExtension implements ServiceExtension {
     public static final String NAME = "Data Plane API";
-    @EdcSetting
+    @Setting
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
     private static final String CONTROL = "control";
     private static final String PUBLIC = "public";
