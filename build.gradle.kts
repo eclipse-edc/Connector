@@ -183,6 +183,26 @@ allprojects {
         }
     }
 
+    pluginManager.withPlugin("maven-publish") {
+        publishing {
+            // this block enables publishing the autodoc manifest to MavenCentral
+            val manifestFile = layout.buildDirectory.file(project.buildDir.absolutePath + File.separator + "edc.json")
+            if (manifestFile.get().asFile.exists()) {
+                val jsonArtifact = artifacts.add("archives", manifestFile.get().asFile) {
+                    type = "json"
+                    builtBy("autodoc")
+                    classifier = "manifest"
+                }
+                publications {
+                    create<MavenPublication>("maven") {
+                        artifact(jsonArtifact)
+                    }
+                }
+
+            }
+        }
+    }
+
     pluginManager.withPlugin("java-library") {
         group = groupId
         version = projectVersion
