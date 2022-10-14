@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.dataplane.framework.e2e;
 
+import org.eclipse.dataspaceconnector.dataplane.common.sink.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;

@@ -23,8 +23,11 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
+    implementation(project(":core:data-plane:data-plane-common"))
     implementation(project(":core:common:util"))
+
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+
     testImplementation(project(":extensions:common:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
 }

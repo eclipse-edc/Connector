@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.query;
+package org.eclipse.dataspaceconnector.api.query;
 
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

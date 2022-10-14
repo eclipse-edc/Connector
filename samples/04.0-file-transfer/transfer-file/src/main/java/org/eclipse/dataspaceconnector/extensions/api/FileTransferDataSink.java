@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.eclipse.dataspaceconnector.dataplane.common.sink.ParallelSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
 import java.io.File;

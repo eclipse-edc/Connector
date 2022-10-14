@@ -34,7 +34,6 @@ dependencies {
 
     implementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
 
-    implementation(project(":core:common:util"))
     testImplementation(project(":extensions:common:junit"))
 
     // needed by the abstract test spec located in testFixtures

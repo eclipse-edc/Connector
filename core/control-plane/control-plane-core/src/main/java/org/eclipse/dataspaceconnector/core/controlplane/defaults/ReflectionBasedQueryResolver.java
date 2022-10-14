@@ -12,9 +12,14 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.query;
+package org.eclipse.dataspaceconnector.core.controlplane.defaults;
 
 import org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil;
+import org.eclipse.dataspaceconnector.spi.query.BaseCriterionToPredicateConverter;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
