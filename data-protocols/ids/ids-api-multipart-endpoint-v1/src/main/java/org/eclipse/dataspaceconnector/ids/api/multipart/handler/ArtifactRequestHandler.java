@@ -116,7 +116,7 @@ public class ArtifactRequestHandler implements Handler {
         }
 
         // Validate contract agreement
-        var isContractValid = contractValidationService.validate(claimToken, contractAgreement);
+        var isContractValid = contractValidationService.validateAgreement(claimToken, contractAgreement);
         if (!isContractValid) {
             monitor.debug("ArtifactRequestHandler: Contract is invalid");
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));

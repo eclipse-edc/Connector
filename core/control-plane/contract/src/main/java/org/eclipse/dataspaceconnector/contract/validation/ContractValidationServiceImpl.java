@@ -61,7 +61,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     @NotNull
-    public Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
+    public Result<ContractOffer> validateInitialOffer(ClaimToken token, ContractOffer offer) {
         if (isMandatoryAttributeMissing(offer)) {
             return Result.failure("Mandatory attributes are missing.");
         }
@@ -128,7 +128,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public boolean validate(ClaimToken token, ContractAgreement agreement) {
+    public boolean validateAgreement(ClaimToken token, ContractAgreement agreement) {
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
             return false;

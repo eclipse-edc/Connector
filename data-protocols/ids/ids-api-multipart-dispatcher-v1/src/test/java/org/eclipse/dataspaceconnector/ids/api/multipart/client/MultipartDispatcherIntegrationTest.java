@@ -127,7 +127,7 @@ class MultipartDispatcherIntegrationTest {
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .id("1:2").build());
-        when(validationService.validate(any(), any(ContractAgreement.class))).thenReturn(true);
+        when(validationService.validateAgreement(any(), any(ContractAgreement.class))).thenReturn(true);
 
         var request = DataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
