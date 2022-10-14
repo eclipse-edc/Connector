@@ -75,7 +75,7 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
             var serviceAccount = createServiceAccount(processId, bucketName);
             var token = createBucketAccessToken(bucket, serviceAccount);
 
-            var resource = getProvisionedResource(resourceDefinition, resourceName, serviceAccount);
+            var resource = getProvisionedResource(resourceDefinition, resourceName, bucketName, serviceAccount);
 
             var response = ProvisionResponse.Builder.newInstance().resource(resource).secretToken(token).build();
             return CompletableFuture.completedFuture(StatusResult.success(response));
@@ -125,7 +125,7 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
         return iamService.createAccessToken(serviceAccount);
     }
 
-    private GcsProvisionedResource getProvisionedResource(GcsResourceDefinition resourceDefinition, String resourceName, GcpServiceAccount serviceAccount) {
+    private GcsProvisionedResource getProvisionedResource(GcsResourceDefinition resourceDefinition, String resourceName, String bucketName,GcpServiceAccount serviceAccount) {
         return GcsProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getId())
                 .resourceDefinitionId(resourceDefinition.getId())
@@ -134,6 +134,7 @@ public class GcsProvisioner implements Provisioner<GcsResourceDefinition, GcsPro
                 .serviceAccountEmail(serviceAccount.getEmail())
                 .serviceAccountName(serviceAccount.getName())
                 .transferProcessId(resourceDefinition.getTransferProcessId())
+                .bucketName(bucketName)
                 .resourceName(resourceName)
                 .hasToken(true).build();
     }
