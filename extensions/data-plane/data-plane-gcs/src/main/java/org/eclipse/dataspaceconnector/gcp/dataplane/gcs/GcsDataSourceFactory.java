@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 public class GcsDataSourceFactory implements DataSourceFactory {
+
     private final ValidationRule<DataAddress> validation = new GcsSourceDataAddressValidationRule();
     private final Monitor monitor;
     private final String projectId;
@@ -65,5 +66,7 @@ public class GcsDataSourceFactory implements DataSourceFactory {
                 .blobName(source.getProperty(GcsStoreSchema.BLOB_NAME))
                 .monitor(monitor)
                 .build();
+
     }
+
 }

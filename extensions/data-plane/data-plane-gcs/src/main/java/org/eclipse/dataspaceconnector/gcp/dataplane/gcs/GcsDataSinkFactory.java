@@ -20,6 +20,7 @@ import com.google.cloud.storage.StorageOptions;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.gcp.core.common.GcpAccessToken;
+import org.eclipse.dataspaceconnector.gcp.core.common.GcpException;
 import org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema;
 import org.eclipse.dataspaceconnector.gcp.dataplane.gcs.validation.GcsSinkDataAddressValidationRule;
 import org.eclipse.dataspaceconnector.gcp.dataplane.gcs.validation.ValidationRule;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 
 public class GcsDataSinkFactory implements DataSinkFactory {
+
     private final ValidationRule<DataAddress> validation = new GcsSinkDataAddressValidationRule();
     private final ExecutorService executorService;
     private final Monitor monitor;
@@ -86,7 +88,7 @@ public class GcsDataSinkFactory implements DataSinkFactory {
             try {
                 googleCredentials = GoogleCredentials.getApplicationDefault();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new GcpException("Error while getting the default credentials.", e);
             }
         }
 

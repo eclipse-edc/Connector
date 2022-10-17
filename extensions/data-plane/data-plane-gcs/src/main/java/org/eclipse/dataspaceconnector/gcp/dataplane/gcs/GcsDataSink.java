@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class GcsDataSink extends ParallelSink {
     private Storage storageClient;
@@ -43,7 +44,8 @@ public class GcsDataSink extends ParallelSink {
 
         for (DataSource.Part part : parts) {
             try (var input = part.openStream()) {
-                var sinkBlobName = part.name();
+                var sinkBlobName = Optional.ofNullable(blobName)
+                        .orElseGet(part::name);
                 var destinationBlobInfo = BlobInfo.newBuilder(BlobId.of(bucketName, sinkBlobName)).build();
                 try (var writer = storageClient.writer(destinationBlobInfo)) {
                     ByteStreams.copy(input, Channels.newOutputStream(writer));
@@ -75,16 +77,15 @@ public class GcsDataSink extends ParallelSink {
             return this;
         }
 
-        public Builder bucketName(String bucketName) {
-            sink.bucketName = bucketName;
-            return this;
-        }
-
         public Builder blobName(String blobName) {
             sink.blobName = blobName;
             return this;
         }
 
+        public Builder bucketName(String bucketName) {
+            sink.bucketName = bucketName;
+            return this;
+        }
 
         @Override
         protected void validate() {

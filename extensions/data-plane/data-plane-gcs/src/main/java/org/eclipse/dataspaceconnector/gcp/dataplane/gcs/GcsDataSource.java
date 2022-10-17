@@ -33,7 +33,6 @@ public class GcsDataSource implements DataSource {
     private String blobName;
     private Monitor monitor;
 
-
     @Override
     public Stream<Part> openPartStream() {
         try {
