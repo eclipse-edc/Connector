@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.framework;
 
+import org.eclipse.dataspaceconnector.dataplane.common.sink.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceTransferServiceImpl;
@@ -22,7 +23,6 @@ import org.eclipse.dataspaceconnector.dataplane.framework.registry.TransferServi
 import org.eclipse.dataspaceconnector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;

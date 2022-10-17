@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
+import org.eclipse.dataspaceconnector.api.query.QueryValidator;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;

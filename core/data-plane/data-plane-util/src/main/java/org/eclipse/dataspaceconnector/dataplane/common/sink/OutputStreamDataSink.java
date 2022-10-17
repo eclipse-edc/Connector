@@ -12,8 +12,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
+package org.eclipse.dataspaceconnector.dataplane.common.sink;
 
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;

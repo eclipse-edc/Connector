@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
+import org.eclipse.dataspaceconnector.api.query.QueryValidator;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -28,7 +29,6 @@ import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.observe.PolicyDefinitionObservable;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 

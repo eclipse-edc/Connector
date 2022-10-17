@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
+package org.eclipse.dataspaceconnector.dataplane.common.sink;
 
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

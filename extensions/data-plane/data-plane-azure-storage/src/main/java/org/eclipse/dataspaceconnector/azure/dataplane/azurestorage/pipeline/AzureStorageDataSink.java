@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import com.azure.core.credential.AzureSasCredential;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
+import org.eclipse.dataspaceconnector.dataplane.common.sink.ParallelSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 

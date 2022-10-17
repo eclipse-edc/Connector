@@ -12,8 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.query;
+package org.eclipse.dataspaceconnector.core.controlplane.defaults;
 
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;

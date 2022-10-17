@@ -16,11 +16,11 @@
 package org.eclipse.dataspaceconnector.core.controlplane.defaults.negotiationstore;
 
 import org.eclipse.dataspaceconnector.core.controlplane.defaults.InMemoryStatefulEntityStore;
+import org.eclipse.dataspaceconnector.core.controlplane.defaults.ReflectionBasedQueryResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;

@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
+import org.eclipse.dataspaceconnector.dataplane.common.sink.ParallelSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.core.sync.RequestBody;

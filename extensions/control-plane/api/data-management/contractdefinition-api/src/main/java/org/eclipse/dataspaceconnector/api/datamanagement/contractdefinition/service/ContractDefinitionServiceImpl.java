@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service;
 
+import org.eclipse.dataspaceconnector.api.query.QueryValidator;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservable;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 

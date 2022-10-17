@@ -12,8 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
+package org.eclipse.dataspaceconnector.dataplane.common.sink;
 
+import org.assertj.core.api.Assertions;
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -59,7 +62,7 @@ class ParallelSinkTest {
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.succeeded()).isTrue());
 
-        assertThat(fakeSink.parts).containsExactly(dataSource);
+        Assertions.assertThat(fakeSink.parts).containsExactly(dataSource);
         assertThat(fakeSink.complete).isEqualTo(1);
     }
 

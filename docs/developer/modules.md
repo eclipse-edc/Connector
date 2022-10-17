@@ -13,6 +13,7 @@ org.eclipse.dataspaceconnector:control-plane-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transfer:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-framework:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:data-plane-util:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-selector-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog-cache:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-api-configuration:0.0.1-SNAPSHOT
