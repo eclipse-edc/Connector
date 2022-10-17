@@ -120,10 +120,11 @@ buildscript {
     }
     dependencies {
         val swagger: String by project
-        val autodocPluginVersion: String by project
+        val edcGradlePluginsVersion: String by project
 
         classpath("io.swagger.core.v3:swagger-gradle-plugin:${swagger}")
-        classpath("org.eclipse.dataspaceconnector.autodoc:org.eclipse.dataspaceconnector.autodoc.gradle.plugin:${autodocPluginVersion}")
+        classpath("org.eclipse.dataspaceconnector.autodoc:org.eclipse.dataspaceconnector.autodoc.gradle.plugin:${edcGradlePluginsVersion}")
+        classpath("org.eclipse.dataspaceconnector.test-summary:org.eclipse.dataspaceconnector.test-summary.gradle.plugin:${edcGradlePluginsVersion}")
     }
 }
 
@@ -141,6 +142,7 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
+    apply(plugin = "${groupId}.test-summary")
     apply(plugin = "${groupId}.autodoc")
 
     // configure which version of the annotation processor to use. defaults to the same version as the plugin
@@ -149,7 +151,6 @@ allprojects {
         outputDirectory.set(project.buildDir)
     }
 
-    apply(plugin = "org.eclipse.dataspaceconnector.test-summary")
 
     if (System.getenv("JACOCO") == "true") {
         apply(plugin = "jacoco")
