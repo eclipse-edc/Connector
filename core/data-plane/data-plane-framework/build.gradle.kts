@@ -23,7 +23,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
-    implementation(project(":core:data-plane:data-plane-common"))
+    implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":core:common:util"))
 
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")

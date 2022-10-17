@@ -26,7 +26,7 @@ plugins {
 dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:common:util"))
-    implementation(project(":core:data-plane:data-plane-common"))
+    implementation(project(":core:data-plane:data-plane-util"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")

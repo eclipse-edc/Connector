@@ -28,7 +28,7 @@ plugins {
 dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
-    implementation(project(":core:data-plane:data-plane-common"))
+    implementation(project(":core:data-plane:data-plane-util"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

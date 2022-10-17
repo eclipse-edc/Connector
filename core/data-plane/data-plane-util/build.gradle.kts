@@ -28,8 +28,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-common") {
-            artifactId = "data-plane-common"
+        create<MavenPublication>("data-plane-util") {
+            artifactId = "data-plane-util"
             from(components["java"])
         }
     }
