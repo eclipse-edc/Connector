@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 T-Systems International GmbH
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       T-Systems International GmbH
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Initial implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.gcp.dataplane.gcs.validation;
+package org.eclipse.dataspaceconnector.dataplane.common.validation;
 
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.result.Result;

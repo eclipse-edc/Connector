@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.aws.dataplane.s3.validation;
+package org.eclipse.dataspaceconnector.dataplane.common.validation;
 
+import org.eclipse.dataspaceconnector.dataplane.common.validation.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.Test;
 

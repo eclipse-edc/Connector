@@ -16,11 +16,11 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
 import org.eclipse.dataspaceconnector.aws.dataplane.s3.validation.S3DataAddressCredentialsValidationRule;
 import org.eclipse.dataspaceconnector.aws.dataplane.s3.validation.S3DataAddressValidationRule;
-import org.eclipse.dataspaceconnector.aws.dataplane.s3.validation.ValidationRule;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsSecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
+import org.eclipse.dataspaceconnector.dataplane.common.validation.ValidationRule;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
