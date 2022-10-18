@@ -12,9 +12,6 @@
  *
  */
 
-val okHttpVersion: String by project
-val failsafeVersion: String by project
-val gscVersion: String by project
 val googleCloudStorageVersion: String by project
 
 plugins {
@@ -25,10 +22,9 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:gcp:gcp-core"))
+    implementation(project(":core:data-plane:data-plane-util"))
 
     implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
-
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":extensions:common:junit"))

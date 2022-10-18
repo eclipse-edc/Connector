@@ -19,7 +19,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.common.io.ByteStreams;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
+import org.eclipse.dataspaceconnector.dataplane.common.sink.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
