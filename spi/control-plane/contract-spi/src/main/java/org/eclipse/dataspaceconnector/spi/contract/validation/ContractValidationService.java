@@ -36,9 +36,15 @@ public interface ContractValidationService {
      * Validates and sanitizes the contract offer for the consumer represented by the given claims.
      * <p>
      * The original offer must be validated and sanitized to avoid policy and asset injection attacks by malicious consumers.
+     *
+     * @param token The {@link ClaimToken} of the consumer
+     * @param offer The initial {@link ContractOffer} to validate
+     * @return the sanitized version {@link ContractOffer}. The input {@link ContractOffer} could contain some fields or values
+     *         on policy or asset that differs from the original policy and asset defined by the provider, which could cause injection attacks.
+     *         The provider validation should return a new {@link ContractOffer} that contains the original policy and asset defined by the provider.
      */
     @NotNull
-    Result<ContractOffer> validate(ClaimToken token, ContractOffer offer);
+    Result<ContractOffer> validateInitialOffer(ClaimToken token, ContractOffer offer);
 
     /**
      * During the negotiation process, it may be necessary to validate a contract offer against one that is only persisted by the contract negotiation and not known to the ContractDefinitionService.
@@ -47,13 +53,21 @@ public interface ContractValidationService {
     Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer);
 
     /**
-     * Validates the contract agreement for the consumer, which must be the contract counter-party.
+     * Validates the contract agreement that the consumer referenced in its transfer request.
+     * The {@code ClaimToken} must represent the same counter-party, that is referenced in the contract agreement.
+     *
+     * @param token The {@link ClaimToken} of the consumer
+     * @param agreement The {@link ContractAgreement} between consumer and provider to validate
+     * @return the result of the validation
      */
-    boolean validate(ClaimToken token, ContractAgreement agreement);
+    boolean validateAgreement(ClaimToken token, ContractAgreement agreement);
 
     /**
      * When the negotiation has been confirmed by the provider, the consumer must validate it ensuring that is the same
-     * one that was sent in the offer
+     * one that was sent in the last offer
+     *
+     * @param agreement The {@link ContractAgreement} between consumer and provider
+     * @param latestOffer The last {@link ContractOffer}
      */
     Result<Void> validateConfirmed(ContractAgreement agreement, ContractOffer latestOffer);
 }

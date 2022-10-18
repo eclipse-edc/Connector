@@ -104,7 +104,7 @@ class ArtifactRequestHandlerTest {
         var drCapture = ArgumentCaptor.forClass(DataRequest.class);
         when(transferProcessManager.initiateProviderRequest(drCapture.capture())).thenReturn(StatusResult.success("Transfer success"));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
-        when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
+        when(contractValidationService.validateAgreement(claimToken, agreement)).thenReturn(true);
 
         handler.handleRequest(multipartRequest);
 
@@ -133,7 +133,7 @@ class ArtifactRequestHandlerTest {
         var agreement = createContractAgreement(contractId, UUID.randomUUID().toString());
 
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
-        when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
+        when(contractValidationService.validateAgreement(claimToken, agreement)).thenReturn(true);
 
         var response = handler.handleRequest(multipartRequest);
 

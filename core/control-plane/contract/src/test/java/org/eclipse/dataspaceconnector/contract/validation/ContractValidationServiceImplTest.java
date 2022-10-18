@@ -71,6 +71,24 @@ class ContractValidationServiceImplTest {
     private final PolicyEquality policyEquality = mock(PolicyEquality.class);
     private ContractValidationServiceImpl validationService;
 
+    @NotNull
+    private static ContractOffer.Builder createContractOffer() {
+        return ContractOffer.Builder.newInstance().id("1:2")
+                .asset(Asset.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().build())
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"));
+    }
+
+    private static ContractAgreement.Builder createContractAgreement() {
+        return ContractAgreement.Builder.newInstance().id("1")
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .policy(Policy.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString());
+
+    }
+
     @BeforeEach
     void setUp() {
         validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
@@ -104,7 +122,7 @@ class ContractValidationServiceImplTest {
                 .consumer(URI.create("consumer"))
                 .build();
 
-        var result = validationService.validate(claimToken, offer);
+        var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
@@ -133,7 +151,7 @@ class ContractValidationServiceImplTest {
                 .consumer(URI.create("consumer"))
                 .build();
 
-        var result = validationService.validate(claimToken, offer);
+        var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result.failed()).isTrue();
     }
@@ -161,7 +179,7 @@ class ContractValidationServiceImplTest {
                 .consumer(URI.create("consumer"))
                 .build();
 
-        var result = validationService.validate(claimToken, offer);
+        var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result.failed()).isTrue();
     }
@@ -185,7 +203,7 @@ class ContractValidationServiceImplTest {
                 .id("1:2")
                 .build();
 
-        boolean isValid = validationService.validate(claimToken, agreement);
+        boolean isValid = validationService.validateAgreement(claimToken, agreement);
 
         assertThat(isValid).isTrue();
         verify(agentService).createFor(isA(ClaimToken.class));
@@ -241,15 +259,6 @@ class ContractValidationServiceImplTest {
         assertThat(result.failed()).isTrue();
     }
 
-    @NotNull
-    private static ContractOffer.Builder createContractOffer() {
-        return ContractOffer.Builder.newInstance().id("1:2")
-                .asset(Asset.Builder.newInstance().build())
-                .policy(Policy.Builder.newInstance().build())
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"));
-    }
-
     private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(getContractDefinition());
@@ -263,16 +272,7 @@ class ContractValidationServiceImplTest {
                 .contractEndDate(endDate)
                 .build();
 
-        return validationService.validate(claimToken, agreement);
-    }
-
-    private static ContractAgreement.Builder createContractAgreement() {
-        return ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString());
-
+        return validationService.validateAgreement(claimToken, agreement);
     }
 
     private ContractDefinition getContractDefinition() {

@@ -218,7 +218,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
         Result<ContractOffer> result;
         if (negotiation.getContractOffers().isEmpty()) {
-            result = validationService.validate(token, offer);
+            result = validationService.validateInitialOffer(token, offer);
         } else {
             var lastOffer = negotiation.getLastContractOffer();
             result = validationService.validate(token, offer, lastOffer);

@@ -111,7 +111,7 @@ class ProviderContractNegotiationManagerImplTest {
     void testRequestedConfirmOffer() {
         var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = contractOffer();
-        when(validationService.validate(token, contractOffer)).thenReturn(Result.success(contractOffer));
+        when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(contractOffer));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -133,14 +133,14 @@ class ProviderContractNegotiationManagerImplTest {
                         n.getContractOffers().size() == 1 &&
                         n.getLastContractOffer().equals(contractOffer)
         ));
-        verify(validationService).validate(token, contractOffer);
+        verify(validationService).validateInitialOffer(token, contractOffer);
     }
 
     @Test
     void testRequestedDeclineOffer() {
         var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = contractOffer();
-        when(validationService.validate(token, contractOffer)).thenReturn(Result.failure("error"));
+        when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.failure("error"));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -162,7 +162,7 @@ class ProviderContractNegotiationManagerImplTest {
                         n.getContractOffers().size() == 1 &&
                         n.getLastContractOffer().equals(contractOffer)
         ));
-        verify(validationService).validate(token, contractOffer);
+        verify(validationService).validateInitialOffer(token, contractOffer);
     }
 
     @Test
@@ -171,7 +171,7 @@ class ProviderContractNegotiationManagerImplTest {
         var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = contractOffer();
         var counterOffer = contractOffer();
-        when(validationService.validate(token, contractOffer)).thenAnswer(i -> Result.success(i.getArgument(1)));
+        when(validationService.validateInitialOffer(token, contractOffer)).thenAnswer(i -> Result.success(i.getArgument(1)));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -194,7 +194,7 @@ class ProviderContractNegotiationManagerImplTest {
                         n.getContractOffers().get(0).equals(contractOffer) &&
                         n.getContractOffers().get(1).equals(counterOffer)
         ));
-        verify(validationService).validate(token, contractOffer);
+        verify(validationService).validateInitialOffer(token, contractOffer);
     }
 
     @Test
