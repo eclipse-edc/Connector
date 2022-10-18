@@ -13,9 +13,6 @@ These will automatically be provided if the connector is deployed with the corre
 
 ### Configuration
 
-| Key               | Description                      | Mandatory |
-|:------------------|:---------------------------------|---|
-| edc.gcp.projectId | ID of the GCP projcet to be used | X |
 
 ### Data source properties
 

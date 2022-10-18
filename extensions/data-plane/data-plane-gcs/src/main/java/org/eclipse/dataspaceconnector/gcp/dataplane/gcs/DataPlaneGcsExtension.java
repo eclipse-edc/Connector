@@ -30,8 +30,6 @@ public class DataPlaneGcsExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Google Cloud Storage";
 
-    @EdcSetting(value = "The GCP project ID", required = true)
-    private static final String GCP_PROJECT_ID = "edc.gcp.projectid";
     @Inject
     PipelineService pipelineService;
 
@@ -50,12 +48,11 @@ public class DataPlaneGcsExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var executorService = Executors.newFixedThreadPool(10);
         var monitor = context.getMonitor();
-        var projectId = context.getConfig().getString(GCP_PROJECT_ID);
 
-        var sourceFactory = new GcsDataSourceFactory(monitor, projectId);
+        var sourceFactory = new GcsDataSourceFactory(monitor);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new GcsDataSinkFactory(executorService, monitor, vault, typeManager, projectId);
+        var sinkFactory = new GcsDataSinkFactory(executorService, monitor, vault, typeManager);
         pipelineService.registerFactory(sinkFactory);
     }
 }

@@ -38,8 +38,7 @@ class GcsDataSinkFactoryTest {
             mock(ExecutorService.class),
             mock(Monitor.class),
             mock(Vault.class),
-            new TypeManager(),
-            TestFunctions.createProjectId()
+            new TypeManager()
     );
 
     @Test

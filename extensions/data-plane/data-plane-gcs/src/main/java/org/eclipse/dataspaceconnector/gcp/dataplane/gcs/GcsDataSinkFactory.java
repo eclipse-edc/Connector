@@ -44,14 +44,13 @@ public class GcsDataSinkFactory implements DataSinkFactory {
     private final Monitor monitor;
     private final Vault vault;
     private final TypeManager typeManager;
-    private final String projectId;
 
-    public GcsDataSinkFactory(ExecutorService executorService, Monitor monitor, Vault vault, TypeManager typeManager, String projectId) {
+
+    public GcsDataSinkFactory(ExecutorService executorService, Monitor monitor, Vault vault, TypeManager typeManager) {
         this.executorService = executorService;
         this.monitor = monitor;
         this.vault = vault;
         this.typeManager = typeManager;
-        this.projectId = projectId;
     }
 
     @Override
@@ -93,7 +92,6 @@ public class GcsDataSinkFactory implements DataSinkFactory {
         }
 
         var storageClient = StorageOptions.newBuilder()
-                .setProjectId(projectId)
                 .setCredentials(googleCredentials)
                 .build().getService();
 

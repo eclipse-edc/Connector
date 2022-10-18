@@ -29,9 +29,9 @@ import static org.mockito.Mockito.mock;
 class GcsDataSourceFactoryTest {
 
     Monitor monitor = mock(Monitor.class);
-    String projectId = TestFunctions.createProjectId();
+
     private final GcsDataSourceFactory factory =
-            new GcsDataSourceFactory(monitor, projectId);
+            new GcsDataSourceFactory(monitor);
 
     @Test
     void canHandle_returnsTrueWhenExpectedType() {

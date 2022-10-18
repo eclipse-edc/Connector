@@ -31,11 +31,9 @@ public class GcsDataSourceFactory implements DataSourceFactory {
 
     private final ValidationRule<DataAddress> validation = new GcsSourceDataAddressValidationRule();
     private final Monitor monitor;
-    private final String projectId;
 
-    public GcsDataSourceFactory(Monitor monitor, String projectId) {
+    public GcsDataSourceFactory(Monitor monitor) {
         this.monitor = monitor;
-        this.projectId = projectId;
     }
 
 
@@ -56,7 +54,8 @@ public class GcsDataSourceFactory implements DataSourceFactory {
         if (validationResult.failed()) {
             throw new EdcException(String.join(", ", validationResult.getFailureMessages()));
         }
-        var storageClient = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
+        var storageClient = StorageOptions.newBuilder()
+                .build().getService();
 
         var source = request.getSourceDataAddress();
 
