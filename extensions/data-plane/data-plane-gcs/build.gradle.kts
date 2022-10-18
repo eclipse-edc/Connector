@@ -25,7 +25,10 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:gcp:gcp-core"))
+
     implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
+
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":extensions:common:junit"))
