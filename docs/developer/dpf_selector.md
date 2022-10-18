@@ -41,7 +41,7 @@ We propose to create another "feature pack" in the EDC repository, essentially a
 named `:extensions:data-plane-selector`, which will contain (at least) the following submodules:
 
 - `selector-spi`: for interfaces and extensibility points such as store, strategy
-- `selector-api`: REST API
+- `data-plane-selector-api`: REST API
 - `selector-core`: common code, default implementations for store and strategies
 
 Furthermore there should be a `selector-launcher` in the `launchers` directory containing a build file for standalone

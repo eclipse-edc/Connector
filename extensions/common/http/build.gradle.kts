@@ -18,8 +18,8 @@ plugins {
 
 
 dependencies {
-    api(project(":extensions:common:http:jersey"))
-    api(project(":extensions:common:http:jetty"))
+    api(project(":extensions:common:http:jersey-core"))
+    api(project(":extensions:common:http:jetty-core"))
 }
 
 publishing {

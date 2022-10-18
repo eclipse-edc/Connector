@@ -58,9 +58,9 @@ public abstract class DependencyRulesTask extends DefaultTask {
 
             if (!dependency.getName().endsWith("-spi") && // modules may only depend on `-spi` modules (exceptions follow)
                     !dependency.getName().equals("spi") && // exception: modules may depend on spi module
-                    !dependency.getName().endsWith("-core") && // exception: modules may depend on technology libs such as "blob-core"
+                    !dependency.getName().endsWith("-core") && // exception: modules may depend on technology libs such as "azure-blob-core"
                     !pathFromRoot.startsWith("common/") && // exception: modules may depend on common module
-                    !pathFromRoot.startsWith("extensions/http/jetty/") && // exception: modules might depend on `jetty` (this exception should be removed once there is an SPI for jetty)
+                    !pathFromRoot.startsWith("extensions/http/jetty-core/") && // exception: modules might depend on `jetty` (this exception should be removed once there is an SPI for jetty)
                     !project.getPath().startsWith(":launchers:") && // exception: launchers may depend on other modules
                     !project.getPath().startsWith(":samples:") && // exception: samples may depend on other modules
                     !project.getPath().startsWith(":system-tests:") // exception: system-tests may depend on other modules

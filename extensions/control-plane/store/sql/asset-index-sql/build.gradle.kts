@@ -24,7 +24,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:common-sql"))
+    implementation(project(":extensions:common:sql:sql-core"))
 
     testImplementation(project(":extensions:common:junit"))
 
@@ -32,7 +32,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":core:common:util")))
     testImplementation(testFixtures(project(":spi:common:core-spi")))
-    testImplementation(testFixtures(project(":extensions:common:sql:common-sql")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
 
 }

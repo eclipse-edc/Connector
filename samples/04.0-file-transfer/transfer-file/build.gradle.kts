@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
-    implementation(project(":extensions:data-plane-selector:selector-client"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 

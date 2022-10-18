@@ -24,8 +24,8 @@ your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation(project(":extensions:common:vault:azure-vault"))
+    implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":extensions:common:auth:auth-basic"))
-    implementation(project(":extensions:control-plane:api:data-management"))
+    implementation(project(":extensions:control-plane:api:data-management-api"))
 }
 ```

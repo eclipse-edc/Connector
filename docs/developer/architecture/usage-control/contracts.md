@@ -4,7 +4,7 @@
 
 The EDC connector is able to provide contract offers. This feature requires four different types of extensions:
 
-- [Core Contract Extension](../../../../core/control-plane/contract/README.md)
+- [Core Contract Extension](../../../../core/control-plane/contract-core/README.md)
 - Extension that implements the **Asset Index**
 - Extension that implements the **Contract Offer Framework**
 - Extension that implements an API to access the offers, e.g. IDS extension

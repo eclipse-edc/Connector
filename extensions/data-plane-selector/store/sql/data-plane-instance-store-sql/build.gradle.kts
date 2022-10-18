@@ -9,11 +9,11 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     implementation(project(":spi:common:transaction-datasource-spi"))
-    implementation(project(":extensions:common:sql:common-sql"))
+    implementation(project(":extensions:common:sql:sql-core"))
 
     testImplementation(testFixtures(project(":core:common:util")))
     testImplementation(testFixtures(project(":spi:data-plane-selector:data-plane-selector-spi")))
-    testImplementation(testFixtures(project(":extensions:common:sql:common-sql")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 
 
 }

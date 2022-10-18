@@ -42,4 +42,4 @@ The integration of each configuration extension may vary. Please have a look at 
 
 The following extensions implement the ConfigurationExtension interface.
 
-- [File System Configuration](../../../../extensions/common/configuration/filesystem-configuration/README.md)
+- [File System Configuration](../../../../extensions/common/configuration/configuration-filesystem/README.md)

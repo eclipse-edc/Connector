@@ -137,7 +137,7 @@ Examples:
 
 ```
 org.eclipse.dataspaceconnector:spi
-org.eclipse.dataspaceconnector:common-util
+org.eclipse.dataspaceconnector:util
 ```
 
 A comprehensive list can be found [here](https://search.maven.org/search?q=org.eclipse.dataspaceconnector).

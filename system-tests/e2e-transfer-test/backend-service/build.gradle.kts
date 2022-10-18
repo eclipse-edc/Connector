@@ -22,7 +22,7 @@ val rsApi: String by project
 dependencies {
     implementation(project(":extensions:common:http"))
     implementation(project(":core:common:boot"))
-    implementation(project(":core:common:base"))
+    implementation(project(":core:common:connector-core"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 

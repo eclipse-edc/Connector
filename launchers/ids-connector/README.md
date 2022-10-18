@@ -32,8 +32,8 @@ The following modules are used for this launcher:
 | extensions:filesystem:configuration-fs | reads configuration properties from a file in the file-system                      | 
 | extensions:filesystem:vault-fs         | file-system based vault, required for using a certificate from the file-system     | 
 | extensions:iam:oauth2:oauth2-core      | provides OAuth2 authentication, required as DAPS is OAuth2 based                   | 
-| extensions:iam:daps                    | provides the DAPS specific extension for OAuth2                                    | 
-| extensions:api:data-management         | provides endpoints e.g. for initiating a contract negotiation or a data transfer   |
+| extensions:iam:oauth2:oauth2-daps      | provides the DAPS specific extension for OAuth2                                    | 
+| extensions:api:data-management-api     | provides endpoints e.g. for initiating a contract negotiation or a data transfer   |
 
 All stores used in this launcher are in-memory implementations, meaning **all data will be lost 
 once the connector is shut down**. If you want data to be persisted even after the connector shuts 

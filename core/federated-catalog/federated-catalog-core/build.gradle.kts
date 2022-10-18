@@ -29,7 +29,7 @@ dependencies {
     api(project(":spi:federated-catalog:federated-catalog-spi"))
 
     implementation(project(":core:common:util"))
-    implementation(project(":core:common:base"))
+    implementation(project(":core:common:connector-core"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
@@ -47,8 +47,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("catalog-cache") {
-            artifactId = "catalog-cache"
+        create<MavenPublication>("federated-catalog-core") {
+            artifactId = "federated-catalog-core"
             from(components["java"])
         }
     }

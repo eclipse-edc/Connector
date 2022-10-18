@@ -23,13 +23,13 @@ val awaitility: String by project
 dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":core:common:util"))
-    api(project(":extensions:common:azure:cosmos-common"))
+    api(project(":extensions:common:azure:azure-cosmos-core"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
-    testImplementation(testFixtures(project(":extensions:common:azure:cosmos-common")))
+    testImplementation(testFixtures(project(":extensions:common:azure:azure-cosmos-core")))
     testImplementation("org.awaitility:awaitility:${awaitility}")
 
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))

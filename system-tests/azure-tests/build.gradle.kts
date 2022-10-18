@@ -37,8 +37,8 @@ dependencies {
         exclude(group = "io.gatling", module = "gatling-graphite")
     }
 
-    testImplementation(project(":extensions:common:azure:blob-core"))
-    testFixturesImplementation(project(":extensions:common:azure:blob-core"))
+    testImplementation(project(":extensions:common:azure:azure-blob-core"))
+    testFixturesImplementation(project(":extensions:common:azure:azure-blob-core"))
     testImplementation(project(":extensions:common:junit"))
     testImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
