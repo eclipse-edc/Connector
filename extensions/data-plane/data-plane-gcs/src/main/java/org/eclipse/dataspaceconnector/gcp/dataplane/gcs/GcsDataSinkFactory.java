@@ -14,8 +14,10 @@
 
 package org.eclipse.dataspaceconnector.gcp.dataplane.gcs;
 
+
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import org.eclipse.dataspaceconnector.dataplane.common.validation.ValidationRule;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
@@ -71,13 +73,25 @@ public class GcsDataSinkFactory implements DataSinkFactory {
             throw new EdcException(String.join(", ", validationResult.getFailureMessages()));
         }
 
-        //Get credential from the token if it exists otherwise use the default credentials of the system.
         var destination = request.getDestinationDataAddress();
 
-        GoogleCredentials googleCredentials;
+        Storage storageClient= getStorageClient(destination.getKeyName() );
 
-        if (destination.getKeyName() != null && !destination.getKeyName().isEmpty()) {
-            var credentialsContent = vault.resolveSecret(destination.getKeyName());
+        return GcsDataSink.Builder.newInstance()
+                .storageClient(storageClient)
+                .bucketName(destination.getProperty(GcsStoreSchema.BUCKET_NAME))
+                .blobName(destination.getProperty(GcsStoreSchema.BLOB_NAME))
+                .requestId(request.getId())
+                .executorService(executorService)
+                .monitor(monitor)
+                .build();
+    }
+
+    private Storage getStorageClient(String keyName) {
+        GoogleCredentials googleCredentials;
+        //Get credential from the token if it exists in the vault otherwise use the default credentials of the system.
+        if (keyName != null && !keyName.isEmpty()) {
+            var credentialsContent = vault.resolveSecret(keyName);
             var gcsAccessToken = typeManager.readValue(credentialsContent, GcpAccessToken.class);
             googleCredentials = GoogleCredentials.create(
                     new AccessToken(gcsAccessToken.getToken(),
@@ -91,17 +105,8 @@ public class GcsDataSinkFactory implements DataSinkFactory {
             }
         }
 
-        var storageClient = StorageOptions.newBuilder()
+        return StorageOptions.newBuilder()
                 .setCredentials(googleCredentials)
                 .build().getService();
-
-        return GcsDataSink.Builder.newInstance()
-                .storageClient(storageClient)
-                .bucketName(destination.getProperty(GcsStoreSchema.BUCKET_NAME))
-                .blobName(destination.getProperty(GcsStoreSchema.BLOB_NAME))
-                .requestId(request.getId())
-                .executorService(executorService)
-                .monitor(monitor)
-                .build();
     }
 }
