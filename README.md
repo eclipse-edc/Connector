@@ -96,8 +96,7 @@ dependencies {
 }
 ```
 
-A comprehensive list of all available modules can be found [here](docs/developer/modules.md). This file will always
-list the most recent _snapshot_ version, please check MavenCentral for official versions.
+You may check MavenCentral for a comprehensive list of all official versions.
 
 Please be aware of the following pitfalls:
 
