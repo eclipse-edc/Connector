@@ -37,11 +37,6 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     }
 
     @Override
-    public String getFindContractAgreementByDefinitionIdTemplate() {
-        return format("SELECT * FROM %s where %s LIKE ?", getContractAgreementTable(), getContractAgreementIdColumn());
-    }
-
-    @Override
     public String getUpdateNegotiationTemplate() {
         return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?%s, %s=?, %s=? WHERE id = ?;",
                 getContractNegotiationTable(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),

@@ -163,18 +163,6 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
-    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
-        return transactionContext.execute(() -> {
-            try {
-                var stmt = statements.getFindContractAgreementByDefinitionIdTemplate();
-                return executeQuery(getConnection(), true, this::mapContractAgreement, stmt, definitionId + ":%");
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
-    }
-
-    @Override
     public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try {

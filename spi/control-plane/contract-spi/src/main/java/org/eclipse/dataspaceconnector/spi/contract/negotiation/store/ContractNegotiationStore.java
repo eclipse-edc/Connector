@@ -77,15 +77,6 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     @NotNull
     Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec);
 
-    /**
-     * Finds all contract agreements that are based on a specific contract definition
-     *
-     * @param definitionId the contract definition id
-     * @return a stream of ContractAgreement, cannot be null.
-     */
-    @NotNull
-    Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId);
-
 
     /**
      * Finds all contract agreement that are covered by a specific {@link QuerySpec}. If no
