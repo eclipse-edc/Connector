@@ -17,12 +17,15 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -30,9 +33,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -91,6 +96,47 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .get("/contractnegotiations?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void queryAllContractNegotiations(ContractNegotiationStore store) {
+        store.save(createContractNegotiation("negotiationId"));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/contractnegotiations/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAllContractNegotiations_withPaging(ContractNegotiationStore store) {
+        store.save(createContractNegotiation("negotiationId"));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().offset(0).limit(15).sortOrder(SortOrder.ASC).build())
+                .post("/contractnegotiations/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAll_invalidQuery(ContractNegotiationStore store) {
+        IntStream.range(0, 10).forEach(i -> store.save(createContractNegotiation("negotiationId" + i)));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().filterExpression(List.of(CriterionDto.from("id", "=", "negotiationId4"))).build())
+                .post("/contractnegotiations/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
     }
 
     @Test

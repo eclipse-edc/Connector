@@ -36,9 +36,9 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        DataPlaneSelectorImpl selector = new DataPlaneSelectorImpl(instanceStore);
+        var selector = new DataPlaneSelectorImpl(instanceStore);
 
-        DefaultSelectionStrategyRegistry strategy = new DefaultSelectionStrategyRegistry();
+        var strategy = new DefaultSelectionStrategyRegistry();
         strategy.add(new RandomSelectionStrategy());
 
         context.registerService(DataPlaneSelector.class, selector);

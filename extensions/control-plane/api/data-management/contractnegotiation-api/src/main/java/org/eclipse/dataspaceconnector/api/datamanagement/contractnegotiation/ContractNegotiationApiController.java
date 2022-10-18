@@ -47,6 +47,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -66,28 +67,16 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @GET
     @Override
+    @Deprecated
     public List<ContractNegotiationDto> getNegotiations(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
+        return queryContractNegotiations(querySpecDto);
+    }
 
-        var spec = result.getContent();
-
-        monitor.debug(format("Get all contract definitions %s", spec));
-
-        var queryResult = service.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, ContractNegotiation.class, null);
-        }
-
-        try (var stream = queryResult.getContent()) {
-            return stream
-                    .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(Collectors.toList());
-        }
+    @POST
+    @Path("/request")
+    @Override
+    public List<ContractNegotiationDto> queryNegotiations(@Valid QuerySpecDto querySpecDto) {
+        return queryContractNegotiations(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
     }
 
     @GET
@@ -169,6 +158,30 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
             monitor.debug(format("Contract negotiation declined %s", result.getContent().getId()));
         } else {
             throw mapToException(result, ContractNegotiation.class, id);
+        }
+    }
+
+    private List<ContractNegotiationDto> queryContractNegotiations(QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            throw new InvalidRequestException(result.getFailureMessages());
+        }
+
+        var spec = result.getContent();
+
+        monitor.debug(format("Get all contract definitions %s", spec));
+
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, ContractNegotiation.class, null);
+        }
+
+        try (var stream = queryResult.getContent()) {
+            return stream
+                    .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(Collectors.toList());
         }
     }
 

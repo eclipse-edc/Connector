@@ -18,10 +18,12 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.dataspaceconnector.api.model.CriterionDto;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,6 +87,45 @@ public class ContractDefinitionApiControllerIntegrationTest {
                 .get("/contractdefinitions?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void queryAllContractDefs(ContractDefinitionStore store) {
+        store.accept(createContractDefinition("definitionId"));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/contractdefinitions/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAllContractDefs_withPaging(ContractDefinitionStore store) {
+        store.accept(createContractDefinition("definitionId"));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().limit(15).offset(0).sortOrder(SortOrder.ASC).build())
+                .post("/contractdefinitions/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAll_invalidFilter() {
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance().filterExpression(List.of(CriterionDto.from("foo", "=", "bar"))))
+                .post("/contractdefinitions/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(0));
     }
 
     @Test

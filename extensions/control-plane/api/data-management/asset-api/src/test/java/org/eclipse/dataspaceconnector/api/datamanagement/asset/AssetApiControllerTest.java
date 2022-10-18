@@ -178,6 +178,53 @@ public class AssetApiControllerTest {
     }
 
     @Test
+    void queryAllAssets() {
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(Asset.Builder.newInstance().build())));
+        when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class)))
+                .thenReturn(Result.success(AssetResponseDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
+
+        var allAssets = controller.requestAssets(querySpec);
+
+        assertThat(allAssets).hasSize(1);
+        verify(service).query(argThat(s -> s.getOffset() == 10));
+        verify(transformerRegistry).transform(isA(Asset.class), eq(AssetResponseDto.class));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
+    }
+
+    @Test
+    void queryAll_filtersOutFailedTransforms() {
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(Asset.Builder.newInstance().build())));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class))).thenReturn(Result.failure("failed to transform"));
+
+        var allAssets = controller.requestAssets(QuerySpecDto.Builder.newInstance().build());
+
+        assertThat(allAssets).isEmpty();
+    }
+
+    @Test
+    void queryAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.requestAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void queryAll_throwsExceptionIfQueryFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.none()));
+
+        when(service.query(any())).thenReturn(ServiceResult.badRequest("error"));
+
+        assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
     void getAssetById() {
         when(service.findById("id")).thenReturn(Asset.Builder.newInstance().build());
         when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class))).thenReturn(Result.success(AssetResponseDto.Builder.newInstance().build()));

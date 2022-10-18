@@ -12,17 +12,12 @@
  *
  */
 
-val mockitoVersion: String by project
-val openTelemetryVersion: String by project
-
 plugins {
     `java-library`
 }
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    implementation(project(":core:common:util"))
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 }
 
 

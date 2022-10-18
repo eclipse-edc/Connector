@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
+import org.eclipse.dataspaceconnector.dataplane.common.sink.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 

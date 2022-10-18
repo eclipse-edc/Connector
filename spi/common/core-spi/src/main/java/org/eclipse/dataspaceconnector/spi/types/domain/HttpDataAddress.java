@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -128,8 +128,10 @@ public class HttpDataAddress extends DataAddress {
 
     @JsonIgnore
     public boolean getNonChunkedTransfer() {
-        var nonChunkedTransfer = getProperty(NON_CHUNKED_TRANSFER);
-        return !StringUtils.isNullOrBlank(nonChunkedTransfer) && Boolean.parseBoolean(nonChunkedTransfer);
+        return Optional.of(NON_CHUNKED_TRANSFER)
+                .map(this::getProperty)
+                .map(Boolean::parseBoolean)
+                .orElse(false);
     }
 
     @JsonPOJOBuilder(withPrefix = "")

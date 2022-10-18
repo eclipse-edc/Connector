@@ -128,6 +128,47 @@ class PolicyDefinitionApiControllerTest {
     }
 
     @Test
+    void queryAllPolicies() {
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(TestFunctions.createPolicy("id"))));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var responseDto = PolicyDefinitionResponseDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+        when(transformerRegistry.transform(isA(PolicyDefinition.class), eq(PolicyDefinitionResponseDto.class)))
+                .thenReturn(Result.success(responseDto));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
+
+        var allPolicies = controller.queryAllPolicies(querySpec);
+
+        assertThat(allPolicies).hasSize(1);
+        verify(service).query(argThat(s -> s.getOffset() == 10));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(transformerRegistry).transform(isA(PolicyDefinition.class), eq(PolicyDefinitionResponseDto.class));
+    }
+
+    @Test
+    void queryAll_filtersOutFailedTransforms() {
+        var policyDefinition = TestFunctions.createPolicy("id");
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        when(transformerRegistry.transform(isA(PolicyDefinition.class), eq(PolicyDefinitionResponseDto.class)))
+                .thenReturn(Result.failure("failure"));
+
+        var allPolicyDefinitions = controller.queryAllPolicies(QuerySpecDto.Builder.newInstance().build());
+
+        assertThat(allPolicyDefinitions).hasSize(0);
+        verify(transformerRegistry).transform(policyDefinition, PolicyDefinitionResponseDto.class);
+    }
+
+    @Test
+    void queryAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.queryAllPolicies(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
     void createPolicy() {
         var dto = PolicyDefinitionRequestDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var policyDefinition = TestFunctions.createPolicy("id");

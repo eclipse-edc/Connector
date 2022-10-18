@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Common annotation for integration testing.  It applies integration-test Junit Tag.
  */
-@Target({ ElementType.TYPE })
+@Target({ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Test
 @Tag("IntegrationTest")

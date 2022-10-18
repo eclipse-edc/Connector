@@ -103,9 +103,11 @@ class CatalogApiControllerTest {
 
         var request = CatalogRequestDto.Builder.newInstance()
                 .providerUrl(url)
-                .sortField("test-field")
-                .sortOrder(SortOrder.DESC)
-                .filter(List.of(createCriterionDto("foo", "=", "bar")))
+                .querySpec(QuerySpecDto.Builder.newInstance()
+                        .sortField("test-field")
+                        .sortOrder(SortOrder.DESC)
+                        .filterExpression(List.of(createCriterionDto("foo", "=", "bar")))
+                        .build())
                 .build();
 
         controller.requestCatalog(request, response);

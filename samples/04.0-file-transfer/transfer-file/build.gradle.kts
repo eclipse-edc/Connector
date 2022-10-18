@@ -25,6 +25,7 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
+    implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))

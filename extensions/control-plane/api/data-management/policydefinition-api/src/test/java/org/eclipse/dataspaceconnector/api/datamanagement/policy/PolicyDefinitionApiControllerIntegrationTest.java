@@ -16,15 +16,20 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.api.model.CriterionDto;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -72,6 +77,59 @@ public class PolicyDefinitionApiControllerIntegrationTest {
                 .get("/policydefinitions?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void queryAllPolicyDefinitions(PolicyDefinitionStore policyStore) {
+        var policy = createPolicy("id");
+
+        policyStore.save(policy);
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/policydefinitions/request")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAllPolicyDefinitions_withQuery(PolicyDefinitionStore policyStore) {
+        IntStream.range(0, 10).forEach(i -> policyStore.save(createPolicy("id" + i)));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance()
+                        .limit(10)
+                        .offset(0)
+                        .sortOrder(SortOrder.ASC)
+                        .filterExpression(List.of(CriterionDto.from("id", "in", List.of("id3", "id2"))))
+                        .build())
+                .post("/policydefinitions/request")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+    }
+
+    @Test
+    void queryAllPolicyDefinitions_withPaging(PolicyDefinitionStore policyStore) {
+        IntStream.range(0, 10).forEach(i -> policyStore.save(createPolicy("id" + i)));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(QuerySpecDto.Builder.newInstance()
+                        .limit(10)
+                        .offset(0)
+                        .sortOrder(SortOrder.DESC)
+                        .sortField("id")
+                        .build())
+                .post("/policydefinitions/request")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(10));
     }
 
     @Test

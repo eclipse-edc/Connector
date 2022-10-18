@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.catalog.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.junit.jupiter.api.Test;
 
@@ -32,11 +33,13 @@ class CatalogRequestDtoTest {
     void verifySerdes() throws JsonProcessingException {
         var dto = CatalogRequestDto.Builder.newInstance()
                 .providerUrl("https://some.provider/path")
-                .limit(420)
-                .offset(69)
-                .sortField("someField")
-                .sortOrder(SortOrder.DESC)
-                .filter(List.of(createCriterionDto("foo", "=", "bar"), createCriterionDto("bar", "<", "baz")))
+                .querySpec(QuerySpecDto.Builder.newInstance()
+                        .limit(420)
+                        .offset(69)
+                        .sortField("someField")
+                        .sortOrder(SortOrder.DESC)
+                        .filterExpression(List.of(createCriterionDto("foo", "=", "bar"), createCriterionDto("bar", "<", "baz")))
+                        .build())
                 .build();
 
         var json = MAPPER.writeValueAsString(dto);

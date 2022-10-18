@@ -37,12 +37,14 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
@@ -60,26 +62,16 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @GET
     @Override
+    @Deprecated
     public List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
+        return queryContractDefinitions(querySpecDto);
+    }
 
-        var spec = result.getContent();
-
-        monitor.debug(format("get all contract definitions %s", spec));
-
-        var queryResult = service.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, ContractDefinition.class, null);
-        }
-
-        return queryResult.getContent()
-                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .collect(Collectors.toList());
+    @POST
+    @Path("/request")
+    @Override
+    public List<ContractDefinitionResponseDto> queryAllContractDefinitions(QuerySpecDto querySpecDto) {
+        return queryContractDefinitions(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
     }
 
     @GET
@@ -131,6 +123,29 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         } else {
             throw mapToException(result, ContractDefinition.class, id);
         }
+    }
+
+    @NotNull
+    private List<ContractDefinitionResponseDto> queryContractDefinitions(QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            throw new InvalidRequestException(result.getFailureMessages());
+        }
+
+        var spec = result.getContent();
+
+        monitor.debug(format("get all contract definitions %s", spec));
+
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, ContractDefinition.class, null);
+        }
+
+        return queryResult.getContent()
+                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(Collectors.toList());
     }
 
 }

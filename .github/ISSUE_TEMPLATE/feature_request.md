@@ -22,8 +22,3 @@ _If possible, provide a (brief!) solution proposal._
 
 ## Type of Issue
 _i.e., new feature, improvement, cleanup, etc._
-
-## Checklist
-
-- [ ] assigned appropriate label?
-- [x] **Do NOT select a milestone or an assignee!**

@@ -15,12 +15,12 @@
 package org.eclipse.dataspaceconnector.core.controlplane.defaults.policystore;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.core.controlplane.defaults.ReflectionBasedQueryResolver;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;

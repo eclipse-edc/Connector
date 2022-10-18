@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;

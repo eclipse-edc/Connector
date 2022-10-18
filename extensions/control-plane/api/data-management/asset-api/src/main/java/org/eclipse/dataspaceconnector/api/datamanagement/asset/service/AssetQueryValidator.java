@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
-import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
+import org.eclipse.dataspaceconnector.api.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
