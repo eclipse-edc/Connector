@@ -11,9 +11,6 @@ the [Application Default Credentials](https://cloud.google.com/docs/authenticati
 
 These will automatically be provided if the connector is deployed with the correct service account attached.
 
-### Configuration
-
-
 ### Data source properties
 
 | Key               | Description                                                               | Mandatory |

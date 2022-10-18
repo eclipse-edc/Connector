@@ -221,5 +221,3 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
-include("extensions:data-plane:data-plane-gcs")
-findProject(":extensions:data-plane:data-plane-gcs")?.name = "data-plane-gcs"
