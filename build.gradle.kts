@@ -72,11 +72,6 @@ if (projectVersion.contains("SNAPSHOT")) {
 subprojects {
     tasks.register<DependencyReportTask>("allDependencies") {}
 
-    // (re-)create a file that contains all maven publications
-    val f = File("${project.rootDir.absolutePath}/docs/developer/modules.md")
-    if (f.exists()) {
-        f.delete()
-    }
     afterEvaluate {
         publishing {
             publications.forEach { i ->
@@ -104,7 +99,6 @@ subprojects {
                         }
                     }
                 }
-                f.appendText("\n${mp.groupId}:${mp.artifactId}:${mp.version}")
             }
         }
     }

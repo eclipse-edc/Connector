@@ -140,7 +140,7 @@ org.eclipse.dataspaceconnector:spi
 org.eclipse.dataspaceconnector:common-util
 ```
 
-A comprehensive list can be found [here](modules.md)
+A comprehensive list can be found [here](https://search.maven.org/search?q=org.eclipse.dataspaceconnector).
 
 #### Release guide
 
