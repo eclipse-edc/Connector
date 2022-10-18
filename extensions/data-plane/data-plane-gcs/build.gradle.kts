@@ -15,6 +15,7 @@
 val okHttpVersion: String by project
 val failsafeVersion: String by project
 val gscVersion: String by project
+val googleCloudStorageVersion: String by project
 
 plugins {
     `java-library`
@@ -24,9 +25,10 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:gcp:gcp-core"))
+    implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    testImplementation(project(":core:data-plane:data-plane-core"))
+    testImplementation(project(":extensions:common:junit"))
 }
 
 publishing {

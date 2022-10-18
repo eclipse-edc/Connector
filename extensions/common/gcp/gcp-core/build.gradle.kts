@@ -25,7 +25,7 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
 
     implementation("com.google.cloud:google-iam-admin:${googleCloudIamAdminVersion}")
-    api("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
+    implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
     implementation("com.google.cloud:google-cloud-iamcredentials:${googleCloudIamCredentialsVersion}")
 }
 publishing {
