@@ -23,8 +23,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
-import java.util.concurrent.Executors;
-
 @Extension(value = DataPlaneGcsExtension.NAME)
 public class DataPlaneGcsExtension implements ServiceExtension {
 

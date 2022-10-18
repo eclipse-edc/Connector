@@ -10,9 +10,9 @@ in for the project setup and service account creation).
 
 ### Configuration
 
-| Key               | Description                      | Mandatory |
-|:------------------|:---------------------------------|---|
-| edc.gcp.projectId | ID of the GCP projcet to be used | X |
+| Key                 | Description                      | Mandatory |
+|:--------------------|:---------------------------------|---|
+| edc.gcp.project.id | ID of the GCP projcet to be used | X |
 
 # GCP Project Setup
 

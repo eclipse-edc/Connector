@@ -18,8 +18,8 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import org.eclipse.dataspaceconnector.gcp.core.iam.IamServiceImpl;
 import org.eclipse.dataspaceconnector.gcp.core.storage.StorageServiceImpl;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -28,8 +28,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 
 public class GcsProvisionExtension implements ServiceExtension {
 
-    @EdcSetting(value = "The GCP project ID", required = true)
-    private static final String GCP_PROJECT_ID = "edc.gcp.projectid";
+    @Setting(value = "The GCP project ID", required = true)
+    private static final String GCP_PROJECT_ID = "edc.gcp.project.id";
 
     @Inject
     private ProvisionManager provisionManager;

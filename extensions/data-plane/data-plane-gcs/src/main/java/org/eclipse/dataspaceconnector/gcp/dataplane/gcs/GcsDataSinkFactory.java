@@ -75,7 +75,7 @@ public class GcsDataSinkFactory implements DataSinkFactory {
 
         var destination = request.getDestinationDataAddress();
 
-        Storage storageClient= getStorageClient(destination.getKeyName() );
+        Storage storageClient = getStorageClient(destination.getKeyName());
 
         return GcsDataSink.Builder.newInstance()
                 .storageClient(storageClient)
