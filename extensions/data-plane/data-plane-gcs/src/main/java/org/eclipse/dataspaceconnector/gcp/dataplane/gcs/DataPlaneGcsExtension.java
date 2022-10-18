@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.gcp.dataplane.gcs;
 
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
@@ -38,20 +39,23 @@ public class DataPlaneGcsExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private DataTransferExecutorServiceContainer executorContainer;
+
     @Override
     public String name() {
-        return "Data Plane Google Storage";
+        return NAME;
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var executorService = Executors.newFixedThreadPool(10);
+
         var monitor = context.getMonitor();
 
         var sourceFactory = new GcsDataSourceFactory(monitor);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new GcsDataSinkFactory(executorService, monitor, vault, typeManager);
+        var sinkFactory = new GcsDataSinkFactory(executorContainer.getExecutorService(), monitor, vault, typeManager);
         pipelineService.registerFactory(sinkFactory);
     }
 }
