@@ -120,3 +120,4 @@ org.eclipse.dataspaceconnector:contractnegotiation-store-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:control-plane-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policy-store-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transfer-process-store-sql:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:data-plane-instance-store-sql:0.0.1-SNAPSHOT

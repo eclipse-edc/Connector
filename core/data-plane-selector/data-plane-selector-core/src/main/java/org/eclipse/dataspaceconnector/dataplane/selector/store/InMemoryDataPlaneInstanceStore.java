@@ -27,12 +27,12 @@ import java.util.stream.Stream;
 /**
  * Default (=in-memory) implementation for the {@link DataPlaneInstanceStore}. All r/w access is secured with a {@link LockManager}.
  */
-public class DefaultDataPlaneInstanceStore implements DataPlaneInstanceStore {
+public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     private final LockManager lockManager;
     private final List<DataPlaneInstance> list;
 
-    public DefaultDataPlaneInstanceStore() {
+    public InMemoryDataPlaneInstanceStore() {
         lockManager = new LockManager(new ReentrantReadWriteLock(true));
         list = new ArrayList<>();
     }

@@ -140,6 +140,7 @@ include(":extensions:data-plane:integration-tests")
 
 include(":extensions:data-plane-selector:selector-api")
 include(":extensions:data-plane-selector:selector-client")
+include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql")
 
 include(":extensions:federated-catalog:store:fcc-node-directory-cosmos")
 

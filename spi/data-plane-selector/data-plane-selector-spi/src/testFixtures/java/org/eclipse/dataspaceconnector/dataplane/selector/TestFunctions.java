@@ -35,4 +35,12 @@ public class TestFunctions {
                 .build();
     }
 
+    public static TestDataPlaneInstance createCustomInstance(String id, String name) {
+        return TestDataPlaneInstance.Builder.newInstance()
+                .id(id)
+                .url("http://somewhere.com:1234/api/v1")
+                .name(name)
+                .build();
+    }
+
 }
