@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegot
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
-import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
+import org.eclipse.dataspaceconnector.contract.offer.ContractOfferResolverImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyArchiveImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEquality;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
@@ -43,7 +43,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
@@ -64,7 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 
 @Provides({
-        ContractOfferService.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
+        ContractOfferResolver.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
         PolicyArchive.class, ProviderContractNegotiationManager.class, ContractNegotiationObservable.class,
         ContractDefinitionService.class
 })
@@ -155,8 +155,8 @@ public class ContractServiceExtension implements ServiceExtension {
         var definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine, policyStore);
         context.registerService(ContractDefinitionService.class, definitionService);
 
-        var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex, policyStore);
-        context.registerService(ContractOfferService.class, contractOfferService);
+        var contractOfferService = new ContractOfferResolverImpl(agentService, definitionService, assetIndex, policyStore);
+        context.registerService(ContractOfferResolver.class, contractOfferService);
 
         var policyEquality = new PolicyEquality(context.getTypeManager());
         var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);

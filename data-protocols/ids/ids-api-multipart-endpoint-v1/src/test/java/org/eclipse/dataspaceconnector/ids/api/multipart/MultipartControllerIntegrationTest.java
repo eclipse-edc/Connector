@@ -58,7 +58,7 @@ import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -103,7 +103,7 @@ public class MultipartControllerIntegrationTest {
     private static final String INFOMODEL_VERSION = "4.1.3";
     private final ObjectMapper objectMapper = getCustomizedObjectMapper();
 
-    private final ContractOfferService contractOfferService = mock(ContractOfferService.class);
+    private final ContractOfferResolver contractOfferResolver = mock(ContractOfferResolver.class);
     private final ConsumerContractNegotiationManager consumerContractNegotiationManager = mock(ConsumerContractNegotiationManager.class);
     private final ProviderContractNegotiationManager providerContractNegotiationManager = mock(ProviderContractNegotiationManager.class);
 
@@ -119,7 +119,7 @@ public class MultipartControllerIntegrationTest {
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
-        extension.registerServiceMock(ContractOfferService.class, contractOfferService);
+        extension.registerServiceMock(ContractOfferResolver.class, contractOfferResolver);
         extension.registerServiceMock(ProviderContractNegotiationManager.class, providerContractNegotiationManager);
         extension.registerServiceMock(ConsumerContractNegotiationManager.class, consumerContractNegotiationManager);
     }
@@ -253,7 +253,7 @@ public class MultipartControllerIntegrationTest {
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
                 .build();
-        when(contractOfferService.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
+        when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build()
@@ -496,7 +496,7 @@ public class MultipartControllerIntegrationTest {
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
                 .build();
-        when(contractOfferService.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
+        when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.RESOURCE).build()

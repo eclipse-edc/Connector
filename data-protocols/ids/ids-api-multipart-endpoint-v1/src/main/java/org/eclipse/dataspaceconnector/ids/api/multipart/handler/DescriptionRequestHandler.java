@@ -33,7 +33,7 @@ import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
@@ -56,7 +56,7 @@ public class DescriptionRequestHandler implements Handler {
     private final IdsTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
     private final CatalogService catalogService;
-    private final ContractOfferService contractOfferService;
+    private final ContractOfferResolver contractOfferResolver;
     private final ConnectorService connectorService;
     private final ObjectMapper objectMapper;
 
@@ -66,7 +66,7 @@ public class DescriptionRequestHandler implements Handler {
             @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull AssetIndex assetIndex,
             @NotNull CatalogService catalogService,
-            @NotNull ContractOfferService contractOfferService,
+            @NotNull ContractOfferResolver contractOfferResolver,
             @NotNull ConnectorService connectorService,
             @NotNull ObjectMapper objectMapper) {
         this.monitor = monitor;
@@ -74,7 +74,7 @@ public class DescriptionRequestHandler implements Handler {
         this.transformerRegistry = transformerRegistry;
         this.assetIndex = assetIndex;
         this.catalogService = catalogService;
-        this.contractOfferService = contractOfferService;
+        this.contractOfferResolver = contractOfferResolver;
         this.connectorService = connectorService;
         this.objectMapper = objectMapper;
     }
@@ -151,7 +151,7 @@ public class DescriptionRequestHandler implements Handler {
                         .assetsCriterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build();
 
-                try (var stream = contractOfferService.queryContractOffers(contractOfferQuery)) {
+                try (var stream = contractOfferResolver.queryContractOffers(contractOfferQuery)) {
                     var targetingContractOffers = stream.collect(toList());
 
                     return new OfferedAsset(asset, targetingContractOffers);

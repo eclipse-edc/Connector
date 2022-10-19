@@ -33,7 +33,7 @@ import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -60,7 +60,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Inject
-    private ContractOfferService contractOfferService;
+    private ContractOfferResolver contractOfferResolver;
 
     @Inject
     private IdentityService identityService;
@@ -101,7 +101,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         context.registerService(IdsTransformerRegistry.class, new IdsTransformerRegistryImpl());
 
-        var dataCatalogService = new CatalogServiceImpl(dataCatalogId, contractOfferService);
+        var dataCatalogService = new CatalogServiceImpl(dataCatalogId, contractOfferResolver);
         context.registerService(CatalogService.class, dataCatalogService);
 
         var connectorService = new ConnectorServiceImpl(monitor, connectorServiceSettings, dataCatalogService);

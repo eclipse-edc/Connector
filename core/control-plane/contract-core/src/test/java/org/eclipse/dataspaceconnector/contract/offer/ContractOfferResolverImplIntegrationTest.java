@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
@@ -56,18 +56,18 @@ import static org.mockito.Mockito.when;
 /**
  * This could be seen as se second part of the {@code ContractOfferServiceImplTest}, using the in-mem asset index
  */
-class ContractOfferServiceImplIntegrationTest {
+class ContractOfferResolverImplIntegrationTest {
 
     private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private AssetIndex assetIndex;
-    private ContractOfferService contractOfferService;
+    private ContractOfferResolver contractOfferResolver;
 
     @BeforeEach
     void setUp() {
         assetIndex = new InMemoryAssetIndex();
-        contractOfferService = new ContractOfferServiceImpl(agentService, contractDefinitionService, assetIndex, policyStore);
+        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore);
     }
 
     @Test
@@ -94,7 +94,7 @@ class ContractOfferServiceImplIntegrationTest {
         var to = 50;
         var query = ContractOfferQuery.builder().range(new Range(from, to)).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
-        assertThat(contractOfferService.queryContractOffers(query)).hasSize(to - from);
+        assertThat(contractOfferResolver.queryContractOffers(query)).hasSize(to - from);
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService, times(1)).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore).findById("contract");
@@ -120,7 +120,7 @@ class ContractOfferServiceImplIntegrationTest {
         var query = ContractOfferQuery.builder().range(new Range(from, to)).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         // 4 definitions, 10 assets each = 40 offers total -> offset 20 ==> result = 20
-        assertThat(contractOfferService.queryContractOffers(query)).hasSize(4);
+        assertThat(contractOfferResolver.queryContractOffers(query)).hasSize(4);
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore, atLeastOnce()).findById("contract");
@@ -141,7 +141,7 @@ class ContractOfferServiceImplIntegrationTest {
         var query = ContractOfferQuery.builder().range(new Range(from, to)).claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
-        assertThat(contractOfferService.queryContractOffers(query)).isEmpty();
+        assertThat(contractOfferResolver.queryContractOffers(query)).isEmpty();
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore, never()).findById("contract");

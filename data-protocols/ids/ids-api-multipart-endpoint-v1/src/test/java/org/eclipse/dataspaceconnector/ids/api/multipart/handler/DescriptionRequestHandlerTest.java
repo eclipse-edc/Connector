@@ -40,7 +40,7 @@ import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -86,7 +86,7 @@ class DescriptionRequestHandlerTest {
     private IdsTransformerRegistry transformerRegistry;
     private AssetIndex assetIndex;
     private CatalogService catalogService;
-    private ContractOfferService contractOfferService;
+    private ContractOfferResolver contractOfferResolver;
     private ConnectorService connectorService;
 
     @BeforeEach
@@ -96,11 +96,11 @@ class DescriptionRequestHandlerTest {
         transformerRegistry = mock(IdsTransformerRegistry.class);
         assetIndex = mock(AssetIndex.class);
         catalogService = mock(CatalogService.class);
-        contractOfferService = mock(ContractOfferService.class);
+        contractOfferResolver = mock(ContractOfferResolver.class);
         connectorService = mock(ConnectorService.class);
 
         handler = new DescriptionRequestHandler(mock(Monitor.class), connectorId, transformerRegistry,
-                assetIndex, catalogService, contractOfferService, connectorService, new ObjectMapper());
+                assetIndex, catalogService, contractOfferResolver, connectorService, new ObjectMapper());
     }
 
     @Test
@@ -143,7 +143,7 @@ class DescriptionRequestHandlerTest {
         verify(connectorService, times(1))
                 .getConnector(any(), argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo));
         verifyNoMoreInteractions(connectorService);
-        verifyNoInteractions(catalogService, contractOfferService, assetIndex);
+        verifyNoInteractions(catalogService, contractOfferResolver, assetIndex);
     }
 
     @Test
@@ -170,7 +170,7 @@ class DescriptionRequestHandlerTest {
                                 query.getFilterExpression().get(0).getOperandRight().equals(VALUE) &&
                                 query.getFilterExpression().get(0).getOperator().equals(EQUALS_SIGN)));
         verifyNoMoreInteractions(catalogService);
-        verifyNoInteractions(connectorService, contractOfferService, assetIndex);
+        verifyNoInteractions(connectorService, contractOfferResolver, assetIndex);
     }
 
     @Test
@@ -190,7 +190,7 @@ class DescriptionRequestHandlerTest {
                 .build();
 
         when(assetIndex.findById(any())).thenReturn(asset);
-        when(contractOfferService.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
+        when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
         when(transformerRegistry.transform(any(), eq(Resource.class))).thenReturn(Result.success(idsResource));
 
         var response = handler.handleRequest(request);
@@ -200,8 +200,8 @@ class DescriptionRequestHandlerTest {
 
         verify(assetIndex, times(1)).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
-        verify(contractOfferService, times(1)).queryContractOffers(any());
-        verifyNoMoreInteractions(contractOfferService);
+        verify(contractOfferResolver, times(1)).queryContractOffers(any());
+        verifyNoMoreInteractions(contractOfferResolver);
         verifyNoMoreInteractions(connectorService, catalogService);
     }
 
@@ -231,7 +231,7 @@ class DescriptionRequestHandlerTest {
 
         verify(assetIndex, times(1)).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
-        verifyNoInteractions(connectorService, catalogService, contractOfferService);
+        verifyNoInteractions(connectorService, catalogService, contractOfferResolver);
     }
 
     @Test
@@ -260,7 +260,7 @@ class DescriptionRequestHandlerTest {
 
         verify(assetIndex, times(1)).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
-        verifyNoInteractions(connectorService, catalogService, contractOfferService);
+        verifyNoInteractions(connectorService, catalogService, contractOfferResolver);
     }
 
     private DescriptionRequestMessage descriptionRequestMessage(URI requestedElement) {
