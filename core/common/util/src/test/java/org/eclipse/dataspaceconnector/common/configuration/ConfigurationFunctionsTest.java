@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.common.configuration;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -80,13 +81,18 @@ class ConfigurationFunctionsTest {
         assertThat(resultValue).isEqualTo(expected);
     }
 
+    @Test
+    public void returnDefault_NullValue() {
+        String resultValue = ConfigurationFunctions.propOrEnv(NONEXISTENT, DEFAULT);
+        assertThat(resultValue).isEqualTo(DEFAULT);
+    }
+
     private static Stream<Arguments> propertiesSource() {
         return Stream.of(
                 Arguments.of(SYS_PROP_1, VALUE_1),
                 Arguments.of(SYS_PROP_2, DEFAULT),
                 Arguments.of(SYS_PROP_3, DEFAULT),
-                Arguments.of(SYS_PROP_4, VALUE_1),
-                Arguments.of(NONEXISTENT, DEFAULT)
+                Arguments.of(SYS_PROP_4, VALUE_1)
         );
     }
 
@@ -96,8 +102,7 @@ class ConfigurationFunctionsTest {
                 Arguments.of(SYS_PROP_1, VALUE_1),
                 Arguments.of(ENV_VAR_2, DEFAULT),
                 Arguments.of(EDC_VAR_3, DEFAULT),
-                Arguments.of(EDC_VAR_4, VALUE_1),
-                Arguments.of(NONEXISTENT, DEFAULT)
+                Arguments.of(EDC_VAR_4, VALUE_1)
         );
     }
 }
