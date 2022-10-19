@@ -29,7 +29,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 public class GcsProvisionExtension implements ServiceExtension {
 
     @Setting(value = "The GCP project ID", required = true)
-    private static final String GCP_PROJECT_ID = "edc.gcp.projectId";
+    private static final String GCP_PROJECT_ID = "edc.gcp.project.id";
 
     @Inject
     private ProvisionManager provisionManager;
