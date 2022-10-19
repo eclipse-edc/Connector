@@ -35,7 +35,7 @@ public class ConfigurationFunctions {
         if (!StringUtils.isNullOrBlank(value)) {
             return value.strip();
         }
-        return defaultValue.strip();
+        return defaultValue;
     }
 
 }
