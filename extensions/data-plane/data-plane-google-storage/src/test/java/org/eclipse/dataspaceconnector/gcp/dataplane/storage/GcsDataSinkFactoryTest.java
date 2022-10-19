@@ -29,6 +29,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 class GcsDataSinkFactoryTest {

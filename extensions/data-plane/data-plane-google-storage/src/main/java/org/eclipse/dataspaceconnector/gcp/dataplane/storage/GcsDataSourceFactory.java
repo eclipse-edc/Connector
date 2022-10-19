@@ -15,11 +15,11 @@
 package org.eclipse.dataspaceconnector.gcp.dataplane.storage;
 
 import com.google.cloud.storage.StorageOptions;
+import org.eclipse.dataspaceconnector.dataplane.common.validation.ValidationRule;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema;
-import org.eclipse.dataspaceconnector.gcp.dataplane.gcs.validation.GcsSourceDataAddressValidationRule;
-import org.eclipse.dataspaceconnector.gcp.dataplane.gcs.validation.ValidationRule;
+import org.eclipse.dataspaceconnector.gcp.dataplane.storage.validation.GcsSourceDataAddressValidationRule;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;

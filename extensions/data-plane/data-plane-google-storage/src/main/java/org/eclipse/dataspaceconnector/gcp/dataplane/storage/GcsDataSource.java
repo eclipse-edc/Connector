@@ -36,7 +36,7 @@ public class GcsDataSource implements DataSource {
         try {
             return Stream.of(new GoogleStoragePart(storageClient, bucketName, blobName));
         } catch (Exception e) {
-            monitor.severe(format("Error accessing bucket %s or blob %s in project %s", bucketName, blobName, storageClient.getOptions().getProjectId()), e);
+            monitor.severe(String.format("Error accessing bucket %s or blob %s in project %s", bucketName, blobName, storageClient.getOptions().getProjectId()), e);
             throw new EdcException(e);
         }
 

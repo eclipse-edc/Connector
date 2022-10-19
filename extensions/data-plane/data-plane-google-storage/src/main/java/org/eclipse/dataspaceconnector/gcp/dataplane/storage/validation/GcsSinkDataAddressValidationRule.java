@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.gcp.dataplane.storage.validation;
 
+import org.eclipse.dataspaceconnector.dataplane.common.validation.CompositeValidationRule;
+import org.eclipse.dataspaceconnector.dataplane.common.validation.EmptyValueValidationRule;
+import org.eclipse.dataspaceconnector.dataplane.common.validation.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
