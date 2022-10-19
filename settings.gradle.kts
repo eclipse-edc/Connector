@@ -222,5 +222,3 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
-include("extensions:data-plane:data-plane-google-storage")
-findProject(":extensions:data-plane:data-plane-google-storage")?.name = "data-plane-google-storage"
