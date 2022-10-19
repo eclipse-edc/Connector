@@ -75,7 +75,7 @@ public class GcsDataSinkFactory implements DataSinkFactory {
 
         var destination = request.getDestinationDataAddress();
 
-        Storage storageClient = getStorageClient(destination.getKeyName());
+        var storageClient = createStorageClient(destination.getKeyName());
 
         return GcsDataSink.Builder.newInstance()
                 .storageClient(storageClient)
@@ -87,7 +87,7 @@ public class GcsDataSinkFactory implements DataSinkFactory {
                 .build();
     }
 
-    private Storage getStorageClient(String keyName) {
+    private Storage createStorageClient(String keyName) {
         GoogleCredentials googleCredentials;
         //Get credential from the token if it exists in the vault otherwise use the default credentials of the system.
         if (keyName != null && !keyName.isEmpty()) {
