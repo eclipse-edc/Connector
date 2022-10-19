@@ -136,6 +136,7 @@ include(":extensions:data-plane:data-plane-azure-storage")
 include(":extensions:data-plane:data-plane-azure-data-factory")
 include(":extensions:data-plane:data-plane-http")
 include(":extensions:data-plane:data-plane-aws-s3")
+include(":extensions:data-plane:data-plane-google-storage")
 include(":extensions:data-plane:data-plane-integration-tests")
 
 include(":extensions:data-plane-selector:data-plane-selector-api")
@@ -221,3 +222,5 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
+include("extensions:data-plane:data-plane-google-storage")
+findProject(":extensions:data-plane:data-plane-google-storage")?.name = "data-plane-google-storage"
