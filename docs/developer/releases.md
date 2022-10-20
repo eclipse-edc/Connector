@@ -130,17 +130,17 @@ Execute the gradle task *publish* on the level of an individual module to publis
 
 Artifact names must adhere to the following naming convention:
 
-- Group name: org.eclipse.dataspaceconnector
+- Group name: org.eclipse.edc
 - Artifact id describing the module name (disregarding the directory structure) separating terms by a dash
 
 Examples:
 
 ```
-org.eclipse.dataspaceconnector:spi
-org.eclipse.dataspaceconnector:util
+org.eclipse.edc:spi
+org.eclipse.edc:util
 ```
 
-A comprehensive list can be found [here](https://search.maven.org/search?q=org.eclipse.dataspaceconnector).
+A comprehensive list can be found [here](https://search.maven.org/search?q=org.eclipse.edc).
 
 #### Release guide
 

@@ -48,7 +48,7 @@ For detailed information about the whole project, please take a look at our [Git
 
 ### Add Maven dependencies
 
-Official versions are available through [MavenCentral](https://search.maven.org/search?q=org.eclipse.dataspaceconnector)
+Official versions are available through [MavenCentral](https://search.maven.org/search?q=org.eclipse.edc)
 .
 Please add the following instructions in your `build.gradle[.kts]` file (if not already present):
 
@@ -62,11 +62,11 @@ repositories {
 We **strongly** recommend to use official versions and only switch to snapshots if there is a clear need to do so, or
 you've been instructed to do so, e.g. to verify a bugfix.
 
-All artifacts are under the `org.eclipse.dataspaceconnector` group id, for example:
+All artifacts are under the `org.eclipse.edc` group id, for example:
 
 ```kotlin
 dependencies {
-    implementation("org.eclipse.dataspaceconnector:spi:core-spi:<<version>>")
+    implementation("org.eclipse.edc:spi:core-spi:<<version>>")
     // any other dependencies
 }
 ```
@@ -91,7 +91,7 @@ Then you can add snapshot dependencies by simply using the `-SNAPSHOT` version s
 
 ```kotlin
 dependencies {
-    implementation("org.eclipse.dataspaceconnector:spi:core-spi:0.0.1-SNAPSHOT")
+    implementation("org.eclipse.edc:spi:core-spi:0.0.1-SNAPSHOT")
     // any other dependencies
 }
 ```
@@ -192,7 +192,7 @@ Launchers are essentially connector packages that are runnable. What modules get
 capabilities a connector has) is defined by the `build.gradle.kts` file inside the launcher subdirectory. That's also
 where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
 connector to become operational the `runtime` needs to perform several important tasks (="bootstrapping"). For an
-example take a look at [this runtime](samples/other/custom-runtime/src/main/java/org/eclipse/dataspaceconnector/demo/runtime/CustomRuntime.java)
+example take a look at [this runtime](samples/other/custom-runtime/src/main/java/org/eclipse/edc/sample/runtime/CustomRuntime.java)
 
 ### `resources/charts`
 

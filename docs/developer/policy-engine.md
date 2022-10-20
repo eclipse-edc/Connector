@@ -27,7 +27,7 @@ As an example, we create the module `:extensions:policy:ids-policy`.
 2. Specify the `IdsPolicyExtension` in the `resources/META-INF/services` directory:
 
     ```
-   org.eclipse.dataspaceconnector.ids.policy.IdsPolicyExtension
+   org.eclipse.edc.protocol.ids.policy.IdsPolicyExtension
    ```
 
 4. To ensure that the extension will be loaded, add it to the `settings.gradle.kts` at the root of the project:

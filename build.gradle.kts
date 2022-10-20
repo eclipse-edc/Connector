@@ -348,8 +348,8 @@ openApiMerger {
 
 // Dependency analysis active if property "dependency.analysis" is set. Possible values are <'fail'|'warn'|'ignore'>.
 if (project.hasProperty("dependency.analysis")) {
-    apply(plugin = "org.eclipse.dataspaceconnector.dependency-rules")
-    configure<org.eclipse.dataspaceconnector.gradle.DependencyRulesPluginExtension> {
+    apply(plugin = "org.eclipse.edc.dependency-rules")
+    configure<org.eclipse.edc.gradle.DependencyRulesPluginExtension> {
         severity.set(project.property("dependency.analysis").toString())
     }
     apply(plugin = "com.autonomousapps.dependency-analysis")

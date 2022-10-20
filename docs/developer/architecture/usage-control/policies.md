@@ -22,7 +22,7 @@ It is possible to link these entities together, forming more complex rule chains
 extended with a set of _Obligations_, specifying actions that need to be performed in case the prohibition has been infringed.
 
 For more details of the possible use cases, please consult the ODRL documentation.
-Unless stated otherwise, all models mentioned below can be found in the `org.eclipse.dataspaceconnector.policy.model` package.
+Unless stated otherwise, all models mentioned below can be found in the `org.eclipse.edc.policy.model` package.
 
 ## Defining policies
 

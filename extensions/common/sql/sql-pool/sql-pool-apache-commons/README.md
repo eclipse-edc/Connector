@@ -1,7 +1,7 @@
 # SQL Pool Apache Commons Pool
 
 This extension registers named `javax.sql.DataSource`s to
-the `org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry`
+the `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry`
 capable of pooling `java.sql.Connection`s. The pooling mechanism is backed by
 the [Apache Commons Pool library](https://commons.apache.org/proper/commons-pool/).
 

@@ -5,7 +5,7 @@ elegant way.
 
 The Eclipse Dataspace Connector exposes configuration through its `ConfigurationExtension` interface. That is a "
 special" extension in that sense that it gets loaded at a very early stage. There is also a default implementation
-named [`FsConfigurationExtension.java`](../../extensions/common/configuration/configuration-filesystem/src/main/java/org/eclipse/dataspaceconnector/configuration/fs/FsConfigurationExtension.java)
+named [`FsConfigurationExtension.java`](../../extensions/common/configuration/configuration-filesystem/src/main/java/org/eclipse/edc/configuration/filesystem/FsConfigurationExtension.java)
 which uses a standard Java properties file to store configuration entries.
 
 In the previous steps we had not included that in the JAR file, so we need to add

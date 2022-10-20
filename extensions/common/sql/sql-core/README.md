@@ -22,12 +22,12 @@ to retrieve a `java.sql.Connection`.
 ### ConnectionFactoryDataSource
 
 Constructs a `java.sql.DataSource` from a given `ConnectionFactory` to be registered at
-the `org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry`.
+the `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry`.
 
 ### ConnectionPoolDataSource
 
 Constructs a `java.sql.DataSource` from a given `ConnectionPool` to be registered at
-the `org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry`.
+the `org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry`.
 
 ## Usage
 
