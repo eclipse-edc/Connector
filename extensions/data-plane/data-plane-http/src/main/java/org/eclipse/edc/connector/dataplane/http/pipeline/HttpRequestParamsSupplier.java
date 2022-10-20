@@ -16,12 +16,14 @@ package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -30,9 +32,11 @@ import static java.lang.String.format;
 public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequest, HttpRequestParams> {
 
     private final Vault vault;
+    private final TypeManager typeManager;
 
-    protected HttpRequestParamsSupplier(Vault vault) {
+    protected HttpRequestParamsSupplier(Vault vault, TypeManager typeManager) {
         this.vault = vault;
+        this.typeManager = typeManager;
     }
 
     /**
@@ -95,6 +99,8 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
      * <p>
      * First check the token is directly hardcoded within the data source.
      * If not then use the secret to resolve it from the vault.
+     * In the vault the token could be stored directly as a string or in an object within the "token" field (look at the
+     * "oauth2-provision" extension for details.)
      *
      * @param requestId request identifier
      * @param address   address of the data source
@@ -111,7 +117,26 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
             throw new EdcException(format("Missing mandatory secret name for request: %s", requestId));
         }
 
-        return Optional.ofNullable(vault.resolveSecret(secretName))
+        var value = vault.resolveSecret(secretName);
+
+        return Optional.ofNullable(value)
+                .map(it -> getTokenFromJson(it).orElse(it))
                 .orElseThrow(() -> new EdcException(format("No secret found in vault with name %s for request: %s", secretName, requestId)));
+    }
+
+    private Optional<String> getTokenFromJson(String value) {
+        Map<?, ?> map;
+        try {
+            map = typeManager.readValue(value, Map.class);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+
+        var token = map.get("token");
+        if (token == null) {
+            throw new EdcException("Field 'token' not found in the secret serialized as json");
+        } else {
+            return Optional.of(token.toString());
+        }
     }
 }

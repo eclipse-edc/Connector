@@ -12,13 +12,11 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.dataspaceconnector.provision.oauth2;
 
-dependencies {
-    implementation(project(":core:data-plane:data-plane-core"))
-    implementation(project(":extensions:data-plane:data-plane-http"))
-    implementation(project(":extensions:data-plane:data-plane-api"))
-    implementation(project(":extensions:common:vault:vault-filesystem"))
+public interface Oauth2DataAddressSchema {
+    String TYPE = "OAuth2";
+    String CLIENT_ID = "oauth2:clientId";
+    String CLIENT_SECRET = "oauth2:clientSecret";
+    String TOKEN_URL = "oauth2:tokenUrl";
 }

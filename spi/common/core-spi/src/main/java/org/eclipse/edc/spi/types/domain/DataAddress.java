@@ -73,6 +73,17 @@ public class DataAddress {
         return properties.get(KEY_NAME);
     }
 
+    /**
+     * Returns true if there's a property with the specified key
+     *
+     * @param key the key
+     * @return true if it exists, false if not
+     */
+    @JsonIgnore
+    public boolean hasProperty(String key) {
+        return properties.containsKey(key);
+    }
+
     @JsonIgnore
     public void setKeyName(String keyName) {
         Objects.requireNonNull(keyName);

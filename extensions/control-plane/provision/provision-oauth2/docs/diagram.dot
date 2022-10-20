@@ -1,0 +1,31 @@
+digraph {node [ shape=square ];
+  newrank=true;
+
+  address [ label = "HttpData\nDataAddress\nwith oauth2\ncredentials" ]
+  control [ label = "control\nplane" ]
+  oauth2 [ label = "oauth2\nserver" ]
+  vault [ ]
+  data [ label = "data\nplane" ]
+  storage [ label = "http data\nsource/sink" ]
+
+  subgraph cluster_provision {
+    rank=same;
+    label="provision"
+    control
+    oauth2
+  }
+
+  subgraph cluster_transfer {
+  rank=same;
+    label="transfer"
+    storage
+    data
+  }
+
+  address -> control
+  control -> oauth2 [ label = "1. request token"];
+  control -> vault [ label = "2. store the token"];
+  vault -> data [ label = "3. get the token"];
+  data -> storage [ label = "4. get/store data\nusing the token"];
+
+}

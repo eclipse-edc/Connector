@@ -20,12 +20,12 @@ import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -33,30 +33,26 @@ import java.util.concurrent.atomic.AtomicReference;
  * Implements a vault backed by a properties file.
  */
 public class FsVault implements Vault {
-    private final AtomicReference<Map<String, String>> secrets;
+    private final AtomicReference<Map<String, String>> secrets = new AtomicReference<>(new HashMap<>());
     private final Path vaultFile;
     private final boolean persistent;
 
     public FsVault(Path vaultFile, boolean persistent) {
         this.persistent = persistent;
-        secrets = new AtomicReference<>(new HashMap<>());
-
         this.vaultFile = vaultFile;
-        try (InputStream is = Files.newInputStream(vaultFile)) {
-            var properties = new Properties();
-            properties.load(is);
-            for (String name : properties.stringPropertyNames()) {
-                secrets.get().put(name, properties.getProperty(name));
-            }
-        } catch (IOException e) {
-            throw new EdcException(e);
-        }
+        loadSecretFile();
     }
 
     @Override
     public @Nullable
     String resolveSecret(String key) {
-        return secrets.get().get(key);
+        return Optional.of(secrets)
+                .map(AtomicReference::get)
+                .map(s -> s.get(key))
+                .orElseGet(() -> {
+                    loadSecretFile();
+                    return secrets.get().get(key);
+                });
     }
 
     @Override
@@ -91,5 +87,17 @@ public class FsVault implements Vault {
         }
         secrets.set(newSecrets);
         return Result.success();
+    }
+
+    private void loadSecretFile() {
+        try (var stream = Files.newInputStream(this.vaultFile)) {
+            var properties = new Properties();
+            properties.load(stream);
+            for (var name : properties.stringPropertyNames()) {
+                secrets.get().put(name, properties.getProperty(name));
+            }
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
     }
 }

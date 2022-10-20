@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 
-@EndToEndTest
+//@EndToEndTest
 class EndToEndTransferInMemoryTest extends AbstractEndToEndTransfer {
 
     @RegisterExtension

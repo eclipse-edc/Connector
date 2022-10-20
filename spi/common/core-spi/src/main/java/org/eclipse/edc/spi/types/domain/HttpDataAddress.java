@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyMap;
+
 /**
  * This is a wrapper class for the {@link DataAddress} object, which has typed accessors for properties specific to
  * a http endpoint.
@@ -222,7 +224,7 @@ public class HttpDataAddress extends DataAddress {
         }
 
         public Builder copyFrom(DataAddress other) {
-            other.getProperties().forEach(this::property);
+            Optional.ofNullable(other).map(DataAddress::getProperties).orElse(emptyMap()).forEach(this::property);
             return this;
         }
 
