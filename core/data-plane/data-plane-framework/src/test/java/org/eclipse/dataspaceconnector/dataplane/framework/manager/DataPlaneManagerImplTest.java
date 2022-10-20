@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.dataplane.framework.store.InMemoryDataPlan
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
+import org.eclipse.dataspaceconnector.spi.controlplane.api.client.transferprocess.NoopTransferProcessClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -121,6 +122,15 @@ class DataPlaneManagerImplTest {
         });
     }
 
+    DataFlowRequest createRequest() {
+        return DataFlowRequest.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .build();
+    }
+
     private DataPlaneManagerImpl createDataPlaneManager() {
         return DataPlaneManagerImpl.Builder.newInstance()
                 .queueCapacity(100)
@@ -129,16 +139,8 @@ class DataPlaneManagerImplTest {
                 .waitTimeout(10)
                 .transferServiceRegistry(registry)
                 .store(store)
+                .transferProcessClient(new NoopTransferProcessClient())
                 .monitor(mock(Monitor.class))
-                .build();
-    }
-
-    DataFlowRequest createRequest() {
-        return DataFlowRequest.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .build();
     }
 

@@ -41,6 +41,9 @@ include(":core:common:util")
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:transfer-core")
+include(":core:control-plane:control-plane-api")
+include(":core:control-plane:control-plane-api-client")
+
 
 include(":core:data-plane:data-plane-util")
 include(":core:data-plane:data-plane-core")
@@ -199,6 +202,8 @@ include(":spi:control-plane:control-plane-spi")
 include(":spi:control-plane:data-plane-transfer-spi")
 include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
+include(":spi:control-plane:control-plane-api-client-spi")
+
 
 include(":spi:data-plane:data-plane-spi")
 

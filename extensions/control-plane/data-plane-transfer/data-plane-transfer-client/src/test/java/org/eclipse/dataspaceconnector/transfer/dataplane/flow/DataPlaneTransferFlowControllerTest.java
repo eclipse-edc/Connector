@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.flow;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.transfer.callback.ControlPlaneApiUrl;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -26,6 +27,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,6 +47,8 @@ class DataPlaneTransferFlowControllerTest {
 
     private DataPlaneTransferFlowController flowController;
 
+    private ControlPlaneApiUrl callbackUrl;
+
     private static DataAddress testDataAddress() {
         return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
     }
@@ -58,7 +63,7 @@ class DataPlaneTransferFlowControllerTest {
     public static DataRequest createDataRequest(String destinationType) {
         return createDataRequestBuilder(destinationType).build();
     }
-    
+
     /**
      * Create a {@link DataRequest} object with provided destination type and additional properties.
      */
@@ -67,7 +72,7 @@ class DataPlaneTransferFlowControllerTest {
                 .properties(properties)
                 .build();
     }
-    
+
     private static DataRequest.Builder createDataRequestBuilder(String destinationType) {
         return DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -80,9 +85,12 @@ class DataPlaneTransferFlowControllerTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws MalformedURLException {
         transferClientMock = mock(DataPlaneTransferClient.class);
-        flowController = new DataPlaneTransferFlowController(transferClientMock);
+        callbackUrl = mock(ControlPlaneApiUrl.class);
+        var url = new URL("http://localhost");
+        when(callbackUrl.get()).thenReturn(url);
+        flowController = new DataPlaneTransferFlowController(transferClientMock, callbackUrl);
     }
 
     @Test
@@ -130,23 +138,24 @@ class DataPlaneTransferFlowControllerTest {
         assertThat(dataFlowRequest.getSourceDataAddress().getType()).isEqualTo(source.getType());
         assertThat(dataFlowRequest.getDestinationDataAddress().getType()).isEqualTo(request.getDestinationType());
         assertThat(dataFlowRequest.getProperties()).isEmpty();
+        assertThat(dataFlowRequest.getCallbackAddress()).isNotNull();
     }
-    
+
     @Test
     void transferSuccess_additionalProperties() {
         var properties = Map.of("propertyKey", "propertyValue");
         var request = createDataRequestWithProperties(UUID.randomUUID().toString(), properties);
         var source = testDataAddress();
-        
+
         var dfrCapture = ArgumentCaptor.forClass(DataFlowRequest.class);
         when(transferClientMock.transfer(any())).thenReturn(StatusResult.success());
-        
+
         var policy = Policy.Builder.newInstance().build();
-        
+
         var result = flowController.initiateFlow(request, source, policy);
-        
+
         verify(transferClientMock, times(1)).transfer(dfrCapture.capture());
-        
+
         assertThat(result.succeeded()).isTrue();
         var dataFlowRequest = dfrCapture.getValue();
         assertThat(dataFlowRequest.isTrackable()).isTrue();
