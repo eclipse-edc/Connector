@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.extension.jersey;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jersey.server.DefaultJerseyTagsProvider;
 import io.micrometer.core.instrument.binder.jersey.server.MetricsApplicationEventListener;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -29,9 +29,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  */
 public class JerseyMicrometerExtension implements ServiceExtension {
 
-    @EdcSetting
+    @Setting
     public static final String ENABLE_METRICS = "edc.metrics.enabled";
-    @EdcSetting
+    @Setting
     public static final String ENABLE_JERSEY_METRICS = "edc.metrics.jersey.enabled";
 
     @Inject

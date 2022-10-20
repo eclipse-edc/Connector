@@ -15,10 +15,10 @@
 
 package org.eclipse.dataspaceconnector.ids.api.configuration;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -31,7 +31,7 @@ import static java.lang.String.format;
 @Provides(IdsApiConfiguration.class)
 @Extension(value = IdsApiConfigurationExtension.NAME)
 public class IdsApiConfigurationExtension implements ServiceExtension {
-    @EdcSetting
+    @Setting
     public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
     public static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
 

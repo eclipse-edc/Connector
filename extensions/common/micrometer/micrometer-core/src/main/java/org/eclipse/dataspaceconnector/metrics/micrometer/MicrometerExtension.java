@@ -24,9 +24,9 @@ import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import okhttp3.EventListener;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -36,13 +36,13 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 @Extension(value = MicrometerExtension.NAME)
 public class MicrometerExtension implements ServiceExtension {
 
-    @EdcSetting
+    @Setting
     public static final String ENABLE_METRICS = "edc.metrics.enabled";
-    @EdcSetting
+    @Setting
     public static final String ENABLE_SYSTEM_METRICS = "edc.metrics.system.enabled";
-    @EdcSetting
+    @Setting
     public static final String ENABLE_OKHTTP_METRICS = "edc.metrics.okhttp.enabled";
-    @EdcSetting
+    @Setting
     public static final String ENABLE_EXECUTOR_METRICS = "edc.metrics.executor.enabled";
     public static final String NAME = "Micrometer Metrics";
     private static final String OKHTTP_REQUESTS_METRIC_NAME = "okhttp.requests";

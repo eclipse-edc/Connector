@@ -18,7 +18,7 @@ import okhttp3.EventListener;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import static java.util.Optional.ofNullable;
 
 public class OkHttpClientFactory {
 
-    @EdcSetting(value = "If true, enable HTTPS call enforcement. Default value is 'false'", type = "boolean")
+    @Setting(value = "If true, enable HTTPS call enforcement. Default value is 'false'", type = "boolean")
     public static final String EDC_HTTP_ENFORCE_HTTPS = "edc.http.enforce-https";
 
     /**

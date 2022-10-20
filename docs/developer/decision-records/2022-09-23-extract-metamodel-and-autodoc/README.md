@@ -15,7 +15,7 @@ a [new repository](https://github.com/paullatzelsperger/GradlePlugins).
    needs to be built and published _before_ building/publishing EDC.
 
 2) `runtime-metamodel`
-   The `autodoc` feature has compile-time dependencies onto some metamodel annotations, such as `@Inject`, `@EdcSetting`
+   The `autodoc` feature has compile-time dependencies onto some metamodel annotations, such as `@Inject`, `@Setting`
    , `@Extension` etc., which are also referenced by EDC. Thus, to break a cyclic dependency, the `runtime-metamodel` is
    moved out into the plugin repo as well.
 

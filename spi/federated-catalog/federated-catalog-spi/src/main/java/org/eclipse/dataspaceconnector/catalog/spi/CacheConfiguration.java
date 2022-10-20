@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.catalog.spi;
 
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.RecurringExecutionPlan;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.time.Duration;
@@ -31,11 +31,11 @@ import static java.lang.String.format;
  */
 public class CacheConfiguration {
 
-    @EdcSetting("The time to elapse between two crawl runs")
+    @Setting("The time to elapse between two crawl runs")
     static final String EXECUTION_PLAN_PERIOD_SECONDS = "edc.catalog.cache.execution.period.seconds";
-    @EdcSetting("The number of crawlers (execution threads) that should be used. The engine will re-use crawlers when necessary.")
+    @Setting("The number of crawlers (execution threads) that should be used. The engine will re-use crawlers when necessary.")
     static final String NUM_CRAWLER_SETTING = "edc.catalog.cache.partition.num.crawlers";
-    @EdcSetting("The initial delay for the cache crawler engine")
+    @Setting("The initial delay for the cache crawler engine")
     static final String EXECUTION_PLAN_DELAY_SECONDS = "edc.catalog.cache.execution.delay.seconds";
     private static final int DEFAULT_EXECUTION_PERIOD_SECONDS = 60;
     private static final int LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD = 10;

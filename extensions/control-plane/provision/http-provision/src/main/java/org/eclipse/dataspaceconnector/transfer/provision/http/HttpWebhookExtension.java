@@ -34,7 +34,7 @@ import static java.lang.String.format;
 
 @Provides(HttpProvisionerWebhookUrl.class)
 public class HttpWebhookExtension implements ServiceExtension {
-    //not an EdcSetting, because it is only the first part of the config path
+    //not a Setting, because it is only the first part of the config path
     public static final String PROVISIONER_WEBHOOK_CONFIG = "web.http.provisioner";
     public static final String PROVISIONER_CONTEXT_ALIAS = "provisioner";
 

@@ -20,9 +20,9 @@ import okhttp3.dnsoverhttps.DnsOverHttps;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.web.resolution.WebDidResolver;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -43,7 +43,7 @@ public class WebDidExtension implements ServiceExtension {
      * <p>
      * This setting can be used by EDC downstream projects, e.g. for testing with docker compose
      */
-    @EdcSetting
+    @Setting
     private static final String USE_HTTPS_SCHEME = "edc.iam.did.web.use.https";
     @Inject
     private DidResolverRegistry resolverRegistry;

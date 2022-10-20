@@ -14,26 +14,26 @@
 
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 /**
  * Atomikos configuration keys. For details, see https://www.atomikos.com/Documentation/JtaProperties.
  */
 public interface TransactionManagerConfigurationKeys {
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String TIMEOUT = "edc.atomikos.timeout";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String DATA_DIR = "edc.atomikos.directory";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String THREADED2PC = "edc.atomikos.threaded2pc";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String LOGGING = "edc.atomikos.logging";
 
-    @EdcSetting(required = false)
+    @Setting(required = false)
     String CHECKPOINT_INTERVAL = "edc.atomikos.checkpoint.interval";
 
     int DEFAULT_VALUE = -1;

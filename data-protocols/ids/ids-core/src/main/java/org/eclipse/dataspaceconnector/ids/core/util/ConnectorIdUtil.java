@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ids.core.util;
 
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -24,13 +24,14 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  * Utility class for handling the connector's IDS ID.
  */
 public class ConnectorIdUtil {
-    
-    @EdcSetting
+
+    @Setting
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
-    
-    private ConnectorIdUtil() {}
-    
+
+    private ConnectorIdUtil() {
+    }
+
     /**
      * Returns the connector's ID from its IDS ID. Will use the IDS ID supplied in the configuration,
      * if it is present, else will use a default IDS ID.
@@ -41,7 +42,7 @@ public class ConnectorIdUtil {
      */
     public static IdsId resolveConnectorId(ServiceExtensionContext context) {
         var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
-    
+
         // Hint: use stringified uri to keep uri path and query
         var result = IdsId.from(value);
         if (result.succeeded()) {
@@ -50,9 +51,9 @@ public class ConnectorIdUtil {
                 return idsId;
             }
         }
-        
+
         var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
         throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
     }
-    
+
 }

@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -32,19 +32,19 @@ import static org.eclipse.dataspaceconnector.ids.core.util.ConnectorIdUtil.resol
 
 public class ConnectorServiceSettings {
 
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_ID = "edc.ids.id";
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_TITLE = "edc.ids.title";
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_DESCRIPTION = "edc.ids.description";
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_SECURITY_PROFILE = "edc.ids.security.profile";
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_ENDPOINT = "edc.ids.endpoint";
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_MAINTAINER = "edc.ids.maintainer";
-    @EdcSetting
+    @Setting
     public static final String EDC_IDS_CURATOR = "edc.ids.curator";
 
     public static final String DEFAULT_EDC_IDS_TITLE = "Eclipse Dataspace Connector";
@@ -60,7 +60,7 @@ public class ConnectorServiceSettings {
 
     private final Monitor monitor;
     private final ServiceExtensionContext serviceExtensionContext;
-    
+
     private IdsId id;
     private String title;
     private String description;

@@ -14,20 +14,20 @@
 
 package org.eclipse.dataspaceconnector.core.security.fs;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 public final class FsConfiguration {
 
-    @EdcSetting
+    @Setting
     static final String VAULT_LOCATION = "edc.vault";
 
-    @EdcSetting
+    @Setting
     static final String KEYSTORE_LOCATION = "edc.keystore";
 
-    @EdcSetting
+    @Setting
     static final String KEYSTORE_PASSWORD = "edc.keystore.password";
 
-    @EdcSetting
+    @Setting
     static final String PERSISTENT_VAULT = "edc.vault.persistent";
 
 

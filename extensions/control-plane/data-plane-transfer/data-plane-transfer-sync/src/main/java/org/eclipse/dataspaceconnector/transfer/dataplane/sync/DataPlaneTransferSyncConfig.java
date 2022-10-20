@@ -14,19 +14,19 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 import java.util.concurrent.TimeUnit;
 
 public interface DataPlaneTransferSyncConfig {
 
-    @EdcSetting
+    @Setting
     String DATA_PROXY_TOKEN_VALIDITY_SECONDS = "edc.transfer.proxy.token.validity.seconds";
     long DEFAULT_DATA_PROXY_TOKEN_VALIDITY_SECONDS = TimeUnit.MINUTES.toSeconds(10);
 
-    @EdcSetting
+    @Setting
     String TOKEN_SIGNER_PRIVATE_KEY_ALIAS = "edc.transfer.proxy.token.signer.privatekey.alias";
 
-    @EdcSetting
+    @Setting
     String TOKEN_VERIFIER_PUBLIC_KEY_ALIAS = "edc.transfer.proxy.token.verifier.publickey.alias";
 }

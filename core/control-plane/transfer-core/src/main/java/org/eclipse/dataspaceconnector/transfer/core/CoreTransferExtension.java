@@ -17,10 +17,10 @@ package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.common.statemachine.retry.EntitySendRetryManager;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
@@ -74,11 +74,11 @@ import java.time.Clock;
 public class CoreTransferExtension implements ServiceExtension {
     public static final String NAME = "Core Transfer";
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
-    @EdcSetting
+    @Setting
     private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
-    @EdcSetting
+    @Setting
     private static final String TRANSFER_SEND_RETRY_LIMIT = "edc.transfer.send.retry.limit";
-    @EdcSetting
+    @Setting
     private static final String TRANSFER_SEND_RETRY_BASE_DELAY_MS = "edc.transfer.send.retry.base-delay.ms";
     @Inject
     private TransferProcessStore transferProcessStore;

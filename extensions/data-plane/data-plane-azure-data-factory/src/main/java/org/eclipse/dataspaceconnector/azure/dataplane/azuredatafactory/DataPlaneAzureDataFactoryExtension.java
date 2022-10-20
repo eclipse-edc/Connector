@@ -23,9 +23,9 @@ import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.SettingResolver;
@@ -41,13 +41,13 @@ import java.util.Objects;
 public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Azure Data Factory";
-    @EdcSetting
+    @Setting
     private static final String KEY_VAULT_LINKED_SERVICE_NAME = "edc.data.factory.key.vault.linkedservicename";
-    @EdcSetting
+    @Setting
     private static final String RESOURCE_ID = "edc.data.factory.resource.id";
-    @EdcSetting
+    @Setting
     private static final String KEY_VAULT_RESOURCE_ID = "edc.data.factory.key.vault.resource.id";
-    @EdcSetting
+    @Setting
     private static final String DATA_FACTORY_POLL_DELAY = "edc.data.factory.poll.delay.ms";
     @Inject
     private TransferServiceRegistry registry;

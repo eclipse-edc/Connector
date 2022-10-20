@@ -16,10 +16,10 @@
 
 package org.eclipse.dataspaceconnector.api.auth;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -34,9 +34,9 @@ import java.util.UUID;
 public class TokenBasedAuthenticationExtension implements ServiceExtension {
 
     public static final String NAME = "Static token API Authentication";
-    @EdcSetting
+    @Setting
     private static final String AUTH_SETTING_APIKEY = "edc.api.auth.key";
-    @EdcSetting
+    @Setting
     private static final String AUTH_SETTING_APIKEY_ALIAS = "edc.api.auth.key.alias";
     @Inject
     private Vault vault;

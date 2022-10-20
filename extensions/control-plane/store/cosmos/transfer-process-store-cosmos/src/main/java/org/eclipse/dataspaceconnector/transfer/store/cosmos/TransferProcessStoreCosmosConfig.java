@@ -15,21 +15,21 @@
 package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
 import org.eclipse.dataspaceconnector.azure.cosmos.AbstractCosmosConfig;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class TransferProcessStoreCosmosConfig extends AbstractCosmosConfig {
 
-    @EdcSetting
+    @Setting
     private static final String COSMOS_ACCOUNTNAME_SETTING = "edc.transfer-process-store.cosmos.account.name";
 
-    @EdcSetting
+    @Setting
     private static final String COSMOS_DBNAME_SETTING = "edc.transfer-process-store.database.name";
 
-    @EdcSetting
+    @Setting
     private static final String COSMOS_PREFERRED_REGION_SETTING = "edc.transfer-process-store.cosmos.preferred-region";
 
-    @EdcSetting
+    @Setting
     private static final String COSMOS_CONTAINER_NAME_SETTING = "edc.transfer-process-store.cosmos.container-name";
 
     /**

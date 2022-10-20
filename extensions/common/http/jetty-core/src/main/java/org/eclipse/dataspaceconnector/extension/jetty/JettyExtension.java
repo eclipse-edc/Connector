@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.extension.jetty;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -32,13 +32,13 @@ import java.security.cert.CertificateException;
 public class JettyExtension implements ServiceExtension {
 
 
-    @EdcSetting
+    @Setting
     private static final String KEYSTORE_PASSWORD = "edc.web.https.keystore.password";
-    @EdcSetting
+    @Setting
     private static final String KEYMANAGER_PASSWORD = "edc.web.https.keymanager.password";
-    @EdcSetting
+    @Setting
     private static final String KEYSTORE_PATH_SETTING = "edc.web.https.keystore.path";
-    @EdcSetting
+    @Setting
     private static final String KEYSTORE_TYPE_SETTING = "edc.web.https.keystore.type";
 
     private JettyService jettyService;

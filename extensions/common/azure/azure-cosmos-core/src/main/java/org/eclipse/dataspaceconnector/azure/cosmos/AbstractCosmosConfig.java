@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.azure.cosmos;
 
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -28,9 +28,9 @@ import static org.eclipse.dataspaceconnector.common.string.StringUtils.isNullOrB
 public abstract class AbstractCosmosConfig {
 
     public static final String DEFAULT_REGION = "westeurope";
-    @EdcSetting
+    @Setting
     private static final String PARTITION_KEY_SETTING = "edc.cosmos.partition-key";
-    @EdcSetting
+    @Setting
     private static final String QUERY_METRICS_ENABLED_SETTING = "edc.cosmos.query-metrics-enabled";
 
 

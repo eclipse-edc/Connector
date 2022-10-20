@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.did.web;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.EdcSetting;
+import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 
 /**
  * Defines configuration keys used by the Web DID extension.
@@ -24,7 +24,7 @@ public interface ConfigurationKeys {
     /**
      * If set, the resolver will use the endpoint to resolve DIDs using DNS over HTTPS.
      */
-    @EdcSetting
+    @Setting
     String DNS_OVER_HTTPS = "edc.webdid.doh.url";
 
 }
