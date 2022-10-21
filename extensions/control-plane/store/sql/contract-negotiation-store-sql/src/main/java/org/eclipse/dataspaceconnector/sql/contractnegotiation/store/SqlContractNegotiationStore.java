@@ -16,17 +16,18 @@
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.dataspaceconnector.sql.store.AbstractSqlStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,10 +36,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -48,21 +47,15 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySi
 /**
  * SQL-based implementation of the {@link ContractNegotiationStore}
  */
-public class SqlContractNegotiationStore implements ContractNegotiationStore {
+public class SqlContractNegotiationStore extends AbstractSqlStore implements ContractNegotiationStore {
 
-    private final TypeManager typeManager;
-    private final DataSourceRegistry dataSourceRegistry;
-    private final String dataSourceName;
-    private final TransactionContext transactionContext;
+
     private final ContractNegotiationStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
     private final Clock clock;
 
-    public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, TypeManager manager, ContractNegotiationStatements statements, String connectorId, Clock clock) {
-        typeManager = manager;
-        this.dataSourceRegistry = dataSourceRegistry;
-        this.dataSourceName = dataSourceName;
-        this.transactionContext = transactionContext;
+    public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, ContractNegotiationStatements statements, String connectorId, Clock clock) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
         this.statements = statements;
         this.clock = clock;
         leaseContext = SqlLeaseContextBuilder.with(transactionContext, connectorId, statements, clock);
@@ -332,23 +325,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .build();
     }
 
-    private String toJson(Object object) {
-        return typeManager.writeValueAsString(object);
-    }
-
-    private <T> T fromJson(String json, TypeReference<T> typeReference) {
-        return typeManager.readValue(json, typeReference);
-    }
-
     private ContractAgreement extractContractAgreement(ResultSet resultSet) throws SQLException {
         return resultSet.getString(statements.getContractAgreementIdFkColumn()) == null ? null : mapContractAgreement(resultSet);
     }
 
-    private DataSource getDataSource() {
-        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), format("DataSource %s could not be resolved", dataSourceName));
-    }
-
-    private Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
-    }
 }

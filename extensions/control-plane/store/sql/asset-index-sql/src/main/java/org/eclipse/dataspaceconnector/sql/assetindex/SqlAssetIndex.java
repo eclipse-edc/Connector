@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetEntry;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.AssetStatements;
+import org.eclipse.dataspaceconnector.sql.store.AbstractSqlStore;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
@@ -36,26 +37,17 @@ import java.sql.SQLException;
 import java.util.AbstractMap;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
-public class SqlAssetIndex implements AssetIndex {
+public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
 
-    private final ObjectMapper objectMapper;
-    private final DataSourceRegistry dataSourceRegistry;
-    private final String dataSourceName;
-    private final TransactionContext transactionContext;
     private final AssetStatements assetStatements;
 
     public SqlAssetIndex(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, AssetStatements assetStatements) {
-        this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
-        this.dataSourceName = Objects.requireNonNull(dataSourceName);
-        this.transactionContext = Objects.requireNonNull(transactionContext);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
         this.assetStatements = Objects.requireNonNull(assetStatements);
     }
 
@@ -137,26 +129,22 @@ public class SqlAssetIndex implements AssetIndex {
         var assetId = asset.getId();
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                try {
-                    if (existsById(assetId, connection)) {
-                        deleteById(assetId);
-                    }
-
-                    executeQuery(connection, assetStatements.getInsertAssetTemplate(), assetId, asset.getCreatedAt());
-                    var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
-                    executeQuery(connection, insertDataAddressTemplate, assetId, objectMapper.writeValueAsString(dataAddress.getProperties()));
-
-                    for (var property : asset.getProperties().entrySet()) {
-                        executeQuery(connection, assetStatements.getInsertPropertyTemplate(),
-                                assetId,
-                                property.getKey(),
-                                toPropertyValue(property.getValue()),
-                                property.getValue().getClass().getName());
-                    }
-
-                } catch (JsonProcessingException e) {
-                    throw new EdcPersistenceException(e);
+                if (existsById(assetId, connection)) {
+                    deleteById(assetId);
                 }
+
+                executeQuery(connection, assetStatements.getInsertAssetTemplate(), assetId, asset.getCreatedAt());
+                var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
+                executeQuery(connection, insertDataAddressTemplate, assetId, toJson(dataAddress.getProperties()));
+
+                for (var property : asset.getProperties().entrySet()) {
+                    executeQuery(connection, assetStatements.getInsertPropertyTemplate(),
+                            assetId,
+                            property.getKey(),
+                            toJson(property.getValue()),
+                            property.getValue().getClass().getName());
+                }
+
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);
             }
@@ -235,12 +223,12 @@ public class SqlAssetIndex implements AssetIndex {
      * Deserializes a value into an object using the object mapper. Note: if type is {@code java.lang.String} simply
      * {@code value.toString()} is returned.
      */
-    private Object fromPropertyValue(String value, String type) throws ClassNotFoundException, JsonProcessingException {
+    private Object fromPropertyValue(String value, String type) throws ClassNotFoundException {
         var clazz = Class.forName(type);
         if (clazz == String.class) {
             return value;
         }
-        return objectMapper.readValue(value, clazz);
+        return fromJson(value, clazz);
     }
 
     private boolean existsById(String assetId, Connection connection) {
@@ -250,17 +238,10 @@ public class SqlAssetIndex implements AssetIndex {
         }
     }
 
-    private DataSource getDataSource() {
-        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), format("DataSource %s could not be resolved", dataSourceName));
-    }
-
-    private Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
-    }
 
     private DataAddress mapDataAddress(ResultSet resultSet) throws SQLException, JsonProcessingException {
         return DataAddress.Builder.newInstance()
-                .properties(objectMapper.readValue(resultSet.getString(assetStatements.getDataAddressColumnProperties()), new TypeReference<>() {
+                .properties(fromJson(resultSet.getString(assetStatements.getDataAddressColumnProperties()), new TypeReference<>() {
                 }))
                 .build();
     }
@@ -269,7 +250,5 @@ public class SqlAssetIndex implements AssetIndex {
         return resultSet.getString(assetStatements.getAssetIdColumn());
     }
 
-    private String toPropertyValue(Object value) throws JsonProcessingException {
-        return value instanceof String ? value.toString() : objectMapper.writeValueAsString(value);
-    }
+
 }

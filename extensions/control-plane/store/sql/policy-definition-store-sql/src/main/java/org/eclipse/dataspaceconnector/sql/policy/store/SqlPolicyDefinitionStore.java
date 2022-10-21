@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.policy.store;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -26,35 +27,27 @@ import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.SqlPolicyStoreStatements;
+import org.eclipse.dataspaceconnector.sql.store.AbstractSqlStore;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
-public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
+public class SqlPolicyDefinitionStore extends AbstractSqlStore implements PolicyDefinitionStore {
 
-    private final DataSourceRegistry dataSourceRegistry;
-    private final String dataSourceName;
-    private final TransactionContext transactionContext;
-    private final TypeManager typeManager;
+
     private final SqlPolicyStoreStatements statements;
 
     public SqlPolicyDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                    TypeManager typeManager, SqlPolicyStoreStatements sqlPolicyStoreStatements) {
-        this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
-        this.dataSourceName = Objects.requireNonNull(dataSourceName);
-        this.transactionContext = Objects.requireNonNull(transactionContext);
-        this.typeManager = Objects.requireNonNull(typeManager);
+                                    ObjectMapper objectMapper, SqlPolicyStoreStatements sqlPolicyStoreStatements) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
         statements = Objects.requireNonNull(sqlPolicyStoreStatements);
     }
 
@@ -186,24 +179,5 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
                 .build();
     }
 
-    private <T> String toJson(Object object, TypeReference<T> typeReference) {
-        return typeManager.writeValueAsString(object, typeReference);
-    }
-
-    private String toJson(Object object) {
-        return typeManager.writeValueAsString(object);
-    }
-
-    private <T> T fromJson(String json, TypeReference<T> typeReference) {
-        return typeManager.readValue(json, typeReference);
-    }
-
-    private DataSource getDataSource() {
-        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName));
-    }
-
-    private Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
-    }
 }
 

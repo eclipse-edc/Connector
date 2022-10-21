@@ -18,15 +18,16 @@
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.ContractDefinitionStatements;
+import org.eclipse.dataspaceconnector.sql.store.AbstractSqlStore;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -36,26 +37,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
-public class SqlContractDefinitionStore implements ContractDefinitionStore {
+public class SqlContractDefinitionStore extends AbstractSqlStore implements ContractDefinitionStore {
 
-    private final TypeManager typeManager;
-    private final DataSourceRegistry dataSourceRegistry;
-    private final String dataSourceName;
-    private final TransactionContext transactionContext;
     private final ContractDefinitionStatements statements;
 
-    public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ContractDefinitionStatements statements, TypeManager typeManager) {
-        this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
-        this.dataSourceName = Objects.requireNonNull(dataSourceName);
-        this.transactionContext = Objects.requireNonNull(transactionContext);
+    public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ContractDefinitionStatements statements, ObjectMapper objectMapper) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
         this.statements = statements;
-        this.typeManager = Objects.requireNonNull(typeManager);
     }
 
     @Override
@@ -136,7 +129,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
                 .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
-                .selectorExpression(typeManager.readValue(resultSet.getString(statements.getSelectorExpressionColumn()), AssetSelectorExpression.class))
+                .selectorExpression(fromJson(resultSet.getString(statements.getSelectorExpressionColumn()), AssetSelectorExpression.class))
                 .build();
     }
 
@@ -169,9 +162,6 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         });
     }
 
-    private String toJson(Object object) {
-        return typeManager.writeValueAsString(object);
-    }
 
     private boolean existsById(Connection connection, String definitionId) {
         var sql = statements.getCountTemplate();
@@ -189,11 +179,4 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         return executeQuerySingle(connection, false, this::mapResultSet, sql, id);
     }
 
-    private DataSource getDataSource() {
-        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), format("DataSource %s could not be resolved", dataSourceName));
-    }
-
-    private Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
-    }
 }

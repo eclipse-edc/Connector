@@ -21,40 +21,26 @@ import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstance
 import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstanceStoreTestBase;
 import org.eclipse.dataspaceconnector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
 import org.eclipse.dataspaceconnector.dataplane.selector.store.sql.schema.postgres.PostgresDataPlaneInstanceStatements;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
+import org.eclipse.dataspaceconnector.sql.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.SQLException;
-import javax.sql.DataSource;
-
-import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 
 @PostgresqlDbIntegrationTest
+@ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase {
 
-    private static final String DATASOURCE_NAME = "dataplaneinstance";
 
-    private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
     private final DataPlaneInstanceStatements statements = new PostgresDataPlaneInstanceStatements();
-    private final DataSource dataSource = mock(DataSource.class);
-    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
 
     SqlDataPlaneInstanceStore store;
 
@@ -64,26 +50,21 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
     }
 
     @BeforeEach
-    void setUp() throws IOException, SQLException {
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(dataSource);
-        when(dataSource.getConnection()).thenReturn(connection);
-        doNothing().when(connection).close();
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(DataPlaneInstanceImpl.class);
         typeManager.registerTypes(TestDataPlaneInstance.class);
+        
 
-
-        store = new SqlDataPlaneInstanceStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, statements, typeManager.getMapper());
+        store = new SqlDataPlaneInstanceStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), statements, typeManager.getMapper());
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        transactionContext.execute(() -> executeQuery(connection, schema));
+        extension.runQuery(schema);
     }
 
     @AfterEach
-    void tearDown() throws SQLException {
-        transactionContext.execute(() -> executeQuery(connection, "DROP TABLE " + statements.getDataPlaneInstanceTable() + " CASCADE"));
-        doCallRealMethod().when(connection).close();
-        connection.close();
+    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+        extension.runQuery("DROP TABLE " + statements.getDataPlaneInstanceTable() + " CASCADE");
     }
 
     @Override

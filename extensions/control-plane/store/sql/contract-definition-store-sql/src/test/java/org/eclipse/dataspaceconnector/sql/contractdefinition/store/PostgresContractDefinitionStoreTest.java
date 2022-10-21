@@ -23,83 +23,59 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
+import org.eclipse.dataspaceconnector.sql.PostgresqlStoreSetupExtension;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.BaseSqlDialectStatements;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.contract.offer.store.TestFunctions.createContractDefinition;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
+@ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBase {
 
-    private static final String DATASOURCE_NAME = "contractdefinition";
 
-    private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
     private final BaseSqlDialectStatements statements = new PostgresDialectStatements();
-    private final DataSource dataSource = mock(DataSource.class);
-    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
 
     private SqlContractDefinitionStore sqlContractDefinitionStore;
 
-    @BeforeAll
-    static void prepare() {
-        PostgresqlLocalInstance.createTestDatabase();
-    }
-
     @BeforeEach
-    void setUp() throws IOException, SQLException {
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(dataSource);
-        when(dataSource.getConnection()).thenReturn(connection);
-        doNothing().when(connection).close();
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, statements, typeManager);
+        sqlContractDefinitionStore = new SqlContractDefinitionStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), statements, typeManager.getMapper());
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        transactionContext.execute(() -> executeQuery(connection, schema));
+        extension.runQuery(schema);
     }
 
     @AfterEach
-    void tearDown() throws SQLException {
-        transactionContext.execute(() -> executeQuery(connection, "DROP TABLE " + statements.getContractDefinitionTable() + " CASCADE"));
-        doCallRealMethod().when(connection).close();
-        connection.close();
+    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+        extension.runQuery("DROP TABLE " + statements.getContractDefinitionTable() + " CASCADE");
     }
 
     @Test
     @DisplayName("Context Loads, tables exist")
-    void contextLoads() {
+    void contextLoads(PostgresqlStoreSetupExtension extension) {
         var query = String.format("SELECT 1 FROM %s", statements.getContractDefinitionTable());
 
-        var result = executeQuery(connection, query);
+        var result = executeQuery(extension.getConnection(), query);
 
         assertThat(result).isNotNull();
     }
