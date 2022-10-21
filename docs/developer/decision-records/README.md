@@ -40,3 +40,4 @@
 - [2022-09-23 Extract metamodel and autodoc](2022-09-23-extract-metamodel-and-autodoc/)
 - [2022-09-29 Sql Query Streaming](2022-09-29-sql-query-streaming/)
 - [2022-10-10 EDC Naming Conventions](2022-10-10-naming-conventions/)
+- [2022-10-21 Gradle Version Catalogs](2022-10-21-gradle-versioncatalogs/)
