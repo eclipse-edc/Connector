@@ -30,6 +30,9 @@ Submitting pull requests in EDC should be done while adhering to a couple of sim
 - If you disagree with a committer's remarks, feel free to object and argue, but if no agreement is reached, you'll have
   to either accept the decision or withdraw your PR.
 - Be civil and objective. No foul language, insulting or otherwise abusive language will be tolerated.
+- The title of the PR must follow the format like `<prefix>(<scope>): <description>`.
+  The allowed `prefix` pattern is (build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test).
+  The length of the PR title must be kept under 80 characters.
 
 ## As a reviewer
 
