@@ -79,7 +79,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var pipelineService = new PipelineServiceImpl();
+        var pipelineService = new PipelineServiceImpl(monitor);
         pipelineService.registerFactory(new OutputStreamDataSinkFactory()); // Added by default to support synchronous data transfer, i.e. pull data
         context.registerService(PipelineService.class, pipelineService);
         var transferService = new PipelineServiceTransferServiceImpl(pipelineService);

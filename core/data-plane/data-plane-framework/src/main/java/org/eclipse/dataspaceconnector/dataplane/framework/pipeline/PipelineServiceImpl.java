@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
@@ -39,6 +41,11 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_E
 public class PipelineServiceImpl implements PipelineService {
     private final List<DataSourceFactory> sourceFactories = new ArrayList<>();
     private final List<DataSinkFactory> sinkFactories = new ArrayList<>();
+    private final Monitor monitor;
+
+    public PipelineServiceImpl(Monitor monitor) {
+        this.monitor = monitor;
+    }
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
@@ -86,6 +93,7 @@ public class PipelineServiceImpl implements PipelineService {
         }
         var source = sourceFactory.createSource(request);
         var sink = sinkFactory.createSink(request);
+        monitor.debug(() -> format("transferring from %s to %s.", source, sink));
         return sink.transfer(source);
     }
 
@@ -96,6 +104,7 @@ public class PipelineServiceImpl implements PipelineService {
             return noSinkFactory(request);
         }
         var sink = sinkFactory.createSink(request);
+        monitor.debug(() -> format("transferring from %s to %s.", source, sink));
         return sink.transfer(source);
     }
 
@@ -106,17 +115,20 @@ public class PipelineServiceImpl implements PipelineService {
             return noSourceFactory(request);
         }
         var source = sourceFactory.createSource(request);
+        monitor.debug(() -> format("transferring from %s to %s.", source, sink));
         return sink.transfer(source);
     }
 
     @Override
     public void registerFactory(DataSourceFactory factory) {
         sourceFactories.add(factory);
+        monitor.info(() -> format("%s was registered: %s.", DataSourceFactory.class.getSimpleName(), factory.getClass().getSimpleName()));
     }
 
     @Override
     public void registerFactory(DataSinkFactory factory) {
         sinkFactories.add(factory);
+        monitor.info(() -> format("%s was registered: %s.", DataSinkFactory.class.getSimpleName(), factory.getClass().getSimpleName()));
     }
 
     @Nullable
