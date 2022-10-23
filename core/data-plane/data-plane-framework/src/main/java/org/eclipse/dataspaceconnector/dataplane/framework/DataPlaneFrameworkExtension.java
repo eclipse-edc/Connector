@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -38,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.concurrent.Executors;
+
+import static java.lang.String.format;
 
 /**
  * Provides core services for the Data Plane Framework.
@@ -77,6 +78,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
         var pipelineService = new PipelineServiceImpl();
         pipelineService.registerFactory(new OutputStreamDataSinkFactory()); // Added by default to support synchronous data transfer, i.e. pull data
         context.registerService(PipelineService.class, pipelineService);
@@ -88,18 +90,19 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         var numThreads = context.getSetting(TRANSFER_THREADS, DEFAULT_TRANSFER_THREADS);
+        monitor.info(() -> format("Number of transfer threads: %s", numThreads));
         var executorService = Executors.newFixedThreadPool(numThreads);
         var executorContainer = new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
         context.registerService(DataTransferExecutorServiceContainer.class, executorContainer);
 
-        Monitor monitor = context.getMonitor();
         var telemetry = context.getTelemetry();
 
         var queueCapacity = context.getSetting(QUEUE_CAPACITY, DEFAULT_QUEUE_CAPACITY);
         var workers = context.getSetting(WORKERS, DEFAULT_WORKERS);
         var waitTimeout = context.getSetting(WAIT_TIMEOUT, DEFAULT_WAIT_TIMEOUT);
 
+        monitor.info(() -> format("Initializing DataPlaneManager with queueCapacity=%s, workers=%s, waitTimeout=%s", queueCapacity, workers, waitTimeout));
         dataPlaneManager = DataPlaneManagerImpl.Builder.newInstance()
                 .queueCapacity(queueCapacity)
                 .executorInstrumentation(executorInstrumentation)
@@ -129,11 +132,13 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @NotNull
     private DataPlaneStore registerStore(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
         if (store != null) {
             return store;
         }
         var inMemoryStore = new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY);
         context.registerService(DataPlaneStore.class, inMemoryStore);
+        monitor.info(() -> format("Using %s with capacity=%s.", DataPlaneStore.class.getSimpleName(), IN_MEMORY_STORE_CAPACITY));
         return inMemoryStore;
     }
 }
