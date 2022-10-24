@@ -34,6 +34,7 @@ Submitting pull requests in EDC should be done while adhering to a couple of sim
   - The title must follow the format as `<type>(<optional scope>): <description>`.
     `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test` are allowed for the `<type>`.
   - The length must be kept under 80 characters.
+  - See [check-pull-request-title job of GitHub workflow](https://github.com/iwasakims/DataSpaceConnector/blob/describe-pr-prefix/.github/workflows/scan-pull-request.yaml) for checking details.
 
 ## As a reviewer
 
