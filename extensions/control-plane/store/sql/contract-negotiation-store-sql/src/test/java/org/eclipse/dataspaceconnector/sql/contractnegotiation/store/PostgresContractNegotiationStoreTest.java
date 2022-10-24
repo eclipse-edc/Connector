@@ -25,122 +25,62 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStoreTestBase;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.sql.PostgresqlStoreSetupExtension;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.postgresql.ds.PGSimpleDataSource;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions.createContract;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions.createContractBuilder;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.store.TestFunctions.createNegotiation;
-import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 /**
  * This test aims to verify those parts of the contract negotiation store, that are specific to Postgres, e.g. JSON
  * query operators.
  */
 @PostgresqlDbIntegrationTest
+@ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
-    protected static final String DATASOURCE_NAME = "contractnegotiation";
-    private static final String POSTGRES_USER = "postgres";
-    private static final String POSTGRES_PASSWORD = "password";
-    private static final String POSTGRES_DATABASE = "itest";
-    private static final String JDBC_URL_PREFIX = "jdbc:postgresql://localhost:5432/";
-    protected DataSourceRegistry dataSourceRegistry;
-    protected Connection connection;
-    private TransactionContext txManager;
+
     private SqlContractNegotiationStore store;
     private LeaseUtil leaseUtil;
 
-    @BeforeAll
-    static void prepare() {
-        try (var connection = DriverManager.getConnection(JDBC_URL_PREFIX + POSTGRES_USER, POSTGRES_USER, POSTGRES_PASSWORD)) {
-            connection.createStatement().execute(format("CREATE DATABASE %s;", POSTGRES_DATABASE));
-        } catch (SQLException e) {
-            // database could already exist
-        }
-    }
-
-
     @BeforeEach
-    void setUp() throws SQLException, IOException {
-        txManager = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-
-
-        var ds = new PGSimpleDataSource();
-        ds.setServerNames(new String[]{ "localhost" });
-        ds.setPortNumbers(new int[]{ 5432 });
-        ds.setUser(POSTGRES_USER);
-        ds.setPassword(POSTGRES_PASSWORD);
-        ds.setDatabaseName(POSTGRES_DATABASE);
-
-        // do not actually close
-        connection = spy(ds.getConnection());
-        doNothing().when(connection).close();
-
-        var datasourceMock = mock(DataSource.class);
-        when(datasourceMock.getConnection()).thenReturn(connection);
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+    void setUp(PostgresqlStoreSetupExtension extension) throws SQLException, IOException {
 
         var statements = new PostgresDialectStatements();
         TypeManager manager = new TypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements, CONNECTOR_NAME, Clock.systemUTC());
+        store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), manager.getMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        try {
-            txManager.execute(() -> {
-                executeQuery(connection, schema);
-                return null;
-            });
-        } catch (Exception exc) {
-            fail(exc);
-        }
-        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements, Clock.systemUTC());
+        extension.runQuery(schema);
+        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, Clock.systemUTC());
     }
 
     @AfterEach
-    void tearDown() throws Exception {
-
-        txManager.execute(() -> {
-            var dialect = new PostgresDialectStatements();
-            executeQuery(connection, "DROP TABLE " + dialect.getContractNegotiationTable() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + dialect.getContractAgreementTable() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + dialect.getLeaseTableName() + " CASCADE");
-        });
-        doCallRealMethod().when(connection).close();
-        connection.close();
+    void tearDown(PostgresqlStoreSetupExtension extension) throws Exception {
+        var dialect = new PostgresDialectStatements();
+        extension.runQuery("DROP TABLE " + dialect.getContractNegotiationTable() + " CASCADE");
+        extension.runQuery("DROP TABLE " + dialect.getContractAgreementTable() + " CASCADE");
+        extension.runQuery("DROP TABLE " + dialect.getLeaseTableName() + " CASCADE");
     }
 
     @Test
@@ -311,11 +251,4 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         return leaseUtil.isLeased(negotiationId, owner);
     }
 
-    protected Connection getConnection() {
-        try {
-            return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

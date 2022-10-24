@@ -14,10 +14,8 @@
 
 package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -30,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.dataspaceconnector.sql.store.AbstractSqlStore;
 import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +39,6 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -50,21 +48,14 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySi
 /**
  * Implementation of the {@link TransferProcessStore} based on SQL.
  */
-public class SqlTransferProcessStore implements TransferProcessStore {
-    private final DataSourceRegistry dataSourceRegistry;
-    private final String datasourceName;
-    private final TransactionContext transactionContext;
-    private final ObjectMapper objectMapper;
+public class SqlTransferProcessStore extends AbstractSqlStore implements TransferProcessStore {
     private final TransferProcessStoreStatements statements;
     private final String leaseHolderName;
     private final SqlLeaseContextBuilder leaseContext;
     private final Clock clock;
 
     public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName, TransactionContext transactionContext, ObjectMapper objectMapper, TransferProcessStoreStatements statements, String leaseHolderName, Clock clock) {
-        this.dataSourceRegistry = dataSourceRegistry;
-        this.datasourceName = datasourceName;
-        this.transactionContext = transactionContext;
-        this.objectMapper = objectMapper;
+        super(dataSourceRegistry, datasourceName, transactionContext, objectMapper);
         this.statements = statements;
         this.leaseHolderName = leaseHolderName;
         this.clock = clock;
@@ -334,44 +325,4 @@ public class SqlTransferProcessStore implements TransferProcessStore {
         };
     }
 
-    private <T> T fromJson(String json, TypeReference<T> typeRef) {
-        if (json == null) {
-            return null;
-        }
-        try {
-            return objectMapper.readValue(json, typeRef);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-    }
-
-    private <T> T fromJson(String json, Class<T> typeRef) {
-        if (json == null) {
-            return null;
-        }
-        try {
-            return objectMapper.readValue(json, typeRef);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-    }
-
-    private String toJson(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        try {
-            return objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-    }
-
-    private Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
-    }
-
-    private DataSource getDataSource() {
-        return dataSourceRegistry.resolve(datasourceName);
-    }
 }

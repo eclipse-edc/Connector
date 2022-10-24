@@ -43,7 +43,7 @@ public class StorageServiceImpl implements StorageService {
                     monitor.debug("Creating new bucket " + bucketName);
                     return storageClient.create(BucketInfo.newBuilder(bucketName).setLocation(location).build());
                 });
-        if (!bucket.getLocation().equals(location)) {
+        if (!bucket.getLocation().equalsIgnoreCase(location)) {
             throw new GcpException("Bucket " + bucketName + " already exists but in wrong location");
         }
 
