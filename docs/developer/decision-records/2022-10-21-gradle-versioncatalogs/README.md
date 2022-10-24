@@ -50,6 +50,30 @@ Version catalogs are lightweight, much more so than platforms (which actually in
 should be understood as the EDC project team's recommendation. Clients can then use the platform feature to apply them
 and restrict the dependency graph or simply choose to override them at their own risk.
 
+### A word on naming
+
+Version catalogs automatically convert separated aliases into hierarchical structures, so `azure-resourcemanager-auth`
+would be converted into `azure.resourcemanager.auth`. As a general rule of thumb those aliases should include the
+project name and the module that is being imported, for example
+Jackson: `com.fasterxml.jackson.core:jackson-annotations:X.Y.Z`:
+
+- **bad**: `jackson.core.annotations`: the `core` is not needed, as it's part of the group id and does not offer
+  additional
+  insights
+- **bad**: `fasterxml-jackson.annotations`: should avoid long project names, people would likely expect it to
+  be `jackson` rather than `fasterxml-jackson`
+- **better** `jackson.annotations`, `jackson.core`, `jackson.databind`, etc.
+
+### Guidelines when to create new entries in the catalog
+
+As a general rule of thumb a library should be included in the dependency version catalog when:
+
+- it is used in multiple modules in EDC
+- it is a technology dependency, such as Azure Blob Storage or Google Cloud Storage
+- it is an essential dependency, such as AssertJ, Mockito, etc.
+- there are known conflicts, vulnerabilities or inconsistencies, even between minor versions. Crypto-libraries sometimes
+  are affected by this.
+
 ## Nota Bene
 
 - Version catalogs will be implemented in the EDC Build Plugin first, and will be adopted in EDC at a later point in
