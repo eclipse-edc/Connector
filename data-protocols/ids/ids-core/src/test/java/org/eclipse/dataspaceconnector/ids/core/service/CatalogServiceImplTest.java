@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -35,12 +35,12 @@ import static org.mockito.Mockito.when;
 class CatalogServiceImplTest {
     private static final String CATALOG_ID = "catalogId";
 
-    private final ContractOfferService contractOfferService = mock(ContractOfferService.class);
+    private final ContractOfferResolver contractOfferResolver = mock(ContractOfferResolver.class);
     private CatalogServiceImpl dataCatalogService;
 
     @BeforeEach
     void setUp() {
-        dataCatalogService = new CatalogServiceImpl(CATALOG_ID, contractOfferService);
+        dataCatalogService = new CatalogServiceImpl(CATALOG_ID, contractOfferResolver);
     }
 
     @Test
@@ -58,14 +58,14 @@ class CatalogServiceImplTest {
                         .asset(Asset.Builder.newInstance().id("test-asset").build())
                         .id("1")
                         .build());
-        when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
+        when(contractOfferResolver.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
 
         var result = dataCatalogService.getDataCatalog(claimToken, QuerySpec.none());
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
         assertThat(result.getContractOffers()).hasSameElementsAs(offers);
-        verify(contractOfferService).queryContractOffers(any(ContractOfferQuery.class));
+        verify(contractOfferResolver).queryContractOffers(any(ContractOfferQuery.class));
     }
 
 }

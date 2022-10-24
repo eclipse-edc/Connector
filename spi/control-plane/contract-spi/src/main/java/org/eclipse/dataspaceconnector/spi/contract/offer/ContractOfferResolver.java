@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  */
 
 @ExtensionPoint
-public interface ContractOfferService {
+public interface ContractOfferResolver {
 
     /**
      * Resolves contract offers.

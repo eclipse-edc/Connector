@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -41,15 +41,15 @@ import java.util.stream.Stream;
 import static java.util.stream.Stream.concat;
 
 /**
- * Implementation of the {@link ContractOfferService}.
+ * Implementation of the {@link ContractOfferResolver}.
  */
-public class ContractOfferServiceImpl implements ContractOfferService {
+public class ContractOfferResolverImpl implements ContractOfferResolver {
     private final ParticipantAgentService agentService;
     private final ContractDefinitionService definitionService;
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyStore;
 
-    public ContractOfferServiceImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore) {
+    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore) {
         this.agentService = agentService;
         this.definitionService = definitionService;
         this.assetIndex = assetIndex;

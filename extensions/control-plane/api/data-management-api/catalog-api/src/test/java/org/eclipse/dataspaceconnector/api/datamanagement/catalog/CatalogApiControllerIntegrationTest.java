@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferResolver;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -220,7 +220,7 @@ public class CatalogApiControllerIntegrationTest {
                 .when();
     }
 
-    @Provides(ContractOfferService.class)
+    @Provides(ContractOfferResolver.class)
     private class TestExtension implements ServiceExtension {
 
         @Inject
@@ -228,7 +228,7 @@ public class CatalogApiControllerIntegrationTest {
 
         @Override
         public void initialize(ServiceExtensionContext context) {
-            context.registerService(ContractOfferService.class, mock(ContractOfferService.class));
+            context.registerService(ContractOfferResolver.class, mock(ContractOfferResolver.class));
 
             registry.register(dispatcher);
         }
