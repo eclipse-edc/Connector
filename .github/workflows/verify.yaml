@@ -373,7 +373,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           command: |
-            ./gradlew -p extensions/common/micrometer/micrometer-core/ test -DincludeTags="OpenTelemetryIntegrationTest"
+            ./gradlew -p extensions/common/metrics/micrometer-core/ test -DincludeTags="OpenTelemetryIntegrationTest"
             ./gradlew -p system-tests/tests test -DincludeTags="OpenTelemetryIntegrationTest"
 
   Check-Cloud-Environments:

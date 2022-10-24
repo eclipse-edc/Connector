@@ -24,7 +24,7 @@ val rsApi: String by project
 
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":extensions:common:micrometer:micrometer-core"))
+    implementation(project(":extensions:common:metrics:micrometer-core"))
 
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:common:iam:iam-mock"))

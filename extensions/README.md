@@ -30,7 +30,7 @@
       - [Decentralized Identity](common/iam/decentralized-identity/)
       - [OAuth2](common/iam/oauth2/oauth2-core/)
     - [JUnit](common/junit/)
-    - [Micrometer](common/micrometer/micrometer-core/)
+    - [Micrometer](common/metrics/micrometer-core/)
     - Monitor
       - [JDK Logger](common/monitor/monitor-jdk-logger/)
     - SQL
