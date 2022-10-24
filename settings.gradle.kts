@@ -194,7 +194,7 @@ include(":spi:common:policy-engine-spi")
 include(":spi:common:policy-model")
 include(":spi:common:transaction-datasource-spi")
 include(":spi:common:transaction-spi")
-include(":spi:common:transformer-spi")
+include(":spi:common:transform-spi")
 include(":spi:common:web-spi")
 
 include(":spi:control-plane:contract-spi")

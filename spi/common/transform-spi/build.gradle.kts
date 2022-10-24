@@ -24,8 +24,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transformer-spi") {
-            artifactId = "transformer-spi"
+        create<MavenPublication>("transform-spi") {
+            artifactId = "transform-spi"
             from(components["java"])
         }
     }
