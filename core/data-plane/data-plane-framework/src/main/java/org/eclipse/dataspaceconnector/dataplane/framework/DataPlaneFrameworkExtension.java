@@ -90,7 +90,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         var numThreads = context.getSetting(TRANSFER_THREADS, DEFAULT_TRANSFER_THREADS);
-        monitor.info(() -> format("Number of transfer threads: %s", numThreads));
         var executorService = Executors.newFixedThreadPool(numThreads);
         var executorContainer = new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
@@ -102,7 +101,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var workers = context.getSetting(WORKERS, DEFAULT_WORKERS);
         var waitTimeout = context.getSetting(WAIT_TIMEOUT, DEFAULT_WAIT_TIMEOUT);
 
-        monitor.info(() -> format("Initializing DataPlaneManager with queueCapacity=%s, workers=%s, waitTimeout=%s", queueCapacity, workers, waitTimeout));
+        monitor.debug(() -> format("Initializing DataPlaneManager with queueCapacity=%s, workers=%s, waitTimeout=%s, numThreads=%s", queueCapacity, workers, waitTimeout, numThreads));
         dataPlaneManager = DataPlaneManagerImpl.Builder.newInstance()
                 .queueCapacity(queueCapacity)
                 .executorInstrumentation(executorInstrumentation)
@@ -138,7 +137,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         }
         var inMemoryStore = new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY);
         context.registerService(DataPlaneStore.class, inMemoryStore);
-        monitor.info(() -> format("Using %s with capacity=%s.", DataPlaneStore.class.getSimpleName(), IN_MEMORY_STORE_CAPACITY));
+        monitor.debug(() -> format("Using %s with capacity=%s.", DataPlaneStore.class.getSimpleName(), IN_MEMORY_STORE_CAPACITY));
         return inMemoryStore;
     }
 }
