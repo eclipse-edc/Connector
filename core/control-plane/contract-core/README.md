@@ -10,3 +10,5 @@
 | `edc.negotiation.provider.send.retry.limit`         | the limit of retries in case of provider `ContractNegotiation` sending failure.                           | false     | 7             |
 | `edc.negotiation.consumer.send.retry.base-delay.ms` | the base ms delay value for consumer `ContractNegotiation` sending retrial.                               | false     | 100           |
 | `edc.negotiation.provider.send.retry.base-delay.ms` | the base ms delay value for consumer `ContractNegotiation` sending retrial.                               | false     | 100           |
+| `edc.negotiation.iteration-delay`                   | the iteration wait time in milliseconds on the state machine while creating a `WaitStrategy` variable     | false     | 5000          |
+ 
