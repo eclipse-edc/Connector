@@ -46,7 +46,7 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        var sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, getDataSourceName(context), transactionContext, context.getTypeManager(), getStatementImpl());
+        var sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, getDataSourceName(context), transactionContext, context.getTypeManager().getMapper(), getStatementImpl());
 
         context.registerService(PolicyDefinitionStore.class, sqlPolicyStore);
     }

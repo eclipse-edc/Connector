@@ -20,13 +20,24 @@ plugins {
 
 val h2Version: String by project
 val postgresVersion: String by project
+val jupiterVersion: String by project
+val mockitoVersion: String by project
+
+
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:transaction-spi"))
     implementation(project(":core:common:util"))
+    implementation(project(":spi:common:transaction-datasource-spi"))
+
 
     testImplementation("com.h2database:h2:${h2Version}")
     testFixturesImplementation("org.postgresql:postgresql:${postgresVersion}")
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testFixturesImplementation(project(":spi:common:transaction-datasource-spi"))
+    testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
+
 }
 
 publishing {

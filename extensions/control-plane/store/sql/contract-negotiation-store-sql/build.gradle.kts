@@ -34,7 +34,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":core:common:util")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
-
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
 }
 

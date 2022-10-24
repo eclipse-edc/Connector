@@ -21,83 +21,57 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndexTestBase;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.TestObject;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.sql.PostgresqlLocalInstance;
+import org.eclipse.dataspaceconnector.sql.PostgresqlStoreSetupExtension;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.postgres.PostgresDialectStatements;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.assetindex.TestFunctions.createAsset;
 import static org.eclipse.dataspaceconnector.sql.assetindex.TestFunctions.createAssetBuilder;
 import static org.eclipse.dataspaceconnector.sql.assetindex.TestFunctions.createDataAddress;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
+@ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresAssetIndexTest extends AssetIndexTestBase {
 
-    private static final String DATASOURCE_NAME = "asset";
-
-    private final TransactionContext transactionContext = new NoopTransactionContext();
     private final BaseSqlDialectStatements sqlStatements = new PostgresDialectStatements();
-    private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
-    private final DataSource dataSource = mock(DataSource.class);
-    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
+
     private SqlAssetIndex sqlAssetIndex;
 
-    @BeforeAll
-    static void prepare() {
-        PostgresqlLocalInstance.createTestDatabase();
-    }
 
     @BeforeEach
-    void setUp() throws IOException, SQLException {
-        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(dataSource);
-        when(dataSource.getConnection()).thenReturn(connection);
-        doNothing().when(connection).close();
-
+    void setUp(PostgresqlStoreSetupExtension setupExtension) throws IOException, SQLException {
         var typeManager = new TypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), sqlStatements);
+        sqlAssetIndex = new SqlAssetIndex(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(), setupExtension.getTransactionContext(), new ObjectMapper(), sqlStatements);
 
         var schema = Files.readString(Paths.get("docs/schema.sql"));
-        transactionContext.execute(() -> executeQuery(connection, schema));
+        setupExtension.runQuery(schema);
     }
 
     @AfterEach
-    void tearDown() throws SQLException {
-        transactionContext.execute(() -> {
-            executeQuery(connection, "DROP TABLE " + sqlStatements.getAssetTable() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + sqlStatements.getDataAddressTable() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + sqlStatements.getAssetPropertyTable() + " CASCADE");
-        });
-        doCallRealMethod().when(connection).close();
-        connection.close();
+    void tearDown(PostgresqlStoreSetupExtension setupExtension) throws SQLException {
+        setupExtension.runQuery("DROP TABLE " + sqlStatements.getAssetTable() + " CASCADE");
+        setupExtension.runQuery("DROP TABLE " + sqlStatements.getDataAddressTable() + " CASCADE");
+        setupExtension.runQuery("DROP TABLE " + sqlStatements.getAssetPropertyTable() + " CASCADE");
     }
+
 
     @Test
     void query_byAssetProperty() {

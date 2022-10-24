@@ -14,15 +14,14 @@
 
 package org.eclipse.dataspaceconnector.dataplane.selector.store.sql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
 import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstanceStore;
 import org.eclipse.dataspaceconnector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
+import org.eclipse.dataspaceconnector.sql.store.AbstractSqlStore;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,28 +29,20 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
 
-import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuerySingle;
 
 /**
  * SQL store implementation of {@link DataPlaneInstanceStore}
  */
-public class SqlDataPlaneInstanceStore implements DataPlaneInstanceStore {
-    private final DataSourceRegistry dataSourceRegistry;
-    private final String dataSourceName;
-    private final TransactionContext transactionContext;
+public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataPlaneInstanceStore {
+
     private final DataPlaneInstanceStatements statements;
-    private final ObjectMapper objectMapper;
 
     public SqlDataPlaneInstanceStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, DataPlaneInstanceStatements statements, ObjectMapper objectMapper) {
-        this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
-        this.dataSourceName = Objects.requireNonNull(dataSourceName);
-        this.transactionContext = Objects.requireNonNull(transactionContext);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
         this.statements = Objects.requireNonNull(statements);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
     }
 
     @Override
@@ -130,25 +121,9 @@ public class SqlDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
 
     private DataPlaneInstance mapResultSet(ResultSet resultSet) throws Exception {
-
         var json = resultSet.getString(statements.getDataColumn());
-        return objectMapper.readValue(json, DataPlaneInstance.class);
+        return fromJson(json, DataPlaneInstance.class);
     }
 
-    private String toJson(Object object) {
-        try {
-            return objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-    }
-
-    private DataSource getDataSource() {
-        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), format("DataSource %s could not be resolved", dataSourceName));
-    }
-
-    private Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
-    }
 
 }
