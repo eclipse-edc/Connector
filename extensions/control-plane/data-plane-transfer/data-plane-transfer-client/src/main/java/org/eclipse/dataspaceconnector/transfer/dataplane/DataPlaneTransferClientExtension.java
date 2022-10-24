@@ -74,14 +74,14 @@ public class DataPlaneTransferClientExtension implements ServiceExtension {
         if (dataPlaneManager != null) {
             // Data plane manager is embedded in the current runtime
             client = new EmbeddedDataPlaneTransferClient(dataPlaneManager);
-            monitor.debug(() -> format("Using %s.", EmbeddedDataPlaneTransferClient.class.getSimpleName()));
+            monitor.debug(() -> "Using embedded Data Plane.");
         } else {
             Objects.requireNonNull(okHttpClient, "If no DataPlaneManager is embedded, a OkHttpClient instance must be provided");
             Objects.requireNonNull(retryPolicy, "If no DataPlaneManager is embedded, a RetryPolicy instance must be provided");
             Objects.requireNonNull(selectorClient, "If no DataPlaneManager is embedded, a DataPlaneSelector instance must be provided");
             var selectionStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
             client = new RemoteDataPlaneTransferClient(okHttpClient, selectorClient, selectionStrategy, retryPolicy, context.getTypeManager().getMapper());
-            monitor.debug(() -> format("Using %s with selectionStratey=%s.", RemoteDataPlaneTransferClient.class.getSimpleName(), selectionStrategy));
+            monitor.debug(() -> format("Using remote Data Plane with selectionStratey=%s.", selectionStrategy));
         }
 
         var flowController = new DataPlaneTransferFlowController(client);

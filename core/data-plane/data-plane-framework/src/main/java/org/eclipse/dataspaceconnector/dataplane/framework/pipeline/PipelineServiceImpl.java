@@ -122,13 +122,11 @@ public class PipelineServiceImpl implements PipelineService {
     @Override
     public void registerFactory(DataSourceFactory factory) {
         sourceFactories.add(factory);
-        monitor.debug(() -> format("%s was registered: %s.", DataSourceFactory.class.getSimpleName(), factory.getClass().getSimpleName()));
     }
 
     @Override
     public void registerFactory(DataSinkFactory factory) {
         sinkFactories.add(factory);
-        monitor.debug(() -> format("%s was registered: %s.", DataSinkFactory.class.getSimpleName(), factory.getClass().getSimpleName()));
     }
 
     @Nullable
