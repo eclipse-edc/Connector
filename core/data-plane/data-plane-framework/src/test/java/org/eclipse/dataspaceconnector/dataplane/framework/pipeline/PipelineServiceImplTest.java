@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -37,7 +38,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PipelineServiceImplTest {
-    PipelineServiceImpl service = new PipelineServiceImpl();
+    Monitor monitor = mock(Monitor.class);
+    PipelineServiceImpl service = new PipelineServiceImpl(monitor);
     DataFlowRequest request = DataFlowRequest.Builder.newInstance()
             .id("1")
             .processId("1")
