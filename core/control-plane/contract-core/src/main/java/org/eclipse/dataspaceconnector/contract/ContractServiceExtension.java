@@ -71,8 +71,9 @@ import java.time.Clock;
 @CoreExtension
 public class ContractServiceExtension implements ServiceExtension {
 
-    @Setting
-    private static final String DEFAULT_ITERATION_WAIT = "edc.negotiation.iteration-delay";
+    private static final int DEFAULT_ITERATION_WAIT = 5000;
+    @Setting()
+    private static final String NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.negotiation.state-machine.iteration-wait-millis";
     @Setting
     private static final String NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.consumer.state-machine.batch-size";
     @Setting
@@ -163,7 +164,7 @@ public class ContractServiceExtension implements ServiceExtension {
         var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
-        var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(context.getSetting(DEFAULT_ITERATION_WAIT, 5000));
+        var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, 5000));
 
         CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
         CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);

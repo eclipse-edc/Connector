@@ -73,8 +73,10 @@ import java.time.Clock;
 @Extension(value = CoreTransferExtension.NAME)
 public class CoreTransferExtension implements ServiceExtension {
     public static final String NAME = "Core Transfer";
+
+    private static final int DEFAULT_ITERATION_WAIT = 5000;
     @Setting
-    private static final String DEFAULT_ITERATION_WAIT = "edc.transfer.contract-service.iteration-wait";
+    private static final String TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS = "edc.transfer.state-machine.iteration-wait-millis";
     @Setting
     private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
     @Setting
@@ -137,7 +139,7 @@ public class CoreTransferExtension implements ServiceExtension {
         var provisionManager = new ProvisionManagerImpl(monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
-        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(context.getSetting(DEFAULT_ITERATION_WAIT, 5000));
+        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS, 5000));
 
         var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
         context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
