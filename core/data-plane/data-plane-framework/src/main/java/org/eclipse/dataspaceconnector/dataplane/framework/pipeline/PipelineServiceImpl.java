@@ -93,7 +93,7 @@ public class PipelineServiceImpl implements PipelineService {
         }
         var source = sourceFactory.createSource(request);
         var sink = sinkFactory.createSink(request);
-        monitor.debug(() -> format("transferring from %s to %s.", source, sink));
+        monitor.debug(() -> format("Transferring from %s to %s.", source, sink));
         return sink.transfer(source);
     }
 
@@ -104,7 +104,7 @@ public class PipelineServiceImpl implements PipelineService {
             return noSinkFactory(request);
         }
         var sink = sinkFactory.createSink(request);
-        monitor.debug(() -> format("transferring from %s to %s.", source, sink));
+        monitor.debug(() -> format("Transferring from %s to %s.", source, sink));
         return sink.transfer(source);
     }
 
@@ -115,7 +115,7 @@ public class PipelineServiceImpl implements PipelineService {
             return noSourceFactory(request);
         }
         var source = sourceFactory.createSource(request);
-        monitor.debug(() -> format("transferring from %s to %s.", source, sink));
+        monitor.debug(() -> format("Transferring from %s to %s.", source, sink));
         return sink.transfer(source);
     }
 
