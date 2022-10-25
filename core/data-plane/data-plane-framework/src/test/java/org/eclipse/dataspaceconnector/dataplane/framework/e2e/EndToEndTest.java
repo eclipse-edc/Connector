@@ -40,7 +40,7 @@ public class EndToEndTest {
     void testEndToEnd() throws Exception {
         var monitor = mock(Monitor.class);
 
-        var pipelineService = new PipelineServiceImpl();
+        var pipelineService = new PipelineServiceImpl(monitor);
         var endpoint = new FixedEndpoint(monitor);
         pipelineService.registerFactory(endpoint);
 
