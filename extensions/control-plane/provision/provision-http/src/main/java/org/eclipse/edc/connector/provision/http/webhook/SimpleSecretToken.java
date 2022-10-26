@@ -16,14 +16,11 @@ package org.eclipse.edc.connector.provision.http.webhook;
 
 import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 
-import java.util.Map;
-
 /**
  * Implementation of the {@link SecretToken} that is based on a simple String.
  * This could be an API key, a JWT or any other format serialized to String (e.g. JSON).
  */
 public class SimpleSecretToken implements SecretToken {
-
 
     private final String token;
 
@@ -36,8 +33,4 @@ public class SimpleSecretToken implements SecretToken {
         return 0;
     }
 
-    @Override
-    public Map<String, ?> flatten() {
-        return Map.of("token", token);
-    }
 }

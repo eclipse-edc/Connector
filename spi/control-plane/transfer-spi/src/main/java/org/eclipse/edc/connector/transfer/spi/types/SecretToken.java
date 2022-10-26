@@ -17,8 +17,6 @@ package org.eclipse.edc.connector.transfer.spi.types;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.edc.spi.types.domain.Polymorphic;
 
-import java.util.Map;
-
 /**
  * A temporary token with write privileges to the data destination.
  */
@@ -27,5 +25,4 @@ public interface SecretToken extends Polymorphic {
 
     long getExpiration();
 
-    Map<String, ?> flatten();
 }

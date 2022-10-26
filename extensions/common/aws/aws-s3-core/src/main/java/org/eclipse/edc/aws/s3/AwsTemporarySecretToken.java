@@ -17,8 +17,6 @@ package org.eclipse.edc.aws.s3;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 
-import java.util.Map;
-
 public class AwsTemporarySecretToken implements SecretToken {
     private final String sessionToken;
     private final long expiration;
@@ -39,14 +37,6 @@ public class AwsTemporarySecretToken implements SecretToken {
     @Override
     public long getExpiration() {
         return expiration;
-    }
-
-    @Override
-    public Map<String, ?> flatten() {
-        return Map.of("accessKeyId", accessKeyId,
-                "secretAccessKey", secretAccessKey,
-                "token", sessionToken,
-                "expiration", expiration);
     }
 
     public String getAccessKeyId() {

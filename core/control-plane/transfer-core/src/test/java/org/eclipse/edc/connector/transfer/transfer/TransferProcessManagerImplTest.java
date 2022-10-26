@@ -64,7 +64,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
@@ -871,10 +870,6 @@ class TransferProcessManagerImplTest {
             return 0;
         }
 
-        @Override
-        public Map<String, ?> flatten() {
-            return null;
-        }
     }
 
 }

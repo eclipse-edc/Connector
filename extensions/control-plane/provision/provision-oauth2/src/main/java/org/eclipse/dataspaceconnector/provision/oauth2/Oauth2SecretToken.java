@@ -17,8 +17,6 @@ package org.eclipse.dataspaceconnector.provision.oauth2;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 
-import java.util.Map;
-
 /**
  * Describes an OAuth2 {@link SecretToken}, that's a field containing the token representation.
  */
@@ -37,11 +35,6 @@ public class Oauth2SecretToken implements SecretToken {
 
     public String getToken() {
         return token;
-    }
-
-    @Override
-    public Map<String, ?> flatten() {
-        return Map.of();
     }
 
 }
