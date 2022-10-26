@@ -75,7 +75,7 @@ public class CoreTransferExtension implements ServiceExtension {
     public static final String NAME = "Core Transfer";
 
     private static final int DEFAULT_ITERATION_WAIT = 5000;
-    @Setting
+    @Setting(value = "the iteration wait time in milliseconds on the state machine. Default value 5000")
     private static final String TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS = "edc.transfer.state-machine.iteration-wait-millis";
     @Setting
     private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";

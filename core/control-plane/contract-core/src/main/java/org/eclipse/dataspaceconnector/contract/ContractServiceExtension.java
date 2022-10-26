@@ -72,7 +72,7 @@ import java.time.Clock;
 public class ContractServiceExtension implements ServiceExtension {
 
     private static final int DEFAULT_ITERATION_WAIT = 5000;
-    @Setting()
+    @Setting(value = "the iteration wait time in milliseconds on the state machine. Default value 5000")
     private static final String NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.negotiation.state-machine.iteration-wait-millis";
     @Setting
     private static final String NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.consumer.state-machine.batch-size";
