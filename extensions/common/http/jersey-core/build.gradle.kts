@@ -41,6 +41,7 @@ dependencies {
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
+    testImplementation(testFixtures(project(":core:common:util")))
 }
 
 publishing {

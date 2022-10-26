@@ -361,6 +361,20 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport -DincludeTags="ComponentTest"
 
+  API-Tests:
+    env:
+      JACOCO: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-build
+
+      - name: Component Tests
+        uses: ./.github/actions/run-tests
+        with:
+          command: ./gradlew test jacocoTestReport -DincludeTags="ApiTest"
+
+
   OpenTelemetry-Integration-Tests:
     runs-on: ubuntu-latest
     steps:
@@ -475,6 +489,7 @@ jobs:
     needs:
       - Unit-Tests
       - Component-Tests
+      - API-Tests
     runs-on: ubuntu-latest
     if: always()
     steps:

@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.query.SortOrder.ASC;
 import static org.hamcrest.CoreMatchers.is;
 
+@ApiTest
 @ExtendWith(EdcExtension.class)
 public class ContractAgreementApiControllerIntegrationTest {
 

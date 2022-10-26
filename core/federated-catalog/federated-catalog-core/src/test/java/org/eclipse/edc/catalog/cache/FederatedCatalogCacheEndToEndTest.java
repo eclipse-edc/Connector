@@ -23,6 +23,7 @@ import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.FederatedCacheStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ import static org.eclipse.edc.catalog.cache.TestUtil.createOffer;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
 
-
+@ApiTest
 @ExtendWith(EdcExtension.class)
 class FederatedCatalogCacheEndToEndTest {
 

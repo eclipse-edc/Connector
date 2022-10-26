@@ -38,8 +38,8 @@ dependencies {
 
     // required for integration test
     testImplementation(project(":extensions:common:junit"))
-
     testImplementation(project(":extensions:common:http"))
+    testImplementation(testFixtures(project(":core:common:util")))
     testImplementation(project(":data-protocols:ids:ids-spi"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
 

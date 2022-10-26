@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -65,6 +66,7 @@ import static org.mockito.Mockito.when;
 import static org.mockserver.matchers.Times.once;
 import static org.mockserver.stop.Stop.stopQuietly;
 
+@ApiTest
 @ExtendWith(EdcExtension.class)
 class DataPlaneApiIntegrationTest {
 
