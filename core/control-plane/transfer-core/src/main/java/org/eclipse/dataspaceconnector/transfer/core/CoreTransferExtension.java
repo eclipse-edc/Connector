@@ -139,7 +139,8 @@ public class CoreTransferExtension implements ServiceExtension {
         var provisionManager = new ProvisionManagerImpl(monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
-        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS, 5000));
+        var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS, 5000);
+        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
         var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
         context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
