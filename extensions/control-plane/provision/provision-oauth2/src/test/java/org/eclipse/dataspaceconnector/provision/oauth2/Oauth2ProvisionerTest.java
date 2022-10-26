@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
@@ -43,7 +44,6 @@ import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressS
 import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
 import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.MediaType.APPLICATION_JSON;
@@ -143,6 +143,8 @@ class Oauth2ProvisionerTest {
                 .id(provisionedResourceId)
                 .resourceDefinitionId(UUID.randomUUID().toString())
                 .transferProcessId(UUID.randomUUID().toString())
+                .resourceName("any")
+                .dataAddress(createDataAddress())
                 .hasToken(true)
                 .build();
 
@@ -159,11 +161,15 @@ class Oauth2ProvisionerTest {
         return Oauth2ResourceDefinition.Builder.newInstance()
                 .id(resourceDefinitionId)
                 .transferProcessId(transferProcessId)
-                .dataAddress(HttpDataAddress.Builder.newInstance()
-                        .property(CLIENT_ID, "clientId")
-                        .property(CLIENT_SECRET, "clientSecret")
-                        .property(TOKEN_URL, "http://localhost:" + port)
-                        .build())
+                .dataAddress(createDataAddress())
+                .build();
+    }
+
+    private DataAddress createDataAddress() {
+        return HttpDataAddress.Builder.newInstance()
+                .property(CLIENT_ID, "clientId")
+                .property(CLIENT_SECRET, "clientSecret")
+                .property(TOKEN_URL, "http://localhost:" + port)
                 .build();
     }
 

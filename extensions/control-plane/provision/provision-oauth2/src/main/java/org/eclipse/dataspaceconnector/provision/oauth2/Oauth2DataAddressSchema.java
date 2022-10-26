@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.provision.oauth2;
 
 public interface Oauth2DataAddressSchema {
-    String TYPE = "OAuth2";
     String CLIENT_ID = "oauth2:clientId";
     String CLIENT_SECRET = "oauth2:clientSecret";
     String TOKEN_URL = "oauth2:tokenUrl";

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.aws.s3.S3BucketSchema;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import static org.eclipse.edc.aws.s3.S3BucketSchema.BUCKET_NAME;
 import static org.eclipse.edc.aws.s3.S3BucketSchema.REGION;

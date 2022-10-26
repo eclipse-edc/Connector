@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.ACCOUNT_NAME;
 import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.CONTAINER_NAME;

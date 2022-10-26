@@ -34,10 +34,5 @@ public class Oauth2ProvisionedResource extends ProvisionedContentResource {
             return new Builder();
         }
 
-        @Override
-        public Oauth2ProvisionedResource build() {
-            return super.build();
-        }
-
     }
 }
