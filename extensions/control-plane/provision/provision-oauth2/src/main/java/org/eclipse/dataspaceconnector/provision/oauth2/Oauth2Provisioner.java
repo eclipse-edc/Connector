@@ -18,15 +18,15 @@ import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.edc.connector.transfer.spi.provision.Provisioner;
+import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
+import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
+import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
+import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Require an OAuth2 token and stores it in the vault to make data-plane include it in the request

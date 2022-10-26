@@ -21,7 +21,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
+import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
 import java.util.Map;
 

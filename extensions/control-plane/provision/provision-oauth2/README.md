@@ -10,7 +10,7 @@ extension and put in the request.
 
 ## How to use it
 
-The extension works all the `HttpData` addresses that contain the properties (defined in 
+The extension works for all the `HttpData` addresses that contain the "oauth2" properties (defined in 
 [Oauth2DataAddressSchema](src/main/java/org/eclipse/dataspaceconnector/provision/oauth2/Oauth2DataAddressSchema.java)):
 - `oauth2:clientId`: the client id 
 - `oauth2:clientSecret`: the client secret

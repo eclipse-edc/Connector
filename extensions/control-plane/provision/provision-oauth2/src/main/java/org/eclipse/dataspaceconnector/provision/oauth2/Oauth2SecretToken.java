@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.provision.oauth2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
+import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 
 /**
  * Describes an OAuth2 {@link SecretToken}, that's a field containing the token representation.

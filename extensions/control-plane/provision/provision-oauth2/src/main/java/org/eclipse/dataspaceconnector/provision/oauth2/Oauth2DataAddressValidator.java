@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.provision.oauth2;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.function.Predicate;
 

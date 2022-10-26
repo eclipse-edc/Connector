@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.provision.oauth2;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
+import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
 
 /**
  * A reference to a provisioned oauth2 resource.

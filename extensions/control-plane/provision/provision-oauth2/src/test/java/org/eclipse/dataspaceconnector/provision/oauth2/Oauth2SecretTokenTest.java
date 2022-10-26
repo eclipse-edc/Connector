@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.provision.oauth2;
 
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
