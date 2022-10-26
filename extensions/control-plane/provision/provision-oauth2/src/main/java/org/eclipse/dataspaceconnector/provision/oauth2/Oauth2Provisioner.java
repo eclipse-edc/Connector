@@ -38,6 +38,9 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
+/**
+ * Require an OAuth2 token and stores it in the vault to make data-plane include it in the request
+ */
 class Oauth2Provisioner implements Provisioner<Oauth2ResourceDefinition, Oauth2ProvisionedResource> {
 
     private final OkHttpClient httpClient;

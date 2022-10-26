@@ -24,6 +24,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+/**
+ * Generates {@link Oauth2ResourceDefinition}s for data addresses matching fields.
+ */
 public class Oauth2ConsumerResourceDefinitionGenerator implements ConsumerResourceDefinitionGenerator {
 
     private final Predicate<DataAddress> validator = new Oauth2DataAddressValidator();

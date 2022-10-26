@@ -22,6 +22,9 @@ import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressS
 import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
 import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 
+/**
+ * Validates {@link DataAddress}, returns true if the Address has the fields needed for the OAuth2 provisioning
+ */
 public class Oauth2DataAddressValidator implements Predicate<DataAddress> {
 
     private final Predicate<DataAddress> isHttpDataType = dataAddress -> "HttpData".equals(dataAddress.getType());

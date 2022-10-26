@@ -19,6 +19,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 
+/**
+ * A reference to a provisioned oauth2 resource.
+ */
 @JsonDeserialize(builder = Oauth2ProvisionedResource.Builder.class)
 public class Oauth2ProvisionedResource extends ProvisionedContentResource {
 

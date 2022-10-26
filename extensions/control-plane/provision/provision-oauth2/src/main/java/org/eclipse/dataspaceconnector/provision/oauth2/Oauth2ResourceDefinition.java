@@ -25,6 +25,9 @@ import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressS
 import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
 import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 
+/**
+ * An OAuth2 resource definition
+ */
 @JsonDeserialize(builder = Oauth2ResourceDefinition.Builder.class)
 @JsonTypeName("dataspaceconnector:oauth2resourcedefinition")
 public class Oauth2ResourceDefinition extends ResourceDefinition {
