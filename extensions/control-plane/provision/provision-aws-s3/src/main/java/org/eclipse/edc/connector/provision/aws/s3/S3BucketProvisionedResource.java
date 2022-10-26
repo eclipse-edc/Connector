@@ -57,11 +57,10 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedDataDestinationResource.Builder<S3BucketProvisionedResource, Builder> {
-        private DataAddress.Builder dataAddressBuilder;
 
         private Builder() {
             super(new S3BucketProvisionedResource());
-            dataAddressBuilder = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE);
+            dataAddressBuilder.type(S3BucketSchema.TYPE);
         }
 
         @JsonCreator
@@ -83,12 +82,6 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
         public Builder role(String arn) {
             provisionedResource.role = arn;
             return this;
-        }
-
-        @Override
-        public S3BucketProvisionedResource build() {
-            provisionedResource.dataAddress = dataAddressBuilder.build();
-            return super.build();
         }
     }
 

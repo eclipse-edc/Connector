@@ -39,6 +39,7 @@ public abstract class ProvisionedDataAddressResource extends ProvisionedResource
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder<T extends ProvisionedDataAddressResource, B extends Builder<T, B>> extends ProvisionedResource.Builder<T, B> {
+        protected DataAddress.Builder dataAddressBuilder = DataAddress.Builder.newInstance();
 
         @SuppressWarnings("unchecked")
         public B resourceName(String name) {
@@ -48,12 +49,18 @@ public abstract class ProvisionedDataAddressResource extends ProvisionedResource
 
         @SuppressWarnings("unchecked")
         public B dataAddress(DataAddress dataAddress) {
-            provisionedResource.dataAddress = dataAddress;
+            dataAddress.getProperties().forEach(dataAddressBuilder::property);
             return (B) this;
         }
 
         protected Builder(T resource) {
             super(resource);
+        }
+
+        @Override
+        public T build() {
+            provisionedResource.dataAddress = dataAddressBuilder.build();
+            return super.build();
         }
 
         @Override

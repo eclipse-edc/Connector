@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance.PASSWORD;
 import static org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance.USER;
 
-//@PostgresqlDbIntegrationTest
+@PostgresqlDbIntegrationTest
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
 
     @RegisterExtension

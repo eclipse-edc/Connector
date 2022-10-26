@@ -42,11 +42,10 @@ public class ObjectContainerProvisionedResource extends ProvisionedDataDestinati
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedDataDestinationResource.Builder<ObjectContainerProvisionedResource, Builder> {
-        private DataAddress.Builder dataAddressBuilder;
 
         private Builder() {
             super(new ObjectContainerProvisionedResource());
-            dataAddressBuilder = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
+            dataAddressBuilder.type(AzureBlobStoreSchema.TYPE);
         }
 
         @JsonCreator
@@ -55,26 +54,21 @@ public class ObjectContainerProvisionedResource extends ProvisionedDataDestinati
         }
 
         public Builder accountName(String accountName) {
-            this.dataAddressBuilder.property(ACCOUNT_NAME, accountName);
+            dataAddressBuilder.property(ACCOUNT_NAME, accountName);
             return this;
         }
 
         public Builder containerName(String containerName) {
-            this.dataAddressBuilder.property(CONTAINER_NAME, containerName);
+            dataAddressBuilder.property(CONTAINER_NAME, containerName);
             return this;
         }
 
         @Override
         public Builder resourceName(String name) {
-            this.dataAddressBuilder.keyName(name);
+            dataAddressBuilder.keyName(name);
             super.resourceName(name);
             return this;
         }
 
-        @Override
-        public ObjectContainerProvisionedResource build() {
-            provisionedResource.dataAddress = dataAddressBuilder.build();
-            return super.build();
-        }
     }
 }
