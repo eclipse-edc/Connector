@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 public class Oauth2Extension implements ServiceExtension {
 
     public static final String NAME = "OAuth2";
-    private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
+    private static final int DEFAULT_TOKEN_EXPIRATION = 5;
     @Setting
     private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
     @Setting(value = "outgoing tokens 'aud' claim value, by default it's the connector id")
@@ -66,6 +66,8 @@ public class Oauth2Extension implements ServiceExtension {
     private static final String PROVIDER_JWKS_REFRESH = "edc.oauth.provider.jwks.refresh"; // in minutes
     @Setting
     private static final String TOKEN_URL = "edc.oauth.token.url";
+    @Setting(value = "Token expiration in minutes. By default is 5 minutes")
+    private static final String TOKEN_EXPIRATION = "edc.oauth.token.expiration"; // in minutes
     @Setting
     private static final String CLIENT_ID = "edc.oauth.client.id";
     @Setting
@@ -101,7 +103,7 @@ public class Oauth2Extension implements ServiceExtension {
 
         var configuration = createConfig(context);
 
-        var defaultDecorator = new DefaultJwtDecorator(configuration.getProviderAudience(), configuration.getClientId(), getEncodedClientCertificate(configuration), context.getClock(), TOKEN_EXPIRATION);
+        var defaultDecorator = new DefaultJwtDecorator(configuration.getProviderAudience(), configuration.getClientId(), getEncodedClientCertificate(configuration), context.getClock(), configuration.getTokenExpiration());
         var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
         jwtDecoratorRegistry.register(defaultDecorator);
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
@@ -155,6 +157,7 @@ public class Oauth2Extension implements ServiceExtension {
         var publicKeyAlias = context.getConfig().getString(PUBLIC_KEY_ALIAS);
         var privateKeyAlias = context.getConfig().getString(PRIVATE_KEY_ALIAS);
         var clientId = context.getConfig().getString(CLIENT_ID);
+        var tokenExpiration = context.getSetting(TOKEN_EXPIRATION, DEFAULT_TOKEN_EXPIRATION);
         return Oauth2Configuration.Builder.newInstance()
                 .identityProviderKeyResolver(providerKeyResolver)
                 .tokenUrl(tokenUrl)
@@ -166,6 +169,7 @@ public class Oauth2Extension implements ServiceExtension {
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver)
                 .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
+                .tokenExpiration(TimeUnit.MINUTES.toSeconds(tokenExpiration))
                 .build();
     }
 }
