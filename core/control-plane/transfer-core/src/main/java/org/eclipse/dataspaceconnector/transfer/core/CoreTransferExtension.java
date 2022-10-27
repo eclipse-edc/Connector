@@ -72,14 +72,23 @@ import java.time.Clock;
         EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformerRegistry.class })
 @Extension(value = CoreTransferExtension.NAME)
 public class CoreTransferExtension implements ServiceExtension {
+
     public static final String NAME = "Core Transfer";
-    private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
+
+    private static final long DEFAULT_ITERATION_WAIT = 5000;
+
+    @Setting(value = "the iteration wait time in milliseconds on the state machine. Default value 5000")
+    private static final String TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS = "edc.transfer.state-machine.iteration-wait-millis";
+
     @Setting
     private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
+
     @Setting
     private static final String TRANSFER_SEND_RETRY_LIMIT = "edc.transfer.send.retry.limit";
+
     @Setting
     private static final String TRANSFER_SEND_RETRY_BASE_DELAY_MS = "edc.transfer.send.retry.base-delay.ms";
+
     @Inject
     private TransferProcessStore transferProcessStore;
 
@@ -136,7 +145,8 @@ public class CoreTransferExtension implements ServiceExtension {
         var provisionManager = new ProvisionManagerImpl(monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
-        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
+        var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS, DEFAULT_ITERATION_WAIT);
+        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
         var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
         context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
