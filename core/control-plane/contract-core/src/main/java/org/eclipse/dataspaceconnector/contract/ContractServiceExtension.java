@@ -71,24 +71,33 @@ import java.time.Clock;
 @CoreExtension
 public class ContractServiceExtension implements ServiceExtension {
 
-    private static final int DEFAULT_ITERATION_WAIT = 5000;
+    private static final long DEFAULT_ITERATION_WAIT = 5000;
+
     @Setting(value = "the iteration wait time in milliseconds on the state machine. Default value 5000")
     private static final String NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.negotiation.state-machine.iteration-wait-millis";
+
     @Setting
     private static final String NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.consumer.state-machine.batch-size";
+
     @Setting
     private static final String NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.provider.state-machine.batch-size";
+
     @Setting
     private static final String NEGOTIATION_CONSUMER_SEND_RETRY_LIMIT = "edc.negotiation.consumer.send.retry.limit";
+
     @Setting
     private static final String NEGOTIATION_PROVIDER_SEND_RETRY_LIMIT = "edc.negotiation.provider.send.retry.limit";
+
     @Setting
     private static final String NEGOTIATION_CONSUMER_SEND_RETRY_BASE_DELAY_MS = "edc.negotiation.consumer.send.retry.base-delay.ms";
+
     @Setting
     private static final String NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS = "edc.negotiation.provider.send.retry.base-delay.ms";
 
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
+
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
+
     @Inject
     private AssetIndex assetIndex;
 
@@ -164,7 +173,7 @@ public class ContractServiceExtension implements ServiceExtension {
         var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
-        var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, 5000);
+        var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
         CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
