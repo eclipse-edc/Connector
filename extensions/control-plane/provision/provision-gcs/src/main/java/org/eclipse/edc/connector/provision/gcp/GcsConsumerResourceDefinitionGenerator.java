@@ -27,9 +27,6 @@ public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceD
     @Override
     public @Nullable
     ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
-        if (dataRequest.getDataDestination() == null || dataRequest.getDestinationType() == null || !GcsStoreSchema.TYPE.equals(dataRequest.getDestinationType())) {
-            return null;
-        }
 
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
@@ -38,5 +35,11 @@ public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceD
 
         return GcsResourceDefinition.Builder.newInstance().id(id).location(location)
                 .storageClass(storageClass).build();
+    }
+
+    @Override
+    public boolean canGenerate(DataRequest dataRequest, Policy policy) {
+        return dataRequest.getDataDestination() != null && dataRequest.getDestinationType() != null && GcsStoreSchema.TYPE.equals(dataRequest.getDestinationType());
+
     }
 }

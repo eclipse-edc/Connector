@@ -38,9 +38,7 @@ public class HttpProviderResourceDefinitionGenerator implements ProviderResource
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
-        if (!dataAddressType.equals(assetAddress.getType())) {
-            return null;
-        }
+
         var assetId = dataRequest.getAssetId();
         if (assetId == null) {
             // programming error
@@ -52,5 +50,10 @@ public class HttpProviderResourceDefinitionGenerator implements ProviderResource
                 .transferProcessId(dataRequest.getProcessId())
                 .assetId(assetId)
                 .build();
+    }
+
+    @Override
+    public boolean canGenerate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
+        return dataAddressType.equals(assetAddress.getType());
     }
 }

@@ -31,17 +31,18 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
     @Override
     public ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
         if (dataRequest.getDestinationType() != null) {
-            if (!S3BucketSchema.TYPE.equals(dataRequest.getDestinationType())) {
-                return null;
-            }
             // FIXME generate region from policy engine
             return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(dataRequest.getProcessId()).regionId(Region.US_EAST_1.id()).build();
-
-        } else if (dataRequest.getDataDestination() == null || !(dataRequest.getDataDestination().getType().equals(S3BucketSchema.TYPE))) {
-            return null;
         }
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
         return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(S3BucketSchema.BUCKET_NAME)).regionId(destination.getProperty(S3BucketSchema.REGION)).build();
     }
+
+    @Override
+    public boolean canGenerate(DataRequest dataRequest, Policy policy) {
+        return (dataRequest.getDataDestination() != null && dataRequest.getDataDestination().getType().equals(S3BucketSchema.TYPE)) && S3BucketSchema.TYPE.equals(dataRequest.getDestinationType());
+    }
 }
+
+

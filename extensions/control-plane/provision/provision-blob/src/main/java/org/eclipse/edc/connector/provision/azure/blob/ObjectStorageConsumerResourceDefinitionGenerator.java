@@ -27,9 +27,6 @@ public class ObjectStorageConsumerResourceDefinitionGenerator implements Consume
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
-        if (dataRequest.getDataDestination() == null || dataRequest.getDestinationType() == null || !AzureBlobStoreSchema.TYPE.equals(dataRequest.getDestinationType())) {
-            return null;
-        }
 
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
@@ -39,5 +36,10 @@ public class ObjectStorageConsumerResourceDefinitionGenerator implements Consume
             container = randomUUID().toString();
         }
         return ObjectStorageResourceDefinition.Builder.newInstance().id(id).accountName(account).containerName(container).build();
+    }
+
+    @Override
+    public boolean canGenerate(DataRequest dataRequest, Policy policy) {
+        return dataRequest.getDataDestination() != null && dataRequest.getDestinationType() != null && AzureBlobStoreSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 }
