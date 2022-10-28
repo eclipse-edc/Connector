@@ -28,11 +28,21 @@ public interface ProviderResourceDefinitionGenerator {
     /**
      * Generates a resource definition. If no resource definition is generated, return null.
      *
-     * @param dataRequest the data request associated with transfer process
+     * @param dataRequest  the data request associated with transfer process
      * @param assetAddress the asset data address
-     * @param policy the contract agreement usage policy for the asset being transferred
+     * @param policy       the contract agreement usage policy for the asset being transferred
      */
     @Nullable
     ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy);
+
+    /**
+     * Checks if a data request can be generated based on a policy.
+     *
+     * @param dataRequest  the data request associated with transfer process
+     * @param assetAddress the asset data address
+     * @param policy       the contract agreement usage policy for the asset being transferred
+     */
+
+    boolean canGenerate(DataRequest dataRequest, DataAddress assetAddress, Policy policy);
 
 }
