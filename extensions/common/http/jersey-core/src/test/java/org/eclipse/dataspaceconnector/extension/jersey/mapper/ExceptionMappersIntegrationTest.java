@@ -15,7 +15,10 @@
 package org.eclipse.dataspaceconnector.extension.jersey.mapper;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.MessageInterpolator;
 import jakarta.validation.Valid;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
@@ -49,8 +52,14 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(EdcExtension.class)
 public class ExceptionMappersIntegrationTest {
 
+
+    public static final String POSITIVE_TEMPLATE = "{jakarta.validation.constraints.Positive.message}";
+    public static final String NOT_BLANK_TEMPLATE = "{jakarta.validation.constraints.NotBlank.message}";
     private final int port = getFreePort();
     private final Runnable runnable = mock(Runnable.class);
+
+
+    private MessageInterpolator interpolator;
 
     @BeforeEach
     void setUp(EdcExtension extension) {
@@ -61,6 +70,10 @@ public class ExceptionMappersIntegrationTest {
                 "web.http.test.path", "/"
         ));
         extension.registerSystemExtension(ServiceExtension.class, new MyServiceExtension());
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            interpolator = factory.getMessageInterpolator();
+        }
     }
 
     @Test
@@ -91,14 +104,14 @@ public class ExceptionMappersIntegrationTest {
                 .statusCode(400)
                 .body("size()", is(2))
                 .body("", hasItems(
-                        hasEntry("message", "must be greater than 0"),
-                        hasEntry("type", "{jakarta.validation.constraints.Positive.message}"),
+                        hasEntry("message", interpolator.interpolate(POSITIVE_TEMPLATE, null)),
+                        hasEntry("type", POSITIVE_TEMPLATE),
                         hasEntry(is("path"), endsWith(".number")),
                         hasEntry("invalidValue", "-1")
                 ))
                 .body("", hasItems(
-                        hasEntry("message", "must not be blank"),
-                        hasEntry("type", "{jakarta.validation.constraints.NotBlank.message}"),
+                        hasEntry("message", interpolator.interpolate(NOT_BLANK_TEMPLATE, null)),
+                        hasEntry("type", NOT_BLANK_TEMPLATE),
                         hasEntry(is("path"), endsWith(".data")),
                         hasEntry("invalidValue", "")
                 ));
