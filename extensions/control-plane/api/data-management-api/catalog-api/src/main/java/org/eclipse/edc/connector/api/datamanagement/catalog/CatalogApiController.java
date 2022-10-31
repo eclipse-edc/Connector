@@ -89,7 +89,7 @@ public class CatalogApiController implements CatalogApi {
                     if (throwable == null) {
                         response.resume(content);
                     } else {
-                        if (throwable instanceof EdcException) {
+                        if (throwable instanceof EdcException || throwable.getCause() instanceof EdcException) {
                             response.resume(new BadGatewayException(throwable.getMessage()));
                         } else {
                             response.resume(throwable);
