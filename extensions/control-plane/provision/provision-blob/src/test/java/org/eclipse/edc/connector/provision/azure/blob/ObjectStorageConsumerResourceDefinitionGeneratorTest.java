@@ -56,7 +56,7 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void generate_containerIsNull() {
+    void canGenerate() {
         DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
@@ -64,9 +64,21 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
         var policy = Policy.Builder.newInstance().build();
 
-        var definition = generator.generate(dataRequest, policy);
-        assertThat(definition).isNotNull();
-        assertThat(((ObjectStorageResourceDefinition) definition).getContainerName()).matches(
-                regexPattern);
+        var definition = generator.canGenerate(dataRequest, policy);
+        assertThat(definition).isTrue();
     }
+
+    @Test
+    void canGenerateIsNotTypeAzureBlobStoreSchema() {
+        DataAddress destination = DataAddress.Builder.newInstance().type("aNonGoogleCloudStorage")
+                .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
+                .build();
+        var asset = Asset.Builder.newInstance().build();
+        var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var definition = generator.canGenerate(dataRequest, policy);
+        assertThat(definition).isFalse();
+    }
+
 }

@@ -28,21 +28,38 @@ class HttpProviderResourceDefinitionGeneratorTest {
 
     private HttpProviderResourceDefinitionGenerator generator;
 
-    @Test
-    void verifyGeneration() {
-        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("id").build();
-        var policy = Policy.Builder.newInstance().build();
-
-        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
-        assertThat(generator.generate(dataRequest, assetAddress1, policy)).isNotNull();
-
-        var assetAddress2 = DataAddress.Builder.newInstance().type("another-type").build();
-        assertThat(generator.generate(dataRequest, assetAddress2, policy)).isNull();
-    }
-
-
     @BeforeEach
     void setUp() {
         generator = new HttpProviderResourceDefinitionGenerator(DATA_ADDRESS_TYPE);
     }
+
+
+    @Test
+    void verifyGeneration() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        var definition = generator.generate(dataRequest, assetAddress1, policy);
+
+        assertThat(definition).isInstanceOf(HttpProviderResourceDefinition.class);
+        var objectDef = (HttpProviderResourceDefinition) definition;
+        assertThat(objectDef.dataAddressType).isEqualTo("test-address");
+        assertThat(objectDef.getTransferProcessId()).isEqualTo("process-id");
+        assertThat(objectDef.getAssetId()).isEqualTo("asset-id");
+    }
+
+    @Test
+    void canGenerate() {
+
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        var definition = generator.canGenerate(dataRequest, assetAddress1, policy);
+        assertThat(definition).isTrue();
+    }
+
 }
