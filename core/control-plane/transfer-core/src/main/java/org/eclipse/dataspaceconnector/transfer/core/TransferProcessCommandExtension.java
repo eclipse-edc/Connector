@@ -22,7 +22,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.CancelTransferCommandHandler;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.CompleteTransferCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionRequestHandler;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.FailTransferCommandHandler;
 
 /**
  * Registers command handlers that the core provides
@@ -42,6 +44,8 @@ public class TransferProcessCommandExtension implements ServiceExtension {
 
         registry.register(new CancelTransferCommandHandler(store, observable));
         registry.register(new DeprovisionRequestHandler(store));
+        registry.register(new CompleteTransferCommandHandler(store, observable));
+        registry.register(new FailTransferCommandHandler(store, observable));
     }
 
 }

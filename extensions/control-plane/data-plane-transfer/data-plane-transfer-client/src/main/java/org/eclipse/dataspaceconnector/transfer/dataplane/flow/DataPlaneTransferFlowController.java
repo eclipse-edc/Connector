@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.transfer.callback.ControlPlaneApiUrl;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -38,9 +39,11 @@ import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTra
  */
 public class DataPlaneTransferFlowController implements DataFlowController {
     private final DataPlaneTransferClient client;
+    private final ControlPlaneApiUrl callbackUrl;
 
-    public DataPlaneTransferFlowController(DataPlaneTransferClient client) {
+    public DataPlaneTransferFlowController(DataPlaneTransferClient client, ControlPlaneApiUrl callbackUrl) {
         this.client = client;
+        this.callbackUrl = callbackUrl;
     }
 
     @Override
@@ -71,6 +74,7 @@ public class DataPlaneTransferFlowController implements DataFlowController {
                 .sourceDataAddress(sourceAddress)
                 .destinationType(dataRequest.getDestinationType())
                 .destinationDataAddress(dataRequest.getDataDestination())
+                .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
                 .properties(dataRequest.getProperties())
                 .build();
     }

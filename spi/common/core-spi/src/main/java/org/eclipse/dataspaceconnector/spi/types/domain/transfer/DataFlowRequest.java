@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 
+import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,6 +38,7 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
 
+    private URL callbackAddress;
     private boolean trackable;
 
     private Map<String, String> properties = Map.of();
@@ -93,6 +95,13 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
     @Override
     public Map<String, String> getTraceContext() {
         return traceContext;
+    }
+
+    /**
+     * Callback address for this request once it has completed
+     */
+    public URL getCallbackAddress() {
+        return callbackAddress;
     }
 
     /**
@@ -160,6 +169,11 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
 
         public Builder traceContext(Map<String, String> value) {
             request.traceContext = value;
+            return this;
+        }
+
+        public Builder callbackAddress(URL callbackAddress) {
+            request.callbackAddress = callbackAddress;
             return this;
         }
 

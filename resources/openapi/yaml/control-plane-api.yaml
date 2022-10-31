@@ -1,0 +1,85 @@
+openapi: 3.0.1
+paths:
+  /transferprocess/{processId}/complete:
+    post:
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: complete
+      parameters:
+      - in: path
+        name: processId
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+      tags:
+      - Transfer Process Control Api
+  /transferprocess/{processId}/fail:
+    post:
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: fail
+      parameters:
+      - in: path
+        name: processId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferProcessFailStateDto'
+        required: true
+      responses:
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+      tags:
+      - Transfer Process Control Api
+components:
+  schemas:
+    ApiErrorDetail:
+      type: object
+      example: null
+      properties:
+        invalidValue:
+          type: string
+          example: null
+        message:
+          type: string
+          example: null
+        path:
+          type: string
+          example: null
+        type:
+          type: string
+          example: null
+    TransferProcessFailStateDto:
+      type: object
+      example: null
+      properties:
+        errorMessage:
+          type: string
+          example: null
+      required:
+      - errorMessage

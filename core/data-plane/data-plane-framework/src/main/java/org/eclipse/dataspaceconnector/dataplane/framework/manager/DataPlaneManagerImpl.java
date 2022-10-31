@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
+import org.eclipse.dataspaceconnector.spi.controlplane.api.client.transferprocess.TransferProcessApiClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -28,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
+import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -45,21 +47,24 @@ import static java.lang.String.format;
  * generally do not require low-latency. If low-latency operation becomes a requirement, a concurrent queuing mechanism can be used.
  */
 public class DataPlaneManagerImpl implements DataPlaneManager {
+    private final AtomicBoolean active = new AtomicBoolean();
     private int queueCapacity = 10000;
     private int workers = 1;
     private long waitTimeout = 100;
-
     private PipelineService pipelineService;
     private ExecutorInstrumentation executorInstrumentation;
     private Monitor monitor;
     private Telemetry telemetry;
-
     private BlockingQueue<DataFlowRequest> queue;
     private ExecutorService executorService;
-
-    private AtomicBoolean active = new AtomicBoolean();
     private DataPlaneStore store;
     private TransferServiceRegistry transferServiceRegistry;
+
+    private TransferProcessApiClient transferProcessClient;
+
+    private DataPlaneManagerImpl() {
+
+    }
 
     public void start() {
         queue = new ArrayBlockingQueue<>(queueCapacity);
@@ -152,16 +157,36 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
             store.completed(request.getProcessId());
         } else {
             transferService.transfer(request).whenComplete((result, exception) -> {
+
                 if (request.isTrackable()) {
                     // TODO persist TransferResult or error details
                     store.completed(request.getProcessId());
                 }
+
+                onTransferFinished(request, result, exception);
+
+
             });
         }
     }
 
+    private void onTransferFinished(DataFlowRequest request, StatusResult<Void> result, Throwable exception) {
+        if (exception != null) {
+            transferProcessClient.failed(request, exception.getMessage());
+        } else if (result.succeeded()) {
+            transferProcessClient.completed(request);
+        } else {
+            transferProcessClient.failed(request, result.getFailureDetail());
+        }
+    }
+
     public static class Builder {
-        private DataPlaneManagerImpl manager;
+        private final DataPlaneManagerImpl manager;
+
+        private Builder() {
+            manager = new DataPlaneManagerImpl();
+            manager.telemetry = new Telemetry(); // default noop implementation
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -212,13 +237,14 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
             return this;
         }
 
-        public DataPlaneManagerImpl build() {
-            return manager;
+        public Builder transferProcessClient(TransferProcessApiClient transferProcessClient) {
+            manager.transferProcessClient = transferProcessClient;
+            return this;
         }
 
-        private Builder() {
-            manager = new DataPlaneManagerImpl();
-            this.manager.telemetry = new Telemetry(); // default noop implementation
+        public DataPlaneManagerImpl build() {
+            Objects.requireNonNull(manager.transferProcessClient);
+            return manager;
         }
     }
 

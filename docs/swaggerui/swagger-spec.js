@@ -20,192 +20,12 @@ window.swaggerSpec={
     "description" : "The public API of the Data Plane is a data proxy enabling a data consumer to actively querydata from the provider data source (e.g. backend Rest API, internal database...) through its Data Planeinstance. Thus the Data Plane is the only entry/output door for the data, which avoids the provider to exposedirectly its data externally.The Data Plane public API being a proxy, it supports all verbs (i.e. GET, POST, PUT, PATCH, DELETE), whichcan then conveyed until the data source is required. This is especially useful when the actual data sourceis a Rest API itself.In the same manner, any set of arbitrary query parameters, path parameters and request body are supported (in the limits fixed by the HTTP server) and can also conveyed to the actual data source."
   } ],
   "paths" : {
-    "/contractdefinitions" : {
-      "get" : {
-        "tags" : [ "Contract Definition" ],
-        "description" : "Returns all contract definitions according to a query",
-        "operationId" : "getAllContractDefinitions",
-        "parameters" : [ {
-          "name" : "offset",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "limit",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "filter",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "sort",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "ASC", "DESC" ]
-          }
-        }, {
-          "name" : "sortField",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : true
-      },
+    "/callback/{processId}/deprovision" : {
       "post" : {
-        "tags" : [ "Contract Definition" ],
-        "description" : "Creates a new contract definition",
-        "operationId" : "createContractDefinition",
-        "requestBody" : {
-          "content" : {
-            "*/*" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ContractDefinitionRequestDto"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/IdResponseDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "409" : {
-            "description" : "Could not create contract definition, because a contract definition with that ID already exists",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/contractdefinitions/request" : {
-      "post" : {
-        "tags" : [ "Contract Definition" ],
-        "description" : "Returns all contract definitions according to a query",
-        "operationId" : "queryAllContractDefinitions",
-        "requestBody" : {
-          "content" : {
-            "*/*" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/QuerySpecDto"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/contractdefinitions/{id}" : {
-      "get" : {
-        "tags" : [ "Contract Definition" ],
-        "description" : "Gets an contract definition with the given ID",
-        "operationId" : "getContractDefinition",
+        "tags" : [ "HTTP Provisioner Webhook" ],
+        "operationId" : "callDeprovisionWebhook",
         "parameters" : [ {
-          "name" : "id",
+          "name" : "processId",
           "in" : "path",
           "required" : true,
           "style" : "simple",
@@ -214,51 +34,31 @@ window.swaggerSpec={
             "type" : "string"
           }
         } ],
-        "responses" : {
-          "200" : {
-            "description" : "The contract definition",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "An contract agreement with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeprovisionedResource"
               }
             }
           }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
         }
-      },
-      "delete" : {
-        "tags" : [ "Contract Definition" ],
-        "description" : "Removes a contract definition with the given ID if possible. DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
-        "operationId" : "deleteContractDefinition",
+      }
+    },
+    "/callback/{processId}/provision" : {
+      "post" : {
+        "tags" : [ "HTTP Provisioner Webhook" ],
+        "operationId" : "callProvisionWebhook",
         "parameters" : [ {
-          "name" : "id",
+          "name" : "processId",
           "in" : "path",
           "required" : true,
           "style" : "simple",
@@ -267,34 +67,20 @@ window.swaggerSpec={
             "type" : "string"
           }
         } ],
-        "responses" : {
-          "200" : {
-            "description" : "Contract definition was deleted successfully"
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProvisionerWebhookRequest"
               }
             }
-          },
-          "404" : {
-            "description" : "A contract definition with the given ID does not exist",
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
             "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
+              "application/json" : { }
             }
           }
         }
@@ -401,369 +187,6 @@ window.swaggerSpec={
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/check/health" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
-        "operationId" : "checkHealth",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/liveness" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
-        "operationId" : "getLiveness",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/readiness" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a readiness probe to determine whether the runtime is able to accept requests.",
-        "operationId" : "getReadiness",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/startup" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a startup probe to determine whether the runtime has completed startup.",
-        "operationId" : "getStartup",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/contractagreements" : {
-      "get" : {
-        "tags" : [ "Contract Agreement" ],
-        "description" : "Gets all contract agreements according to a particular query",
-        "operationId" : "getAllAgreements",
-        "parameters" : [ {
-          "name" : "offset",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "limit",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "filter",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "sort",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "ASC", "DESC" ]
-          }
-        }, {
-          "name" : "sortField",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ContractAgreementDto"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : true
-      }
-    },
-    "/contractagreements/request" : {
-      "post" : {
-        "tags" : [ "Contract Agreement" ],
-        "description" : "Gets all contract agreements according to a particular query",
-        "operationId" : "queryAllAgreements",
-        "requestBody" : {
-          "content" : {
-            "*/*" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/QuerySpecDto"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ContractAgreementDto"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/contractagreements/{id}" : {
-      "get" : {
-        "tags" : [ "Contract Agreement" ],
-        "description" : "Gets an contract agreement with the given ID",
-        "operationId" : "getContractAgreement",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "The contract agreement",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ContractAgreementDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "An contract agreement with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instances" : {
-      "get" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "getAll",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/DataPlaneInstance"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "addEntry",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/DataPlaneInstance"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/instances/select" : {
-      "post" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "find",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/SelectionRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/DataPlaneInstance"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/token" : {
-      "get" : {
-        "tags" : [ "Token Validation" ],
-        "description" : "Checks that the provided token has been signed by the present entity and asserts its validity. If token is valid, then the data address contained in its claims is decrypted and returned back to the caller.",
-        "operationId" : "validate",
-        "parameters" : [ {
-          "name" : "Authorization",
-          "in" : "header",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Token is valid"
-          },
-          "400" : {
-            "description" : "Request was malformed"
-          },
-          "403" : {
-            "description" : "Token is invalid"
           }
         }
       }
@@ -1061,25 +484,14 @@ window.swaggerSpec={
         }
       }
     },
-    "/callback/{processId}/deprovision" : {
+    "/federatedcatalog" : {
       "post" : {
-        "tags" : [ "HTTP Provisioner Webhook" ],
-        "operationId" : "callDeprovisionWebhook",
-        "parameters" : [ {
-          "name" : "processId",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
+        "operationId" : "getCachedCatalog",
         "requestBody" : {
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/DeprovisionedResource"
+                "$ref" : "#/components/schemas/FederatedCatalogCacheQuery"
               }
             }
           }
@@ -1088,40 +500,14 @@ window.swaggerSpec={
           "default" : {
             "description" : "default response",
             "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/callback/{processId}/provision" : {
-      "post" : {
-        "tags" : [ "HTTP Provisioner Webhook" ],
-        "operationId" : "callProvisionWebhook",
-        "parameters" : [ {
-          "name" : "processId",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ProvisionerWebhookRequest"
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractOffer"
+                  }
+                }
               }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
             }
           }
         }
@@ -1251,6 +637,468 @@ window.swaggerSpec={
           },
           "500" : {
             "description" : "Failed to transfer data"
+          }
+        }
+      }
+    },
+    "/contractagreements" : {
+      "get" : {
+        "tags" : [ "Contract Agreement" ],
+        "description" : "Gets all contract agreements according to a particular query",
+        "operationId" : "getAllAgreements",
+        "parameters" : [ {
+          "name" : "offset",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "filter",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ]
+          }
+        }, {
+          "name" : "sortField",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractAgreementDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      }
+    },
+    "/contractagreements/request" : {
+      "post" : {
+        "tags" : [ "Contract Agreement" ],
+        "description" : "Gets all contract agreements according to a particular query",
+        "operationId" : "queryAllAgreements",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractAgreementDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractagreements/{id}" : {
+      "get" : {
+        "tags" : [ "Contract Agreement" ],
+        "description" : "Gets an contract agreement with the given ID",
+        "operationId" : "getContractAgreement",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The contract agreement",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContractAgreementDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "An contract agreement with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractdefinitions" : {
+      "get" : {
+        "tags" : [ "Contract Definition" ],
+        "description" : "Returns all contract definitions according to a query",
+        "operationId" : "getAllContractDefinitions",
+        "parameters" : [ {
+          "name" : "offset",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "filter",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ]
+          }
+        }, {
+          "name" : "sortField",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      },
+      "post" : {
+        "tags" : [ "Contract Definition" ],
+        "description" : "Creates a new contract definition",
+        "operationId" : "createContractDefinition",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ContractDefinitionRequestDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IdResponseDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Could not create contract definition, because a contract definition with that ID already exists",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractdefinitions/request" : {
+      "post" : {
+        "tags" : [ "Contract Definition" ],
+        "description" : "Returns all contract definitions according to a query",
+        "operationId" : "queryAllContractDefinitions",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contractdefinitions/{id}" : {
+      "get" : {
+        "tags" : [ "Contract Definition" ],
+        "description" : "Gets an contract definition with the given ID",
+        "operationId" : "getContractDefinition",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The contract definition",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContractDefinitionResponseDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "An contract agreement with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Contract Definition" ],
+        "description" : "Removes a contract definition with the given ID if possible. DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
+        "operationId" : "deleteContractDefinition",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Contract definition was deleted successfully"
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "A contract definition with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1544,6 +1392,651 @@ window.swaggerSpec={
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/transferprocess/{processId}/complete" : {
+      "post" : {
+        "tags" : [ "Transfer Process Control Api" ],
+        "description" : "Requests completion of the transfer process. Due to the asynchronous nature of transfers, a successful response only indicates that the request was successfully received",
+        "operationId" : "complete",
+        "parameters" : [ {
+          "name" : "processId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess/{processId}/fail" : {
+      "post" : {
+        "tags" : [ "Transfer Process Control Api" ],
+        "description" : "Requests completion of the transfer process. Due to the asynchronous nature of transfers, a successful response only indicates that the request was successfully received",
+        "operationId" : "fail",
+        "parameters" : [ {
+          "name" : "processId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TransferProcessFailStateDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instances" : {
+      "get" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "getAll",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DataPlaneInstance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "addEntry",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DataPlaneInstance"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/instances/select" : {
+      "post" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "find",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SelectionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DataPlaneInstance"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/health" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
+        "operationId" : "checkHealth",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/liveness" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
+        "operationId" : "getLiveness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/readiness" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a readiness probe to determine whether the runtime is able to accept requests.",
+        "operationId" : "getReadiness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/startup" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a startup probe to determine whether the runtime has completed startup.",
+        "operationId" : "getStartup",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess" : {
+      "get" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Returns all transfer process according to a query",
+        "operationId" : "getAllTransferProcesses",
+        "parameters" : [ {
+          "name" : "offset",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "filter",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ]
+          }
+        }, {
+          "name" : "sortField",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TransferProcessDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : true
+      },
+      "post" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Initiates a data transfer with the given parameters. Please note that successfully invoking this endpoint only means that the transfer was initiated. Clients must poll the /{id}/state endpoint to track the state",
+        "operationId" : "initiateTransfer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TransferRequestDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The transfer was successfully initiated. Returns the transfer process ID and created timestamp",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IdResponseDto"
+                }
+              }
+            },
+            "links" : {
+              "poll-state" : {
+                "operationId" : "getTransferProcessState",
+                "parameters" : {
+                  "id" : "$response.body#/id"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request body was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess/request" : {
+      "post" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Returns all transfer process according to a query",
+        "operationId" : "queryAllTransferProcesses",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuerySpecDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TransferProcessDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess/{id}" : {
+      "get" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Gets an transfer process with the given ID",
+        "operationId" : "getTransferProcess",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The transfer process",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransferProcessDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "A transfer process with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess/{id}/cancel" : {
+      "post" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Requests aborting the transfer process. Due to the asynchronous nature of transfers, a successful response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
+        "operationId" : "cancelTransferProcess",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Request to cancel the transfer process was successfully received",
+            "links" : {
+              "poll-state" : {
+                "operationId" : "getTransferProcessState"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "A contract negotiation with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess/{id}/deprovision" : {
+      "post" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Requests the deprovisioning of resources associated with a transfer process. Due to the asynchronous nature of transfers, a successful response only indicates that the request was successfully received. This may take a long time, so clients must poll the /{id}/state endpoint to track the state.",
+        "operationId" : "deprovisionTransferProcess",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Request to deprovision the transfer process was successfully received",
+            "links" : {
+              "poll-state" : {
+                "operationId" : "getTransferProcessState"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "A contract negotiation with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferprocess/{id}/state" : {
+      "get" : {
+        "tags" : [ "Transfer Process" ],
+        "description" : "Gets the state of a transfer process with the given ID",
+        "operationId" : "getTransferProcessState",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The  transfer process's state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransferState"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request was malformed, e.g. id was null",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "An  transfer process with the given ID does not exist",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/token" : {
+      "get" : {
+        "tags" : [ "Token Validation" ],
+        "description" : "Checks that the provided token has been signed by the present entity and asserts its validity. If token is valid, then the data address contained in its claims is decrypted and returned back to the caller.",
+        "operationId" : "validate",
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Token is valid"
+          },
+          "400" : {
+            "description" : "Request was malformed"
+          },
+          "403" : {
+            "description" : "Token is invalid"
           }
         }
       }
@@ -1992,425 +2485,6 @@ window.swaggerSpec={
           }
         }
       }
-    },
-    "/federatedcatalog" : {
-      "post" : {
-        "operationId" : "getCachedCatalog",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/FederatedCatalogCacheQuery"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ContractOffer"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/transferprocess" : {
-      "get" : {
-        "tags" : [ "Transfer Process" ],
-        "description" : "Returns all transfer process according to a query",
-        "operationId" : "getAllTransferProcesses",
-        "parameters" : [ {
-          "name" : "offset",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "limit",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "filter",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "sort",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "ASC", "DESC" ]
-          }
-        }, {
-          "name" : "sortField",
-          "in" : "query",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/TransferProcessDto"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : true
-      },
-      "post" : {
-        "tags" : [ "Transfer Process" ],
-        "description" : "Initiates a data transfer with the given parameters. Please note that successfully invoking this endpoint only means that the transfer was initiated. Clients must poll the /{id}/state endpoint to track the state",
-        "operationId" : "initiateTransfer",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/TransferRequestDto"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "The transfer was successfully initiated. Returns the transfer process ID and created timestamp",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/IdResponseDto"
-                }
-              }
-            },
-            "links" : {
-              "poll-state" : {
-                "operationId" : "getTransferProcessState",
-                "parameters" : {
-                  "id" : "$response.body#/id"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/transferprocess/request" : {
-      "post" : {
-        "tags" : [ "Transfer Process" ],
-        "description" : "Returns all transfer process according to a query",
-        "operationId" : "queryAllTransferProcesses",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/QuerySpecDto"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/TransferProcessDto"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/transferprocess/{id}" : {
-      "get" : {
-        "tags" : [ "Transfer Process" ],
-        "description" : "Gets an transfer process with the given ID",
-        "operationId" : "getTransferProcess",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "The transfer process",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TransferProcessDto"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "A transfer process with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/transferprocess/{id}/cancel" : {
-      "post" : {
-        "tags" : [ "Transfer Process" ],
-        "description" : "Requests aborting the transfer process. Due to the asynchronous nature of transfers, a successful response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
-        "operationId" : "cancelTransferProcess",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Request to cancel the transfer process was successfully received",
-            "links" : {
-              "poll-state" : {
-                "operationId" : "getTransferProcessState"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "A contract negotiation with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/transferprocess/{id}/deprovision" : {
-      "post" : {
-        "tags" : [ "Transfer Process" ],
-        "description" : "Requests the deprovisioning of resources associated with a transfer process. Due to the asynchronous nature of transfers, a successful response only indicates that the request was successfully received. This may take a long time, so clients must poll the /{id}/state endpoint to track the state.",
-        "operationId" : "deprovisionTransferProcess",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Request to deprovision the transfer process was successfully received",
-            "links" : {
-              "poll-state" : {
-                "operationId" : "getTransferProcessState"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "A contract negotiation with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/transferprocess/{id}/state" : {
-      "get" : {
-        "tags" : [ "Transfer Process" ],
-        "description" : "Gets the state of a transfer process with the given ID",
-        "operationId" : "getTransferProcessState",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "The  transfer process's state",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TransferState"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request was malformed, e.g. id was null",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "An  transfer process with the given ID does not exist",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiErrorDetail"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components" : {
@@ -2779,6 +2853,10 @@ window.swaggerSpec={
       "DataFlowRequest" : {
         "type" : "object",
         "properties" : {
+          "callbackAddress" : {
+            "type" : "string",
+            "format" : "url"
+          },
           "destinationDataAddress" : {
             "$ref" : "#/components/schemas/DataAddress"
           },
@@ -3218,6 +3296,15 @@ window.swaggerSpec={
           "updatedAt" : {
             "type" : "integer",
             "format" : "int64"
+          }
+        }
+      },
+      "TransferProcessFailStateDto" : {
+        "required" : [ "errorMessage" ],
+        "type" : "object",
+        "properties" : {
+          "errorMessage" : {
+            "type" : "string"
           }
         }
       },

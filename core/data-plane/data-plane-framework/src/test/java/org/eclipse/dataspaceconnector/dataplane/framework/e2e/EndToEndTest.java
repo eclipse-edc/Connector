@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServi
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
+import org.eclipse.dataspaceconnector.spi.controlplane.api.client.transferprocess.NoopTransferProcessClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -36,6 +37,14 @@ import static org.mockito.Mockito.mock;
 
 public class EndToEndTest {
 
+    public static DataFlowRequest.Builder createRequest(String type) {
+        return DataFlowRequest.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type(type).build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type(type).build());
+    }
+
     @Test
     void testEndToEnd() throws Exception {
         var monitor = mock(Monitor.class);
@@ -48,6 +57,7 @@ public class EndToEndTest {
                 .monitor(monitor)
                 .pipelineService(pipelineService)
                 .executorInstrumentation(ExecutorInstrumentation.noop())
+                .transferProcessClient(new NoopTransferProcessClient())
                 .build();
         manager.start();
         manager.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("bytes".getBytes())), createRequest("1").build()).get();
@@ -80,14 +90,6 @@ public class EndToEndTest {
         public DataSink createSink(DataFlowRequest request) {
             return sink;
         }
-    }
-
-    public static DataFlowRequest.Builder createRequest(String type) {
-        return DataFlowRequest.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type(type).build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type(type).build());
     }
 
 }

@@ -121,6 +121,9 @@ components:
     DataFlowRequest:
       type: object
       properties:
+        callbackAddress:
+          type: string
+          format: url
         destinationDataAddress:
           $ref: '#/components/schemas/DataAddress'
         id:

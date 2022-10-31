@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.dataspaceconnector.spi.controlplane.api.client.transferprocess.TransferProcessApiClient;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -67,6 +68,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Inject(required = false)
     private DataPlaneStore store;
+
+    @Inject
+    private TransferProcessApiClient transferProcessApiClient;
 
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
@@ -110,6 +114,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .pipelineService(pipelineService)
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(registerStore(context))
+                .transferProcessClient(transferProcessApiClient)
                 .monitor(monitor)
                 .telemetry(telemetry)
                 .build();
@@ -128,7 +133,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
             dataPlaneManager.forceStop();
         }
     }
-
+    
     @NotNull
     private DataPlaneStore registerStore(ServiceExtensionContext context) {
         var monitor = context.getMonitor();

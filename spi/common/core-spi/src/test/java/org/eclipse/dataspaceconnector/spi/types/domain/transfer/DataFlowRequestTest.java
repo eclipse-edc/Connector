@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,7 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DataFlowRequestTest {
 
     @Test
-    void verifySerializeDeserialize() throws JsonProcessingException {
+    void verifySerializeDeserialize() throws JsonProcessingException, MalformedURLException {
+
+        var url = new URL("http://test");
         ObjectMapper mapper = new ObjectMapper();
         var request = DataFlowRequest.Builder.newInstance()
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("foo").build())
@@ -35,6 +39,7 @@ class DataFlowRequestTest {
                 .id(UUID.randomUUID().toString())
                 .processId(UUID.randomUUID().toString())
                 .destinationType("test")
+                .callbackAddress(url)
                 .properties(Map.of("key", "value"))
                 .traceContext(Map.of("key2", "value2"))
                 .build();
@@ -44,5 +49,6 @@ class DataFlowRequestTest {
         assertThat(deserialized).isNotNull();
         assertThat(deserialized.getProperties().get("key")).isEqualTo("value");
         assertThat(deserialized.getTraceContext().get("key2")).isEqualTo("value2");
+        assertThat(deserialized.getCallbackAddress()).isEqualTo(url);
     }
 }

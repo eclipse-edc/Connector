@@ -21,6 +21,8 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.dataspaceconnector.spi.controlplane.api.client.transferprocess.NoopTransferProcessClient;
+import org.eclipse.dataspaceconnector.spi.controlplane.api.client.transferprocess.TransferProcessApiClient;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
@@ -48,6 +50,7 @@ class DataPlaneFrameworkExtensionTest {
         when(transferService1.canHandle(request)).thenReturn(true);
         when(transferService2.canHandle(request)).thenReturn(true);
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
+        context.registerService(TransferProcessApiClient.class, new NoopTransferProcessClient());
     }
 
     @Test

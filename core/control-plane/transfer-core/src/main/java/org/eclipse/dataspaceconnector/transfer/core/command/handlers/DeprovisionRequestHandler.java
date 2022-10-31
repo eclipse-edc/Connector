@@ -35,7 +35,7 @@ public class DeprovisionRequestHandler extends SingleTransferProcessCommandHandl
     }
 
     @Override
-    protected boolean modify(TransferProcess process) {
+    protected boolean modify(TransferProcess process, DeprovisionRequest command) {
         process.transitionDeprovisioning();
         return true;
     }

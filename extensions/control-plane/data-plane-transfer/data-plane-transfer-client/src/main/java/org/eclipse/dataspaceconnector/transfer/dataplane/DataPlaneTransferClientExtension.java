@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.callback.ControlPlaneApiUrl;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.transfer.dataplane.client.EmbeddedDataPlaneTransferClient;
 import org.eclipse.dataspaceconnector.transfer.dataplane.client.RemoteDataPlaneTransferClient;
@@ -61,6 +62,9 @@ public class DataPlaneTransferClientExtension implements ServiceExtension {
     @Inject
     private DataFlowManager flowManager;
 
+    @Inject(required = false)
+    private ControlPlaneApiUrl callbackUrl;
+
     @Override
     public String name() {
         return NAME;
@@ -84,7 +88,7 @@ public class DataPlaneTransferClientExtension implements ServiceExtension {
             monitor.debug(() -> format("Using remote Data Plane with selectionStratey=%s.", selectionStrategy));
         }
 
-        var flowController = new DataPlaneTransferFlowController(client);
+        var flowController = new DataPlaneTransferFlowController(client, callbackUrl);
         flowManager.register(flowController);
     }
 }

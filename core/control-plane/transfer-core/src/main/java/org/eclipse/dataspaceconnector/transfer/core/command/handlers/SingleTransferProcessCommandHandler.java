@@ -36,13 +36,13 @@ public abstract class SingleTransferProcessCommandHandler<T extends SingleTransf
     }
 
     @Override
-    public void handle(SingleTransferProcessCommand command) {
+    public void handle(T command) {
         var transferProcessId = command.getTransferProcessId();
         var transferProcess = store.find(transferProcessId);
         if (transferProcess == null) {
             throw new EdcException(format("Could not find TransferProcess with ID [%s]", transferProcessId));
         } else {
-            if (modify(transferProcess)) {
+            if (modify(transferProcess, command)) {
                 transferProcess.setModified();
                 store.update(transferProcess);
                 postAction(transferProcess);
@@ -56,9 +56,10 @@ public abstract class SingleTransferProcessCommandHandler<T extends SingleTransf
      * If the {@link TransferProcess} was indeed modified, implementors should return {@code true}, otherwise {@code false}
      *
      * @param process The {@link TransferProcess}
+     * @param command The {@link SingleTransferProcessCommand}
      * @return true if the process was actually modified, false otherwise.
      */
-    protected abstract boolean modify(TransferProcess process);
+    protected abstract boolean modify(TransferProcess process, T command);
 
     /**
      * Method that would be called after the entity update has been persisted.
