@@ -30,7 +30,7 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
-import org.eclipse.edc.connector.api.datamanagement.policy.service.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;

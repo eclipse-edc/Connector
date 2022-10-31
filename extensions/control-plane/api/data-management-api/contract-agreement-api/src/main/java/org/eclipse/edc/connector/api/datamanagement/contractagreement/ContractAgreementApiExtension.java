@@ -17,14 +17,12 @@ package org.eclipse.edc.connector.api.datamanagement.contractagreement;
 
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.configuration.DataManagementApiConfiguration;
-import org.eclipse.edc.connector.api.datamanagement.contractagreement.service.ContractAgreementServiceImpl;
 import org.eclipse.edc.connector.api.datamanagement.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.web.spi.WebService;
 
 @Extension(value = ContractAgreementApiExtension.NAME)
@@ -41,11 +39,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     DtoTransformerRegistry transformerRegistry;
 
     @Inject
-    TransactionContext transactionContext;
-
-    @Inject
-    ContractNegotiationStore store;
-
+    ContractAgreementService service;
 
     @Override
     public String name() {
@@ -57,7 +51,6 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
         var monitor = context.getMonitor();
 
-        var service = new ContractAgreementServiceImpl(store, transactionContext);
         var controller = new ContractAgreementApiController(monitor, service, transformerRegistry);
         webService.registerResource(config.getContextAlias(), controller);
     }

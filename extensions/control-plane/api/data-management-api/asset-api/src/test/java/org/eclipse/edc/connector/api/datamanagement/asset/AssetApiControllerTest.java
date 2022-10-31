@@ -19,13 +19,13 @@ package org.eclipse.edc.connector.api.datamanagement.asset;
 
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.result.ServiceResult;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.datamanagement.asset.model.AssetRequestDto;
 import org.eclipse.edc.connector.api.datamanagement.asset.model.AssetResponseDto;
 import org.eclipse.edc.connector.api.datamanagement.asset.model.DataAddressDto;
-import org.eclipse.edc.connector.api.datamanagement.asset.service.AssetService;
+import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;

@@ -26,6 +26,7 @@ plugins {
 dependencies {
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:control-plane:control-plane-spi")) // TODO: is this really necessary?
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:data-management-api:data-management-api-configuration"))

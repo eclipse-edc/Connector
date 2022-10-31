@@ -16,13 +16,13 @@ package org.eclipse.edc.connector.api.datamanagement.transferprocess;
 
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.result.ServiceResult;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferRequestDto;
-import org.eclipse.edc.connector.api.datamanagement.transferprocess.service.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;

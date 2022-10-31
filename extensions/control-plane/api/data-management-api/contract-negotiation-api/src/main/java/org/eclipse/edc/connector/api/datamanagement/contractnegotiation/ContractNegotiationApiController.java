@@ -32,10 +32,10 @@ import org.eclipse.edc.connector.api.datamanagement.contractnegotiation.model.Co
 import org.eclipse.edc.connector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.edc.connector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.api.datamanagement.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.connector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;

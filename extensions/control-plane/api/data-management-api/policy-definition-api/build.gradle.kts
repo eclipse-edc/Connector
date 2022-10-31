@@ -26,6 +26,7 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:control-plane:control-plane-spi")) // TODO: is this really necessary?
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":core:common:util"))

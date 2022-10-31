@@ -18,12 +18,16 @@ plugins {
 
 
 dependencies {
-    api(project(":core:common:connector-core"))
-    api(project(":core:common:boot"))
-    api(project(":core:common:policy-engine"))
-    api(project(":core:control-plane:contract-core"))
-    api(project(":core:control-plane:transfer-core"))
+    api(project(":spi:control-plane:control-plane-spi"))
+
+    implementation(project(":core:common:connector-core"))
+    implementation(project(":core:common:boot"))
+    implementation(project(":core:common:policy-engine"))
+    implementation(project(":core:control-plane:contract-core"))
+    implementation(project(":core:control-plane:transfer-core"))
+    implementation(project(":core:control-plane:control-plane-services"))
     implementation(project(":core:common:util"))
+
     testImplementation(testFixtures(project(":spi:common:core-spi")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
     testImplementation(testFixtures(project(":spi:control-plane:policy-spi")))

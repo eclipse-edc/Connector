@@ -16,13 +16,13 @@ package org.eclipse.edc.connector.api.datamanagement.policy;
 
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.result.ServiceResult;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.datamanagement.policy.model.PolicyDefinitionResponseDto;
-import org.eclipse.edc.connector.api.datamanagement.policy.service.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;

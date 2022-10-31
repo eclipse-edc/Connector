@@ -27,7 +27,6 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:common:transaction-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:data-management-api:data-management-api-configuration"))
 
@@ -38,7 +37,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
-
 }
 
 publishing {
