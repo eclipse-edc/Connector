@@ -37,7 +37,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void generate() {
+    void generateWithDestinationTypeNotNull() {
 
         DataAddress destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")

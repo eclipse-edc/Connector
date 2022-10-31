@@ -68,7 +68,7 @@ public class GcsConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void canGenerateIsNotTypeGcsStream() {
+    void canGenerate_isNotTypeGcsStream() {
         DataAddress destination = DataAddress.Builder.newInstance().type("aNonGcsStream")
                 .property(GcsStoreSchema.STORAGE_CLASS, "test-storage-class")
                 .build();
