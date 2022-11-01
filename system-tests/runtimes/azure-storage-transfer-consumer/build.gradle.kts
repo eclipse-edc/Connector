@@ -33,7 +33,7 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:control-plane:provision:blob-provision"))
+    implementation(project(":extensions:control-plane:provision:provision-blob"))
 
     implementation(project(":core:common:util"))
 

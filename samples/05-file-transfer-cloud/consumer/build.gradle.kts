@@ -29,7 +29,7 @@ dependencies {
 
     implementation(project(":extensions:common:http"))
 
-    implementation(project(":extensions:control-plane:provision:s3-provision"))
+    implementation(project(":extensions:control-plane:provision:provision-aws-s3"))
 
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:common:vault:vault-azure"))

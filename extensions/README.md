@@ -57,9 +57,9 @@
   - [Data Plane Transfer](control-plane/data-plane-transfer/)
   - [HTTP Receiver](control-plane/http-receiver/)
   - Provision
-    - [Blob](control-plane/provision/blob-provision/)
-    - [HTTP](control-plane/provision/http-provision/)
-    - [S3](control-plane/provision/s3-provision/)
+    - [Blob](control-plane/provision/provision-blob/)
+    - [HTTP](control-plane/provision/provision-http/)
+    - [S3](control-plane/provision/provision-aws-s3/)
   - Store
     - Cosmos
       - [Asset Index](control-plane/store/cosmos/asset-index-cosmos/)

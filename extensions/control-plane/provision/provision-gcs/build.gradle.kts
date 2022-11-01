@@ -33,8 +33,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("gcs-provision") {
-            artifactId = "gcs-provision"
+        create<MavenPublication>("provision-gcs") {
+            artifactId = "provision-gcs"
             from(components["java"])
         }
     }

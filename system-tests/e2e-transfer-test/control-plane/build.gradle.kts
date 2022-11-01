@@ -31,6 +31,6 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
 
-    implementation(project(":extensions:control-plane:provision:http-provision"))
+    implementation(project(":extensions:control-plane:provision:provision-http"))
     implementation(project(":extensions:control-plane:http-receiver"))
 }

@@ -32,7 +32,7 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:control-plane:provision:blob-provision"))
+    implementation(project(":extensions:control-plane:provision:provision-blob"))
     implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":core:common:util"))
 
