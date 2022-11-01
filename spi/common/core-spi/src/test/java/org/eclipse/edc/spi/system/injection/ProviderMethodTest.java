@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.system.injection;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;

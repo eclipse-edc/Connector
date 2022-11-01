@@ -16,9 +16,9 @@ package org.eclipse.edc.event.cloud.http;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;

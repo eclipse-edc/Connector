@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;

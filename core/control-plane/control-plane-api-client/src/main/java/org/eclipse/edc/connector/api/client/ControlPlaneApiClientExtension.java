@@ -16,13 +16,13 @@ package org.eclipse.edc.connector.api.client;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.api.client.transferprocess.TransferProcessHttpClient;
 import org.eclipse.edc.connector.api.client.transferprocess.model.TransferProcessFailRequest;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

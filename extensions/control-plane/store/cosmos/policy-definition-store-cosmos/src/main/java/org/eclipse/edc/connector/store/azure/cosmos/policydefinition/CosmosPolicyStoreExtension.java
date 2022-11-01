@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.store.azure.cosmos.policydefinition;
 
 import dev.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.azure.cosmos.CosmosClientProvider;
 import org.eclipse.edc.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.store.azure.cosmos.policydefinition.model.PolicyDocument;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;

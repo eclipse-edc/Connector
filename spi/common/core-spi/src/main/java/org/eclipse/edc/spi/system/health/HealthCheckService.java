@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.system.health;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Provides information about the connector's health status.

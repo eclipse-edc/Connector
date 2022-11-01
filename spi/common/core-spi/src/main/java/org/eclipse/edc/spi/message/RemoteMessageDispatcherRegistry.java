@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.message;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.concurrent.CompletableFuture;

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.sql.pool.commons;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 interface CommonsConnectionPoolConfigKeys {
 

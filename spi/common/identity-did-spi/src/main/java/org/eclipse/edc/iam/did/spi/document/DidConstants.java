@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.did.spi.document;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 import java.util.Arrays;
 import java.util.List;

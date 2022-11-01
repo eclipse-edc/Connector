@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.protocol.ids.transform;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.transform.type.asset.AssetFromIdsArtifactTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.asset.AssetFromIdsRepresentationTransformer;
@@ -48,6 +46,8 @@ import org.eclipse.edc.protocol.ids.transform.type.policy.PermissionFromIdsPermi
 import org.eclipse.edc.protocol.ids.transform.type.policy.PermissionToIdsPermissionTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.policy.ProhibitionFromIdsProhibitionTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.policy.ProhibitionToIdsProhibitionTransformer;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 

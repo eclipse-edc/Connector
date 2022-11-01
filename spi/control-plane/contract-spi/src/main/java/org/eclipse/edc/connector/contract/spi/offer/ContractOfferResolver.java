@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.contract.spi.offer;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;

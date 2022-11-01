@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.policy.engine.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Manages rule bindings to policy scopes.

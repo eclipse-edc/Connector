@@ -15,7 +15,7 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 /**
  * Defines configuration keys used by the SqlAssetIndexServiceExtension.

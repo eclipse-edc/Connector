@@ -17,10 +17,6 @@
 
 package org.eclipse.edc.connector.contract;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.connector.contract.listener.ContractNegotiationEventListener;
 import org.eclipse.edc.connector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.contract.negotiation.ProviderContractNegotiationManagerImpl;
@@ -44,6 +40,10 @@ import org.eclipse.edc.connector.contract.validation.ContractValidationServiceIm
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.command.BoundedCommandQueue;

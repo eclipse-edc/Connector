@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.monitor;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 import java.util.Map;
 import java.util.Optional;

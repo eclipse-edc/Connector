@@ -15,4 +15,4 @@
 @Spi(value = "OAuth2 services")
 package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

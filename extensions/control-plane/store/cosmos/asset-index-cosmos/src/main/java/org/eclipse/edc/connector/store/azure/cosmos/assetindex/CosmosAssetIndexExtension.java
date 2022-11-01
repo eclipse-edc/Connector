@@ -15,12 +15,12 @@
 package org.eclipse.edc.connector.store.azure.cosmos.assetindex;
 
 import dev.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.azure.cosmos.CosmosClientProvider;
 import org.eclipse.edc.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.edc.connector.store.azure.cosmos.assetindex.model.AssetDocument;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.security.Vault;

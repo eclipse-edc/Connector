@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.did.spi.store;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;

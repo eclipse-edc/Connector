@@ -16,8 +16,8 @@ package org.eclipse.edc.azure.blob.api;
 
 import com.azure.core.credential.AzureSasCredential;
 import com.azure.storage.blob.models.BlobItem;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.azure.blob.adapter.BlobAdapter;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 import java.time.OffsetDateTime;
 import java.util.List;

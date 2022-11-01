@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.catalog.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.catalog.spi.model.ExecutionPlan;
 import org.eclipse.edc.catalog.spi.model.RecurringExecutionPlan;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.time.Duration;

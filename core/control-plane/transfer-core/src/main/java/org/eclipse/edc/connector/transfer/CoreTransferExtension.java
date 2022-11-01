@@ -15,11 +15,6 @@
 
 package org.eclipse.edc.connector.transfer;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.command.handlers.AddProvisionedResourceCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.DeprovisionCompleteCommandHandler;
@@ -47,6 +42,11 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
 import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.BoundedCommandQueue;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;

@@ -16,4 +16,4 @@
 @Spi(value = "Web services")
 package org.eclipse.edc.web.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

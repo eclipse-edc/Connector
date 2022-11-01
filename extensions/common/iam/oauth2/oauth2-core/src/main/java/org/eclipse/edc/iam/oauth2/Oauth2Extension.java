@@ -16,10 +16,6 @@
 package org.eclipse.edc.iam.oauth2;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
@@ -31,6 +27,10 @@ import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.security.CertificateResolver;

@@ -16,10 +16,6 @@
 package org.eclipse.edc.protocol.ids;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.protocol.ids.serialization.IdsTypeManagerUtil;
 import org.eclipse.edc.protocol.ids.service.CatalogServiceImpl;
@@ -33,6 +29,10 @@ import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
 import org.eclipse.edc.protocol.ids.transform.IdsTransformerRegistryImpl;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.monitor.Monitor;

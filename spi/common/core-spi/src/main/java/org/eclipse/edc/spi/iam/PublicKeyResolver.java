@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.iam;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.security.PublicKey;

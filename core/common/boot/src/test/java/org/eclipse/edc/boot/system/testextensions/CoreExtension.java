@@ -16,6 +16,6 @@ package org.eclipse.edc.boot.system.testextensions;
 
 import org.eclipse.edc.spi.system.ServiceExtension;
 
-@org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension
+@org.eclipse.edc.runtime.metamodel.annotation.CoreExtension
 public class CoreExtension implements ServiceExtension {
 }

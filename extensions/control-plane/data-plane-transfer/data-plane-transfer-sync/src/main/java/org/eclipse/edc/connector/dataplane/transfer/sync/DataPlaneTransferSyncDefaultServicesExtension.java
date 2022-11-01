@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.transfer.sync;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.connector.dataplane.transfer.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.dataplane.transfer.sync.security.NoopDataEncrypter;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 

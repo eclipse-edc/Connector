@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.did.spi.resolution;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.iam.did.spi.key.PublicKeyWrapper;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 
 /**

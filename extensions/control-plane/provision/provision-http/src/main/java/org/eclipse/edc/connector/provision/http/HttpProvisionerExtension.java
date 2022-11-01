@@ -15,8 +15,6 @@
 package org.eclipse.edc.connector.provision.http;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.connector.provision.http.config.ConfigParser;
 import org.eclipse.edc.connector.provision.http.config.ProvisionerConfiguration;
 import org.eclipse.edc.connector.provision.http.impl.HttpProviderProvisioner;
@@ -27,6 +25,8 @@ import org.eclipse.edc.connector.provision.http.impl.HttpProvisionerRequest;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 

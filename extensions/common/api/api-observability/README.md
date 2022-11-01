@@ -6,7 +6,7 @@ to use it add the following line to your `build.gradle[.kts]`:
 ```kotlin
 implementation(project(":extensions:common:api:api-observability"))
 // or using maven artifacts in downstream projects:
-implementation("org.eclipse.dataspaceconnector:api-observability:${EDC_VERSION}")
+implementation("org.eclipse.edc:api-observability:${EDC_VERSION}")
 ```
 
 All endpoints described here have the same simple API:

@@ -15,7 +15,7 @@
 package org.eclipse.edc.azure.cosmos;
 
 import com.azure.cosmos.CosmosClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.security.Vault;
 
 /**

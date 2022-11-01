@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.jetbrains.annotations.NotNull;
 

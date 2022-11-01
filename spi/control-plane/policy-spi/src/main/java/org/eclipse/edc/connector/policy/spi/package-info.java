@@ -15,4 +15,4 @@
 @Spi(value = "Policy services")
 package org.eclipse.edc.connector.policy.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

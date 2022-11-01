@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.web.spi.validation;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 import java.lang.reflect.Method;
 

@@ -16,9 +16,6 @@ package org.eclipse.edc.connector.dataplane.transfer;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.transfer.client.EmbeddedDataPlaneTransferClient;
@@ -27,6 +24,9 @@ import org.eclipse.edc.connector.dataplane.transfer.flow.DataPlaneTransferFlowCo
 import org.eclipse.edc.connector.dataplane.transfer.spi.client.DataPlaneTransferClient;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

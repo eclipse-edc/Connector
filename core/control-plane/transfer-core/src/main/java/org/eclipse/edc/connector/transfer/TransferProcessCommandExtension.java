@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.transfer;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.connector.transfer.command.handlers.CancelTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.CompleteTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.DeprovisionRequestHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.FailTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

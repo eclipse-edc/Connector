@@ -15,4 +15,4 @@
 @Spi(value = "Transactional context services")
 package org.eclipse.edc.transaction.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

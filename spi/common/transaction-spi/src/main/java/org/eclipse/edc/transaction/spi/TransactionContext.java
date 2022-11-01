@@ -15,7 +15,7 @@
 package org.eclipse.edc.transaction.spi;
 
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Implementations execute code within a transactional boundary. A {@code TransactionContext} provides a consistent programming model for local and global (e.g. JTA) transaction

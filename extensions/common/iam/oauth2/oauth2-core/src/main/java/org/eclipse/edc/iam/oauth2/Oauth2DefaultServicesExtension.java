@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.iam.oauth2;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.NoopCredentialsRequestAdditionalParametersProvider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 /**
  * Provides default service implementations for fallback
- * Omitted {@link org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension} since this module already contains {@link Oauth2Extension}
+ * Omitted {@link org.eclipse.edc.runtime.metamodel.annotation.Extension} since this module already contains {@link Oauth2Extension}
  */
 public class Oauth2DefaultServicesExtension implements ServiceExtension {
 

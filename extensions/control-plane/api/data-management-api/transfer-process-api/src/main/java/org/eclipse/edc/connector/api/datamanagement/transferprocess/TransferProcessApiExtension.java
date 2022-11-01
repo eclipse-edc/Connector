@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.connector.api.datamanagement.transferprocess;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.service.TransferProcessService;
@@ -26,6 +23,9 @@ import org.eclipse.edc.connector.api.datamanagement.transferprocess.transform.Tr
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.transform.TransferRequestDtoToDataRequestTransformer;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;

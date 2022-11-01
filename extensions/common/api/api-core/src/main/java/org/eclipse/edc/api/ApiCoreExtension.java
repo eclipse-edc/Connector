@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.api;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.api.transformer.CriterionDtoToCriterionTransformer;
 import org.eclipse.edc.api.transformer.CriterionToCriterionDtoTransformer;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistryImpl;
 import org.eclipse.edc.api.transformer.QuerySpecDtoToQuerySpecTransformer;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 

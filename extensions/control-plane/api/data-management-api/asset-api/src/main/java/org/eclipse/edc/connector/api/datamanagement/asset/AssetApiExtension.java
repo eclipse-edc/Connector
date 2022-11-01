@@ -16,9 +16,6 @@
 
 package org.eclipse.edc.connector.api.datamanagement.asset;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.asset.service.AssetEventListener;
 import org.eclipse.edc.connector.api.datamanagement.asset.service.AssetService;
@@ -28,6 +25,9 @@ import org.eclipse.edc.connector.api.datamanagement.asset.transform.AssetToAsset
 import org.eclipse.edc.connector.api.datamanagement.asset.transform.DataAddressDtoToDataAddressTransformer;
 import org.eclipse.edc.connector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.observe.asset.AssetObservableImpl;

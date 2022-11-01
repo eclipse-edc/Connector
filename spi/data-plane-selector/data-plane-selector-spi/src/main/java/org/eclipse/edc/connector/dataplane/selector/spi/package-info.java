@@ -15,4 +15,4 @@
 @Spi(value = "DataPlane selector services")
 package org.eclipse.edc.connector.dataplane.selector.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

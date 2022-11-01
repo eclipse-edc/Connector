@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.connector.api.client.spi.transferprocess.NoopTransferProcessClient;
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 @Extension(value = DataPlaneDefaultServicesExtension.NAME)

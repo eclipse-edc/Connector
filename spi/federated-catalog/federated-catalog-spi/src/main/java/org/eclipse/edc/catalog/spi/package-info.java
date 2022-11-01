@@ -15,4 +15,4 @@
 @Spi("Catalog services")
 package org.eclipse.edc.catalog.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

@@ -17,13 +17,13 @@ package org.eclipse.edc.boot.system;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.boot.system.testextensions.ProviderDefaultServicesExtension;
 import org.eclipse.edc.boot.system.testextensions.ProviderExtension;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
+import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;

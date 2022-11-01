@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.spi.observe;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.observe.Observable;
 
 /**

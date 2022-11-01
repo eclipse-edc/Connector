@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.catalog.cache;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.catalog.directory.InMemoryNodeDirectory;
 import org.eclipse.edc.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.edc.catalog.spi.FederatedCacheStore;
 import org.eclipse.edc.catalog.store.InMemoryFederatedCacheStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.util.concurrency.LockManager;
 
@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Provides default service implementations for fallback
- * Omitted {@link org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension since there this module already contains {@link FederatedCatalogCacheExtension} }
+ * Omitted {@link org.eclipse.edc.runtime.metamodel.annotation.Extension since there this module already contains {@link FederatedCatalogCacheExtension} }
  */
 public class FederatedCatalogDefaultServicesExtension implements ServiceExtension {
 

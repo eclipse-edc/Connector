@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.protocol.ids.spi.transform;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 /**

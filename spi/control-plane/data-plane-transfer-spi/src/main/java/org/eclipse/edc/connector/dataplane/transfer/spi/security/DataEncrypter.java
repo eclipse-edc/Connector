@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.transfer.spi.security;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Interface for encryption/decryption of sensible data.

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.transfer.spi.store;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.Nullable;

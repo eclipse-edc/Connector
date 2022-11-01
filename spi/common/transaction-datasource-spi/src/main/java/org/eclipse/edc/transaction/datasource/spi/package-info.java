@@ -15,4 +15,4 @@
 @Spi(value = "DataSource services")
 package org.eclipse.edc.transaction.datasource.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

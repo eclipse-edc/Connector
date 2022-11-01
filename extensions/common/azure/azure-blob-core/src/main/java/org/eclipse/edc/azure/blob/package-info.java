@@ -15,4 +15,4 @@
 @Spi(value = "Azure Blob services")
 package org.eclipse.edc.azure.blob;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

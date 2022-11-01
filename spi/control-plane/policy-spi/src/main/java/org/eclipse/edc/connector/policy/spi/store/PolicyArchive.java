@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.policy.spi.store;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Resolves {@linkplain Policy} objects that are part of a contract agreement.

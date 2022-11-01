@@ -17,15 +17,15 @@ package org.eclipse.edc.connector.dataplane.http;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpSinkRequestParamsSupplier;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpSourceRequestParamsSupplier;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

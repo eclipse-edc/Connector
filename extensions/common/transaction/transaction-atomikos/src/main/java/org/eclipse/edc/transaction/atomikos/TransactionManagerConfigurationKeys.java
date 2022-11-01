@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 /**
  * Atomikos configuration keys. For details, see https://www.atomikos.com/Documentation/JtaProperties.

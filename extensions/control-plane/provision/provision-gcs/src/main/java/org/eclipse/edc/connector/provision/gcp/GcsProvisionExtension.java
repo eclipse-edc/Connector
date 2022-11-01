@@ -16,12 +16,12 @@ package org.eclipse.edc.connector.provision.gcp;
 
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.gcp.iam.IamServiceImpl;
 import org.eclipse.edc.gcp.storage.StorageServiceImpl;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 

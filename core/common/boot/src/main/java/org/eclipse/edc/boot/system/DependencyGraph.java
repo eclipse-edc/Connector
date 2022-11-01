@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.boot.system;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.CoreExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
 import org.eclipse.edc.boot.util.TopologicalSort;
+import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.injection.EdcInjectionException;

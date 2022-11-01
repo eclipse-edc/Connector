@@ -15,13 +15,13 @@
 
 package org.eclipse.edc.connector.api.datamanagement.contractagreement;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.edc.connector.api.datamanagement.contractagreement.service.ContractAgreementServiceImpl;
 import org.eclipse.edc.connector.api.datamanagement.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;

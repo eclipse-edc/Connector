@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.ids.spi.service;
 
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;

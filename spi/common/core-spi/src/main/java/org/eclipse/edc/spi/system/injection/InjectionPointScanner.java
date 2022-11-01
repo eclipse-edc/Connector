@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.system.injection;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 
 import java.util.Arrays;
 import java.util.Set;

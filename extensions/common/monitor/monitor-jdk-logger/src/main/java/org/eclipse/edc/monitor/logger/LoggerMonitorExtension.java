@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.monitor.logger;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
 

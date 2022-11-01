@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.contract.spi.offer;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

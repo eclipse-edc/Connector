@@ -16,9 +16,9 @@ package org.eclipse.edc.azure.event;
 
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.messaging.eventgrid.EventGridPublisherClientBuilder;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;

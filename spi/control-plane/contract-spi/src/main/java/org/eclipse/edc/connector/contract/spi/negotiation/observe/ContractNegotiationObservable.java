@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.contract.spi.negotiation.observe;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.observe.Observable;
 
 /**

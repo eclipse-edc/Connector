@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.security;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 

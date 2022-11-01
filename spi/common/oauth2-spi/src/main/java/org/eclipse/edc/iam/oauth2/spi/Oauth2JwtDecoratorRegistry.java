@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.jwt.spi.JwtDecoratorRegistry;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Registry for Oauth2 jwt decorators.

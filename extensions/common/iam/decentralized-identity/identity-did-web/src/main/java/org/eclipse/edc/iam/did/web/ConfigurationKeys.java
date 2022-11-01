@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.did.web;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 /**
  * Defines configuration keys used by the Web DID extension.

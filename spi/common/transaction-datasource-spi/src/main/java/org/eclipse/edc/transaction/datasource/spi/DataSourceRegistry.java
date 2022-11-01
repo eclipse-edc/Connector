@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.transaction.datasource.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 import javax.sql.DataSource;
 

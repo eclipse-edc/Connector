@@ -14,12 +14,6 @@
 
 package org.eclipse.edc.connector.core;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.BaseExtension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provides;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.connector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.edc.connector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.edc.connector.core.base.agent.ParticipantAgentServiceImpl;
@@ -34,6 +28,12 @@ import org.eclipse.edc.policy.engine.ScopeFilter;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
+import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;

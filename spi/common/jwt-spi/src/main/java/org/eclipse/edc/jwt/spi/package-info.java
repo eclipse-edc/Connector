@@ -15,4 +15,4 @@
 @Spi(value = "JTW services")
 package org.eclipse.edc.jwt.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Spi;
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex.schema;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 

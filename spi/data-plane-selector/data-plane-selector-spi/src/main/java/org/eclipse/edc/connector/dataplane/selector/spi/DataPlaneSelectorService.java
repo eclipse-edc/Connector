@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.selector.spi;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Collection;

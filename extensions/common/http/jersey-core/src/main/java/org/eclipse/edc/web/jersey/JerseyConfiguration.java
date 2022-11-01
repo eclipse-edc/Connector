@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.web.jersey;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 /**

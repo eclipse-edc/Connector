@@ -90,7 +90,7 @@ module also provides the code for copying the file to a specified location (code
 the [FileTransferDataSource](transfer-file/src/main/java/org/eclipse/edc/sample/extension/api/FileTransferDataSource.java)
 and the [FileTransferDataSink](transfer-file/src/main/java/org/eclipse/edc/sample/extension/api/FileTransferDataSink.java)
 as well as respective factories for both. The factories are registered with the `PipelineService` in the
-[FileTransferExtension](transfer-file/src/main/java/org/eclipse/dataspaceconnector/extensions/api/FileTransferExtension.java),
+[FileTransferExtension](transfer-file/src/main/java/org/eclipse/edc/sample/extension/api/FileTransferExtension.java),
 thus making them available when a data request is processed.
 
 ## Create the connectors

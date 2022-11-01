@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.event;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Central component of the eventing system, the implementation keeps a list of subscribers and notifies them with

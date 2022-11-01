@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.vault.filesystem;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 public final class FsConfiguration {
 

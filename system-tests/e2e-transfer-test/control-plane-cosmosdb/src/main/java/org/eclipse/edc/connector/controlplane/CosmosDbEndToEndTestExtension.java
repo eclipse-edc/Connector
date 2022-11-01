@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.azure.cosmos.CosmosClientProvider;
 import org.eclipse.edc.azure.testfixtures.CosmosTestClient;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 public class CosmosDbEndToEndTestExtension implements ServiceExtension {

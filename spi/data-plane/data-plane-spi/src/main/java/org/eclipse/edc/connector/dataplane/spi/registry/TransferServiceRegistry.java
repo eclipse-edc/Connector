@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.spi.registry;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.Nullable;
 

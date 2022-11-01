@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.transfer.spi.status;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.connector.transfer.spi.types.StatusChecker;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.jetbrains.annotations.Nullable;
 
 /**

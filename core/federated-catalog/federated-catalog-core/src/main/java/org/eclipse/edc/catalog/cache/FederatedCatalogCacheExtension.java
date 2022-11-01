@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.catalog.cache;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Extension;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.catalog.cache.controller.FederatedCatalogApiController;
 import org.eclipse.edc.catalog.cache.crawler.NodeQueryAdapterRegistryImpl;
 import org.eclipse.edc.catalog.cache.query.CacheQueryAdapterImpl;
@@ -34,6 +31,9 @@ import org.eclipse.edc.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.edc.catalog.spi.QueryEngine;
 import org.eclipse.edc.catalog.spi.model.ExecutionPlan;
 import org.eclipse.edc.catalog.spi.model.UpdateResponse;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;

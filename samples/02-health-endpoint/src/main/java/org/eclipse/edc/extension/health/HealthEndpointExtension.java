@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.extension.health;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;

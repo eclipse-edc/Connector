@@ -61,7 +61,7 @@ are stored procedures involved.
 CosmosDB offers an SQL-like API, which we use for queries. The `azure-cosmos-core` module offers an easy way to fluently
 create SQL statements from a `Criterion`, or rather, a `List<Criterion>`. The entrypoint to every SQL statement should
 be the `SqlStatement`
-class ([here](src/main/java/org/eclipse/dataspaceconnector/azure/cosmos/dialect/SqlStatement.java)).
+class ([here](src/main/java/org/eclipse/edc/azure/cosmos/dialect/SqlStatement.java)).
 
 ## Pessimistic locking
 

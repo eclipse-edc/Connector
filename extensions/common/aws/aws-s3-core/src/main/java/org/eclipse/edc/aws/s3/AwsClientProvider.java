@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.aws.s3;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.boot.system.testextensions;
 
-import org.eclipse.dataspaceconnector.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.boot.system.TestObject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 public class ProviderDefaultServicesExtension implements ServiceExtension {
