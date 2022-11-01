@@ -66,7 +66,7 @@
       - [Contract Definition](control-plane/store/cosmos/contract-definition-store-cosmos/)
       - [Contract Negotiation](control-plane/store/cosmos/contract-negotiation-store-cosmos/)
       - [Control Plane](control-plane/store/cosmos/control-plane-cosmos/)
-      - [Policy](control-plane/store/cosmos/policy-store-cosmos/)
+      - [Policy](control-plane/store/cosmos/policy-definition-store-cosmos/)
       - [Transfer Process](control-plane/store/cosmos/transfer-process-store-cosmos/)
     - SQL
         - [Asset Index](control-plane/store/sql/asset-index-sql/)

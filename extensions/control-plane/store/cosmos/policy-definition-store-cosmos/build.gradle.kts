@@ -37,8 +37,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("policy-store-cosmos") {
-            artifactId = "policy-store-cosmos"
+        create<MavenPublication>("policy-definition-store-cosmos") {
+            artifactId = "policy-definition-store-cosmos"
             from(components["java"])
         }
     }
