@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.provision.oauth2;
+package org.eclipse.edc.connector.provision.oauth2;
 
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -43,9 +43,6 @@ import java.util.UUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 
 @ExtendWith(EdcExtension.class)
 class Oauth2ProvisionExtensionTest {
@@ -81,9 +78,9 @@ class Oauth2ProvisionExtensionTest {
     @Test
     void oauth2Provisioner(ProvisionManager provisionManager) {
         var dataAddress = HttpDataAddress.Builder.newInstance()
-                .property(CLIENT_ID, "any")
-                .property(CLIENT_SECRET, "any")
-                .property(TOKEN_URL, "http://any/url")
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "any")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "any")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "http://any/url")
                 .build();
         var resourceDefinition = Oauth2ResourceDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -101,9 +98,9 @@ class Oauth2ProvisionExtensionTest {
 
     private DataAddress validOauth2DataAddress() {
         return HttpDataAddress.Builder.newInstance()
-                .property(CLIENT_ID, "clientId")
-                .property(CLIENT_SECRET, "clientSecret")
-                .property(TOKEN_URL, "tokenUrl")
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "clientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "clientSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "tokenUrl")
                 .build();
     }
 

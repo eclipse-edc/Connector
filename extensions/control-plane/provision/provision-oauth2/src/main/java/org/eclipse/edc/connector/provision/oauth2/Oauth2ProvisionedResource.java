@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.provision.oauth2;
+package org.eclipse.edc.connector.provision.oauth2;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.provision.oauth2;
+package org.eclipse.edc.connector.provision.oauth2;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
@@ -38,9 +38,6 @@ import java.util.UUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -167,9 +164,9 @@ class Oauth2ProvisionerTest {
 
     private DataAddress createDataAddress() {
         return HttpDataAddress.Builder.newInstance()
-                .property(CLIENT_ID, "clientId")
-                .property(CLIENT_SECRET, "clientSecret")
-                .property(TOKEN_URL, "http://localhost:" + port)
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "clientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "clientSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "http://localhost:" + port)
                 .build();
     }
 

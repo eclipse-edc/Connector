@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.provision.oauth2;
+package org.eclipse.edc.connector.provision.oauth2;
 
 import org.eclipse.edc.connector.transfer.spi.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -25,9 +25,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 
 class Oauth2ProviderResourceDefinitionGeneratorTest {
 
@@ -46,9 +43,9 @@ class Oauth2ProviderResourceDefinitionGeneratorTest {
     @Test
     void returnDefinitionIfTypeIsHttpDataAndOauth2ParametersArePresent() {
         var dataAddress = HttpDataAddress.Builder.newInstance()
-                .property(CLIENT_ID, "aClientId")
-                .property(CLIENT_SECRET, "aSecret")
-                .property(TOKEN_URL, "aTokenUrl")
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                 .build();
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

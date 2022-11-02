@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.provision.oauth2;
+package org.eclipse.edc.connector.provision.oauth2;
 
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
@@ -21,9 +21,6 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.dataspaceconnector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 
 class Oauth2ResourceDefinitionTest {
 
@@ -31,9 +28,9 @@ class Oauth2ResourceDefinitionTest {
     void serdes() {
         var typeManager = new TypeManager();
         var address = HttpDataAddress.Builder.newInstance()
-                .property(CLIENT_ID, "clientId")
-                .property(CLIENT_SECRET, "clientSecret")
-                .property(TOKEN_URL, "http://any/url")
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "clientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "clientSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "http://any/url")
                 .build();
         var resourceDefinition = Oauth2ResourceDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.provision.oauth2;
+package org.eclipse.edc.connector.provision.oauth2;
 
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;

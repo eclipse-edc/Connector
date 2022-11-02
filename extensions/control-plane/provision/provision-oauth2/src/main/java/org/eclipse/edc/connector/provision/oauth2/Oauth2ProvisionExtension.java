@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.provision.oauth2;
+package org.eclipse.edc.connector.provision.oauth2;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;

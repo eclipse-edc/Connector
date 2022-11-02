@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.dataspaceconnector.provision.oauth2.Oauth2ProvisionExtension
+org.eclipse.edc.connector.provision.oauth2.Oauth2ProvisionExtension
 
