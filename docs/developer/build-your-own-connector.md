@@ -37,24 +37,24 @@ val edcVersion = "<x.x.x>"
 
 dependencies {
     // the core control-plane module set
-    implementation("org.eclipse.dataspaceconnector:control-plane-core:${edcVersion}")
+    implementation("org.eclipse.edc:control-plane-core:${edcVersion}")
 
     // the ids protocol module
-    implementation("org.eclipse.dataspaceconnector:ids:${edcVersion}")
+    implementation("org.eclipse.edc:ids:${edcVersion}")
 
     // a test implementation of the `IdentityService`
-    implementation("org.eclipse.dataspaceconnector:iam-mock:${edcVersion}")
+    implementation("org.eclipse.edc:iam-mock:${edcVersion}")
 
     // data management api, will permit to manage the connector through a REST interface
-    implementation("org.eclipse.dataspaceconnector:data-management-api:${edcVersion}")
+    implementation("org.eclipse.edc:data-management-api:${edcVersion}")
 
     // the core data-plane module set
-    implementation("org.eclipse.dataspaceconnector:data-plane-core:${edcVersion}")
+    implementation("org.eclipse.edc:data-plane-core:${edcVersion}")
 }
 
 // configure the main class
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 // build the application as a single jar that will be available in `build/libs/connector.jar`

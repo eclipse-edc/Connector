@@ -33,7 +33,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.demo.runtime.CustomRuntime")
+    mainClass.set("org.eclipse.edc.sample.runtime.CustomRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

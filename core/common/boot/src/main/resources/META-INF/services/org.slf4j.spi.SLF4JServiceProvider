@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.boot.monitor.MonitorProvider
+org.eclipse.edc.boot.monitor.MonitorProvider

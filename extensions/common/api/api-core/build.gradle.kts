@@ -23,7 +23,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:auth-spi"))
-    api(project(":spi:common:transformer-spi"))
+    api(project(":spi:common:transform-spi"))
     api(project(":spi:common:web-spi"))
 
     implementation(project(":core:common:util"))

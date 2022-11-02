@@ -7,7 +7,7 @@ using `Session` setting, and a variety of APIs (SQL, Mongo, Table, etc.).
 ## General structure
 
 Generally there should be one submodule for every store implementation based on CosmosDB, postfixed with `-cosmos`,
-e.g. `asset-index-cosmos` or `policy-store-cosmos`. Those submodules should contain the implementation for the
+e.g. `asset-index-cosmos` or `policy-definition-store-cosmos`. Those submodules should contain the implementation for the
 store as well as a `ServiceExtension` implementor that registers the store.
 
 Furthermore there is some common code, such as SQL statement interpreters and -converters, the "leasing" mechanism (see
@@ -61,7 +61,7 @@ are stored procedures involved.
 CosmosDB offers an SQL-like API, which we use for queries. The `azure-cosmos-core` module offers an easy way to fluently
 create SQL statements from a `Criterion`, or rather, a `List<Criterion>`. The entrypoint to every SQL statement should
 be the `SqlStatement`
-class ([here](src/main/java/org/eclipse/dataspaceconnector/azure/cosmos/dialect/SqlStatement.java)).
+class ([here](src/main/java/org/eclipse/edc/azure/cosmos/dialect/SqlStatement.java)).
 
 ## Pessimistic locking
 
@@ -137,5 +137,5 @@ Please find the specific configuration values for each module in the respective 
 - [ContractDefinitionStore](../../../control-plane/store/cosmos/contract-definition-store-cosmos/README.md)
 - [ContractNegotiationStore](../../../control-plane/store/cosmos/contract-negotiation-store-cosmos/README.md)
 - [FederatedCache Node directory](../../../federated-catalog/store/fcc-node-directory-cosmos/README.md)
-- [PolicyStore](../../../control-plane/store/cosmos/policy-store-cosmos/README.md)
+- [PolicyStore](../../../control-plane/store/cosmos/policy-definition-store-cosmos/README.md)
 - [TransferProcessStore](../../../control-plane/store/cosmos/transfer-process-store-cosmos/README.md)

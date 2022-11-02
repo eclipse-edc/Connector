@@ -15,7 +15,7 @@
  *
  */
 
-rootProject.name = "dataspaceconnector"
+rootProject.name = "connector"
 
 // this is needed to have access to snapshot builds of plugins
 // that are used at the root project level, such as "module-names"
@@ -93,7 +93,7 @@ include(":extensions:common:iam:iam-mock")
 include(":extensions:common:iam:oauth2:oauth2-daps")
 include(":extensions:common:iam:oauth2:oauth2-core")
 include(":extensions:common:junit")
-include(":extensions:common:micrometer:micrometer-core")
+include(":extensions:common:metrics:micrometer-core")
 include(":extensions:common:monitor:monitor-jdk-logger")
 include(":extensions:common:sql:sql-core")
 include(":extensions:common:sql:sql-lease")
@@ -117,15 +117,15 @@ include(":extensions:control-plane:api:data-management-api:transfer-process-api"
 include(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client")
 include(":extensions:control-plane:data-plane-transfer:data-plane-transfer-sync")
 include(":extensions:control-plane:http-receiver")
-include(":extensions:control-plane:provision:blob-provision")
-include(":extensions:control-plane:provision:gcs-provision")
-include(":extensions:control-plane:provision:http-provision")
-include(":extensions:control-plane:provision:s3-provision")
+include(":extensions:control-plane:provision:provision-blob")
+include(":extensions:control-plane:provision:provision-gcs")
+include(":extensions:control-plane:provision:provision-http")
+include(":extensions:control-plane:provision:provision-aws-s3")
 include(":extensions:control-plane:store:cosmos:asset-index-cosmos")
 include(":extensions:control-plane:store:cosmos:contract-definition-store-cosmos")
 include(":extensions:control-plane:store:cosmos:contract-negotiation-store-cosmos")
 include(":extensions:control-plane:store:cosmos:control-plane-cosmos")
-include(":extensions:control-plane:store:cosmos:policy-store-cosmos")
+include(":extensions:control-plane:store:cosmos:policy-definition-store-cosmos")
 include(":extensions:control-plane:store:cosmos:transfer-process-store-cosmos")
 include(":extensions:control-plane:store:sql:asset-index-sql")
 include(":extensions:control-plane:store:sql:contract-definition-store-sql")
@@ -194,7 +194,7 @@ include(":spi:common:policy-engine-spi")
 include(":spi:common:policy-model")
 include(":spi:common:transaction-datasource-spi")
 include(":spi:common:transaction-spi")
-include(":spi:common:transformer-spi")
+include(":spi:common:transform-spi")
 include(":spi:common:web-spi")
 
 include(":spi:control-plane:contract-spi")

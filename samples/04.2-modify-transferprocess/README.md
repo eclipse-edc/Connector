@@ -102,7 +102,7 @@ that will eventually get processed by the `TransferProcessManager`, resulting in
 ```bash
 INFO 2022-01-14T12:45:38.176484 Running watchdog - submit command
 INFO 2022-01-14T12:45:38.176795 will retire TP with id [tp-sample-04.2] due to timeout
-DEBUG 2022-01-14T12:45:38.177363 Successfully processed command [class org.eclipse.dataspaceconnector.samples.sample042.CheckTransferProcessTimeoutCommand]
+DEBUG 2022-01-14T12:45:38.177363 Successfully processed command [class CheckTransferProcessTimeoutCommand]
 ```
 
 _Note: The command queue is not accessible through the `ServiceExtensionContext`, precisely for the aforementioned reason._

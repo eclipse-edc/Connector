@@ -33,7 +33,7 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:control-plane:provision:blob-provision"))
+    implementation(project(":extensions:control-plane:provision:provision-blob"))
 
     implementation(project(":core:common:util"))
 
@@ -41,7 +41,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

@@ -57,7 +57,7 @@ following ways:
    logging*
 
 Please check
-out [this test](../../extensions/common/http/jersey/src/test/java/org/eclipse/dataspaceconnector/extension/jersey/validation/integrationtest/ValidationIntegrationTest.java)
+out [this test](../../extensions/common/http/jersey-core/src/test/java/org/eclipse/edc/web/jersey/validation/integrationtest/ValidationIntegrationTest.java)
 for a comprehensive example how validation can be enabled. All functions are registered during the extension's
 initialization phase.
 

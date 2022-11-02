@@ -2,7 +2,7 @@
 
 This module provides a custom Jetty context for endpoints of the IDS API, thus allowing for custom
 configuration of these endpoints. It creates and provides an 
-[IdsApiConfiguration](./src/main/java/org/eclipse/dataspaceconnector/ids/api/configuration/IdsApiConfiguration.java),
+[IdsApiConfiguration](./src/main/java/org/eclipse/edc/protocol/ids/api/configuration/IdsApiConfiguration.java),
 which holds the context alias as well as the API path. This configuration can be used by other
 extensions to register controllers in the IDS API context.
 
@@ -23,7 +23,7 @@ This extension should be part of any connector that supports IDS messaging.
 ### Interfaces
 
 The extension adds an
-[IdsApiConfiguration](src/main/java/org/eclipse/dataspaceconnector/ids/api/configuration/IdsApiConfiguration.java)
+[IdsApiConfiguration](src/main/java/org/eclipse/edc/protocol/ids/api/configuration/IdsApiConfiguration.java)
 instance to the `ServiceExtensionContext`, which can be used to get information about the IDS API
 configuration.
 

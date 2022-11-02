@@ -61,12 +61,12 @@ java -jar samples/02-health-endpoint/build/libs/connector-health.jar
 we can issue a GET request to `http://localhost:8181/api/health` and receive the aforementioned string as a result.
 
 It is worth noting that by default the webserver listens on port `8181`, which is defined
-in [`JettyConfiguration.java`](../../extensions/common/http/jetty-core/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JettyConfiguration.java)
+in [`JettyConfiguration.java`](../../extensions/common/http/jetty-core/src/main/java/org/eclipse/edc/web/jetty/JettyConfiguration.java)
 and can be configured using the `web.http.port` property (more on that in the next chapter). You will need to configure
 this whenever you have two connectors running on the same machine.
 
 Also, the default path is `/api/*`, which is defined
-in [`JettyConfiguration.java`](../../extensions/common/http/jetty-core/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JettyConfiguration.java)
+in [`JettyConfiguration.java`](../../extensions/common/http/jetty-core/src/main/java/org/eclipse/edc/web/jetty/JettyConfiguration.java)
 .
 
 ---

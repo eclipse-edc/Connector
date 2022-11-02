@@ -155,4 +155,4 @@ doing so, the event can be deserialized using the `Event` superclass as type:
 var deserialized = typeManager.readValue(json, Event.class);
 // deserialized will have the `SomethingHappened` type at runtime
 ```
-(please take a look at the [`EventTest`](../../spi/common/core-spi/src/test/java/org/eclipse/dataspaceconnector/spi/event/EventTest.java) class for a serialization/deserialization example)
+(please take a look at the [`EventTest`](../../spi/common/core-spi/src/test/java/org/eclipse/edc/spi/event/EventTest.java) class for a serialization/deserialization example)
