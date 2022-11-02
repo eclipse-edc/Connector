@@ -33,6 +33,7 @@ import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
@@ -53,6 +54,7 @@ import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createI
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
+@ApiTest
 class DataplaneSelectorApiControllerIntegrationTest {
 
     public static final MediaType JSON_TYPE = MediaType.parse("application/json");

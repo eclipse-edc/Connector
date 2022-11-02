@@ -30,6 +30,7 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
+@ApiTest
 @ExtendWith(EdcExtension.class)
 public class ExceptionMappersIntegrationTest {
 

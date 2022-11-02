@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +56,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ApiTest
 @ExtendWith(EdcExtension.class)
 public class CatalogApiControllerIntegrationTest {
 
