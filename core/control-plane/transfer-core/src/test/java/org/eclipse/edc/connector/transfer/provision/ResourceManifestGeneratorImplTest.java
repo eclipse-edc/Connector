@@ -56,6 +56,7 @@ class ResourceManifestGeneratorImplTest {
     void shouldGenerateResourceManifestForConsumerManagedTransferProcess() {
         var dataRequest = createDataRequest(true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        when(consumerGenerator.canGenerate(any(), any())).thenReturn(true);
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
         when(policyEngine.evaluate(any(), any(), any(), any())).thenReturn(Result.success(policy));
 
@@ -94,6 +95,7 @@ class ResourceManifestGeneratorImplTest {
     void shouldGenerateResourceManifestForProviderTransferProcess() {
         var process = createDataRequest(false);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        when(providerGenerator.canGenerate(any(), any(), any())).thenReturn(true);
         when(providerGenerator.generate(any(), any(), any())).thenReturn(resourceDefinition);
 
         var resourceManifest = generator.generateProviderResourceManifest(process, dataAddress, policy);
