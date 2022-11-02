@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-    <img alt="Logo" width="200" src="docs/_media/icon.png"/>
+    <img alt="Logo" width="100" src="resources/media/logo.png"/>
   <br>
       Eclipse Dataspace Connector
   <br>
@@ -161,7 +161,6 @@ More information about shadowJar can be found [here](https://github.com/johnreng
 
 Please refer to [this document](docs/developer/openapi.md).
 
-
 ## Directory structure
 
 ### `spi`
@@ -223,7 +222,6 @@ milestone planning. Scheduled and ongoing milestones are listed
 ### Tags
 
 Available tags can be found [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tags).
-
 
 ## Contributing
 
