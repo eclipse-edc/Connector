@@ -12,12 +12,21 @@
  *
  */
 
+val jupiterVersion: String by project
+val assertj: String by project
+
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
     api(project(":spi:common:core-spi"))
+
+
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
+    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
 }
 
 
