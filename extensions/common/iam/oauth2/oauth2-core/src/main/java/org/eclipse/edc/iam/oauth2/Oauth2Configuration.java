@@ -35,6 +35,8 @@ public class Oauth2Configuration {
     private int notBeforeValidationLeeway;
     private String endpointAudience;
 
+    private Long tokenExpiration;
+
     private Oauth2Configuration() {
 
     }
@@ -77,6 +79,10 @@ public class Oauth2Configuration {
 
     public String getEndpointAudience() {
         return endpointAudience;
+    }
+
+    public Long getTokenExpiration() {
+        return tokenExpiration;
     }
 
     public static class Builder {
@@ -142,6 +148,11 @@ public class Oauth2Configuration {
 
         public Builder endpointAudience(String endpointAudience) {
             configuration.endpointAudience = endpointAudience;
+            return this;
+        }
+
+        public Builder tokenExpiration(long tokenExpiration) {
+            configuration.tokenExpiration = tokenExpiration;
             return this;
         }
 
