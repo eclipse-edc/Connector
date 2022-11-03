@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import io.netty.handler.codec.http.HttpMethod;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -34,7 +34,7 @@ class HttpSinkRequestParamsSupplierTest {
 
     @BeforeEach
     public void setUp() {
-        supplier = new HttpSinkRequestParamsSupplier(null);
+        supplier = new HttpSinkRequestParamsSupplier(null, new TypeManager());
     }
 
     @Test
@@ -71,7 +71,7 @@ class HttpSinkRequestParamsSupplierTest {
 
         var result = supplier.extractMethod(address, null);
 
-        assertThat(result).isEqualTo(HttpMethod.POST.name());
+        assertThat(result).isEqualTo("POST");
     }
 
     @Test

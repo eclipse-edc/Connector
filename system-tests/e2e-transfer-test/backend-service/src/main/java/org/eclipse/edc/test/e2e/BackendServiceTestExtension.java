@@ -43,5 +43,6 @@ public class BackendServiceTestExtension implements ServiceExtension {
         webService.registerResource(new ProviderBackendApiController());
         webService.registerResource(new ConsumerBackendServiceController(context.getMonitor()));
         webService.registerResource(new BackendServiceHttpProvisionerController(context.getMonitor(), okHttpClient, typeManager, exposedHttpPort));
+        webService.registerResource(new Oauth2TokenController(context.getMonitor()));
     }
 }

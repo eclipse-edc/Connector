@@ -15,11 +15,11 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.MediaType;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -44,20 +44,13 @@ import static org.mockito.Mockito.when;
 
 class HttpRequestParamsSupplierTest {
 
-    private final Vault vaultMock = Mockito.mock(Vault.class);
+    private final Vault vault = Mockito.mock(Vault.class);
+    private final TypeManager typeManager = new TypeManager();
     private TestHttpRequestParamsSupplier supplier;
-
-    private static DataFlowRequest createRequest(DataAddress source) {
-        return DataFlowRequest.Builder.newInstance()
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
-                .sourceDataAddress(source)
-                .processId(UUID.randomUUID().toString())
-                .build();
-    }
 
     @BeforeEach
     public void setUp() {
-        supplier = new TestHttpRequestParamsSupplier(vaultMock);
+        supplier = new TestHttpRequestParamsSupplier(vault, typeManager);
     }
 
     @Test
@@ -99,7 +92,7 @@ class HttpRequestParamsSupplierTest {
                 .build();
         var request = createRequest(dataAddress);
 
-        when(vaultMock.resolveSecret(secretName)).thenReturn(secret);
+        when(vault.resolveSecret(secretName)).thenReturn(secret);
 
         var httpRequest = supplier.apply(request).toRequest();
 
@@ -111,7 +104,69 @@ class HttpRequestParamsSupplierTest {
                 .isNotNull()
                 .isEqualTo(secret);
 
-        verify(vaultMock).resolveSecret(anyString());
+        verify(vault).resolveSecret(anyString());
+    }
+
+    @Test
+    void verifySecretIsRetrievedFromVaultAsJson() {
+        var secretName = "test-secret-name";
+        var secret = "test-secret";
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .authKey("test-auth-key")
+                .secretName(secretName)
+                .baseUrl("http://test.base.url")
+                .build();
+        var request = createRequest(dataAddress);
+        when(vault.resolveSecret(secretName)).thenReturn(asJson(Map.of("token", secret)));
+
+        var httpRequest = supplier.apply(request).toRequest();
+
+        var headers = httpRequest.headers();
+        assertThat(headers)
+                .isNotNull()
+                .hasSize(1);
+        assertThat(headers.get(dataAddress.getAuthKey()))
+                .isNotNull()
+                .isEqualTo(secret);
+    }
+
+    @Test
+    void throwsExceptionIfNoSecretNameIsSpecified() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .authKey("test-auth-key")
+                .baseUrl("http://test.base.url")
+                .build();
+        var request = createRequest(dataAddress);
+
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> supplier.apply(request));
+    }
+
+    @Test
+    void throwsExceptionIfNoSecretIsFoundInVault() {
+        var secretName = "test-secret-name";
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .authKey("test-auth-key")
+                .baseUrl("http://test.base.url")
+                .secretName(secretName)
+                .build();
+        var request = createRequest(dataAddress);
+        when(vault.resolveSecret(secretName)).thenReturn(null);
+
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> supplier.apply(request));
+    }
+
+    @Test
+    void throwsExceptionIfNoSecretIsFoundInVaultAsJson() {
+        var secretName = "test-secret-name";
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .authKey("test-auth-key")
+                .baseUrl("http://test.base.url")
+                .secretName(secretName)
+                .build();
+        var request = createRequest(dataAddress);
+        when(vault.resolveSecret(secretName)).thenReturn(asJson(Map.of("not-token-key", "anything")));
+
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> supplier.apply(request));
     }
 
     @Test
@@ -156,7 +211,7 @@ class HttpRequestParamsSupplierTest {
                 .build();
         var request = createRequest(dataAddress);
 
-        var supplier = new TestHttpRequestParamsSupplier(vaultMock, true);
+        var supplier = new TestHttpRequestParamsSupplier(vault, true, typeManager);
         var httpRequest = supplier.apply(request).toRequest();
 
         assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
@@ -168,6 +223,18 @@ class HttpRequestParamsSupplierTest {
         assertThat(httpRequest.body().contentLength()).isEqualTo(supplier.body.getBytes().length);
     }
 
+    private String asJson(Map<String, String> map) {
+        return typeManager.writeValueAsString(map);
+    }
+
+    private DataFlowRequest createRequest(DataAddress source) {
+        return DataFlowRequest.Builder.newInstance()
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
+                .sourceDataAddress(source)
+                .processId(UUID.randomUUID().toString())
+                .build();
+    }
+
     public static final class TestHttpRequestParamsSupplier extends HttpRequestParamsSupplier {
 
         private final String method;
@@ -177,19 +244,13 @@ class HttpRequestParamsSupplierTest {
         private final String body;
         private final boolean isOneGo;
 
-        private TestHttpRequestParamsSupplier(Vault vault) {
-            super(vault);
-            this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
-            this.isOneGo = false;
-            this.path = "somepath";
-            this.queryParams = "testqueryparam";
-            this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
-            this.body = "Test-Body";
+        private TestHttpRequestParamsSupplier(Vault vault, TypeManager typeManager) {
+            this(vault, false, typeManager);
         }
 
-        private TestHttpRequestParamsSupplier(Vault vault, boolean isOneGo) {
-            super(vault);
-            this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
+        private TestHttpRequestParamsSupplier(Vault vault, boolean isOneGo, TypeManager typeManager) {
+            super(vault, typeManager);
+            this.method = new Random().nextBoolean() ? "PUT" : "POST";
             this.isOneGo = isOneGo;
             this.path = "somepath";
             this.queryParams = "testqueryparam";

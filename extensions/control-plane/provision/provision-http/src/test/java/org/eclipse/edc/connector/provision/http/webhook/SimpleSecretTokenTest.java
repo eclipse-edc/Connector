@@ -16,8 +16,6 @@ package org.eclipse.edc.connector.provision.http.webhook;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SimpleSecretTokenTest {
@@ -27,13 +25,4 @@ class SimpleSecretTokenTest {
         assertThat(new SimpleSecretToken("sometoken").getExpiration()).isEqualTo(0);
     }
 
-    @Test
-    void flatten() {
-        var token = "test-token";
-        var m = Map.of("token", token);
-
-        //cannot use containsEntry due to the open value type on flatten()
-        assertThat(new SimpleSecretToken(token).flatten()).usingRecursiveComparison().isEqualTo(m);
-
-    }
 }

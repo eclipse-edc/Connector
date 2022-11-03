@@ -17,10 +17,10 @@ plugins {
     java
 }
 
+val assertj: String by project
+val awaitility: String by project
 val jupiterVersion: String by project
 val restAssured: String by project
-val awaitility: String by project
-val assertj: String by project
 val postgresVersion: String by project
 
 dependencies {

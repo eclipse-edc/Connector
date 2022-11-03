@@ -18,8 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 
-import java.util.Map;
-
 @JsonTypeName("dataspaceconnector:azuretoken")
 public class AzureSasToken implements SecretToken {
     private final String sas;
@@ -32,12 +30,6 @@ public class AzureSasToken implements SecretToken {
 
     public String getSas() {
         return sas;
-    }
-
-    @Override
-    public Map<String, ?> flatten() {
-        return Map.of("sas", sas,
-                "expiration", expiration);
     }
 
     @Override

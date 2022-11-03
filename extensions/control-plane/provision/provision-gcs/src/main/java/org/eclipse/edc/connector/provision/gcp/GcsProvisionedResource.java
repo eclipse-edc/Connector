@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
 import org.eclipse.edc.gcp.storage.GcsStoreSchema;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import static org.eclipse.edc.gcp.storage.GcsStoreSchema.BUCKET_NAME;
 import static org.eclipse.edc.gcp.storage.GcsStoreSchema.LOCATION;
@@ -59,11 +58,9 @@ public class GcsProvisionedResource extends ProvisionedDataDestinationResource {
     public static class Builder extends
             ProvisionedDataDestinationResource.Builder<GcsProvisionedResource, GcsProvisionedResource.Builder> {
 
-        private DataAddress.Builder dataAddressBuilder;
-
         private Builder() {
             super(new GcsProvisionedResource());
-            dataAddressBuilder = DataAddress.Builder.newInstance().type(GcsStoreSchema.TYPE);
+            dataAddressBuilder.type(GcsStoreSchema.TYPE);
         }
 
         @JsonCreator
@@ -72,42 +69,36 @@ public class GcsProvisionedResource extends ProvisionedDataDestinationResource {
         }
 
         public GcsProvisionedResource.Builder bucketName(String bucketName) {
-            this.dataAddressBuilder.property(BUCKET_NAME, bucketName);
+            dataAddressBuilder.property(BUCKET_NAME, bucketName);
             return this;
         }
 
         public GcsProvisionedResource.Builder location(String location) {
-            this.dataAddressBuilder.property(LOCATION, location);
+            dataAddressBuilder.property(LOCATION, location);
             return this;
         }
 
         public GcsProvisionedResource.Builder storageClass(String storageClass) {
-            this.dataAddressBuilder.property(STORAGE_CLASS, storageClass);
+            dataAddressBuilder.property(STORAGE_CLASS, storageClass);
             return this;
         }
 
         public GcsProvisionedResource.Builder serviceAccountName(String serviceAccountName) {
-            this.dataAddressBuilder.property(SERVICE_ACCOUNT_NAME, serviceAccountName);
+            dataAddressBuilder.property(SERVICE_ACCOUNT_NAME, serviceAccountName);
             return this;
         }
 
         public GcsProvisionedResource.Builder serviceAccountEmail(String serviceAccountEmail) {
-            this.dataAddressBuilder.property(SERVICE_ACCOUNT_EMAIL, serviceAccountEmail);
+            dataAddressBuilder.property(SERVICE_ACCOUNT_EMAIL, serviceAccountEmail);
             return this;
         }
 
         @Override
         public Builder resourceName(String name) {
-            this.dataAddressBuilder.keyName(name);
+            dataAddressBuilder.keyName(name);
             super.resourceName(name);
             return this;
         }
 
-
-        @Override
-        public GcsProvisionedResource build() {
-            provisionedResource.dataAddress = dataAddressBuilder.build();
-            return super.build();
-        }
     }
 }

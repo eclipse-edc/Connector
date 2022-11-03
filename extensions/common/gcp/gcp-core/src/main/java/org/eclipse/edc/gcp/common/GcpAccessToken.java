@@ -18,8 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 
-import java.util.Map;
-
 @JsonTypeName("dataspaceconnector:gcptoken")
 public class GcpAccessToken implements SecretToken {
     private final String token;
@@ -39,9 +37,4 @@ public class GcpAccessToken implements SecretToken {
         return expiration;
     }
 
-    @Override
-    public Map<String, ?> flatten() {
-        return Map.of("token", token,
-                "expiration", expiration);
-    }
 }

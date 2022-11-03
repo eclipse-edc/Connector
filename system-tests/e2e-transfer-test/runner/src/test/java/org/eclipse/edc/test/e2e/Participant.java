@@ -64,7 +64,7 @@ public class Participant {
         PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
     }
 
-    public void createAsset(String assetId, String addressType) {
+    public void createAsset(String assetId, Map<String, String> dataAddressProperties) {
         var asset = Map.of(
                 "asset", Map.of(
                         "id", assetId,
@@ -74,12 +74,7 @@ public class Participant {
                         )
                 ),
                 "dataAddress", Map.of(
-                        "properties", Map.of(
-                                "name", "transfer-test",
-                                "baseUrl", backendService + "/api/provider/data",
-                                "type", addressType,
-                                "proxyQueryParams", "true"
-                        )
+                        "properties", dataAddressProperties
                 )
         );
 
@@ -159,10 +154,6 @@ public class Participant {
         });
 
         return contractAgreementId.get();
-    }
-
-    public String getContractNegotiationState(String negotiationId) {
-        return getContractNegotiationField(negotiationId, "state");
     }
 
     private String getContractNegotiationField(String negotiationId, String fieldName) {
@@ -301,7 +292,7 @@ public class Participant {
                 put("web.http.provisioner.path", controlPlaneProvisioner.getPath());
                 put("web.http.validation.port", String.valueOf(controlPlaneValidation.getPort()));
                 put("web.http.validation.path", controlPlaneValidation.getPath());
-                put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
+                put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
                 put("ids.webhook.address", idsEndpoint.toString());
@@ -398,6 +389,9 @@ public class Participant {
                 put("web.http.public.path", "/public");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.getPort()));
                 put("web.http.control.path", dataPlaneControl.getPath());
+                put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
+                put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
+                put("edc.keystore.password", "123456");
                 put("edc.dataplane.token.validation.endpoint", controlPlaneValidation + "/token");
             }
         };

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -30,8 +31,8 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
 
     private static final String DEFAULT_METHOD = "POST";
 
-    public HttpSinkRequestParamsSupplier(Vault vault) {
-        super(vault);
+    public HttpSinkRequestParamsSupplier(Vault vault, TypeManager typeManager) {
+        super(vault, typeManager);
     }
 
     @Override

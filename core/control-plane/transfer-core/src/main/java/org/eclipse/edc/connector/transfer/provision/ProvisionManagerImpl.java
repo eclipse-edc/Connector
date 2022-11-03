@@ -73,7 +73,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
                     .filter(it -> it.canProvision(definition))
                     .findFirst()
                     .map(it -> (Provisioner<ResourceDefinition, ?>) it)
-                    .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
+                    .orElseThrow(() -> new EdcException("Unknown provision type " + definition.getClass().getName()))
                     .provision(definition, policy);
         } catch (Exception e) {
             return failedFuture(e);
@@ -88,7 +88,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
                     .filter(it -> it.canDeprovision(definition))
                     .findFirst()
                     .map(it -> (Provisioner<?, ProvisionedResource>) it)
-                    .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
+                    .orElseThrow(() -> new EdcException("Unknown provision type " + definition.getClass().getName()))
                     .deprovision(definition, policy);
         } catch (Exception e) {
             return failedFuture(e);
