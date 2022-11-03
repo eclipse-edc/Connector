@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e;
 
+import com.nimbusds.jwt.SignedJWT;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -23,6 +24,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
+import java.text.ParseException;
 import java.util.Map;
 
 @Path("/provider")
@@ -39,10 +41,25 @@ public class ProviderBackendApiController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, String> getOauth2Data(@DefaultValue("some information") @QueryParam("message") String message, @HeaderParam("Authorization") String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) { // TODO: improve token validation
+        if (authorization == null || !isAuthorized(authorization)) {
             throw new NotAuthorizedException("The authorization token is not valid: " + authorization);
         } else {
             return Map.of("message", message);
+        }
+    }
+
+    private boolean isAuthorized(String authorization) {
+        if (!authorization.startsWith("Bearer ")) {
+            return false;
+        }
+
+        var token = authorization.replace("Bearer ", "");
+
+        try {
+            SignedJWT.parse(token);
+            return true;
+        } catch (ParseException e) {
+            return false;
         }
     }
 }
