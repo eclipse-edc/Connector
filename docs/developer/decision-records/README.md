@@ -42,3 +42,4 @@
 - [2022-10-10 EDC Naming Conventions](2022-10-10-naming-conventions/)
 - [2022-10-20 Trust Framework Adoption repository](2022-10-20-trust-framework-adoption-repository)
 - [2022-10-21 Gradle Version Catalogs](2022-10-21-gradle-versioncatalogs/)
+- [2022-10-31 Service Layer](2022-10-31-aggregate-service-layer)
