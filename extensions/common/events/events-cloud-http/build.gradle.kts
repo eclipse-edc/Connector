@@ -30,7 +30,7 @@ dependencies {
     implementation("io.cloudevents:cloudevents-http-basic:${cloudEvents}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
-    testImplementation(testFixtures(project(":extensions:common:junit")))
+    testImplementation(testFixtures(project(":core:common:junit")))
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.awaitility:awaitility:${awaitility}")
 }

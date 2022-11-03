@@ -16,10 +16,10 @@ package org.eclipse.edc.web.jersey.validation.integrationtest;
 
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.eclipse.edc.web.spi.validation.InterceptorFunction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

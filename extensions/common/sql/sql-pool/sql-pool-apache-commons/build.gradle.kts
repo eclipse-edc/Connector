@@ -27,7 +27,7 @@ dependencies {
 
     implementation("org.apache.commons:commons-pool2:${apacheCommonsPool2Version}")
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 
     // required for statically mocking the JDBC DriverManager

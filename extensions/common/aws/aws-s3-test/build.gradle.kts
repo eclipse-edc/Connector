@@ -26,8 +26,7 @@ val okHttpVersion: String by project
 
 
 dependencies {
-    testFixturesApi(project(":extensions:common:junit"))
-    testFixturesApi(testFixtures(project(":core:common:util")))
+    testFixturesApi(project(":core:common:junit"))
     testFixturesImplementation(project(":extensions:common:aws:aws-s3-core"))
 
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}") // needed for MinIO health probe

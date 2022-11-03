@@ -26,9 +26,8 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(testFixtures(project(":core:common:util")))
     testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 

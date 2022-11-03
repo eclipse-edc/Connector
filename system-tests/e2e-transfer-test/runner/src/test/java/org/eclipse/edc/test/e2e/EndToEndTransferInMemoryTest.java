@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.test.e2e;
 
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.util.testfixtures.annotations.EndToEndTest;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;

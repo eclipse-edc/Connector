@@ -14,7 +14,6 @@
 
 plugins {
     `java-library`
-    `java-test-fixtures`
     `maven-publish`
 }
 
@@ -23,10 +22,6 @@ val mockitoVersion: String by project
 val okHttpVersion: String by project
 
 dependencies {
-    testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-    testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation("org.junit-pioneer:junit-pioneer:1.7.1")
 }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2022 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -40,7 +40,7 @@ dependencies {
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.awaitility:awaitility:${awaitility}")

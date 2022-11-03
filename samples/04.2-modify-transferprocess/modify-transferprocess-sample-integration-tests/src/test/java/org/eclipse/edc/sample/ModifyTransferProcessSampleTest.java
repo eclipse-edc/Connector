@@ -15,9 +15,9 @@
 package org.eclipse.edc.sample;
 
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferProcessDto;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.sample.extension.FileTransferSampleTestCommon;
-import org.eclipse.edc.util.testfixtures.annotations.EndToEndTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 

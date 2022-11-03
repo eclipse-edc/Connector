@@ -26,11 +26,10 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
     testFixturesApi(project(":core:common:util"))
-    testFixturesApi(project(":extensions:common:junit"))
+    testFixturesApi(project(":core:common:junit"))
     testFixturesApi("com.azure:azure-cosmos:${cosmosSdkVersion}")
     testFixturesApi("com.azure:azure-storage-blob:${storageBlobVersion}")
     testFixturesApi("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesImplementation(testFixtures(project(":core:common:util")))
 }
 
 publishing {

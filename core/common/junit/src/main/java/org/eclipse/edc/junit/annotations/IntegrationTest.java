@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,13 +8,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial implementation
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
-package org.eclipse.edc.util.testfixtures.annotations;
+package org.eclipse.edc.junit.annotations;
 
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,12 +23,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for ComponentTest. The tests with the ComponentTest tag do not use an external system but uses
- * collaborator objects instead of mocks. For example in-memory implementations. It applies a specific Junit Tag.
+ * Common annotation for integration testing.  It applies integration-test Junit Tag.
  */
-@Target({ ElementType.TYPE })
+@Target({ ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@IntegrationTest
-@Tag("ComponentTest")
-public @interface ComponentTest {
+@Test
+@Tag("IntegrationTest")
+public @interface IntegrationTest {
 }

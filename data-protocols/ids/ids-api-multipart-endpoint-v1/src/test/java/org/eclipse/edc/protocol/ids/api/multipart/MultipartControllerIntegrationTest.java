@@ -48,6 +48,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegoti
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
@@ -69,7 +70,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.util.testfixtures.annotations.ComponentTest;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -726,22 +726,6 @@ public class MultipartControllerIntegrationTest {
         jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
     }
 
-    private Policy createEverythingAllowedPolicy() {
-        var policyBuilder = Policy.Builder.newInstance();
-        var permissionBuilder = Permission.Builder.newInstance();
-        var actionBuilder = Action.Builder.newInstance();
-
-        policyBuilder.type(PolicyType.CONTRACT);
-        actionBuilder.type("USE");
-        permissionBuilder.target("1");
-
-        permissionBuilder.action(actionBuilder.build());
-        policyBuilder.permission(permissionBuilder.build());
-
-        policyBuilder.target("1");
-        return policyBuilder.build();
-    }
-
     protected String getUrl() {
         return String.format("http://localhost:%s/api/v1/ids%s", IDS_PORT,
                 MultipartController.PATH);
@@ -869,6 +853,22 @@ public class MultipartControllerIntegrationTest {
         return namedMultipartContentList;
     }
 
+    private Policy createEverythingAllowedPolicy() {
+        var policyBuilder = Policy.Builder.newInstance();
+        var permissionBuilder = Permission.Builder.newInstance();
+        var actionBuilder = Action.Builder.newInstance();
+
+        policyBuilder.type(PolicyType.CONTRACT);
+        actionBuilder.type("USE");
+        permissionBuilder.target("1");
+
+        permissionBuilder.action(actionBuilder.build());
+        policyBuilder.permission(permissionBuilder.build());
+
+        policyBuilder.target("1");
+        return policyBuilder.build();
+    }
+
     // create the "header" multipart payload
     private MultipartBody.Part createIdsMessageHeaderMultipart(Message message) throws Exception {
         Headers headers = new Headers.Builder()
@@ -893,6 +893,19 @@ public class MultipartControllerIntegrationTest {
         return MultipartBody.Part.create(headers, requestBody);
     }
 
+    private ObjectMapper getCustomizedObjectMapper() {
+        return IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
+    }
+
+    private ContractNegotiation createContractNegotiation(String id) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(id)
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("address")
+                .protocol("protocol")
+                .build();
+    }
+
     public static class NamedMultipartContent {
         private final String name;
         private final byte[] content;
@@ -909,19 +922,6 @@ public class MultipartControllerIntegrationTest {
         public byte[] getContent() {
             return content;
         }
-    }
-
-    private ObjectMapper getCustomizedObjectMapper() {
-        return IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
-    }
-
-    private ContractNegotiation createContractNegotiation(String id) {
-        return ContractNegotiation.Builder.newInstance()
-                .id(id)
-                .counterPartyId(UUID.randomUUID().toString())
-                .counterPartyAddress("address")
-                .protocol("protocol")
-                .build();
     }
 
     public static class TestExtension implements ServiceExtension {

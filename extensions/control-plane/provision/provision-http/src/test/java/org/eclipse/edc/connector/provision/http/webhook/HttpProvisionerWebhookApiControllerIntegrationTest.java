@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.util.testfixtures.annotations;
+package org.eclipse.edc.junit.annotations;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

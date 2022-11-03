@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.sample.extension;
 
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.util.testfixtures.annotations.EndToEndTest;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +60,12 @@ public class FileTransferListenerSampleTest {
     );
     private final FileTransferSampleTestCommon common = new FileTransferSampleTestCommon(SAMPLE_ASSET_FILE_PATH, DESTINATION_FILE_PATH);
 
+    @AfterEach
+    void tearDown() {
+        cleanTemporaryTestFiles();
+    }
+
+
     /**
      * Run all sample steps in one single test.
      * Note: Sample steps cannot be separated into single tests because {@link EdcRuntimeExtension}
@@ -76,11 +82,6 @@ public class FileTransferListenerSampleTest {
         assertFileContent(MARKER_FILE, MARKER_FILE_CONTENT);
     }
 
-    @AfterEach
-    protected void tearDown() {
-        cleanTemporaryTestFiles();
-    }
-
     /**
      * Assert that prerequisites are fulfilled before running the test.
      * This assertion checks only whether the file to be copied is not existing already.
@@ -95,7 +96,6 @@ public class FileTransferListenerSampleTest {
      * Remove files created while running the tests.
      * The copied file and the marker file will be deleted.
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     void cleanTemporaryTestFiles() {
         common.cleanTemporaryTestFiles();
 
@@ -110,4 +110,6 @@ public class FileTransferListenerSampleTest {
         await().atMost(common.timeout).pollInterval(common.pollInterval).untilAsserted(()
                 -> assertThat(markerFile).hasContent(markerFileContent));
     }
+
+
 }

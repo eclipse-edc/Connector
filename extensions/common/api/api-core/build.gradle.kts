@@ -34,7 +34,7 @@ dependencies {
     testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
     testImplementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

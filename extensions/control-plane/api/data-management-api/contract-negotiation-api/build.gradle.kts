@@ -32,9 +32,8 @@ dependencies {
     testImplementation(project(":core:common:util"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
-    testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":core:common:util")))
-    
+    testImplementation(project(":core:common:junit"))
+
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
 }

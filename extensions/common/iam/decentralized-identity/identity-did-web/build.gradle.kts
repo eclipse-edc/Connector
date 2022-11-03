@@ -10,7 +10,7 @@ dependencies {
     api(project(":core:common:util"))
 
     implementation("com.squareup.okhttp3:okhttp-dnsoverhttps:${okHttpVersion}")
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

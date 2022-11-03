@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.azure.testfixtures.annotations;
 
-import org.eclipse.edc.util.testfixtures.annotations.IntegrationTest;
+import org.eclipse.edc.junit.annotations.IntegrationTest;
 import org.junit.jupiter.api.Tag;
 
 import java.lang.annotation.ElementType;
