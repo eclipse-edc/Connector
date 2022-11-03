@@ -14,28 +14,28 @@ For `AggregateService` we intend a component that provides a clear and simple in
 `Asset`s, `ContractNegotiation`s and so on) encapsulating some logic and features, like business validation, 
 transactional context, exception handling, ...
 
-Currently, they are located into the `data-management-api`. Moving them to an underlying layer will permit to other kind
-of API to being exposed over them, benefiting from their offered features.
+Currently they are located into the `data-management-api`. Moving them to a separate layer will permit other kinds of
+APIs to use them in an equal manner benefiting from their offered features.
 
 ## Approach
 
 ### SPI
 
-The service layer will be described by a generic `aggregate-service-spi` module that, in fact will contain only the
-`AggregateServiceResult` class, that represent a `Result` returned by an `AggregateService` method call.
+The service layer will be described by a generic `aggregate-service-spi` module that will contain only the
+`AggregateServiceResult` class, that represent a `Result` returned by an `*AggregateService` method call.
 
 Every component will define its own aggregate service layer spi, for example `control-plane-spi` will contain all the
 `AggregateService` interfaces of the `control-plane` as `AssetAggregateService`, `ContractNegotiationAggregateService`, 
-`TransferProcessService`, etc...
+`TransferProcessAggregateService`, etc...
 
-That `control-plane-spi` module could then be used as a dependency to implement an extension that expose an API (for 
-example, a GraphQL one).
+That `control-plane-spi` module could then be used as a dependency in an extension that exposes an API (for example a
+GraphQL one).
 
 ### Implementation classes
 
 The implementation classes will be located in a component-related module in the `core` folder, for example 
-`control-plane-aggregate-services`, this module will be referenced by the `control-plane-core` BOM to make the 
-`AggregateService`s registered at runtime.
+`control-plane-aggregate-services`, this module will be included in the `control-plane-core` BOM to register the 
+`*AggregateService`s.
 
 For the control plane, the directory tree will look like:
 ```
