@@ -28,8 +28,10 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.api.datamanagement.catalog.service.CatalogService;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.jetbrains.annotations.NotNull;
 
@@ -87,7 +89,11 @@ public class CatalogApiController implements CatalogApi {
                     if (throwable == null) {
                         response.resume(content);
                     } else {
-                        response.resume(throwable);
+                        if (throwable instanceof EdcException || throwable.getCause() instanceof EdcException) {
+                            response.resume(new BadGatewayException(throwable.getMessage()));
+                        } else {
+                            response.resume(throwable);
+                        }
                     }
                 });
     }

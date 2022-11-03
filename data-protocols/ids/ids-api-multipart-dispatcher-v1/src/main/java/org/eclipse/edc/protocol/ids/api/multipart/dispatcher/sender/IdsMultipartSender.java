@@ -158,27 +158,24 @@ public class IdsMultipartSender {
         var future = new CompletableFuture<R>();
 
         httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> {
-            try (r) {
-                monitor.debug("Response received from connector. Status " + r.code());
-                if (r.isSuccessful()) {
-                    try (var body = r.body()) {
-                        if (body == null) {
-                            future.completeExceptionally(new EdcException("Received an empty body response from connector"));
-                        } else {
-                            var parts = extractResponseParts(body);
-                            var response = senderDelegate.getResponseContent(parts);
+            monitor.debug("Response received from connector. Status " + r.code());
+            if (r.isSuccessful()) {
+                try (var body = r.body()) {
+                    if (body == null) {
+                        throw new EdcException("Received an empty body response from connector");
+                    } else {
+                        var parts = extractResponseParts(body);
+                        var response = senderDelegate.getResponseContent(parts);
 
-                            checkResponseType(response, senderDelegate);
+                        checkResponseType(response, senderDelegate);
 
-                            return response.getPayload();
-                        }
-                    } catch (Exception e) {
-                        future.completeExceptionally(e);
+                        return response.getPayload();
                     }
-                } else {
-                    future.completeExceptionally(new EdcException(format("Received an error from connector (%s): %s %s", requestUrl, r.code(), r.message())));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-                return null;
+            } else {
+                throw new EdcException(format("Received an error from connector (%s): %s %s", requestUrl, r.code(), r.message()));
             }
         }));
 

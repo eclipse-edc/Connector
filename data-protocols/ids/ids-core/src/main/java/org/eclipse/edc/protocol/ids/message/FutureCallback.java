@@ -42,6 +42,11 @@ public class FutureCallback<T> implements Callback {
 
     @Override
     public void onResponse(@NotNull Call call, @NotNull Response response) {
-        future.complete(handler.apply(response));
+        try (response) {
+            var result = handler.apply(response);
+            future.complete(result);
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
     }
 }

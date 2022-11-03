@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.EdcApiException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
@@ -28,6 +29,7 @@ import org.eclipse.edc.web.spi.exception.ObjectNotModifiableException;
 
 import java.util.Map;
 
+import static jakarta.ws.rs.core.Response.Status.BAD_GATEWAY;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
@@ -49,7 +51,8 @@ public class EdcApiExceptionMapper implements ExceptionMapper<EdcApiException> {
                 InvalidRequestException.class, BAD_REQUEST,
                 ObjectNotFoundException.class, NOT_FOUND,
                 ObjectExistsException.class, CONFLICT,
-                ObjectNotModifiableException.class, CONFLICT
+                ObjectNotModifiableException.class, CONFLICT,
+                BadGatewayException.class, BAD_GATEWAY
         );
     }
 

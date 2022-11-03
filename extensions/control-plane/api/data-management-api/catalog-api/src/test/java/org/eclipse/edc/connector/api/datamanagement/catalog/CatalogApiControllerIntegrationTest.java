@@ -25,6 +25,7 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.MessageContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -45,6 +46,7 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.datamanagement.catalog.TestFunctions.createCriterionDto;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -213,6 +215,36 @@ public class CatalogApiControllerIntegrationTest {
                 .statusCode(400);
     }
 
+    @Test
+    void postCatalogRequest_whenDispatcherFailsReturnsBadGatewayWithDetail() {
+        when(dispatcher.send(any(), any(), any()))
+                .thenReturn(failedFuture(new EdcException("Something happened with the provider connector")));
+
+        var request = CatalogRequestDto.Builder.newInstance().providerUrl("http://provider/url").build();
+
+        baseRequest()
+                .contentType("application/json")
+                .body(request)
+                .post("/catalog/request")
+                .then()
+                .statusCode(502)
+                .body("message[0]", is("Something happened with the provider connector"));
+    }
+
+    @Test
+    void postCatalogRequest_whenDispatcherFailsWithGenericExceptionReturns500() {
+        when(dispatcher.send(any(), any(), any()))
+                .thenReturn(failedFuture(new RuntimeException("any error")));
+
+        var request = CatalogRequestDto.Builder.newInstance().providerUrl("http://provider/url").build();
+
+        baseRequest()
+                .contentType("application/json")
+                .body(request)
+                .post("/catalog/request")
+                .then()
+                .statusCode(500);
+    }
 
     private RequestSpecification baseRequest() {
         return given()

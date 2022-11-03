@@ -17,6 +17,7 @@ package org.eclipse.edc.web.jersey.mapper;
 
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.EdcApiException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
@@ -64,7 +65,8 @@ class EdcApiExceptionMapperTest {
                     Arguments.of(new ObjectExistsException(Object.class, "test-object-id"), 409),
                     Arguments.of(new ObjectNotFoundException(Object.class, "test-object-id"), 404),
                     Arguments.of(new NotAuthorizedException(), 403),
-                    Arguments.of(new InvalidRequestException(List.of("detail")), 400)
+                    Arguments.of(new InvalidRequestException(List.of("detail")), 400),
+                    Arguments.of(new BadGatewayException("something happened"), 502)
             );
         }
     }
