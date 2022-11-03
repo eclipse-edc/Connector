@@ -18,7 +18,7 @@ package org.eclipse.edc.connector.api.datamanagement.contractagreement;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.edc.connector.api.datamanagement.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
-import org.eclipse.edc.connector.controlplane.spi.contractagreement.ContractAgreementService;
+import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;

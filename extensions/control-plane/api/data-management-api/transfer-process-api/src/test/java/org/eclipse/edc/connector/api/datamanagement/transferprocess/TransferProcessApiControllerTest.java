@@ -19,7 +19,7 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferRequestDto;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.service.spi.result.ServiceResult;

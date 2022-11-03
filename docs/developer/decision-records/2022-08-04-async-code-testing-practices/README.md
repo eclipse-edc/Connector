@@ -26,15 +26,15 @@ timeout expires which is by default 10 seconds.
 
 The following is a comparative of the current code with CountDownLatch and the proposal with Awaitility in one test:
 
-### class `asset.org.eclipse.edc.connector.controlplane.service.AssetEventDispatchTest`
+### class `AssetEventDispatchTest`
 
 #### with CountDownLatch
 
 ```java
-public class asset.org.eclipse.edc.connector.controlplane.service.AssetEventDispatchTest {
+public class AssetEventDispatchTest {
     //...
     @Test
-    void shouldDispatchEventsOnAssetCreationAndDeletion(asset.org.eclipse.edc.connector.controlplane.spi.AssetService service, EventRouter eventRouter) throws InterruptedException {
+    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) throws InterruptedException {
         var createdLatch = onDispatchLatch(AssetCreated.class);
         var deletedLatch = onDispatchLatch(AssetDeleted.class);
         eventRouter.register(eventSubscriber);
@@ -68,10 +68,10 @@ public class asset.org.eclipse.edc.connector.controlplane.service.AssetEventDisp
 #### with awaitility
 
 ```java
-public class asset.org.eclipse.edc.connector.controlplane.service.AssetEventDispatchTest {
+public class AssetEventDispatchTest {
     //...
     @Test
-    void shouldDispatchEventsOnAssetCreationAndDeletion(asset.org.eclipse.edc.connector.controlplane.spi.AssetService service, EventRouter eventRouter) {
+    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
 
         doAnswer(i -> {
             return null;

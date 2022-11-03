@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.api.datamanagement.asset.transform.AssetRequest
 import org.eclipse.edc.connector.api.datamanagement.asset.transform.AssetToAssetResponseDtoTransformer;
 import org.eclipse.edc.connector.api.datamanagement.asset.transform.DataAddressDtoToDataAddressTransformer;
 import org.eclipse.edc.connector.api.datamanagement.configuration.DataManagementApiConfiguration;
-import org.eclipse.edc.connector.controlplane.spi.asset.AssetService;
+import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;

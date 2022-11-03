@@ -24,7 +24,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:control-plane:control-plane-spi")) // TODO: is this really necessary?
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:data-management-api:data-management-api-configuration"))

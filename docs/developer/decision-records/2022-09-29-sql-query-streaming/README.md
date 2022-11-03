@@ -96,7 +96,7 @@ One big news is that at the top of the call, the stream needs to be closed expli
 neither `collect` nor `forEach` do that:
 
 ```java
-public class policydefinition.org.eclipse.edc.connector.controlplane.service.PolicyDefinitionServiceImpl implements policydefinition.org.eclipse.edc.connector.controlplane.spi.PolicyDefinitionService {
+public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     ...
     
     @Override

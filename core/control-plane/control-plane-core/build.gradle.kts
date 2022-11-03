@@ -25,7 +25,7 @@ dependencies {
     implementation(project(":core:common:policy-engine"))
     implementation(project(":core:control-plane:contract-core"))
     implementation(project(":core:control-plane:transfer-core"))
-    implementation(project(":core:control-plane:control-plane-services"))
+    implementation(project(":core:control-plane:control-plane-aggregate-services"))
     implementation(project(":core:common:util"))
 
     testImplementation(testFixtures(project(":spi:common:core-spi")))

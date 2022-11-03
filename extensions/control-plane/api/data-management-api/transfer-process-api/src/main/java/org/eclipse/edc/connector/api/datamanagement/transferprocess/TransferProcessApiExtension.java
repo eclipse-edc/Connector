@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.api.datamanagement.configuration.DataManagement
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.transform.DataRequestToDataRequestDtoTransformer;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.transform.TransferProcessToTransferProcessDtoTransformer;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.transform.TransferRequestDtoToDataRequestTransformer;
-import org.eclipse.edc.connector.controlplane.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;

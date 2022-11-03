@@ -35,7 +35,7 @@ Existing `ContractOfferQuery` will be used to transport both `Range` and filteri
 
 And now, they can be applied to `AssetIndex` search query when constructing the `Catalog` response:
 
-1) pass Criterions to the `catalog.org.eclipse.edc.connector.controlplane.service.CatalogServiceImpl.getDataCatalog()`
+1) pass Criterions to the `catalog.org.eclipse.CatalogServiceImpl.getDataCatalog()`
 2) attach to the existing `ContractOfferQuery` object
 3) in `ContractOfferServiceImpl.queryContractOffers()`, merge with `AssetSelectorExpressions` from contract definitions.
 
