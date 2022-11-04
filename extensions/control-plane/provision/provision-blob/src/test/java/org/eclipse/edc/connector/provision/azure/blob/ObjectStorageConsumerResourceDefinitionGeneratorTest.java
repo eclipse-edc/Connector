@@ -37,7 +37,7 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void generate() {
+    void generate_withContainerName() {
         DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, "test-container")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
@@ -56,6 +56,25 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
+    void generate_withoutContainerName() {
+        DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
+                .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
+                .build();
+        var asset = Asset.Builder.newInstance().build();
+        var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var definition = generator.generate(dr, policy);
+
+        assertThat(definition).isInstanceOf(ObjectStorageResourceDefinition.class);
+        var objectDef = (ObjectStorageResourceDefinition) definition;
+        assertThat(objectDef.getAccountName()).isEqualTo("test-account");
+        assertThat(objectDef.getContainerName()).matches(regexPattern);
+        assertThat(objectDef.getId()).matches(regexPattern);
+    }
+
+
+    @Test
     void canGenerate() {
         DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
@@ -69,7 +88,7 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void canGenerateIsNotTypeAzureBlobStoreSchema() {
+    void canGenerate_isNotTypeAzureBlobStoreSchema() {
         DataAddress destination = DataAddress.Builder.newInstance().type("aNonGoogleCloudStorage")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
