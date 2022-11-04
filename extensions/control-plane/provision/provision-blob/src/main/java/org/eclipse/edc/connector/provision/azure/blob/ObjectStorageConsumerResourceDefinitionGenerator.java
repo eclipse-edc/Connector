@@ -40,6 +40,6 @@ public class ObjectStorageConsumerResourceDefinitionGenerator implements Consume
 
     @Override
     public boolean canGenerate(DataRequest dataRequest, Policy policy) {
-        return dataRequest.getDataDestination() != null && dataRequest.getDestinationType() != null && AzureBlobStoreSchema.TYPE.equals(dataRequest.getDestinationType());
+        return AzureBlobStoreSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 }

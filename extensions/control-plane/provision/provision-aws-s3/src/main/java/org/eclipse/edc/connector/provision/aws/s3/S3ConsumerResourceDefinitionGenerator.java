@@ -32,6 +32,7 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
     public ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
         if (dataRequest.getDestinationType() != null) {
             // FIXME generate region from policy engine
+
             return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(dataRequest.getProcessId()).regionId(Region.US_EAST_1.id()).build();
         }
         var destination = dataRequest.getDataDestination();
@@ -41,7 +42,7 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
 
     @Override
     public boolean canGenerate(DataRequest dataRequest, Policy policy) {
-        return (dataRequest.getDataDestination() != null && dataRequest.getDataDestination().getType().equals(S3BucketSchema.TYPE)) && S3BucketSchema.TYPE.equals(dataRequest.getDestinationType());
+        return S3BucketSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 }
 

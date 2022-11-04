@@ -39,7 +39,7 @@ public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceD
 
     @Override
     public boolean canGenerate(DataRequest dataRequest, Policy policy) {
-        return dataRequest.getDataDestination() != null && dataRequest.getDestinationType() != null && GcsStoreSchema.TYPE.equals(dataRequest.getDestinationType());
+        return GcsStoreSchema.TYPE.equals(dataRequest.getDestinationType());
 
     }
 }
