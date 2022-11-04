@@ -48,7 +48,6 @@ allprojects {
         outputDirectory.set(project.buildDir)
     }
 
-    // the following block is optional, as the BuildExtension already provides defaults
     configure<org.eclipse.edc.plugins.edcbuild.extensions.BuildExtension> {
         versions {
             // override default dependency versions here
