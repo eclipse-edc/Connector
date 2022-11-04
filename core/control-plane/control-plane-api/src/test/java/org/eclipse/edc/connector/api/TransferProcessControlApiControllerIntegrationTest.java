@@ -31,6 +31,7 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.api.ControlPlaneApiExtension.DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -47,7 +48,7 @@ class TransferProcessControlApiControllerIntegrationTest {
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
                 "web.http.controlplane.port", String.valueOf(port),
-                "web.http.controlplane.path", ControlPlaneApiExtension.DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH
+                "web.http.controlplane.path", DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH
         ));
     }
 
@@ -134,7 +135,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
-                .basePath(ControlPlaneApiExtension.DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH)
+                .basePath(DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH)
                 .when();
     }
 

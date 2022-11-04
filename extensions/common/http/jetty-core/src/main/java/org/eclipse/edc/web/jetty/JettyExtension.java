@@ -14,12 +14,15 @@
 
 package org.eclipse.edc.web.jetty;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurerImpl;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -82,6 +85,11 @@ public class JettyExtension implements ServiceExtension {
         if (jettyService != null) {
             jettyService.shutdown();
         }
+    }
+
+    @Provider
+    public WebServiceConfigurer webServiceContextConfigurator() {
+        return new WebServiceConfigurerImpl();
     }
 
 }
