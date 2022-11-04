@@ -18,6 +18,8 @@ import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinit
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservableImpl;
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.asset.AssetEventListener;
 import org.eclipse.edc.connector.service.asset.AssetServiceImpl;
 import org.eclipse.edc.connector.service.catalog.CatalogServiceImpl;
@@ -35,8 +37,6 @@ import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionServic
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservableImpl;
-import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;

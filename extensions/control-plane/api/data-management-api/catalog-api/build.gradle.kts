@@ -32,6 +32,7 @@ dependencies {
     testImplementation(project(":extensions:common:iam:iam-mock"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 

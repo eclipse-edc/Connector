@@ -15,11 +15,11 @@
 package org.eclipse.edc.connector.service.policydefinition;
 
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.service.query.QueryValidator;
-import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservable;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.service.query.QueryValidator;
+import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;

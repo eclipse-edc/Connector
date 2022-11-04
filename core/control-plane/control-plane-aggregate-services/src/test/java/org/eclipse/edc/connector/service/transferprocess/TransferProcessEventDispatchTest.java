@@ -15,8 +15,8 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
