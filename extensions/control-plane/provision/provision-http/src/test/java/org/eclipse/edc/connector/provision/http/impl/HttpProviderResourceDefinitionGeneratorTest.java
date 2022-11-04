@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class HttpProviderResourceDefinitionGeneratorTest {
     private static final String DATA_ADDRESS_TYPE = "test-address";
@@ -53,6 +54,7 @@ class HttpProviderResourceDefinitionGeneratorTest {
 
     @Test
     void canGenerate() {
+
         var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
         var policy = Policy.Builder.newInstance().build();
 
@@ -63,7 +65,7 @@ class HttpProviderResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void canGenerate_dataAddressTypeIsDifferentThanAssetAddressType() {
+    void canGenerate_dataAddressTypeDifferentThanAssetAddressType() {
 
         var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
         var policy = Policy.Builder.newInstance().build();

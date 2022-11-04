@@ -88,7 +88,7 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void canGenerateIsNotTypeAzureBlobStoreSchema() {
+    void canGenerate_isNotTypeAzureBlobStoreSchema() {
         DataAddress destination = DataAddress.Builder.newInstance().type("aNonGoogleCloudStorage")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
