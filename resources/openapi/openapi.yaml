@@ -9,6 +9,637 @@ info:
 servers:
 - url: /
 paths:
+  /policydefinitions:
+    get:
+      tags:
+      - Policy
+      description: Returns all policy definitions according to a query
+      operationId: getAllPolicies
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
+    post:
+      tags:
+      - Policy
+      description: Creates a new policy definition
+      operationId: createPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionRequestDto'
+      responses:
+        "200":
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /policydefinitions/request:
+    post:
+      tags:
+      - Policy
+      description: Returns all policy definitions according to a query
+      operationId: queryAllPolicies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /policydefinitions/{id}:
+    get:
+      tags:
+      - Policy
+      description: Gets a policy definition with the given ID
+      operationId: getPolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The  policy definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An  policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+    delete:
+      tags:
+      - Policy
+      description: "Removes a policy definition with the given ID if possible. Deleting\
+        \ a policy definition is only possible if that policy definition is not yet\
+        \ referenced by a contract definition, in which case an error is returned.\
+        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
+        \ do this at your own risk!"
+      operationId: deletePolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Policy definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "409":
+          description: "The policy definition cannot be deleted, because it is referenced\
+            \ by a contract definition"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /instances:
+    get:
+      tags:
+      - Dataplane Selector
+      operationId: getAll
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPlaneInstance'
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: addEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPlaneInstance'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances/select:
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: find
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPlaneInstance'
+  /check/health:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a liveness probe to determine whether the runtime is working
+        properly.
+      operationId: checkHealth
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthStatus'
+  /check/liveness:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a liveness probe to determine whether the runtime is working
+        properly.
+      operationId: getLiveness
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthStatus'
+  /check/readiness:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a readiness probe to determine whether the runtime is
+        able to accept requests.
+      operationId: getReadiness
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthStatus'
+  /check/startup:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a startup probe to determine whether the runtime has completed
+        startup.
+      operationId: getStartup
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthStatus'
+  /contractnegotiations:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Returns all contract negotiations according to a query
+      operationId: getNegotiations
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
+    post:
+      tags:
+      - Contract Negotiation
+      description: "Initiates a contract negotiation for a given offer and with the\
+        \ given counter part. Please note that successfully invoking this endpoint\
+        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
+        \ endpoint to track the state"
+      operationId: initiateContractNegotiation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
+      responses:
+        "200":
+          description: The negotiation was successfully initiated. Returns the contract
+            negotiation ID and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          links:
+            poll-state:
+              operationId: getNegotiationState
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /contractnegotiations/request:
+    post:
+      tags:
+      - Contract Negotiation
+      description: Returns all contract negotiations according to a query
+      operationId: queryNegotiations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /contractnegotiations/{id}:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Gets an contract negotiation with the given ID
+      operationId: getNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /contractnegotiations/{id}/agreement:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Gets a contract agreement for a contract negotiation with the given
+        ID
+      operationId: getAgreementForNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "The contract agreement that is attached to the negotiation,\
+            \ or null"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /contractnegotiations/{id}/cancel:
+    post:
+      tags:
+      - Contract Negotiation
+      description: "Requests aborting the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
+      operationId: cancelNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Request to cancel the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /contractnegotiations/{id}/decline:
+    post:
+      tags:
+      - Contract Negotiation
+      description: "Requests cancelling the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
+      operationId: declineNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Request to decline the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /contractnegotiations/{id}/state:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Gets the state of a contract negotiation with the given ID
+      operationId: getNegotiationState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation's state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationState'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
   /contractagreements:
     get:
       tags:
@@ -335,324 +966,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
-  /contractnegotiations:
-    get:
-      tags:
-      - Contract Negotiation
-      description: Returns all contract negotiations according to a query
-      operationId: getNegotiations
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractNegotiationDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    post:
-      tags:
-      - Contract Negotiation
-      description: "Initiates a contract negotiation for a given offer and with the\
-        \ given counter part. Please note that successfully invoking this endpoint\
-        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
-        \ endpoint to track the state"
-      operationId: initiateContractNegotiation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
-      responses:
-        "200":
-          description: The negotiation was successfully initiated. Returns the contract
-            negotiation ID and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-          links:
-            poll-state:
-              operationId: getNegotiationState
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /contractnegotiations/request:
-    post:
-      tags:
-      - Contract Negotiation
-      description: Returns all contract negotiations according to a query
-      operationId: queryNegotiations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractNegotiationDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /contractnegotiations/{id}:
-    get:
-      tags:
-      - Contract Negotiation
-      description: Gets an contract negotiation with the given ID
-      operationId: getNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The contract negotiation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractNegotiationDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /contractnegotiations/{id}/agreement:
-    get:
-      tags:
-      - Contract Negotiation
-      description: Gets a contract agreement for a contract negotiation with the given
-        ID
-      operationId: getAgreementForNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: "The contract agreement that is attached to the negotiation,\
-            \ or null"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractNegotiationDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /contractnegotiations/{id}/cancel:
-    post:
-      tags:
-      - Contract Negotiation
-      description: "Requests aborting the contract negotiation. Due to the asynchronous\
-        \ nature of contract negotiations, a successful response only indicates that\
-        \ the request was successfully received. Clients must poll the /{id}/state\
-        \ endpoint to track the state."
-      operationId: cancelNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Request to cancel the Contract negotiation was successfully
-            received
-          links:
-            poll-state:
-              operationId: getNegotiationState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /contractnegotiations/{id}/decline:
-    post:
-      tags:
-      - Contract Negotiation
-      description: "Requests cancelling the contract negotiation. Due to the asynchronous\
-        \ nature of contract negotiations, a successful response only indicates that\
-        \ the request was successfully received. Clients must poll the /{id}/state\
-        \ endpoint to track the state."
-      operationId: declineNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Request to decline the Contract negotiation was successfully
-            received
-          links:
-            poll-state:
-              operationId: getNegotiationState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /contractnegotiations/{id}/state:
-    get:
-      tags:
-      - Contract Negotiation
-      description: Gets the state of a contract negotiation with the given ID
-      operationId: getNegotiationState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The contract negotiation's state
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NegotiationState'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
   /callback/{processId}/deprovision:
     post:
       tags:
@@ -699,319 +1012,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /check/health:
-    get:
-      tags:
-      - Application Observability
-      description: Performs a liveness probe to determine whether the runtime is working
-        properly.
-      operationId: checkHealth
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
-  /check/liveness:
-    get:
-      tags:
-      - Application Observability
-      description: Performs a liveness probe to determine whether the runtime is working
-        properly.
-      operationId: getLiveness
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
-  /check/readiness:
-    get:
-      tags:
-      - Application Observability
-      description: Performs a readiness probe to determine whether the runtime is
-        able to accept requests.
-      operationId: getReadiness
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
-  /check/startup:
-    get:
-      tags:
-      - Application Observability
-      description: Performs a startup probe to determine whether the runtime has completed
-        startup.
-      operationId: getStartup
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
-  /policydefinitions:
-    get:
-      tags:
-      - Policy
-      description: Returns all policy definitions according to a query
-      operationId: getAllPolicies
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    post:
-      tags:
-      - Policy
-      description: Creates a new policy definition
-      operationId: createPolicy
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PolicyDefinitionRequestDto'
-      responses:
-        "200":
-          description: policy definition was created successfully. Returns the Policy
-            Definition Id and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "409":
-          description: "Could not create policy definition, because a contract definition\
-            \ with that ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /policydefinitions/request:
-    post:
-      tags:
-      - Policy
-      description: Returns all policy definitions according to a query
-      operationId: queryAllPolicies
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /policydefinitions/{id}:
-    get:
-      tags:
-      - Policy
-      description: Gets a policy definition with the given ID
-      operationId: getPolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The  policy definition
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PolicyDefinitionResponseDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An  policy definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-    delete:
-      tags:
-      - Policy
-      description: "Removes a policy definition with the given ID if possible. Deleting\
-        \ a policy definition is only possible if that policy definition is not yet\
-        \ referenced by a contract definition, in which case an error is returned.\
-        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
-        \ do this at your own risk!"
-      operationId: deletePolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Policy definition was deleted successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An policy definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "409":
-          description: "The policy definition cannot be deleted, because it is referenced\
-            \ by a contract definition"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /instances:
-    get:
-      tags:
-      - Dataplane Selector
-      operationId: getAll
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DataPlaneInstance'
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: addEntry
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataPlaneInstance'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /instances/select:
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: find
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelectionRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataPlaneInstance'
   /transferprocess:
     get:
       tags:
