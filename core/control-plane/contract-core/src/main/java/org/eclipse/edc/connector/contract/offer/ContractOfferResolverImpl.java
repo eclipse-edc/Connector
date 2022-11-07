@@ -75,7 +75,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                             .filter(concat(criteria.stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()));
 
                     var querySpec = querySpecBuilder.build();
-                    var numAssets = assetIndex.countAssets(querySpec);
+                    var numAssets = assetIndex.countAssets(querySpec.getFilterExpression());
 
                     querySpecBuilder.limit((int) numAssets);
 

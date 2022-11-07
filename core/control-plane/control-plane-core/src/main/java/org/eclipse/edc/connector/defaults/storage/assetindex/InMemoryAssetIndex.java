@@ -16,12 +16,12 @@ package org.eclipse.edc.connector.defaults.storage.assetindex;
 
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
-import org.eclipse.edc.util.collection.CollectionUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -31,7 +31,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -65,20 +64,10 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
-        // first filter...
-        var expr = querySpec.getFilterExpression();
-        Stream<Asset> result;
-
         lock.readLock().lock();
         try {
-            if (CollectionUtil.isNotEmpty(expr)) {
-                // convert all the criteria into predicates since we're in memory anyway, collate all predicates into one and
-                // apply it to the stream
-                var rootPredicate = expr.stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
-                result = filterByPredicate(cache, rootPredicate);
-            } else {
-                result = cache.values().stream();
-            }
+            // filter
+            var result = filterBy(querySpec.getFilterExpression());
 
             // ... then sort
             var sortField = querySpec.getSortField();
@@ -100,17 +89,26 @@ public class InMemoryAssetIndex implements AssetIndex {
         }
     }
 
+    private Stream<Asset> filterBy(List<Criterion> criteria) {
+        var predicate = criteria.stream()
+                .map(predicateFactory::convert)
+                .reduce(x -> true, Predicate::and);
+
+        return cache.values().stream()
+                .filter(predicate);
+    }
+
     @Override
     public Asset findById(String assetId) {
-        Predicate<Asset> predicate = (asset) -> asset.getId().equals(assetId);
-        List<Asset> assets;
         lock.readLock().lock();
         try {
-            assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
+            return cache.values().stream()
+                    .filter(asset -> asset.getId().equals(assetId))
+                    .findFirst()
+                    .orElse(null);
         } finally {
             lock.readLock().unlock();
         }
-        return assets.isEmpty() ? null : assets.get(0);
     }
 
     @Override
@@ -134,8 +132,8 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public long countAssets(QuerySpec querySpec) {
-        return queryAssets(querySpec.resetRange()).count();
+    public long countAssets(List<Criterion> criteria) {
+        return filterBy(criteria).count();
     }
 
     @Override
@@ -175,9 +173,5 @@ public class InMemoryAssetIndex implements AssetIndex {
         Objects.requireNonNull(id, "asset.getId()");
         cache.put(id, asset);
         dataAddresses.put(id, address);
-    }
-
-    private Stream<Asset> filterByPredicate(Map<String, Asset> assets, Predicate<Asset> predicate) {
-        return assets.values().stream().filter(predicate);
     }
 }

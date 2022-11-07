@@ -102,16 +102,6 @@ public class QuerySpec {
         return sortOrder;
     }
 
-    public QuerySpec resetRange() {
-        return QuerySpec.Builder.newInstance()
-                .limit(Integer.MAX_VALUE)
-                .offset(0)
-                .filter(this.filterExpression)
-                .sortField(this.sortField)
-                .sortOrder(this.sortOrder)
-                .build();
-    }
-
     /**
      * Checks whether any {@link Criterion} contains the given left-hand operand
      */

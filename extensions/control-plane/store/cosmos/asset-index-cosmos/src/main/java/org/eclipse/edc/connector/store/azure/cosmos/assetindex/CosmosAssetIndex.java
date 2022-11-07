@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.store.azure.cosmos.assetindex.model.AssetDocume
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -29,6 +30,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -115,16 +117,9 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public long countAssets(QuerySpec querySpec) {
-        var query = querySpec.resetRange();
+    public long countAssets(List<Criterion> criteria) {
+        var sqlQuery = queryBuilder.from(criteria);
 
-        var sqlQuery = queryBuilder.from(
-                query.getFilterExpression(),
-                query.getSortField(),
-                query.getSortOrder() == SortOrder.ASC,
-                query.getLimit(),
-                query.getOffset()
-        );
         var stmt = sqlQuery.getQueryText().replace("SELECT * ", "SELECT COUNT(1) ");
         sqlQuery.setQueryText(stmt);
         return with(retryPolicy).get(() -> assetDb.queryItems(sqlQuery))

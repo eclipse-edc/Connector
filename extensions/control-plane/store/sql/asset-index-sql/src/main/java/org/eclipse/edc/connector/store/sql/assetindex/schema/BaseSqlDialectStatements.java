@@ -29,7 +29,6 @@ import static java.lang.String.format;
 
 public class BaseSqlDialectStatements implements AssetStatements {
 
-
     @Override
     public String getInsertAssetTemplate() {
         return format("INSERT INTO %s (%s, %s) VALUES (?,?)", getAssetTable(), getAssetIdColumn(), getCreatedAtColumn());
@@ -104,7 +103,8 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        var conditions = querySpec.getFilterExpression().stream().map(SqlConditionExpression::new).collect(Collectors.toList());
+        var criteria = querySpec.getFilterExpression();
+        var conditions = criteria.stream().map(SqlConditionExpression::new).collect(Collectors.toList());
         var results = conditions.stream().map(SqlConditionExpression::isValidExpression).collect(Collectors.toList());
 
         if (results.stream().anyMatch(Result::failed)) {
@@ -114,13 +114,24 @@ public class BaseSqlDialectStatements implements AssetStatements {
         var subSelects = conditions.stream().map(this::toSubSelect).collect(Collectors.toList());
 
         var query = getSelectAssetTemplate() + " " + concatSubSelects(subSelects);
-        var params = conditions.stream().flatMap(SqlConditionExpression::toStatementParameter).collect(Collectors.toList());
-
         var stmt = new SqlQueryStatement(query);
-        params.forEach(stmt::addParameter);
+
+        conditions.stream()
+                .flatMap(SqlConditionExpression::toStatementParameter)
+                .forEach(stmt::addParameter);
+
         stmt.addParameter(querySpec.getLimit());
         stmt.addParameter(querySpec.getOffset());
         return stmt;
+    }
+
+    @Override
+    public SqlQueryStatement createQuery(List<Criterion> criteria) {
+        return createQuery(QuerySpec.Builder.newInstance()
+                .filter(criteria)
+                .offset(0)
+                .limit(Integer.MAX_VALUE)
+                .build());
     }
 
     @Override

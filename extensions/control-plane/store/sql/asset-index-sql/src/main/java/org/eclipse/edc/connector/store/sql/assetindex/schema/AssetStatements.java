@@ -15,8 +15,11 @@
 package org.eclipse.edc.connector.store.sql.assetindex.schema;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
+
+import java.util.List;
 
 /**
  * Defines queries used by the SqlAssetIndexServiceExtension.
@@ -155,6 +158,13 @@ public interface AssetStatements {
      * @return A {@link SqlQueryStatement} that contains the SQL and statement parameters
      */
     SqlQueryStatement createQuery(QuerySpec query);
+
+    /**
+     * Generates a SQL query using sub-select statements out of the criterion.
+     *
+     * @return A {@link SqlQueryStatement} that contains the SQL and statement parameters
+     */
+    SqlQueryStatement createQuery(List<Criterion> query);
 
     /**
      * Select single asset by ID
