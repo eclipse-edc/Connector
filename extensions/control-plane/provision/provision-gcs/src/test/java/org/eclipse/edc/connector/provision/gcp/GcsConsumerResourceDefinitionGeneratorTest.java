@@ -11,13 +11,13 @@
  *    ZF Friedrichshafen AG - Initial API and Implementation
  */
 
-package org.eclipse.dataspaceconnector.gcp.storage.provision;
+package org.eclipse.edc.connector.provision.gcp;
 
-import org.eclipse.dataspaceconnector.gcp.core.storage.GcsStoreSchema;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.gcp.storage.GcsStoreSchema;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
