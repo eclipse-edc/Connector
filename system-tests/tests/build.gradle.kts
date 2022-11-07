@@ -37,10 +37,9 @@ dependencies {
         exclude(group = "io.gatling", module = "gatling-graphite")
     }
 
-    testFixturesApi(project(":extensions:common:junit"))
+    testFixturesApi(project(":core:common:junit"))
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
     testFixturesApi(project(":core:common:util"))
-    testFixturesApi(testFixtures(project(":core:common:util")))
 
     testFixturesApi("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")

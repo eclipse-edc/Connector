@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2022 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -28,7 +28,7 @@ dependencies {
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":core:control-plane:control-plane-api"))

@@ -37,10 +37,9 @@ dependencies {
     testImplementation("net.javacrumbs.json-unit:json-unit:2.36.0")
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(testFixtures(project(":core:common:util")))
 
 }
 

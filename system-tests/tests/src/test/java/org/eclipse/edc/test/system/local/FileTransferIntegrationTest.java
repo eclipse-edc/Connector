@@ -16,9 +16,9 @@
 
 package org.eclipse.edc.test.system.local;
 
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PerformanceTest;
 import org.eclipse.edc.test.system.utils.TransferSimulationUtils;
-import org.eclipse.edc.util.testfixtures.annotations.EndToEndTest;
-import org.eclipse.edc.util.testfixtures.annotations.PerformanceTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;

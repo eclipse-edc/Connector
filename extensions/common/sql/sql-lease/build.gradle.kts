@@ -29,11 +29,10 @@ dependencies {
     implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":extensions:common:sql:sql-core"))
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
-    testImplementation(testFixtures(project(":core:common:util")))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
     testImplementation("org.assertj:assertj-core:${assertj}")
 }

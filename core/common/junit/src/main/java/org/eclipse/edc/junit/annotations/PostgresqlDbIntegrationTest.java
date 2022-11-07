@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.util.testfixtures.annotations;
+package org.eclipse.edc.junit.annotations;
 
 import org.junit.jupiter.api.Tag;
 

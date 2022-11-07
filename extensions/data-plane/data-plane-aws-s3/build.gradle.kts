@@ -30,7 +30,7 @@ dependencies {
 
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(testFixtures(project(":extensions:common:aws:aws-s3-test")))
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

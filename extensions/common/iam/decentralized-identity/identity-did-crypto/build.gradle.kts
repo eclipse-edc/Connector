@@ -7,7 +7,7 @@ dependencies {
     api(project(":spi:common:jwt-spi"))
 
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

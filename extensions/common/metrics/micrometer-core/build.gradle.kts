@@ -27,8 +27,7 @@ dependencies {
 
     testImplementation(project(":extensions:common:api:api-observability"))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
-    testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":core:common:util")))
+    testImplementation(project(":core:common:junit"))
 
     testRuntimeOnly(project(":extensions:common:http:jersey-micrometer"))
     testRuntimeOnly(project(":extensions:common:http:jetty-micrometer"))

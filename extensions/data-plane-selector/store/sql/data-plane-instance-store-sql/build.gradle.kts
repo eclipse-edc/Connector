@@ -11,7 +11,7 @@ dependencies {
     implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":extensions:common:sql:sql-core"))
 
-    testImplementation(testFixtures(project(":core:common:util")))
+    testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:data-plane-selector:data-plane-selector-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 

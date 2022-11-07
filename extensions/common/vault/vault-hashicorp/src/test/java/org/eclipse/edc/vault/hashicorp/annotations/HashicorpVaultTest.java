@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.vault.hashicorp.annotations;
 
-import org.eclipse.edc.util.testfixtures.annotations.IntegrationTest;
+import org.eclipse.edc.junit.annotations.IntegrationTest;
 import org.junit.jupiter.api.Tag;
 
 import java.lang.annotation.ElementType;
@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Composite annotation for HashicorpVault integration testing. It applies specific Junit Tag.
  */
-@Target({ElementType.TYPE})
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @IntegrationTest
 @Tag("HashicorpVaultTest")

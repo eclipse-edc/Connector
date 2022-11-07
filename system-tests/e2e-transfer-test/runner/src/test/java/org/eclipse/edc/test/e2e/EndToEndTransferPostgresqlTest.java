@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.test.e2e;
 
+import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
-import org.eclipse.edc.util.testfixtures.annotations.PostgresqlDbIntegrationTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 

@@ -29,11 +29,11 @@ import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrate
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.connector.dataplane.selector.store.InMemoryDataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.util.testfixtures.annotations.ApiTest;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
 import org.eclipse.edc.web.jetty.JettyConfiguration;

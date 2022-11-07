@@ -34,7 +34,7 @@ dependencies {
 
     implementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 
     // needed by the abstract test spec located in testFixtures
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
