@@ -27,5 +27,5 @@
 > All implementations have to follow existing design principles and architectural patterns that are provided as
 > [Decision Records](decision-records/). Therefore, during implementation, please refer to the dedicated
 > [style guide](../../styleguide.md) and [contribution guidelines](../../CONTRIBUTING.md), and the patterns we
-> documented in [architecture principles](architecture/architecture-principles.md). _Make sure to continuously
+> documented in [architecture principles](architecture/coding-principles.md). _Make sure to continuously
 > check and extend the list._

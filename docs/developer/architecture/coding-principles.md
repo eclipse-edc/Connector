@@ -1,4 +1,4 @@
-# Architecture Key Principles
+# Coding Principles and Style Guide
 
 ## I. Fail-fast and Explicit Configuration
 
@@ -27,26 +27,64 @@
 
 1. Avoid layers of indirection when they are not needed (e.g. "pass-through methods").
 
-### IV. Testing
+### IV. General Coding Style
+
+1. use `var` instead of explicit types (helps with clarity)
+2. avoid `final` in method args and local variables
+3. use `final` in field declarations
+4. avoid `static` fields except in constants or when absolutely necessary. (you should be able to provide a reason).
+5. use `interfaces` as containers for constants
+6. use "minimally required types" (or "smallest possible API"), e.g. use `ObjectMapper` instead of `TypeManager`
+   , or use a `String` instead of a more complex object containing the String, etc.
+7. use either `public` members, which are documented and tested, or `private` members.
+8. avoid package-private members, especially if only needed for testing
+9. avoid `protected` members unless they're intended to be overridden.
+10. use package-private classes if they're not needed outside the package, e.g. implementation classes
+11. avoid using `enum`s for anything other than named integer enumerations.
+12. avoid using static classes as much as possible. Exceptions to this are helper functions and test utils, etc.
+13. avoid any kind of variable prefixes, no underscores, no `m_` for members, etc.
+14. avoid unnecessary `this.` (exception: in builders)
+15. use static imports, as long as it is still clear what's being done. For example,
+    use `of(item1, item2).map(it -> it.someOperation)...` instead of `Stream.of(item1, item2)`, or `format("...",arg1)`
+    instead of `String.format("...", arg1)`. Helps with clarity and readability.
+16. avoid `Optional` as method return type or method argument. Use `null` in signatures.
+17. avoid cryptic variable names, especially in long methods. Instead, try to write them out, at least to a reasonable
+    extent.
+
+### V. Testing
 
 1. All handlers and services should have dedicated unit tests with mocks used for dependencies.
-2. When appropriate, prefer composing services via the constructor so that dependencies can be mocked as opposed to
-   instantiating dependencies directly, see `ProvisionManagerImpl`.
+2. Prefer unit tests over all other test types: unit > integration/component > e2e
+3. When appropriate, prefer composing services via the constructor so that dependencies can be mocked as opposed to
+   instantiating dependencies directly.
+4. Use classes with static test functions to provide common helper methods, e.g. to instantiate an object.
+5. Use `[METHOD]_when[CONDITION]_should[EXPECTATION]` as naming template for test methods,
+   e.g. `verifyInput_whenNull_throwsNpe()` as opposed to `testInputNull()`
 
-### V. Data Objects
+### VI. Data Objects
 
-1. Do not create constructors that take many parameters; instead use the builder pattern. An example
-   is `TransferProcess`.
-2. Note that the motivation behind use of builders is not for immutability (although that may be good in certain
+1. Use the `Builder` pattern when:
+    - there are any number of optional constructor args
+    - there are more than 3 constructor args
+    - the object should be serializable
+    - inheriting from an object that fulfills any of the above. In this case use derived builders as well.
+2. Builders should be named just `Builder` and be static nested classes.
+3. Create a `public static Builder newInstance(){...}` method to instantiate the builder
+4. Builders have non-public constructors
+5. use single-field builders: a `Builder` instantiates the object it builds in its constructor, and sets the properties
+   in its builder methods. The `build()` method then only performs verification (optional) and returns the instance.
+6. use `private` constructors for the objects that the builder builds.
+7. use Jackson annotations on builders only, as opposed to: the object.
+8. Note that the motivation behind use of builders is not for immutability (although that may be good in certain
    circumstances). Rather, it is to make code less error-prone and
    simpler given the lack of named arguments and optional parameters in Java.
 
-### VI. Secrets
+### VII. Secrets
 
 1. Only store secrets in the `Vault` and do not hold them in objects that may be persisted to other stores.
 2. Do not log secrets or sensitive information.
 
-### VII. Extensions and Libraries
+### VIII. Extensions and Libraries
 
 1. Extension modules contribute a feature to the runtime such as a service.
 2. SPI modules define extensibility points in the runtime. There is a core SPI module that defines extensibility for
@@ -58,37 +96,37 @@
 5. An Extension module may only reference other SPI modules and library modules.
 6. A library module may only reference other library modules.
 
-### VIII. Build
+### IX. Build
 
 1. There should only be a root `gradle.properties` that defines dependency versions. Do not create separate
    gradle.properties files in a module.
 2. For external dependencies, do not reference the version directly. Instead, add an entry in `gradle.properties` so
    that it may be synchronized across the codebase.
 
-### IX. Handling Null Return Values
+### X. Handling Null Return Values
 
 1. In certain situations, `null` may need to be returned from a method, passed as a parameter, or set on a field. Only
    use `Optional` if a method is part of a fluent API.
    Since the runtime will rarely require this, the project standard is to use the `org.jetbrains.annotations.Nullable`
    and `org.jetbrains.annotations.NotNull` annotations.
 
-### X. Objects Serialization/Deserialization
+### XI. Objects Serialization/Deserialization
 
 1. `TypeManager` is the component responsible for json ser/des, you can also use the `ObjectMapper` inside it, but there
    should be no other `ObjectMapper` instance.
 
-### XI. Class Naming
+### XII. Class Naming
 
 1. A single implementor of an interface should be named `<interface name>Impl`.
 2. An implementor who are meant to be the default implementation for an interface but other are/can be defined used
    instead.
 
-### XII. Observability
+### XIII. Observability
 
 1. Services are [instrumented for collecting essential metrics](../metrics.md), in particular instances
    of `ExecutorService`.
 
-### XIII. Streams
+### XIV. Streams
 
 1. Always close explicitly `Stream` objects that are returned by a service/store, since they could carry a connection,
    and otherwise it will leak.

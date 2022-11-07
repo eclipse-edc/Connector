@@ -1,7 +1,7 @@
 # Architecture
 
 - [Domain Model](domain-model.md)
-- [Key Principles](architecture-principles.md)
+- [Key Principles](coding-principles.md)
 - [Terminology](terminology.md)
 
 ## Configuration
