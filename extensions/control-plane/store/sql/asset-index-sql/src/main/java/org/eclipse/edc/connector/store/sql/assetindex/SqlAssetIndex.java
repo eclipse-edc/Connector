@@ -174,7 +174,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     @Override
     public long countAssets(QuerySpec querySpec) {
         try (var connection = getConnection()) {
-            var statement = assetStatements.createQuery(querySpec);
+            var statement = assetStatements.createQuery(querySpec.resetRange());
 
             var queryAsString = statement.getQueryAsString().replace("SELECT * ", "SELECT COUNT (*) ");
 

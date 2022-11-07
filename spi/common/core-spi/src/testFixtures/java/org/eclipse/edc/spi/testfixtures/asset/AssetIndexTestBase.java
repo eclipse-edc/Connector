@@ -149,14 +149,30 @@ public abstract class AssetIndexTestBase {
         var assets = range(0, 5).mapToObj(i -> getAsset("id" + i));
         assets.forEach(a -> getAssetIndex().accept(a, getDataAddress()));
 
-        var count = getAssetIndex().countAssets(QuerySpec.none());
+        var query = QuerySpec.none();
+
+        var count = getAssetIndex().countAssets(query);
         assertThat(count).isEqualTo(5);
     }
 
     @Test
     void count_withNoResults() {
-        var count = getAssetIndex().countAssets(QuerySpec.none());
+        var query = QuerySpec.none();
+
+        var count = getAssetIndex().countAssets(query);
+
         assertThat(count).isEqualTo(0);
+    }
+
+    @Test
+    void count_shouldIgnoreLimitAndOffset() {
+        var assets = range(0, 5).mapToObj(i -> getAsset("id" + i));
+        assets.forEach(a -> getAssetIndex().accept(a, getDataAddress()));
+        var query = QuerySpec.Builder.newInstance().offset(1).limit(3).build();
+
+        var count = getAssetIndex().countAssets(query);
+
+        assertThat(count).isEqualTo(5);
     }
 
     @Test

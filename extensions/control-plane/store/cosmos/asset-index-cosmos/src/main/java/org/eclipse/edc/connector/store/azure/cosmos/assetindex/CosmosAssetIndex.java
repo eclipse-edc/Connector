@@ -116,17 +116,19 @@ public class CosmosAssetIndex implements AssetIndex {
 
     @Override
     public long countAssets(QuerySpec querySpec) {
-        var expr = querySpec.getFilterExpression();
+        var query = querySpec.resetRange();
 
-        var sortField = querySpec.getSortField();
-        var limit = querySpec.getLimit();
-        var sortAsc = querySpec.getSortOrder() == SortOrder.ASC;
-
-        var sqlQuery = queryBuilder.from(expr, sortField, sortAsc, limit, querySpec.getOffset());
+        var sqlQuery = queryBuilder.from(
+                query.getFilterExpression(),
+                query.getSortField(),
+                query.getSortOrder() == SortOrder.ASC,
+                query.getLimit(),
+                query.getOffset()
+        );
         var stmt = sqlQuery.getQueryText().replace("SELECT * ", "SELECT COUNT(1) ");
         sqlQuery.setQueryText(stmt);
-        var response = with(retryPolicy).get(() -> assetDb.queryItems(sqlQuery));
-        return response.findFirst().map(o -> extractCount(o)).orElse(0L);
+        return with(retryPolicy).get(() -> assetDb.queryItems(sqlQuery))
+                .findFirst().map(this::extractCount).orElse(0L);
     }
 
     @Override

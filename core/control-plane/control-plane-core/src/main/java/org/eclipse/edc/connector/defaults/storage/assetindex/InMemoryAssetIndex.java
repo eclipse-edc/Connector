@@ -135,7 +135,7 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     @Override
     public long countAssets(QuerySpec querySpec) {
-        return queryAssets(querySpec).count();
+        return queryAssets(querySpec.resetRange()).count();
     }
 
     @Override

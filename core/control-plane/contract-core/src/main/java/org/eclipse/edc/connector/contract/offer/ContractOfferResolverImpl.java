@@ -76,6 +76,8 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                     var querySpec = querySpecBuilder.build();
                     var numAssets = assetIndex.countAssets(querySpec);
 
+                    querySpecBuilder.limit((int) numAssets);
+
                     if (skip.get() > 0) {
                         querySpecBuilder.offset(skip.get());
                     }
