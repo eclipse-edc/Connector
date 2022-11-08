@@ -33,14 +33,15 @@ class Oauth2ProviderResourceDefinitionGenerator implements ProviderResourceDefin
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
-        if (!validator.test(assetAddress)) {
-            return null;
-        }
-
         return Oauth2ResourceDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .transferProcessId(dataRequest.getProcessId())
                 .dataAddress(assetAddress)
                 .build();
+    }
+
+    @Override
+    public boolean canGenerate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
+        return validator.test(assetAddress);
     }
 }
