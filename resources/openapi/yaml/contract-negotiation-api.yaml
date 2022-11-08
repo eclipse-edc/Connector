@@ -11,15 +11,18 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - in: query
         name: limit
         schema:
           type: integer
           format: int32
+          example: null
       - in: query
         name: filter
         schema:
           type: string
+          example: null
       - in: query
         name: sort
         schema:
@@ -27,16 +30,19 @@ paths:
           enum:
           - ASC
           - DESC
+          example: null
       - in: query
         name: sortField
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
         "400":
@@ -44,6 +50,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request was malformed
@@ -78,6 +85,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
@@ -98,6 +106,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
         "400":
@@ -105,6 +114,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request was malformed
@@ -120,6 +130,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
@@ -132,6 +143,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -140,6 +152,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: An contract negotiation with the given ID does not exist
@@ -156,6 +169,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
@@ -169,6 +183,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -177,6 +192,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: An contract negotiation with the given ID does not exist
@@ -195,6 +211,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to cancel the Contract negotiation was successfully
@@ -207,6 +224,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -215,6 +233,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: A contract negotiation with the given ID does not exist
@@ -233,6 +252,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to decline the Contract negotiation was successfully
@@ -245,6 +265,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -253,6 +274,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: A contract negotiation with the given ID does not exist
@@ -268,6 +290,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
@@ -280,6 +303,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -288,6 +312,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: An contract negotiation with the given ID does not exist
@@ -297,55 +322,73 @@ components:
   schemas:
     Action:
       type: object
+      example: null
       properties:
         constraint:
           $ref: '#/components/schemas/Constraint'
         includedIn:
           type: string
+          example: null
         type:
           type: string
+          example: null
     ApiErrorDetail:
       type: object
+      example: null
       properties:
         invalidValue:
           type: string
+          example: null
         message:
           type: string
+          example: null
         path:
           type: string
+          example: null
         type:
           type: string
+          example: null
     Constraint:
       type: object
       discriminator:
         propertyName: edctype
+      example: null
       properties:
         edctype:
           type: string
+          example: null
       required:
       - edctype
     ContractAgreementDto:
       type: object
+      example: null
       properties:
         assetId:
           type: string
+          example: null
         consumerAgentId:
           type: string
+          example: null
         contractEndDate:
           type: integer
           format: int64
+          example: null
         contractSigningDate:
           type: integer
           format: int64
+          example: null
         contractStartDate:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
+          example: null
       required:
       - assetId
       - consumerAgentId
@@ -354,37 +397,50 @@ components:
       - providerAgentId
     ContractNegotiationDto:
       type: object
+      example: null
       properties:
         contractAgreementId:
           type: string
+          example: null
         counterPartyAddress:
           type: string
+          example: null
         createdAt:
           type: integer
           format: int64
+          example: null
         errorDetail:
           type: string
+          example: null
         id:
           type: string
+          example: null
         protocol:
           type: string
+          example: null
         state:
           type: string
+          example: null
         type:
           type: string
           enum:
           - CONSUMER
           - PROVIDER
+          example: null
         updatedAt:
           type: integer
           format: int64
+          example: null
     ContractOfferDescription:
       type: object
+      example: null
       properties:
         assetId:
           type: string
+          example: null
         offerId:
           type: string
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
       required:
@@ -393,56 +449,73 @@ components:
       - policy
     CriterionDto:
       type: object
+      example: null
       properties:
         operandLeft:
           type: object
+          example: null
         operandRight:
           type: object
+          example: null
         operator:
           type: string
+          example: null
       required:
       - operandLeft
       - operator
     Duty:
       type: object
+      example: null
       properties:
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         consequence:
           $ref: '#/components/schemas/Duty'
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         parentPermission:
           $ref: '#/components/schemas/Permission'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
     IdResponseDto:
       type: object
+      example: null
       properties:
         createdAt:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
     NegotiationInitiateRequestDto:
       type: object
+      example: null
       properties:
         connectorAddress:
           type: string
+          example: null
         connectorId:
           type: string
+          example: null
         offer:
           $ref: '#/components/schemas/ContractOfferDescription'
         protocol:
           type: string
+          example: null
       required:
       - connectorAddress
       - connectorId
@@ -450,32 +523,42 @@ components:
       - protocol
     NegotiationState:
       type: object
+      example: null
       properties:
         state:
           type: string
+          example: null
     Permission:
       type: object
+      example: null
       properties:
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         duties:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Duty'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
     Policy:
       type: object
+      example: null
       properties:
         '@type':
           type: string
@@ -483,66 +566,89 @@ components:
           - SET
           - OFFER
           - CONTRACT
+          example: null
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         extensibleProperties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
         inheritsFrom:
           type: string
+          example: null
         obligations:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Duty'
         permissions:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Permission'
         prohibitions:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
+          example: null
     Prohibition:
       type: object
+      example: null
       properties:
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
     QuerySpecDto:
       type: object
+      example: null
       properties:
         filter:
           type: string
+          example: null
         filterExpression:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
         limit:
           type: integer
           format: int32
+          example: null
         offset:
           type: integer
           format: int32
+          example: null
         sortField:
           type: string
+          example: null
         sortOrder:
           type: string
           enum:
           - ASC
           - DESC
+          example: null

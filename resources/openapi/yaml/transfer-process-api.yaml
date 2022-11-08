@@ -11,15 +11,18 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - in: query
         name: limit
         schema:
           type: integer
           format: int32
+          example: null
       - in: query
         name: filter
         schema:
           type: string
+          example: null
       - in: query
         name: sort
         schema:
@@ -27,16 +30,19 @@ paths:
           enum:
           - ASC
           - DESC
+          example: null
       - in: query
         name: sortField
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
         "400":
@@ -44,6 +50,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request was malformed
@@ -77,6 +84,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
@@ -97,6 +105,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
         "400":
@@ -104,6 +113,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request was malformed
@@ -119,6 +129,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
@@ -131,6 +142,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -139,6 +151,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: A transfer process with the given ID does not exist
@@ -157,6 +170,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to cancel the transfer process was successfully received
@@ -168,6 +182,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -176,6 +191,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: A contract negotiation with the given ID does not exist
@@ -195,6 +211,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to deprovision the transfer process was successfully
@@ -207,6 +224,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -215,6 +233,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: A contract negotiation with the given ID does not exist
@@ -230,6 +249,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
@@ -242,6 +262,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
@@ -250,6 +271,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: An  transfer process with the given ID does not exist
@@ -259,129 +281,177 @@ components:
   schemas:
     ApiErrorDetail:
       type: object
+      example: null
       properties:
         invalidValue:
           type: string
+          example: null
         message:
           type: string
+          example: null
         path:
           type: string
+          example: null
         type:
           type: string
+          example: null
     CriterionDto:
       type: object
+      example: null
       properties:
         operandLeft:
           type: object
+          example: null
         operandRight:
           type: object
+          example: null
         operator:
           type: string
+          example: null
       required:
       - operandLeft
       - operator
     DataAddress:
       type: object
+      example: null
       properties:
         properties:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
     DataAddressInformationDto:
       type: object
+      example: null
       properties:
         properties:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
     DataRequestDto:
       type: object
+      example: null
       properties:
         assetId:
           type: string
+          example: null
         connectorId:
           type: string
+          example: null
         contractId:
           type: string
+          example: null
         id:
           type: string
+          example: null
     IdResponseDto:
       type: object
+      example: null
       properties:
         createdAt:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
     QuerySpecDto:
       type: object
+      example: null
       properties:
         filter:
           type: string
+          example: null
         filterExpression:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
         limit:
           type: integer
           format: int32
+          example: null
         offset:
           type: integer
           format: int32
+          example: null
         sortField:
           type: string
+          example: null
         sortOrder:
           type: string
           enum:
           - ASC
           - DESC
+          example: null
     TransferProcessDto:
       type: object
+      example: null
       properties:
         createdAt:
           type: integer
           format: int64
+          example: null
         dataDestination:
           $ref: '#/components/schemas/DataAddressInformationDto'
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
         errorDetail:
           type: string
+          example: null
         id:
           type: string
+          example: null
         state:
           type: string
+          example: null
         stateTimestamp:
           type: integer
           format: int64
+          example: null
         type:
           type: string
+          example: null
         updatedAt:
           type: integer
           format: int64
+          example: null
     TransferRequestDto:
       type: object
+      example: null
       properties:
         assetId:
           type: string
+          example: null
         connectorAddress:
           type: string
+          example: null
         connectorId:
           type: string
+          example: null
         contractId:
           type: string
+          example: null
         dataDestination:
           $ref: '#/components/schemas/DataAddress'
         id:
           type: string
+          example: null
         managedResources:
           type: boolean
+          example: null
         properties:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
         protocol:
           type: string
+          example: null
         transferType:
           $ref: '#/components/schemas/TransferType'
       required:
@@ -394,13 +464,18 @@ components:
       - transferType
     TransferState:
       type: object
+      example: null
       properties:
         state:
           type: string
+          example: null
     TransferType:
       type: object
+      example: null
       properties:
         contentType:
           type: string
+          example: null
         isFinite:
           type: boolean
+          example: null
