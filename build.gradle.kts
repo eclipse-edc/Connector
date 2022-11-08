@@ -21,7 +21,7 @@ plugins {
     jacoco
     signing
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
-    id("org.eclipse.dataspaceconnector.module-names") version "0.0.1-SNAPSHOT"
+    id("org.eclipse.edc.module-names") version "0.0.1-SNAPSHOT"
     id("com.autonomousapps.dependency-analysis") version "1.13.1" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
@@ -117,8 +117,8 @@ buildscript {
         val edcGradlePluginsVersion: String by project
 
         classpath("io.swagger.core.v3:swagger-gradle-plugin:${swagger}")
-        classpath("org.eclipse.dataspaceconnector.autodoc:org.eclipse.dataspaceconnector.autodoc.gradle.plugin:${edcGradlePluginsVersion}")
-        classpath("org.eclipse.dataspaceconnector.test-summary:org.eclipse.dataspaceconnector.test-summary.gradle.plugin:${edcGradlePluginsVersion}")
+        classpath("org.eclipse.edc.autodoc:org.eclipse.edc.autodoc.gradle.plugin:${edcGradlePluginsVersion}")
+        classpath("org.eclipse.edc.test-summary:org.eclipse.edc.test-summary.gradle.plugin:${edcGradlePluginsVersion}")
     }
 }
 
@@ -140,7 +140,7 @@ allprojects {
     apply(plugin = "${groupId}.autodoc")
 
     // configure which version of the annotation processor to use. defaults to the same version as the plugin
-    configure<org.eclipse.dataspaceconnector.plugins.autodoc.AutodocExtension> {
+    configure<org.eclipse.edc.plugins.autodoc.AutodocExtension> {
         processorVersion.set(annotationProcessorVersion)
         outputDirectory.set(project.buildDir)
     }
@@ -257,7 +257,7 @@ allprojects {
             prettyPrint = true
             classpath = java.sourceSets["main"].runtimeClasspath
             buildClasspath = classpath
-            resourcePackages = setOf("org.eclipse.dataspaceconnector")
+            resourcePackages = setOf("org.eclipse.edc")
             outputDir = file("${rootProject.projectDir.path}/resources/openapi/yaml")
         }
         configurations {

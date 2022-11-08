@@ -23,7 +23,7 @@ by consumer or provider).
 ## How to use it
 
 The extension works for all the `HttpData` addresses that contain the "oauth2" properties (defined in 
-[Oauth2DataAddressSchema](src/main/java/org/eclipse/dataspaceconnector/provision/oauth2/Oauth2DataAddressSchema.java)):
+[Oauth2DataAddressSchema](src/main/java/org/eclipse/edc/connector/provision/oauth2/Oauth2DataAddressSchema.java)):
 - `oauth2:clientId`: the client id 
 - `oauth2:clientSecret`: the client secret
 - `oauth2:tokenUrl`: the url where the token will be requested
