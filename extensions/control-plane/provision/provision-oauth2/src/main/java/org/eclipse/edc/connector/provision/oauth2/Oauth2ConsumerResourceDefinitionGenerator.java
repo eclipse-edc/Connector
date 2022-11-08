@@ -34,14 +34,16 @@ public class Oauth2ConsumerResourceDefinitionGenerator implements ConsumerResour
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
         var destination = dataRequest.getDataDestination();
-        if (!validator.test(destination)) {
-            return null;
-        }
 
         return Oauth2ResourceDefinition.Builder.newInstance()
-            .id(UUID.randomUUID().toString())
-            .transferProcessId(dataRequest.getProcessId())
-            .dataAddress(destination)
-            .build();
+                .id(UUID.randomUUID().toString())
+                .transferProcessId(dataRequest.getProcessId())
+                .dataAddress(destination)
+                .build();
+    }
+
+    @Override
+    public boolean canGenerate(DataRequest dataRequest, Policy policy) {
+        return validator.test(dataRequest.getDataDestination());
     }
 }
