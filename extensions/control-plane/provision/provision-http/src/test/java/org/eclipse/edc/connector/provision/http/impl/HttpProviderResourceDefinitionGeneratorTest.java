@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - Addition of new tests
  *
  */
 
@@ -16,14 +17,12 @@ package org.eclipse.edc.connector.provision.http.impl;
 
 
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class HttpProviderResourceDefinitionGeneratorTest {
     private static final String DATA_ADDRESS_TYPE = "test-address";

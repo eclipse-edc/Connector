@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Google LCC - Initial implementation
+ *       ZF Friedrichshafen AG - improvements (refactoring of generate method)
  *
  */
 
