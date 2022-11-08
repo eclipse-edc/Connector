@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.api;
 
-import org.eclipse.edc.api.result.ServiceFailure;
-import org.eclipse.edc.api.result.ServiceResult;
+import org.eclipse.edc.service.spi.result.ServiceFailure;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectExistsException;

@@ -22,7 +22,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:common:catalog-spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:data-management-api:data-management-api-configuration"))
 
@@ -32,6 +32,7 @@ dependencies {
     testImplementation(project(":extensions:common:iam:iam-mock"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 
