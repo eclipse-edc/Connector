@@ -26,29 +26,30 @@
 ## III. Simplicity
 
 1. Avoid layers of indirection when they are not needed (e.g. "pass-through methods").
+2. Avoid needlessly wrapping objects, especially primitive datatypes.
 
 ### IV. General Coding Style
 
-1. use `var` instead of explicit types (helps with clarity)
-2. avoid `final` in method args and local variables
-3. use `final` in field declarations
-4. avoid `static` fields except in constants or when absolutely necessary. (you should be able to provide a reason).
-5. use `interfaces` as containers for constants
-6. use "minimally required types" (or "smallest possible API"), e.g. use `ObjectMapper` instead of `TypeManager`
+1. Use `var` instead of explicit types (helps with clarity)
+2. Avoid `final` in method args and local variables
+3. Use `final` in field declarations
+4. Avoid `static` fields except in constants or when absolutely necessary. (you should be able to provide a reason).
+5. Use interfaces to define shared constants
+6. Use "minimally required types" (or "smallest possible API"), e.g. use `ObjectMapper` instead of `TypeManager`
    , or use a `String` instead of a more complex object containing the String, etc.
-7. use either `public` members, which are documented and tested, or `private` members.
-8. avoid package-private members, especially if only needed for testing
-9. avoid `protected` members unless they're intended to be overridden.
-10. use package-private classes if they're not needed outside the package, e.g. implementation classes
-11. avoid using `enum`s for anything other than named integer enumerations.
-12. avoid using static classes as much as possible. Exceptions to this are helper functions and test utils, etc.
-13. avoid any kind of variable prefixes, no underscores, no `m_` for members, etc.
-14. avoid unnecessary `this.` (exception: in builders)
-15. use static imports, as long as it is still clear what's being done. For example,
+7. Use either `public` members, which are documented and tested, or `private` members.
+8. Avoid package-private members, especially if only needed for testing
+9. Avoid `protected` members unless they're intended to be overridden.
+10. Use package-private classes if they're not needed outside the package, e.g. implementation classes
+11. Avoid using `enum`s for anything other than named integer enumerations.
+12. Avoid using static classes as much as possible. Exceptions to this are helper functions and test utils, etc. as well as static inner classes.
+13. Use only camel case and no prefixes for naming.
+14. Avoid unnecessary `this.` (exception: in builders)
+15. Use static imports, as long as it is still clear what's being done. For example,
     use `of(item1, item2).map(it -> it.someOperation)...` instead of `Stream.of(item1, item2)`, or `format("...",arg1)`
     instead of `String.format("...", arg1)`. Helps with clarity and readability.
-16. avoid `Optional` as method return type or method argument. Use `null` in signatures.
-17. avoid cryptic variable names, especially in long methods. Instead, try to write them out, at least to a reasonable
+16. Avoid `Optional` as method return type or method argument, except when designing a fluent API. Use `null` in signatures.
+17. Avoid cryptic variable names, especially in long methods. Instead, try to write them out, at least to a reasonable
     extent.
 
 ### V. Testing
@@ -66,15 +67,16 @@
 1. Use the `Builder` pattern when:
     - there are any number of optional constructor args
     - there are more than 3 constructor args
-    - the object should be serializable
     - inheriting from an object that fulfills any of the above. In this case use derived builders as well.
+   
+2.    Although serializability is not the reason we use the builder pattern, it is a strong indication that a builder should be used.
 2. Builders should be named just `Builder` and be static nested classes.
 3. Create a `public static Builder newInstance(){...}` method to instantiate the builder
 4. Builders have non-public constructors
-5. use single-field builders: a `Builder` instantiates the object it builds in its constructor, and sets the properties
+5. Use single-field builders: a `Builder` instantiates the object it builds in its constructor, and sets the properties
    in its builder methods. The `build()` method then only performs verification (optional) and returns the instance.
-6. use `private` constructors for the objects that the builder builds.
-7. use Jackson annotations on builders only, as opposed to: the object.
+6. Use `private` constructors for the objects that the builder builds.
+7. If there is a builder for an object, use it to deserialize an object, i.e. put Jackson annotations such as `JsonCreator` and `@JsonBuilder` on builders. 
 8. Note that the motivation behind use of builders is not for immutability (although that may be good in certain
    circumstances). Rather, it is to make code less error-prone and
    simpler given the lack of named arguments and optional parameters in Java.
