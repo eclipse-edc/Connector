@@ -68,6 +68,18 @@ class ResourceManifestGeneratorImplTest {
     }
 
     @Test
+    void shouldGenerateEmptyResourceManifestForNotGeneratedFilter() {
+        var dataRequest = createDataRequest(true);
+        var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        when(consumerGenerator.canGenerate(any(), any())).thenReturn(false);
+
+        var result = generator.generateConsumerResourceManifest(dataRequest, policy);
+
+        assertThat(result.succeeded()).isFalse();
+        verifyNoInteractions(providerGenerator);
+    }
+
+    @Test
     void shouldGenerateEmptyResourceManifestForEmptyConsumerNotManagedTransferProcess() {
         var dataRequest = createDataRequest(false);
 
@@ -103,6 +115,18 @@ class ResourceManifestGeneratorImplTest {
         assertThat(resourceManifest.getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
         verifyNoInteractions(consumerGenerator);
     }
+
+    @Test
+    void shouldGenerateEmptyResourceManifestForProviderTransferProcess() {
+        var process = createDataRequest(false);
+        when(providerGenerator.canGenerate(any(), any(), any())).thenReturn(false);
+
+        var resourceManifest = generator.generateProviderResourceManifest(process, dataAddress, policy);
+
+        assertThat(resourceManifest.getDefinitions()).hasSize(0);
+        verifyNoInteractions(consumerGenerator);
+    }
+
 
     private DataRequest createDataRequest(boolean managedResources) {
         var destination = DataAddress.Builder.newInstance().type("any").build();
