@@ -205,7 +205,6 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         var assets = IntStream.range(0, 10).mapToObj(i -> createAsset("test-asset", "id" + i))
                 .peek(a -> index.accept(a, createDataAddress(a))).collect(Collectors.toList());
 
-
         assertThat(index.queryAssets(QuerySpec.Builder.newInstance().build())).containsAll(assets);
     }
 
@@ -243,7 +242,6 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         var spec = QuerySpec.Builder.newInstance().equalsAsContains(false).filter(Asset.PROPERTY_ID + " = id1").build();
         assertThat(index.queryAssets(spec)).hasSize(1).containsExactly(assets.get(1));
     }
-
 
     @Test
     void findAll_withFiltering_limitExceedsResultSize() {

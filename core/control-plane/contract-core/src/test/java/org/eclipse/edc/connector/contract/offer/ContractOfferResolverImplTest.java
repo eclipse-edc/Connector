@@ -44,7 +44,10 @@ import static java.util.Collections.emptyMap;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
@@ -77,7 +80,7 @@ class ContractOfferResolverImplTest {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
-        when(assetIndex.countAssets(any())).thenReturn(2L);
+        when(assetIndex.countAssets(anyList())).thenReturn(2L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
@@ -111,7 +114,7 @@ class ContractOfferResolverImplTest {
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
-        when(assetIndex.countAssets(any())).thenReturn(100L);
+        when(assetIndex.countAssets(anyList())).thenReturn(100L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> range(20, 50).mapToObj(i -> createAsset("asset" + i).build()));
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
@@ -133,6 +136,26 @@ class ContractOfferResolverImplTest {
         verify(policyStore).findById("contract");
     }
 
+
+    @Test
+    void shouldNotLimitResult_whenAssetsAreLessThanTheRequested() {
+        var contractDefinition = getContractDefBuilder("1").build();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
+        when(assetIndex.countAssets(anyList())).thenReturn(40L);
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> range(20, 50).mapToObj(i -> createAsset("asset" + i).build()));
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+
+        var from = 20;
+        var to = 80;
+
+        var result = contractOfferResolver.queryContractOffers(getQuery(from, to));
+
+        assertThat(result).isNotEmpty();
+        verify(assetIndex, times(1)).queryAssets(and(isA(QuerySpec.class), argThat(it -> it.getLimit() == 40)));
+    }
+
     @Test
     void shouldLimitResult_insufficientAssets() {
         var contractDefinition = range(0, 4).mapToObj(i -> getContractDefBuilder(String.valueOf(i))
@@ -141,7 +164,7 @@ class ContractOfferResolverImplTest {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> range(0, 10).mapToObj(i -> createAsset("asset" + i).build()));
-        when(assetIndex.countAssets(any())).thenReturn(10L);
+        when(assetIndex.countAssets(anyList())).thenReturn(10L);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
         var from = 20;
@@ -164,7 +187,7 @@ class ContractOfferResolverImplTest {
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
-        when(assetIndex.countAssets(any())).thenReturn(10L);
+        when(assetIndex.countAssets(anyList())).thenReturn(10L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> range(0, 10).mapToObj(i -> createAsset("asset" + i).build()));
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
@@ -188,7 +211,7 @@ class ContractOfferResolverImplTest {
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinitions);
-        when(assetIndex.countAssets(any())).thenReturn(1L);
+        when(assetIndex.countAssets(anyList())).thenReturn(1L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(inv -> Stream.of(createAsset("asset").build()));
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
@@ -215,7 +238,7 @@ class ContractOfferResolverImplTest {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
-        when(assetIndex.countAssets(isA(QuerySpec.class))).thenReturn(1000L);
+        when(assetIndex.countAssets(anyList())).thenReturn(1000L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
