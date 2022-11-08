@@ -18,11 +18,13 @@ package org.eclipse.edc.connector.provision.http.impl;
 
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class HttpProviderResourceDefinitionGeneratorTest {
     private static final String DATA_ADDRESS_TYPE = "test-address";
@@ -36,7 +38,7 @@ class HttpProviderResourceDefinitionGeneratorTest {
 
 
     @Test
-    void verifyGeneration() {
+    void generate() {
         var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
         var policy = Policy.Builder.newInstance().build();
 
@@ -49,6 +51,17 @@ class HttpProviderResourceDefinitionGeneratorTest {
         assertThat(objectDef.dataAddressType).isEqualTo("test-address");
         assertThat(objectDef.getTransferProcessId()).isEqualTo("process-id");
         assertThat(objectDef.getAssetId()).isEqualTo("asset-id");
+    }
+
+    @Test
+    void generate_assetIdIsNull() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> generator.generate(dataRequest, assetAddress1, policy));
+
     }
 
     @Test
