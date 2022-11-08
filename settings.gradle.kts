@@ -18,7 +18,7 @@
 rootProject.name = "connector"
 
 // this is needed to have access to snapshot builds of plugins
-// that are used at the root project level, such as "module-names"
+// that are used at the root project level, such as "edc-build"
 pluginManagement {
     repositories {
         maven {
