@@ -52,7 +52,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
 
         assertThat(definition).isInstanceOf(S3BucketResourceDefinition.class);
         var objectDef = (S3BucketResourceDefinition) definition;
-        assertThat(objectDef.getBucketName()).isEqualTo("process-id"); //  ?? S3ConsumerResourceDefinitionGenerator -> line 35: bucketName(dataRequest.getProcessId())
+        assertThat(objectDef.getBucketName()).isEqualTo("test-name");
         assertThat(objectDef.getRegionId()).isEqualTo(Region.US_EAST_1.id());
         assertThat(objectDef.getId()).matches(regexPattern);
     }
