@@ -60,7 +60,7 @@
    instantiating dependencies directly.
 4. Use classes with static test functions to provide common helper methods, e.g. to instantiate an object.
 5. Use `[METHOD]_when[CONDITION]_should[EXPECTATION]` as naming template for test methods,
-   e.g. `verifyInput_whenNull_throwsNpe()` as opposed to `testInputNull()`
+   e.g. `verifyInput_whenNull_shouldThrowNpe()` as opposed to `testInputNull()`
 
 ### VI. Data Objects
 
