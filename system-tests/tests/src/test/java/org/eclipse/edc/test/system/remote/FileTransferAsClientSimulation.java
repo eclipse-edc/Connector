@@ -15,10 +15,7 @@
 package org.eclipse.edc.test.system.remote;
 
 import io.gatling.javaapi.core.Simulation;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.edc.test.system.FileTransferSimulationConfiguration;
-
-import java.util.Objects;
 
 import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.global;
@@ -51,6 +48,11 @@ public class FileTransferAsClientSimulation extends Simulation {
     }
 
     private static String getFromEnv(String env) {
-        return Objects.requireNonNull(StringUtils.trimToNull(System.getenv(env)), env);
+        var val = System.getenv(env);
+        if (val == null || val.trim().isEmpty()) {
+            throw new RuntimeException(env + " must be set.");
+        } else {
+            return val.trim();
+        }
     }
 }
