@@ -65,10 +65,6 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
                 .map(generator -> generator.generate(dataRequest, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
-        if (definitions.size() == 0) {
-            return Result.failure("The list of Resource definitions is empty");
-        }
-
         var manifest = ResourceManifest.Builder.newInstance().definitions(definitions).build();
 
         // Make all definitions available through manifest context

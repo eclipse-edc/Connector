@@ -72,6 +72,7 @@ class ResourceManifestGeneratorImplTest {
         var dataRequest = createDataRequest(true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.canGenerate(any(), any())).thenReturn(false);
+        when(policyEngine.evaluate(any(), any(), any(), any())).thenReturn(Result.failure("A failure"));
 
         var result = generator.generateConsumerResourceManifest(dataRequest, policy);
 
