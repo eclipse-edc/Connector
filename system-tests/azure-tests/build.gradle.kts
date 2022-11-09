@@ -19,13 +19,9 @@ plugins {
     `maven-publish`
 }
 
-val assertj: String by project
-val gatlingVersion: String by project
-val restAssured: String by project
-val storageBlobVersion: String by project
 
 dependencies {
-    testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
+    testImplementation(libs.gatling) {
         exclude(group = "io.gatling", module = "gatling-jms")
         exclude(group = "io.gatling", module = "gatling-jms-java")
         exclude(group = "io.gatling", module = "gatling-mqtt")
@@ -44,9 +40,9 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testFixturesImplementation(testFixtures(project(":system-tests:tests")))
     testFixturesImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
-    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
-    testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-    testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testFixturesImplementation(libs.assertj)
+    testImplementation(libs.azure.storageblob)
+    testFixturesImplementation(libs.restAssured)
 
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))

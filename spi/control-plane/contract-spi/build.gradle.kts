@@ -17,10 +17,6 @@ plugins {
     `java-test-fixtures`
 }
 
-val jupiterVersion: String by project
-val mockitoVersion: String by project
-val assertj: String by project
-
 
 dependencies {
     api(project(":spi:common:core-spi"))
@@ -28,11 +24,10 @@ dependencies {
     api(project(":spi:control-plane:policy-spi"))
 
     // needed by the abstract test spec located in testFixtures
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
-    testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
-    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testFixturesImplementation(libs.bundles.jupiter)
+    testFixturesImplementation(libs.mockito.core)
+    testFixturesImplementation(libs.assertj)
+    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 publishing {

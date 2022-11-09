@@ -15,14 +15,10 @@
 plugins {
     `java-library`
     `maven-publish`
-}
-
-val nimbusVersion: String by project
-
-dependencies {
+} dependencies {
     api(project(":spi:common:jwt-spi"))
 
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    implementation(libs.nimbus.jwt)
 }
 
 publishing {

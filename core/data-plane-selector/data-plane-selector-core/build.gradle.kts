@@ -10,11 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
- */
-
-val mockitoVersion: String by project
-
-plugins {
+ */plugins {
     `java-library`
 }
 

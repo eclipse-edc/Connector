@@ -16,10 +16,6 @@
 plugins {
     `java-library`
 }
-
-val jupiterVersion: String by project
-val rsApi: String by project
-
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
 }

@@ -18,14 +18,8 @@ plugins {
     `java-test-fixtures`
 }
 
-val jupiterVersion: String by project
-val gatlingVersion: String by project
-val openTelemetryVersion: String by project
-val awaitility: String by project
-val httpMockServer: String by project
-
 dependencies {
-    testFixturesApi("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
+    testFixturesApi(libs.gatling) {
         exclude(group = "io.gatling", module = "gatling-jms")
         exclude(group = "io.gatling", module = "gatling-jms-java")
         exclude(group = "io.gatling", module = "gatling-mqtt")
@@ -41,11 +35,11 @@ dependencies {
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
     testFixturesApi(project(":core:common:util"))
 
-    testFixturesApi("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testImplementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
+    testFixturesApi(libs.junit.jupiter.api)
+    testImplementation(libs.opentelemetry.api)
     testImplementation("io.opentelemetry.proto:opentelemetry-proto:0.14.0-alpha")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
+    testImplementation(libs.awaitility)
+    testImplementation(libs.mockserver.netty)
 
     testCompileOnly(project(":system-tests:runtimes:file-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))
@@ -54,7 +48,7 @@ dependencies {
 tasks.withType<Test> {
     val agent = rootDir.resolve("opentelemetry-javaagent.jar")
     if (agent.exists()) {
-        jvmArgs("-javaagent:${agent.absolutePath}", "-Dotel.exporter.otlp.protocol=http/protobuf");
+        jvmArgs("-javaagent:${agent.absolutePath}", "-Dotel.exporter.otlp.protocol=http/protobuf")
     }
 }
 

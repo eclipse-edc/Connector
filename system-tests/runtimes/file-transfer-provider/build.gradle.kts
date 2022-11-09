@@ -11,19 +11,11 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
  *
- */
-
-val openTelemetryVersion: String by project
-
-plugins {
+ */plugins {
     `java-library`
     id("application")
     id("com.github.johnrengelman.shadow") version "7.1.2"
-}
-
-val rsApi: String by project
-
-dependencies {
+} dependencies {
     implementation(project(":core:common:util"))
 
     implementation(project(":core:control-plane:control-plane-core"))
@@ -33,8 +25,8 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.opentelemetry.annotations)
 
     implementation(project(":extensions:common:api:api-observability"))
 

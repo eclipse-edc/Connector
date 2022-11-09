@@ -15,21 +15,13 @@
 plugins {
     java
 }
-
-val assertj: String by project
-val awaitility: String by project
-val jupiterVersion: String by project
-val httpMockServer: String by project
-val restAssured: String by project
-
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.assertj:assertj-core:${assertj}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
-    testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
+    testImplementation(libs.bundles.jupiter)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.assertj)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))

@@ -15,12 +15,6 @@
 plugins {
     `java-library`
 }
-
-val httpMockServer: String by project
-val failsafeVersion: String by project
-val okHttpVersion: String by project
-val openTelemetryVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:transfer-spi"))
@@ -29,12 +23,12 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
 
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.failsafe.core)
+    implementation(libs.okhttp)
+    implementation(libs.opentelemetry.annotations)
 
-    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
-    testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
     testImplementation(project(":core:common:junit"))
 
 }

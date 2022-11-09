@@ -17,17 +17,13 @@ plugins {
     `maven-publish`
 }
 
-val jupiterVersion: String by project
-val slf4jVersion: String by project
-val openTelemetryVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
-    api("org.slf4j:slf4j-api:${slf4jVersion}")
+    api(libs.slf4j.api)
 
-    implementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
+    implementation(libs.opentelemetry.api)
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testImplementation(libs.junit.jupiter.api)
 }
 
 publishing {

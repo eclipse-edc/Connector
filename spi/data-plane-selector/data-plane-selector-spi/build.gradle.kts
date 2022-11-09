@@ -12,10 +12,6 @@
  *
  */
 
-val mockitoVersion: String by project
-val jupiterVersion: String by project
-val assertj: String by project
-
 plugins {
     `java-library`
     `java-test-fixtures`
@@ -26,11 +22,10 @@ dependencies {
 
 
     // needed by the abstract test spec located in testFixtures
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
-    testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
-    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testFixturesImplementation(libs.bundles.jupiter)
+    testFixturesImplementation(libs.mockito.core)
+    testFixturesImplementation(libs.assertj)
+    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 

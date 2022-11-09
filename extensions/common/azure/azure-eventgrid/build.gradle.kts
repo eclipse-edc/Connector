@@ -16,13 +16,11 @@ plugins {
     `java-library`
 }
 
-val eventGridSdkVersion: String by project
-
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":core:common:util"))
 
-    implementation("com.azure:azure-messaging-eventgrid:${eventGridSdkVersion}")
+    implementation(libs.azure.eventgrid)
 }
 
 publishing {

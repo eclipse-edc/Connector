@@ -12,10 +12,6 @@
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
-val infoModelVersion: String by project
-val rsApi: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -27,9 +23,9 @@ dependencies {
     api(project(":data-protocols:ids:ids-transform-v1"))
     implementation(project(":data-protocols:ids:ids-api-configuration"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jersey.multipart)
+    implementation(libs.okhttp)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))

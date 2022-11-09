@@ -11,10 +11,6 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-val awaitility: String by project
-val openTelemetryVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -24,11 +20,11 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     implementation(project(":core:common:state-machine"))
     implementation(project(":core:common:util"))
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.opentelemetry.annotations)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.awaitility)
 }
 
 

@@ -10,11 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
- */
-val jupiterVersion: String by project
-val assertj: String by project
-
-plugins {
+ */plugins {
     `java-library`
     `java-test-fixtures`
 }
@@ -23,9 +19,8 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
-    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
+    testFixturesImplementation(libs.bundles.jupiter)
+    testFixturesImplementation(libs.assertj)
 }
 
 publishing {

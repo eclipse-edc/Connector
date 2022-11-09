@@ -17,14 +17,9 @@ plugins {
     `java-library`
 }
 
-val gatlingVersion: String by project
-val storageBlobVersion: String by project
-val restAssured: String by project
-val azureIdentityVersion: String by project
-val azureKeyVaultVersion: String by project
 
 dependencies {
-    testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
+    testImplementation(libs.gatling) {
         exclude(group = "io.gatling", module = "gatling-jms")
         exclude(group = "io.gatling", module = "gatling-jms-java")
         exclude(group = "io.gatling", module = "gatling-mqtt")
@@ -42,10 +37,10 @@ dependencies {
     testImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":system-tests:azure-tests")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
-    testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("com.azure:azure-identity:${azureIdentityVersion}")
-    testImplementation("com.azure:azure-security-keyvault-secrets:${azureKeyVaultVersion}")
+    testImplementation(libs.azure.storageblob)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.azure.identity)
+    testImplementation(libs.azure.keyvault)
 
     testRuntimeOnly(project(":system-tests:runtimes:azure-data-factory-transfer-provider"))
     testRuntimeOnly(project(":system-tests:runtimes:azure-data-factory-transfer-consumer"))

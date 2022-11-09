@@ -14,15 +14,10 @@
 
 plugins {
     `java-library`
-}
-
-val jettyVersion: String by project
-val micrometerVersion: String by project
-
-dependencies {
-    implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
+} dependencies {
+    implementation(libs.jetty.websocket)
     implementation(project(":extensions:common:http:jetty-core"))
-    api("io.micrometer:micrometer-core:${micrometerVersion}")
+    api(libs.micrometer)
 
     api(project(":spi:common:core-spi"))
 

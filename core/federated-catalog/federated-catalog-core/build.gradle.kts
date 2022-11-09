@@ -15,15 +15,7 @@
 plugins {
     `java-library`
     id("io.swagger.core.v3.swagger-gradle-plugin")
-}
-
-val rsApi: String by project
-val failsafeVersion: String by project
-val okHttpVersion: String by project
-val awaitility: String by project
-
-
-dependencies {
+} dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
     api(project(":spi:federated-catalog:federated-catalog-spi"))
@@ -31,16 +23,16 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":core:common:connector-core"))
 
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(libs.okhttp)
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.failsafe.core)
 
     // required for integration test
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":data-protocols:ids:ids-spi"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.awaitility)
 
 }
 

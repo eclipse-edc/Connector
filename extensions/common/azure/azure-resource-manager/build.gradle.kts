@@ -12,9 +12,6 @@
  *
  */
 
-val azureIdentityVersion: String by project
-val azureResourceManagerVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -22,9 +19,9 @@ plugins {
 dependencies {
     implementation(project(":extensions:common:azure:azure-blob-core"))
     implementation(project(":core:common:util"))
-    implementation("com.azure:azure-identity:${azureIdentityVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
+    implementation(libs.azure.identity)
+    implementation(libs.azure.resourcemanager)
+    implementation(libs.azure.resourcemanager.authorization)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 

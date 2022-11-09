@@ -15,17 +15,7 @@
 plugins {
     `java-library`
     id("io.swagger.core.v3.swagger-gradle-plugin")
-}
-
-
-val restAssured: String by project
-val rsApi: String by project
-val awaitility: String by project
-val jakartaValidationApi: String by project
-val jerseyVersion: String by project
-
-
-dependencies {
+} dependencies {
 
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:control-plane:control-plane-api-client-spi"))
@@ -33,17 +23,17 @@ dependencies {
     api(project(":spi:common:auth-spi"))
 
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("jakarta.validation:jakarta.validation-api:${jakartaValidationApi}")
-    implementation("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jakarta.validation)
+    implementation(libs.jersey.beanvalidation) //for validation
 
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.restAssured)
+    testImplementation(libs.awaitility)
 
 }
 

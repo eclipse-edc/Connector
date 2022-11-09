@@ -16,11 +16,7 @@ plugins {
     `java-library`
     id("application")
     id("com.github.johnrengelman.shadow") version "7.1.2"
-}
-
-val jupiterVersion: String by project
-
-dependencies {
+} dependencies {
 
     implementation(project(":extensions:common:api:api-observability"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))

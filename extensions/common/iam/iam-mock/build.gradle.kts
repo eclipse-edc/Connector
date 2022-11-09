@@ -16,11 +16,9 @@ plugins {
     `java-library`
 }
 
-val jwtVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
-    implementation("com.auth0:java-jwt:${jwtVersion}")
+    implementation("com.auth0:java-jwt:3.13.0")
 }
 
 

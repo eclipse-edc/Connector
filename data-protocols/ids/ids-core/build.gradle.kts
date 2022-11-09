@@ -13,10 +13,6 @@
  *
  */
 
-val infoModelVersion: String by project
-val rsApi: String by project
-val okHttpVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -26,10 +22,10 @@ dependencies {
     api(project(":core:common:util"))
     api(project(":data-protocols:ids:ids-spi"))
 
-    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+    api(libs.fraunhofer.infomodel)
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.okhttp)
     implementation(project(":data-protocols:ids:ids-jsonld-serdes"))
 }
 

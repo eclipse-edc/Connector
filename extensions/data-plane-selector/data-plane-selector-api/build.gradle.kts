@@ -10,18 +10,10 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
- */
-
-val mockitoVersion: String by project
-
-plugins {
+ */plugins {
     `java-library`
     id("io.swagger.core.v3.swagger-gradle-plugin")
 }
-
-val rsApi: String by project
-val okHttpVersion: String by project
-
 
 dependencies {
     api(project(":spi:common:core-spi"))
@@ -29,13 +21,13 @@ dependencies {
     api(project(":extensions:common:configuration:configuration-filesystem"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.jakarta.rsApi)
     implementation(project(":extensions:common:api:api-core")) //for the exception mapper
 
 
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    testImplementation(libs.okhttp)
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
 }

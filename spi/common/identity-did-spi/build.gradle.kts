@@ -2,11 +2,10 @@ plugins {
     `java-library`
 }
 
-val nimbusVersion: String by project
 dependencies {
     api(project(":spi:common:core-spi"))
     // newer Nimbus versions create a version conflict with the MSAL library which uses this version as a transitive dependency
-    api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    api(libs.nimbus.jwt)
 }
 
 publishing {

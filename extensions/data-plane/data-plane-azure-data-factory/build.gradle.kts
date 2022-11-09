@@ -12,12 +12,6 @@
  *
  */
 
-val azureIdentityVersion: String by project
-val azureResourceManagerVersion: String by project
-val awaitility: String by project
-val azureResourceManagerDataFactory: String by project
-val bouncycastleVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -26,12 +20,12 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":extensions:common:azure:azure-blob-core"))
     implementation(project(":core:common:util"))
-    implementation("com.azure:azure-identity:${azureIdentityVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-datafactory:${azureResourceManagerDataFactory}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-storage:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
+    implementation(libs.azure.identity)
+    implementation(libs.azure.resourcemanager.datafactory)
+    implementation(libs.azure.resourcemanager.storage)
+    implementation(libs.azure.resourcemanager.keyvault)
+    implementation(libs.azure.resourcemanager)
+    implementation(libs.azure.resourcemanager.authorization)
 
     testImplementation(project(":extensions:common:configuration:configuration-filesystem"))
     testImplementation(project(":core:data-plane:data-plane-core"))
@@ -40,8 +34,8 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-blob-core")))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation("org.bouncycastle:bcprov-jdk15on:${bouncycastleVersion}")
+    testImplementation(libs.awaitility)
+    testImplementation(libs.bouncyCastle.bcprov)
 }
 
 publishing {

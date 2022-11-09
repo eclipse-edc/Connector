@@ -19,12 +19,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val rsApi: String by project
-val azureIdentityVersion: String by project
-val azureResourceManagerDataFactory: String by project
-val azureResourceManagerVersion: String by project
-
-
 dependencies {
     implementation(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:common:util"))
@@ -43,13 +37,13 @@ dependencies {
     implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":data-protocols:ids"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("com.azure:azure-identity:${azureIdentityVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-datafactory:${azureResourceManagerDataFactory}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-storage:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.azure.identity)
+    implementation(libs.azure.resourcemanager.datafactory)
+    implementation(libs.azure.resourcemanager.storage)
+    implementation(libs.azure.resourcemanager.keyvault)
+    implementation(libs.azure.resourcemanager)
+    implementation(libs.azure.resourcemanager.authorization)
 }
 
 application {

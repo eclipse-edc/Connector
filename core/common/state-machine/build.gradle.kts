@@ -10,11 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
- */
-
-val awaitility: String by project
-
-plugins {
+ */plugins {
     `java-library`
     `java-test-fixtures`
     `maven-publish`
@@ -22,7 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.awaitility)
 
 }
 

@@ -17,24 +17,15 @@ plugins {
     `java-library`
 }
 
-val jettyVersion: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
 
 dependencies {
-    implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
+    implementation(libs.jetty.websocket)
 
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
 
-    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testImplementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}")
-    testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
-    testImplementation("org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVersion}")
-    testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
-    testImplementation("org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:${jerseyVersion}")
+    testImplementation(libs.okhttp)
+    testImplementation(libs.bundles.jersey.core)
     testImplementation(project(":core:common:junit"))
 }
 

@@ -16,10 +16,6 @@ plugins {
     `java-library`
     `maven-publish`
 }
-
-val assertj: String by project
-val postgresVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:contract-spi"))
@@ -31,10 +27,10 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
-    testImplementation("org.assertj:assertj-core:${assertj}")
+    testImplementation(libs.assertj)
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
-    testImplementation("org.postgresql:postgresql:${postgresVersion}")
+    testImplementation(libs.postgres)
 }
 
 publishing {

@@ -16,16 +16,15 @@ plugins {
     `java-library`
 }
 
-val cosmosSdkVersion: String by project
-val failsafeVersion: String by project
-
 dependencies {
     api(project(":core:common:util"))
     api(project(":spi:federated-catalog:federated-catalog-spi"))
     api(project(":extensions:common:azure:azure-cosmos-core"))
 
-    implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(
+        libs.azure.cosmos
+    )
+    implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 }

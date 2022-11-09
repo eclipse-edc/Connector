@@ -17,11 +17,7 @@ plugins {
     `java-library`
     id("application")
     id("com.github.johnrengelman.shadow") version "7.1.2"
-}
-
-val rsApi: String by project
-
-dependencies {
+} dependencies {
     implementation(project(":core:common:util"))
 
     implementation(project(":core:control-plane:control-plane-core"))
@@ -42,7 +38,7 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.jakarta.rsApi)
 }
 
 application {

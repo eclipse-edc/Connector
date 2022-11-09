@@ -17,10 +17,6 @@ plugins {
     `java-library`
 }
 
-repositories {
-    mavenCentral()
-}
-
 val javaVersion: String by project
 val edcScmConnection: String by project
 val edcWebsiteUrl: String by project
@@ -53,6 +49,7 @@ allprojects {
             // override default dependency versions here
             projectVersion.set(actualVersion)
             metaModel.set(metaModelVersion)
+
         }
         pom {
             projectName.set(project.name)

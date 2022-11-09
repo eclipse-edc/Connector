@@ -17,13 +17,6 @@ plugins {
     `java-library`
     `maven-publish`
 }
-
-val awaitility: String by project
-val failsafeVersion: String by project
-val jupiterVersion: String by project
-val okHttpVersion: String by project
-val bouncycastleVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:policy-engine-spi"))
@@ -33,13 +26,13 @@ dependencies {
     implementation(project(":core:common:policy-engine"))
     implementation(project(":core:common:util"))
 
-    api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    api("dev.failsafe:failsafe:${failsafeVersion}")
-    implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
+    api(libs.okhttp)
+    api(libs.failsafe.core)
+    implementation(libs.bouncyCastle.bcpkix)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testImplementation(libs.awaitility)
+    testImplementation(libs.junit.jupiter.api)
 }
 
 publishing {

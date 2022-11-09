@@ -12,10 +12,6 @@
 
  *
  */
-
-val rsApi: String by project
-val restAssured: String by project
-
 plugins {
     `java-library`
     id("io.swagger.core.v3.swagger-gradle-plugin")
@@ -26,14 +22,14 @@ dependencies {
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:management-api:management-api-configuration"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:iam:iam-mock"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testImplementation(libs.restAssured)
 }
 
 publishing {

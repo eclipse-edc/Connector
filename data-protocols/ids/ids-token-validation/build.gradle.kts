@@ -10,11 +10,7 @@
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering
  *
- */
-
-val infoModelVersion: String by project
-
-plugins {
+ */plugins {
     `java-library`
 }
 
@@ -25,7 +21,7 @@ dependencies {
     api(project(":spi:common:oauth2-spi"))
     api(project(":spi:common:jwt-spi"))
 
-    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+    api(libs.fraunhofer.infomodel)
 }
 
 publishing {

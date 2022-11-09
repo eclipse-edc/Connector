@@ -16,11 +16,6 @@ plugins {
     `java-library`
     `maven-publish`
 }
-
-val jupiterVersion: String by project
-val mockitoVersion: String by project
-val okHttpVersion: String by project
-
 dependencies {
     testImplementation("org.junit-pioneer:junit-pioneer:1.8.0")
 }
