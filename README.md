@@ -19,8 +19,8 @@
     <img src="https://img.shields.io/badge/discord-chat-brightgreen.svg?style=flat-square&logo=discord"
     alt="Discord chat" />
   </a>
-  <a href="https://search.maven.org/artifact/org.eclipse.dataspaceconnector/core-boot">
-    <img src="https://img.shields.io/maven-central/v/org.eclipse.dataspaceconnector/core-boot?logo=apache-maven&style=flat-square&label=latest%20version"
+  <a href="https://search.maven.org/artifact/org.eclipse.edc/boot">
+    <img src="https://img.shields.io/maven-central/v/org.eclipse.edc/boot?logo=apache-maven&style=flat-square&label=latest%20version"
     alt="Version" />
   </a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0">
