@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.api.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })

@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
 
+@ApiTest
 @ExtendWith(EdcExtension.class)
 class TransferProcessControlApiControllerIntegrationTest {
 
@@ -101,7 +103,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     }
 
     @Test
-    void callTransferProcessHookWithErrorFailWithNoErrorMessageBody(TransferProcessStore store) {
+    void callTransferProcessHookWithErrorFailWithNoErrorMessageBody() {
         baseRequest()
                 .body("{}")
                 .contentType("application/json")
@@ -112,7 +114,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     }
 
     @Test
-    void callTransferProcessHookWithErrorFailWithNoBody(TransferProcessStore store) {
+    void callTransferProcessHookWithErrorFailWithNoBody() {
         baseRequest()
                 .contentType("application/json")
                 .post("/transferprocess/{processId}/fail", "tp-id")
@@ -121,15 +123,57 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     }
 
+    @Test
+    void callFailTransferProcessHook_notFound() {
+        var rq = TransferProcessFailStateDto.Builder.newInstance()
+                .errorMessage("error")
+                .build();
+        baseRequest()
+                .body(rq)
+                .contentType("application/json")
+                .post("/transferprocess/nonExistingId/fail")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void callCompleteTransferProcessHook_notFound() {
+        baseRequest()
+                .contentType("application/json")
+                .post("/transferprocess/nonExistingId/complete")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void callCompleteTransferProcessHook_invalidState(TransferProcessStore store) {
+
+        store.create(createTransferProcessBuilder().state(ERROR.code()).build());
+
+        var rq = TransferProcessFailStateDto.Builder.newInstance()
+                .errorMessage("error")
+                .build();
+        baseRequest()
+                .body(rq)
+                .contentType("application/json")
+                .post("/transferprocess/{processId}/complete", "tp-id")
+                .then()
+                .statusCode(409);
+    }
+
+
     private TransferProcess createTransferProcess() {
+        return createTransferProcessBuilder().build();
+    }
+
+    private TransferProcess.Builder createTransferProcessBuilder() {
         return TransferProcess.Builder.newInstance()
                 .id("tp-id")
                 .state(TransferProcessStates.IN_PROGRESS.code())
                 .type(TransferProcess.Type.PROVIDER)
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("file")
-                        .build())
-                .build();
+                        .build());
     }
 
     private RequestSpecification baseRequest() {

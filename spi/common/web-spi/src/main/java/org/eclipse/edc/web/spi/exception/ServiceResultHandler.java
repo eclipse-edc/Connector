@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,14 +12,11 @@
  *
  */
 
-package org.eclipse.edc.api;
+package org.eclipse.edc.web.spi.exception;
 
 import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
-import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -27,9 +27,11 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,6 +83,16 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     @Override
     public @NotNull ServiceResult<TransferProcess> cancel(String transferProcessId) {
         return apply(transferProcessId, this::cancelImpl);
+    }
+
+    @Override
+    public @NotNull ServiceResult<TransferProcess> complete(String transferProcessId) {
+        return apply(transferProcessId, this::completeImpl);
+    }
+
+    @Override
+    public @NotNull ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail) {
+        return apply(transferProcessId, failImpl(errorDetail));
     }
 
     @Override
@@ -142,5 +154,37 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         manager.enqueueCommand(new DeprovisionRequest(transferProcess.getId()));
 
         return ServiceResult.success(transferProcess);
+    }
+
+    private ServiceResult<TransferProcess> completeImpl(TransferProcess transferProcess) {
+        // Attempt the transition only to verify that the transition is allowed.
+        // The updated transfer process is not persisted at this point, and is discarded.
+        try {
+            transferProcess.transitionCompleted();
+        } catch (IllegalStateException e) {
+            return ServiceResult.conflict(format("TransferProcess %s cannot be completed as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
+        }
+
+        manager.enqueueCommand(new CompleteTransferCommand(transferProcess.getId()));
+
+        return ServiceResult.success(transferProcess);
+    }
+
+    private Function<TransferProcess, ServiceResult<TransferProcess>> failImpl(String failReason) {
+
+        return (transferProcess) -> {
+            // Attempt the transition only to verify that the transition is allowed.
+            // The updated transfer process is not persisted at this point, and is discarded.
+            try {
+                transferProcess.transitionError(failReason);
+            } catch (IllegalStateException e) {
+                return ServiceResult.conflict(format("Cannot fail TransferProcess %s as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
+            }
+
+            manager.enqueueCommand(new FailTransferCommand(transferProcess.getId(), failReason));
+
+            return ServiceResult.success(transferProcess);
+        };
+
     }
 }
