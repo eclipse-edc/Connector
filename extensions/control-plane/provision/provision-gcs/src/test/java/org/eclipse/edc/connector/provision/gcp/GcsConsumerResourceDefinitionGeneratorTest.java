@@ -21,13 +21,12 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.regex.Pattern;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GcsConsumerResourceDefinitionGeneratorTest {
 
-    private final Pattern regexPattern = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
     private GcsConsumerResourceDefinitionGenerator generator;
 
     @BeforeEach
@@ -37,7 +36,7 @@ public class GcsConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void generate() {
-        DataAddress destination = DataAddress.Builder.newInstance().type(GcsStoreSchema.TYPE)
+        var destination = DataAddress.Builder.newInstance().type(GcsStoreSchema.TYPE)
                 .property(GcsStoreSchema.LOCATION, "test-location")
                 .property(GcsStoreSchema.STORAGE_CLASS, "test-storage-class")
                 .build();
@@ -51,12 +50,12 @@ public class GcsConsumerResourceDefinitionGeneratorTest {
         var objectDef = (GcsResourceDefinition) definition;
         assertThat(objectDef.getLocation()).isEqualTo("test-location");
         assertThat(objectDef.getStorageClass()).isEqualTo("test-storage-class");
-        assertThat(objectDef.getId()).matches(regexPattern);
+        assertThat(objectDef.getId()).satisfies(UUID::fromString);
     }
 
     @Test
     void canGenerate() {
-        DataAddress destination = DataAddress.Builder.newInstance().type(GcsStoreSchema.TYPE)
+        var destination = DataAddress.Builder.newInstance().type(GcsStoreSchema.TYPE)
                 .property(GcsStoreSchema.STORAGE_CLASS, "test-storage-class")
                 .build();
         var asset = Asset.Builder.newInstance().build();
@@ -69,7 +68,7 @@ public class GcsConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void canGenerate_isNotTypeGcsStream() {
-        DataAddress destination = DataAddress.Builder.newInstance().type("aNonGcsStream")
+        var destination = DataAddress.Builder.newInstance().type("aNonGcsStream")
                 .property(GcsStoreSchema.STORAGE_CLASS, "test-storage-class")
                 .build();
         var asset = Asset.Builder.newInstance().build();

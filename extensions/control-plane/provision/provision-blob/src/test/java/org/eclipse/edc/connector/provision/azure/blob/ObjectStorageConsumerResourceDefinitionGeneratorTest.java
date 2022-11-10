@@ -23,13 +23,12 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.regex.Pattern;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ObjectStorageConsumerResourceDefinitionGeneratorTest {
 
-    private final Pattern regexPattern = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
     private ObjectStorageConsumerResourceDefinitionGenerator generator;
 
     @BeforeEach
@@ -39,7 +38,7 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void generate_withContainerName() {
-        DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
+        var destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, "test-container")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
@@ -53,12 +52,12 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
         var objectDef = (ObjectStorageResourceDefinition) definition;
         assertThat(objectDef.getAccountName()).isEqualTo("test-account");
         assertThat(objectDef.getContainerName()).isEqualTo("test-container");
-        assertThat(objectDef.getId()).matches(regexPattern);
+        assertThat(objectDef.getId()).satisfies(UUID::fromString);
     }
 
     @Test
     void generate_withoutContainerName() {
-        DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
+        var destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
         var asset = Asset.Builder.newInstance().build();
@@ -70,14 +69,14 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
         assertThat(definition).isInstanceOf(ObjectStorageResourceDefinition.class);
         var objectDef = (ObjectStorageResourceDefinition) definition;
         assertThat(objectDef.getAccountName()).isEqualTo("test-account");
-        assertThat(objectDef.getContainerName()).matches(regexPattern);
-        assertThat(objectDef.getId()).matches(regexPattern);
+        assertThat(objectDef.getContainerName()).satisfies(UUID::fromString);
+        assertThat(objectDef.getId()).satisfies(UUID::fromString);
     }
 
 
     @Test
     void canGenerate() {
-        DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
+        var destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
         var asset = Asset.Builder.newInstance().build();
@@ -90,7 +89,7 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void canGenerate_isNotTypeAzureBlobStoreSchema() {
-        DataAddress destination = DataAddress.Builder.newInstance().type("aNonGoogleCloudStorage")
+        var destination = DataAddress.Builder.newInstance().type("aNonGoogleCloudStorage")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
         var asset = Asset.Builder.newInstance().build();

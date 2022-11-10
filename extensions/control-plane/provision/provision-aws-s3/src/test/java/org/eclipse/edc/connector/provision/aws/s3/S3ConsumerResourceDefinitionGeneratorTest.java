@@ -22,14 +22,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
 
-import java.util.regex.Pattern;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 public class S3ConsumerResourceDefinitionGeneratorTest {
 
-    private final Pattern regexPattern = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
     private S3ConsumerResourceDefinitionGenerator generator;
 
     @BeforeEach
@@ -40,7 +39,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
     @Test
     void generate() {
 
-        DataAddress destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
+        var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .property(S3BucketSchema.REGION, Region.US_EAST_1.id())
                 .build();
@@ -54,13 +53,13 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
         var objectDef = (S3BucketResourceDefinition) definition;
         assertThat(objectDef.getBucketName()).isEqualTo("test-name");
         assertThat(objectDef.getRegionId()).isEqualTo(Region.US_EAST_1.id());
-        assertThat(objectDef.getId()).matches(regexPattern);
+        assertThat(objectDef.getId()).satisfies(UUID::fromString);
     }
 
     @Test
     void canGenerate() {
 
-        DataAddress destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
+        var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .property(S3BucketSchema.REGION, Region.US_EAST_1.id())
                 .build();
@@ -75,7 +74,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void canGenerateIsNotTypeS3BucketSchema() {
-        DataAddress destination = DataAddress.Builder.newInstance().type("aNonS3BucketSchema")
+        var destination = DataAddress.Builder.newInstance().type("aNonS3BucketSchema")
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .property(S3BucketSchema.REGION, Region.US_EAST_1.id())
                 .build();
