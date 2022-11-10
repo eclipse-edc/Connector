@@ -15,7 +15,9 @@
 
 package org.eclipse.edc.iam.oauth2;
 
+import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
@@ -89,6 +91,9 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
 
+    @Inject
+    private RetryPolicy<Response> retryPolicy;
+
     @Override
     public String name() {
         return NAME;
@@ -115,9 +120,11 @@ public class Oauth2Extension implements ServiceExtension {
         var privateKey = configuration.getPrivateKeyResolver().resolvePrivateKey(privateKeyAlias, PrivateKey.class);
 
         var oauth2Service = new Oauth2ServiceImpl(
+                context.getMonitor(),
                 configuration,
                 new TokenGenerationServiceImpl(privateKey),
                 okHttpClient,
+                retryPolicy,
                 jwtDecoratorRegistry,
                 context.getTypeManager(),
                 new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
