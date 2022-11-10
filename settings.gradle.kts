@@ -165,6 +165,8 @@ include(":samples:04.0-file-transfer:consumer")
 include(":samples:04.0-file-transfer:provider")
 include(":samples:04.0-file-transfer:integration-tests")
 include(":samples:04.0-file-transfer:transfer-file")
+include(":samples:04.0-file-transfer:status-checker")
+
 
 include(":samples:04.1-file-transfer-listener:consumer")
 include(":samples:04.1-file-transfer-listener:file-transfer-listener-integration-tests")

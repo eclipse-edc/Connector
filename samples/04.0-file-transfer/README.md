@@ -20,6 +20,7 @@ Also, in order to keep things organized, the code in this example has been separ
 
 * `[consumer|provider]`: contains the configuration and build files for both the consumer and the provider connector
 * `transfer-file`: contains all the code necessary for the file transfer, integrated on provider side
+* `status-checker`: contains the code for checking if the file has been transfer, integrated on the consumer side
 
 ## Create the file transfer extension
 
@@ -93,6 +94,15 @@ as well as respective factories for both. The factories are registered with the 
 [FileTransferExtension](transfer-file/src/main/java/org/eclipse/edc/sample/extension/api/FileTransferExtension.java),
 thus making them available when a data request is processed.
 
+## Create the status checker extension
+
+The consumer needs to know when the file transfer has been completed. For doing that, in the extension
+we are going to implement a custom `StatusChecker` that will be registered with the `StatusCheckerRegistry` in the
+[SampleStatusCheckerExtension](status-checker/src/main/java/org/eclipse/edc/sample/extension/checker/SampleStatusCheckerExtension.java)
+The custom status checker will handle the check for the destination type `File` and it will check that the path
+specified in the data requests exists. The code is available in the
+class [SampleFileStatusChecker](status-checker/src/main/java/org/eclipse/edc/sample/extension/checker/SampleFileStatusChecker.java)
+
 ## Create the connectors
 
 After creating the required extensions, we next need to create the two connectors. For both of them we need a gradle
@@ -141,6 +151,13 @@ endpoints from the EDC's data management API in this sample and integrated the e
 authentication. Therefore, we add the property `edc.api.auth.key` and set it to e.g. `password`. And last, we also need
 to configure the consumer's webhook address. We expose the IDS API endpoints on a different port and path than other
 endpoints, so the property `ids.webhook.address` is adjusted to match the IDS API port.
+
+The consumer connector also needs the `status-checker` extension for marking the transfer as completed on the consumer
+side.
+
+```kotlin
+implementation(project(":samples:04.0-file-transfer:status-checker"))
+```
 
 ## Run the sample
 
