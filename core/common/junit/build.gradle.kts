@@ -34,7 +34,7 @@ dependencies {
     implementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     runtimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("org.junit-pioneer:junit-pioneer:1.7.1")
+    implementation("org.junit-pioneer:junit-pioneer:1.7.2")
 }
 
 publishing {
