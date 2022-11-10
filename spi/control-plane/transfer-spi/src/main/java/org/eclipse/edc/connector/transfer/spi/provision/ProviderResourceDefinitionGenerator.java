@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 public interface ProviderResourceDefinitionGenerator {
 
     /**
-     * Generates a resource definition. If no resource definition is generated, return null.
+     * Generates a ResourceDefinition. If no resource definition is generated, return null.
      *
      * @param dataRequest  the data request associated with transfer process
      * @param assetAddress the asset data address
@@ -36,7 +36,7 @@ public interface ProviderResourceDefinitionGenerator {
     ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy);
 
     /**
-     * Checks if a data request can be generated based on a policy.
+     * checks if a ResourceDefinition can be generated
      *
      * @param dataRequest  the data request associated with transfer process
      * @param assetAddress the asset data address

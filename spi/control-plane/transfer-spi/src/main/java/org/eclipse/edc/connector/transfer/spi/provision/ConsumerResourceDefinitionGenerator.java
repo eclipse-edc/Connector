@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public interface ConsumerResourceDefinitionGenerator {
 
     /**
-     * Generates a resource definition. If no resource definition is generated, return null.
+     * Generates a ResourceDefinition. If no resource definition is generated, return null.
      *
      * @param dataRequest the data request associated with transfer process
      * @param policy      the contract agreement usage policy for the asset being transferred
@@ -34,7 +34,7 @@ public interface ConsumerResourceDefinitionGenerator {
     ResourceDefinition generate(DataRequest dataRequest, Policy policy);
 
     /**
-     * Checks if a data request can be generated based on a policy.
+     * checks if a ResourceDefinition can be generated
      *
      * @param dataRequest the data request associated with transfer process
      * @param policy      the contract agreement usage policy for the asset being transferred
