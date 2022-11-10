@@ -28,7 +28,6 @@ public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceD
     @Override
     public @Nullable
     ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
-
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
         var location = destination.getProperty(GcsStoreSchema.LOCATION);
