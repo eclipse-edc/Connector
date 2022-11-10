@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import static java.util.UUID.randomUUID;
 
 public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceDefinitionGenerator {
+
     @Override
     public @Nullable
     ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
@@ -40,6 +41,5 @@ public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceD
     @Override
     public boolean canGenerate(DataRequest dataRequest, Policy policy) {
         return GcsStoreSchema.TYPE.equals(dataRequest.getDestinationType());
-
     }
 }

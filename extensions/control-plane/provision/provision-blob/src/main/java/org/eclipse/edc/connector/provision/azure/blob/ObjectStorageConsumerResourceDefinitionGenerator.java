@@ -28,11 +28,11 @@ public class ObjectStorageConsumerResourceDefinitionGenerator implements Consume
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
-
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
         var account = destination.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME);
         var container = destination.getProperty(AzureBlobStoreSchema.CONTAINER_NAME);
+
         if (container == null) {
             container = randomUUID().toString();
         }

@@ -39,8 +39,8 @@ public class HttpProviderResourceDefinitionGenerator implements ProviderResource
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
-
         var assetId = dataRequest.getAssetId();
+
         if (assetId == null) {
             // programming error
             throw new EdcException("Asset id was null for request: " + dataRequest.getId());

@@ -30,9 +30,9 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
 
     @Override
     public ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
-
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
+
         return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(S3BucketSchema.BUCKET_NAME)).regionId(destination.getProperty(S3BucketSchema.REGION)).build();
     }
 
@@ -41,5 +41,3 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
         return S3BucketSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 }
-
-
