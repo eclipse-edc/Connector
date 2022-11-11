@@ -35,6 +35,9 @@ dependencies {
     implementation(project(":extensions:control-plane:api:data-management-api"))
 
     implementation(project(":data-protocols:ids"))
+
+    implementation(project(":samples:04.0-file-transfer:status-checker"))
+
 }
 
 application {
