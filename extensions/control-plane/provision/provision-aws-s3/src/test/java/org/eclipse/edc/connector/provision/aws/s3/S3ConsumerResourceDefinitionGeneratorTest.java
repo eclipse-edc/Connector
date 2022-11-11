@@ -25,6 +25,7 @@ import software.amazon.awssdk.regions.Region;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 
 public class S3ConsumerResourceDefinitionGeneratorTest {
@@ -73,6 +74,19 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
         assertThat(objectDef.getBucketName()).isEqualTo("test-name");
         assertThat(objectDef.getRegionId()).isEqualTo(Region.US_EAST_1.id());
         assertThat(objectDef.getId()).satisfies(UUID::fromString);
+    }
+
+    @Test
+    void generate_noBucketNameSpecified() {
+
+        var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
+                .property(S3BucketSchema.REGION, Region.EU_WEST_2.id())
+                .build();
+        var asset = Asset.Builder.newInstance().build();
+        var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dr, policy));
     }
 
     @Test
