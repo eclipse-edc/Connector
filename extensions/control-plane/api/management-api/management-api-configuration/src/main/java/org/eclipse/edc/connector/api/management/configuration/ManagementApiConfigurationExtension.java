@@ -38,17 +38,19 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Management API configuration";
 
-    public static final String DEPRECATED_MANAGEMENT_SETTINGS_GROUP_SUFFIX = "data";
-    public static final String DATA_MANAGEMENT_CONTEXT_ALIAS = "management";
-    public static final int DEFAULT_DATA_MANAGEMENT_API_PORT = 8181;
-    public static final String DEPRECATED_DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH = "/api";
-    public static final String DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH = "/api/v1/management";
+    private static final String DEPRECATED_MANAGEMENT_SETTINGS_GROUP_SUFFIX = "data";
+    private static final String DATA_MANAGEMENT_CONTEXT_ALIAS = "management";
+    private static final int DEFAULT_DATA_MANAGEMENT_API_PORT = 8181;
+    private static final String DEPRECATED_DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH = "/api";
+    private static final String DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH = "/api/v1/management";
 
     public static final String WEB_SERVICE_NAME = "Management API";
 
     /**
      * This is used to permit a softer transition from the deprecated `web.http.data` config group to the current
      * `web.http.management`
+     *
+     * @deprecated "web.http.management" config should be used instead of "web.http.data"
      */
     @Deprecated(since = "milestone8")
     public static final WebServiceSettings DEPRECATED_SETTINGS = WebServiceSettings.Builder.newInstance()
