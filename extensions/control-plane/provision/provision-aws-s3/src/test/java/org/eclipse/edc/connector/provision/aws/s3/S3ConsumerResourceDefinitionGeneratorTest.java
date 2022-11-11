@@ -41,7 +41,26 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
 
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
-                .property(S3BucketSchema.REGION, Region.US_EAST_1.id())
+                .property(S3BucketSchema.REGION, Region.EU_WEST_2.id())
+                .build();
+        var asset = Asset.Builder.newInstance().build();
+        var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var definition = generator.generate(dr, policy);
+
+        assertThat(definition).isInstanceOf(S3BucketResourceDefinition.class);
+        var objectDef = (S3BucketResourceDefinition) definition;
+        assertThat(objectDef.getBucketName()).isEqualTo("test-name");
+        assertThat(objectDef.getRegionId()).isEqualTo(Region.EU_WEST_2.id());
+        assertThat(objectDef.getId()).satisfies(UUID::fromString);
+    }
+
+    @Test
+    void generate_noRegionSpecified() {
+
+        var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
+                .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .build();
         var asset = Asset.Builder.newInstance().build();
         var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).processId("process-id").build();
