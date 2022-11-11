@@ -22,6 +22,8 @@ import org.eclipse.edc.gcp.storage.GcsStoreSchema;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 import static java.util.UUID.randomUUID;
 
 public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceDefinitionGenerator {
@@ -29,6 +31,9 @@ public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceD
     @Override
     public @Nullable
     ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
+        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
+        Objects.requireNonNull(policy, "policy must always be provided");
+
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
         var location = destination.getProperty(GcsStoreSchema.LOCATION);
@@ -40,6 +45,9 @@ public class GcsConsumerResourceDefinitionGenerator implements ConsumerResourceD
 
     @Override
     public boolean canGenerate(DataRequest dataRequest, Policy policy) {
+        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
+        Objects.requireNonNull(policy, "policy must always be provided");
+
         return GcsStoreSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 }
