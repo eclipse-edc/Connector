@@ -19,6 +19,3 @@ _Are there any requirements?_
 
 ## Solution Proposal
 _If possible, provide a (brief!) solution proposal._
-
-## Type of Issue
-_i.e., new feature, improvement, cleanup, etc._
