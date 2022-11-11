@@ -22,6 +22,8 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import software.amazon.awssdk.regions.Region;
 
+import java.util.Objects;
+
 import static java.util.UUID.randomUUID;
 
 /**
@@ -31,6 +33,9 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
 
     @Override
     public ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
+        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
+        Objects.requireNonNull(policy, "policy must always be provided");
+
         if (dataRequest.getDataDestination().getProperty(S3BucketSchema.REGION) == null) {
             // FIXME generate region from policy engine
             return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(dataRequest.getDataDestination().getProperty(S3BucketSchema.BUCKET_NAME)).regionId(Region.US_EAST_1.id()).build();
@@ -43,6 +48,9 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
 
     @Override
     public boolean canGenerate(DataRequest dataRequest, Policy policy) {
+        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
+        Objects.requireNonNull(policy, "policy must always be provided");
+
         return S3BucketSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 }
