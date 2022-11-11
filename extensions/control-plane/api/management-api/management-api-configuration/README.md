@@ -1,6 +1,6 @@
-# DataManagement API Configuration
+# Management API Configuration
 
-This module provides central configuration for all DataManagement APIs, i.e. the `DataManagementApiConfiguration`, which
+This module provides central configuration for all Management APIs, i.e. the `ManagementApiConfiguration`, which
 currently only contains the context alias, which all the Management API controllers should be registered under.
 
 Further, this module registers an `AuthenticationRequestFilter` and an `EdcApiExceptionMapper` in the same context.
@@ -25,5 +25,5 @@ fire for EVERY request on that context including IDS communication._
 
 ## Authentication
 
-If you want to secure the DataManagement API, you need to provide a module which implements the `AuthenticationService`
+If you want to secure the Management API, you need to provide a module which implements the `AuthenticationService`
 interface (e.g. `:extensions:common:auth:auth-tokenbased` or `:extensions:common:auth:auth-basic`).

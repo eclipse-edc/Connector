@@ -11,4 +11,4 @@
 #   ZF Friedrichshafen AG - Initial API and Implementation
 #
 
-org.eclipse.edc.connector.api.datamanagement.contractnegotiation.ContractNegotiationApiExtension
+org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApiExtension

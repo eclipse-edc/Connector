@@ -1,6 +1,6 @@
-# DataManagement API
+# Management API
 
-This group of modules provides the DataManagement API. With this API you can manage different things of the connector.
+This group of modules provides the Management API. With this API you can manage different things of the connector.
 
 ## Authentication
 

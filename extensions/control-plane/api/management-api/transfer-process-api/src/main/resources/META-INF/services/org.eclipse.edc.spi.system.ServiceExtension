@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.api.datamanagement.transferprocess.TransferProcessApiExtension
+org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApiExtension

@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.api.datamanagement.contractagreement.ContractAgreementApiExtension
+org.eclipse.edc.connector.api.management.contractagreement.ContractAgreementApiExtension
