@@ -47,8 +47,8 @@ public abstract class FileTransferEdcRuntime {
             Map.of(
                     "web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT),
                     "web.http.path", CONSUMER_CONNECTOR_PATH,
-                    "web.http.data.port", String.valueOf(CONSUMER_MANAGEMENT_PORT),
-                    "web.http.data.path", CONSUMER_MANAGEMENT_PATH,
+                    "web.http.management.port", String.valueOf(CONSUMER_MANAGEMENT_PORT),
+                    "web.http.management.path", CONSUMER_MANAGEMENT_PATH,
                     "web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT),
                     "web.http.ids.path", IDS_PATH,
                     "ids.webhook.address", CONSUMER_IDS_API));
@@ -61,8 +61,8 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT),
                     "edc.test.asset.path", PROVIDER_ASSET_PATH,
                     "web.http.path", PROVIDER_CONNECTOR_PATH,
-                    "web.http.data.port", String.valueOf(PROVIDER_MANAGEMENT_PORT),
-                    "web.http.data.path", PROVIDER_MANAGEMENT_PATH,
+                    "web.http.management.port", String.valueOf(PROVIDER_MANAGEMENT_PORT),
+                    "web.http.management.path", PROVIDER_MANAGEMENT_PATH,
                     "web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT),
                     "web.http.ids.path", IDS_PATH,
                     "edc.samples.04.asset.path", PROVIDER_ASSET_PATH,

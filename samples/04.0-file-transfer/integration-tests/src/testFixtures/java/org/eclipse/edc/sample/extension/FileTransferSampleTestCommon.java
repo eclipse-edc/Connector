@@ -43,9 +43,9 @@ public class FileTransferSampleTestCommon {
     static final ObjectMapper MAPPER = new ObjectMapper();
 
     //region constant test settings
-    static final String INITIATE_CONTRACT_NEGOTIATION_URI = "http://localhost:9192/api/v1/data/contractnegotiations";
-    static final String LOOK_UP_CONTRACT_AGREEMENT_URI = "http://localhost:9192/api/v1/data/contractnegotiations/{id}";
-    static final String TRANSFER_PROCESS_URI = "http://localhost:9192/api/v1/data/transferprocess";
+    static final String INITIATE_CONTRACT_NEGOTIATION_URI = "http://localhost:9192/api/v1/management/contractnegotiations";
+    static final String LOOK_UP_CONTRACT_AGREEMENT_URI = "http://localhost:9192/api/v1/management/contractnegotiations/{id}";
+    static final String TRANSFER_PROCESS_URI = "http://localhost:9192/api/v1/management/transferprocess";
     static final String CONTRACT_OFFER_FILE_PATH = "samples/04.0-file-transfer/contractoffer.json";
     static final String TRANSFER_FILE_PATH = "samples/04.0-file-transfer/filetransfer.json";
     static final String API_KEY_HEADER_KEY = "X-Api-Key";
@@ -114,7 +114,7 @@ public class FileTransferSampleTestCommon {
 
     /**
      * Assert that a POST request to initiate a contract negotiation is successful.
-     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"}
+     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/management/contractnegotiations"}
      */
     void initiateContractNegotiation() {
         contractNegotiationId = RestAssured
@@ -149,7 +149,7 @@ public class FileTransferSampleTestCommon {
 
     /**
      * Assert that a GET request to look up a contract agreement is successful.
-     * This method corresponds to the command in the sample: {@code curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"}
+     * This method corresponds to the command in the sample: {@code curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/management/contractnegotiations/{UUID}"}
      */
     void lookUpContractAgreementId() {
         // Wait for transfer to be completed.
@@ -170,7 +170,7 @@ public class FileTransferSampleTestCommon {
 
     /**
      * Assert that a POST request to initiate transfer process is successful.
-     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"}
+     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/management/transferprocess"}
      *
      * @throws IOException Thrown if there was an error accessing the transfer request file defined in {@link FileTransferSampleTestCommon#TRANSFER_FILE_PATH}.
      */

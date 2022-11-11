@@ -189,7 +189,7 @@ provider's contract offer.
 of the header has to match the value of the `edc.api.auth.key` property in the consumer's `config.properties`.
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/management/contractnegotiations"
 ```
 
 In the response we'll get a UUID that we can use to get the contract agreement negotiated between provider and consumer.
@@ -210,7 +210,7 @@ of the negotiation using an endpoint on the consumer side. Again, we use the `X-
 that's set in our consumer's `config.properties`.
 
 ```bash
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/management/contractnegotiations/{UUID}"
 ```
 
 This will return information about the negotiation, which contains e.g. the current state of the negotiation and, if the
@@ -249,7 +249,7 @@ the request, insert the contract agreement ID from the previous step and adjust 
 transfer. Then run:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/management/transferprocess"
 ```
 
 Again, we will get a UUID in the response. This time, this is the ID of the `TransferProcess` created on the consumer

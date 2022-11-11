@@ -19,6 +19,8 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:api:api-core"))
+
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

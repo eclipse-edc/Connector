@@ -10,8 +10,8 @@ Further, this module registers an `AuthenticationRequestFilter` and an `EdcApiEx
 Exemplary configuration:
 
 ```properties
-web.http.data.port=9191
-web.http.data.path=/api/v1/data
+web.http.management.port=9191
+web.http.management.path=/api/v1/management
 web.http.port=8181
 web.http.path=/api
 ```
@@ -19,7 +19,7 @@ web.http.path=/api
 Please note that since a specific context is registered (here: `data`), then the default one **must** be registered
 explicitly!
 
-_Caution: failing to provide a `web.http.data.port` and `web.http.data.path` configuration will cause
+_Caution: failing to provide a `web.http.management.port` and `web.http.management.path` configuration will cause
 the `AuthenticationRequestFilter` and `EdcApiExceptionMapper` to be registered in the _default_ context causing it to
 fire for EVERY request on that context including IDS communication._
 

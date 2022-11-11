@@ -26,19 +26,48 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
+import static java.lang.String.format;
+
+/**
+ * Tells all the Management API controllers under which context alias they need to register their resources: either `default` or `management`
+ *
+ */
 @Provides(ManagementApiConfiguration.class)
 @Extension(value = ManagementApiConfigurationExtension.NAME)
 public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Management API configuration";
 
-    public static final String DATA_MANAGEMENT_API_CONFIG = "web.http.data";
-    public static final String DATA_MANAGEMENT_CONTEXT_ALIAS = "data";
+    public static final String DEPRECATED_MANAGEMENT_SETTINGS_GROUP_SUFFIX = "data";
+    public static final String DATA_MANAGEMENT_CONTEXT_ALIAS = "management";
     public static final int DEFAULT_DATA_MANAGEMENT_API_PORT = 8181;
-    public static final String DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH = "/api";
+    public static final String DEPRECATED_DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH = "/api";
+    public static final String DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH = "/api/v1/management";
 
-    public static final String WEB_SERVICE_NAME = "Data Management API";
+    public static final String WEB_SERVICE_NAME = "Management API";
 
+    /**
+     * This is used to permit a softer transition from the deprecated `web.http.data` config group to the current
+     * `web.http.management`
+     */
+    @Deprecated(since = "milestone8")
+    public static final WebServiceSettings DEPRECATED_SETTINGS = WebServiceSettings.Builder.newInstance()
+            .apiConfigKey("web.http." + DEPRECATED_MANAGEMENT_SETTINGS_GROUP_SUFFIX)
+            .contextAlias(DATA_MANAGEMENT_CONTEXT_ALIAS)
+            .defaultPath(DEPRECATED_DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH)
+            .defaultPort(DEFAULT_DATA_MANAGEMENT_API_PORT)
+            .useDefaultContext(true)
+            .name(WEB_SERVICE_NAME)
+            .build();
+
+    public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
+            .apiConfigKey("web.http." + DATA_MANAGEMENT_CONTEXT_ALIAS)
+            .contextAlias(DATA_MANAGEMENT_CONTEXT_ALIAS)
+            .defaultPath(DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH)
+            .defaultPort(DEFAULT_DATA_MANAGEMENT_API_PORT)
+            .useDefaultContext(true)
+            .name(WEB_SERVICE_NAME)
+            .build();
 
     @Inject
     private WebService webService;
@@ -59,20 +88,20 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var settings = WebServiceSettings.Builder.newInstance()
-                .apiConfigKey(DATA_MANAGEMENT_API_CONFIG)
-                .contextAlias(DATA_MANAGEMENT_CONTEXT_ALIAS)
-                .defaultPath(DEFAULT_DATA_MANAGEMENT_API_CONTEXT_PATH)
-                .defaultPort(DEFAULT_DATA_MANAGEMENT_API_PORT)
-                .useDefaultContext(true)
-                .name(WEB_SERVICE_NAME)
-                .build();
+        WebServiceSettings settings;
+        var config = context.getConfig();
+        if (config.hasPath(DEPRECATED_SETTINGS.apiConfigKey()) && !config.hasPath(SETTINGS.apiConfigKey())) {
+            settings = DEPRECATED_SETTINGS;
+            context.getMonitor().warning(
+                    format("Deprecated settings group %s is being used for Management API configuration, please switch to the new group %s",
+                            DEPRECATED_SETTINGS.apiConfigKey(), SETTINGS.apiConfigKey()));
+        } else {
+            settings = SETTINGS;
+        }
 
-        var config = configurator.configure(context, webServer, settings);
+        var webServiceConfiguration = configurator.configure(context, webServer, settings);
 
-        // the DataManagementApiConfiguration tells all DataManagementApi controllers under which context alias
-        // they need to register their resources: either `default` or `data`
-        context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(config.getContextAlias()));
-        webService.registerResource(config.getContextAlias(), new AuthenticationRequestFilter(authenticationService));
+        context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration.getContextAlias()));
+        webService.registerResource(webServiceConfiguration.getContextAlias(), new AuthenticationRequestFilter(authenticationService));
     }
 }

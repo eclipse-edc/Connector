@@ -35,7 +35,7 @@ public abstract class TransferLocalSimulation extends Simulation {
     public static final int CONSUMER_CONNECTOR_PORT = getFreePort();
     public static final int CONSUMER_MANAGEMENT_PORT = getFreePort();
     public static final String CONSUMER_CONNECTOR_PATH = "/api";
-    public static final String CONSUMER_MANAGEMENT_PATH = "/api/v1/data";
+    public static final String CONSUMER_MANAGEMENT_PATH = "/api/v1/management";
     public static final String CONSUMER_CONNECTOR_MANAGEMENT_URL = "http://localhost:" + CONSUMER_MANAGEMENT_PORT;
     public static final int CONSUMER_IDS_API_PORT = getFreePort();
     public static final String CONSUMER_IDS_API = "http://localhost:" + CONSUMER_IDS_API_PORT;
@@ -43,7 +43,7 @@ public abstract class TransferLocalSimulation extends Simulation {
     public static final int PROVIDER_CONNECTOR_PORT = getFreePort();
     public static final int PROVIDER_MANAGEMENT_PORT = getFreePort();
     public static final String PROVIDER_CONNECTOR_PATH = "/api";
-    public static final String PROVIDER_MANAGEMENT_PATH = "/api/v1/data";
+    public static final String PROVIDER_MANAGEMENT_PATH = "/api/v1/management";
     public static final String PROVIDER_CONNECTOR_MANAGEMENT_URL = "http://localhost:" + PROVIDER_MANAGEMENT_PORT;
     public static final int PROVIDER_IDS_API_PORT = getFreePort();
     public static final String PROVIDER_IDS_API = "http://localhost:" + PROVIDER_IDS_API_PORT;

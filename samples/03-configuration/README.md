@@ -166,8 +166,8 @@ exposed on a separate jetty context. Therefore, it is necessary to provide the f
 ```properties
 web.http.port=9191
 web.http.path=/api
-web.http.data.port=9192
-web.http.data.path=/api/v1/data
+web.http.management.port=9192
+web.http.management.path=/api/v1/management
 ```
 
 _**Caution**: If you do not provide this configuration, it leads to the problem that the authentication mechanism is

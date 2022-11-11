@@ -74,8 +74,8 @@ public class CatalogApiControllerIntegrationTest {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
-                "web.http.data.port", String.valueOf(port),
-                "web.http.data.path", "/api/v1/data",
+                "web.http.management.port", String.valueOf(port),
+                "web.http.management.path", "/api/v1/management",
                 "edc.api.auth.key", authKey
         ));
 
@@ -249,7 +249,7 @@ public class CatalogApiControllerIntegrationTest {
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
-                .basePath("/api/v1/data")
+                .basePath("/api/v1/management")
                 .header("x-api-key", authKey)
                 .when();
     }

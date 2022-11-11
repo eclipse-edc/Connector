@@ -333,4 +333,22 @@ class ConfigImplTest {
         ConfigImpl config = new ConfigImpl(Map.of("SOME_GROUP", "value", "some.group", "value2"));
         assertThat(config.getEntries()).hasSize(1);
     }
+
+    @Test
+    void hasPath_returnsTrueIfPathExists() {
+        var config = new ConfigImpl(Map.of("example.path.key", "val", "example.path.otherkey", "val"));
+
+        boolean hasPath = config.hasPath("example.path");
+
+        assertThat(hasPath).isTrue();
+    }
+
+    @Test
+    void hasPath_returnsFalseIfPathDoesNotExist() {
+        var config = new ConfigImpl(Map.of("example.path.key", "val", "example.path.otherkey", "val"));
+
+        boolean hasPath = config.hasPath("example.another.path");
+
+        assertThat(hasPath).isFalse();
+    }
 }
