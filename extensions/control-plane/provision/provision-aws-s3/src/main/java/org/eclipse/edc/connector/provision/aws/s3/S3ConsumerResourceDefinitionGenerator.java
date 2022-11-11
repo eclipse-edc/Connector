@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ConsumerResourceDefiniti
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.policy.model.Policy;
+import software.amazon.awssdk.regions.Region;
 
 import static java.util.UUID.randomUUID;
 
@@ -30,6 +31,11 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
 
     @Override
     public ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
+        if (dataRequest.getDestinationType() != null) {
+            // FIXME generate region from policy engine
+
+            return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(dataRequest.getProcessId()).regionId(Region.US_EAST_1.id()).build();
+        }
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
 
