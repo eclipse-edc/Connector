@@ -45,8 +45,8 @@ dependencies {
     // a test implementation of the `IdentityService`
     implementation("org.eclipse.edc:iam-mock:${edcVersion}")
 
-    // data management api, will permit to manage the connector through a REST interface
-    implementation("org.eclipse.edc:data-management-api:${edcVersion}")
+    // management api, will permit to manage the connector through a REST interface
+    implementation("org.eclipse.edc:management-api:${edcVersion}")
 
     // the core data-plane module set
     implementation("org.eclipse.edc:data-plane-core:${edcVersion}")

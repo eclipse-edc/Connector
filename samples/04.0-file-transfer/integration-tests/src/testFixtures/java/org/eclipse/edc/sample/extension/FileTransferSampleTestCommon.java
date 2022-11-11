@@ -133,7 +133,7 @@ public class FileTransferSampleTestCommon {
     }
 
     /**
-     * Gets the first transfer process as returned by the data management API.
+     * Gets the first transfer process as returned by the management API.
      *
      * @return The transfer process.
      */

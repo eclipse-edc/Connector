@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":extensions:common:vault:vault-filesystem"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))
-    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:control-plane:api:management-api"))
     implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-sync"))
 

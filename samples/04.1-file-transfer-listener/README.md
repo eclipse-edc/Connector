@@ -50,7 +50,7 @@ java -Dedc.fs.config=samples/04.1-file-transfer-listener/consumer/config.propert
 java -Dedc.fs.config=samples/04.0-file-transfer/provider/config.properties -jar samples/04.0-file-transfer/provider/build/libs/provider.jar
 ````
 
-Assuming you didn't change the config files, the consumer will expose data-management api on port `9192` and the custom 
+Assuming you didn't change the config files, the consumer will expose management api on port `9192` and the custom 
 api endpoints on port `9191` and the provider will listen on port `8181`.
 Open another terminal window (or any REST client of your choice) and execute the following REST requests like in the previous sample:
 

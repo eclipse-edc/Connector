@@ -32,7 +32,7 @@ dependencies {
     implementation(project(":extensions:common:iam:oauth2:oauth2-core"))
     implementation(project(":extensions:common:iam:oauth2:oauth2-daps"))
 
-    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

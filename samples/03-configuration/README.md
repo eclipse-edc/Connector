@@ -146,19 +146,19 @@ There are a few things worth mentioning here:
 ## Management API
 
 Part of most connectors will be the management api defined in the
-[`:extensions:control-plane:api:data-management-api`](../../extensions/control-plane/api/data-management-api/) module. Therefore, we need to add the following
+[`:extensions:control-plane:api:management-api`](../../extensions/control-plane/api/management-api/) module. Therefore, we need to add the following
 module to the dependency list in our `build.gradle.kts`:
 
 ```kotlin
 dependencies {
     // ...
-    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:control-plane:api:management-api"))
     // ...
 }
 ```
 
-As described in the [README.md](../../extensions/control-plane/api/data-management-api/data-management-api-configuration/README.md) of
-the [api-configuration module](../../extensions/control-plane/api/data-management-api/data-management-api-configuration), the management api should be
+As described in the [README.md](../../extensions/control-plane/api/management-api/management-api-configuration/README.md) of
+the [api-configuration module](../../extensions/control-plane/api/management-api/management-api-configuration), the management api should be
 exposed on a separate jetty context. Therefore, it is necessary to provide the following configuration to the connector:
 
 > Note: The ports could be chosen arbitrarily. In this example, they are aligned to the already existing `web.http.port` setting described above.

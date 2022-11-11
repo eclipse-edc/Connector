@@ -14,7 +14,7 @@ For `AggregateService` we intend a component that provides a clear and simple in
 `Asset`s, `ContractNegotiation`s and so on) encapsulating some logic and features, like business validation, 
 transactional context, exception handling, ...
 
-Currently they are located into the `data-management-api`. Moving them to a separate layer will permit other kinds of
+Currently they are located into the `management-api`. Moving them to a separate layer will permit other kinds of
 APIs to use them in an equal manner benefiting from their offered features.
 
 ## Approach

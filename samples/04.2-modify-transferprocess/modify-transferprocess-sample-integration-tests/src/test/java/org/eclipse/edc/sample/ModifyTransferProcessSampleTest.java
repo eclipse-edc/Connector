@@ -48,7 +48,7 @@ public class ModifyTransferProcessSampleTest {
     final FileTransferSampleTestCommon testCommon = new FileTransferSampleTestCommon("", ""); // no sample asset transfer in this sample
 
     /**
-     * Requests transfer processes from data management API and check for expected changes on the transfer process.
+     * Requests transfer processes from management API and check for expected changes on the transfer process.
      */
     @Test
     void runSample() {

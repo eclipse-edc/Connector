@@ -10,7 +10,7 @@ This is quite a big step up from the previous sample, where we ran only one conn
 
 * Creating an additional connector, so that in the end we have two connectors, a consumer and a provider
 * Providing communication between provider and consumer using IDS multipart messages
-* Utilizing the data management API to interact with the connector system
+* Utilizing the management API to interact with the connector system
 * Performing a contract negotiation between provider and consumer
 * Performing a file transfer
   * The consumer will initiate a file transfer
@@ -105,14 +105,14 @@ implementation(project(":extensions:common:configuration:configuration-filesyste
 implementation(project(":data-protocols:ids"))
 implementation(project(":extensions:common:iam:iam-mock"))
 
-implementation(project(":extensions:control-plane:api:data-management-api"))
+implementation(project(":extensions:control-plane:api:management-api"))
 implementation(project(":extensions:common:auth:auth-tokenbased"))
 ```
 
 Three of these dependencies are new and have not been used in the previous samples:
 1. `data-protocols:ids`: contains all IDS modules and therefore enables IDS Multipart communication with other connectors
 2. `extensions:iam:iam-mock`: provides a no-op identity provider, which does not require certificates and performs no checks
-3. `extensions:api:auth-tokenbased`: adds authentication for data management API endpoints
+3. `extensions:api:auth-tokenbased`: adds authentication for management API endpoints
 
 ### Provider connector
 
@@ -125,7 +125,7 @@ implementation(project(":samples:04.0-file-transfer:transfer-file"))
 
 We also need to adjust the provider's `config.properties`. The property `edc.samples.04.asset.path` should point to an
 existing file in our local environment, as this is the file that will be transferred. We also configure a separate API
-context for the data management API, like we learned in previous chapter. Then we add the property
+context for the management API, like we learned in previous chapter. Then we add the property
 `ids.webhook.address`, which should point to our provider connector's IDS address. This is used as the callback
 address during the contract negotiation. Since the IDS API is running on a different port (default is `8282`), we set
 the webhook address to `http://localhost:8282` accordingly.
@@ -137,7 +137,7 @@ provider can copy the requested file.
 
 We configure the consumer's API ports in `consumer/config.properties`, so that it does not use the same ports as the
 provider. In the config file, we also need to configure the API key authentication, as we're going to use
-endpoints from the EDC's data management API in this sample and integrated the extension for token-based API
+endpoints from the EDC's management API in this sample and integrated the extension for token-based API
 authentication. Therefore, we add the property `edc.api.auth.key` and set it to e.g. `password`. And last, we also need
 to configure the consumer's webhook address. We expose the IDS API endpoints on a different port and path than other
 endpoints, so the property `ids.webhook.address` is adjusted to match the IDS API port.
@@ -160,8 +160,8 @@ java -Dedc.fs.config=samples/04.0-file-transfer/provider/config.properties -jar 
 ````
 
 Assuming you didn't change the ports in config files, the consumer will listen on the ports `9191`, `9192`
-(data management API) and `9292` (IDS API) and the provider will listen on the ports `8181`, `8182`
-(data management API) and `8282` (IDS API).
+(management API) and `9292` (IDS API) and the provider will listen on the ports `8181`, `8182`
+(management API) and `8282` (IDS API).
 
 ### 2. Initiate a contract negotiation
 
@@ -180,7 +180,7 @@ The consumer now needs to initiate a contract negotiation sequence with the prov
 Of course, this is the simplest possible negotiation sequence. Later on, both connectors can also send counter offers in
 addition to just confirming or declining an offer.
 
-In order to trigger the negotiation, we use a data management API endpoint. We set our contract offer in the request
+In order to trigger the negotiation, we use a management API endpoint. We set our contract offer in the request
 body. The contract offer is prepared in [contractoffer.json](contractoffer.json) and can be used as is. In a real
 scenario, a potential consumer would first need to request a description of the provider's offers in order to get the
 provider's contract offer.
