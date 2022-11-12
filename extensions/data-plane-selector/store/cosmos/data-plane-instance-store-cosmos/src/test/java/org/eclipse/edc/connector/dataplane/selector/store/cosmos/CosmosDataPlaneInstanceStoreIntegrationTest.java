@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.dataplane.selector.store.cosmos;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApiImpl;
@@ -30,23 +29,28 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.store.TestFunctions.generateDocument;
 
 @AzureCosmosDbIntegrationTest
 class CosmosDataPlaneInstanceStoreIntegrationTest extends DataPlaneInstanceStoreTestBase {
     private static final String TEST_ID = UUID.randomUUID().toString();
+
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
+
     private static final String CONTAINER_PREFIX = "DataPlaneInstanceStore-";
+
     private static final String TEST_PARTITION_KEY = "test-part-key";
+
     private static CosmosContainer container;
+
     private static CosmosDatabase database;
+
     private static TypeManager typeManager;
+
     private CosmosDataPlaneInstanceStore store;
 
     @Override
@@ -60,7 +64,7 @@ class CosmosDataPlaneInstanceStoreIntegrationTest extends DataPlaneInstanceStore
         typeManager = new TypeManager();
         typeManager.registerTypes(ContractDefinition.class, DataPlaneInstanceDocument.class);
 
-        CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
+        var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
     }
 
@@ -75,7 +79,7 @@ class CosmosDataPlaneInstanceStoreIntegrationTest extends DataPlaneInstanceStore
     @BeforeEach
     void setUp() {
         var containerName = CONTAINER_PREFIX + UUID.randomUUID();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
+        var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
 
@@ -87,24 +91,5 @@ class CosmosDataPlaneInstanceStoreIntegrationTest extends DataPlaneInstanceStore
     @AfterEach
     void tearDown() {
         container.delete();
-    }
-
-    @Test
-    void findById() {
-        var doc1 = generateDocument(TEST_PARTITION_KEY);
-        var doc2 = generateDocument(TEST_PARTITION_KEY);
-
-        container.createItem(doc1);
-        container.createItem(doc2);
-
-        var foundItem = store.findById(doc1.getId());
-
-        assertThat(foundItem).isNotNull().usingRecursiveComparison().isEqualTo(doc1.getWrappedInstance());
-    }
-
-    @Test
-    void findById_notExist() {
-        var foundItem = store.findById("not-exit");
-        assertThat(foundItem).isNull();
     }
 }

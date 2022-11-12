@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
@@ -38,6 +39,7 @@ public class CosmosDataPlaneInstanceStore implements DataPlaneInstanceStore {
     private final TypeManager typeManager;
 
     private final RetryPolicy<Object> retryPolicy;
+
     private final String partitionKey;
 
     public CosmosDataPlaneInstanceStore(CosmosDbApi cosmosDbApi, TypeManager typeManager,
@@ -86,9 +88,8 @@ public class CosmosDataPlaneInstanceStore implements DataPlaneInstanceStore {
     }
 
     private DataPlaneInstance convert(Object object) {
-        var json = typeManager.writeValueAsString(object);
-        return json != null ?
-                typeManager.readValue(json, DataPlaneInstanceDocument.class).getWrappedInstance() : null;
+        var json = Optional.ofNullable(typeManager.writeValueAsString(object));
+        return json.map(s -> typeManager.readValue(s, DataPlaneInstance.class)).orElse(null);
     }
 
 }

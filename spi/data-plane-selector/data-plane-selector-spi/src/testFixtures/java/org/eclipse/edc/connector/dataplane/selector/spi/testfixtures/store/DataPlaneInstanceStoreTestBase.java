@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public abstract class DataPlaneInstanceStoreTestBase {
 
@@ -86,6 +88,21 @@ public abstract class DataPlaneInstanceStoreTestBase {
     @Test
     void findById_notExists() {
         Assertions.assertThat(getStore().findById("not-exist")).isNull();
+    }
+
+    @Test
+    void getAll() {
+        var doc1 = TestFunctions.createCustomInstance("test-id", "name");
+        var doc2 = TestFunctions.createCustomInstance("test-id-2", "name");
+
+        var store = getStore();
+
+        store.save(doc1);
+        store.save(doc2);
+
+        var foundItems = store.getAll();
+
+        assertThat(foundItems).isNotNull().hasSize(2);
     }
 
 

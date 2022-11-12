@@ -41,8 +41,12 @@ public class CosmosDataPlaneInstanceStoreExtension implements ServiceExtension {
 
     @Inject
     private RetryPolicy<Object> retryPolicy;
+
     @Inject
     private CosmosClientProvider clientProvider;
+
+    @Inject
+    private HealthCheckService healthCheckService;
 
     @Override
     public String name() {

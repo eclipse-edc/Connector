@@ -8,8 +8,8 @@ val failsafeVersion: String by project
 
 dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    api(project(":extensions:common:azure:azure-cosmos-core"))
 
+    implementation(project(":extensions:common:azure:azure-cosmos-core"))
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
