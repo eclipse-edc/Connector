@@ -15,7 +15,7 @@
 package org.eclipse.edc.test.system.remote.annotations;
 
 
-import org.eclipse.edc.util.testfixtures.annotations.IntegrationTest;
+import org.eclipse.edc.junit.annotations.IntegrationTest;
 import org.junit.jupiter.api.Tag;
 
 import java.lang.annotation.ElementType;
@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Annotation for End to End integration testing based on Minikube.
  * It applies a specific Junit Tag.
  */
-@Target({ElementType.TYPE})
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @IntegrationTest
 @Tag("MinikubeIntegrationTest")

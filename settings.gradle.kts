@@ -18,7 +18,7 @@
 rootProject.name = "connector"
 
 // this is needed to have access to snapshot builds of plugins
-// that are used at the root project level, such as "module-names"
+// that are used at the root project level, such as "edc-build"
 pluginManagement {
     repositories {
         maven {
@@ -37,9 +37,12 @@ include(":core:common:policy-engine")
 include(":core:common:policy-evaluator")
 include(":core:common:state-machine")
 include(":core:common:util")
+include(":core:common:junit")
+
 
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")
+include(":core:control-plane:control-plane-aggregate-services")
 include(":core:control-plane:transfer-core")
 include(":core:control-plane:control-plane-api")
 include(":core:control-plane:control-plane-api-client")
@@ -92,7 +95,6 @@ include(":extensions:common:iam:decentralized-identity:identity-did-web")
 include(":extensions:common:iam:iam-mock")
 include(":extensions:common:iam:oauth2:oauth2-daps")
 include(":extensions:common:iam:oauth2:oauth2-core")
-include(":extensions:common:junit")
 include(":extensions:common:metrics:micrometer-core")
 include(":extensions:common:monitor:monitor-jdk-logger")
 include(":extensions:common:sql:sql-core")
@@ -121,6 +123,7 @@ include(":extensions:control-plane:provision:provision-blob")
 include(":extensions:control-plane:provision:provision-gcs")
 include(":extensions:control-plane:provision:provision-http")
 include(":extensions:control-plane:provision:provision-aws-s3")
+include(":extensions:control-plane:provision:provision-oauth2")
 include(":extensions:control-plane:store:cosmos:asset-index-cosmos")
 include(":extensions:control-plane:store:cosmos:contract-definition-store-cosmos")
 include(":extensions:control-plane:store:cosmos:contract-negotiation-store-cosmos")
@@ -193,6 +196,7 @@ include(":spi:common:jwt-spi")
 include(":spi:common:oauth2-spi")
 include(":spi:common:policy-engine-spi")
 include(":spi:common:policy-model")
+include(":spi:common:aggregate-service-spi")
 include(":spi:common:transaction-datasource-spi")
 include(":spi:common:transaction-spi")
 include(":spi:common:transform-spi")

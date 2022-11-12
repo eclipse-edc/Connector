@@ -27,7 +27,7 @@ dependencies {
     implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
 
     testImplementation(project(":core:data-plane:data-plane-core"))
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

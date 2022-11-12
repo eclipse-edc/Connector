@@ -14,7 +14,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
     testImplementation(testFixtures(project(":extensions:common:iam:decentralized-identity:identity-did-test")))
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

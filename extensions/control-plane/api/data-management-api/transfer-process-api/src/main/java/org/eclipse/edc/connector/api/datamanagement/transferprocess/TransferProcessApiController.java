@@ -30,7 +30,7 @@ import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferState;
-import org.eclipse.edc.connector.api.datamanagement.transferprocess.service.TransferProcessService;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.monitor.Monitor;

@@ -35,7 +35,11 @@ jobs:
       - uses: ./.github/actions/setup-build
 
       - name: Dependency rules report # possible severity values: <'fail'|'warn'|'ignore'>
-        run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis=warn -Pdependency.analysis.clear.artifacts=false
+        # run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis=warn -Pdependency.analysis.clear.artifacts=false
+        # Disabled our dependency rules for now, as they are outdated and need to be refactored:
+        # https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/2132
+        # explicitly set 1G heap space because we've seen OOMs previously
+        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx1g" buildHealth -Pdependency.analysis=warn -Pdependency.analysis.clear.artifacts=false
 
       - name: Dependency analysis report
         run: cat build/reports/dependency-analysis/build-health-report.txt
@@ -45,14 +49,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
-
-      # do this first so that git is clear
-      # delete - recreate - assert no change
-      - name: Check that static SwaggerUI HTML content is up-to-date
-        run: |
-          rm -rf docs/swaggerui
-          ./gradlew generateSwaggerUI
-          git diff --exit-code
 
       - name: Save previous OpenAPI definition
         run: yq -P 'sort_keys(..)' resources/openapi/openapi.yaml > openapi-git-sorted.yaml

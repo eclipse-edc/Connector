@@ -35,7 +35,7 @@ dependencies {
 
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 
 }
 

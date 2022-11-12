@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2022 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -27,12 +27,13 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import static java.lang.String.format;
 
 /**
  * {@link ControlPlaneApiExtension } exposes HTTP endpoints for internal interaction with the Control Plane
@@ -44,12 +45,8 @@ public class ControlPlaneApiExtension implements ServiceExtension {
 
     public static final String CONTROL_PLANE_API_CONFIG = "web.http.controlplane";
     public static final String CONTROL_PLANE_CONTEXT_ALIAS = "controlplane";
-
     public static final int DEFAULT_CONTROL_PLANE_API_PORT = 8384;
     public static final String DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH = "/api/v1/controlplane";
-
-    private int port = DEFAULT_CONTROL_PLANE_API_PORT;
-    private String path = DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH;
 
     @Inject
     private WebServer webServer;
@@ -60,6 +57,12 @@ public class ControlPlaneApiExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
 
+    @Inject
+    private WebServiceConfigurer configurator;
+
+
+    private WebServiceConfiguration configuration;
+
     @Override
     public String name() {
         return NAME;
@@ -67,24 +70,18 @@ public class ControlPlaneApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-        var alias = CONTROL_PLANE_CONTEXT_ALIAS;
+        var settings = WebServiceSettings.Builder.newInstance()
+                .apiConfigKey(CONTROL_PLANE_API_CONFIG)
+                .contextAlias(CONTROL_PLANE_CONTEXT_ALIAS)
+                .defaultPath(DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH)
+                .defaultPort(DEFAULT_CONTROL_PLANE_API_PORT)
+                .name(NAME)
+                .build();
 
-        var config = context.getConfig(CONTROL_PLANE_API_CONFIG);
-        if (config.getEntries().isEmpty()) {
-            monitor.warning(format("Settings for [%s] and/or [%s] were not provided. Using default" +
-                    " value(s) instead.", CONTROL_PLANE_API_CONFIG + ".path", CONTROL_PLANE_API_CONFIG + ".path"));
-            webServer.addPortMapping(alias, port, path);
-        } else {
-            path = config.getString("path", path);
-            port = config.getInteger("port", port);
-        }
-
+        configuration = configurator.configure(context, webServer, settings);
         context.getTypeManager().registerTypes(TransferProcessFailStateDto.class);
 
-        monitor.info(format("Control Plane API will be available at [path=%s], [port=%s].", path, port));
-
-        webService.registerResource(alias, new TransferProcessControlApiController(transferProcessManager));
+        webService.registerResource(configuration.getContextAlias(), new TransferProcessControlApiController(transferProcessManager));
     }
 
 
@@ -102,7 +99,7 @@ public class ControlPlaneApiExtension implements ServiceExtension {
 
     @NotNull
     private String getApiUrl() {
-        return String.format("http://%s:%s%s", hostname.get(), port, path);
+        return String.format("http://%s:%s%s", hostname.get(), configuration.getPort(), configuration.getPath());
     }
 
 

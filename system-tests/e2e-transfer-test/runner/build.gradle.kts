@@ -17,21 +17,20 @@ plugins {
     java
 }
 
+val assertj: String by project
+val awaitility: String by project
 val jupiterVersion: String by project
 val restAssured: String by project
-val awaitility: String by project
-val assertj: String by project
 val postgresVersion: String by project
 
 dependencies {
     testImplementation(project(":extensions:common:sql:sql-core"))
 
-    testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":core:common:util")))
+    testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-cosmos-core")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
 
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")

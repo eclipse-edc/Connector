@@ -27,6 +27,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.iam.oauth2.Oauth2Configuration;
 import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
@@ -37,12 +38,13 @@ import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
@@ -68,6 +70,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockserver.matchers.Times.once;
+import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.JsonBody.json;
 import static org.mockserver.model.Parameter.param;
 import static org.mockserver.model.ParameterBody.params;
@@ -89,15 +92,15 @@ class Oauth2ServiceImplTest {
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider = mock(CredentialsRequestAdditionalParametersProvider.class);
     private Oauth2ServiceImpl authService;
     private JWSSigner jwsSigner;
-    private static ClientAndServer oauth2Server;
+    private ClientAndServer oauth2Server;
 
-    @BeforeAll
-    public static void startServer() {
+    @BeforeEach
+    public void startServer() {
         oauth2Server = ClientAndServer.startClientAndServer(OAUTH2_SERVER_PORT);
     }
 
-    @AfterAll
-    public static void stopServer() {
+    @AfterEach
+    public void stopServer() {
         stopQuietly(oauth2Server);
     }
 
@@ -126,8 +129,8 @@ class Oauth2ServiceImplTest {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, okHttpClient,
-                new JwtDecoratorRegistryImpl(), new TypeManager(), tokenValidationService,
+        authService = new Oauth2ServiceImpl(mock(Monitor.class), configuration, tokenGenerationService, okHttpClient,
+                RetryPolicy.ofDefaults(), new JwtDecoratorRegistryImpl(), new TypeManager(), tokenValidationService,
                 credentialsRequestAdditionalParametersProvider);
     }
 
@@ -170,6 +173,42 @@ class Oauth2ServiceImplTest {
         authService.obtainClientCredentials(tokenParameters);
 
         oauth2Server.verify(clientCredentialsRequest);
+    }
+
+    @Test
+    void obtainClientCredentials_failsIfServerIsNotReachable() {
+        oauth2Server.stop();
+        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
+        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
+        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
+
+        var result = authService.obtainClientCredentials(tokenParameters);
+
+        assertThat(result).matches(AbstractResult::failed);
+    }
+
+    @Test
+    void obtainClientCredentials_failsIfResponseIsNotSuccessful() {
+        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
+        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
+        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
+        oauth2Server.when(request(), once()).respond(new HttpResponse().withStatusCode(500));
+
+        var result = authService.obtainClientCredentials(tokenParameters);
+
+        assertThat(result).matches(AbstractResult::failed);
+    }
+
+    @Test
+    void obtainClientCredentials_failsIfResponseBodyIsNotValidJson() {
+        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
+        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
+        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
+        oauth2Server.when(request(), once()).respond(new HttpResponse().withStatusCode(200).withBody("not a valid body"));
+
+        var result = authService.obtainClientCredentials(tokenParameters);
+
+        assertThat(result).matches(AbstractResult::failed);
     }
 
     @Test

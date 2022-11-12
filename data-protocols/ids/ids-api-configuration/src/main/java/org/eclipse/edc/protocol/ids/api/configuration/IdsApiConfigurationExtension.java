@@ -22,8 +22,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
-
-import static java.lang.String.format;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 /**
  * Provides configuration information for IDS API endpoints to other extensions.
@@ -31,49 +31,52 @@ import static java.lang.String.format;
 @Provides(IdsApiConfiguration.class)
 @Extension(value = IdsApiConfigurationExtension.NAME)
 public class IdsApiConfigurationExtension implements ServiceExtension {
+
+
     @Setting
     public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
     public static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
+    public static final String NAME = "IDS API Configuration";
+
+    public static final String WEBSERVICE_NAME = "IDS API";
+
 
     public static final String IDS_API_CONFIG = "web.http.ids";
     public static final String IDS_API_CONTEXT_ALIAS = "ids";
 
     public static final int DEFAULT_IDS_PORT = 8282;
     public static final String DEFAULT_IDS_API_PATH = "/api/v1/ids";
-    public static final String NAME = "IDS API Configuration";
+
 
     @Inject
     private WebServer webServer;
+
+
+    @Inject
+    private WebServiceConfigurer configurator;
 
     @Override
     public String name() {
         return NAME;
     }
 
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
+        var settings = WebServiceSettings.Builder.newInstance()
+                .apiConfigKey(IDS_API_CONFIG)
+                .contextAlias(IDS_API_CONTEXT_ALIAS)
+                .defaultPath(DEFAULT_IDS_API_PATH)
+                .defaultPort(DEFAULT_IDS_PORT)
+                .name(WEBSERVICE_NAME)
+                .build();
+        var config = configurator.configure(context, webServer, settings);
 
-        var contextAlias = IDS_API_CONTEXT_ALIAS;
-        var path = DEFAULT_IDS_API_PATH;
-        var port = DEFAULT_IDS_PORT;
-
-        var config = context.getConfig(IDS_API_CONFIG);
-        if (config.getEntries().isEmpty()) {
-            monitor.warning(format("Settings for [%s] and/or [%s] were not provided. Using default" +
-                    " value(s) instead.", IDS_API_CONFIG + ".path", IDS_API_CONFIG + ".path"));
-            webServer.addPortMapping(contextAlias, port, path);
-        } else {
-            path = config.getString("path", path);
-            port = config.getInteger("port", port);
-        }
-
-        monitor.info(format("IDS API will be available at [path=%s], [port=%s].", path, port));
-
+        var path = config.getPath();
         var webhookPath = path + (path.endsWith("/") ? "data" : "/data");
         var idsWebhookAddress = context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS) + webhookPath;
 
-        context.registerService(IdsApiConfiguration.class, new IdsApiConfiguration(contextAlias, idsWebhookAddress));
+        context.registerService(IdsApiConfiguration.class, new IdsApiConfiguration(config.getContextAlias(), idsWebhookAddress));
     }
 
 }

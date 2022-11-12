@@ -33,8 +33,7 @@ dependencies {
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
-    testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":core:common:util")))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

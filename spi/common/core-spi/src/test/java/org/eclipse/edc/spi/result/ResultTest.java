@@ -22,7 +22,6 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -221,11 +220,24 @@ class ResultTest {
                 .isInstanceOf(RuntimeException.class);
     }
 
-    private <U> Function<Result<U>, Result<String>> failWhenCalled() {
-        return r -> {
-            fail("should not be called!");
-            return Result.success("next result");
-        };
+    @Test
+    void compose_applyMappingFunctionIfSuccessful() {
+        Function<String, Result<String>> mappingFunction = string -> string.equals("right content")
+                ? Result.success("the content was good")
+                : Result.failure("the content was not good");
+
+        assertThat(Result.success("right content").compose(mappingFunction)).matches(AbstractResult::succeeded)
+                .extracting(AbstractResult::getContent).isEqualTo("the content was good");
+
+        assertThat(Result.success("not right content").compose(mappingFunction)).matches(AbstractResult::failed)
+                .extracting(AbstractResult::getFailureMessages).asList().contains("the content was not good");
     }
 
+    @Test
+    void compose_doNothingIfFailed() {
+        var result = Result.failure("error").compose(it -> Result.success());
+
+        assertThat(result).matches(AbstractResult::failed)
+                .extracting(AbstractResult::getFailureMessages).asList().contains("error");
+    }
 }

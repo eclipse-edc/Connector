@@ -31,8 +31,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
-    testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":core:common:util")))
+    testImplementation(project(":core:common:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")

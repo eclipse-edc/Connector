@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.sql.lease;
 
+import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.util.testfixtures.annotations.PostgresqlDbIntegrationTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

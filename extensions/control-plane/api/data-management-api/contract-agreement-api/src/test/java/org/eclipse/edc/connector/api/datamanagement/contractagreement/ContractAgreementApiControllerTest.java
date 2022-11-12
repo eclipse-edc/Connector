@@ -17,12 +17,12 @@ package org.eclipse.edc.connector.api.datamanagement.contractagreement;
 
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.result.ServiceResult;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.contractagreement.model.ContractAgreementDto;
-import org.eclipse.edc.connector.api.datamanagement.contractagreement.service.ContractAgreementService;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;

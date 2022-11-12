@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2022 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.client.transferprocess;
 
-import org.eclipse.edc.connector.api.ControlPlaneApiExtension;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
@@ -44,6 +43,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.api.ControlPlaneApiExtension.DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -70,7 +70,7 @@ public class TransferProcessHttpClientIntegrationTest {
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
                 "web.http.controlplane.port", String.valueOf(port),
-                "web.http.controlplane.path", ControlPlaneApiExtension.DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH
+                "web.http.controlplane.path", DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));

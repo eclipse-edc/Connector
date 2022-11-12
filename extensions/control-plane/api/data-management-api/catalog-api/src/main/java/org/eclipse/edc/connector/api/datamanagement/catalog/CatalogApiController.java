@@ -27,7 +27,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.datamanagement.catalog.model.CatalogRequestDto;
-import org.eclipse.edc.connector.api.datamanagement.catalog.service.CatalogService;
+import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;

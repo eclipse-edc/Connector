@@ -30,7 +30,7 @@ dependencies {
 
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 

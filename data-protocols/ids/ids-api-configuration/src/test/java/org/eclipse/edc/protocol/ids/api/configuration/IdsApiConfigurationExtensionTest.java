@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurerImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -28,7 +30,10 @@ import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH;
+import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_PORT;
 import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_WEBHOOK_ADDRESS;
+import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.IDS_API_CONFIG;
+import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.IDS_API_CONTEXT_ALIAS;
 import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.IDS_WEBHOOK_ADDRESS;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -44,6 +49,8 @@ public class IdsApiConfigurationExtensionTest {
     private ServiceExtensionContext context;
     private IdsApiConfigurationExtension extension;
 
+    private WebServiceConfigurer configurator;
+
     private ArgumentCaptor<String> contextNameCaptor;
     private ArgumentCaptor<Integer> portCaptor;
     private ArgumentCaptor<String> pathCaptor;
@@ -52,8 +59,11 @@ public class IdsApiConfigurationExtensionTest {
     @BeforeEach
     void setUp() {
         var monitor = new ConsoleMonitor();
+
         webServer = mock(WebServer.class);
         context = mock(ServiceExtensionContext.class);
+        configurator = new WebServiceConfigurerImpl();
+
         when(context.getMonitor()).thenReturn(monitor);
         when(context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS))
                 .thenReturn(DEFAULT_IDS_WEBHOOK_ADDRESS);
@@ -63,24 +73,26 @@ public class IdsApiConfigurationExtensionTest {
         portCaptor = ArgumentCaptor.forClass(Integer.class);
         pathCaptor = ArgumentCaptor.forClass(String.class);
         apiConfigCaptor = ArgumentCaptor.forClass(IdsApiConfiguration.class);
-        setJettyService();
+        setField("webServer", webServer);
+        setField("configurator", configurator);
+
     }
 
     @Test
     void initializeWithDefault() {
         var config = ConfigFactory.fromMap(new HashMap<>());
-        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
+        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
 
         extension.initialize(context);
 
         verify(webServer, times(1))
                 .addPortMapping(contextNameCaptor.capture(), portCaptor.capture(), pathCaptor.capture());
-        assertThat(contextNameCaptor.getValue()).isEqualTo(IdsApiConfigurationExtension.IDS_API_CONTEXT_ALIAS);
-        assertThat(portCaptor.getValue()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_PORT);
-        assertThat(pathCaptor.getValue()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
+        assertThat(contextNameCaptor.getValue()).isEqualTo(IDS_API_CONTEXT_ALIAS);
+        assertThat(portCaptor.getValue()).isEqualTo(DEFAULT_IDS_PORT);
+        assertThat(pathCaptor.getValue()).isEqualTo(DEFAULT_IDS_API_PATH);
 
         verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
+        verify(context, times(1)).getConfig(IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
         verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
@@ -98,7 +110,7 @@ public class IdsApiConfigurationExtensionTest {
         apiConfig.put("path", path);
 
         var config = ConfigFactory.fromMap(apiConfig);
-        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
+        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
 
         var address = "http://somehost:1234";
         when(context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS))
@@ -109,7 +121,7 @@ public class IdsApiConfigurationExtensionTest {
         verifyNoInteractions(webServer);
 
         verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
+        verify(context, times(1)).getConfig(IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
         verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
@@ -125,14 +137,14 @@ public class IdsApiConfigurationExtensionTest {
         apiConfig.put("port", String.valueOf(8765));
 
         var config = ConfigFactory.fromMap(apiConfig);
-        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
+        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
 
         extension.initialize(context);
 
         verifyNoInteractions(webServer);
 
         verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
+        verify(context, times(1)).getConfig(IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
         verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
@@ -149,14 +161,14 @@ public class IdsApiConfigurationExtensionTest {
         apiConfig.put("path", path);
 
         var config = ConfigFactory.fromMap(apiConfig);
-        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
+        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
 
         extension.initialize(context);
 
         verifyNoInteractions(webServer);
 
         verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
+        verify(context, times(1)).getConfig(IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
         verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
@@ -166,13 +178,15 @@ public class IdsApiConfigurationExtensionTest {
         assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(DEFAULT_IDS_WEBHOOK_ADDRESS + path + "/data");
     }
 
-    private void setJettyService() {
+    private void setField(String field, Object value) {
         try {
-            Field webServerField = IdsApiConfigurationExtension.class.getDeclaredField("webServer");
+            Field webServerField = IdsApiConfigurationExtension.class.getDeclaredField(field);
             webServerField.setAccessible(true);
-            webServerField.set(extension, webServer);
+            webServerField.set(extension, value);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             //
         }
     }
+
+
 }

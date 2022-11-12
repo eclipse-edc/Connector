@@ -37,8 +37,7 @@ dependencies {
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(project(":extensions:common:http"))
-    testImplementation(project(":extensions:common:junit"))
-    testImplementation(testFixtures(project(":core:common:util")))
+    testImplementation(project(":core:common:junit"))
 }
 
 

@@ -16,6 +16,7 @@ plugins {
     `java-library`
 }
 
+val nimbusVersion: String by project
 val okHttpVersion: String by project
 val rsApi: String by project
 
@@ -24,7 +25,7 @@ dependencies {
     implementation(project(":core:common:boot"))
     implementation(project(":core:common:connector-core"))
 
+    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:$rsApi")
 }

@@ -28,9 +28,8 @@ dependencies {
     implementation(project(":extensions:common:sql:sql-core"))
 
 
-    testImplementation(project(":extensions:common:junit"))
+    testImplementation(project(":core:common:junit"))
     testImplementation("org.postgresql:postgresql:${postgresVersion}")
-    testImplementation(testFixtures(project(":core:common:util")))
     testImplementation(testFixtures(project(":spi:control-plane:policy-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 }
