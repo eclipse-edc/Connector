@@ -29,19 +29,19 @@ docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up --abort-on-
 Once the consumer and provider are up, start a contract negotiation by executing:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.3-open-telemetry/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.3-open-telemetry/contractoffer.json "http://localhost:9192/api/v1/management/contractnegotiations"
 ```
 
 The contract negotiation causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector. Query the status of the contract negotiation by executing the following command. Wait until the negotiation is in CONFIRMED state and note down the contract agreement id.
 
 ```bash
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/management/contractnegotiations/{UUID}"
 ```
 
 Finally, update the contract agreement id in the `filetransfer.json` file and execute a file transfer with the following command:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.3-open-telemetry/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.3-open-telemetry/filetransfer.json "http://localhost:9192/api/v1/management/transferprocess"
 ```
 
 You can access the Jaeger UI on your browser at `http://localhost:16686`.
@@ -73,8 +73,8 @@ Other monitoring backends can be plugged in easily with OpenTelemetry. For insta
       APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL: DEBUG
       WEB_HTTP_PORT: 8181
       WEB_HTTP_PATH: /api
-      WEB_HTTP_DATA_PORT: 8182
-      WEB_HTTP_DATA_PATH: /api/v1/data
+      WEB_HTTP_MANAGEMENT_PORT: 8182
+      WEB_HTTP_MANAGEMENT_PATH: /api/v1/management
       IDS_WEBHOOK_ADDRESS: http://consumer:8181
     volumes:
       - ../:/samples

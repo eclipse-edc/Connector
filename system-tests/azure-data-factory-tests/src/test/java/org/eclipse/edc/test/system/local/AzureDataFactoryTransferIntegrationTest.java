@@ -88,8 +88,8 @@ public class AzureDataFactoryTransferIntegrationTest {
             Map.ofEntries(
                     Map.entry("web.http.port", valueOf(CONSUMER_CONNECTOR_PORT)),
                     Map.entry("web.http.path", CONSUMER_CONNECTOR_PATH),
-                    Map.entry("web.http.data.port", valueOf(CONSUMER_MANAGEMENT_PORT)),
-                    Map.entry("web.http.data.path", CONSUMER_MANAGEMENT_PATH),
+                    Map.entry("web.http.management.port", valueOf(CONSUMER_MANAGEMENT_PORT)),
+                    Map.entry("web.http.management.path", CONSUMER_MANAGEMENT_PATH),
                     Map.entry("web.http.ids.port", valueOf(CONSUMER_IDS_API_PORT)),
                     Map.entry("web.http.ids.path", IDS_PATH),
                     Map.entry("ids.webhook.address", CONSUMER_IDS_API),
@@ -108,8 +108,8 @@ public class AzureDataFactoryTransferIntegrationTest {
             Map.ofEntries(
                     Map.entry("web.http.port", valueOf(PROVIDER_CONNECTOR_PORT)),
                     Map.entry("web.http.path", PROVIDER_CONNECTOR_PATH),
-                    Map.entry("web.http.data.port", valueOf(PROVIDER_MANAGEMENT_PORT)),
-                    Map.entry("web.http.data.path", PROVIDER_MANAGEMENT_PATH),
+                    Map.entry("web.http.management.port", valueOf(PROVIDER_MANAGEMENT_PORT)),
+                    Map.entry("web.http.management.path", PROVIDER_MANAGEMENT_PATH),
                     Map.entry("web.http.ids.port", valueOf(PROVIDER_IDS_API_PORT)),
                     Map.entry("web.http.ids.path", IDS_PATH),
                     Map.entry("ids.webhook.address", PROVIDER_IDS_API),

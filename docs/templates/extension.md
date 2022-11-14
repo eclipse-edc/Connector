@@ -33,7 +33,7 @@ _Provide some information about dependencies, e.g., used extensions._
 
 | Name | Description |
 | :----| :-----------|
-| extensions:api:data-management-api | _this is an example_ |
+| extensions:api:management-api | _this is an example_ |
 
 ### Configurations
 

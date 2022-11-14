@@ -172,4 +172,9 @@ public interface Config {
      * Checks whether a (fully qualified) config key is present or not
      */
     boolean hasKey(String key);
+
+    /**
+     * Checks whether exist at least one setting with the passed root path
+     */
+    boolean hasPath(String path);
 }

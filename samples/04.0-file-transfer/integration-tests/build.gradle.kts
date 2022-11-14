@@ -28,7 +28,7 @@ dependencies {
 
     testFixturesImplementation(project(":spi:control-plane:control-plane-spi"))
     testFixturesImplementation(project(":core:common:junit"))
-    testFixturesImplementation(project(":extensions:control-plane:api:data-management-api:transfer-process-api"))
+    testFixturesImplementation(project(":extensions:control-plane:api:management-api:transfer-process-api"))
     testFixturesImplementation(project(":extensions:common:api:api-core"))
     testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
     testFixturesImplementation("org.awaitility:awaitility:${awaitility}")

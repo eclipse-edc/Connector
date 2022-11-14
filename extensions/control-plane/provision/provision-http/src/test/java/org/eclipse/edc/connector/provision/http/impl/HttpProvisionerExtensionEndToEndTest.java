@@ -73,8 +73,8 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
-                "web.http.data.port", String.valueOf(dataPort),
-                "web.http.data.path", "/api/v1/data"
+                "web.http.management.port", String.valueOf(dataPort),
+                "web.http.management.path", "/api/v1/management"
         ));
         var httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 

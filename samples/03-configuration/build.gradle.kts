@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":extensions:common:http"))
 
-    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
 
