@@ -32,6 +32,8 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))
+
 }
 
 
