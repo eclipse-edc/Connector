@@ -11,10 +11,6 @@
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
  *
  */
-
-val failsafeVersion: String by project
-val okHttpVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -24,8 +20,8 @@ dependencies {
 
     implementation(project(":core:common:util"))
 
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    api("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(libs.okhttp)
+    api(libs.failsafe.core)
 
     testImplementation(project(":core:common:junit"))
 }

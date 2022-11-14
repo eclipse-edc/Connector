@@ -18,8 +18,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val jupiterVersion: String by project
-
 dependencies {
     api(project(":core:common:boot"))
     implementation(project(":data-protocols:ids"))
@@ -27,8 +25,8 @@ dependencies {
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 
 }
 

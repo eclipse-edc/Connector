@@ -16,18 +16,14 @@ plugins {
     `java-library`
 }
 
-val awsVersion: String by project
-val failsafeVersion: String by project
-
-
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
 
-    api("dev.failsafe:failsafe:${failsafeVersion}")
+    api(libs.failsafe.core)
 
-    api("software.amazon.awssdk:sts:${awsVersion}")
-    api("software.amazon.awssdk:iam:${awsVersion}")
-    api("software.amazon.awssdk:s3:${awsVersion}")
+    api(libs.aws.iam)
+    api(libs.aws.s3)
+    api(libs.aws.sts)
 }
 
 publishing {

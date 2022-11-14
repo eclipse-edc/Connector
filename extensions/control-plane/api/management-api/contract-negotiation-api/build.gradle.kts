@@ -10,12 +10,6 @@
  * Contributors:
  *   ZF Friedrichshafen AG - Initial API and Implementation
  */
-
-val awaitility: String by project
-val jerseyVersion: String by project
-val restAssured: String by project
-val rsApi: String by project
-
 plugins {
     `java-library`
     id("io.swagger.core.v3.swagger-gradle-plugin")
@@ -27,15 +21,15 @@ dependencies {
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:control-plane:api:management-api:management-api-configuration"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:util"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
 
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.restAssured)
+    testImplementation(libs.awaitility)
 }
 
 publishing {

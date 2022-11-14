@@ -17,21 +17,17 @@ plugins {
     `java-test-fixtures`
 }
 
-val storageBlobVersion: String by project
-val failsafeVersion: String by project
-val jupiterVersion: String by project
-
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
-    implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
+    implementation(libs.azure.storageblob)
     implementation(project(":core:common:util"))
 
     testFixturesApi(project(":extensions:common:azure:azure-blob-core"))
     testFixturesImplementation(project(":core:common:util"))
 
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testFixturesImplementation(libs.junit.jupiter.api)
+    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 publishing {

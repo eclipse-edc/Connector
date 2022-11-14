@@ -12,11 +12,6 @@
  *
  */
 
-val rsApi: String by project
-val mockitoVersion: String by project
-val azureIdentityVersion: String by project
-val azureResourceManagerVersion: String by project
-val azureKeyVaultVersion: String by project
 
 plugins {
     `java-library`
@@ -26,15 +21,15 @@ dependencies {
     api(project(":spi:common:core-spi"))
 
     implementation(project(":core:common:util"))
-    implementation("com.azure:azure-security-keyvault-secrets:${azureKeyVaultVersion}")
-    implementation("com.azure:azure-identity:${azureIdentityVersion}")
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.azure.keyvault)
+    implementation(libs.azure.identity)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation("com.microsoft.azure:azure-mgmt-resources:1.41.4")
-    testImplementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
-    testImplementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:${azureResourceManagerVersion}")
+    testImplementation(libs.azure.resourcemanager)
+    testImplementation(libs.azure.resourcemanager.keyvault)
 
-    testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
+    testImplementation(libs.mockito.inline)
 }
 
 

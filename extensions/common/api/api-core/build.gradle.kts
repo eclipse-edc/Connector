@@ -12,11 +12,6 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
-
-val jakartaValidationApi: String by project
-val jerseyVersion: String by project
-val rsApi: String by project
-
 plugins {
     `java-library`
 }
@@ -28,12 +23,12 @@ dependencies {
     api(project(":spi:common:web-spi"))
 
     implementation(project(":core:common:util"))
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("jakarta.validation:jakarta.validation-api:${jakartaValidationApi}")
-    implementation("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jakarta.validation)
+    implementation(libs.jersey.beanvalidation) //for validation
 
-    testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
-    testImplementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
+    testImplementation(libs.jersey.common)
+    testImplementation(libs.jersey.server)
 
     testImplementation(project(":core:common:junit"))
 }

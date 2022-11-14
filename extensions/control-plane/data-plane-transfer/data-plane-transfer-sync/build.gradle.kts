@@ -17,11 +17,6 @@ plugins {
     id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
-val rsApi: String by project
-val nimbusVersion: String by project
-val bouncycastleVersion: String by project
-val jerseyVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:contract-spi"))
@@ -34,13 +29,13 @@ dependencies {
 
     implementation(project(":core:common:jwt-core"))
 
-    api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    api(libs.jakarta.rsApi)
+    api(libs.nimbus.jwt)
     // Note: nimbus requires bouncycastle as mentioned in documentation:
     // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
-    api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
+    api(libs.bouncyCastle.bcpkix)
 
-    testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
+    testImplementation(libs.jersey.multipart)
 }
 
 

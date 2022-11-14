@@ -15,20 +15,16 @@
 plugins {
     `java-library`
 }
-val failsafeVersion: String by project
-val googleCloudIamAdminVersion: String by project
-val googleCloudStorageVersion: String by project
-val googleCloudIamCredentialsVersion: String by project
 
 dependencies {
     api(project(":spi:common:core-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:gcp:gcp-core"))
 
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
-    implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
-    implementation("com.google.cloud:google-iam-admin:${googleCloudIamAdminVersion}")
-    implementation("com.google.cloud:google-cloud-iamcredentials:${googleCloudIamCredentialsVersion}")
+    implementation(libs.failsafe.core)
+    implementation(libs.googlecloud.storage)
+    implementation(libs.googlecloud.iam.admin)
+    implementation(libs.googlecloud.iam.credentials)
 }
 
 publishing {

@@ -17,12 +17,6 @@ plugins {
     java
 }
 
-val assertj: String by project
-val awaitility: String by project
-val jupiterVersion: String by project
-val restAssured: String by project
-val postgresVersion: String by project
-
 dependencies {
     testImplementation(project(":extensions:common:sql:sql-core"))
 
@@ -32,11 +26,11 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(project(":core:common:junit"))
 
-    testImplementation("org.postgresql:postgresql:${postgresVersion}")
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.assertj:assertj-core:${assertj}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testImplementation(libs.postgres)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.assertj)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.junit.jupiter.api)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:backend-service"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))

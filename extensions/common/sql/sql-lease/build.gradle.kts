@@ -18,11 +18,6 @@ plugins {
     `maven-publish`
 }
 
-val apacheCommonsPool2Version: String by project
-val assertj: String by project
-val mockitoVersion: String by project
-val postgresVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
@@ -33,8 +28,8 @@ dependencies {
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
-    testImplementation("org.postgresql:postgresql:${postgresVersion}")
-    testImplementation("org.assertj:assertj-core:${assertj}")
+    testImplementation(libs.postgres)
+    testImplementation(libs.assertj)
 }
 
 publishing {

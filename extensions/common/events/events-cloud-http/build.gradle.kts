@@ -17,22 +17,16 @@ plugins {
     `maven-publish`
 }
 
-val awaitility: String by project
-val cloudEvents: String by project
-val httpMockServer: String by project
-val failsafeVersion: String by project
-val okHttpVersion: String by project
-
 dependencies {
     implementation(project(":spi:common:core-spi"))
 
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("io.cloudevents:cloudevents-http-basic:${cloudEvents}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(libs.okhttp)
+    implementation(libs.cloudEvents)
+    implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":core:common:junit")))
-    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.awaitility)
 }
 
 publishing {

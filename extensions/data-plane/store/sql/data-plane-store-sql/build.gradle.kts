@@ -3,7 +3,6 @@ plugins {
     `maven-publish`
 }
 
-
 dependencies {
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:data-plane:data-plane-spi"))

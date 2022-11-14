@@ -16,17 +16,13 @@ plugins {
     `java-library`
 }
 
-val googleCloudIamAdminVersion: String by project
-val googleCloudIamCredentialsVersion: String by project
-val googleCloudStorageVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 
-    implementation("com.google.cloud:google-iam-admin:${googleCloudIamAdminVersion}")
-    implementation("com.google.cloud:google-cloud-storage:${googleCloudStorageVersion}")
-    implementation("com.google.cloud:google-cloud-iamcredentials:${googleCloudIamCredentialsVersion}")
+    implementation(libs.googlecloud.iam.admin)
+    implementation(libs.googlecloud.storage)
+    implementation(libs.googlecloud.iam.credentials)
 }
 publishing {
     publications {

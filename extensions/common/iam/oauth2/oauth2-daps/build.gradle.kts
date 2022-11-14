@@ -16,8 +16,6 @@ plugins {
     `java-library`
 }
 
-val okHttpVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:oauth2-spi"))
@@ -26,7 +24,7 @@ dependencies {
     testImplementation(project(":extensions:common:iam:oauth2:oauth2-core"))
     testImplementation(project(":core:common:junit"))
 
-    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    testImplementation(libs.okhttp)
 }
 
 publishing {

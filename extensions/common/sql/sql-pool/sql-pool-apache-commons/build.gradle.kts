@@ -18,20 +18,18 @@ plugins {
     `maven-publish`
 }
 
-val apacheCommonsPool2Version: String by project
-val mockitoVersion: String by project
 
 dependencies {
     api(project(":spi:common:transaction-datasource-spi"))
     api(project(":extensions:common:sql:sql-core"))
 
-    implementation("org.apache.commons:commons-pool2:${apacheCommonsPool2Version}")
+    implementation(libs.apache.commons.pool)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 
     // required for statically mocking the JDBC DriverManager
-    testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
+    testImplementation(libs.mockito.inline)
 }
 
 publishing {

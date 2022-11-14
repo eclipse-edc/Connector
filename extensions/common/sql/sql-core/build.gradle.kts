@@ -18,12 +18,6 @@ plugins {
     `maven-publish`
 }
 
-val h2Version: String by project
-val postgresVersion: String by project
-val jupiterVersion: String by project
-val mockitoVersion: String by project
-
-
 
 dependencies {
     api(project(":spi:common:core-spi"))
@@ -32,11 +26,11 @@ dependencies {
     implementation(project(":spi:common:transaction-datasource-spi"))
 
 
-    testImplementation("com.h2database:h2:${h2Version}")
-    testFixturesImplementation("org.postgresql:postgresql:${postgresVersion}")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testImplementation(libs.h2)
+    testFixturesImplementation(libs.postgres)
+    testFixturesImplementation(libs.junit.jupiter.api)
     testFixturesImplementation(project(":spi:common:transaction-datasource-spi"))
-    testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
+    testFixturesImplementation(libs.mockito.core)
 
 }
 

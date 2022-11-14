@@ -11,10 +11,6 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-val infoModelVersion: String by project
-val rsApi: String by project
-
 plugins {
     `java-library`
 }
@@ -23,9 +19,9 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
-    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+    api(libs.fraunhofer.infomodel)
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.jakarta.rsApi)
 }
 
 

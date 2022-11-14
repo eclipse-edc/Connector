@@ -16,16 +16,13 @@ plugins {
     `java-library`
 }
 
-val okHttpVersion: String by project
-val failsafeVersion: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     implementation(project(":core:common:util"))
 
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(libs.okhttp)
+    implementation(libs.failsafe.core)
 }
 
 

@@ -18,7 +18,6 @@
 rootProject.name = "connector"
 
 // this is needed to have access to snapshot builds of plugins
-// that are used at the root project level, such as "edc-build"
 pluginManagement {
     repositories {
         maven {
@@ -26,6 +25,23 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
+        mavenCentral()
+        mavenLocal()
+    }
+    versionCatalogs {
+        create("libs") {
+            from("org.eclipse.edc:edc-versions:0.0.1-SNAPSHOT")
+            // this is not part of the published EDC Version Catalog, so we'll just "amend" it
+            library("dnsOverHttps", "com.squareup.okhttp3", "okhttp-dnsoverhttps").versionRef("okhttp")
+        }
     }
 }
 
@@ -235,3 +251,4 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
+

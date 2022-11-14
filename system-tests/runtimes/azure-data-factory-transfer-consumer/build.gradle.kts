@@ -18,8 +18,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val rsApi: String by project
-
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
 
@@ -36,7 +34,7 @@ dependencies {
     implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":core:common:util"))
 
-    api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    api(libs.jakarta.rsApi)
 }
 
 application {

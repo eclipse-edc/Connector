@@ -19,9 +19,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val jupiterVersion: String by project
-val rsApi: String by project
-
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":extensions:common:metrics:micrometer-core"))
