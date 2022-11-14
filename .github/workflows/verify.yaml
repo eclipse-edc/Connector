@@ -45,30 +45,6 @@ jobs:
       - name: Dependency analysis report
         run: cat build/reports/dependency-analysis/build-health-report.txt
 
-  OpenAPI-Definitions:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: Save previous OpenAPI definition
-        run: yq -P 'sort_keys(..)' resources/openapi/openapi.yaml > openapi-git-sorted.yaml
-
-      - name: Generate OpenAPI definitions from code
-        run: |
-          ./gradlew resolve
-          ./gradlew mergeOpenApiFiles
-
-      # Can be used (and yq tasks removed) when https://github.com/kpramesh2212/openapi-merger-plugin/pull/11/files is merged
-      #- name: Check OpenAPI definitions match code
-      #  run: git diff --exit-code
-
-      - name: Check OpenAPI definitions match code
-        run: |
-          yq -P 'sort_keys(..)' resources/openapi/openapi.yaml > openapi-ci-sorted.yaml
-          diff openapi-git-sorted.yaml openapi-ci-sorted.yaml
-
-
   Unit-Tests:
     runs-on: ubuntu-latest
     env:

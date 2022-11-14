@@ -31,6 +31,13 @@ dependencies {
     testImplementation(libs.okhttp)
 }
 
+edcBuild {
+    swagger {
+        apiGroup.set("management-api")
+    }
+}
+
+
 publishing {
     publications {
         create<MavenPublication>(project.name) {

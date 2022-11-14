@@ -34,6 +34,9 @@ if (actualVersion == "unspecified") {
 }
 
 buildscript {
+    repositories {
+        mavenLocal()
+    }
     dependencies {
         val edcGradlePluginsVersion: String by project
         classpath("org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin:${edcGradlePluginsVersion}")
@@ -68,8 +71,9 @@ allprojects {
             scmUrl.set(edcScmUrl)
         }
         swagger {
-            title.set("EDC REST API")
-            description = "EDC REST APIs - merged by OpenApiMerger"
+            title.set((project.findProperty("apiTitle") ?: "EDC REST API") as String)
+            description =
+                (project.findProperty("apiDescription") ?: "EDC REST APIs - merged by OpenApiMerger") as String
             outputFilename.set(project.name)
             outputDirectory.set(file("${rootProject.projectDir.path}/resources/openapi/yaml"))
         }
