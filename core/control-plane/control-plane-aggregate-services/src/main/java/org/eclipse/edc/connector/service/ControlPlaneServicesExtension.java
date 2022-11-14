@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinit
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservableImpl;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.asset.AssetEventListener;
@@ -88,6 +89,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Inject
     private TransactionContext transactionContext;
+    
+    @Inject
+    private ContractValidationService contractValidationService;
 
     @Override
     public String name() {
@@ -132,6 +136,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public TransferProcessService transferProcessService() {
-        return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext);
+        return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext, contractNegotiationStore, contractValidationService);
     }
 }

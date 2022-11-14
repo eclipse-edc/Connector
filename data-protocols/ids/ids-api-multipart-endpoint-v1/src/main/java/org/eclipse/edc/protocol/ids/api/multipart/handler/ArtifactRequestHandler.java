@@ -18,8 +18,7 @@ package org.eclipse.edc.protocol.ids.api.multipart.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
@@ -39,35 +38,32 @@ import java.util.Optional;
 
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
-import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.inProcessFromStatusResult;
+import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.inProcessFromServiceResult;
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.malformedMessage;
 import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
-
-    private final TransferProcessManager transferProcessManager;
+    
     private final IdsId connectorId;
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
-    private final ContractValidationService contractValidationService;
     private final ContractNegotiationStore contractNegotiationStore;
     private final Vault vault;
+    private final TransferProcessService transferProcessService;
 
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
             @NotNull IdsId connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ContractNegotiationStore contractNegotiationStore,
-            @NotNull ContractValidationService contractValidationService,
-            @NotNull TransferProcessManager transferProcessManager,
-            @NotNull Vault vault) {
+            @NotNull Vault vault,
+            @NotNull TransferProcessService transferProcessService) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.objectMapper = objectMapper;
         this.contractNegotiationStore = contractNegotiationStore;
-        this.contractValidationService = contractValidationService;
-        this.transferProcessManager = transferProcessManager;
         this.vault = vault;
+        this.transferProcessService = transferProcessService;
     }
 
     @Override
@@ -112,13 +108,6 @@ public class ArtifactRequestHandler implements Handler {
         var contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
         if (contractAgreement == null) {
             monitor.debug(String.format("ArtifactRequestHandler: No contract agreement with id %s found.", contractIdsId.getValue()));
-            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
-        }
-
-        // Validate contract agreement
-        var isContractValid = contractValidationService.validateAgreement(claimToken, contractAgreement);
-        if (!isContractValid) {
-            monitor.debug("ArtifactRequestHandler: Contract is invalid");
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
@@ -168,16 +157,14 @@ public class ArtifactRequestHandler implements Handler {
                 .connectorAddress(idsWebhookAddress)
                 .build();
 
-        //TODO use TransferProcessService for initiation after project structure review
-
         // Initiate a transfer process for the request
-        var transferInitiateResult = transferProcessManager.initiateProviderRequest(dataRequest);
+        var transferInitiateResult = transferProcessService.initiateTransfer(dataRequest, claimToken);
 
         // Store secret if process initiated successfully
         if (transferInitiateResult.succeeded() && artifactRequestMessagePayload.getSecret() != null) {
             vault.storeSecret(dataDestination.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
-        return createMultipartResponse(inProcessFromStatusResult(transferInitiateResult, multipartRequest.getHeader(), connectorId));
+        return createMultipartResponse(inProcessFromServiceResult(transferInitiateResult, multipartRequest.getHeader(), connectorId));
     }
 }

@@ -9,11 +9,15 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initiate provider process
  *
  */
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -23,6 +27,8 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -58,8 +64,10 @@ class TransferProcessServiceImplTest {
     private final TransferProcessStore store = mock(TransferProcessStore.class);
     private final TransferProcessManager manager = mock(TransferProcessManager.class);
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
+    private final ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
+    private final ContractValidationService validationService = mock(ContractValidationService.class);
 
-    private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext);
+    private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext, negotiationStore, validationService);
 
     @Test
     void findById_whenFound() {
@@ -159,7 +167,7 @@ class TransferProcessServiceImplTest {
 
     @Test
     void initiateTransfer() {
-        var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
+        var dataRequest = dataRequest();
         String processId = "processId";
         when(manager.initiateConsumerRequest(dataRequest)).thenReturn(StatusResult.success(processId));
 
@@ -168,6 +176,35 @@ class TransferProcessServiceImplTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo(processId);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+    
+    @Test
+    void initiateTransfer_validAgreement_shouldInitiateTransfer() {
+        var dataRequest = dataRequest();
+        var claimToken = claimToken();
+        var processId = "processId";
+        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(validationService.validateAgreement(any(), any())).thenReturn(true);
+        when(manager.initiateProviderRequest(any())).thenReturn(StatusResult.success(processId));
+    
+        var result = service.initiateTransfer(dataRequest, claimToken);
+    
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).isEqualTo(processId);
+        verify(manager).initiateProviderRequest(dataRequest);
+    }
+    
+    @Test
+    void initiateTransfer_invalidAgreement_shouldNotInitiateTransfer() {
+        var dataRequest = dataRequest();
+        var claimToken = claimToken();
+        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(validationService.validateAgreement(any(), any())).thenReturn(false);
+    
+        var result = service.initiateTransfer(dataRequest, claimToken);
+    
+        assertThat(result.succeeded()).isFalse();
+        verifyNoInteractions(manager);
     }
 
     @ParameterizedTest
@@ -218,6 +255,28 @@ class TransferProcessServiceImplTest {
         return TransferProcess.Builder.newInstance()
                 .state(state.code())
                 .id(id)
+                .build();
+    }
+    
+    private DataRequest dataRequest() {
+        return DataRequest.Builder.newInstance()
+                .destinationType("type")
+                .build();
+    }
+    
+    private ClaimToken claimToken() {
+        return ClaimToken.Builder.newInstance()
+                .claim("key", "value")
+                .build();
+    }
+    
+    private ContractAgreement contractAgreement() {
+        return ContractAgreement.Builder.newInstance()
+                .id("agreementId")
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .assetId("asset")
+                .policy(Policy.Builder.newInstance().build())
                 .build();
     }
 }
