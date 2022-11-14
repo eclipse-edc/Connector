@@ -64,6 +64,30 @@ public interface TransferProcessService {
     @NotNull
     ServiceResult<TransferProcess> cancel(String transferProcessId);
 
+
+    /**
+     * Asynchronously requests completion of the transfer process.
+     * <p>
+     * The return result status only reflects the successful submission of the command.
+     *
+     * @param transferProcessId id of the transferProcess
+     * @return a result that is successful if the transfer process was found and is in a state that can be completed
+     */
+    @NotNull
+    ServiceResult<TransferProcess> complete(String transferProcessId);
+
+    /**
+     * Asynchronously requests failure of the transfer process.
+     * <p>
+     * The return result status only reflects the successful submission of the command.
+     *
+     * @param transferProcessId id of the transferProcess
+     * @param errorDetail the reason of the failure
+     * @return a result that is successful if the transfer process was found and is in a state that can be failed
+     */
+    @NotNull
+    ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail);
+
     /**
      * Asynchronously requests deprovisioning of the transfer process.
      * <p>
