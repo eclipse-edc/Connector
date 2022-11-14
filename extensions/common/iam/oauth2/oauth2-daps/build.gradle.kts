@@ -14,7 +14,9 @@
 
 plugins {
     `java-library`
-} dependencies {
+}
+
+dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:oauth2-spi"))
 

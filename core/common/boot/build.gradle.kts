@@ -22,7 +22,6 @@ dependencies {
     api(libs.slf4j.api)
 
     implementation(libs.opentelemetry.api)
-
     testImplementation(libs.junit.jupiter.api)
 }
 

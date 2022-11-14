@@ -17,6 +17,7 @@ plugins {
     `java-library`
     `maven-publish`
 }
+
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:policy-engine-spi"))

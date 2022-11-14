@@ -14,7 +14,9 @@
 
 plugins {
     `java-library`
-} dependencies {
+}
+
+dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(project(":core:common:util"))

@@ -18,6 +18,7 @@ plugins {
     id("application")
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
+
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":extensions:common:metrics:micrometer-core"))

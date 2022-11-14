@@ -19,7 +19,6 @@ plugins {
     `maven-publish`
 }
 
-
 dependencies {
     testImplementation(libs.gatling) {
         exclude(group = "io.gatling", module = "gatling-jms")

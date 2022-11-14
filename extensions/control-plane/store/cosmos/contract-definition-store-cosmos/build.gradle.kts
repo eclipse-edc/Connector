@@ -16,7 +16,6 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":core:common:util"))

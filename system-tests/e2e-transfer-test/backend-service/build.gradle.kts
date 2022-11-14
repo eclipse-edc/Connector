@@ -15,6 +15,7 @@
 plugins {
     `java-library`
 }
+
 dependencies {
     implementation(project(":extensions:common:http"))
     implementation(project(":core:common:boot"))

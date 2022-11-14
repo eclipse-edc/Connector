@@ -14,7 +14,9 @@
 
 plugins {
     `java-library`
-} dependencies {
+}
+
+dependencies {
     implementation(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":core:common:util"))
 

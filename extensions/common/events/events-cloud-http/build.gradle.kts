@@ -16,6 +16,7 @@ plugins {
     `java-library`
     `maven-publish`
 }
+
 dependencies {
     implementation(project(":spi:common:core-spi"))
 

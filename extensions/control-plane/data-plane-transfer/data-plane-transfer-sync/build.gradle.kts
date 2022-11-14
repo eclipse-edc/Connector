@@ -17,7 +17,6 @@ plugins {
     id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:contract-spi"))

@@ -15,6 +15,7 @@
 plugins {
     `java-library`
 }
+
 dependencies {
     api(project(":spi:control-plane:control-plane-api-client-spi"))
 

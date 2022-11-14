@@ -17,6 +17,7 @@ plugins {
     `java-test-fixtures`
     `maven-publish`
 }
+
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))

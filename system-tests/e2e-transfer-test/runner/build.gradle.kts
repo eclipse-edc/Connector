@@ -16,6 +16,7 @@
 plugins {
     java
 }
+
 dependencies {
     testImplementation(project(":extensions:common:sql:sql-core"))
 

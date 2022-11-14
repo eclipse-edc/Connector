@@ -15,7 +15,9 @@
 plugins {
     `java-library`
     `java-test-fixtures`
-} dependencies {
+}
+
+dependencies {
     testImplementation(project(":core:common:junit"))
 
     testFixturesImplementation(project(":spi:control-plane:control-plane-spi"))

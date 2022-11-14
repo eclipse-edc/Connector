@@ -15,6 +15,7 @@
 plugins {
     java
 }
+
 dependencies {
     testImplementation(libs.bundles.jupiter)
     testImplementation(libs.restAssured)

@@ -14,7 +14,9 @@
 
 plugins {
     `java-library`
-} dependencies {
+}
+
+dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":extensions:data-plane:data-plane-azure-storage"))

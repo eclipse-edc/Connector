@@ -15,6 +15,7 @@
 plugins {
     `java-library`
 }
+
 dependencies {
     api(project(":spi:common:oauth2-spi"))
     implementation(project(":core:common:jwt-core"))

@@ -15,7 +15,9 @@
 plugins {
     `java-library`
     id("io.swagger.core.v3.swagger-gradle-plugin")
-} dependencies {
+}
+
+dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
     api(project(":spi:federated-catalog:federated-catalog-spi"))

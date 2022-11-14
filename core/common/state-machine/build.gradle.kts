@@ -10,7 +10,9 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
- */plugins {
+ */
+
+plugins {
     `java-library`
     `java-test-fixtures`
     `maven-publish`

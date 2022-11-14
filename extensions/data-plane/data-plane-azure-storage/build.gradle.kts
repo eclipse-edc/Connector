@@ -16,7 +16,6 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":extensions:common:azure:azure-blob-core"))

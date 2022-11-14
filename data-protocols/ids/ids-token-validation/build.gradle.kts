@@ -10,7 +10,9 @@
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering
  *
- */plugins {
+ */
+
+plugins {
     `java-library`
 }
 

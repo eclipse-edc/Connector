@@ -14,7 +14,9 @@
 
 plugins {
     `java-library`
-} dependencies {
+}
+
+dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)

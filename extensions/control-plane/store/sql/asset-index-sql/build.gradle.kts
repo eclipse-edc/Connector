@@ -15,7 +15,9 @@
 plugins {
     `java-library`
     `maven-publish`
-} dependencies {
+}
+
+dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
     implementation(project(":spi:common:transaction-datasource-spi"))

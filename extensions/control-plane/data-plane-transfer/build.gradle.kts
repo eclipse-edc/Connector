@@ -16,7 +16,6 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-sync"))
     api(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))

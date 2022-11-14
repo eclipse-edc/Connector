@@ -14,7 +14,9 @@
 
 plugins {
     `java-library`
-} dependencies {
+}
+
+dependencies {
     api(project(":spi:common:core-spi"))
     implementation(project(":core:common:util"))
     implementation(libs.bouncyCastle.bcpkix)

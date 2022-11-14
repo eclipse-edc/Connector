@@ -16,6 +16,7 @@ plugins {
     `java-library`
     `maven-publish`
 }
+
 dependencies {
     testImplementation("org.junit-pioneer:junit-pioneer:1.8.0")
 }

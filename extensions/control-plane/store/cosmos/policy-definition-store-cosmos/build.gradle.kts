@@ -21,9 +21,7 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:azure:azure-cosmos-core"))
 
-    implementation(
-        libs.azure.cosmos
-    )
+    implementation(libs.azure.cosmos)
     implementation(libs.failsafe.core)
 
 

@@ -11,11 +11,15 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
  *
- */plugins {
+ */
+
+plugins {
     `java-library`
     id("application")
     id("com.github.johnrengelman.shadow") version "7.1.2"
-} dependencies {
+}
+
+dependencies {
     implementation(project(":core:common:util"))
 
     implementation(project(":core:control-plane:control-plane-core"))

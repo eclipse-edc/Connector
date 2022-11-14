@@ -15,7 +15,9 @@
 plugins {
     `java-library`
     `maven-publish`
-} dependencies {
+}
+
+dependencies {
     api(project(":spi:common:jwt-spi"))
 
     implementation(libs.nimbus.jwt)

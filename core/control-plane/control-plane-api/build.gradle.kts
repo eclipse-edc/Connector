@@ -15,7 +15,9 @@
 plugins {
     `java-library`
     id("io.swagger.core.v3.swagger-gradle-plugin")
-} dependencies {
+}
+
+dependencies {
 
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:control-plane:control-plane-api-client-spi"))

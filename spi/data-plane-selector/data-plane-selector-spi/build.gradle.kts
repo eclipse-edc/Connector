@@ -16,6 +16,7 @@ plugins {
     `java-library`
     `java-test-fixtures`
 }
+
 dependencies {
     api(project(":spi:common:core-spi"))
     implementation(project(":core:common:util"))

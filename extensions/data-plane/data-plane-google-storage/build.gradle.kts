@@ -10,7 +10,9 @@
  *  Contributors:
  *       T-Systems International GmbH
  *
- */plugins {
+ */
+ 
+plugins {
     `java-library`
 }
 
