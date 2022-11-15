@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
@@ -117,12 +117,8 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @Override
     public void deleteContractDefinition(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete contract definition with id %s", id));
-        var result = service.delete(id);
-        if (result.succeeded()) {
-            monitor.debug(format("Contract definition deleted %s", result.getContent().getId()));
-        } else {
-            throw mapToException(result, ContractDefinition.class, id);
-        }
+        var result = service.delete(id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
+        monitor.debug(format("Contract definition deleted %s", result.getId()));
     }
 
     @NotNull
@@ -136,16 +132,15 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         monitor.debug(format("get all contract definitions %s", spec));
 
-        var queryResult = service.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, ContractDefinition.class, null);
+        try (var stream = service.query(spec).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
+            return stream
+                    .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(Collectors.toList());
         }
 
-        return queryResult.getContent()
-                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .collect(Collectors.toList());
+
     }
 
 }

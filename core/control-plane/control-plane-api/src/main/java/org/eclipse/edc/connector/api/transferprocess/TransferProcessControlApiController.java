@@ -26,7 +26,7 @@ import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailSt
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -47,21 +47,14 @@ public class TransferProcessControlApiController implements TransferProcessContr
     @Path("/{processId}/complete")
     @Override
     public void complete(@PathParam("processId") String processId) {
-        var result = transferProcessService.complete(processId);
-
-        if (result.failed()) {
-            throw mapToException(result, TransferProcess.class, processId);
-        }
+        transferProcessService.complete(processId).orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 
     @POST
     @Path("/{processId}/fail")
     @Override
     public void fail(@PathParam("processId") String processId, @NotNull @Valid TransferProcessFailStateDto request) {
-        var result = transferProcessService.fail(processId, request.getErrorMessage());
-
-        if (result.failed()) {
-            throw mapToException(result, TransferProcess.class, processId);
-        }
+        transferProcessService.fail(processId, request.getErrorMessage()).orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
+
 }
