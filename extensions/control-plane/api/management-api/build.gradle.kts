@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     api(project(":extensions:common:api:api-core"))
-    api(project(":extensions:control-plane:api:management-api:management-api-configuration"))
+    api(project(":extensions:common:api:management-api-configuration"))
     api(project(":extensions:control-plane:api:management-api:asset-api"))
     api(project(":extensions:control-plane:api:management-api:catalog-api"))
     api(project(":extensions:control-plane:api:management-api:contract-agreement-api"))
