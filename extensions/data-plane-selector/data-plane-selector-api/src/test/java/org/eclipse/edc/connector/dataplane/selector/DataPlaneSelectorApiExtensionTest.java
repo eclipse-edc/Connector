@@ -14,35 +14,50 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
+import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.telemetry.Telemetry;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DataPlaneSelectorApiExtensionTest {
+
+    private final WebService webService = mock(WebService.class);
+    private final ManagementApiConfiguration managementApiConfiguration = mock(ManagementApiConfiguration.class);
+    private final Monitor monitor = mock(Monitor.class);
     private DataPlaneSelectorApiExtension extension;
-    private WebService webServiceMock;
-    private ServiceExtensionContext context;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        this.context = context;
-        webServiceMock = mock(WebService.class);
-        context.registerService(WebService.class, webServiceMock);
+        context.registerService(WebService.class, webService);
+        context.registerService(ManagementApiConfiguration.class, managementApiConfiguration);
         context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(mock(DataPlaneSelector.class),
                 mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class)));
 
@@ -50,9 +65,29 @@ class DataPlaneSelectorApiExtensionTest {
     }
 
     @Test
-    void initialize() {
-        extension.initialize(context);
+    void shouldRegisterManagementContext_whenNoDataplaneConfigurationExists() {
+        var config = ConfigFactory.fromMap(Collections.emptyMap());
+        when(managementApiConfiguration.getContextAlias()).thenReturn("management");
 
-        verify(webServiceMock).registerResource(eq("dataplane"), isA(DataplaneSelectorApiController.class));
+        extension.initialize(contextWithConfig(config));
+
+        verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiController.class));
+    }
+
+    @Test
+    void shouldRegisterDataplaneContext_whenDataplaneConfigurationExists() {
+        var config = ConfigFactory.fromMap(Map.of("web.http.dataplane.port", "11111"));
+
+        extension.initialize(contextWithConfig(config));
+
+        verify(webService).registerResource(eq("dataplane"), isA(DataplaneSelectorApiController.class));
+        verify(monitor).warning(anyString());
+    }
+
+    @NotNull
+    private DefaultServiceExtensionContext contextWithConfig(Config config) {
+        var context = new DefaultServiceExtensionContext(new TypeManager(), monitor, mock(Telemetry.class), List.of(() -> config));
+        context.initialize();
+        return context;
     }
 }
