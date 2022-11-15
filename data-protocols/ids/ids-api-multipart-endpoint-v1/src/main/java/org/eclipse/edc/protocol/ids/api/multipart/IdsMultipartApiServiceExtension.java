@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfiguration;
@@ -93,9 +93,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private ProviderContractNegotiationManager providerNegotiationManager;
 
     @Inject
-    private TransferProcessManager transferProcessManager;
-
-    @Inject
     private ContractValidationService contractValidationService;
 
     @Inject
@@ -109,6 +106,9 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @Inject
     private Vault vault;
+    
+    @Inject
+    private TransferProcessService transferProcessService;
 
     @Override
     public String name() {
@@ -128,7 +128,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         // create request handlers
         var handlers = new LinkedList<Handler>();
         handlers.add(new DescriptionRequestHandler(monitor, connectorId, transformerRegistry, assetIndex, dataCatalogService, contractOfferResolver, connectorService, objectMapper));
-        handlers.add(new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault));
+        handlers.add(new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, vault, transferProcessService));
         handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, context.getTypeManager()));
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));

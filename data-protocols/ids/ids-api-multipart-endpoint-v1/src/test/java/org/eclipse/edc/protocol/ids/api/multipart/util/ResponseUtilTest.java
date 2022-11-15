@@ -23,6 +23,7 @@ import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.ResponseMessageBuilder;
 import org.eclipse.edc.protocol.ids.spi.domain.IdsConstants;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,6 +98,54 @@ class ResponseUtilTest {
         var message = ResponseUtil.descriptionResponse(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(message, null);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void inProcessFromServiceResult_succeeded() {
+        var result = ServiceResult.success("success");
+        
+        var message = ResponseUtil.inProcessFromServiceResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(RequestInProcessMessage.class);
+        assertBasePropertiesMapped(message, null);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void inProcessFromServiceResult_errorNotFound() {
+        var result = ServiceResult.notFound("not found");
+    
+        var message = ResponseUtil.inProcessFromServiceResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(RejectionMessage.class);
+        assertBasePropertiesMapped(message, RejectionReason.NOT_FOUND);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void inProcessFromServiceResult_errorBadRequest() {
+        var result = ServiceResult.badRequest("bad request");
+    
+        var message = ResponseUtil.inProcessFromServiceResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(RejectionMessage.class);
+        assertBasePropertiesMapped(message, RejectionReason.BAD_PARAMETERS);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void inProcessFromServiceResult_errorConflict() {
+        var result = ServiceResult.conflict("conflict");
+    
+        var message = ResponseUtil.inProcessFromServiceResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(RejectionMessage.class);
+        assertBasePropertiesMapped(message, RejectionReason.BAD_PARAMETERS);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }

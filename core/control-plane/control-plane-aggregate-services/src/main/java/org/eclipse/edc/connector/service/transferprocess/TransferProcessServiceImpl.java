@@ -9,11 +9,14 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initiate provider process
  *
  */
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
@@ -29,6 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferComman
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
@@ -49,11 +53,17 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessManager manager;
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
+    private final ContractNegotiationStore negotiationStore;
+    private final ContractValidationService contractValidationService;
 
-    public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager, TransactionContext transactionContext) {
+    public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
+                                      TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
+                                      ContractValidationService contractValidationService) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
+        this.negotiationStore = negotiationStore;
+        this.contractValidationService = contractValidationService;
         queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
 
@@ -111,7 +121,19 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                     .orElse(ServiceResult.conflict("Request couldn't be initialised."));
         });
     }
-
+    
+    @Override
+    public @NotNull ServiceResult<String> initiateTransfer(DataRequest request, ClaimToken claimToken) {
+        return transactionContext.execute(() ->
+                Optional.ofNullable(negotiationStore.findContractAgreement(request.getContractId()))
+                        .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement))
+                        .map(agreement -> manager.initiateProviderRequest(request))
+                        .filter(AbstractResult::succeeded)
+                        .map(AbstractResult::getContent)
+                        .map(ServiceResult::success)
+                        .orElse(ServiceResult.conflict("Request couldn't be initialised.")));
+    }
+    
     private Map<Class<?>, List<Class<?>>> getSubtypes() {
         return Map.of(
                 ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),

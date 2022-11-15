@@ -31,6 +31,8 @@ import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.domain.IdsConstants;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
+import org.eclipse.edc.service.spi.result.ServiceFailure;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,6 +142,31 @@ public class ResponseUtil {
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 .build();
+    }
+    
+    /**
+     * Creates a response message depending on the service result of a previously executed action.
+     * Returns a RequestInProcessMessage, if the result is succeeded and a rejection message otherwise.
+     * The rejection reason is NOT_FOUND for service failure reason NOT_FOUND and BAD_PARAMETERS for
+     * service failure reasons BAD_REQUEST and CONFLICT.
+     *
+     * @param serviceResult the service result.
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the response message depending on the service result.
+     */
+    public static Message inProcessFromServiceResult(@NotNull ServiceResult<?> serviceResult,
+                                                     @NotNull Message correlationMessage,
+                                                     @NotNull IdsId connectorId) {
+        if (serviceResult.succeeded()) {
+            return requestInProcess(correlationMessage, connectorId);
+        } else {
+            if (serviceResult.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
+                return notFound(correlationMessage, connectorId);
+            } else {
+                return badParameters(correlationMessage, connectorId);
+            }
+        }
     }
 
     /**
