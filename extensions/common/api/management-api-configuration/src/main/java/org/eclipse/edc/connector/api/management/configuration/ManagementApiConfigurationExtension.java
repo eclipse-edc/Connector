@@ -103,7 +103,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         var webServiceConfiguration = configurator.configure(context, webServer, settings);
 
-        context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration.getContextAlias()));
+        context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new AuthenticationRequestFilter(authenticationService));
     }
 }
