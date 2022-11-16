@@ -61,6 +61,7 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
             return Result.success(ResourceManifest.Builder.newInstance().build());
         }
         var definitions = consumerGenerators.stream()
+                .filter(generator -> generator.canGenerate(dataRequest, policy))
                 .map(generator -> generator.generate(dataRequest, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
@@ -81,18 +82,19 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         }
     }
 
-    private ResourceManifest buildFromContextInformation(Map<Class, Object> contextInformation) {
-        var manifestContext = (ResourceManifestContext) contextInformation.get(ResourceManifestContext.class);
-        return ResourceManifest.Builder.newInstance().definitions(manifestContext.getDefinitions()).build();
-    }
-
     @Override
     public ResourceManifest generateProviderResourceManifest(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
         var definitions = providerGenerators.stream()
+                .filter(generator -> generator.canGenerate(dataRequest, assetAddress, policy))
                 .map(generator -> generator.generate(dataRequest, assetAddress, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();
+    }
+
+    private ResourceManifest buildFromContextInformation(Map<Class, Object> contextInformation) {
+        var manifestContext = (ResourceManifestContext) contextInformation.get(ResourceManifestContext.class);
+        return ResourceManifest.Builder.newInstance().definitions(manifestContext.getDefinitions()).build();
     }
 
 }

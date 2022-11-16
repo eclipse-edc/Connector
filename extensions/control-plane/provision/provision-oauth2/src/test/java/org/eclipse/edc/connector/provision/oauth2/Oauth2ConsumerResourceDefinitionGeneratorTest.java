@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       ZF Friedrichshafen AG - unit tests for canGenerate
  *
  */
 
@@ -22,21 +23,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 class Oauth2ConsumerResourceDefinitionGeneratorTest {
 
     private final ConsumerResourceDefinitionGenerator generator = new Oauth2ConsumerResourceDefinitionGenerator();
-
-    @Test
-    void returnsNullIfDoesNotHaveOauth2Parameters() {
-        var dataRequest = DataRequest.Builder.newInstance().id(UUID.randomUUID().toString()).destinationType("HttpData").build();
-
-        var definition = generator.generate(dataRequest, simplePolicy());
-
-        assertThat(definition).isNull();
-    }
 
     @Test
     void returnDefinitionIfTypeIsHttpDataAndOauth2ParametersArePresent() {
@@ -58,6 +51,53 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest {
                     assertThat(d.getClientSecret()).isEqualTo("aSecret");
                     assertThat(d.getTokenUrl()).isEqualTo("aTokenUrl");
                 });
+    }
+
+    @Test
+    void generate_noDataRequestAsParameter() {
+        var policy = Policy.Builder.newInstance().build();
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, simplePolicy()));
+    }
+
+    @Test
+    void generate_noPolicyAsParameter() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
+                .build();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .dataDestination(dataAddress)
+                .build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, null));
+    }
+
+    @Test
+    void canGenerate() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
+                .build();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .dataDestination(dataAddress)
+                .build();
+
+        var definition = generator.canGenerate(dataRequest, simplePolicy());
+
+        assertThat(definition).isTrue();
+    }
+
+    @Test
+    void canGenerate_noOauth2Parameters() {
+        var dataRequest = DataRequest.Builder.newInstance().id(UUID.randomUUID().toString()).destinationType("HttpData").build();
+
+        var definition = generator.canGenerate(dataRequest, simplePolicy());
+
+        assertThat(definition).isFalse();
     }
 
     private Policy simplePolicy() {

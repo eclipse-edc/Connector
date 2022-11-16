@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       ZF Friedrichshafen AG - improvements (refactoring of canGenerate method)
  *
  */
 
@@ -21,6 +22,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -33,14 +35,23 @@ class Oauth2ProviderResourceDefinitionGenerator implements ProviderResourceDefin
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
-        if (!validator.test(assetAddress)) {
-            return null;
-        }
+        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
+        Objects.requireNonNull(assetAddress, "assetAddress must always be provided");
+        Objects.requireNonNull(policy, "policy must always be provided");
 
         return Oauth2ResourceDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .transferProcessId(dataRequest.getProcessId())
                 .dataAddress(assetAddress)
                 .build();
+    }
+
+    @Override
+    public boolean canGenerate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
+        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
+        Objects.requireNonNull(assetAddress, "assetAddress must always be provided");
+        Objects.requireNonNull(policy, "policy must always be provided");
+
+        return validator.test(assetAddress);
     }
 }

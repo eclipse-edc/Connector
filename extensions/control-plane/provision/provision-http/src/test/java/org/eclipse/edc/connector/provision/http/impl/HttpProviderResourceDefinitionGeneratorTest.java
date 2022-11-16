@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - Addition of new tests
  *
  */
 
@@ -17,32 +18,98 @@ package org.eclipse.edc.connector.provision.http.impl;
 
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class HttpProviderResourceDefinitionGeneratorTest {
     private static final String DATA_ADDRESS_TYPE = "test-address";
 
     private HttpProviderResourceDefinitionGenerator generator;
 
-    @Test
-    void verifyGeneration() {
-        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("id").build();
-        var policy = Policy.Builder.newInstance().build();
-
-        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
-        assertThat(generator.generate(dataRequest, assetAddress1, policy)).isNotNull();
-
-        var assetAddress2 = DataAddress.Builder.newInstance().type("another-type").build();
-        assertThat(generator.generate(dataRequest, assetAddress2, policy)).isNull();
-    }
-
-
     @BeforeEach
     void setUp() {
         generator = new HttpProviderResourceDefinitionGenerator(DATA_ADDRESS_TYPE);
     }
+
+
+    @Test
+    void generate() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        var definition = generator.generate(dataRequest, assetAddress1, policy);
+
+        assertThat(definition).isInstanceOf(HttpProviderResourceDefinition.class);
+        var objectDef = (HttpProviderResourceDefinition) definition;
+        assertThat(objectDef.dataAddressType).isEqualTo("test-address");
+        assertThat(objectDef.getTransferProcessId()).isEqualTo("process-id");
+        assertThat(objectDef.getAssetId()).isEqualTo("asset-id");
+    }
+
+    @Test
+    void generate_noDataRequestAsParameter() {
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+        var policy = Policy.Builder.newInstance().build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, assetAddress1, policy));
+    }
+
+    @Test
+    void generate_noAddressAsParameter() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, null, policy));
+    }
+
+    @Test
+    void generate_noPolicyAsParameter() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, assetAddress1, null));
+    }
+
+    @Test
+    void generate_assetIdIsNull() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> generator.generate(dataRequest, assetAddress1, policy));
+
+    }
+
+    @Test
+    void canGenerate() {
+
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        var definition = generator.canGenerate(dataRequest, assetAddress1, policy);
+        assertThat(definition).isTrue();
+    }
+
+    @Test
+    void canGenerate_dataAddressTypeDifferentThanAssetAddressType() {
+
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        var assetAddress1 = DataAddress.Builder.newInstance().type("a-different-addressType").build();
+
+        var definition = generator.canGenerate(dataRequest, assetAddress1, policy);
+        assertThat(definition).isFalse();
+    }
+
 }
