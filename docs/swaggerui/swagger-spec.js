@@ -643,75 +643,6 @@ window.swaggerSpec={
         }
       }
     },
-    "/instances" : {
-      "get" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "getAll",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/DataPlaneInstance"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "addEntry",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/DataPlaneInstance"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/instances/select" : {
-      "post" : {
-        "tags" : [ "Dataplane Selector" ],
-        "operationId" : "find",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/SelectionRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/DataPlaneInstance"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/transferprocess" : {
       "get" : {
         "tags" : [ "Transfer Process" ],
@@ -1168,90 +1099,6 @@ window.swaggerSpec={
         }
       }
     },
-    "/check/health" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
-        "operationId" : "checkHealth",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/liveness" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
-        "operationId" : "getLiveness",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/readiness" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a readiness probe to determine whether the runtime is able to accept requests.",
-        "operationId" : "getReadiness",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/check/startup" : {
-      "get" : {
-        "tags" : [ "Application Observability" ],
-        "description" : "Performs a startup probe to determine whether the runtime has completed startup.",
-        "operationId" : "getStartup",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/HealthStatus"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/token" : {
       "get" : {
         "tags" : [ "Token Validation" ],
@@ -1354,14 +1201,57 @@ window.swaggerSpec={
         }
       }
     },
-    "/federatedcatalog" : {
+    "/instances" : {
+      "get" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "getAll",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DataPlaneInstance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post" : {
-        "operationId" : "getCachedCatalog",
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "addEntry",
         "requestBody" : {
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/FederatedCatalogCacheQuery"
+                "$ref" : "#/components/schemas/DataPlaneInstance"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/instances/select" : {
+      "post" : {
+        "tags" : [ "Dataplane Selector" ],
+        "operationId" : "find",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SelectionRequest"
               }
             }
           }
@@ -1372,10 +1262,7 @@ window.swaggerSpec={
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ContractOffer"
-                  }
+                  "$ref" : "#/components/schemas/DataPlaneInstance"
                 }
               }
             }
@@ -1796,6 +1683,90 @@ window.swaggerSpec={
                   "type" : "array",
                   "items" : {
                     "$ref" : "#/components/schemas/ApiErrorDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/health" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
+        "operationId" : "checkHealth",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/liveness" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a liveness probe to determine whether the runtime is working properly.",
+        "operationId" : "getLiveness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/readiness" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a readiness probe to determine whether the runtime is able to accept requests.",
+        "operationId" : "getReadiness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check/startup" : {
+      "get" : {
+        "tags" : [ "Application Observability" ],
+        "description" : "Performs a startup probe to determine whether the runtime has completed startup.",
+        "operationId" : "getStartup",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HealthStatus"
                   }
                 }
               }
@@ -2783,20 +2754,6 @@ window.swaggerSpec={
           }
         }
       },
-      "Criterion" : {
-        "type" : "object",
-        "properties" : {
-          "operandLeft" : {
-            "type" : "object"
-          },
-          "operandRight" : {
-            "type" : "object"
-          },
-          "operator" : {
-            "type" : "string"
-          }
-        }
-      },
       "CriterionDto" : {
         "required" : [ "operandLeft", "operator" ],
         "type" : "object",
@@ -2981,17 +2938,6 @@ window.swaggerSpec={
             "type" : "array",
             "items" : {
               "type" : "string"
-            }
-          }
-        }
-      },
-      "FederatedCatalogCacheQuery" : {
-        "type" : "object",
-        "properties" : {
-          "criteria" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/Criterion"
             }
           }
         }

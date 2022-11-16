@@ -37,6 +37,10 @@ buildscript {
     }
 }
 
+dependencies {
+    "swaggerUI"("org.webjars:swagger-ui:4.15.0")
+}
+
 allprojects {
     apply(plugin = "${groupId}.edc-build")
 
@@ -82,6 +86,9 @@ allprojects {
         }
     }
 
+}
+repositories {
+    mavenCentral()
 }
 
 // Dependency analysis active if property "dependency.analysis" is set. Possible values are <'fail'|'warn'|'ignore'>.

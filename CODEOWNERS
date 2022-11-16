@@ -52,7 +52,6 @@ styleguide.md @paullatzelsperger
 /extensions/control-plane/ @paullatzelsperger
 /extensions/data-plane/ @bscholtes1A @jimmarino
 /extensions/data-plane-selector/ @paullatzelsperger
-/extensions/federated-catalog/ @paullatzelsperger
 
 /launchers/data-plane-server/ @bscholtes1A
 /launchers/dpf-selector/ @paullatzelsperger

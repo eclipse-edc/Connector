@@ -70,8 +70,6 @@ include(":core:data-plane:data-plane-framework")
 
 include(":core:data-plane-selector:data-plane-selector-core")
 
-include(":core:federated-catalog:federated-catalog-core")
-
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:ids:ids-api-configuration")
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
@@ -167,8 +165,6 @@ include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
 include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql")
 
-include(":extensions:federated-catalog:store:fcc-node-directory-cosmos")
-
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
 include(":launchers:dpf-selector")
@@ -232,8 +228,6 @@ include(":spi:control-plane:control-plane-api-client-spi")
 include(":spi:data-plane:data-plane-spi")
 
 include(":spi:data-plane-selector:data-plane-selector-spi")
-
-include(":spi:federated-catalog:federated-catalog-spi")
 
 // modules for system tests ------------------------------------------------------------------------
 include(":system-tests:azure-data-factory-tests")
