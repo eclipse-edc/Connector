@@ -57,7 +57,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void generate_noPolicyAsParameter(){
+    void generate_noPolicyAsParameter() {
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .property(S3BucketSchema.REGION, Region.EU_WEST_2.id())
@@ -68,7 +68,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void generate_noDataRequestAsParameter(){
+    void generate_noDataRequestAsParameter() {
         var policy = Policy.Builder.newInstance().build();
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, policy));
     }
