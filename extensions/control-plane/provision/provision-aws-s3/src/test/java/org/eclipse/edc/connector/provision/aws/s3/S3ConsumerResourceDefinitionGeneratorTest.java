@@ -39,7 +39,6 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void generate() {
-
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .property(S3BucketSchema.REGION, Region.EU_WEST_2.id())
@@ -76,7 +75,6 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void generate_noRegionSpecified() {
-
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .build();
@@ -95,7 +93,6 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void generate_noBucketNameSpecified() {
-
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.REGION, Region.EU_WEST_2.id())
                 .build();
@@ -108,7 +105,6 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
 
     @Test
     void canGenerate() {
-
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
                 .property(S3BucketSchema.REGION, Region.US_EAST_1.id())
