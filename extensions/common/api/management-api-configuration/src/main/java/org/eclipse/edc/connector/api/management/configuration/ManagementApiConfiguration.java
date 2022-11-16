@@ -28,4 +28,5 @@ public class ManagementApiConfiguration extends WebServiceConfiguration {
         this.path = webServiceConfiguration.getPath();
         this.port = webServiceConfiguration.getPort();
     }
+
 }

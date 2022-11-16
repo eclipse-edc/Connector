@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.api.observability;
 
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -26,10 +27,15 @@ import org.eclipse.edc.web.spi.WebService;
 public class ObservabilityApiExtension implements ServiceExtension {
 
     public static final String NAME = "Observability API";
+
     @Inject
     private WebService webService;
+
     @Inject
     private HealthCheckService healthCheckService;
+
+    @Inject
+    private ManagementApiConfiguration managementApiConfiguration;
 
     @Override
     public String name() {
@@ -37,10 +43,10 @@ public class ObservabilityApiExtension implements ServiceExtension {
     }
 
     @Override
-    public void initialize(ServiceExtensionContext serviceExtensionContext) {
+    public void initialize(ServiceExtensionContext context) {
 
-
-        webService.registerResource(new ObservabilityApiController(healthCheckService));
+        webService.registerResource(new ObservabilityApiController(healthCheckService, true, context.getMonitor()));
+        webService.registerResource(managementApiConfiguration.getContextAlias(), new ObservabilityApiController(healthCheckService, false, context.getMonitor()));
 
         // contribute to the liveness probe
         healthCheckService.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("Observability API").build());

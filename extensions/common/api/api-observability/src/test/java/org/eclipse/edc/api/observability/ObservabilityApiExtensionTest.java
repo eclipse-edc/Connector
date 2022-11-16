@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.api.observability;
 
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
@@ -21,10 +22,12 @@ import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -33,31 +36,34 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @ExtendWith(DependencyInjectionExtension.class)
 class ObservabilityApiExtensionTest {
 
+    private final WebService webService = mock(WebService.class);
+    private final HealthCheckService healthService = mock(HealthCheckService.class);
     private ObservabilityApiExtension extension;
-    private WebService webServiceMock;
-    private HealthCheckService healthServiceMock;
 
     @BeforeEach
     void setup(ServiceExtensionContext context, ObjectFactory factory) {
-        webServiceMock = mock(WebService.class);
-        context.registerService(WebService.class, webServiceMock);
-        healthServiceMock = mock(HealthCheckService.class);
-        context.registerService(HealthCheckService.class, healthServiceMock);
+        var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
+                .contextAlias("management")
+                .path("/management")
+                .port(8888)
+                .build();
+        context.registerService(WebService.class, webService);
+        context.registerService(HealthCheckService.class, healthService);
+        context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));
         extension = factory.constructInstance(ObservabilityApiExtension.class);
     }
 
     @Test
     void initialize() {
-        ServiceExtensionContext contextMock = mock(ServiceExtensionContext.class);
+        var contextMock = mock(ServiceExtensionContext.class);
 
         extension.initialize(contextMock);
 
-        verify(webServiceMock).registerResource(isA(ObservabilityApiController.class));
-        verify(healthServiceMock).addReadinessProvider(isA(ReadinessProvider.class));
-        verify(healthServiceMock).addLivenessProvider(isA(LivenessProvider.class));
-        verifyNoMoreInteractions(webServiceMock);
-        verifyNoMoreInteractions(healthServiceMock);
-
-        verifyNoMoreInteractions(contextMock);
+        verify(webService).registerResource(isA(ObservabilityApiController.class));
+        verify(webService).registerResource(eq("management"), isA(ObservabilityApiController.class));
+        verify(healthService).addReadinessProvider(isA(ReadinessProvider.class));
+        verify(healthService).addLivenessProvider(isA(LivenessProvider.class));
+        verifyNoMoreInteractions(webService);
+        verifyNoMoreInteractions(healthService);
     }
 }
