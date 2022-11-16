@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class GcsConsumerResourceDefinitionGeneratorTest {
 
@@ -51,6 +52,24 @@ public class GcsConsumerResourceDefinitionGeneratorTest {
         assertThat(objectDef.getLocation()).isEqualTo("test-location");
         assertThat(objectDef.getStorageClass()).isEqualTo("test-storage-class");
         assertThat(objectDef.getId()).satisfies(UUID::fromString);
+    }
+
+    @Test
+    void generate_noDataRequestAsParameter() {
+        var policy = Policy.Builder.newInstance().build();
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, policy));
+    }
+
+    @Test
+    void generate_noPolicyAsParameter() {
+        var destination = DataAddress.Builder.newInstance().type(GcsStoreSchema.TYPE)
+                .property(GcsStoreSchema.LOCATION, "test-location")
+                .property(GcsStoreSchema.STORAGE_CLASS, "test-storage-class")
+                .build();
+        var asset = Asset.Builder.newInstance().build();
+        var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dr, null));
     }
 
     @Test

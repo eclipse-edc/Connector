@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
@@ -50,6 +51,41 @@ class Oauth2ProviderResourceDefinitionGeneratorTest {
                     assertThat(d.getClientSecret()).isEqualTo("aSecret");
                     assertThat(d.getTokenUrl()).isEqualTo("aTokenUrl");
                 });
+    }
+
+    @Test
+    void generate_noDataRequestAsParameter() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
+                .build();
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, dataAddress, simplePolicy()));
+    }
+
+    @Test
+    void generate_noDataAddressAsParameter() {
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .destinationType("any")
+                .build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, null, simplePolicy()));
+    }
+
+    @Test
+    void generate_noPolicyAsParameter() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
+                .build();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .destinationType("any")
+                .build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, dataAddress, null));
     }
 
     @Test

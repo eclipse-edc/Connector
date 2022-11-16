@@ -54,6 +54,30 @@ class HttpProviderResourceDefinitionGeneratorTest {
     }
 
     @Test
+    void generate_noDataRequestAsParameter() {
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+        var policy = Policy.Builder.newInstance().build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, assetAddress1, policy));
+    }
+
+    @Test
+    void generate_noAddressAsParameter() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var policy = Policy.Builder.newInstance().build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, null, policy));
+    }
+
+    @Test
+    void generate_noPolicyAsParameter() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").assetId("asset-id").processId("process-id").build();
+        var assetAddress1 = DataAddress.Builder.newInstance().type(DATA_ADDRESS_TYPE).build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, assetAddress1, null));
+    }
+
+    @Test
     void generate_assetIdIsNull() {
         var dataRequest = DataRequest.Builder.newInstance().destinationType("destination").processId("process-id").build();
         var policy = Policy.Builder.newInstance().build();

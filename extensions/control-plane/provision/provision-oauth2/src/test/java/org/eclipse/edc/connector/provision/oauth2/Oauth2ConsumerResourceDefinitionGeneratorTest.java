@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
@@ -50,6 +51,27 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest {
                     assertThat(d.getClientSecret()).isEqualTo("aSecret");
                     assertThat(d.getTokenUrl()).isEqualTo("aTokenUrl");
                 });
+    }
+
+    @Test
+    void generate_noDataRequestAsParameter() {
+        var policy = Policy.Builder.newInstance().build();
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, simplePolicy()));
+    }
+
+    @Test
+    void generate_noPolicyAsParameter() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
+                .build();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .dataDestination(dataAddress)
+                .build();
+
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, null));
     }
 
     @Test
