@@ -20,10 +20,12 @@ import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 public class ServiceResultHandler {
 
     /**
-     * Interprets a {@link ServiceResult} based on its {@link ServiceResult#reason()} property and returns the
+     * Interprets a {@link ServiceResult#reason()} property and returns the
      * appropriate exception:
      * <table>
      *   <tr>
@@ -44,22 +46,36 @@ public class ServiceResultHandler {
      *   <caption>Mapping from failure reason to exception</caption>
      * </table>
      *
-     * @param result The {@link ServiceResult}
+     * @param failure The {@link ServiceFailure}
      * @param clazz The type in whose context the failure occurred. Must not be null.
      * @param id The id of the entity which was involved in the failure. Can be null for
      *         {@link ServiceFailure.Reason#BAD_REQUEST}.
      * @return Exception mapped from failure reason.
      */
-    public static EdcException mapToException(@NotNull ServiceResult<?> result, @NotNull Class<?> clazz, @Nullable String id) {
-        switch (result.reason()) {
+    public static EdcException mapToException(@NotNull ServiceFailure failure, @NotNull Class<?> clazz, @Nullable String id) {
+        switch (failure.getReason()) {
             case NOT_FOUND:
                 return new ObjectNotFoundException(clazz, id);
             case CONFLICT:
                 return new ObjectExistsException(clazz, id);
             case BAD_REQUEST:
-                return new InvalidRequestException(result.getFailureMessages());
+                return new InvalidRequestException(failure.getMessages());
             default:
-                return new EdcException("unexpected error: " + result.getFailureDetail());
+                return new EdcException("unexpected error: " + failure.getFailureDetail());
         }
+    }
+
+
+    /**
+     * Returns a function that can be use as mapper for handling exception in context like {@link  ServiceResult#orElseThrow(Function)}
+     *
+     * @param clazz The type in whose context the failure occurred. Must not be null.
+     * @param id The id of the entity which was involved in the failure. Can be null for
+     *           {@link ServiceFailure.Reason#BAD_REQUEST}.
+     * @return The mapper {@link Function}
+     */
+
+    public static Function<ServiceFailure, EdcException> exceptionMapper(@NotNull Class<?> clazz, @Nullable String id) {
+        return (serviceFailure -> mapToException(serviceFailure, clazz, id));
     }
 }

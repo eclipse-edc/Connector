@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -78,18 +78,14 @@ public class AssetApiController implements AssetApi {
         var dataAddress = dataAddressResult.getContent();
         var asset = assetResult.getContent();
 
-        var result = service.create(asset, dataAddress);
+        var resultContent = service.create(asset, dataAddress).orElseThrow(exceptionMapper(Asset.class, asset.getId()));
 
-        if (result.succeeded()) {
-            monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
-            var resultContent = result.getContent();
-            return IdResponseDto.Builder.newInstance()
-                    .id(resultContent.getId())
-                    .createdAt(resultContent.getCreatedAt())
-                    .build();
-        } else {
-            throw mapToException(result, Asset.class, asset.getId());
-        }
+        monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
+        return IdResponseDto.Builder.newInstance()
+                .id(resultContent.getId())
+                .createdAt(resultContent.getCreatedAt())
+                .build();
+
     }
 
     @GET
@@ -124,12 +120,8 @@ public class AssetApiController implements AssetApi {
     @Override
     public void removeAsset(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete Asset with id %s", id));
-        var result = service.delete(id);
-        if (result.succeeded()) {
-            monitor.debug(format("Asset deleted %s", id));
-        } else {
-            throw mapToException(result, Asset.class, id);
-        }
+        service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
+        monitor.debug(format("Asset deleted %s", id));
     }
 
     private List<AssetResponseDto> queryAssets(QuerySpecDto querySpecDto) {
@@ -142,13 +134,7 @@ public class AssetApiController implements AssetApi {
 
         monitor.debug(format("get all Assets from %s", spec));
 
-        var queryResult = service.query(spec);
-
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, QuerySpec.class, null);
-        }
-
-        try (var assets = queryResult.getContent()) {
+        try (var assets = service.query(spec).orElseThrow(exceptionMapper(QuerySpec.class, null))) {
             return assets
                     .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
                     .filter(Result::succeeded)
@@ -156,4 +142,5 @@ public class AssetApiController implements AssetApi {
                     .collect(toList());
         }
     }
+
 }

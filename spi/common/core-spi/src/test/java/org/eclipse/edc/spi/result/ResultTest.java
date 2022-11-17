@@ -212,11 +212,10 @@ class ResultTest {
 
     @Test
     void orElseThrow() {
-        assertThat(Result.success("foobar").orElseThrow(RuntimeException::new))
-                .extracting(AbstractResult::getContent)
+        assertThat(Result.success("foobar").orElseThrow(failure -> new RuntimeException()))
                 .isEqualTo("foobar");
 
-        assertThatThrownBy(() -> Result.failure("barbaz").orElseThrow(RuntimeException::new))
+        assertThatThrownBy(() -> Result.failure("barbaz").orElseThrow(failure -> new RuntimeException()))
                 .isInstanceOf(RuntimeException.class);
     }
 

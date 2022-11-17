@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractagreements")
@@ -96,14 +96,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
         monitor.debug(format("get all contract agreements from %s", spec));
 
-        var queryResult = service.query(spec);
-
-        //will throw an exception
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, ContractDefinition.class, null);
-        }
-
-        try (var stream = queryResult.getContent()) {
+        try (var stream = service.query(spec).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
             return stream
                     .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
                     .filter(Result::succeeded)

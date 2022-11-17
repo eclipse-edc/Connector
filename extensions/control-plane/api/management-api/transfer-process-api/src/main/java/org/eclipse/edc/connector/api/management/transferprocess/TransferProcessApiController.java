@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -103,12 +103,8 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Override
     public void cancelTransferProcess(@PathParam("id") String id) {
         monitor.debug("Cancelling TransferProcess with ID " + id);
-        var result = service.cancel(id);
-        if (result.succeeded()) {
-            monitor.debug(format("Transfer process canceled %s", result.getContent().getId()));
-        } else {
-            throw mapToException(result, TransferProcess.class, id);
-        }
+        var transferProcess = service.cancel(id).orElseThrow(exceptionMapper(TransferProcess.class, id));
+        monitor.debug(format("Transfer process canceled %s", transferProcess.getId()));
     }
 
     @POST
@@ -116,12 +112,8 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Override
     public void deprovisionTransferProcess(@PathParam("id") String id) {
         monitor.debug(format("Attempting to deprovision TransferProcess with id %s", id));
-        var result = service.deprovision(id);
-        if (result.succeeded()) {
-            monitor.debug(format("Transfer process deprovisioned %s", result.getContent().getId()));
-        } else {
-            throw mapToException(result, TransferProcess.class, id);
-        }
+        var transferProcess = service.deprovision(id).orElseThrow(exceptionMapper(TransferProcess.class, id));
+        monitor.debug(format("Transfer process deprovisioned %s", transferProcess.getId()));
     }
 
     @POST
@@ -134,17 +126,12 @@ public class TransferProcessApiController implements TransferProcessApi {
         monitor.debug("Starting transfer for asset " + transferRequest.getAssetId());
 
         var dataRequest = transformResult.getContent();
-        var result = service.initiateTransfer(dataRequest);
-        if (result.succeeded()) {
-            monitor.debug(format("Transfer process initialised %s", result.getContent()));
-            return IdResponseDto.Builder.newInstance()
-                    .id(result.getContent())
-                    //To be accurate createdAt should come from the transfer object
-                    .createdAt(Clock.systemUTC().millis())
-                    .build();
-        } else {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
+        var result = service.initiateTransfer(dataRequest).orElseThrow(exceptionMapper(TransferProcess.class, transferRequest.getId()));
+        return IdResponseDto.Builder.newInstance()
+                .id(result)
+                //To be accurate createdAt should come from the transfer object
+                .createdAt(Clock.systemUTC().millis())
+                .build();
     }
 
     private List<TransferProcessDto> queryTransferProcesses(QuerySpecDto querySpecDto) {
@@ -155,12 +142,7 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         var spec = result.getContent();
 
-        var queryResult = service.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, TransferProcess.class, null);
-        }
-
-        try (var stream = queryResult.getContent()) {
+        try (var stream = service.query(spec).orElseThrow(exceptionMapper(TransferProcess.class, null))) {
             return stream
                     .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
                     .filter(Result::succeeded)

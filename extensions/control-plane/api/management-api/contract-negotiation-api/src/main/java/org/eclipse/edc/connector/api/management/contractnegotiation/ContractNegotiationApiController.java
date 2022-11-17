@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -140,12 +140,8 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @Override
     public void cancelNegotiation(@PathParam("id") String id) {
         monitor.debug(format("Attempting to cancel contract definition with id %s", id));
-        var result = service.cancel(id);
-        if (result.succeeded()) {
-            monitor.debug(format("Contract negotiation canceled %s", result.getContent().getId()));
-        } else {
-            throw mapToException(result, ContractNegotiation.class, id);
-        }
+        var result = service.cancel(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+        monitor.debug(format("Contract negotiation canceled %s", result.getId()));
     }
 
     @POST
@@ -153,12 +149,8 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @Override
     public void declineNegotiation(@PathParam("id") String id) {
         monitor.debug(format("Attempting to decline contract definition with id %s", id));
-        var result = service.decline(id);
-        if (result.succeeded()) {
-            monitor.debug(format("Contract negotiation declined %s", result.getContent().getId()));
-        } else {
-            throw mapToException(result, ContractNegotiation.class, id);
-        }
+        var result = service.decline(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+        monitor.debug(format("Contract negotiation declined %s", result.getId()));
     }
 
     private List<ContractNegotiationDto> queryContractNegotiations(QuerySpecDto querySpecDto) {
@@ -171,12 +163,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         monitor.debug(format("Get all contract definitions %s", spec));
 
-        var queryResult = service.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, ContractNegotiation.class, null);
-        }
-
-        try (var stream = queryResult.getContent()) {
+        try (var stream = service.query(spec).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
             return stream
                     .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
                     .filter(Result::succeeded)

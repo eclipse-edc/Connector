@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -99,17 +99,14 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         var definition = transformResult.getContent();
 
-        var result = policyDefinitionService.create(definition);
-        if (result.succeeded()) {
-            monitor.debug(format("Policy definition created %s", definition.getId()));
-            var resultContent = result.getContent();
-            return IdResponseDto.Builder.newInstance()
-                    .id(resultContent.getId())
-                    .createdAt(resultContent.getCreatedAt())
-                    .build();
-        } else {
-            throw mapToException(result, PolicyDefinition.class, definition.getId());
-        }
+        var resultContent = policyDefinitionService.create(definition).orElseThrow(exceptionMapper(PolicyDefinition.class, definition.getId()));
+        monitor.debug(format("Policy definition created %s", definition.getId()));
+
+        return IdResponseDto.Builder.newInstance()
+                .id(resultContent.getId())
+                .createdAt(resultContent.getCreatedAt())
+                .build();
+
     }
 
     @DELETE
@@ -117,12 +114,8 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Override
     public void deletePolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete policy with id %s", id));
-        var result = policyDefinitionService.deleteById(id);
-        if (result.succeeded()) {
-            monitor.debug(format("Policy deleted %s", id));
-        } else {
-            throw mapToException(result, PolicyDefinition.class, id);
-        }
+        policyDefinitionService.deleteById(id).orElseThrow(exceptionMapper(PolicyDefinition.class, id));
+        monitor.debug(format("Policy deleted %s", id));
     }
 
     private List<PolicyDefinitionResponseDto> queryPolicies(QuerySpecDto querySpecDto) {
@@ -135,12 +128,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         monitor.debug(format("get all policies %s", spec));
 
-        var queryResult = policyDefinitionService.query(spec);
-        if (queryResult.failed()) {
-            throw mapToException(queryResult, PolicyDefinition.class, null);
-        }
-
-        try (var stream = queryResult.getContent()) {
+        try (var stream = policyDefinitionService.query(spec).orElseThrow(exceptionMapper(PolicyDefinition.class, null))) {
             return stream
                     .map(it -> transformerRegistry.transform(it, PolicyDefinitionResponseDto.class))
                     .filter(Result::succeeded)
