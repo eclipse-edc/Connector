@@ -19,7 +19,7 @@ import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.provision.http.HttpProvisionerWebhookUrl;
 import org.eclipse.edc.connector.provision.http.HttpWebhookExtension;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;
@@ -69,7 +69,7 @@ class HttpWebhookExtensionTest {
         context.registerService(WebServer.class, webServer);
         context.registerService(WebService.class, webService);
         context.registerService(Hostname.class, () -> "localhost");
-        context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
+        context.registerService(TransferProcessService.class, mock(TransferProcessService.class));
         context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
         context.registerService(WebServiceConfigurer.class, webServiceConfigurer);
         context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));

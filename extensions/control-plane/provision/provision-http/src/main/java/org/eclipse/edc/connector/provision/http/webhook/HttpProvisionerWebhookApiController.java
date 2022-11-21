@@ -22,24 +22,25 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.provision.http.impl.HttpProvisionedContentResource;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
-import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
-import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.UUID;
+
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/callback")
 public class HttpProvisionerWebhookApiController implements HttpProvisionerWebhookApi {
-    private final TransferProcessManager transferProcessManager;
+    private final TransferProcessService transferProcessService;
 
-    public HttpProvisionerWebhookApiController(TransferProcessManager transferProcessManager) {
-        this.transferProcessManager = transferProcessManager;
+    public HttpProvisionerWebhookApiController(TransferProcessService transferProcessService) {
+        this.transferProcessService = transferProcessService;
     }
 
     @Override
@@ -61,9 +62,8 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
                 .secretToken(new SimpleSecretToken(request.getApiKeyJwt()))
                 .build();
 
-        var command = new AddProvisionedResourceCommand(transferProcessId, response);
-
-        transferProcessManager.enqueueCommand(command);
+        transferProcessService.addProvisionedResource(transferProcessId, response)
+                .orElseThrow(exceptionMapper(TransferProcess.class, transferProcessId));
 
     }
 
@@ -75,9 +75,8 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
             throw new InvalidRequestException("Request body cannot be null and it should provide a valid provisionedResourceId value");
         }
 
-        var command = new DeprovisionCompleteCommand(transferProcessId, resource);
-
-        transferProcessManager.enqueueCommand(command);
+        transferProcessService.completeDeprovision(transferProcessId, resource)
+                .orElseThrow(exceptionMapper(TransferProcess.class, transferProcessId));
     }
 
 }

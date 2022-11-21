@@ -18,7 +18,7 @@ import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.provision.http.webhook.HttpProvisionerWebhookApiController;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.EdcException;
@@ -66,7 +66,7 @@ public class HttpWebhookExtension implements ServiceExtension {
     private AuthenticationService authService;
 
     @Inject
-    private TransferProcessManager transferProcessManager;
+    private TransferProcessService transferProcessService;
 
     @Inject
     private WebServiceConfigurer configurator;
@@ -93,7 +93,7 @@ public class HttpWebhookExtension implements ServiceExtension {
 
         registerCallbackUrl(context, webServiceConfiguration.getPath(), webServiceConfiguration.getPort());
 
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new HttpProvisionerWebhookApiController(transferProcessManager));
+        webService.registerResource(webServiceConfiguration.getContextAlias(), new HttpProvisionerWebhookApiController(transferProcessService));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new AuthenticationRequestFilter(authService));
 
     }

@@ -15,7 +15,11 @@
 package org.eclipse.edc.connector.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -81,7 +85,10 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     }
 
     @Test
-    void callProvisionWebhook() {
+    void callProvisionWebhook(TransferProcessStore store) {
+
+        store.create(createTransferProcess());
+
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
                 .contentDataAddress(dataAddress())
@@ -111,7 +118,27 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     }
 
     @Test
-    void callDeprovisionWebhook() {
+    void callDeprovisionWebhook_notFound() {
+
+        var rq = DeprovisionedResource.Builder.newInstance()
+                .provisionedResourceId("resource-id")
+                .errorMessage("some-error")
+                .build();
+
+        baseRequest()
+                .body(rq)
+                .contentType("application/json")
+                .post("/callback/{processId}/deprovision", "tp-id")
+                .then()
+                .statusCode(equalTo(404))
+                .body(anything());
+    }
+
+    @Test
+    void callDeprovisionWebhook(TransferProcessStore store) {
+
+        store.create(createTransferProcess());
+
         var rq = DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId("resource-id")
                 .errorMessage("some-error")
@@ -136,6 +163,20 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .basePath(PROVISIONER_BASE_PATH)
                 .header("x-api-key", authKey)
                 .when();
+    }
+
+    private TransferProcess createTransferProcess() {
+        return createTransferProcessBuilder().build();
+    }
+
+    private TransferProcess.Builder createTransferProcessBuilder() {
+        return TransferProcess.Builder.newInstance()
+                .id("tp-id")
+                .state(TransferProcessStates.IN_PROGRESS.code())
+                .type(TransferProcess.Type.PROVIDER)
+                .dataRequest(DataRequest.Builder.newInstance()
+                        .destinationType("file")
+                        .build());
     }
 
     private static class InvalidRequestParams implements ArgumentsProvider {
