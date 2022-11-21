@@ -166,6 +166,7 @@ include(":extensions:data-plane:store:cosmos:data-plane-store-cosmos")
 include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
 include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql")
+include(":extensions:data-plane-selector:store:cosmos:data-plane-instance-store-cosmos")
 
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
@@ -247,4 +248,3 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
-

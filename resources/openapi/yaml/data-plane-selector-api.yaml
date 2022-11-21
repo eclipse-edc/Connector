@@ -83,6 +83,28 @@ components:
           type: string
           format: url
           example: null
+    DataPlaneInstanceImpl:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/DataPlaneInstance'
+      - type: object
+        example: null
+        properties:
+          allowedDestTypes:
+            type: array
+            example: null
+            items:
+              type: string
+              example: null
+            uniqueItems: true
+          allowedSourceTypes:
+            type: array
+            example: null
+            items:
+              type: string
+              example: null
+            uniqueItems: true
+      example: null
     SelectionRequest:
       type: object
       example: null

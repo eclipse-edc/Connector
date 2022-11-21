@@ -2062,6 +2062,22 @@ components:
         url:
           type: string
           format: url
+    DataPlaneInstanceImpl:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/DataPlaneInstance'
+      - type: object
+        properties:
+          allowedDestTypes:
+            uniqueItems: true
+            type: array
+            items:
+              type: string
+          allowedSourceTypes:
+            uniqueItems: true
+            type: array
+            items:
+              type: string
     DataRequestDto:
       type: object
       properties:
