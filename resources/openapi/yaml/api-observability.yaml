@@ -70,6 +70,9 @@ components:
       type: object
       example: null
       properties:
+        failureDetail:
+          type: string
+          example: null
         messages:
           type: array
           example: null
