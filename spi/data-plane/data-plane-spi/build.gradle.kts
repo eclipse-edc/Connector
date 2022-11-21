@@ -14,10 +14,13 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    testFixturesImplementation(libs.bundles.jupiter)
+    testFixturesImplementation(libs.assertj)
 }
 
 

@@ -16,31 +16,18 @@ plugins {
     `java-library`
 }
 
-val jakartaValidationApi: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
-val restAssured: String by project
-val rsApi: String by project
-
 dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":extensions:common:http:jetty-core"))
 
-    implementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
-    implementation("org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}")
-    implementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
-    implementation("org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVersion}")
-    implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
-    implementation("org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}")
-    implementation("org.glassfish.jersey.containers:jersey-container-servlet:${jerseyVersion}")
-
+    implementation(libs.bundles.jersey.core)
     implementation("org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2")
 
     testImplementation(project(":core:common:junit"))
 
-    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
+    testImplementation(libs.okhttp)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.jersey.beanvalidation) //for validation
 }
 
 publishing {

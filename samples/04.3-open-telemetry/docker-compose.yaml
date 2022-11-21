@@ -11,8 +11,8 @@ services:
       OTEL_METRICS_EXPORTER: prometheus
       WEB_HTTP_PORT: 9191
       WEB_HTTP_PATH: /api
-      WEB_HTTP_DATA_PORT: 9192
-      WEB_HTTP_DATA_PATH: /api/v1/data
+      WEB_HTTP_MANAGEMENT_PORT: 9192
+      WEB_HTTP_MANAGEMENT_PATH: /api/v1/management
       WEB_HTTP_IDS_PORT: 9292
       WEB_HTTP_IDS_PATH: /api/v1/ids
       IDS_WEBHOOK_ADDRESS: http://consumer:9292
@@ -35,8 +35,8 @@ services:
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
       WEB_HTTP_PORT: 8181
       WEB_HTTP_PATH: /api
-      WEB_HTTP_DATA_PORT: 8182
-      WEB_HTTP_DATA_PATH: /api/v1/data
+      WEB_HTTP_MANAGEMENT_PORT: 8182
+      WEB_HTTP_MANAGEMENT_PATH: /api/v1/management
       IDS_WEBHOOK_ADDRESS: http://provider:8282
       EDC_SAMPLES_04_ASSET_PATH: /samples/04.3-open-telemetry/input-file.txt
     volumes:

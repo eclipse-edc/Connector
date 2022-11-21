@@ -15,10 +15,8 @@
 
 plugins {
     `java-library`
-}
-
-repositories {
-    mavenCentral()
+    // todo: remove once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/2191 is complete
+    id("org.hidetake.swagger.generator") version "2.19.2"
 }
 
 val javaVersion: String by project
@@ -53,6 +51,7 @@ allprojects {
             // override default dependency versions here
             projectVersion.set(actualVersion)
             metaModel.set(metaModelVersion)
+
         }
         pom {
             projectName.set(project.name)
@@ -90,5 +89,16 @@ if (project.hasProperty("dependency.analysis")) {
     apply(plugin = "org.eclipse.edc.dependency-rules")
     configure<org.eclipse.edc.gradle.DependencyRulesPluginExtension> {
         severity.set(project.property("dependency.analysis").toString())
+    }
+}
+
+// todo: remove once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/2191 is complete
+swaggerSources {
+    create("edc").apply {
+        setInputFile(file("./resources/openapi/openapi.yaml"))
+        ui(closureOf<org.hidetake.gradle.swagger.generator.GenerateSwaggerUI> {
+            outputDir = file("docs/swaggerui")
+            wipeOutputDir = true
+        })
     }
 }

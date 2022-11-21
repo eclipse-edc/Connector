@@ -12,10 +12,6 @@
  *
  */
 
-val openTelemetryVersion: String by project
-val awaitility: String by project
-
-
 plugins {
     `java-library`
 }
@@ -28,10 +24,11 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":core:common:util"))
 
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.opentelemetry.annotations)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.awaitility)
+    testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))
 }
 
 

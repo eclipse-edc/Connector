@@ -16,15 +16,11 @@ plugins {
     `java-library`
 }
 
-val restAssured: String by project
-val awaitility: String by project
-
-
 dependencies {
     testImplementation(project(":core:common:junit"))
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation(project(":extensions:control-plane:api:data-management-api:transfer-process-api"))
+    testImplementation(libs.restAssured)
+    testImplementation(libs.awaitility)
+    testImplementation(project(":extensions:control-plane:api:management-api:transfer-process-api"))
     testImplementation(project(":extensions:common:api:api-core"))
 
     testImplementation(testFixtures(project(":samples:04.0-file-transfer:integration-tests")))

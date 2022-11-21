@@ -18,8 +18,6 @@ plugins {
     id("application")
 }
 
-val openTelemetryVersion: String by project
-
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
@@ -29,7 +27,7 @@ dependencies {
     implementation(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.opentelemetry.annotations)
 
     implementation(project(":spi:data-plane:data-plane-spi"))
 }

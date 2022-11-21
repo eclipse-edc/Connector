@@ -64,8 +64,10 @@ public class FileTransferSampleTest {
 
         testUtils.initiateContractNegotiation();
         testUtils.lookUpContractAgreementId();
-        testUtils.requestTransferFile();
+        var transferProcessId = testUtils.requestTransferFile();
         testUtils.assertDestinationFileContent();
+
+        testUtils.assertTransferProcessStatusConsumerSide(transferProcessId);
     }
 
     @AfterEach

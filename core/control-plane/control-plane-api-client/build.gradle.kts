@@ -16,24 +16,18 @@ plugins {
     `java-library`
 }
 
-val failsafeVersion: String by project
-val okHttpVersion: String by project
-val awaitility: String by project
-
-
-
 dependencies {
     api(project(":spi:control-plane:control-plane-api-client-spi"))
 
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(libs.failsafe.core)
+    implementation(libs.okhttp)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":core:control-plane:control-plane-api"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.awaitility)
 
 }
 

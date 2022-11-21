@@ -122,14 +122,12 @@ public class MultipartControllerIntegrationTest {
 
         extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
         extension.registerServiceMock(ContractOfferResolver.class, contractOfferResolver);
-        extension.registerServiceMock(ProviderContractNegotiationManager.class,
-                providerContractNegotiationManager);
-        extension.registerServiceMock(ConsumerContractNegotiationManager.class,
-                consumerContractNegotiationManager);
+        extension.registerServiceMock(ProviderContractNegotiationManager.class, providerContractNegotiationManager);
+        extension.registerServiceMock(ConsumerContractNegotiationManager.class, consumerContractNegotiationManager);
     }
 
     @Test
-    void testRequestConnectorSelfDescriptionWithoutId(OkHttpClient httpClient) throws Exception {
+    void requestConnectorSelfDescriptionWithoutId(OkHttpClient httpClient) throws Exception {
         var request = createRequest(getDescriptionRequestMessage());
 
         var response = httpClient.newCall(request).execute();
@@ -190,7 +188,7 @@ public class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testRequestConnectorSelfDescriptionWithId(OkHttpClient httpClient) throws Exception {
+    void requestConnectorSelfDescriptionWithId(OkHttpClient httpClient) throws Exception {
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CONNECTOR_ID).type(IdsType.CONNECTOR).build()
         ));
@@ -253,7 +251,7 @@ public class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testRequestDataCatalogWithAssets(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestDataCatalogWithAssets(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         var assetId = UUID.randomUUID().toString();
         var asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -338,7 +336,7 @@ public class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testRequestDataCatalogNoAssets(OkHttpClient httpClient) throws Exception {
+    void requestDataCatalogNoAssets(OkHttpClient httpClient) throws Exception {
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build()
         ));
@@ -387,7 +385,7 @@ public class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testRequestArtifact(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestArtifact(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -448,7 +446,7 @@ public class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testRequestRepresentation(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestRepresentation(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -513,7 +511,7 @@ public class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testRequestResource(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestResource(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)

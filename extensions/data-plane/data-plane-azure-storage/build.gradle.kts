@@ -12,13 +12,9 @@
  *
  */
 
-val storageBlobVersion: String by project
-val failsafeVersion: String by project
-
 plugins {
     `java-library`
 }
-
 
 dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
@@ -26,8 +22,8 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":core:common:util"))
 
-    implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(libs.azure.storageblob)
+    implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-blob-core")))

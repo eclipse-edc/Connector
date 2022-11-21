@@ -16,7 +16,6 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":core:common:connector-core"))

@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":extensions:common:vault:vault-azure"))
 
     implementation(project(":extensions:common:auth:auth-tokenbased"))
-    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 
     implementation(project(":data-protocols:ids"))
 }

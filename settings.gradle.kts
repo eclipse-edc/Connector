@@ -18,7 +18,6 @@
 rootProject.name = "connector"
 
 // this is needed to have access to snapshot builds of plugins
-// that are used at the root project level, such as "edc-build"
 pluginManagement {
     repositories {
         maven {
@@ -26,6 +25,23 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
+        mavenCentral()
+        mavenLocal()
+    }
+    versionCatalogs {
+        create("libs") {
+            from("org.eclipse.edc:edc-versions:0.0.1-SNAPSHOT")
+            // this is not part of the published EDC Version Catalog, so we'll just "amend" it
+            library("dnsOverHttps", "com.squareup.okhttp3", "okhttp-dnsoverhttps").versionRef("okhttp")
+        }
     }
 }
 
@@ -107,15 +123,15 @@ include(":extensions:common:vault:vault-azure")
 include(":extensions:common:vault:vault-filesystem")
 include(":extensions:common:vault:vault-hashicorp")
 
-include(":extensions:control-plane:api:data-management-api")
-include(":extensions:control-plane:api:data-management-api:data-management-api-configuration")
-include(":extensions:control-plane:api:data-management-api:asset-api")
-include(":extensions:control-plane:api:data-management-api:catalog-api")
-include(":extensions:control-plane:api:data-management-api:contract-agreement-api")
-include(":extensions:control-plane:api:data-management-api:contract-definition-api")
-include(":extensions:control-plane:api:data-management-api:contract-negotiation-api")
-include(":extensions:control-plane:api:data-management-api:policy-definition-api")
-include(":extensions:control-plane:api:data-management-api:transfer-process-api")
+include(":extensions:control-plane:api:management-api")
+include(":extensions:control-plane:api:management-api:management-api-configuration")
+include(":extensions:control-plane:api:management-api:asset-api")
+include(":extensions:control-plane:api:management-api:catalog-api")
+include(":extensions:control-plane:api:management-api:contract-agreement-api")
+include(":extensions:control-plane:api:management-api:contract-definition-api")
+include(":extensions:control-plane:api:management-api:contract-negotiation-api")
+include(":extensions:control-plane:api:management-api:policy-definition-api")
+include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client")
 include(":extensions:control-plane:data-plane-transfer:data-plane-transfer-sync")
 include(":extensions:control-plane:http-receiver")
@@ -144,6 +160,8 @@ include(":extensions:data-plane:data-plane-http")
 include(":extensions:data-plane:data-plane-aws-s3")
 include(":extensions:data-plane:data-plane-google-storage")
 include(":extensions:data-plane:data-plane-integration-tests")
+include(":extensions:data-plane:store:sql:data-plane-store-sql")
+
 
 include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
@@ -166,6 +184,8 @@ include(":samples:04.0-file-transfer:consumer")
 include(":samples:04.0-file-transfer:provider")
 include(":samples:04.0-file-transfer:integration-tests")
 include(":samples:04.0-file-transfer:transfer-file")
+include(":samples:04.0-file-transfer:status-checker")
+
 
 include(":samples:04.1-file-transfer-listener:consumer")
 include(":samples:04.1-file-transfer-listener:file-transfer-listener-integration-tests")

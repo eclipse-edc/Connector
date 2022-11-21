@@ -18,23 +18,19 @@ plugins {
     `maven-publish`
 }
 
-val jupiterVersion: String by project
-val mockitoVersion: String by project
-val okHttpVersion: String by project
-val assertj: String by project
-
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":core:common:boot"))
     api(project(":core:common:connector-core"))
     api(project(":core:common:util"))
-    implementation("org.mockito:mockito-core:${mockitoVersion}")
-    implementation("org.assertj:assertj-core:${assertj}")
 
-    implementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    runtimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("org.junit-pioneer:junit-pioneer:1.8.0")
+    implementation(libs.mockito.core)
+    implementation(libs.assertj)
+    implementation(libs.junit.jupiter.api)
+    runtimeOnly(libs.junit.jupiter.engine)
+    implementation(libs.okhttp)
+
+    implementation("org.junit-pioneer:junit-pioneer:1.9.0")
 }
 
 publishing {

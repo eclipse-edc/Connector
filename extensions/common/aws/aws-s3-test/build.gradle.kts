@@ -18,23 +18,16 @@ plugins {
     `maven-publish`
 }
 
-val assertj: String by project
-val awaitility: String by project
-val awsVersion: String by project
-val jupiterVersion: String by project
-val okHttpVersion: String by project
-
-
 dependencies {
     testFixturesApi(project(":core:common:junit"))
     testFixturesImplementation(project(":extensions:common:aws:aws-s3-core"))
 
-    testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}") // needed for MinIO health probe
-    testFixturesImplementation("org.awaitility:awaitility:${awaitility}")
-    testFixturesImplementation("org.assertj:assertj-core:$assertj")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-    testFixturesApi("software.amazon.awssdk:s3:${awsVersion}")
+    testFixturesImplementation(libs.okhttp) // needed for MinIO health probe
+    testFixturesImplementation(libs.awaitility)
+    testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(libs.junit.jupiter.api)
+    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
+    testFixturesApi(libs.aws.s3)
 }
 
 publishing {

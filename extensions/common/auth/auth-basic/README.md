@@ -19,13 +19,13 @@ edc.api.auth.basic.usera: api-basic-auth-usera
 edc.api.auth.basic.userb: api-basic-auth-userb
 ```
 
-To use this module e.g. together with the DataManagement API and Azure Vault just have to include the following into
+To use this module e.g. together with the Management API and Azure Vault just have to include the following into
 your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
     implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":extensions:common:auth:auth-basic"))
-    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 }
 ```

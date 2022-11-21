@@ -16,22 +16,18 @@ plugins {
     `java-library`
 }
 
-val cosmosSdkVersion: String by project
-val failsafeVersion: String by project
-val awaitility: String by project
-
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":core:common:util"))
     api(project(":extensions:common:azure:azure-cosmos-core"))
 
-    implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(libs.azure.cosmos)
+    implementation(libs.failsafe.core)
 
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-cosmos-core")))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.awaitility)
     testImplementation(testFixtures(project(":spi:control-plane:transfer-spi")))
 }
 

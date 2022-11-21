@@ -91,30 +91,30 @@ public class MultipartController {
     public FormDataMultiPart request(@FormDataParam(HEADER) InputStream headerInputStream,
                                      @FormDataParam(PAYLOAD) String payload) {
         if (headerInputStream == null) {
-            return buildMultipart(malformedMessage(null, connectorId));
+            return createFormDataMultiPart(malformedMessage(null, connectorId));
         }
 
         Message header;
         try {
             header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
-            return buildMultipart(malformedMessage(null, connectorId));
+            return createFormDataMultiPart(malformedMessage(null, connectorId));
         }
 
         if (header == null) {
-            return buildMultipart(malformedMessage(null, connectorId));
+            return createFormDataMultiPart(malformedMessage(null, connectorId));
         }
 
         // Check if any required header field missing
         if (header.getId() == null || header.getIssuerConnector() == null || header.getSenderAgent() == null) {
-            return buildMultipart(malformedMessage(header, connectorId));
+            return createFormDataMultiPart(malformedMessage(header, connectorId));
         }
 
         // Check if DAT present
         var dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
-            return buildMultipart(notAuthenticated(header, connectorId));
+            return createFormDataMultiPart(notAuthenticated(header, connectorId));
         }
 
         // Validate DAT
@@ -122,7 +122,7 @@ public class MultipartController {
                 .verifyDynamicAttributeToken(dynamicAttributeToken, header.getIssuerConnector(), idsWebhookAddress);
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
-            return buildMultipart(notAuthenticated(header, connectorId));
+            return createFormDataMultiPart(notAuthenticated(header, connectorId));
         }
 
         // Build the multipart request
@@ -133,41 +133,16 @@ public class MultipartController {
                 .claimToken(claimToken)
                 .build();
 
-        // Find handler for the multipart request
-        var handler = multipartHandlers.stream()
+        var multipartResponse = multipartHandlers.stream()
                 .filter(h -> h.canHandle(multipartRequest))
                 .findFirst()
-                .orElse(null);
-        if (handler == null) {
-            return buildMultipart(messageTypeNotSupported(header, connectorId));
-        }
+                .map(it -> it.handleRequest(multipartRequest))
+                .orElseGet(() -> MultipartResponse.Builder.newInstance()
+                        .header(messageTypeNotSupported(header, connectorId))
+                        .build());
 
-        var multipartResponse = handler.handleRequest(multipartRequest);
-        return buildMultipart(multipartResponse);
-    }
-
-    /**
-     * Creates a multipart body for the given response. Adds the security token to the response
-     * header.
-     *
-     * @param multipartResponse the multipart response.
-     * @return a multipart body.
-     */
-    private FormDataMultiPart buildMultipart(MultipartResponse multipartResponse) {
-        multipartResponse.getHeader().setSecurityToken(getToken(multipartResponse.getHeader()));
+        multipartResponse.setSecurityToken(this::getToken);
         return createFormDataMultiPart(multipartResponse.getHeader(), multipartResponse.getPayload());
-    }
-
-    /**
-     * Creates a multipart body with the given message header and no payload. Adds the security
-     * token to the response header.
-     *
-     * @param header the multipart response.
-     * @return a multipart body.
-     */
-    private FormDataMultiPart buildMultipart(Message header) {
-        header.setSecurityToken(getToken(header));
-        return createFormDataMultiPart(header, null);
     }
 
     /**
@@ -178,15 +153,26 @@ public class MultipartController {
      * @return a multipart body.
      */
     private FormDataMultiPart createFormDataMultiPart(Message header, Object payload) {
-        var multiPart = new FormDataMultiPart();
-        if (header != null) {
-            multiPart.bodyPart(new FormDataBodyPart(HEADER, toJson(header), MediaType.APPLICATION_JSON_TYPE));
-        }
+        var multiPart = createFormDataMultiPart(header);
 
         if (payload != null) {
             multiPart.bodyPart(new FormDataBodyPart(PAYLOAD, toJson(payload), MediaType.APPLICATION_JSON_TYPE));
         }
 
+        return multiPart;
+    }
+
+    /**
+     * Builds a form-data multipart body with the given header.
+     *
+     * @param header the header.
+     * @return a multipart body.
+     */
+    private FormDataMultiPart createFormDataMultiPart(Message header) {
+        var multiPart = new FormDataMultiPart();
+        if (header != null) {
+            multiPart.bodyPart(new FormDataBodyPart(HEADER, toJson(header), MediaType.APPLICATION_JSON_TYPE));
+        }
         return multiPart;
     }
 

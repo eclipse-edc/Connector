@@ -19,8 +19,9 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import org.apache.http.HttpStatus;
-import org.eclipse.edc.connector.api.datamanagement.transferprocess.model.TransferProcessDto;
+import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -43,9 +44,9 @@ public class FileTransferSampleTestCommon {
     static final ObjectMapper MAPPER = new ObjectMapper();
 
     //region constant test settings
-    static final String INITIATE_CONTRACT_NEGOTIATION_URI = "http://localhost:9192/api/v1/data/contractnegotiations";
-    static final String LOOK_UP_CONTRACT_AGREEMENT_URI = "http://localhost:9192/api/v1/data/contractnegotiations/{id}";
-    static final String TRANSFER_PROCESS_URI = "http://localhost:9192/api/v1/data/transferprocess";
+    static final String INITIATE_CONTRACT_NEGOTIATION_URI = "http://localhost:9192/api/v1/management/contractnegotiations";
+    static final String LOOK_UP_CONTRACT_AGREEMENT_URI = "http://localhost:9192/api/v1/management/contractnegotiations/{id}";
+    static final String TRANSFER_PROCESS_URI = "http://localhost:9192/api/v1/management/transferprocess";
     static final String CONTRACT_OFFER_FILE_PATH = "samples/04.0-file-transfer/contractoffer.json";
     static final String TRANSFER_FILE_PATH = "samples/04.0-file-transfer/filetransfer.json";
     static final String API_KEY_HEADER_KEY = "X-Api-Key";
@@ -72,10 +73,18 @@ public class FileTransferSampleTestCommon {
      */
     public FileTransferSampleTestCommon(@NotNull String sampleAssetFilePath, @NotNull String destinationFilePath) {
         this.sampleAssetFilePath = sampleAssetFilePath;
-        this.sampleAssetFile  = getFileFromRelativePath(sampleAssetFilePath);
+        sampleAssetFile = getFileFromRelativePath(sampleAssetFilePath);
 
         this.destinationFilePath = sampleAssetFilePath;
-        this.destinationFile  = getFileFromRelativePath(destinationFilePath);
+        destinationFile = getFileFromRelativePath(destinationFilePath);
+    }
+
+    /**
+     * Resolves a {@link File} instance from a relative path.
+     */
+    @NotNull
+    public static File getFileFromRelativePath(String relativePath) {
+        return new File(TestUtils.findBuildRoot(), relativePath);
     }
 
     /**
@@ -90,17 +99,8 @@ public class FileTransferSampleTestCommon {
      * Remove files created while running the tests.
      * The copied file will be deleted.
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     void cleanTemporaryTestFiles() {
         destinationFile.delete();
-    }
-
-    /**
-     * Resolves a {@link File} instance from a relative path.
-     */
-    @NotNull
-    public static File getFileFromRelativePath(String relativePath) {
-        return new File(TestUtils.findBuildRoot(), relativePath);
     }
 
     /**
@@ -113,18 +113,30 @@ public class FileTransferSampleTestCommon {
     }
 
     /**
+     * Assert that the transfer process state on the consumer is completed.
+     */
+    void assertTransferProcessStatusConsumerSide(String transferProcessId) {
+        await().atMost(timeout).pollInterval(pollInterval).untilAsserted(()
+                -> {
+            var transferProcess = getTransferProcessById(transferProcessId);
+
+            assertThat(transferProcess).extracting(TransferProcessDto::getState).isEqualTo(TransferProcessStates.COMPLETED.toString());
+        });
+    }
+
+    /**
      * Assert that a POST request to initiate a contract negotiation is successful.
-     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"}
+     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/management/contractnegotiations"}
      */
     void initiateContractNegotiation() {
         contractNegotiationId = RestAssured
-            .given()
+                .given()
                 .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
                 .contentType(ContentType.JSON)
                 .body(new File(TestUtils.findBuildRoot(), CONTRACT_OFFER_FILE_PATH))
-            .when()
+                .when()
                 .post(INITIATE_CONTRACT_NEGOTIATION_URI)
-            .then()
+                .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("id", not(emptyString()))
                 .extract()
@@ -133,67 +145,82 @@ public class FileTransferSampleTestCommon {
     }
 
     /**
-     * Gets the first transfer process as returned by the data management API.
+     * Gets the first transfer process as returned by the management API.
      *
      * @return The transfer process.
      */
     public TransferProcessDto getTransferProcess() {
         return RestAssured.given()
                 .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
-            .when()
+                .when()
                 .get(TRANSFER_PROCESS_URI)
-            .then()
+                .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract().jsonPath().getObject("[0]", TransferProcessDto.class);
     }
 
     /**
+     * Gets the transfer process by ID.
+     *
+     * @return The transfer process.
+     */
+    public TransferProcessDto getTransferProcessById(String processId) {
+        return RestAssured.given()
+                .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
+                .when()
+                .get(String.format("%s/%s", TRANSFER_PROCESS_URI, processId))
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().as(TransferProcessDto.class);
+    }
+
+    /**
      * Assert that a GET request to look up a contract agreement is successful.
-     * This method corresponds to the command in the sample: {@code curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"}
+     * This method corresponds to the command in the sample: {@code curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/management/contractnegotiations/{UUID}"}
      */
     void lookUpContractAgreementId() {
         // Wait for transfer to be completed.
-        await().atMost(timeout).pollInterval(pollInterval)
-                .untilAsserted(() ->
-                contractAgreementId = RestAssured
-                    .given()
-                        .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
-                    .when()
-                        .get(LOOK_UP_CONTRACT_AGREEMENT_URI, contractNegotiationId)
-                    .then()
-                        .statusCode(HttpStatus.SC_OK)
-                        .body("state", equalTo("CONFIRMED"))
-                        .body("contractAgreementId", not(emptyString()))
-                        .extract().body().jsonPath().getString("contractAgreementId")
+        await().atMost(timeout).pollInterval(pollInterval).untilAsserted(() -> contractAgreementId = RestAssured
+                .given()
+                .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
+                .when()
+                .get(LOOK_UP_CONTRACT_AGREEMENT_URI, contractNegotiationId)
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("state", equalTo("CONFIRMED"))
+                .body("contractAgreementId", not(emptyString()))
+                .extract().body().jsonPath().getString("contractAgreementId")
         );
     }
 
     /**
      * Assert that a POST request to initiate transfer process is successful.
-     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"}
+     * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/management/transferprocess"}
      *
      * @throws IOException Thrown if there was an error accessing the transfer request file defined in {@link FileTransferSampleTestCommon#TRANSFER_FILE_PATH}.
      */
-    void requestTransferFile() throws IOException {
+    String requestTransferFile() throws IOException {
         var transferJsonFile = getFileFromRelativePath(TRANSFER_FILE_PATH);
         DataRequest sampleDataRequest = readAndUpdateDataRequestFromJsonFile(transferJsonFile, contractAgreementId);
 
         JsonPath jsonPath = RestAssured
                 .given()
-                    .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
-                    .contentType(ContentType.JSON)
-                    .body(sampleDataRequest)
+                .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
+                .contentType(ContentType.JSON)
+                .body(sampleDataRequest)
                 .when()
-                    .post(TRANSFER_PROCESS_URI)
+                .post(TRANSFER_PROCESS_URI)
                 .then()
-                    .statusCode(HttpStatus.SC_OK)
-                    .body("id", not(emptyString()))
-                    .extract()
-                    .jsonPath();
+                .statusCode(HttpStatus.SC_OK)
+                .body("id", not(emptyString()))
+                .extract()
+                .jsonPath();
 
         String transferProcessId = jsonPath.get("id");
 
         assertThat(transferProcessId).isNotEmpty();
+
+        return transferProcessId;
     }
 
     /**

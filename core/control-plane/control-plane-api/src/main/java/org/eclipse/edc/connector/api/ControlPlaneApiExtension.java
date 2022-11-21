@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.api;
 
 import org.eclipse.edc.connector.api.transferprocess.TransferProcessControlApiController;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -52,14 +52,15 @@ public class ControlPlaneApiExtension implements ServiceExtension {
     private WebServer webServer;
     @Inject
     private WebService webService;
-    @Inject
-    private TransferProcessManager transferProcessManager;
+
     @Inject
     private Hostname hostname;
 
     @Inject
     private WebServiceConfigurer configurator;
 
+    @Inject
+    private TransferProcessService transferProcessService;
 
     private WebServiceConfiguration configuration;
 
@@ -81,7 +82,7 @@ public class ControlPlaneApiExtension implements ServiceExtension {
         configuration = configurator.configure(context, webServer, settings);
         context.getTypeManager().registerTypes(TransferProcessFailStateDto.class);
 
-        webService.registerResource(configuration.getContextAlias(), new TransferProcessControlApiController(transferProcessManager));
+        webService.registerResource(configuration.getContextAlias(), new TransferProcessControlApiController(transferProcessService));
     }
 
 

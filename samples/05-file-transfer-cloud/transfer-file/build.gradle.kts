@@ -16,8 +16,6 @@ plugins {
     `java-library`
 }
 
-val openTelemetryVersion: String by project
-
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
@@ -27,5 +25,5 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.opentelemetry.annotations)
 }

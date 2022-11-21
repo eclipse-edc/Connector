@@ -19,9 +19,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val jupiterVersion: String by project
-val rsApi: String by project
-
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":extensions:common:metrics:micrometer-core"))
@@ -30,7 +27,7 @@ dependencies {
     implementation(project(":extensions:common:iam:iam-mock"))
 
     implementation(project(":extensions:common:auth:auth-tokenbased"))
-    implementation(project(":extensions:control-plane:api:data-management-api"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 
     implementation(project(":data-protocols:ids"))
     runtimeOnly(project(":extensions:common:http:jersey-micrometer"))

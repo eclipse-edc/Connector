@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Datamanagement API (DM API) offers a very open and unrestricted query feature: as long as it can be expressed as a
+The Management API (DM API) offers a very open and unrestricted query feature: as long as it can be expressed as a
 3-tuple in the form
 
 ```

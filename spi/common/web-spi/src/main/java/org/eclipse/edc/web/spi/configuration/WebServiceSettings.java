@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.web.spi.configuration;
 
-import org.eclipse.edc.web.spi.WebServer;
-
 import java.util.Objects;
 
 public class WebServiceSettings {
@@ -33,9 +31,9 @@ public class WebServiceSettings {
     }
 
     /**
-     * Returns the key for the ws config key eg `web.http.data`
+     * Returns the key for the ws config key eg `web.http.management`
      */
-    String apiConfigKey() {
+    public String apiConfigKey() {
         return apiConfigKey;
     }
 
@@ -62,15 +60,13 @@ public class WebServiceSettings {
         return contextAlias;
     }
 
-
     /**
-     * Implementors can override this if they want to use the {@link WebServer#getDefaultContextName()}
-     * if the config {@link WebServiceSettings#apiConfigKey()} is not found in {@link org.eclipse.edc.spi.system.ServiceExtensionContext#getConfig}
+     * Returns true if the default context should be taken into consideration if there's not one context-specific
+     * configured
      */
     public boolean useDefaultContext() {
         return useDefaultContext;
     }
-
 
     /**
      * The name of the API settings. It's intended only for displaying the name of the Web Extension that
@@ -80,11 +76,24 @@ public class WebServiceSettings {
         return name;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WebServiceSettings that = (WebServiceSettings) o;
+        return useDefaultContext == that.useDefaultContext && apiConfigKey.equals(that.apiConfigKey) &&
+                defaultPort.equals(that.defaultPort) && defaultPath.equals(that.defaultPath) &&
+                Objects.equals(contextAlias, that.contextAlias) && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(useDefaultContext, apiConfigKey, defaultPort, defaultPath, contextAlias, name);
+    }
 
     public static class Builder {
 
         private final WebServiceSettings settings;
-
 
         private Builder() {
             settings = new WebServiceSettings();

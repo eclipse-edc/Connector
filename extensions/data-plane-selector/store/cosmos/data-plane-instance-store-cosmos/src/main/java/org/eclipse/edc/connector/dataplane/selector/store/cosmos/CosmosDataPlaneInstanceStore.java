@@ -89,7 +89,7 @@ public class CosmosDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     private DataPlaneInstance convert(Object object) {
         var json = Optional.ofNullable(typeManager.writeValueAsString(object));
-        return json.map(s -> typeManager.readValue(s, DataPlaneInstance.class)).orElse(null);
+        return json.map(s -> typeManager.readValue(s, DataPlaneInstanceDocument.class)).map(DataPlaneInstanceDocument::getWrappedInstance).orElse(null);
     }
 
 }

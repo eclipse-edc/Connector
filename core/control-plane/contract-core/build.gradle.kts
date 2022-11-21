@@ -12,10 +12,6 @@
 *       Microsoft Corporation - introduced Awaitility
 *
 */
-
-val openTelemetryVersion: String by project
-val awaitility: String by project
-
 plugins {
     `java-library`
     `maven-publish`
@@ -26,11 +22,11 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
 
     implementation(project(":core:common:state-machine"))
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.opentelemetry.annotations)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:common:junit"))
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(libs.awaitility)
 }
 
 publishing {

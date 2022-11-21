@@ -3,13 +3,11 @@ plugins {
     `java-test-fixtures`
 }
 
-val okHttpVersion: String by project
-
 dependencies {
     api(project(":spi:common:identity-did-spi"))
     api(project(":core:common:util"))
 
-    implementation("com.squareup.okhttp3:okhttp-dnsoverhttps:${okHttpVersion}")
+    implementation(libs.dnsOverHttps)
     testImplementation(project(":core:common:junit"))
 }
 

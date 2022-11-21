@@ -12,11 +12,6 @@
  *
  */
 
-
-val infoModelVersion: String by project
-val rsApi: String by project
-val jerseyVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -24,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:common:web-spi"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.jakarta.rsApi)
 }
 
 publishing {

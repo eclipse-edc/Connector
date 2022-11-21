@@ -158,6 +158,11 @@ public class ConfigImpl implements Config {
         return getEntries().containsKey(key);
     }
 
+    @Override
+    public boolean hasPath(String path) {
+        return getEntries().keySet().stream().anyMatch(it -> it.startsWith(path));
+    }
+
     private boolean parseBoolean(String value) {
         if (value.equalsIgnoreCase("true")) {
             return true;

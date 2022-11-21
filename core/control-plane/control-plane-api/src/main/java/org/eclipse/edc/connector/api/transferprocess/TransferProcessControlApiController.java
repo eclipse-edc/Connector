@@ -23,9 +23,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
-import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -34,11 +35,11 @@ import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand
 public class TransferProcessControlApiController implements TransferProcessControlApi {
 
     public static final String PATH = "/transferprocess";
-    private final TransferProcessManager transferProcessManager;
+    private final TransferProcessService transferProcessService;
 
 
-    public TransferProcessControlApiController(TransferProcessManager transferProcessManager) {
-        this.transferProcessManager = transferProcessManager;
+    public TransferProcessControlApiController(TransferProcessService transferProcessService) {
+        this.transferProcessService = transferProcessService;
     }
 
 
@@ -46,13 +47,14 @@ public class TransferProcessControlApiController implements TransferProcessContr
     @Path("/{processId}/complete")
     @Override
     public void complete(@PathParam("processId") String processId) {
-        transferProcessManager.enqueueCommand(new CompleteTransferCommand(processId));
+        transferProcessService.complete(processId).orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 
     @POST
     @Path("/{processId}/fail")
     @Override
     public void fail(@PathParam("processId") String processId, @NotNull @Valid TransferProcessFailStateDto request) {
-        transferProcessManager.enqueueCommand(new FailTransferCommand(processId, request.getErrorMessage()));
+        transferProcessService.fail(processId, request.getErrorMessage()).orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
+
 }

@@ -4,8 +4,8 @@ edc:
     WEB_HTTP_PATH: /api
     WEB_HTTP_IDS_PORT: 8282
     WEB_HTTP_IDS_PATH: /api/v1/ids
-    WEB_HTTP_DATA_PORT: 9191
-    WEB_HTTP_DATA_PATH: /api/v1/data
+    WEB_HTTP_MANAGEMENT_PORT: 9191
+    WEB_HTTP_MANAGEMENT_PATH: /api/v1/management
 
 ports:
   http:
@@ -19,4 +19,4 @@ ports:
   http-mgmt:
     containerPort: 9191
     servicePort: 91
-    path: /api/v1/data
+    path: /api/v1/management

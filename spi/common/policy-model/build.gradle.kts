@@ -17,8 +17,6 @@ plugins {
     `java-library`
 }
 
-dependencies {
-}
 publishing {
     publications {
         create<MavenPublication>("policy-model") {

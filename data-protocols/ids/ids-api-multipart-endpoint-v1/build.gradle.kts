@@ -12,10 +12,6 @@
  *       Fraunhofer Institute for Software and Systems Engineering - added dependency
  *
  */
-val infoModelVersion: String by project
-val rsApi: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -29,14 +25,14 @@ dependencies {
 
     implementation(project(":data-protocols:ids:ids-api-configuration"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jersey.multipart)
 
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
     testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.36.0")
     testImplementation("net.javacrumbs.json-unit:json-unit:2.36.0")
 
-    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    testImplementation(libs.okhttp)
     testImplementation(project(":core:common:junit"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))

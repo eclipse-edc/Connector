@@ -11,13 +11,6 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-val failsafeVersion: String by project
-val httpMockServer: String by project
-val okHttpVersion: String by project
-val restAssured: String by project
-val rsApi: String by project
-
 plugins {
     `java-library`
     `java-test-fixtures`
@@ -28,13 +21,13 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":core:data-plane:data-plane-util"))
 
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    implementation(libs.okhttp)
+    implementation(libs.failsafe.core)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
-    testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    testImplementation(libs.restAssured)
+    testImplementation(libs.mockserver.netty)
+    testFixturesImplementation(libs.okhttp)
 }
 
 publishing {

@@ -29,4 +29,8 @@ public class Failure {
     public List<String> getMessages() {
         return messages;
     }
+
+    public String getFailureDetail() {
+        return String.join(", ", messages);
+    }
 }

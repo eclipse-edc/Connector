@@ -50,14 +50,14 @@ java -Dedc.fs.config=samples/04.1-file-transfer-listener/consumer/config.propert
 java -Dedc.fs.config=samples/04.0-file-transfer/provider/config.properties -jar samples/04.0-file-transfer/provider/build/libs/provider.jar
 ````
 
-Assuming you didn't change the config files, the consumer will expose data-management api on port `9192` and the custom 
+Assuming you didn't change the config files, the consumer will expose management api on port `9192` and the custom 
 api endpoints on port `9191` and the provider will listen on port `8181`.
 Open another terminal window (or any REST client of your choice) and execute the following REST requests like in the previous sample:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
-curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/management/contractnegotiations"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/management/contractnegotiations/{UUID}"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/management/transferprocess"
 ```
 
 > **Replace `{UUID}` in the second request with the UUID received as the response to the first request!**

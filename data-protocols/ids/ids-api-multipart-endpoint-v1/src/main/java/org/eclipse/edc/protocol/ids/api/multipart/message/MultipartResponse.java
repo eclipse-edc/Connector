@@ -14,11 +14,13 @@
 
 package org.eclipse.edc.protocol.ids.api.multipart.message;
 
+import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Represents an IDS multipart response. Contains the IDS message header and an optional payload.
@@ -41,6 +43,15 @@ public class MultipartResponse {
     @Nullable
     public Object getPayload() {
         return payload;
+    }
+
+    /**
+     * Sets the security token on the header created by the getToken function from the header itself.
+     *
+     * @param getToken a function that creates the security token giving the header
+     */
+    public void setSecurityToken(Function<Message, DynamicAttributeToken> getToken) {
+        getHeader().setSecurityToken(getToken.apply(getHeader()));
     }
 
     public static class Builder {

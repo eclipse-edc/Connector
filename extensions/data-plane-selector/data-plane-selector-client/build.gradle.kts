@@ -11,11 +11,6 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-val mockitoVersion: String by project
-val failsafeVersion: String by project
-val okHttpVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -23,8 +18,8 @@ plugins {
 dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(libs.failsafe.core)
+    implementation(libs.okhttp)
 
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:data-plane-selector:data-plane-selector-api"))

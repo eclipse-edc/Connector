@@ -12,8 +12,6 @@
  *
  */
 
-val okHttpVersion: String by project
-val failsafeVersion: String by project
 
 plugins {
     `java-library`
