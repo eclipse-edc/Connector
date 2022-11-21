@@ -31,7 +31,7 @@ jobs:
 
       # create merge commit main -> releases encoding the version in the commit message
       - name: Merge main -> releases
-        uses: everlytic/branch-merge@1.1.4
+        uses: everlytic/branch-merge@1.1.5
         with:
           github_token: ${{ github.token }}
           source_ref: ${{ github.ref }}
