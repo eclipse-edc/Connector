@@ -70,17 +70,18 @@ import java.time.Clock;
 @Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
         TransferProcessObservable.class, DataFlowManager.class, ProvisionManager.class,
         EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformerRegistry.class })
-@Extension(value = CoreTransferExtension.NAME)
-public class CoreTransferExtension implements ServiceExtension {
+@Extension(value = TransferCoreExtension.NAME)
+public class TransferCoreExtension implements ServiceExtension {
 
-    public static final String NAME = "Core Transfer";
+    public static final String NAME = "Transfer Core";
 
-    private static final long DEFAULT_ITERATION_WAIT = 5000;
+    public static final long DEFAULT_ITERATION_WAIT = 1000;
+    public static final int DEFAULT_BATCH_SIZE = 20;
 
-    @Setting(value = "the iteration wait time in milliseconds on the state machine. Default value 5000")
-    private static final String TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS = "edc.transfer.state-machine.iteration-wait-millis";
+    @Setting(value = "the iteration wait time in milliseconds in the transfer process state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
+    private static final String TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.transfer.state-machine.iteration-wait-millis";
 
-    @Setting
+    @Setting(value = "the batch size in the transfer process state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
     private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
 
     @Setting
@@ -145,7 +146,7 @@ public class CoreTransferExtension implements ServiceExtension {
         var provisionManager = new ProvisionManagerImpl(monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
-        var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILIS, DEFAULT_ITERATION_WAIT);
+        var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
         var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
@@ -184,7 +185,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .observable(observable)
                 .transferProcessStore(transferProcessStore)
                 .policyArchive(policyArchive)
-                .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, 5))
+                .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .sendRetryManager(sendRetryManager)
                 .addressResolver(addressResolver)
                 .build();

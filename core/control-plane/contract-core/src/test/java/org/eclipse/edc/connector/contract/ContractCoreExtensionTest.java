@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(EdcExtension.class)
-class ContractServiceExtensionTest {
+class ContractCoreExtensionTest {
 
     @Test
     void shouldProvidePolicyArchive(PolicyArchive policyArchive) {

@@ -41,6 +41,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -69,17 +70,21 @@ import java.time.Clock;
         ContractDefinitionService.class
 })
 @CoreExtension
-public class ContractServiceExtension implements ServiceExtension {
+@Extension(value = ContractCoreExtension.NAME)
+public class ContractCoreExtension implements ServiceExtension {
 
-    private static final long DEFAULT_ITERATION_WAIT = 5000;
+    public static final String NAME = "Contract Core";
 
-    @Setting(value = "the iteration wait time in milliseconds on the state machine. Default value 5000")
+    public static final long DEFAULT_ITERATION_WAIT = 1000;
+    public static final int DEFAULT_BATCH_SIZE = 20;
+
+    @Setting(value = "the iteration wait time in milliseconds in the negotiation state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
     private static final String NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.negotiation.state-machine.iteration-wait-millis";
 
-    @Setting
+    @Setting(value = "the batch size in the consumer negotiation state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
     private static final String NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.consumer.state-machine.batch-size";
 
-    @Setting
+    @Setting(value = "the batch size in the provider negotiation state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
     private static final String NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.provider.state-machine.batch-size";
 
     @Setting
@@ -136,7 +141,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Core Contract Service";
+        return NAME;
     }
 
     @Override
@@ -166,8 +171,8 @@ public class ContractServiceExtension implements ServiceExtension {
         var definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine, policyStore);
         context.registerService(ContractDefinitionService.class, definitionService);
 
-        var contractOfferService = new ContractOfferResolverImpl(agentService, definitionService, assetIndex, policyStore);
-        context.registerService(ContractOfferResolver.class, contractOfferService);
+        var contractOfferResolver = new ContractOfferResolverImpl(agentService, definitionService, assetIndex, policyStore);
+        context.registerService(ContractOfferResolver.class, contractOfferResolver);
 
         var policyEquality = new PolicyEquality(context.getTypeManager());
         var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
@@ -198,7 +203,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .store(store)
                 .policyStore(policyStore)
-                .batchSize(context.getSetting(NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE, 5))
+                .batchSize(context.getSetting(NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .sendRetryManager(consumerSendRetryManager(context))
                 .build();
 
@@ -215,7 +220,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .store(store)
                 .policyStore(policyStore)
-                .batchSize(context.getSetting(NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE, 5))
+                .batchSize(context.getSetting(NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .sendRetryManager(providerSendRetryManager(context))
                 .build();
 
