@@ -2865,6 +2865,30 @@ window.swaggerSpec={
           }
         }
       },
+      "DataPlaneInstanceImpl" : {
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/DataPlaneInstance"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "allowedDestTypes" : {
+              "uniqueItems" : true,
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "allowedSourceTypes" : {
+              "uniqueItems" : true,
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          }
+        } ]
+      },
       "DataRequestDto" : {
         "type" : "object",
         "properties" : {
@@ -2934,6 +2958,9 @@ window.swaggerSpec={
       "Failure" : {
         "type" : "object",
         "properties" : {
+          "failureDetail" : {
+            "type" : "string"
+          },
           "messages" : {
             "type" : "array",
             "items" : {

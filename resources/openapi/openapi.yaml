@@ -2124,6 +2124,8 @@ components:
     Failure:
       type: object
       properties:
+        failureDetail:
+          type: string
         messages:
           type: array
           items:
