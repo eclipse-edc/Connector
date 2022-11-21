@@ -48,6 +48,9 @@ public class CosmosDataPlaneInstanceStoreExtension implements ServiceExtension {
     @Inject
     private HealthCheckService healthCheckService;
 
+    @Inject
+    private Vault vault;
+
     @Override
     public String name() {
         return NAME;
@@ -57,15 +60,11 @@ public class CosmosDataPlaneInstanceStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosDataPlaneInstanceStoreConfig(context);
 
-        var vault = context.getService(Vault.class);
-
         var cosmosDbApi = new CosmosDbApiImpl(configuration, clientProvider.createClient(vault, configuration));
 
         var store = new CosmosDataPlaneInstanceStore(cosmosDbApi, typeManager, retryPolicy, configuration.getPartitionKey());
         context.registerService(CosmosDataPlaneInstanceStore.class, store);
 
         context.getTypeManager().registerTypes(DataPlaneInstanceDocument.class);
-
-        context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
     }
 }
