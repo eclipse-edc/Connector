@@ -37,6 +37,6 @@ are put. Then, the `mergeOpenApiFiles` task would have to be invoked for every o
 contents and ultimately producing the (merged) `management-api.yaml`.
 
 Similarly, when merging the "partial specs" together using the `openApiMerger`, we'd get several API specs,
-e.g. `management-api.yaml`, `control-api.yaml`, `federated-catalog-api.yaml`, etc.
+e.g. `management-api.yaml`, `control-api.yaml`, etc.
 
 Ultimately, all of these will get published as separate APIs to SwaggerHub.

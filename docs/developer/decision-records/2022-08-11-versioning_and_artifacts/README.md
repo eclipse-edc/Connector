@@ -22,7 +22,7 @@ flexible than git refs, but at the same time improves coherence and setup speed.
 `IdentityHub` (a.k.a. "IH", [see Github](https://github.com/eclipse-dataspaceconnector/IdentityHub),
 `MinimumViableDataspace` (a.k.a. "MVD"
 > , [see Github](https://github.com/eclipse-dataspaceconnector/MinimumViableDataspace))) and `FederatedCatalog` (a.k.a.
-"FC", [see Github](https://github.com/eclipse-dataspaceconnector/FederatedCatalog), not yet populated).
+"FC", [see Github](https://github.com/eclipse-dataspaceconnector/FederatedCatalog)).
 
 All "our" projects must
 
