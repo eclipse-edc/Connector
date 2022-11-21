@@ -17,11 +17,11 @@ package org.eclipse.edc.connector.dataplane.selector.store.sql;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.postgres.PostgresDataPlaneInstanceStatements;
-import org.eclipse.edc.runtime.metamodel.annotation.EdcSetting;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
@@ -35,7 +35,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
     public static final String NAME = "Sql Data Plane Instance Store";
 
-    @EdcSetting(value = "Name of the datasource to use for accessing data plane instances")
+    @Setting(value = "Name of the datasource to use for accessing data plane instances")
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.dataplaneinstance.name";
     private static final String DEFAULT_DATASOURCE_NAME = "dataplaneinstance";
     @Inject
