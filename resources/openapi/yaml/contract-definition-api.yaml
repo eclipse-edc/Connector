@@ -224,6 +224,10 @@ components:
         contractPolicyId:
           type: string
           example: null
+        contractValidityDuration:
+          type: integer
+          format: int64
+          example: null
         criteria:
           type: array
           example: null

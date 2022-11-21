@@ -169,9 +169,12 @@ class ContractNegotiationIntegrationTest {
                     assertThat(consumerNegotiationId).isNotNull();
                     var consumerNegotiation = consumerStore.find(consumerNegotiationId);
                     var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
 
                     // Assert that provider and consumer have the same offers and agreement stored
-                    assertNegotiations(consumerNegotiation, providerNegotiation, 1);
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+                    assertThat(providerNegotiation.getContractOffers()).hasSize(2);
                     assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
                     assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
@@ -210,9 +213,12 @@ class ContractNegotiationIntegrationTest {
                     assertThat(consumerNegotiationId).isNotNull();
                     var consumerNegotiation = consumerStore.find(consumerNegotiationId);
                     var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
 
                     // Assert that provider and consumer have the same offers stored
-                    assertNegotiations(consumerNegotiation, providerNegotiation, 1);
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+                    assertThat(providerNegotiation.getContractOffers()).hasSize(2);
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
                     // Assert that no agreement has been stored on either side
@@ -253,9 +259,12 @@ class ContractNegotiationIntegrationTest {
                     assertThat(consumerNegotiationId).isNotNull();
                     var consumerNegotiation = consumerStore.find(consumerNegotiationId);
                     var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
 
                     // Assert that provider and consumer have the same offers stored
-                    assertNegotiations(consumerNegotiation, providerNegotiation, 1);
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+                    assertThat(providerNegotiation.getContractOffers()).hasSize(2);
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
                     // Assert that no agreement has been stored on either side
@@ -532,7 +541,7 @@ class ContractNegotiationIntegrationTest {
         assertThat(consumerNegotiation).isNotNull();
         assertThat(providerNegotiation).isNotNull();
         assertThat(consumerNegotiation.getContractOffers()).hasSize(expectedSize);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+        assertThat(consumerNegotiation.getContractOffers()).hasSameSizeAs(providerNegotiation.getContractOffers());
     }
 
     /**

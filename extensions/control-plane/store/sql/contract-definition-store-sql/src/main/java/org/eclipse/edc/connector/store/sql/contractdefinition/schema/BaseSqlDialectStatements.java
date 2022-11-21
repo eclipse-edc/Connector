@@ -35,12 +35,13 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 
     @Override
     public String getInsertTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?%s, ?)",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?%s, ?, ?)",
                 getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
                 getSelectorExpressionColumn(),
+                getContractValidityDurationColumn(),
                 getCreatedAtColumn(),
                 getFormatAsJsonOperator()
         );
@@ -57,13 +58,14 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 
     @Override
     public String getUpdateTemplate() {
-        return format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?%s, %s = ? WHERE %s = ?",
+        return format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?%s, %s = ?, %s = ? WHERE %s = ?",
                 getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
                 getSelectorExpressionColumn(),
                 getFormatAsJsonOperator(),
+                getContractValidityDurationColumn(),
                 getCreatedAtColumn(),
                 getIdColumn());
     }

@@ -36,7 +36,6 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -82,10 +81,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party. Transitions the
      * corresponding ContractNegotiation to state DECLINED.
      *
-     * @param token Claim token of the consumer that sent the rejection.
+     * @param token         Claim token of the consumer that sent the rejection.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @return a {@link StatusResult}: OK, if successfully transitioned to declined; FATAL_ERROR, if no match found for
-     *         Id.
+     * @return a {@link StatusResult}: OK, if successfully transitioned to declined; FATAL_ERROR, if no match found for correlationId.
      */
     @WithSpan
     @Override
@@ -119,7 +117,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and persisted, which moves it to
      * state REQUESTED. It is then validated and transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
-     * @param token Claim token of the consumer that send the contract request.
+     * @param token   Claim token of the consumer that send the contract request.
      * @param request Container object containing all relevant request parameters.
      * @return a {@link StatusResult}: OK
      */
@@ -150,10 +148,10 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * Tells this manager that a new contract offer has been received for a {@link ContractNegotiation}. The offer is
      * validated and the ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
-     * @param token Claim token of the consumer that send the contract request.
+     * @param token         Claim token of the consumer that send the contract request.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param offer The contract offer.
-     * @param hash A hash of all previous contract offers.
+     * @param offer         The contract offer.
+     * @param hash          A hash of all previous contract offers.
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
     @WithSpan
@@ -171,10 +169,10 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * Tells this manager that a previously sent contract offer has been approved by the consumer. Transitions the
      * corresponding {@link ContractNegotiation} to state CONFIRMING.
      *
-     * @param token Claim token of the consumer that send the contract request.
+     * @param token         Claim token of the consumer that send the contract request.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param agreement Agreement sent by consumer.
-     * @param hash A hash of all previous contract offers.
+     * @param agreement     Agreement sent by consumer.
+     * @param hash          A hash of all previous contract offers.
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
     @Override
@@ -211,18 +209,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
      * @param negotiation The ContractNegotiation.
-     * @param token Claim token of the consumer that send the contract request.
-     * @param offer The contract offer.
+     * @param token       Claim token of the consumer that send the contract request.
+     * @param offer       The contract offer.
      * @return a {@link StatusResult}: OK
      */
     private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
-        Result<ContractOffer> result;
-        if (negotiation.getContractOffers().isEmpty()) {
-            result = validationService.validateInitialOffer(token, offer);
-        } else {
-            var lastOffer = negotiation.getLastContractOffer();
-            result = validationService.validate(token, offer, lastOffer);
-        }
+        var result = validateLastOffer(negotiation, token, offer);
 
         negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
 
@@ -238,7 +230,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
-        // negotiation.addContractOffer(result.getValidatedOffer()); TODO
+        negotiation.addContractOffer(result.getContent());
         negotiation.transitionConfirming();
         negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
@@ -257,6 +249,14 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
     private boolean processCommand(ContractNegotiationCommand command) {
         return commandProcessor.processCommandQueue(command);
+    }
+
+    private Result<ContractOffer> validateLastOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
+        if (negotiation.getContractOffers().isEmpty()) {
+            return validationService.validateInitialOffer(token, offer);
+        }
+        var lastOffer = negotiation.getLastContractOffer();
+        return validationService.validate(token, offer, lastOffer);
     }
 
     /**
@@ -351,7 +351,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId))
                     .contractStartDate(clock.instant().getEpochSecond())
-                    .contractEndDate(clock.instant().plus(365, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
+                    .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerAgentId(String.valueOf(lastOffer.getProvider()))
                     .consumerAgentId(String.valueOf(lastOffer.getConsumer()))

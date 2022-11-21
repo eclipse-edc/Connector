@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.time.ZonedDateTime;
 
 import static java.lang.String.format;
 
@@ -47,7 +48,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final PolicyEngine policyEngine;
     private final PolicyEquality policyEquality;
 
-    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService,
+    public ContractValidationServiceImpl(ParticipantAgentService agentService,
+                                         ContractDefinitionService contractDefinitionService,
                                          AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock,
                                          PolicyEngine policyEngine, PolicyEquality policyEquality) {
         this.agentService = agentService;
@@ -74,8 +76,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var agent = agentService.createFor(token);
         var contractDefinition = contractDefinitionService.definitionFor(agent, contractId.definitionPart());
         if (contractDefinition == null) {
-            return Result.failure("The ContractDefinition with id %s either does not exist or the access to it is not granted.");
+            return Result.failure(
+                    "The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
+
+        var contractValidityDuration = contractDefinition.getContractValidityDuration();
 
         var targetAsset = assetIndex.findById(offer.getAsset().getId());
         if (targetAsset == null) {
@@ -99,10 +104,14 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
                 .asset(targetAsset)
-                .policy(contractPolicyDef.getPolicy())
-                .build();
+                .consumer(offer.getConsumer())
+                .provider(offer.getProvider())
+                .policy(contractPolicyDef.getPolicy());
+        if (contractValidityDuration != 0) {
+            validatedOffer.contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(contractValidityDuration), clock.getZone()));
+        }
 
-        return Result.success(validatedOffer);
+        return Result.success(validatedOffer.build());
     }
 
     @Override
@@ -124,7 +133,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure(format("Policy not fulfilled for ContractOffer %s", offer.getId()));
         }
 
-        return Result.success(null);
+        return Result.success(offer);
     }
 
     @Override
@@ -155,7 +164,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure(format("ContractId %s does not follow the expected schema.", agreement.getId()));
         }
 
-        if (!policyEquality.test(agreement.getPolicy(), latestOffer.getPolicy())) {
+        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAsset().getId()), latestOffer.getPolicy())) {
             return Result.failure("Policy in the contract agreement is not equal to the one in the contract offer");
         }
 

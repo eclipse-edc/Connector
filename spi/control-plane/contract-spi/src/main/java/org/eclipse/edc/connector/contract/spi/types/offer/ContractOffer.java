@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -32,6 +33,11 @@ import java.util.Objects;
  */
 @JsonDeserialize(builder = ContractOffer.Builder.class)
 public class ContractOffer {
+    /**
+     * If not specified, each {@link ContractOffer} defines a 1-year contract.
+     */
+    private static final Duration DEFAULT_CONTRACT_DURATION = Duration.ofDays(365);
+
     private String id;
 
     /**
@@ -89,7 +95,7 @@ public class ContractOffer {
         return offerStart;
     }
 
-    @Nullable
+    @NotNull
     public ZonedDateTime getOfferEnd() {
         return offerEnd;
     }
@@ -99,7 +105,7 @@ public class ContractOffer {
         return contractStart;
     }
 
-    @Nullable
+    @NotNull
     public ZonedDateTime getContractEnd() {
         return contractEnd;
     }
@@ -192,12 +198,13 @@ public class ContractOffer {
             return this;
         }
 
-
         public ContractOffer build() {
             Objects.requireNonNull(contractOffer.id);
             Objects.requireNonNull(contractOffer.asset, "Asset must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
-
+            if (contractOffer.contractEnd == null) {
+                contractEnd(ZonedDateTime.now().plus(DEFAULT_CONTRACT_DURATION));
+            }
             return contractOffer;
         }
     }

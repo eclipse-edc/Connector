@@ -41,7 +41,9 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
@@ -86,7 +88,6 @@ class ContractValidationServiceImplTest {
                 .consumerAgentId("consumer")
                 .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString());
-
     }
 
     @BeforeEach
@@ -99,10 +100,12 @@ class ContractValidationServiceImplTest {
         var originalPolicy = Policy.Builder.newInstance().target("a").build();
         var newPolicy = Policy.Builder.newInstance().target("b").build();
         var asset = Asset.Builder.newInstance().id("1").build();
+        var contractValidityDuration = Duration.ofDays(10);
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
+                .contractValidityDuration(contractValidityDuration.toSeconds())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
@@ -125,7 +128,12 @@ class ContractValidationServiceImplTest {
         var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
+        var validatedOffer = result.getContent();
+        assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
+        assertThat(validatedOffer.getAsset()).isEqualTo(asset);
+        assertThat(validatedOffer.getContractEnd()).isEqualTo(ZonedDateTime.ofInstant(clock.instant().plus(contractValidityDuration), clock.getZone()));
+        assertThat(validatedOffer.getConsumer()).isEqualTo(offer.getConsumer());
+        assertThat(validatedOffer.getProvider()).isEqualTo(offer.getProvider());
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
         verify(assetIndex).findById("1");

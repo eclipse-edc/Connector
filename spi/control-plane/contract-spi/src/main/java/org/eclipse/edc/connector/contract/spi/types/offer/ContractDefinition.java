@@ -39,6 +39,7 @@ public class ContractDefinition extends Entity {
     private String accessPolicyId;
     private String contractPolicyId;
     private AssetSelectorExpression selectorExpression;
+    private long contractValidityDuration;
 
     private ContractDefinition() {
     }
@@ -58,9 +59,16 @@ public class ContractDefinition extends Entity {
         return selectorExpression;
     }
 
+    /**
+     * Number of seconds during which contract is valid starting from startDate.
+     */
+    public long getContractValidityDuration() {
+        return contractValidityDuration;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(id, accessPolicyId, contractPolicyId, selectorExpression);
+        return Objects.hash(id, accessPolicyId, contractPolicyId, selectorExpression, contractValidityDuration);
     }
 
     @Override
@@ -72,7 +80,10 @@ public class ContractDefinition extends Entity {
             return false;
         }
         ContractDefinition that = (ContractDefinition) o;
-        return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) && Objects.equals(contractPolicyId, that.contractPolicyId) && Objects.equals(selectorExpression, that.selectorExpression);
+        return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) &&
+                Objects.equals(contractPolicyId, that.contractPolicyId) &&
+                Objects.equals(selectorExpression, that.selectorExpression) &&
+                Objects.equals(contractValidityDuration, that.contractValidityDuration);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -114,6 +125,11 @@ public class ContractDefinition extends Entity {
 
         public Builder contractPolicyId(String policyId) {
             entity.contractPolicyId = policyId;
+            return this;
+        }
+
+        public Builder contractValidityDuration(long contractValidityDuration) {
+            entity.contractValidityDuration = contractValidityDuration;
             return this;
         }
 

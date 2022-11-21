@@ -21,7 +21,6 @@ package org.eclipse.edc.connector.contract.spi.testfixtures.offer.store;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.Criterion;
@@ -40,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinition;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
@@ -47,7 +47,7 @@ import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 public abstract class ContractDefinitionStoreTestBase {
 
-    public ContractDefinitionStoreTestBase() {
+    protected ContractDefinitionStoreTestBase() {
         System.setProperty("contractdefinitionstore.supports.collectionQuery", String.valueOf(supportsCollectionQuery()));
         System.setProperty("contractdefinitionstore.supports.sortorder", String.valueOf(supportsSortOrder()));
         System.setProperty("contractdefinitionstore.supports.collectionIndexQuery", String.valueOf(supportsCollectionIndexQuery()));
@@ -57,12 +57,15 @@ public abstract class ContractDefinitionStoreTestBase {
     @Test
     @DisplayName("Save a single Contract Definition that doesn't already exist")
     void saveOne_doesntExist() {
-        var definition = createContractDefinition("id", "policy", "contract");
+        var definition = createContractDefinition("id");
         getContractDefinitionStore().save(definition);
 
-        var definitions = getContractDefinitionStore().findAll(QuerySpec.max());
+        var definitions = getContractDefinitionStore().findAll(QuerySpec.max())
+                .collect(Collectors.toList());
 
-        Assertions.assertThat(definitions).isNotNull().hasSize(1);
+        assertThat(definitions).hasSize(1);
+        assertThat(definitions.get(0)).usingRecursiveComparison().isEqualTo(definition);
+
     }
 
     @Test
@@ -73,7 +76,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var result = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        Assertions.assertThat(result).hasSize(1).containsExactly(createContractDefinition("id", "updatedAccess", "updatedContract"));
+        assertThat(result).hasSize(1).containsExactly(createContractDefinition("id", "updatedAccess", "updatedContract"));
     }
 
     @Test
@@ -86,7 +89,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        Assertions.assertThat(definitions).isNotNull().hasSize(2);
+        assertThat(definitions).isNotNull().hasSize(2);
     }
 
     @Test
@@ -97,7 +100,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(definitionsCreated.size());
+        assertThat(definitionsRetrieved).hasSize(definitionsCreated.size());
     }
 
     @Test
@@ -108,7 +111,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(10);
+        assertThat(definitionsRetrieved).hasSize(10);
     }
 
     @Test
@@ -120,7 +123,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        Assertions.assertThat(definitionsRetrieved).isNotNull().hasSize(definitionsCreated.size());
+        assertThat(definitionsRetrieved).isNotNull().hasSize(definitionsCreated.size());
     }
 
     @Test
@@ -132,7 +135,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var existing = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        Assertions.assertThat(existing).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(definition);
+        assertThat(existing).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(definition);
     }
 
     @Test
@@ -146,9 +149,9 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
 
-        Assertions.assertThat(definitions).isNotNull().hasSize(1).first().satisfies(definition -> {
-            Assertions.assertThat(definition.getAccessPolicyId()).isEqualTo(definition2.getAccessPolicyId());
-            Assertions.assertThat(definition.getContractPolicyId()).isEqualTo(definition2.getContractPolicyId());
+        assertThat(definitions).isNotNull().hasSize(1).first().satisfies(definition -> {
+            assertThat(definition.getAccessPolicyId()).isEqualTo(definition2.getAccessPolicyId());
+            assertThat(definition.getContractPolicyId()).isEqualTo(definition2.getContractPolicyId());
         });
     }
 
@@ -160,7 +163,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        Assertions.assertThat(definitionsRetrieved).isNotNull().hasSize(definitionsExpected.size());
+        assertThat(definitionsRetrieved).isNotNull().hasSize(definitionsExpected.size());
     }
 
     @ParameterizedTest
@@ -170,7 +173,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .peek(cd -> getContractDefinitionStore().save(cd))
                 .collect(Collectors.toList());
 
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(size)
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(size)
                 .usingRecursiveFieldByFieldElementComparator()
                 .isSubsetOf(all);
     }
@@ -190,7 +193,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).isNotNull().hasSize(limit);
+        assertThat(definitionsRetrieved).isNotNull().hasSize(limit);
     }
 
     @Test
@@ -206,9 +209,9 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(1)
+        assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
-                .allSatisfy(cd -> Assertions.assertThat(cd.getId()).isEqualTo("id4"));
+                .allSatisfy(cd -> assertThat(cd.getId()).isEqualTo("id4"));
     }
 
     @Test
@@ -224,7 +227,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(3)
+        assertThat(definitionsRetrieved).hasSize(3)
                 .usingRecursiveFieldByFieldElementComparator()
                 .allMatch(cd -> cd.getId().matches("(id)[4-6]"));
     }
@@ -241,7 +244,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter(List.of(new Criterion("contractPolicyId", "=", "somevalue")))
                 .build();
 
-        Assertions.assertThat(getContractDefinitionStore().findAll(spec)).isEmpty();
+        assertThat(getContractDefinitionStore().findAll(spec)).isEmpty();
     }
 
     @Test
@@ -265,29 +268,29 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var result = getContractDefinitionStore().findById(id);
 
-        Assertions.assertThat(result).isNotNull().isEqualTo(definition);
+        assertThat(result).isNotNull().isEqualTo(definition);
     }
 
     @Test
     void findById_invalidId() {
-        Assertions.assertThat(getContractDefinitionStore().findById("invalid-id")).isNull();
+        assertThat(getContractDefinitionStore().findById("invalid-id")).isNull();
     }
 
     @Test
     void delete() {
         var definitionExpected = createContractDefinition("test-id1", "policy1", "contract1");
         getContractDefinitionStore().save(definitionExpected);
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
 
         var deleted = getContractDefinitionStore().deleteById("test-id1");
-        Assertions.assertThat(deleted).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).isEmpty();
+        assertThat(deleted).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).isEmpty();
     }
 
     @Test
     void delete_whenNotExist() {
         var deleted = getContractDefinitionStore().deleteById("test-id1");
-        Assertions.assertThat(deleted).isNull();
+        assertThat(deleted).isNull();
     }
 
     @Test
@@ -296,25 +299,25 @@ public abstract class ContractDefinitionStoreTestBase {
         var definition2 = ContractDefinition.Builder.newInstance().id("2").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
 
         getContractDefinitionStore().save(definition1);
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
 
         getContractDefinitionStore().save(List.of(definition2));
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
 
         var deletedDefinition = getContractDefinitionStore().deleteById(definition1.getId());
-        Assertions.assertThat(deletedDefinition).isEqualTo(definition1);
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).doesNotContain(definition1);
+        assertThat(deletedDefinition).isEqualTo(definition1);
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).doesNotContain(definition1);
     }
 
     @Test
     void deleteById_whenContractDefinitionMissing_returnsNull() {
-        Assertions.assertThat(getContractDefinitionStore().deleteById("not-exists")).isNull();
+        assertThat(getContractDefinitionStore().deleteById("not-exists")).isNull();
     }
 
     @Test
     void findAll_defaultQuerySpec() {
         var all = IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).peek(getContractDefinitionStore()::save).collect(Collectors.toList());
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.none())).containsExactlyInAnyOrder(all.toArray(new ContractDefinition[]{}));
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.none())).containsExactlyInAnyOrder(all.toArray(new ContractDefinition[] {}));
     }
 
     @Test
@@ -322,16 +325,16 @@ public abstract class ContractDefinitionStoreTestBase {
         IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
 
         // page size fits
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().offset(4).limit(2).build())).hasSize(2);
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().offset(4).limit(2).build())).hasSize(2);
 
         // page size larger than collection
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
     @Test
     void findAll_verifyFiltering() {
         IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=id3").build())).extracting(ContractDefinition::getId)
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=id3").build())).extracting(ContractDefinition::getId)
                 .containsOnly("id3");
     }
 
@@ -346,8 +349,8 @@ public abstract class ContractDefinitionStoreTestBase {
     void findAll_verifySorting() {
         IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
 
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
-        Assertions.assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     @Test
@@ -365,9 +368,9 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(2)
+        assertThat(definitionsRetrieved).hasSize(2)
                 .usingRecursiveFieldByFieldElementComparator()
-                .allSatisfy(cd -> Assertions.assertThat(cd.getId()).matches("id[0,5]"));
+                .allSatisfy(cd -> assertThat(cd.getId()).matches("id[0,5]"));
     }
 
     @Test
@@ -384,7 +387,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(1)
+        assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(definitionsExpected.get(5));
     }
@@ -405,7 +408,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(1)
+        assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(definitionsExpected.get(5));
     }
@@ -424,7 +427,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(1)
+        assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(definitionsExpected.get(4));
     }
@@ -439,7 +442,7 @@ public abstract class ContractDefinitionStoreTestBase {
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 
-        Assertions.assertThat(getContractDefinitionStore().findAll(spec)).isEmpty();
+        assertThat(getContractDefinitionStore().findAll(spec)).isEmpty();
     }
 
     @Test
@@ -457,7 +460,7 @@ public abstract class ContractDefinitionStoreTestBase {
                 .filter("selectorExpression.criteria = " + json)
                 .build();
 
-        Assertions.assertThat(getContractDefinitionStore().findAll(spec)).hasSize(1)
+        assertThat(getContractDefinitionStore().findAll(spec)).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(def5);
     }
@@ -476,7 +479,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).hasSize(1)
+        assertThat(definitionsRetrieved).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(definitionsExpected.get(5));
     }
@@ -495,7 +498,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
 
-        Assertions.assertThat(definitionsRetrieved).isEmpty();
+        assertThat(definitionsRetrieved).isEmpty();
     }
 
     @Test
@@ -505,7 +508,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         // must actually collect, otherwise the stream is not materialized
-        Assertions.assertThat(getContractDefinitionStore().findAll(query).collect(Collectors.toList())).isEmpty();
+        assertThat(getContractDefinitionStore().findAll(query).collect(Collectors.toList())).isEmpty();
     }
 
     protected abstract ContractDefinitionStore getContractDefinitionStore();

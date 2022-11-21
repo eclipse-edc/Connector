@@ -38,6 +38,7 @@ public class ContractDefinitionRequestDto {
     @Valid
     @NotNull(message = "criteria cannot be null")
     private List<CriterionDto> criteria = new ArrayList<>();
+    private long contractValidityDuration;
 
     private ContractDefinitionRequestDto() {
     }
@@ -61,6 +62,10 @@ public class ContractDefinitionRequestDto {
 
     public List<CriterionDto> getCriteria() {
         return criteria;
+    }
+
+    public long getContractValidityDuration() {
+        return contractValidityDuration;
     }
 
     public String getId() {
@@ -92,6 +97,11 @@ public class ContractDefinitionRequestDto {
 
         public Builder criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
+            return this;
+        }
+
+        public Builder contractValidityDuration(long contractValidityDuration) {
+            dto.contractValidityDuration = contractValidityDuration;
             return this;
         }
 
