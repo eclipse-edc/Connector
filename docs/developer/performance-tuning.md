@@ -14,7 +14,8 @@ The most important settings for configuring a state machine are:
 - `iteration-wait`: the time that the state machine will pass before fetching the next batch of entities to process in 
                     the case in the last iteration there was no processing; Otherwise no wait is applied.
 - `batch-size`: how many entities are fetched from the store for processing by the connector instance. The entities are
-                leased, so for the time of the processing no other connector instances can read the same entities.
+                locked pessimistically against mutual access, so for the time of the processing no other connector 
+                instances can read the same entities.
 
 ### How to tune them
 In the control-plane there are 3 state machines:
@@ -31,9 +32,9 @@ used for both) and the `batch-size`, so the settings (and their default value) a
 `edc.transfer.state-machine.iteration-wait-millis` = 1000
 `edc.transfer.state-machine.batch-size` = 20
 
-What does this means? That by default all the control-plane state machines will have an iteration of 1 second if no 
-entities are found/processed. Otherwise, there will be no wait but the next iteration will start when all the entities
-will be processed. At every iteration 20 entities are fetched.
+Thus, by default all the control-plane state machines will have an iteration of 1 second if no
+entities are found/processed. There will be no wait but the next iteration will start as soon as all the entities are 
+processed. At every iteration 20 entities are fetched.
 
 Changing these values you could tune your connector, for example reducing the `iteration-wait` will mean that the state
 machine will be more reactive, and increasing the `batch-size` will mean that more entities will be processed in the
