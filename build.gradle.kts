@@ -38,7 +38,7 @@ buildscript {
 }
 
 dependencies {
-    "swaggerUI"("org.webjars:swagger-ui:4.15.0")
+    "swaggerUI"("org.webjars:swagger-ui:4.15.5")
 }
 
 allprojects {
