@@ -14,14 +14,19 @@
 
 package org.eclipse.edc.connector.api.management.configuration;
 
-public class ManagementApiConfiguration {
-    private final String contextAlias;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
+
+public class ManagementApiConfiguration extends WebServiceConfiguration {
 
     public ManagementApiConfiguration(String contextAlias) {
+        super();
         this.contextAlias = contextAlias;
     }
 
-    public String getContextAlias() {
-        return contextAlias;
+    public ManagementApiConfiguration(WebServiceConfiguration webServiceConfiguration) {
+        this.contextAlias = webServiceConfiguration.getContextAlias();
+        this.path = webServiceConfiguration.getPath();
+        this.port = webServiceConfiguration.getPort();
     }
+
 }

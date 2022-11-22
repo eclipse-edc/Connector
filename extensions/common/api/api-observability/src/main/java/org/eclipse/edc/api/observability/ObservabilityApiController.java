@@ -22,8 +22,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.health.HealthStatus;
+import org.jetbrains.annotations.NotNull;
 
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -33,14 +35,29 @@ public class ObservabilityApiController implements ObservabilityApi {
 
     private final HealthCheckService healthCheckService;
 
-    public ObservabilityApiController(HealthCheckService provider) {
+    /**
+     * This deprecation is used to permit a softer transition from the deprecated `web.http` (default) config group to the
+     * current `web.http.management`
+     *
+     * @deprecated "web.http.management" config should be used instead of "web.http" (default)
+     */
+    @Deprecated(since = "milestone8")
+    private final boolean deprecated;
+    private final Monitor monitor;
+
+    public ObservabilityApiController(HealthCheckService provider, boolean deprecated, Monitor monitor) {
         healthCheckService = provider;
+        this.deprecated = deprecated;
+        this.monitor = monitor;
     }
 
     @GET
     @Path("health")
     @Override
     public Response checkHealth() {
+        if (deprecated) {
+            monitor.warning(deprecationMessage());
+        }
         var status = healthCheckService.getStartupStatus();
         return createResponse(status);
     }
@@ -49,6 +66,9 @@ public class ObservabilityApiController implements ObservabilityApi {
     @Path("liveness")
     @Override
     public Response getLiveness() {
+        if (deprecated) {
+            monitor.warning(deprecationMessage());
+        }
         var status = healthCheckService.isLive();
         return createResponse(status);
 
@@ -58,6 +78,9 @@ public class ObservabilityApiController implements ObservabilityApi {
     @Path("readiness")
     @Override
     public Response getReadiness() {
+        if (deprecated) {
+            monitor.warning(deprecationMessage());
+        }
         var status = healthCheckService.isReady();
         return createResponse(status);
     }
@@ -66,8 +89,16 @@ public class ObservabilityApiController implements ObservabilityApi {
     @Path("startup")
     @Override
     public Response getStartup() {
+        if (deprecated) {
+            monitor.warning(deprecationMessage());
+        }
         var status = healthCheckService.getStartupStatus();
         return createResponse(status);
+    }
+
+    @NotNull
+    private String deprecationMessage() {
+        return "The /check/* endpoint has been moved under the 'management' context, please update your url accordingly, because this endpoint will be deleted in the next releases";
     }
 
     private Response createResponse(HealthStatus status) {

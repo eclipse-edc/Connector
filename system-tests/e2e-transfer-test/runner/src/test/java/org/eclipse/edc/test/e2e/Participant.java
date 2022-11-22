@@ -49,7 +49,7 @@ public class Participant {
 
     private final URI controlPlane = URI.create("http://localhost:" + getFreePort());
     private final URI controlPlaneValidation = URI.create("http://localhost:" + getFreePort() + "/validation");
-    private final URI controlPlaneDataplane = URI.create("http://localhost:" + getFreePort() + "/dataplane");
+    private final URI controlPlaneManagement = URI.create("http://localhost:" + getFreePort() + "/api/management");
     private final URI controlPlaneProvisioner = URI.create("http://localhost:" + getFreePort() + "/provisioner");
     private final URI dataPlane = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
@@ -79,11 +79,11 @@ public class Participant {
         );
 
         given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .body(asset)
                 .when()
-                .post("/api/assets")
+                .post("/assets")
                 .then()
                 .statusCode(200)
                 .contentType(JSON);
@@ -91,11 +91,11 @@ public class Participant {
 
     public void createPolicy(PolicyDefinition policyDefinition) {
         given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .body(policyDefinition)
                 .when()
-                .post("/api/policydefinitions")
+                .post("/policydefinitions")
                 .then()
                 .statusCode(200)
                 .contentType(JSON).contentType(JSON);
@@ -110,11 +110,11 @@ public class Participant {
         );
 
         given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .body(contractDefinition)
                 .when()
-                .post("/api/contractdefinitions")
+                .post("/contractdefinitions")
                 .then()
                 .statusCode(200)
                 .contentType(JSON).contentType(JSON);
@@ -133,11 +133,11 @@ public class Participant {
         );
 
         return given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .body(typeManager.writeValueAsString(request))
                 .when()
-                .post("/api/contractnegotiations")
+                .post("/contractnegotiations")
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getString("id");
@@ -158,10 +158,10 @@ public class Participant {
 
     private String getContractNegotiationField(String negotiationId, String fieldName) {
         return given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .when()
-                .get("/api/contractnegotiations/{id}", negotiationId)
+                .get("/contractnegotiations/{id}", negotiationId)
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath()
@@ -185,11 +185,11 @@ public class Participant {
         );
 
         return given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .body(request)
                 .when()
-                .post("/api/transferprocess")
+                .post("/transferprocess")
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getString("id");
@@ -197,10 +197,10 @@ public class Participant {
 
     public String getTransferProcessState(String transferProcessId) {
         return given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .when()
-                .get("/api/transferprocess/{id}/state", transferProcessId)
+                .get("/transferprocess/{id}/state", transferProcessId)
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getString("state");
@@ -252,7 +252,7 @@ public class Participant {
         );
 
         given()
-                .baseUri(controlPlaneDataplane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .body(body)
                 .when()
@@ -263,11 +263,11 @@ public class Participant {
 
     public Catalog getCatalog(URI provider) {
         String response = given()
-                .baseUri(controlPlane.toString())
+                .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .when()
                 .queryParam("providerUrl", provider + IDS_PATH + "/data")
-                .get("/api/catalog")
+                .get("/catalog")
                 .then()
                 .statusCode(200)
                 .extract().body().asString();
@@ -286,8 +286,8 @@ public class Participant {
                 put("web.http.path", "/api");
                 put("web.http.ids.port", String.valueOf(idsEndpoint.getPort()));
                 put("web.http.ids.path", IDS_PATH);
-                put("web.http.dataplane.port", String.valueOf(controlPlaneDataplane.getPort()));
-                put("web.http.dataplane.path", controlPlaneDataplane.getPath());
+                put("web.http.management.port", String.valueOf(controlPlaneManagement.getPort()));
+                put("web.http.management.path", controlPlaneManagement.getPath());
                 put("web.http.provisioner.port", String.valueOf(controlPlaneProvisioner.getPort()));
                 put("web.http.provisioner.path", controlPlaneProvisioner.getPath());
                 put("web.http.validation.port", String.valueOf(controlPlaneValidation.getPort()));
