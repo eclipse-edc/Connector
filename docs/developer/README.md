@@ -20,6 +20,7 @@
 - [Logging](logging.md)
 - [Metrics](metrics.md)
 - [OpenApi Spec Generation](openapi.md)
+- [Performance Tuning](performance-tuning.md)
 - [Releases](releases.md)
 - [State Machine](state-machine.md)
 - [Testing](testing.md)

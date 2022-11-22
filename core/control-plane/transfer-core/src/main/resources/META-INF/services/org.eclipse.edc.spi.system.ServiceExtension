@@ -12,6 +12,6 @@
 #
 #
 
-org.eclipse.edc.connector.transfer.CoreTransferExtension
+org.eclipse.edc.connector.transfer.TransferCoreExtension
 org.eclipse.edc.connector.transfer.TransferProcessCommandExtension
 
