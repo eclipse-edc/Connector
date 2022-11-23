@@ -22,13 +22,17 @@ import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
+import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataAddressResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
+import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -121,7 +125,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                     .orElse(ServiceResult.conflict("Request couldn't be initialised."));
         });
     }
-    
+
     @Override
     public @NotNull ServiceResult<String> initiateTransfer(DataRequest request, ClaimToken claimToken) {
         return transactionContext.execute(() ->
@@ -133,7 +137,17 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                         .map(ServiceResult::success)
                         .orElse(ServiceResult.conflict("Request couldn't be initialised.")));
     }
-    
+
+    @Override
+    public ServiceResult<TransferProcess> completeDeprovision(String transferProcessId, DeprovisionedResource resource) {
+        return apply(transferProcessId, completeDeprovisionImpl(resource));
+    }
+
+    @Override
+    public ServiceResult<TransferProcess> addProvisionedResource(String transferProcessId, ProvisionResponse response) {
+        return apply(transferProcessId, addProvisionedResourceImpl(response));
+    }
+
     private Map<Class<?>, List<Class<?>>> getSubtypes() {
         return Map.of(
                 ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
@@ -208,5 +222,19 @@ public class TransferProcessServiceImpl implements TransferProcessService {
             return ServiceResult.success(transferProcess);
         };
 
+    }
+
+    private Function<TransferProcess, ServiceResult<TransferProcess>> completeDeprovisionImpl(DeprovisionedResource resource) {
+        return (transferProcess -> {
+            manager.enqueueCommand(new DeprovisionCompleteCommand(transferProcess.getId(), resource));
+            return ServiceResult.success(transferProcess);
+        });
+    }
+
+    private Function<TransferProcess, ServiceResult<TransferProcess>> addProvisionedResourceImpl(ProvisionResponse response) {
+        return (transferProcess -> {
+            manager.enqueueCommand(new AddProvisionedResourceCommand(transferProcess.getId(), response));
+            return ServiceResult.success(transferProcess);
+        });
     }
 }

@@ -16,6 +16,8 @@
 package org.eclipse.edc.connector.spi.transferprocess;
 
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
+import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -111,7 +113,7 @@ public interface TransferProcessService {
      */
     @NotNull
     ServiceResult<String> initiateTransfer(DataRequest request);
-    
+
     /**
      * Initiate transfer request for type provider.
      *
@@ -121,4 +123,24 @@ public interface TransferProcessService {
      */
     @NotNull
     ServiceResult<String> initiateTransfer(DataRequest request, ClaimToken claimToken);
+
+
+    /**
+     * Asynchronously informs the system that the {@link DeprovisionedResource} has been provisioned
+     *
+     * @param transferProcessId The transfer process id
+     * @param resource The {@link DeprovisionedResource} to deprovision
+     * @return a result that is successful if the transfer process was found
+     */
+    ServiceResult<TransferProcess> completeDeprovision(String transferProcessId, DeprovisionedResource resource);
+
+    /**
+     * Asynchronously handles a {@link ProvisionResponse} received from an external system
+     *
+     * @param transferProcessId The transfer process id
+     * @param response The {@link ProvisionResponse} to handle
+     * @return a result that is successful if the transfer process was found
+     */
+    ServiceResult<TransferProcess> addProvisionedResource(String transferProcessId, ProvisionResponse response);
+
 }
