@@ -80,7 +80,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                     "The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
 
-        var contractValidityDuration = contractDefinition.getContractValidityDuration();
+        var contractValidityDuration = contractDefinition.getValidity();
 
         var targetAsset = assetIndex.findById(offer.getAsset().getId());
         if (targetAsset == null) {
@@ -106,12 +106,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                 .asset(targetAsset)
                 .consumer(offer.getConsumer())
                 .provider(offer.getProvider())
-                .policy(contractPolicyDef.getPolicy());
-        if (contractValidityDuration != 0) {
-            validatedOffer.contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(contractValidityDuration), clock.getZone()));
-        }
+                .policy(contractPolicyDef.getPolicy())
+                .contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(contractValidityDuration), clock.getZone()))
+                .build();
 
-        return Result.success(validatedOffer.build());
+        return Result.success(validatedOffer);
     }
 
     @Override

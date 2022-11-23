@@ -41,11 +41,11 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.Instant.MAX;
 import static java.time.Instant.MIN;
@@ -79,7 +79,8 @@ class ContractValidationServiceImplTest {
                 .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance().build())
                 .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"));
+                .consumer(URI.create("consumer"))
+                .contractEnd(ZonedDateTime.now());
     }
 
     private static ContractAgreement.Builder createContractAgreement() {
@@ -100,14 +101,7 @@ class ContractValidationServiceImplTest {
         var originalPolicy = Policy.Builder.newInstance().target("a").build();
         var newPolicy = Policy.Builder.newInstance().target("b").build();
         var asset = Asset.Builder.newInstance().id("1").build();
-        var contractValidityDuration = Duration.ofDays(10);
-        var contractDefinition = ContractDefinition.Builder.newInstance()
-                .id("1")
-                .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .contractValidityDuration(contractValidityDuration.toSeconds())
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .build();
+        var contractDefinition = getContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
@@ -123,6 +117,7 @@ class ContractValidationServiceImplTest {
                 .policy(originalPolicy)
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
+                .contractEnd(ZonedDateTime.now())
                 .build();
 
         var result = validationService.validateInitialOffer(claimToken, offer);
@@ -131,7 +126,7 @@ class ContractValidationServiceImplTest {
         var validatedOffer = result.getContent();
         assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         assertThat(validatedOffer.getAsset()).isEqualTo(asset);
-        assertThat(validatedOffer.getContractEnd()).isEqualTo(ZonedDateTime.ofInstant(clock.instant().plus(contractValidityDuration), clock.getZone()));
+        assertThat(validatedOffer.getContractEnd()).isEqualTo(ZonedDateTime.ofInstant(clock.instant().plusSeconds(contractDefinition.getValidity()), clock.getZone()));
         assertThat(validatedOffer.getConsumer()).isEqualTo(offer.getConsumer());
         assertThat(validatedOffer.getProvider()).isEqualTo(offer.getProvider());
         verify(agentService).createFor(isA(ClaimToken.class));
@@ -157,6 +152,7 @@ class ContractValidationServiceImplTest {
                 .policy(originalPolicy)
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
+                .contractEnd(ZonedDateTime.now())
                 .build();
 
         var result = validationService.validateInitialOffer(claimToken, offer);
@@ -185,6 +181,7 @@ class ContractValidationServiceImplTest {
                 .policy(offeredPolicy)
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
+                .contractEnd(ZonedDateTime.now())
                 .build();
 
         var result = validationService.validateInitialOffer(claimToken, offer);
@@ -289,6 +286,7 @@ class ContractValidationServiceImplTest {
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .validity(TimeUnit.MINUTES.toSeconds(10))
                 .build();
     }
 }

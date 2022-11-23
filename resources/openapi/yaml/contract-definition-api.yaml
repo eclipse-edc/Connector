@@ -224,10 +224,6 @@ components:
         contractPolicyId:
           type: string
           example: null
-        contractValidityDuration:
-          type: integer
-          format: int64
-          example: null
         criteria:
           type: array
           example: null
@@ -236,10 +232,13 @@ components:
         id:
           type: string
           example: null
+        validity:
+          $ref: '#/components/schemas/DurationDto'
       required:
       - accessPolicyId
       - contractPolicyId
       - criteria
+      - validity
     ContractDefinitionResponseDto:
       type: object
       example: null
@@ -262,6 +261,10 @@ components:
         id:
           type: string
           example: null
+        validity:
+          type: integer
+          format: int64
+          example: null
     CriterionDto:
       type: object
       example: null
@@ -278,6 +281,19 @@ components:
       required:
       - operandLeft
       - operator
+    DurationDto:
+      type: object
+      example: null
+      properties:
+        unit:
+          type: string
+          example: null
+        value:
+          type: integer
+          format: int64
+          example: null
+      required:
+      - unit
     IdResponseDto:
       type: object
       example: null

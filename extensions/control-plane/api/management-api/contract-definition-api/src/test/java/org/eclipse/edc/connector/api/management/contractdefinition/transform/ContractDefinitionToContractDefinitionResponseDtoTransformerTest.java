@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition.transform;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
@@ -51,16 +50,18 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "=", "right").build())
+                .validity(100)
                 .build();
 
         var dto = transformer.transform(contractDefinition, context);
 
-        Assertions.assertThat(dto).isNotNull();
-        Assertions.assertThat(dto.getId()).isEqualTo(contractDefinition.getId());
-        Assertions.assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
-        Assertions.assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
-        Assertions.assertThat(dto.getCreatedAt()).isNotEqualTo(0L);
-        Assertions.assertThat(dto.getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinition.getSelectorExpression().getCriteria());
+        assertThat(dto).isNotNull();
+        assertThat(dto.getId()).isEqualTo(contractDefinition.getId());
+        assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
+        assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
+        assertThat(dto.getCreatedAt()).isNotZero();
+        assertThat(dto.getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinition.getSelectorExpression().getCriteria());
+        assertThat(dto.getValidity()).isEqualTo(contractDefinition.getValidity());
         verify(context, times(1)).transform(isA(Criterion.class), eq(CriterionDto.class));
     }
 
@@ -70,7 +71,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
 
         var definition = transformer.transform(null, context);
 
-        Assertions.assertThat(definition).isNull();
+        assertThat(definition).isNull();
         verify(context).reportProblem("input contract definition is null");
     }
 

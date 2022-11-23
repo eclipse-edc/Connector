@@ -87,7 +87,7 @@ class ContractDefinitionApiControllerTest {
 
         var allContractDefinitions = controller.getAllContractDefinitions(QuerySpecDto.Builder.newInstance().build());
 
-        assertThat(allContractDefinitions).hasSize(0);
+        assertThat(allContractDefinitions).isEmpty();
         verify(transformerRegistry).transform(contractDefinition, ContractDefinitionResponseDto.class);
     }
 
@@ -248,6 +248,7 @@ class ContractDefinitionApiControllerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .validity(100)
                 .build();
     }
 }

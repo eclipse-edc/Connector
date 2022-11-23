@@ -15,27 +15,33 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.DurationDto;
 import org.eclipse.edc.policy.model.Policy;
 
-public class ContractOfferDescription {
-    @NotBlank(message = "offerId is mandatory")
-    private final String offerId;
-    @NotBlank(message = "assetId is mandatory")
-    private final String assetId;
-    @NotNull(message = "policy cannot be null")
-    private final Policy policy;
+import java.util.concurrent.TimeUnit;
 
-    @JsonCreator
-    public ContractOfferDescription(@JsonProperty("offerId") String offerId,
-                                    @JsonProperty("assetId") String assetId,
-                                    @JsonProperty("policy") Policy policy) {
-        this.offerId = offerId;
-        this.assetId = assetId;
-        this.policy = policy;
+public class ContractOfferDescription {
+
+    /**
+     * Default validity is set to one year.
+     */
+    private static final DurationDto DEFAULT_VALIDITY = DurationDto.Builder.newInstance()
+            .unit(TimeUnit.DAYS.toString())
+            .value(365)
+            .build();
+
+    @NotBlank(message = "offerId is mandatory")
+    private String offerId;
+    @NotBlank(message = "assetId is mandatory")
+    private String assetId;
+    @NotNull(message = "policy cannot be null")
+    private Policy policy;
+    @NotNull(message = "duration cannot be null")
+    private DurationDto validity = DEFAULT_VALIDITY;
+
+    private ContractOfferDescription() {
     }
 
     public String getOfferId() {
@@ -48,5 +54,45 @@ public class ContractOfferDescription {
 
     public Policy getPolicy() {
         return policy;
+    }
+
+    public DurationDto getValidity() {
+        return validity;
+    }
+
+    public static final class Builder {
+        private final ContractOfferDescription dto;
+
+        private Builder() {
+            dto = new ContractOfferDescription();
+        }
+
+        public static ContractOfferDescription.Builder newInstance() {
+            return new ContractOfferDescription.Builder();
+        }
+
+        public ContractOfferDescription.Builder offerId(String offerId) {
+            dto.offerId = offerId;
+            return this;
+        }
+
+        public ContractOfferDescription.Builder assetId(String assetId) {
+            dto.assetId = assetId;
+            return this;
+        }
+
+        public ContractOfferDescription.Builder policy(Policy policy) {
+            dto.policy = policy;
+            return this;
+        }
+
+        public ContractOfferDescription.Builder validity(DurationDto validity) {
+            dto.validity = validity;
+            return this;
+        }
+
+        public ContractOfferDescription build() {
+            return dto;
+        }
     }
 }

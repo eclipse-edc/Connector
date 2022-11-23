@@ -43,7 +43,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinition;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
-import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 public abstract class ContractDefinitionStoreTestBase {
 
@@ -295,8 +294,8 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     void verifyStore() {
-        var definition1 = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
-        var definition2 = ContractDefinition.Builder.newInstance().id("2").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
+        var definition1 = createContractDefinition("1");
+        var definition2 = createContractDefinition("2");
 
         getContractDefinitionStore().save(definition1);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);

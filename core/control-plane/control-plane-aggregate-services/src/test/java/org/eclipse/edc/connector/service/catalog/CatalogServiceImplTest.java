@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,6 +50,7 @@ class CatalogServiceImplTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .contractEnd(ZonedDateTime.now())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))

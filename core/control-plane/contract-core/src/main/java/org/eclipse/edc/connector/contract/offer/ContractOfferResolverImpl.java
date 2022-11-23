@@ -33,6 +33,8 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.time.Clock;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -49,12 +51,14 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     private final ContractDefinitionService definitionService;
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyStore;
+    private final Clock clock;
 
-    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore) {
+    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock) {
         this.agentService = agentService;
         this.definitionService = definitionService;
         this.assetIndex = assetIndex;
         this.policyStore = policyStore;
+        this.clock = clock;
     }
 
     @Override
@@ -117,6 +121,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                 // TODO: this is a workaround for the bug described in https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/753
                 .provider(URI.create("urn:connector:provider"))
                 .consumer(URI.create("urn:connector:consumer"))
+                .contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone()))
                 .build();
     }
 }

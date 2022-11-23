@@ -18,27 +18,23 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.byLessThan;
 
 class ContractOfferTest {
 
     @Test
-    void verifyRequiredFields() {
+    void verifyIdNotNull() {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().build()).isInstanceOf(NullPointerException.class);
+    }
 
+    @Test
+    void verifyPolicyNotNull() {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .asset(Asset.Builder.newInstance().id("test-assetId").build())
                 .build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Policy must not be null");
     }
-
 
     @Test
     void verifyAssetNotNull() {
@@ -50,13 +46,12 @@ class ContractOfferTest {
     }
 
     @Test
-    void verifyDefaultContractValidity() {
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+    void verifyContractEndNotNull() {
+        assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
+                .asset(Asset.Builder.newInstance().id("test-assetId").build())
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id("test").build())
-                .build();
-
-        assertThat(contractOffer.getContractEnd()).isCloseTo(ZonedDateTime.now().plusYears(1), byLessThan(1, ChronoUnit.SECONDS));
+                .build())
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("ContractEnd must not be null");
     }
 }

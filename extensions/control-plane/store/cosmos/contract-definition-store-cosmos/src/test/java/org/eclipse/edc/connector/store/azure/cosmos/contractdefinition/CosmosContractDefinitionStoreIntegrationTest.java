@@ -48,6 +48,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -55,11 +56,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDefinition;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDocument;
-import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 import static org.mockito.Mockito.mock;
 
 @AzureCosmosDbIntegrationTest
-public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionStoreTestBase {
+class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionStoreTestBase {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractDefinitionStore-";
@@ -331,6 +331,7 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
                 .contractPolicyId("test-cp-id-new")
                 .accessPolicyId("test-ap-id-new")
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
+                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
 
         store.update(modifiedDef);
@@ -380,11 +381,6 @@ public class CosmosContractDefinitionStoreIntegrationTest extends ContractDefini
     @Override
     protected boolean supportsSortOrder() {
         return true;
-    }
-
-    private ContractDefinition getContractDefinition(String definitionId, String accessPolicyId, String contractPolicyId) {
-        return ContractDefinition.Builder.newInstance().id(definitionId).accessPolicyId(accessPolicyId).contractPolicyId(contractPolicyId).selectorExpression(SELECT_ALL).build();
-
     }
 
     private ContractDefinition convert(Object object) {

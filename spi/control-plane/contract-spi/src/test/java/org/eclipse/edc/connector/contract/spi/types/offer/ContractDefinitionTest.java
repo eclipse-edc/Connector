@@ -20,7 +20,6 @@ import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,7 +33,7 @@ class ContractDefinitionTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .contractValidityDuration(TimeUnit.HOURS.toSeconds(5))
+                .validity(100)
                 .build();
 
         var serialized = mapper.writeValueAsString(definition);

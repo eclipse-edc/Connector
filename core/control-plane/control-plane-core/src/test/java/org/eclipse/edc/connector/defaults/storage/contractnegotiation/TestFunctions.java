@@ -18,15 +18,11 @@ package org.eclipse.edc.connector.defaults.storage.contractnegotiation;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +41,9 @@ public class TestFunctions {
                 .type(ContractNegotiation.Type.CONSUMER)
                 .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
                         .policy(Policy.Builder.newInstance().build())
-                        .asset(Asset.Builder.newInstance().id("test-asset").build()).build()))
+                        .asset(Asset.Builder.newInstance().id("test-asset").build())
+                        .contractEnd(ZonedDateTime.now())
+                        .build()))
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .protocol("ids-multipart");
@@ -66,21 +64,5 @@ public class TestFunctions {
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
-    }
-
-    public static Policy createPolicy(String uid) {
-        return Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .target("")
-                        .action(Action.Builder.newInstance()
-                                .type("USE")
-                                .build())
-                        .constraint(AtomicConstraint.Builder.newInstance()
-                                .leftExpression(new LiteralExpression("foo"))
-                                .operator(Operator.EQ)
-                                .rightExpression(new LiteralExpression("bar"))
-                                .build())
-                        .build())
-                .build();
     }
 }

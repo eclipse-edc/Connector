@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,17 +48,7 @@ class CatalogServiceImplTest {
     void getDataCatalog() {
         var claimToken = ClaimToken.Builder.newInstance().build();
 
-        var offers = Arrays.asList(
-                ContractOffer.Builder.newInstance()
-                        .policy(Policy.Builder.newInstance().build())
-                        .asset(Asset.Builder.newInstance().id("test-asset").build())
-                        .id("1")
-                        .build(),
-                ContractOffer.Builder.newInstance()
-                        .policy(Policy.Builder.newInstance().build())
-                        .asset(Asset.Builder.newInstance().id("test-asset").build())
-                        .id("1")
-                        .build());
+        var offers = Arrays.asList(createContractOffer("1"), createContractOffer("2"));
         when(contractOfferResolver.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
 
         var result = dataCatalogService.getDataCatalog(claimToken, QuerySpec.none());
@@ -68,4 +59,12 @@ class CatalogServiceImplTest {
         verify(contractOfferResolver).queryContractOffers(any(ContractOfferQuery.class));
     }
 
+    private static ContractOffer createContractOffer(String id) {
+        return ContractOffer.Builder.newInstance()
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .id(id)
+                .contractEnd(ZonedDateTime.now())
+                .build();
+    }
 }

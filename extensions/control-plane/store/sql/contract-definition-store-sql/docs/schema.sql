@@ -21,6 +21,6 @@ CREATE TABLE IF NOT EXISTS edc_contract_definitions
     access_policy_id            VARCHAR NOT NULL,
     contract_policy_id          VARCHAR NOT NULL,
     selector_expression         JSON NOT NULL,
-    contract_validity_duration  BIGINT NOT NULL,
+    validity                    BIGINT NOT NULL,
     PRIMARY KEY (contract_definition_id)
 );

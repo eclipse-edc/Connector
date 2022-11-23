@@ -31,6 +31,9 @@ import java.util.UUID;
 
 public class TestFunctions {
 
+    private TestFunctions() {
+    }
+
     public static ContractNegotiation createNegotiation(String id) {
         return createNegotiationBuilder(id)
                 .build();

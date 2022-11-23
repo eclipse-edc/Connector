@@ -52,6 +52,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +81,6 @@ class DescriptionRequestHandlerTest {
     private static final String LIMIT = "limit";
     private final int rangeFrom = 0;
     private final int rangeTo = 10;
-    private IdsId connectorId;
     private DescriptionRequestHandler handler;
 
     private IdsTransformerRegistry transformerRegistry;
@@ -91,7 +91,7 @@ class DescriptionRequestHandlerTest {
 
     @BeforeEach
     void init() {
-        connectorId = IdsId.from("urn:connector:edc").getContent();
+        var connectorId = IdsId.from("urn:connector:edc").getContent();
 
         transformerRegistry = mock(IdsTransformerRegistry.class);
         assetIndex = mock(AssetIndex.class);
@@ -183,6 +183,7 @@ class DescriptionRequestHandlerTest {
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .contractEnd(ZonedDateTime.now())
                 .build();
         var request = MultipartRequest.Builder.newInstance()
                 .header(descriptionRequestMessage(URI.create("urn:resource:" + assetId)))

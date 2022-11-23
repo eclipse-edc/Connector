@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 public class FileTransferExtension implements ServiceExtension {
 
@@ -105,6 +106,7 @@ public class FileTransferExtension implements ServiceExtension {
                 .accessPolicyId(policyId)
                 .contractPolicyId(policyId)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "test-document").build())
+                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
 
         contractStore.save(contractDefinition);

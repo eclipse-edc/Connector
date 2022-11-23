@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ContractOfferDescriptionValidationTest {
 
-
     private Validator validator;
 
     private static Policy policy() {
@@ -49,14 +48,24 @@ class ContractOfferDescriptionValidationTest {
     @ParameterizedTest
     @ArgumentsSource(value = InvalidPropertiesProvider.class)
     void validate_invalidProperties(String offerId, String assetId, Policy policy) {
-        var desc = new ContractOfferDescription(offerId, assetId, policy);
+        var desc = ContractOfferDescription.Builder.newInstance()
+                .offerId(offerId)
+                .assetId(assetId)
+                .policy(policy)
+                .build();
 
         assertThat(validator.validate(desc)).hasSize(1);
     }
 
     @Test
     void validate_validProperties() {
-        assertThat(validator.validate(new ContractOfferDescription("offer", "asset", policy()))).isEmpty();
+        var desc = ContractOfferDescription.Builder.newInstance()
+                .offerId("offer")
+                .assetId("asset")
+                .policy(policy())
+                .build();
+
+        assertThat(validator.validate(desc)).isEmpty();
     }
 
     private static class InvalidPropertiesProvider implements ArgumentsProvider {

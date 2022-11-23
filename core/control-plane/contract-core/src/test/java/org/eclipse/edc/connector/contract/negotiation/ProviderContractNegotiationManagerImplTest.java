@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -526,6 +527,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .id(ContractId.createContractId("1"))
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
+                .contractEnd(ZonedDateTime.now())
                 .build();
     }
 

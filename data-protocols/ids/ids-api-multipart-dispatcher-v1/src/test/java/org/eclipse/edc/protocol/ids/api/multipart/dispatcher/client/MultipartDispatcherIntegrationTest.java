@@ -56,6 +56,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.URI;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
@@ -240,6 +241,7 @@ class MultipartDispatcherIntegrationTest {
                 .id(id)
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .contractEnd(ZonedDateTime.now())
                 .build();
     }
 

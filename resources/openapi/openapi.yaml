@@ -1891,21 +1891,21 @@ components:
       - accessPolicyId
       - contractPolicyId
       - criteria
+      - validity
       type: object
       properties:
         accessPolicyId:
           type: string
         contractPolicyId:
           type: string
-        contractValidityDuration:
-          type: integer
-          format: int64
         criteria:
           type: array
           items:
             $ref: '#/components/schemas/CriterionDto'
         id:
           type: string
+        validity:
+          $ref: '#/components/schemas/DurationDto'
     ContractDefinitionResponseDto:
       type: object
       properties:
@@ -1922,6 +1922,9 @@ components:
             $ref: '#/components/schemas/CriterionDto'
         id:
           type: string
+        validity:
+          type: integer
+          format: int64
     ContractNegotiationDto:
       type: object
       properties:
@@ -1980,6 +1983,7 @@ components:
       - assetId
       - offerId
       - policy
+      - validity
       type: object
       properties:
         assetId:
@@ -1988,6 +1992,8 @@ components:
           type: string
         policy:
           $ref: '#/components/schemas/Policy'
+        validity:
+          $ref: '#/components/schemas/DurationDto'
     CriterionDto:
       required:
       - operandLeft
@@ -2103,6 +2109,16 @@ components:
           type: boolean
         provisionedResourceId:
           type: string
+    DurationDto:
+      required:
+      - unit
+      type: object
+      properties:
+        unit:
+          type: string
+        value:
+          type: integer
+          format: int64
     Duty:
       type: object
       properties:

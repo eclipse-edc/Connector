@@ -30,6 +30,6 @@ public class ContractDefinitionMapping extends TranslationMapping {
         add("contractPolicyId", statements.getContractPolicyIdColumn());
         add("contractPolicy", statements.getContractPolicyIdColumn());
         add("selectorExpression", new SelectorExpressionMapping());
-        add("contractValidityDuration", statements.getContractValidityDurationColumn());
+        add("validity", statements.getValidity());
     }
 }

@@ -26,7 +26,7 @@ import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 public class TestFunctions {
 
-    public static final long CONTRACT_DURATION = TimeUnit.DAYS.toSeconds(1);
+    public static final long CONTRACT_DURATION = TimeUnit.MINUTES.toSeconds(10);
 
     private TestFunctions() {
     }
@@ -37,7 +37,7 @@ public class TestFunctions {
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
                 .selectorExpression(selectorExpression)
-                .contractValidityDuration(CONTRACT_DURATION)
+                .validity(CONTRACT_DURATION)
                 .build();
     }
 

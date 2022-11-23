@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ContractOfferToIdsContractOfferTransformerTest {
+class ContractOfferToIdsContractOfferTransformerTest {
     private static final String CONTRACT_OFFER_ID = "456uz984390236s";
     private static final URI OFFER_ID = URI.create("urn:contractoffer:" + CONTRACT_OFFER_ID);
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
@@ -118,6 +119,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
                 .policy(policy)
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
                 .provider(PROVIDER_URI)
+                .contractEnd(ZonedDateTime.now())
                 .build();
     }
 }

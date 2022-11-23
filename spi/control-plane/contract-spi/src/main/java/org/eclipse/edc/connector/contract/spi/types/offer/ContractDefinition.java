@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.contract.spi.types.offer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -36,10 +37,11 @@ import java.util.UUID;
  */
 @JsonDeserialize(builder = ContractDefinition.Builder.class)
 public class ContractDefinition extends Entity {
+
     private String accessPolicyId;
     private String contractPolicyId;
     private AssetSelectorExpression selectorExpression;
-    private long contractValidityDuration;
+    private long validity;
 
     private ContractDefinition() {
     }
@@ -62,13 +64,13 @@ public class ContractDefinition extends Entity {
     /**
      * Number of seconds during which contract is valid starting from startDate.
      */
-    public long getContractValidityDuration() {
-        return contractValidityDuration;
+    public long getValidity() {
+        return validity;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, accessPolicyId, contractPolicyId, selectorExpression, contractValidityDuration);
+        return Objects.hash(id, accessPolicyId, contractPolicyId, selectorExpression, validity);
     }
 
     @Override
@@ -83,7 +85,7 @@ public class ContractDefinition extends Entity {
         return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) &&
                 Objects.equals(contractPolicyId, that.contractPolicyId) &&
                 Objects.equals(selectorExpression, that.selectorExpression) &&
-                Objects.equals(contractValidityDuration, that.contractValidityDuration);
+                Objects.equals(validity, that.validity);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -115,6 +117,9 @@ public class ContractDefinition extends Entity {
             Objects.requireNonNull(entity.accessPolicyId);
             Objects.requireNonNull(entity.contractPolicyId);
             Objects.requireNonNull(entity.selectorExpression);
+            if (entity.validity <= 0) {
+                throw new EdcException("validity must be strictly positive");
+            }
             return super.build();
         }
 
@@ -128,8 +133,8 @@ public class ContractDefinition extends Entity {
             return this;
         }
 
-        public Builder contractValidityDuration(long contractValidityDuration) {
-            entity.contractValidityDuration = contractValidityDuration;
+        public Builder validity(long validity) {
+            entity.validity = validity;
             return this;
         }
 

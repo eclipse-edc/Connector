@@ -107,7 +107,7 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
     }
 
     @Test
-    public void transferBlob_success() {
+    void transferBlob_success() {
         // Arrange
         // Upload a blob with test data on provider blob container (in account1).
         var blobContent = BlobTransferSimulationConfiguration.BLOB_CONTENT;

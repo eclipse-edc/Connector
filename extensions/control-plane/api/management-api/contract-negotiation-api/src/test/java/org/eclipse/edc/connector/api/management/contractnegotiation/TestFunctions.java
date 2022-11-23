@@ -21,11 +21,19 @@ import java.util.UUID;
 
 public class TestFunctions {
     public static ContractOfferDescription createOffer(String offerId, String assetId) {
-        return new ContractOfferDescription(offerId, assetId, Policy.Builder.newInstance().build());
+        return ContractOfferDescription.Builder.newInstance()
+                .offerId(offerId)
+                .assetId(assetId)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
 
     public static ContractOfferDescription createOffer(Policy policy) {
-        return new ContractOfferDescription(UUID.randomUUID().toString(), UUID.randomUUID().toString(), policy);
+        return ContractOfferDescription.Builder.newInstance()
+                .offerId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .policy(policy)
+                .build();
     }
 
     public static ContractOfferDescription createOffer(String offerId) {

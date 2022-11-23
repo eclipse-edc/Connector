@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,6 +65,7 @@ class CatalogApiControllerTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .contractEnd(ZonedDateTime.now())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
         var url = "test.url";
@@ -94,6 +96,7 @@ class CatalogApiControllerTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .contractEnd(ZonedDateTime.now())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
         var url = "test.url";
