@@ -59,6 +59,8 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Services";
 
+    private final DataAddressValidator dataAddressValidator = new DataAddressValidatorImpl();
+
     @Inject
     private Clock clock;
 
@@ -104,7 +106,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public AssetService assetService() {
         var assetObservable = new AssetObservableImpl();
         assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
-        return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable);
+        return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable, dataAddressValidator);
     }
 
     @Provider
@@ -139,11 +141,11 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessService transferProcessService() {
         return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
-                contractNegotiationStore, contractValidationService, new DataAddressValidatorImpl());
+                contractNegotiationStore, contractValidationService, dataAddressValidator);
     }
 
     @Provider // TODO: remove it and inject directly to the asset service
     public DataAddressValidator dataAddressValidator() {
-        return new DataAddressValidatorImpl();
+        return dataAddressValidator;
     }
 }
