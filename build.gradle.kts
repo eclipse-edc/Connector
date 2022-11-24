@@ -28,7 +28,10 @@ val defaultVersion: String by project
 val annotationProcessorVersion: String by project
 val metaModelVersion: String by project
 
-val actualVersion: String = (project.findProperty("edcVersion") ?: defaultVersion) as String
+var actualVersion: String = (project.findProperty("version") ?: defaultVersion) as String
+if (actualVersion == "unspecified") {
+    actualVersion = defaultVersion
+}
 
 buildscript {
     dependencies {
