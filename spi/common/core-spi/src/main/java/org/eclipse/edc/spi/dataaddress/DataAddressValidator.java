@@ -28,6 +28,6 @@ public interface DataAddressValidator {
      * @param dataAddress the {@link DataAddress} to be validated.
      * @return Successful {@link Result} if the {@link DataAddress} is valid, failure otherwise.
      */
-    Result<DataAddress> validate(DataAddress dataAddress);
+    Result<Void> validate(DataAddress dataAddress);
 
 }

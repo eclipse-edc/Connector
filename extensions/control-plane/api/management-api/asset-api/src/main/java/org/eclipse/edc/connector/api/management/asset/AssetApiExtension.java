@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;

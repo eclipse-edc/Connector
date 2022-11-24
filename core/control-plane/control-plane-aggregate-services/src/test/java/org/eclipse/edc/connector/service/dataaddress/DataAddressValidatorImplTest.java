@@ -33,11 +33,7 @@ class DataAddressValidatorImplTest {
 
         var result = validator.validate(dataAddress);
 
-        assertThat(result).satisfies(Result::succeeded)
-                .extracting(Result::getContent)
-                .satisfies(actual -> {
-                    assertThat(actual.getProperties()).isEqualTo(dataAddress.getProperties());
-                });
+        assertThat(result).satisfies(Result::succeeded);
     }
 
     @Test

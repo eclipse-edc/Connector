@@ -118,7 +118,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldCreateAssetIfItDoesNotAlreadyExist() {
-        when(dataAddressValidator.validate(any())).thenAnswer(i -> Result.success(i.getArgument(0)));
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var assetId = "assetId";
         var asset = createAsset(assetId);
         when(index.findById(assetId)).thenReturn(null);
@@ -135,7 +135,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldNotCreateAssetIfItAlreadyExists() {
-        when(dataAddressValidator.validate(any())).thenAnswer(i -> Result.success(i.getArgument(0)));
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var asset = createAsset("assetId");
         when(index.findById("assetId")).thenReturn(asset);
         var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
