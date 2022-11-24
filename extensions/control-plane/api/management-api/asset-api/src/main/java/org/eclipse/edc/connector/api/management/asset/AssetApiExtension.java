@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
@@ -45,6 +46,9 @@ public class AssetApiExtension implements ServiceExtension {
     @Inject
     private AssetService assetService;
 
+    @Inject
+    private DataAddressValidator dataAddressValidator;
+
     @Override
     public String name() {
         return NAME;
@@ -55,7 +59,7 @@ public class AssetApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         transformerRegistry.register(new AssetRequestDtoToAssetTransformer());
-        transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
+        transformerRegistry.register(new DataAddressDtoToDataAddressTransformer(dataAddressValidator));
         transformerRegistry.register(new AssetToAssetResponseDtoTransformer());
 
         webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, transformerRegistry));

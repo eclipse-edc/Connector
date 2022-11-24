@@ -16,12 +16,19 @@ package org.eclipse.edc.connector.api.management.asset.transform;
 
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DataAddressDtoToDataAddressTransformer implements DtoTransformer<DataAddressDto, DataAddress> {
+
+    private final DataAddressValidator validator;
+
+    public DataAddressDtoToDataAddressTransformer(DataAddressValidator validator) {
+        this.validator = validator;
+    }
 
     @Override
     public Class<DataAddressDto> getInputType() {
@@ -35,6 +42,13 @@ public class DataAddressDtoToDataAddressTransformer implements DtoTransformer<Da
 
     @Override
     public @Nullable DataAddress transform(@Nullable DataAddressDto object, @NotNull TransformerContext context) {
-        return DataAddress.Builder.newInstance().properties(object.getProperties()).build();
+        var dataAddress = DataAddress.Builder.newInstance().properties(object.getProperties()).build();
+
+        return validator.validate(dataAddress)
+                .orElse(failure -> {
+                    failure.getMessages().forEach(context::reportProblem);
+                    return null;
+                });
     }
+
 }

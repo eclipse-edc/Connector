@@ -24,10 +24,10 @@ import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
-import static org.eclipse.edc.spi.types.domain.HttpDataAddress.DATA_TYPE;
+import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
 
 /**
- * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link HttpDataAddress#DATA_TYPE}.
+ * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link HttpDataAddress#HTTP_DATA}.
  */
 public class HttpDataSourceFactory implements DataSourceFactory {
 
@@ -43,7 +43,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return DATA_TYPE.equals(request.getSourceDataAddress().getType());
+        return HTTP_DATA.equals(request.getSourceDataAddress().getType());
     }
 
     @Override

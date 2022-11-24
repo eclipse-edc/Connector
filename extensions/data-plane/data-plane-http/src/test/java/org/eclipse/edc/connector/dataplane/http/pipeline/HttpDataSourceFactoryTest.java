@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.types.domain.HttpDataAddress.DATA_TYPE;
+import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +60,7 @@ class HttpDataSourceFactoryTest {
 
     @Test
     void verifyCanHandle() {
-        assertThat(factory.canHandle(HttpTestFixtures.createRequest(DATA_TYPE).build())).isTrue();
+        assertThat(factory.canHandle(HttpTestFixtures.createRequest(HTTP_DATA).build())).isTrue();
     }
 
     @Test

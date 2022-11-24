@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.xml.crypto.Data;
 
 /**
  * An address that can be used resolve a data location. Data addresses are used throughout the system. For example, an asset has a data address used to resolve its contents,
@@ -37,7 +38,7 @@ import java.util.Objects;
 public class DataAddress {
     public static final String TYPE = "type";
     public static final String KEY_NAME = "keyName";
-    private final Map<String, String> properties = new HashMap<>();
+    protected final Map<String, String> properties = new HashMap<>();
 
     protected DataAddress() {
     }
@@ -91,42 +92,47 @@ public class DataAddress {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder {
-        protected final DataAddress address;
+    public static class Builder<DA extends DataAddress, B extends Builder<DA, B>> {
+        protected final DA address;
 
-        protected Builder(DataAddress address) {
+        protected Builder(DA address) {
             this.address = address;
         }
 
         @JsonCreator()
-        public static Builder newInstance() {
-            return new Builder(new DataAddress());
+        public static <B extends Builder<DataAddress, B>> Builder<DataAddress, B> newInstance() {
+            return new Builder<>(new DataAddress());
         }
 
-        public Builder type(String type) {
+        public B type(String type) {
             address.properties.put(TYPE, Objects.requireNonNull(type));
-            return this;
+            return self();
         }
 
-        public Builder property(String key, String value) {
+        public B property(String key, String value) {
             Objects.requireNonNull(key, "Property key null.");
             address.properties.put(key, value);
-            return this;
+            return self();
         }
 
-        public Builder properties(Map<String, String> properties) {
+        public B properties(Map<String, String> properties) {
             properties.forEach(this::property);
-            return this;
+            return self();
         }
 
-        public Builder keyName(String keyName) {
+        public B keyName(String keyName) {
             address.getProperties().put(KEY_NAME, Objects.requireNonNull(keyName));
-            return this;
+            return self();
         }
 
         public DataAddress build() {
             Objects.requireNonNull(address.getType(), "DataAddress builder missing Type property.");
             return address;
+        }
+
+        @SuppressWarnings("unchecked")
+        private B self() {
+            return (B) this;
         }
     }
 }
