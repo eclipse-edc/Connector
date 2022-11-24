@@ -65,7 +65,7 @@ class FailTransferCommandHandlerTest {
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
         verify(store).find(anyString());
-        verify(store).update(tp);
+        verify(store).save(tp);
         verifyNoMoreInteractions(store);
         verify(listener).failed(tp);
     }

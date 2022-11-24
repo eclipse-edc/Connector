@@ -36,6 +36,11 @@ public class CheckTimeoutCommandHandler implements CommandHandler<CheckTransferP
     }
 
     @Override
+    public Class<CheckTransferProcessTimeoutCommand> getType() {
+        return CheckTransferProcessTimeoutCommand.class;
+    }
+
+    @Override
     public void handle(CheckTransferProcessTimeoutCommand command) {
 
         var states = store.nextForState(command.getTargetState().code(), command.getBatchSize());
@@ -44,13 +49,8 @@ public class CheckTimeoutCommandHandler implements CommandHandler<CheckTransferP
                     monitor.info(format("will retire TP with id [%s] due to timeout", tp.getId()));
 
                     tp.transitionError("timeout by watchdog");
-                    store.update(tp);
+                    store.save(tp);
                 });
-    }
-
-    @Override
-    public Class<CheckTransferProcessTimeoutCommand> getType() {
-        return CheckTransferProcessTimeoutCommand.class;
     }
 
     private boolean isExpired(long stateTimestamp, Duration maxAge) {

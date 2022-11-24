@@ -41,14 +41,11 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
     String processIdForDataRequestId(String id);
 
     /**
-     * Creates a transfer process.
+     * Persists a transfer process. This follows UPSERT semantics, so if the object didn't exit before, it's
+     * created.
      */
-    void create(TransferProcess process);
+    void save(TransferProcess process);
 
-    /**
-     * Updates a transfer process.
-     */
-    void update(TransferProcess process);
 
     /**
      * Deletes a transfer process.

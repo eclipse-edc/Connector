@@ -56,7 +56,7 @@ public class TransferSimulationExtension implements ServiceExtension {
                         tp.addProvisionedResource(createDummyResource());
 
                         context.getMonitor().info("Insert Dummy TransferProcess");
-                        store.update(tp);
+                        store.save(tp);
                     }
                 },
                 5000
