@@ -143,9 +143,4 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
         return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
                 contractNegotiationStore, contractValidationService, dataAddressValidator);
     }
-
-    @Provider // TODO: remove it and inject directly to the asset service
-    public DataAddressValidator dataAddressValidator() {
-        return dataAddressValidator;
-    }
 }

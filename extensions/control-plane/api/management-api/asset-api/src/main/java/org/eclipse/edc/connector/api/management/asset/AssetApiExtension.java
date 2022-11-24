@@ -46,9 +46,6 @@ public class AssetApiExtension implements ServiceExtension {
     @Inject
     private AssetService assetService;
 
-    @Inject
-    private DataAddressValidator dataAddressValidator;
-
     @Override
     public String name() {
         return NAME;
@@ -59,7 +56,7 @@ public class AssetApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         transformerRegistry.register(new AssetRequestDtoToAssetTransformer());
-        transformerRegistry.register(new DataAddressDtoToDataAddressTransformer(dataAddressValidator));
+        transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
         transformerRegistry.register(new AssetToAssetResponseDtoTransformer());
 
         webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, transformerRegistry));
