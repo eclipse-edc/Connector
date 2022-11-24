@@ -14,21 +14,53 @@
 
 package org.eclipse.edc.connector.service.dataaddress;
 
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
 
 class DataAddressValidatorImplTest {
 
-    @Test
-    void shouldFail_whenHttpDataBaseUrlNotValid() {
-        var validator = new DataAddressValidatorImpl();
+    private final DataAddressValidatorImpl validator = new DataAddressValidatorImpl();
 
-        var dataAddress = DataAddress.Builder.newInstance().property("type", "HttpData").property("baseUrl", "not-a-valid-url").build();
+    @Test
+    void shouldPass_whenTypeDoesNotNeedValidation() {
+        var dataAddress = DataAddress.Builder.newInstance()
+                .property("type", "any")
+                .build();
 
         var result = validator.validate(dataAddress);
 
-        assertThat(result.failed()).isTrue();
+        assertThat(result).satisfies(Result::succeeded)
+                .extracting(Result::getContent)
+                .satisfies(actual -> {
+                    assertThat(actual.getProperties()).isEqualTo(dataAddress.getProperties());
+                });
+    }
+
+    @Test
+    void shouldPass_whenHttpDataIsValid() {
+        var dataAddress = DataAddress.Builder.newInstance()
+                .property("type", HTTP_DATA)
+                .property("baseUrl", "http://this.is/valid/url")
+                .build();
+
+        var result = validator.validate(dataAddress);
+
+        assertThat(result).satisfies(Result::succeeded);
+    }
+
+    @Test
+    void shouldFail_whenHttpDataBaseUrlNotValid() {
+        var dataAddress = DataAddress.Builder.newInstance()
+                .property("type", HTTP_DATA)
+                .property("baseUrl", "not-a-valid-url")
+                .build();
+
+        var result = validator.validate(dataAddress);
+
+        assertThat(result).satisfies(Result::failed);
     }
 }
