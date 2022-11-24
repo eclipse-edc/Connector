@@ -26,7 +26,6 @@ public class DataAddressValidatorImpl implements DataAddressValidator {
     @Override
     public Result<DataAddress> validate(DataAddress dataAddress) {
         if (dataAddress.getType().equals("HttpData")) {
-            // TODO: fix builder, to avoid explicit casting
             var httpDataAddress = HttpDataAddress.Builder.newInstance()
                     .properties(dataAddress.getProperties())
                     .build();

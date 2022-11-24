@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteC
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
@@ -59,15 +60,18 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final QueryValidator queryValidator;
     private final ContractNegotiationStore negotiationStore;
     private final ContractValidationService contractValidationService;
+    private final DataAddressValidator dataAddressValidator;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
                                       TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
-                                      ContractValidationService contractValidationService) {
+                                      ContractValidationService contractValidationService,
+                                      DataAddressValidator dataAddressValidator) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
         this.contractValidationService = contractValidationService;
+        this.dataAddressValidator = dataAddressValidator;
         queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
 
@@ -116,6 +120,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<String> initiateTransfer(DataRequest request) {
+        var validDestination = dataAddressValidator.validate(request.getDataDestination());
+        if (validDestination.failed()) {
+            return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
+        }
+
         return transactionContext.execute(() -> {
             var transferInitiateResult = manager.initiateConsumerRequest(request);
             return Optional.ofNullable(transferInitiateResult)
@@ -128,6 +137,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<String> initiateTransfer(DataRequest request, ClaimToken claimToken) {
+        var validDestination = dataAddressValidator.validate(request.getDataDestination());
+        if (validDestination.failed()) {
+            return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
+        }
+
         return transactionContext.execute(() ->
                 Optional.ofNullable(negotiationStore.findContractAgreement(request.getContractId()))
                         .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement))

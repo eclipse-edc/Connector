@@ -28,9 +28,12 @@ import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferComman
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
@@ -44,6 +47,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
@@ -66,8 +70,10 @@ class TransferProcessServiceImplTest {
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
+    private final DataAddressValidator dataAddressValidator = mock(DataAddressValidator.class);
 
-    private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext, negotiationStore, validationService);
+    private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
+            negotiationStore, validationService, dataAddressValidator);
 
     @Test
     void findById_whenFound() {
@@ -169,6 +175,7 @@ class TransferProcessServiceImplTest {
     void initiateTransfer() {
         var dataRequest = dataRequest();
         String processId = "processId";
+        when(dataAddressValidator.validate(any())).thenAnswer(i -> Result.success(i.getArgument(0)));
         when(manager.initiateConsumerRequest(dataRequest)).thenReturn(StatusResult.success(processId));
 
         var result = service.initiateTransfer(dataRequest);
@@ -177,33 +184,59 @@ class TransferProcessServiceImplTest {
         assertThat(result.getContent()).isEqualTo(processId);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
-    
+
     @Test
-    void initiateTransfer_validAgreement_shouldInitiateTransfer() {
+    void initiateTransfer_consumer_invalidDestination_shouldNotInitiateTransfer() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
+
+        var result = service.initiateTransfer(dataRequest());
+
+        assertThat(result).satisfies(ServiceResult::failed)
+                        .extracting(ServiceResult::reason)
+                        .isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(manager);
+    }
+
+    @Test
+    void initiateTransfer_provider_validAgreement_shouldInitiateTransfer() {
         var dataRequest = dataRequest();
         var claimToken = claimToken();
         var processId = "processId";
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(), any())).thenReturn(true);
         when(manager.initiateProviderRequest(any())).thenReturn(StatusResult.success(processId));
-    
+        when(dataAddressValidator.validate(any())).thenAnswer(i -> Result.success(i.getArgument(0)));
+
         var result = service.initiateTransfer(dataRequest, claimToken);
-    
+
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo(processId);
         verify(manager).initiateProviderRequest(dataRequest);
     }
-    
+
     @Test
-    void initiateTransfer_invalidAgreement_shouldNotInitiateTransfer() {
+    void initiateTransfer_provider_invalidAgreement_shouldNotInitiateTransfer() {
         var dataRequest = dataRequest();
         var claimToken = claimToken();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(), any())).thenReturn(false);
-    
+        when(dataAddressValidator.validate(any())).thenAnswer(i -> Result.success(i.getArgument(0)));
+
         var result = service.initiateTransfer(dataRequest, claimToken);
-    
+
         assertThat(result.succeeded()).isFalse();
+        verifyNoInteractions(manager);
+    }
+
+    @Test
+    void initiateTransfer_provider_invalidDestination_shouldNotInitiateTransfer() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
+
+        var result = service.initiateTransfer(dataRequest(), claimToken());
+
+        assertThat(result).satisfies(ServiceResult::failed)
+                .extracting(ServiceResult::reason)
+                .isEqualTo(BAD_REQUEST);
         verifyNoInteractions(manager);
     }
 
