@@ -28,10 +28,20 @@
     alt="License" />
   </a>
 </div>
+<div align="center">
+  <a href="https://ci.eclipse.org/dataspaceconnector/job/EDC-Snapshot">
+    <img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.eclipse.org%2Fdataspaceconnector%2Fjob%2FEDC-Snapshot%2F&label=snapshot-build&style=flat-square"
+    alt="License" />
+  </a>
+  <a href="https://ci.eclipse.org/dataspaceconnector/job/EDC-Nightly-Snapshot">
+    <img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.eclipse.org%2Fdataspaceconnector%2Fjob%2FEDC-Nightly-Snapshot%2F&label=nightly-build&style=flat-square"
+    alt="License" />
+  </a>
+</div>
 
 <p align="center">
   <a href="#contributing">Contribute</a> •
-  <a href="https://eclipse-dataspaceconnector.github.io/docs/">Docs</a> •
+  <a href="https://eclipse-dataspacecomponents.github.io/docs/">Docs</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues">Issues</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/LICENSE">License</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/1303">Q&A</a>
