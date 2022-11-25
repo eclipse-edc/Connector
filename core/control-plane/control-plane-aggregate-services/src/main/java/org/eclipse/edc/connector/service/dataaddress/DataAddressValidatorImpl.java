@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
 
 public class DataAddressValidatorImpl implements DataAddressValidator {
@@ -46,7 +47,7 @@ public class DataAddressValidatorImpl implements DataAddressValidator {
             new URL(baseUrl);
             return Result.success();
         } catch (MalformedURLException e) {
-            return Result.failure("BaseUrl is not a valid URL: " + baseUrl);
+            return Result.failure(format("DataAddress of type %s must contain a valid baseUrl: %s", HTTP_DATA, baseUrl));
         }
     }
 }
