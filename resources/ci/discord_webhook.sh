@@ -22,23 +22,23 @@ STATUS="$2"
 JENKINS_JOB="$3"
 BUILD_NUMBER="$4"
 REPO_URL="$5"
-BUILD_TIME="$6"
+CONTENT="$6"
 
 # do not run script if required parameters are not supplied
 if [ "$#" -lt 5 ]; then
-  echo "usage: discord_webhook.sh WEBHOOK_URL STATUS JOB_NAME BUILD_NUMBER REPO_URL BUILD_TIME"
+  echo "usage: discord_webhook.sh WEBHOOK_URL STATUS JOB_NAME BUILD_NUMBER REPO_URL CONTENT"
   echo " WEBHOOK_URL   = URL of the webhook to invoke, e.g. for discord"
   echo " STATUS        = \"success\" or \"failure\". Will use \"Unknown\" when anything else is passed"
   echo " JOB_NAME      = name of the job EXACTLY as configured in Jenkins. Use quotes if the job name contains blanks"
   echo " BUILD_NUMBER  = jenkins build number, must be an integer"
   echo " REPO_URL      = URL to the (Github) repository"
-  echo " BUILD_TIME    = [OPTIONAL] a string containing the build time. Current executor time is used if not specified."
+  echo " CONTENT       = [OPTIONAL] a string containing message content to be posted to. Defaults to \"I finished a job\""
   exit 1
 fi
 
 if [ -z "$6" ]; then
-  echo "No build time supplied, using current executor time"
-  BUILD_TIME="$(date) (!)"
+  echo "No content supplied, using default."
+  CONTENT="I finished a job"
 fi
 
 echo "'"WEBHOOK_URL:  "${WEBHOOK_URL}""'"
@@ -46,6 +46,7 @@ echo "'"STATUS:       "${STATUS}""'"
 echo "'"JENKINS_JOB:  "${JENKINS_JOB}""'"
 echo "'"BUILD_NUMBER: "${BUILD_NUMBER}""'"
 echo "'"REPO_URL:     "${REPO_URL}""'"
+echo "'"CONTENT:      "${CONTENT}""'"
 
 
 CI_PROVIDER="Jenkins"
@@ -85,7 +86,7 @@ esac
 TIMESTAMP=$(date -u +%FT%TZ)
 WEBHOOK_DATA='{
   "username": "Jenkins CI",
-  "description": "I have finished a job:",
+  "content": "'"${CONTENT}"'",
   "avatar_url": "'"${DISCORD_AVATAR}"'",
   "embeds": [ {
     "color": '${EMBED_COLOR}',
@@ -98,8 +99,8 @@ WEBHOOK_DATA='{
     "url": "'"${JOB_URL}"'",
     "fields": [
       {
-        "name": "Build Time",
-        "value": "'"${BUILD_TIME}"'",
+        "name": "Job Name",
+        "value": "'"[${JENKINS_JOB%}](${JOB_URL})"'",
         "inline": true
       },
       {
