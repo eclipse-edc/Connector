@@ -119,7 +119,8 @@ class ContractOfferToIdsContractOfferTransformerTest {
                 .policy(policy)
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
                 .provider(PROVIDER_URI)
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
     }
 }

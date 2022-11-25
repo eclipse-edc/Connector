@@ -18,6 +18,8 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
+import java.time.ZonedDateTime;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ContractOfferTest {
@@ -31,6 +33,8 @@ class ContractOfferTest {
     void verifyPolicyNotNull() {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .asset(Asset.Builder.newInstance().id("test-assetId").build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Policy must not be null");
@@ -40,9 +44,22 @@ class ContractOfferTest {
     void verifyAssetNotNull() {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .policy(Policy.Builder.newInstance().build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Asset must not be null");
+    }
+
+    @Test
+    void verifyContractStartNotNull() {
+        assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
+                .asset(Asset.Builder.newInstance().id("test-assetId").build())
+                .policy(Policy.Builder.newInstance().build())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .build())
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Contract start must not be null");
     }
 
     @Test
@@ -50,8 +67,9 @@ class ContractOfferTest {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .asset(Asset.Builder.newInstance().id("test-assetId").build())
                 .policy(Policy.Builder.newInstance().build())
+                .contractStart(ZonedDateTime.now())
                 .build())
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("ContractEnd must not be null");
+                .hasMessage("Contract end must not be null");
     }
 }

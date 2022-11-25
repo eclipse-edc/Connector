@@ -22,12 +22,12 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +50,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "=", "right").build())
-                .validity(100)
+                .validity(TimeUnit.MINUTES.toSeconds(10))
                 .build();
 
         var dto = transformer.transform(contractDefinition, context);
@@ -62,7 +62,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
         assertThat(dto.getCreatedAt()).isNotZero();
         assertThat(dto.getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinition.getSelectorExpression().getCriteria());
         assertThat(dto.getValidity()).isEqualTo(contractDefinition.getValidity());
-        verify(context, times(1)).transform(isA(Criterion.class), eq(CriterionDto.class));
+        verify(context).transform(isA(Criterion.class), eq(CriterionDto.class));
     }
 
     @Test

@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.api.model.DurationDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +35,7 @@ public class ContractDefinitionRequestDto {
     /**
      * Default validity is set to one year.
      */
-    private static final DurationDto DEFAULT_VALIDITY = DurationDto.Builder.newInstance()
-            .unit(TimeUnit.DAYS.toString())
-            .value(365)
-            .build();
+    private static final long DEFAULT_VALIDITY = TimeUnit.DAYS.toSeconds(365);
 
     private String id;
     @NotNull(message = "accessPolicyId cannot be null")
@@ -48,8 +45,8 @@ public class ContractDefinitionRequestDto {
     @Valid
     @NotNull(message = "criteria cannot be null")
     private List<CriterionDto> criteria = new ArrayList<>();
-    @NotNull(message = "validity cannot be null")
-    private DurationDto validity = DEFAULT_VALIDITY;
+    @Positive(message = "validity must be positive")
+    private long validity = DEFAULT_VALIDITY;
 
     private ContractDefinitionRequestDto() {
     }
@@ -75,7 +72,7 @@ public class ContractDefinitionRequestDto {
         return criteria;
     }
 
-    public DurationDto getValidity() {
+    public long getValidity() {
         return validity;
     }
 
@@ -111,7 +108,7 @@ public class ContractDefinitionRequestDto {
             return this;
         }
 
-        public Builder validity(DurationDto validity) {
+        public Builder validity(long validity) {
             dto.validity = validity;
             return this;
         }

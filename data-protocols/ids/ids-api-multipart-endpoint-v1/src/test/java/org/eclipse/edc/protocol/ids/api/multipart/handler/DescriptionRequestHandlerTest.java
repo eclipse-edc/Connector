@@ -183,7 +183,8 @@ class DescriptionRequestHandlerTest {
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         var request = MultipartRequest.Builder.newInstance()
                 .header(descriptionRequestMessage(URI.create("urn:resource:" + assetId)))
@@ -199,9 +200,9 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getHeader()).isNotNull().isInstanceOf(DescriptionResponseMessage.class);
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsResource);
 
-        verify(assetIndex, times(1)).findById(assetId);
+        verify(assetIndex).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
-        verify(contractOfferResolver, times(1)).queryContractOffers(any());
+        verify(contractOfferResolver).queryContractOffers(any());
         verifyNoMoreInteractions(contractOfferResolver);
         verifyNoMoreInteractions(connectorService, catalogService);
     }
@@ -230,7 +231,7 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getHeader()).isNotNull().isInstanceOf(DescriptionResponseMessage.class);
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsRepresentation);
 
-        verify(assetIndex, times(1)).findById(assetId);
+        verify(assetIndex).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
         verifyNoInteractions(connectorService, catalogService, contractOfferResolver);
     }
@@ -259,7 +260,7 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getHeader()).isNotNull().isInstanceOf(DescriptionResponseMessage.class);
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsArtifact);
 
-        verify(assetIndex, times(1)).findById(assetId);
+        verify(assetIndex).findById(assetId);
         verifyNoMoreInteractions(assetIndex);
         verifyNoInteractions(connectorService, catalogService, contractOfferResolver);
     }

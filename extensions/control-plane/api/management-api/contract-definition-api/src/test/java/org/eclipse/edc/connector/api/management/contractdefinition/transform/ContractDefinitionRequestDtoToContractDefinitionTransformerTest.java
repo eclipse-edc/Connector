@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api.management.contractdefinition.transform;
 
 import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.api.model.DurationDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -53,7 +52,7 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
-                .validity(DurationDto.Builder.newInstance().value(10).unit(TimeUnit.MINUTES.toString()).build())
+                .validity(TimeUnit.MINUTES.toSeconds(10))
                 .build();
 
         var contractDefinition = transformer.transform(contractDefinitionDto, context);
@@ -63,7 +62,7 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
         assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
         assertThat(contractDefinition.getSelectorExpression().getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinitionDto.getCriteria());
-        assertThat(contractDefinition.getValidity()).isEqualTo(contractDefinitionDto.getValidity().toSeconds());
+        assertThat(contractDefinition.getValidity()).isEqualTo(contractDefinitionDto.getValidity());
         assertThat(contractDefinition.getCreatedAt()).isNotZero(); //should be set automatically
         verify(context, times(1)).transform(isA(CriterionDto.class), eq(Criterion.class));
     }

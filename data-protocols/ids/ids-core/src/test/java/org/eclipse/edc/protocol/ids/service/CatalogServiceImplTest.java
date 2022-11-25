@@ -64,7 +64,8 @@ class CatalogServiceImplTest {
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
                 .id(id)
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
     }
 }

@@ -121,6 +121,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                 // TODO: this is a workaround for the bug described in https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/753
                 .provider(URI.create("urn:connector:provider"))
                 .consumer(URI.create("urn:connector:consumer"))
+                .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone()))
                 .build();
     }

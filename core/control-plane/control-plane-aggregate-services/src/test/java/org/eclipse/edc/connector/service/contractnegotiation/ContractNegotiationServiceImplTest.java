@@ -198,6 +198,7 @@ class ContractNegotiationServiceImplTest {
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .asset(Asset.Builder.newInstance().id("test-asset").build())
+                        .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now())
                         .build())
                 .build();

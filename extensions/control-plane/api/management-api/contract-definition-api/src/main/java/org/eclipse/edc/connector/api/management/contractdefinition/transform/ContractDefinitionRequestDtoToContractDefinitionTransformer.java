@@ -49,7 +49,7 @@ public class ContractDefinitionRequestDtoToContractDefinitionTransformer impleme
                             .accessPolicyId(input.getAccessPolicyId())
                             .contractPolicyId(input.getContractPolicyId())
                             .selectorExpression(selectorExpression)
-                            .validity(input.getValidity().toSeconds())
+                            .validity(input.getValidity())
                             .build();
                 })
                 .orElseGet(() -> {

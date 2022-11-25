@@ -243,7 +243,8 @@ class CatalogApiControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
     }
 

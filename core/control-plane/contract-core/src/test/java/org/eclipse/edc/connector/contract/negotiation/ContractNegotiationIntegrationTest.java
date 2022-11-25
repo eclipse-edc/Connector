@@ -144,7 +144,7 @@ class ContractNegotiationIntegrationTest {
         when(providerDispatcherRegistry.send(any(), isA(ContractAgreementRequest.class), any())).then(onProviderSentAgreementRequest());
         when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class), any())).then(onConsumerSentOfferRequest());
         consumerNegotiationId = "consumerNegotiationId";
-        ContractOffer offer = getContractOffer();
+        var offer = getContractOffer();
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class)))
                 .thenReturn(Result.success());
@@ -175,6 +175,7 @@ class ContractNegotiationIntegrationTest {
                     // Assert that provider and consumer have the same offers and agreement stored
                     assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(providerNegotiation.getContractOffers()).hasSize(2);
+                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
                     assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
                     assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());

@@ -444,12 +444,13 @@ components:
         policy:
           $ref: '#/components/schemas/Policy'
         validity:
-          $ref: '#/components/schemas/DurationDto'
+          type: integer
+          format: int64
+          example: null
       required:
       - assetId
       - offerId
       - policy
-      - validity
     CriterionDto:
       type: object
       example: null
@@ -466,19 +467,6 @@ components:
       required:
       - operandLeft
       - operator
-    DurationDto:
-      type: object
-      example: null
-      properties:
-        unit:
-          type: string
-          example: null
-        value:
-          type: integer
-          format: int64
-          example: null
-      required:
-      - unit
     Duty:
       type: object
       example: null

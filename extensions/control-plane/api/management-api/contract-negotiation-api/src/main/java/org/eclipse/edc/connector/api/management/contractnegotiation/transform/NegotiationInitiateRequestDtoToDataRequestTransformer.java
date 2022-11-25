@@ -51,6 +51,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
         return Optional.ofNullable(object)
                 .map(input -> {
                     // TODO: ContractOfferRequest should contain only the contractOfferId and the contract offer should be retrieved from the catalog. Ref #985
+                    var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
                     var contractOffer = ContractOffer.Builder.newInstance()
                             .id(input.getOffer().getOfferId())
                             .asset(Asset.Builder.newInstance().id(input.getOffer().getAssetId()).build())
@@ -58,7 +59,8 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                             .consumer(URI.create("urn:connector:consumer"))
                             .provider(URI.create("urn:connector:provider"))
                             .policy(input.getOffer().getPolicy())
-                            .contractEnd(ZonedDateTime.ofInstant(clock.instant(), clock.getZone()).plusSeconds(input.getOffer().getValidity().toSeconds()))
+                            .contractStart(now)
+                            .contractEnd(now.plusSeconds(input.getOffer().getValidity()))
                             .build();
                     return ContractOfferRequest.Builder.newInstance()
                             .connectorId(input.getConnectorId())

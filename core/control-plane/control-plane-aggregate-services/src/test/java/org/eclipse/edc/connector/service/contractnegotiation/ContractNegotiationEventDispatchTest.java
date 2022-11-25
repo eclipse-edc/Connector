@@ -162,7 +162,8 @@ class ContractNegotiationEventDispatchTest {
                 .policy(policy)
                 .consumer(URI.create("http://any"))
                 .provider(URI.create("http://any"))
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
 
         return ContractOfferRequest.Builder.newInstance()

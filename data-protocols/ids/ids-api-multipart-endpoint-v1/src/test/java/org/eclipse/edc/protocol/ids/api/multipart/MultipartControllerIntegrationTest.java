@@ -265,7 +265,8 @@ class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
@@ -526,7 +527,8 @@ class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
@@ -606,6 +608,7 @@ class MultipartControllerIntegrationTest {
                         ._permission_(new PermissionBuilder()
                                 ._target_(URI.create("urn:artifact:" + assetId))
                                 .build())
+                        ._contractStart_(CalendarUtil.gregorianNow())
                         ._contractEnd_(CalendarUtil.gregorianNow())
                         .build());
         var asset = Asset.Builder.newInstance().id(assetId).build();

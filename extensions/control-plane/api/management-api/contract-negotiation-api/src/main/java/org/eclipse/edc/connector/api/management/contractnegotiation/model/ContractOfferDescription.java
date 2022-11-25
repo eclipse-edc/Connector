@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.edc.api.model.DurationDto;
+import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.policy.model.Policy;
 
 import java.util.concurrent.TimeUnit;
@@ -27,10 +27,7 @@ public class ContractOfferDescription {
     /**
      * Default validity is set to one year.
      */
-    private static final DurationDto DEFAULT_VALIDITY = DurationDto.Builder.newInstance()
-            .unit(TimeUnit.DAYS.toString())
-            .value(365)
-            .build();
+    private static final long DEFAULT_VALIDITY = TimeUnit.DAYS.toSeconds(365);
 
     @NotBlank(message = "offerId is mandatory")
     private String offerId;
@@ -38,8 +35,9 @@ public class ContractOfferDescription {
     private String assetId;
     @NotNull(message = "policy cannot be null")
     private Policy policy;
-    @NotNull(message = "duration cannot be null")
-    private DurationDto validity = DEFAULT_VALIDITY;
+
+    @Positive(message = "validity must be positive")
+    private long validity = DEFAULT_VALIDITY;
 
     private ContractOfferDescription() {
     }
@@ -56,7 +54,7 @@ public class ContractOfferDescription {
         return policy;
     }
 
-    public DurationDto getValidity() {
+    public long getValidity() {
         return validity;
     }
 
@@ -86,7 +84,7 @@ public class ContractOfferDescription {
             return this;
         }
 
-        public ContractOfferDescription.Builder validity(DurationDto validity) {
+        public ContractOfferDescription.Builder validity(long validity) {
             dto.validity = validity;
             return this;
         }

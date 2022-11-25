@@ -241,7 +241,8 @@ class MultipartDispatcherIntegrationTest {
                 .id(id)
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
     }
 

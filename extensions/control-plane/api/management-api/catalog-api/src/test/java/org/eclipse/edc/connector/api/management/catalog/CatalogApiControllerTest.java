@@ -61,12 +61,7 @@ class CatalogApiControllerTest {
     void shouldGetTheCatalog() {
         var controller = new CatalogApiController(service, transformerRegistry, monitor);
         var response = mock(AsyncResponse.class);
-        var offer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractEnd(ZonedDateTime.now())
-                .build();
+        var offer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
         var url = "test.url";
         when(service.getByProviderUrl(eq(url), any())).thenReturn(completedFuture(catalog));
@@ -92,12 +87,7 @@ class CatalogApiControllerTest {
     void shouldPostCatalogRequest() {
         var controller = new CatalogApiController(service, transformerRegistry, monitor);
         var response = mock(AsyncResponse.class);
-        var offer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractEnd(ZonedDateTime.now())
-                .build();
+        var offer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
         var url = "test.url";
 
@@ -115,5 +105,15 @@ class CatalogApiControllerTest {
         controller.requestCatalog(request, response);
 
         verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
+    }
+
+    private static ContractOffer createContractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .build();
     }
 }

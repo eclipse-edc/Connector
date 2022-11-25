@@ -31,7 +31,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.time.ZonedDateTime;
 
 import static java.lang.String.format;
 
@@ -79,9 +78,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure(
                     "The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
-
-        var contractValidityDuration = contractDefinition.getValidity();
-
+        
         var targetAsset = assetIndex.findById(offer.getAsset().getId());
         if (targetAsset == null) {
             return Result.failure("Invalid target: " + offer.getAsset().getId());
@@ -107,7 +104,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                 .consumer(offer.getConsumer())
                 .provider(offer.getProvider())
                 .policy(contractPolicyDef.getPolicy())
-                .contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(contractValidityDuration), clock.getZone()))
+                .contractStart(offer.getContractStart())
+                .contractEnd(offer.getContractStart().plusSeconds(contractDefinition.getValidity()))
                 .build();
 
         return Result.success(validatedOffer);
