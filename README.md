@@ -41,7 +41,7 @@
 
 <p align="center">
   <a href="#contributing">Contribute</a> •
-  <a href="https://eclipse-dataspaceconnector.github.io/docs/">Docs</a> •
+  <a href="https://eclipse-dataspacecomponents.github.io/docs/">Docs</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues">Issues</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/LICENSE">License</a> •
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/1303">Q&A</a>
