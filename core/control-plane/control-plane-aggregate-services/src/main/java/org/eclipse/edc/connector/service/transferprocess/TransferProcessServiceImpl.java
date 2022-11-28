@@ -144,7 +144,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
         return transactionContext.execute(() ->
                 Optional.ofNullable(negotiationStore.findContractAgreement(request.getContractId()))
-                        .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement))
+                        .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
                         .map(agreement -> manager.initiateProviderRequest(request))
                         .filter(AbstractResult::succeeded)
                         .map(AbstractResult::getContent)

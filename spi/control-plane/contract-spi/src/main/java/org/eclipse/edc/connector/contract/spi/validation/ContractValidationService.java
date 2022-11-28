@@ -60,7 +60,7 @@ public interface ContractValidationService {
      * @param agreement The {@link ContractAgreement} between consumer and provider to validate
      * @return the result of the validation
      */
-    boolean validateAgreement(ClaimToken token, ContractAgreement agreement);
+    Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement);
 
     /**
      * When the negotiation has been confirmed by the provider, the consumer must validate it ensuring that is the same
@@ -70,4 +70,5 @@ public interface ContractValidationService {
      * @param latestOffer The last {@link ContractOffer}
      */
     Result<Void> validateConfirmed(ContractAgreement agreement, ContractOffer latestOffer);
+
 }
