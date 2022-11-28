@@ -29,9 +29,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlet.ServletMapping;
 import org.eclipse.jetty.servlet.Source;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +77,9 @@ public class JettyService implements WebServer {
             server = new Server();
             //create a connector for every port mapping
             configuration.getPortMappings().forEach(mapping -> {
+                if (!mapping.getPath().startsWith("/")) {
+                    throw new IllegalArgumentException("A context path must start with /: " + mapping.getPath());
+                }
 
                 ServerConnector connector;
                 if (Arrays.stream(server.getConnectors()).anyMatch(c -> ((ServerConnector) c).getPort() == mapping.getPort())) {

@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.MessageInterpolator;
 import jakarta.validation.Valid;
 import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
@@ -54,26 +53,22 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(EdcExtension.class)
 public class ExceptionMappersIntegrationTest {
 
-
-    public static final String POSITIVE_TEMPLATE = "{jakarta.validation.constraints.Positive.message}";
-    public static final String NOT_BLANK_TEMPLATE = "{jakarta.validation.constraints.NotBlank.message}";
+    private static final String POSITIVE_TEMPLATE = "{jakarta.validation.constraints.Positive.message}";
+    private static final String NOT_BLANK_TEMPLATE = "{jakarta.validation.constraints.NotBlank.message}";
     private final int port = getFreePort();
     private final Runnable runnable = mock(Runnable.class);
-
 
     private MessageInterpolator interpolator;
 
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of(
-                "web.http.port", String.valueOf(getFreePort()),
-                "web.http.path", "/api",
-                "web.http.test.port", String.valueOf(port),
-                "web.http.test.path", "/"
+                "web.http.port", String.valueOf(port),
+                "web.http.path", "/api"
         ));
         extension.registerSystemExtension(ServiceExtension.class, new MyServiceExtension());
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
             interpolator = factory.getMessageInterpolator();
         }
     }
@@ -85,7 +80,7 @@ public class ExceptionMappersIntegrationTest {
         given()
                 .port(port)
                 .accept(JSON)
-                .get("/test")
+                .get("/api/test")
                 .then()
                 .statusCode(404)
                 .contentType(JSON)
@@ -101,7 +96,7 @@ public class ExceptionMappersIntegrationTest {
                 .accept(JSON)
                 .contentType(JSON)
                 .body(Map.of("data", "", "number", "-1"))
-                .post("/test")
+                .post("/api/test")
                 .then()
                 .statusCode(400)
                 .body("size()", is(2))
@@ -126,7 +121,7 @@ public class ExceptionMappersIntegrationTest {
         given()
                 .port(port)
                 .accept(JSON)
-                .get("/test")
+                .get("/api/test")
                 .then()
                 .statusCode(500);
     }
@@ -164,7 +159,7 @@ public class ExceptionMappersIntegrationTest {
 
         @Override
         public void initialize(ServiceExtensionContext context) {
-            webService.registerResource("test", new TestController());
+            webService.registerResource(new TestController());
         }
     }
 }
