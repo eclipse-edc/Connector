@@ -58,6 +58,7 @@ public class HttpDataAddress extends DataAddress {
 
     private HttpDataAddress() {
         super();
+        this.setType(HTTP_DATA);
     }
 
     @JsonIgnore
@@ -141,7 +142,6 @@ public class HttpDataAddress extends DataAddress {
 
         private Builder() {
             super(new HttpDataAddress());
-            this.type(HTTP_DATA);
         }
 
         @JsonCreator
