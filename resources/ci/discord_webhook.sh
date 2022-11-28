@@ -55,7 +55,7 @@ SUCCESS_AVATAR="https://jenkins.io/images/logos/cute/cute.png"
 FAILURE_AVATAR="https://jenkins.io/images/logos/fire/fire.png"
 UNKNOWN_AVATAR="https://www.jenkins.io/images/logos/mono/mono.png"
 
-JOB_URL="https://ci.eclipse.org/dataspaceconnector/job/${JENKINS_JOB}"
+JOB_URL="https://ci.eclipse.org/edc/job/${JENKINS_JOB}"
 BUILD_URL="${JOB_URL}/${BUILD_NUMBER}"
 BUILD_URL="${BUILD_URL}/console"
 
