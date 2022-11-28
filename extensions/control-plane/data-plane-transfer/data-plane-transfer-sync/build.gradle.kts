@@ -22,12 +22,12 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:web-spi"))
-
     api(project(":spi:control-plane:data-plane-transfer-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     implementation(project(":core:common:jwt-core"))
+    implementation(project(":extensions:common:api:control-api-configuration"))
 
     api(libs.jakarta.rsApi)
     api(libs.nimbus.jwt)
@@ -35,6 +35,7 @@ dependencies {
     // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
     api(libs.bouncyCastle.bcpkix)
 
+    testImplementation(project(":core:common:junit"))
     testImplementation(libs.jersey.multipart)
 }
 

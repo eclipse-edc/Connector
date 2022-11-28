@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.dataplane.transfer.sync;
 
+import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyReferenceService;
@@ -50,13 +51,24 @@ import java.security.PublicKey;
 import java.time.Clock;
 import java.util.Objects;
 
+import static java.lang.String.format;
+
 @Extension(value = DataPlaneTransferSyncExtension.NAME)
 public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Transfer Sync";
     @Setting
     private static final String DPF_SELECTOR_STRATEGY = "edc.transfer.client.selector.strategy";
-    private static final String API_CONTEXT_ALIAS = "validation";
+
+    /**
+     * This deprecation is used to permit a softer transition from the deprecated `web.http.validation` config group to
+     * the current `web.http.control`
+     *
+     * @deprecated "web.http.control" config should be used instead of "web.http.validation"
+     */
+    @Deprecated(since = "milestone8")
+    private static final String DEPRECATED_API_CONTEXT_ALIAS = "validation";
+
     @Inject
     private DataPlaneSelectorClient selectorClient;
 
@@ -87,6 +99,9 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     @Inject
     private DataEncrypter dataEncrypter;
 
+    @Inject
+    private ControlApiConfiguration controlApiConfiguration;
+
     @Override
     public String name() {
         return NAME;
@@ -100,7 +115,14 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
         var proxyResolver = new DataPlaneTransferProxyResolverImpl(selectorClient, selectorStrategy);
 
         var controller = createTokenValidationApiController(keyPair.getPublic(), dataEncrypter, context.getTypeManager());
-        webService.registerResource(API_CONTEXT_ALIAS, controller);
+        if (context.getConfig().hasPath("web.http." + DEPRECATED_API_CONTEXT_ALIAS)) {
+            webService.registerResource(DEPRECATED_API_CONTEXT_ALIAS, controller);
+            context.getMonitor().warning(
+                    format("Deprecated settings group %s is being used for Control API configuration, please switch to the new group %s",
+                            "web.http." + DEPRECATED_API_CONTEXT_ALIAS, "web.http.control"));
+        } else {
+            webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
+        }
 
         var proxyReferenceService = createProxyReferenceService(context, keyPair.getPrivate(), dataEncrypter);
         var flowController = new ProviderDataPlaneProxyDataFlowController(context.getConnectorId(), proxyResolver, dispatcherRegistry, proxyReferenceService);

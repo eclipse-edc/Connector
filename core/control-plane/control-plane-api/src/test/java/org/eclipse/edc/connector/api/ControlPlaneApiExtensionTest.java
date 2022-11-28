@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.api.transferprocess.TransferProcessControlApiController;
@@ -33,11 +32,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.net.URL;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;

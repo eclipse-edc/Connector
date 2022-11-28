@@ -32,7 +32,6 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.api.ControlPlaneApiExtension.DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -49,16 +48,14 @@ class TransferProcessControlApiControllerIntegrationTest {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
-                "web.http.controlplane.port", String.valueOf(port),
-                "web.http.controlplane.path", DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH
+                "web.http.control.port", String.valueOf(port),
+                "web.http.control.path", "/"
         ));
     }
 
     @Test
     void callTransferProcessHookWithComplete(TransferProcessStore store) {
-
         store.save(createTransferProcess());
-
 
         baseRequest()
                 .contentType("application/json")
@@ -77,7 +74,6 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callTransferProcessHookWithError(TransferProcessStore store) {
-
         store.save(createTransferProcess());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
@@ -147,7 +143,6 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callCompleteTransferProcessHook_invalidState(TransferProcessStore store) {
-
         store.save(createTransferProcessBuilder().state(ERROR.code()).build());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
@@ -160,7 +155,6 @@ class TransferProcessControlApiControllerIntegrationTest {
                 .then()
                 .statusCode(409);
     }
-
 
     private TransferProcess createTransferProcess() {
         return createTransferProcessBuilder().build();
@@ -179,9 +173,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
-                .basePath(DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH)
                 .when();
     }
-
 
 }

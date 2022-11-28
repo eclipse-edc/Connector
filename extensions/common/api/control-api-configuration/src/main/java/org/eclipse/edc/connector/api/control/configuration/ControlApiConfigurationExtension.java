@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.control.configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
@@ -28,7 +27,6 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
  * Tells all the Control API controllers under which context alias they need to register their resources: either
  * `default` or `control`
  */
-@Provides(ControlApiConfiguration.class)
 @Extension(value = ControlApiConfigurationExtension.NAME)
 public class ControlApiConfigurationExtension implements ServiceExtension {
 
