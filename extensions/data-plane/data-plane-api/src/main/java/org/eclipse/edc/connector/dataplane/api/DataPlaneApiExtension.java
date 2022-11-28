@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.api;
 
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
 import org.eclipse.edc.connector.dataplane.api.validation.TokenValidationClientImpl;
@@ -39,7 +40,6 @@ public class DataPlaneApiExtension implements ServiceExtension {
     public static final String NAME = "Data Plane API";
     @Setting
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
-    private static final String CONTROL = "control";
     private static final String PUBLIC = "public";
     @Inject
     private DataPlaneManager dataPlaneManager;
@@ -49,6 +49,9 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
     @Inject
     private OkHttpClient httpClient;
+
+    @Inject
+    private ControlApiConfiguration controlApiConfiguration;
 
     @Override
     public String name() {
@@ -67,7 +70,7 @@ public class DataPlaneApiExtension implements ServiceExtension {
         var executorService = context.getService(ExecutorInstrumentation.class)
                 .instrument(Executors.newSingleThreadExecutor(), DataPlanePublicApiController.class.getSimpleName());
 
-        webService.registerResource(CONTROL, new DataPlaneControlApiController(dataPlaneManager));
+        webService.registerResource(controlApiConfiguration.getContextAlias(), new DataPlaneControlApiController(dataPlaneManager));
 
         var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, monitor, executorService);
         webService.registerResource(PUBLIC, publicApiController);
