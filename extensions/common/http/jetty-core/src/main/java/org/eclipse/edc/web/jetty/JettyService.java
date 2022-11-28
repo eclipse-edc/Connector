@@ -29,7 +29,9 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletMapping;
 import org.eclipse.jetty.servlet.Source;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +108,6 @@ public class JettyService implements WebServer {
         } catch (Exception e) {
             throw new EdcException("Error starting Jetty service", e);
         }
-
     }
 
     public void shutdown() {
@@ -122,7 +123,7 @@ public class JettyService implements WebServer {
 
     public void registerServlet(String contextName, Servlet servlet) {
         var servletHolder = new ServletHolder(Source.EMBEDDED);
-        servletHolder.setName("EDC-" + contextName); //must be unique
+        servletHolder.setName("EDC-" + contextName);
         servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 
@@ -132,8 +133,9 @@ public class JettyService implements WebServer {
                 .orElseThrow(() -> new IllegalArgumentException("No PortMapping for contextName '" + contextName + "' found"))
                 .getPath();
 
-        var handler = getOrCreate(actualPath);
-        handler.getServletHandler().addServletWithMapping(servletHolder, "/*");
+        var servletHandler = getOrCreate(actualPath).getServletHandler();
+        servletHandler.addServletWithMapping(servletHolder, actualPath);
+        servletHandler.addServletWithMapping(servletHolder, actualPath + "/*");
     }
 
     /**
@@ -159,7 +161,7 @@ public class JettyService implements WebServer {
 
     @NotNull
     private ServletContextHandler createHandler(PortMapping mapping) {
-        var handler = new ServletContextHandler(null, mapping.getPath(), NO_SESSIONS);
+        var handler = new ServletContextHandler(server, "/", NO_SESSIONS);
         handler.setVirtualHosts(new String[]{ "@" + mapping.getName() });
         return handler;
     }
@@ -202,11 +204,7 @@ public class JettyService implements WebServer {
     }
 
     private ServletContextHandler getOrCreate(String contextPath) {
-        return handlers.computeIfAbsent(contextPath, k -> {
-            ServletContextHandler handler = new ServletContextHandler(NO_SESSIONS);
-            handler.setContextPath(contextPath);
-            return handler;
-        });
+        return handlers.computeIfAbsent(contextPath, k -> new ServletContextHandler(server, "/", NO_SESSIONS));
     }
 
 }

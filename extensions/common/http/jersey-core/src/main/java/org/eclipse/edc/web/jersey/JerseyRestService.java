@@ -97,7 +97,6 @@ public class JerseyRestService implements WebService {
 
         additionalInstances.forEach(supplier -> resourceConfig.registerInstances(supplier.get()));
 
-
         if (configuration.isCorsEnabled()) {
             resourceConfig.register(new CorsFilter(configuration));
         }
