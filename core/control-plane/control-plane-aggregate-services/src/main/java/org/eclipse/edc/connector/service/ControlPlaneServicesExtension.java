@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.service.contractagreement.ContractAgreementServ
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionEventListener;
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionServiceImpl;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationServiceImpl;
+import org.eclipse.edc.connector.service.dataaddress.DataAddressValidatorImpl;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionEventListener;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessServiceImpl;
@@ -44,6 +45,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.observe.asset.AssetObservableImpl;
@@ -56,6 +58,8 @@ import java.time.Clock;
 public class ControlPlaneServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Services";
+
+    private final DataAddressValidator dataAddressValidator = new DataAddressValidatorImpl();
 
     @Inject
     private Clock clock;
@@ -102,7 +106,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public AssetService assetService() {
         var assetObservable = new AssetObservableImpl();
         assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
-        return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable);
+        return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable, dataAddressValidator);
     }
 
     @Provider
@@ -136,6 +140,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public TransferProcessService transferProcessService() {
-        return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext, contractNegotiationStore, contractValidationService);
+        return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
+                contractNegotiationStore, contractValidationService, dataAddressValidator);
     }
 }

@@ -88,7 +88,7 @@ class DataPlaneTransferConsumerProxyTransformerTest {
         assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyUrl);
         assertThat(proxyCreationRequest.getProperties()).containsExactlyInAnyOrderEntriesOf(inputEdr.getProperties());
         assertThat(proxyCreationRequest.getContentAddress()).satisfies(address -> {
-            assertThat(address.getType()).isEqualTo(HttpDataAddress.DATA_TYPE);
+            assertThat(address.getType()).isEqualTo(HttpDataAddress.HTTP_DATA);
             var httpAddress = (HttpDataAddress) address;
             assertThat(httpAddress.getBaseUrl()).isEqualTo(inputEdr.getEndpoint());
             assertThat(httpAddress.getAuthKey()).isEqualTo(inputEdr.getAuthKey());
