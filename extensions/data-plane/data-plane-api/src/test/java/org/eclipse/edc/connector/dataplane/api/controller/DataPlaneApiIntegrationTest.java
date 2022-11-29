@@ -57,6 +57,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -162,6 +163,15 @@ class DataPlaneApiIntegrationTest {
                 .then()
                 .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .body("errors[0]", is("Missing bearer token"));
+    }
+
+    @Test
+    void publicApi_shouldNotReturn302_whenUrlWithoutTrailingSlash() {
+        given().port(PUBLIC_API_PORT)
+                .when()
+                .post("/public")
+                .then()
+                .statusCode(not(302));
     }
 
     @Test
