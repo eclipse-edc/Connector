@@ -15,7 +15,7 @@ The need to provide an integration test harness that supports multiple runtimes 
 - Stabilizing [samples](/samples) that run multiple connectors, which have been breaking frequently.
 - Testing system behavior when multiple connectors interact, e.g. the contract negotiation process.
 - Testing system behavior upon component failure.
-- Providing a test facility for factoring out application components to separate runtimes (e.g. [DPF](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/463)).
+- Providing a test facility for factoring out application components to separate runtimes (e.g. [DPF](https://github.com/eclipse-edc/Connector/issues/463)).
 
 Key drivers for the choice are:
 

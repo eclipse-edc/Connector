@@ -11,14 +11,14 @@ assignees: ''
 
 _Thank you for wanting to contribute to the project! We are very happy to see the functionalities of the EDC being extended. Providing this open-source is a great opportunity for others with similar requirements and to avoid additional work._
 
-_For any details about the guidelines for submitting features, please take a look at the [contribution categories](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/contribution_categories.md)._
+_For any details about the guidelines for submitting features, please take a look at the [contribution categories](https://github.com/eclipse-edc/Connector/blob/main/contribution_categories.md)._
 
 
 ## General information
 
 Please provide some information about your project or code contribution. 
 
-_If you choose to be referenced as a "friend", these will be added to the [known friends list](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/known_friends.md)._
+_If you choose to be referenced as a "friend", these will be added to the [known friends list](https://github.com/eclipse-edc/Connector/blob/main/known_friends.md)._
 _If you choose to add your feature as a core EDC component, links to your current code and correlated issues, discussions, and pull requests are of great importance._
 
 | Title | Description | Contact | Links

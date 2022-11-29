@@ -22,4 +22,4 @@ Closes # <-- _insert Issue number if one exists_
 - [ ] documented public classes/methods?
 - [ ] added/updated relevant documentation?
 - [ ] assigned appropriate label? (exclude from changelog with label `no-changelog`)
-- [ ] formatted title correctly? (_take a look at the [CONTRIBUTING](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CONTRIBUTING.md#submit-a-pull-request) and [Etiquette for pull requests](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/pr_etiquette.md) for details_)
+- [ ] formatted title correctly? (_take a look at the [CONTRIBUTING](https://github.com/eclipse-edc/Connector/blob/main/CONTRIBUTING.md#submit-a-pull-request) and [Etiquette for pull requests](https://github.com/eclipse-edc/Connector/blob/main/pr_etiquette.md) for details_)

@@ -37,7 +37,7 @@ jobs:
       - name: Dependency rules report # possible severity values: <'fail'|'warn'|'ignore'>
         # run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis=warn -Pdependency.analysis.clear.artifacts=false
         # Disabled our dependency rules for now, as they are outdated and need to be refactored:
-        # https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/2132
+        # https://github.com/eclipse-edc/Connector/issues/2132
         # explicitly set 1G heap space because we've seen OOMs previously
         run: ./gradlew -Dorg.gradle.jvmargs="-Xmx1g" buildHealth -Pdependency.analysis=warn -Pdependency.analysis.clear.artifacts=false
 
