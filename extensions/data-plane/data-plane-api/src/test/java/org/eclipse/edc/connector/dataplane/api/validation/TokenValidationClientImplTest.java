@@ -82,7 +82,7 @@ class TokenValidationClientImplTest {
                         .withBody(MAPPER.writeValueAsString(address))
                         .withContentType(MediaType.APPLICATION_JSON));
 
-        var result = client.call(token);
+        var result = client.resolve(token);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getType()).isEqualTo(address.getType());
@@ -101,7 +101,7 @@ class TokenValidationClientImplTest {
                         .withBody(MAPPER.writeValueAsString(address))
                         .withContentType(MediaType.APPLICATION_JSON));
 
-        var result = client.call(token);
+        var result = client.resolve(token);
 
         assertThat(result.failed()).isTrue();
     }

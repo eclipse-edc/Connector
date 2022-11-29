@@ -21,8 +21,7 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
  */
 public interface DataPlaneTransferConstants {
     /**
-     * {@link DataFlowRequest} type that
-     * triggers data proxy transfer.
+     * {@link DataFlowRequest} type that triggers client-pull data transfer.
      */
     String HTTP_PROXY = "HttpProxy";
 

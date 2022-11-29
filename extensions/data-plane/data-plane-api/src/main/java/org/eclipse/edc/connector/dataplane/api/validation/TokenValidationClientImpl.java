@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.HttpHeaders;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.eclipse.edc.connector.dataplane.spi.api.TokenValidationClient;
+import org.eclipse.edc.connector.dataplane.spi.resolver.DataPlaneDataAddressResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -27,7 +27,7 @@ import java.io.IOException;
 
 import static java.lang.String.format;
 
-public class TokenValidationClientImpl implements TokenValidationClient {
+public class TokenValidationClientImpl implements DataPlaneDataAddressResolver {
 
     private final OkHttpClient httpClient;
     private final String endpoint;
@@ -42,7 +42,7 @@ public class TokenValidationClientImpl implements TokenValidationClient {
     }
 
     @Override
-    public Result<DataAddress> call(String token) {
+    public Result<DataAddress> resolve(String token) {
         var request = new Request.Builder().url(endpoint).header(HttpHeaders.AUTHORIZATION, token).get().build();
         try (var response = httpClient.newCall(request).execute()) {
             var body = response.body();

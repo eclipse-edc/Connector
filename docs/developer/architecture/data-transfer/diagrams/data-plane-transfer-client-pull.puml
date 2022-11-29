@@ -1,0 +1,95 @@
+'
+'  Copyright (c) 2022 Amadeus
+'
+'  This program and the accompanying materials are made available under the
+'  terms of the Apache License, Version 2.0 which is available at
+'  https://www.apache.org/licenses/LICENSE-2.0
+'
+'  SPDX-License-Identifier: Apache-2.0
+'
+'  Contributors:
+'      Amadeus - Initial Version
+'
+
+@startuml
+
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+skinparam BoxPadding 10
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology
+
+autonumber
+
+box "Consumer ecosystem" #ConsumerColor
+    participant CBE as "Backend Service"
+end box
+
+box Consumer EDC #ConsumerColor
+    participant CCP as "Control Plane" #Business
+    participant CDPS as "Data Plane Selector" #Business
+    participant CDP as "Data Plane" #Business
+end box
+
+box Provider EDC #ProviderColor
+    participant PDP as "Data Plane" #Business
+    participant PDPS as "Data Plane Selector" #Business
+    participant PCP as "Control Plane" #Business
+end box
+
+box "Provider ecosystem" #ProviderColor
+    participant PBE as "Backend Service"
+end box
+
+title
+ **Data Plane Transfer - Client Pull**
+end title
+autonumber 1
+== Initialization ==
+
+activate CCP
+CCP ->> PCP : initiate data transfer (see `TransferProcessApiController`)\n `DataRequest` has dest. type `HttpProxy`
+activate PCP
+PCP ->> PDPS : asks for data plane instance
+activate PDPS
+return data plane instance
+PCP ->> PCP : create endpoint data ref.\nbased on data plane instance
+PCP ->> CCP : send endpoint data ref.
+CCP ->> CDPS : asks for data plane instance
+activate CDPS
+return data plane instance
+CCP ->> CCP : transform endpoint data ref.\n(see `DataPlaneProxyConsumerTransformer`)
+CCP ->> CBE : dispatch endpoint data ref.\n(see `EndpointDataReferenceReceiver`)
+activate CBE
+
+== Working ==
+CBE ->> CDP : http request with access token \nfrom endpoint data ref.
+note left of CDP : data plane acts as proxy, request can \nbe GET/PUT/POST/DELETE/...\nSee `DataPlanePublicApi`
+activate CDP
+CDP ->> CCP : send token for validation
+CCP ->> CCP : validate token
+CCP ->> CDP : data address
+CDP ->> PDP : http request
+note right of PDP : acts as proxy\nSee `DataPlanePublicApi`
+activate PDP
+PDP ->> PCP : send token for validation
+PCP ->> PCP : validate token
+PCP ->> PDP : data address
+deactivate PCP
+PDP ->> PBE : http request
+activate PBE
+return data
+PDP ->> CDP : return data
+CDP ->> CBE : return data
+
+
+@enduml
