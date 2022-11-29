@@ -25,6 +25,8 @@ import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
+import static java.lang.String.format;
+
 /**
  * Provides configuration information for IDS API endpoints to other extensions.
  */
@@ -32,25 +34,41 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 @Extension(value = IdsApiConfigurationExtension.NAME)
 public class IdsApiConfigurationExtension implements ServiceExtension {
 
-
-    @Setting
-    public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
-    public static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
     public static final String NAME = "IDS API Configuration";
 
-    public static final String WEBSERVICE_NAME = "IDS API";
+    private static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
 
+    @Setting(value = "The address exposed by the connector to receive ids messages", defaultValue = DEFAULT_IDS_WEBHOOK_ADDRESS)
+    public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
 
-    public static final String IDS_API_CONFIG = "web.http.ids";
-    public static final String IDS_API_CONTEXT_ALIAS = "ids";
+    private static final int DEFAULT_PROTOCOL_PORT = 8282;
+    private static final String DEFAULT_PROTOCOL_API_PATH = "/api/v1/ids";
 
-    public static final int DEFAULT_IDS_PORT = 8282;
-    public static final String DEFAULT_IDS_API_PATH = "/api/v1/ids";
+    /**
+     * This deprecation is used to permit a smoother transition from the deprecated `web.http.ids` config group to the
+     * current `web.http.protocol`
+     *
+     * @deprecated "web.http.protocol" config should be used instead of "web.http.ids"
+     */
+    @Deprecated(since = "milestone8")
+    public static final WebServiceSettings DEPRECATED_SETTINGS = WebServiceSettings.Builder.newInstance()
+            .apiConfigKey("web.http.ids")
+            .contextAlias("ids")
+            .defaultPath(DEFAULT_PROTOCOL_API_PATH)
+            .defaultPort(DEFAULT_PROTOCOL_PORT)
+            .name("IDS API")
+            .build();
 
+    public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
+            .apiConfigKey("web.http.protocol")
+            .contextAlias("protocol")
+            .defaultPath(DEFAULT_PROTOCOL_API_PATH)
+            .defaultPort(DEFAULT_PROTOCOL_PORT)
+            .name("Protocol API")
+            .build();
 
     @Inject
     private WebServer webServer;
-
 
     @Inject
     private WebServiceConfigurer configurator;
@@ -60,16 +78,18 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
         return NAME;
     }
 
-
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var settings = WebServiceSettings.Builder.newInstance()
-                .apiConfigKey(IDS_API_CONFIG)
-                .contextAlias(IDS_API_CONTEXT_ALIAS)
-                .defaultPath(DEFAULT_IDS_API_PATH)
-                .defaultPort(DEFAULT_IDS_PORT)
-                .name(WEBSERVICE_NAME)
-                .build();
+        WebServiceSettings settings;
+        if (context.getConfig().hasPath(DEPRECATED_SETTINGS.apiConfigKey())) {
+            settings = DEPRECATED_SETTINGS;
+            context.getMonitor().warning(
+                    format("Deprecated settings group %s is being used for Protocol API configuration, please switch to the new group %s",
+                            settings.apiConfigKey(), SETTINGS.apiConfigKey()));
+        } else {
+            settings = SETTINGS;
+        }
+
         var config = configurator.configure(context, webServer, settings);
 
         var path = config.getPath();
