@@ -86,7 +86,7 @@ public interface ContractNegotiationApi {
     @Operation(description = "Gets a contract agreement for a contract negotiation with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreement that is attached to the negotiation, or null",
-                            content = @Content(schema = @Schema(implementation = ContractNegotiationDto.class))),
+                            content = @Content(schema = @Schema(implementation = ContractAgreementDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
