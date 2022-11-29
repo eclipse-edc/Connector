@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PolicyDefinitionServiceImplTest {
+class PolicyDefinitionServiceImplTest {
 
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractDefinitionStore contractDefinitionStore = mock(ContractDefinitionStore.class);
@@ -53,9 +53,7 @@ public class PolicyDefinitionServiceImplTest {
         when(policyStore.findById("policyId")).thenReturn(createPolicy("policyId"));
 
         var policy = policyServiceImpl.findById("policyId");
-        var uidTest = policy.getUid();
 
-        String assetId = "policyId";
         assertThat(policy).isEqualTo(createPolicy("policyId"));
     }
 
@@ -128,6 +126,7 @@ public class PolicyDefinitionServiceImplTest {
                 .accessPolicyId(policy.getUid())
                 .contractPolicyId(policy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
+                .validity(100)
                 .build();
 
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
@@ -148,6 +147,7 @@ public class PolicyDefinitionServiceImplTest {
                 .accessPolicyId(policy.getUid())
                 .contractPolicyId(policy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
+                .validity(100)
                 .build();
 
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));

@@ -42,9 +42,10 @@ class ContractDefinitionDocumentSerializationTest {
         String s = typeManager.writeValueAsString(document);
 
         assertThat(s).isNotNull()
-                .contains("\"selectorExpression\":{\"criteria\":[{\"operandLeft\":\"somekey\",\"operator\":\"=\",\"operandRight\":\"someval\"}]}}")
+                .contains("\"selectorExpression\":{\"criteria\":[{\"operandLeft\":\"somekey\",\"operator\":\"=\",\"operandRight\":\"someval\"}]}")
                 .contains("wrappedInstance")
                 .contains("\"id\":\"" + def.getId() + "\"")
+                .contains("\"validity\":" + def.getValidity())
                 .contains("\"partitionKey\":\"" + pk + "\"");
     }
 

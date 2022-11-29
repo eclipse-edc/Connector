@@ -36,8 +36,6 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -131,9 +129,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         var latestOffer = negotiation.getLastContractOffer();
-        try {
-            Objects.requireNonNull(latestOffer, "latestOffer");
-        } catch (NullPointerException e) {
+        if (latestOffer == null) {
             monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
             return StatusResult.failure(FATAL_ERROR);
         }
@@ -178,9 +174,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         var latestOffer = negotiation.getLastContractOffer();
-        try {
-            Objects.requireNonNull(latestOffer, "latestOffer");
-        } catch (NullPointerException e) {
+        if (latestOffer == null) {
             monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
             return StatusResult.failure(FATAL_ERROR);
         }
@@ -362,7 +356,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var agreement = ContractAgreement.Builder.newInstance()
                 .id(ContractId.createContractId(definitionId))
                 .contractStartDate(clock.instant().getEpochSecond())
-                .contractEndDate(clock.instant().plus(365, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
+                .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
                 .contractSigningDate(clock.instant().getEpochSecond())
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))
                 .consumerAgentId(String.valueOf(lastOffer.getConsumer()))

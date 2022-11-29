@@ -94,12 +94,12 @@ public class ContractOffer {
         return offerEnd;
     }
 
-    @Nullable
+    @NotNull
     public ZonedDateTime getContractStart() {
         return contractStart;
     }
 
-    @Nullable
+    @NotNull
     public ZonedDateTime getContractEnd() {
         return contractEnd;
     }
@@ -192,12 +192,12 @@ public class ContractOffer {
             return this;
         }
 
-
         public ContractOffer build() {
             Objects.requireNonNull(contractOffer.id);
             Objects.requireNonNull(contractOffer.asset, "Asset must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
-
+            Objects.requireNonNull(contractOffer.contractStart, "Contract start must not be null");
+            Objects.requireNonNull(contractOffer.contractEnd, "Contract end must not be null");
             return contractOffer;
         }
     }

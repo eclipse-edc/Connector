@@ -443,6 +443,10 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
+        validity:
+          type: integer
+          format: int64
+          example: null
       required:
       - assetId
       - offerId

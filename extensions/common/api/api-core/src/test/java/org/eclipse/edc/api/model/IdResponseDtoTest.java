@@ -32,13 +32,13 @@ class IdResponseDtoTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var assetDto = IdResponseDto.Builder.newInstance().id("assetId").createdAt(1664209047728L).build();
+        var dto = IdResponseDto.Builder.newInstance().id("assetId").createdAt(1664209047728L).build();
 
-        var str = objectMapper.writeValueAsString(assetDto);
+        var str = objectMapper.writeValueAsString(dto);
 
         assertThat(str).isNotNull();
 
         var deserialized = objectMapper.readValue(str, IdResponseDto.class);
-        assertThat(deserialized).usingRecursiveComparison().isEqualTo(assetDto);
+        assertThat(deserialized).usingRecursiveComparison().isEqualTo(dto);
     }
 }

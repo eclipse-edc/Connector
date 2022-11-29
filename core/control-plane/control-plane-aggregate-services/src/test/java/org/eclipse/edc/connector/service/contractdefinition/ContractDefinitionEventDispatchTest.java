@@ -56,6 +56,7 @@ public class ContractDefinitionEventDispatchTest {
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .validity(100)
                 .build();
 
         service.create(contractDefinition);

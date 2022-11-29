@@ -48,6 +48,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -61,7 +62,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
-public class ContractNegotiationEventDispatchTest {
+class ContractNegotiationEventDispatchTest {
 
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
     private final ClaimToken token = ClaimToken.Builder.newInstance().build();
@@ -112,7 +113,13 @@ public class ContractNegotiationEventDispatchTest {
         dispatcherRegistry.register(succeedingDispatcher());
         eventRouter.register(eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
-        contractDefinitionStore.save(ContractDefinition.Builder.newInstance().id("contractDefinitionId").contractPolicyId("policyId").accessPolicyId("policyId").selectorExpression(AssetSelectorExpression.SELECT_ALL).build());
+        contractDefinitionStore.save(ContractDefinition.Builder.newInstance()
+                .id("contractDefinitionId")
+                .contractPolicyId("policyId")
+                .accessPolicyId("policyId")
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .validity(100)
+                .build());
         policyDefinitionStore.save(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
@@ -155,6 +162,8 @@ public class ContractNegotiationEventDispatchTest {
                 .policy(policy)
                 .consumer(URI.create("http://any"))
                 .provider(URI.create("http://any"))
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
 
         return ContractOfferRequest.Builder.newInstance()

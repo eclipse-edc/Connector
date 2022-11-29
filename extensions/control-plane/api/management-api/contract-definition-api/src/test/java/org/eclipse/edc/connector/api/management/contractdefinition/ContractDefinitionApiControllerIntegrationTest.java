@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -43,7 +45,7 @@ import static org.hamcrest.Matchers.not;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
-public class ContractDefinitionApiControllerIntegrationTest {
+class ContractDefinitionApiControllerIntegrationTest {
 
     private final int port = getFreePort();
     private final String authKey = "123456";
@@ -218,8 +220,8 @@ public class ContractDefinitionApiControllerIntegrationTest {
                 .statusCode(404);
     }
 
-    private ContractDefinitionResponseDto createDto(String definitionId) {
-        return ContractDefinitionResponseDto.Builder.newInstance()
+    private ContractDefinitionRequestDto createDto(String definitionId) {
+        return ContractDefinitionRequestDto.Builder.newInstance()
                 .id(definitionId)
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
@@ -233,6 +235,7 @@ public class ContractDefinitionApiControllerIntegrationTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
     }
 
