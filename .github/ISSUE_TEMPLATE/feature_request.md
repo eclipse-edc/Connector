@@ -9,7 +9,7 @@ assignees: ''
 
 # Feature Request
 
-_If you are missing a feature or have an idea how to improve this project that should first be discussed, please feel free to open up a [discussion](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/categories/ideas)._
+_If you are missing a feature or have an idea how to improve this project that should first be discussed, please feel free to open up a [discussion](https://github.com/eclipse-edc/Connector/discussions/categories/ideas)._
 
 ## Which Areas Would Be Affected?
 _e.g., DPF, CI, build, transfer, etc._

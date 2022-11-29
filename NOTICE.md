@@ -3,7 +3,7 @@
 This content is produced and maintained by the Eclipse Dash, Tools for
 Committers project.
 
-* Project home: https://projects.eclipse.org/projects/technology.dataspaceconnector
+* Project home: https://projects.eclipse.org/projects/technology.edc
 
 ## Trademarks
 
@@ -24,7 +24,7 @@ SPDX-License-Identifier: Apache-2.0
 
 The project maintains the following source code repositoriy:
 
-* https://github.com/eclipse-dataspaceconnector/DataSpaceConnector
+* https://github.com/eclipse-edc/Connector
 
 ## Third-party Content (Overarching All Modules)
 

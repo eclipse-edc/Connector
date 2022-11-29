@@ -118,7 +118,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                 .id(ContractId.createContractId(definition.getId()))
                 .policy(policy.withTarget(asset.getId()))
                 .asset(asset)
-                // TODO: this is a workaround for the bug described in https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/753
+                // TODO: this is a workaround for the bug described in https://github.com/eclipse-edc/Connector/issues/753
                 .provider(URI.create("urn:connector:provider"))
                 .consumer(URI.create("urn:connector:consumer"))
                 .contractStart(ZonedDateTime.now())

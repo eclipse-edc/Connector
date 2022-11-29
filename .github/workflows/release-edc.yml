@@ -44,7 +44,7 @@ jobs:
       - name: Trigger Release on EF Jenkins
         uses: toptal/jenkins-job-trigger-action@master
         with:
-          jenkins_url: "https://ci.eclipse.org/dataspaceconnector/"
+          jenkins_url: "https://ci.eclipse.org/edc/"
           jenkins_user: ${{ secrets.EF_JENKINS_USER }}
           jenkins_token: ${{ secrets.EF_JENKINS_TOKEN }}
           job_name: "EDC-Autobuild-Release"

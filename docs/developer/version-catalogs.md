@@ -38,7 +38,7 @@ dependencyResolutionManagement {
 ```
 
 Then, the version catalog named `"libs"` is available in the project, its exact contents can be
-inspected [in this `*.toml` file](https://github.com/eclipse-dataspaceconnector/GradlePlugins/blob/main/gradle/libs.versions.toml)
+inspected [in this `*.toml` file](https://github.com/eclipse-edc/GradlePlugins/blob/main/gradle/libs.versions.toml)
 . Be aware that the library aliases are _normalized_, that means all the dashes, underscores and dots are interpreted as
 separators.
 

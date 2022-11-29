@@ -13,9 +13,9 @@ The `data-plane-azure-storage` extension can be used on DPF to support blob tran
 
 A client can trigger a blob transfer on the consumer side via the Data Management API.
 
-The client needs to use the `managedResources=true` option in its API request. This option will make sure that the resources needed for the transfer (storage account) are created. [`managedResources=false` option for Azure storage transfer](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/1241) is not supported yet. `managedResources=false` would be used if the client wants to use a pre-existing container without creating a new one.
+The client needs to use the `managedResources=true` option in its API request. This option will make sure that the resources needed for the transfer (storage account) are created. [`managedResources=false` option for Azure storage transfer](https://github.com/eclipse-edc/Connector/issues/1241) is not supported yet. `managedResources=false` would be used if the client wants to use a pre-existing container without creating a new one.
 
-If something goes wrong during the transfer, the Consumer would not be aware that an error occurred, it would just never see the transferProcess with completed state when polling for the result. There is an [EDC issue](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/1242) to address this problem.
+If something goes wrong during the transfer, the Consumer would not be aware that an error occurred, it would just never see the transferProcess with completed state when polling for the result. There is an [EDC issue](https://github.com/eclipse-edc/Connector/issues/1242) to address this problem.
 
 Storage accounts access key should be stored in respective Vaults (e.g. Azure Key Vault) before initiating transfers. The consumer provisions a new storage container and generates a write-only SAS token to allow the provider to write data to the consumer's container.
 
