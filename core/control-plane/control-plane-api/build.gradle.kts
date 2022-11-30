@@ -23,12 +23,11 @@ dependencies {
     api(project(":spi:control-plane:control-plane-api-client-spi"))
     api(project(":spi:common:web-spi"))
     api(project(":spi:common:auth-spi"))
-
+    implementation(project(":extensions:common:api:control-api-configuration"))
 
     implementation(libs.jakarta.rsApi)
     implementation(libs.jakarta.validation)
     implementation(libs.jersey.beanvalidation) //for validation
-
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
@@ -36,9 +35,7 @@ dependencies {
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
-
 }
-
 
 publishing {
     publications {

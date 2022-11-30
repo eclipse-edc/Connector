@@ -136,7 +136,9 @@ public class JettyService implements WebServer {
 
         var servletHandler = getOrCreate(actualPath).getServletHandler();
         servletHandler.addServletWithMapping(servletHolder, actualPath);
-        servletHandler.addServletWithMapping(servletHolder, actualPath + "/*");
+
+        var allPathSpec = actualPath.endsWith("/") ? "*" : "/*";
+        servletHandler.addServletWithMapping(servletHolder, actualPath + allPathSpec);
     }
 
     /**

@@ -48,9 +48,8 @@ public class Participant {
     private final Duration timeout = Duration.ofSeconds(30);
 
     private final URI controlPlane = URI.create("http://localhost:" + getFreePort());
-    private final URI controlPlaneValidation = URI.create("http://localhost:" + getFreePort() + "/validation");
+    private final URI controlPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI controlPlaneManagement = URI.create("http://localhost:" + getFreePort() + "/api/management");
-    private final URI controlPlaneProvisioner = URI.create("http://localhost:" + getFreePort() + "/provisioner");
     private final URI dataPlane = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
@@ -288,10 +287,8 @@ public class Participant {
                 put("web.http.ids.path", IDS_PATH);
                 put("web.http.management.port", String.valueOf(controlPlaneManagement.getPort()));
                 put("web.http.management.path", controlPlaneManagement.getPath());
-                put("web.http.provisioner.port", String.valueOf(controlPlaneProvisioner.getPort()));
-                put("web.http.provisioner.path", controlPlaneProvisioner.getPath());
-                put("web.http.validation.port", String.valueOf(controlPlaneValidation.getPort()));
-                put("web.http.validation.path", controlPlaneValidation.getPath());
+                put("web.http.control.port", String.valueOf(controlPlaneControl.getPort()));
+                put("web.http.control.path", controlPlaneControl.getPath());
                 put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
@@ -374,7 +371,6 @@ public class Participant {
         return baseConfiguration;
     }
 
-
     @NotNull
     public String jdbcUrl() {
         return PostgresqlLocalInstance.JDBC_URL_PREFIX + name;
@@ -392,7 +388,7 @@ public class Participant {
                 put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
-                put("edc.dataplane.token.validation.endpoint", controlPlaneValidation + "/token");
+                put("edc.dataplane.token.validation.endpoint", controlPlaneControl + "/token");
             }
         };
     }
