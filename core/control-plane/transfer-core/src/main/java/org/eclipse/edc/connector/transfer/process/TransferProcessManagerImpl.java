@@ -271,7 +271,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             process.transitionInitial();
         }
         observable.invokeForEach(l -> l.preCreated(process));
-        transferProcessStore.create(process);
+        transferProcessStore.save(process);
         observable.invokeForEach(l -> l.initiated(process));
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
 
@@ -511,14 +511,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.provisioned(transferProcess));
         } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
             transferProcess.transitionProvisioningRequested();
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.provisioningRequested(transferProcess));
         } else {
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
         }
     }
 
@@ -542,14 +542,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.deprovisioned(transferProcess));
         } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
             transferProcess.transitionDeprovisioningRequested();
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
         }
     }
 
@@ -707,17 +707,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 TransferProcessStates.from(transferProcess.getState())), e);
         // update state count and timestamp
         transferProcess.transitionRequesting();
-        transferProcessStore.update(transferProcess);
+        transferProcessStore.save(transferProcess);
     }
 
     private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {
         observable.invokeForEach(observe);
-        transferProcessStore.update(transferProcess);
+        transferProcessStore.save(transferProcess);
         monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
     }
 
     private void breakLease(TransferProcess process) {
-        transferProcessStore.update(process);
+        transferProcessStore.save(process);
     }
 
     public static class Builder {

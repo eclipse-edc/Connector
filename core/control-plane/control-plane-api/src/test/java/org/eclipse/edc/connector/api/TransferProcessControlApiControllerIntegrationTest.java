@@ -57,7 +57,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     @Test
     void callTransferProcessHookWithComplete(TransferProcessStore store) {
 
-        store.create(createTransferProcess());
+        store.save(createTransferProcess());
 
 
         baseRequest()
@@ -78,7 +78,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     @Test
     void callTransferProcessHookWithError(TransferProcessStore store) {
 
-        store.create(createTransferProcess());
+        store.save(createTransferProcess());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
                 .errorMessage("error")
@@ -148,7 +148,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     @Test
     void callCompleteTransferProcessHook_invalidState(TransferProcessStore store) {
 
-        store.create(createTransferProcessBuilder().state(ERROR.code()).build());
+        store.save(createTransferProcessBuilder().state(ERROR.code()).build());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
                 .errorMessage("error")

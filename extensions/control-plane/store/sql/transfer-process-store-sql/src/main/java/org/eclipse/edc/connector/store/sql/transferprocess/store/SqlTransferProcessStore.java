@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
@@ -38,11 +39,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
 
 /**
@@ -70,7 +71,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
 
             try (
                     var connection = getConnection();
-                    var stream = executeQuery(connection, true, this::mapTransferProcess, stmt, state, now, max)
+                    var stream = SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, stmt, state, now, max)
             ) {
                 var transferProcesses = stream.collect(toList());
                 transferProcesses.forEach(t -> leaseContext.by(leaseHolderName).withConnection(connection).acquireLease(t.getId()));
@@ -102,48 +103,23 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         });
     }
 
-    /**
-     * Creates a new {@link TransferProcess}, or updates if one already exists.
-     *
-     * @param process The new TransferProcess.
-     * @throws IllegalArgumentException if the TransferProcess does not have a {@link DataRequest}.
-     */
     @Override
-    public void create(TransferProcess process) {
+    public void save(TransferProcess process) {
+        Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         if (process.getDataRequest() == null) {
             throw new IllegalArgumentException("Cannot store TransferProcess without a DataRequest");
         }
         transactionContext.execute(() -> {
-            if (find(process.getId()) != null) {
-                update(process);
-            } else {
-                insert(process);
-            }
-        });
-
-    }
-
-    /**
-     * Updates a TransferProcess overwriting all properties. The {@link DataRequest} that is associated with the {@link TransferProcess}
-     * will get updated including its ID (primary key).
-     *
-     * @param process The new TransferProcess
-     */
-    @Override
-    public void update(TransferProcess process) {
-        transactionContext.execute(() -> {
-            String id = process.getId();
-            var existing = find(id);
-
-            if (existing == null) {
-                insert(process);
-            } else {
-                try (var conn = getConnection()) {
-                    leaseContext.by(leaseHolderName).withConnection(conn).breakLease(id);
+            try (var conn = getConnection()) {
+                var existing = findByIdInternal(conn, process.getId());
+                if (existing != null) {
+                    leaseContext.by(leaseHolderName).withConnection(conn).breakLease(process.getId());
                     update(conn, process, existing.getDataRequest().getId());
-                } catch (SQLException e) {
-                    throw new EdcPersistenceException(e);
+                } else {
+                    insert(conn, process);
                 }
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
             }
         });
     }
@@ -159,7 +135,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                     leaseContext.by(leaseHolderName).withConnection(conn).acquireLease(processId);
 
                     var stmt = statements.getDeleteTransferProcessTemplate();
-                    executeQuery(conn, stmt, processId);
+                    SqlQueryExecutor.executeQuery(conn, stmt, processId);
 
                     //necessary to delete the row in edc_lease
                     leaseContext.by(leaseHolderName).withConnection(conn).breakLease(processId);
@@ -174,9 +150,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     @Override
     public Stream<TransferProcess> findAll(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
-            try {
-                var statement = statements.createQuery(querySpec);
-                return executeQuery(getConnection(), true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
+            try (var conn = getConnection()) {
+                return executeQuery(conn, querySpec);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -199,9 +174,21 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .build();
     }
 
+    private @Nullable TransferProcess findByIdInternal(Connection conn, String id) {
+        return transactionContext.execute(() -> {
+            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
+            return single(executeQuery(conn, q).collect(toList()));
+        });
+    }
+
+    private Stream<TransferProcess> executeQuery(Connection connection, QuerySpec querySpec) {
+        var statement = statements.createQuery(querySpec);
+        return SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
+    }
+
     private void update(Connection conn, TransferProcess process, String existingDataRequestId) {
         var updateStmt = statements.getUpdateTransferProcessTemplate();
-        executeQuery(conn, updateStmt, process.getState(),
+        SqlQueryExecutor.executeQuery(conn, updateStmt, process.getState(),
                 process.getStateCount(),
                 process.getStateTimestamp(),
                 toJson(process.getTraceContext()),
@@ -220,7 +207,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     private void updateDataRequest(Connection conn, DataRequest dataRequest, String existingDataRequestId) {
         var updateDrStmt = statements.getUpdateDataRequestTemplate();
 
-        executeQuery(conn, updateDrStmt,
+        SqlQueryExecutor.executeQuery(conn, updateDrStmt,
                 dataRequest.getId(),
                 dataRequest.getProcessId(),
                 dataRequest.getConnectorAddress(),
@@ -251,40 +238,33 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         return format("Expected to find %d items, but found %d", expectedSize, actualSize);
     }
 
-    private void insert(TransferProcess process) {
-        transactionContext.execute(() -> {
-            try (var conn = getConnection()) {
-                // insert TransferProcess
-                var insertTpStatement = statements.getInsertStatement();
+    private void insert(Connection conn, TransferProcess process) {
+        // insert TransferProcess
+        var insertTpStatement = statements.getInsertStatement();
+        SqlQueryExecutor.executeQuery(conn, insertTpStatement, process.getId(),
+                process.getState(),
+                process.getStateCount(),
+                process.getStateTimestamp(),
+                process.getCreatedAt(),
+                process.getUpdatedAt(),
+                toJson(process.getTraceContext()),
+                process.getErrorDetail(),
+                toJson(process.getResourceManifest()),
+                toJson(process.getProvisionedResourceSet()),
+                toJson(process.getContentDataAddress()),
+                process.getType().toString(),
+                toJson(process.getDeprovisionedResources()));
 
-                executeQuery(conn, insertTpStatement, process.getId(),
-                        process.getState(),
-                        process.getStateCount(),
-                        process.getStateTimestamp(),
-                        process.getCreatedAt(),
-                        process.getUpdatedAt(),
-                        toJson(process.getTraceContext()),
-                        process.getErrorDetail(),
-                        toJson(process.getResourceManifest()),
-                        toJson(process.getProvisionedResourceSet()),
-                        toJson(process.getContentDataAddress()),
-                        process.getType().toString(),
-                        toJson(process.getDeprovisionedResources()));
-
-                //insert DataRequest
-                var dr = process.getDataRequest();
-                if (dr != null) {
-                    insertDataRequest(process.getId(), dr, conn);
-                }
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
+        //insert DataRequest
+        var dr = process.getDataRequest();
+        if (dr != null) {
+            insertDataRequest(process.getId(), dr, conn);
+        }
     }
 
     private void insertDataRequest(String processId, DataRequest dr, Connection conn) {
         var insertDrStmt = statements.getInsertDataRequestTemplate();
-        executeQuery(conn, insertDrStmt,
+        SqlQueryExecutor.executeQuery(conn, insertDrStmt,
                 dr.getId(),
                 dr.getProcessId(),
                 dr.getConnectorAddress(),

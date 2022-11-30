@@ -80,7 +80,7 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success()));
         var id = "tp-id";
-        store.create(createTransferProcess(id));
+        store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
 
         await().untilAsserted(() -> {
@@ -95,7 +95,7 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error")));
         var id = "tp-id";
-        store.create(createTransferProcess(id));
+        store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
 
         await().untilAsserted(() -> {
@@ -111,7 +111,7 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithException(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(CompletableFuture.failedFuture(new EdcException("error")));
         var id = "tp-id";
-        store.create(createTransferProcess(id));
+        store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
 
         await().untilAsserted(() -> {

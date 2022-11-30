@@ -116,7 +116,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .mapToObj(i -> provisionedResourceSet())
                 .map(resourceSet -> createUnsavedTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
                 .peek(TransferProcess::transitionInitial)
-                .peek(store::create)
+                .peek(store::save)
                 .collect(Collectors.toList());
 
         transferProcessManager.start();
