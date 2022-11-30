@@ -37,6 +37,7 @@ jobs:
 
       - name: Generate OpenAPI definitions from code
         run: |
+          export
           ./gradlew resolve
 
       # Can be used (and yq tasks removed) when https://github.com/kpramesh2212/openapi-merger-plugin/pull/11/files is merged
@@ -56,7 +57,7 @@ jobs:
 
   Publish-To-SwaggerHub:
     # do NOT run on forks. The Org ("edc") is unique all across SwaggerHub
-    if: github.repository == 'eclipse-edc/Connector'
+    if: github.repository == 'eclipse-edc/Connector' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     needs: [ Verify-OpenAPI-Definitions ]
     strategy:
@@ -64,6 +65,7 @@ jobs:
         apiGroup: [ 'management-api', 'control-api' ]
     env:
       rootDir: resources/openapi/yaml/${{ matrix.apiGroup }}
+      SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
@@ -76,8 +78,6 @@ jobs:
 
       # Publish the generated files to SwaggerHub
       - name: Publish API Specs to SwaggerHub
-        env:
-          SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_TOKEN }}
         run: |
           npm i -g swaggerhub-cli
           #swaggerhub api:update edc/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish

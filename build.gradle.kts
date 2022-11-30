@@ -15,8 +15,6 @@
 
 plugins {
     `java-library`
-    // todo: remove once https://github.com/eclipse-edc/Connector/issues/2191 is complete
-    id("org.hidetake.swagger.generator") version "2.19.2"
 }
 
 val javaVersion: String by project
@@ -41,10 +39,6 @@ buildscript {
         val edcGradlePluginsVersion: String by project
         classpath("org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin:${edcGradlePluginsVersion}")
     }
-}
-
-dependencies {
-    "swaggerUI"("org.webjars:swagger-ui:4.15.5")
 }
 
 allprojects {
@@ -103,16 +97,5 @@ if (project.hasProperty("dependency.analysis")) {
     apply(plugin = "org.eclipse.edc.dependency-rules")
     configure<org.eclipse.edc.gradle.DependencyRulesPluginExtension> {
         severity.set(project.property("dependency.analysis").toString())
-    }
-}
-
-// todo: remove once https://github.com/eclipse-edc/Connector/issues/2191 is complete
-swaggerSources {
-    create("edc").apply {
-        setInputFile(file("./resources/openapi/openapi.yaml"))
-        ui(closureOf<org.hidetake.gradle.swagger.generator.GenerateSwaggerUI> {
-            outputDir = file("docs/swaggerui")
-            wipeOutputDir = true
-        })
     }
 }
