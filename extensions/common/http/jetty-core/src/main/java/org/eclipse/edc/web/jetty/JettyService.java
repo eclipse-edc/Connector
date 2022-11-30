@@ -69,7 +69,7 @@ public class JettyService implements WebServer {
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
         // for websocket endpoints
-//        handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
+        handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
     }
 
     public void start() {
