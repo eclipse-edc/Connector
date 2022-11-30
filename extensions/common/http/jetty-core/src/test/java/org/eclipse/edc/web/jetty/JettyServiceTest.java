@@ -127,6 +127,20 @@ class JettyServiceTest {
     }
 
     @Test
+    void verifyCustomPathRoot() {
+        var config = ConfigFactory.fromMap(Map.of(
+                "web.http.port", "7171",
+                "web.http.path", "/"));
+        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+
+        jettyService.start();
+
+        jettyService.registerServlet("default", new ServletContainer(createTestResource()));
+
+        assertThat(executeRequest("http://localhost:7171/test/resource").code()).isEqualTo(200);
+    }
+
+    @Test
     void verifyInvalidPathSpecThrowsException() {
         var config = ConfigFactory.fromMap(Map.of(
                 "web.http.port", "7171",
