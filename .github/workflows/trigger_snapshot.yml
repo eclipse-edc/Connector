@@ -8,6 +8,8 @@ on:
 jobs:
   Trigger-Snapshot:
     runs-on: ubuntu-latest
+    # forks cannot trigger Jenkins
+    if: github.repository == 'eclipse-edc/Connector'
     steps:
       # Trigger EF Jenkins. This job waits for Jenkins to complete the publishing, which may take a long time, because every
       # module is signed individually, and parallelism is not available. Hence, the increased timeout of 3600 seconds.
