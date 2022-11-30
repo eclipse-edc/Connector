@@ -102,7 +102,7 @@ public abstract class AbstractResult<T, F extends Failure> {
      * Execute an action if this {@link Result} is not successful.
      *
      * @param failureAction The function that maps a {@link Failure} into the content.
-     * @return T the success value if successful, otherwise the object returned by the {@param failureAction}
+     * @return T the success value if successful, otherwise the object returned by the failureAction
      */
     public T orElse(Function<F, T> failureAction) {
         if (failed()) {
