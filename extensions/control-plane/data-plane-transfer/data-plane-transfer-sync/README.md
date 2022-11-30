@@ -63,6 +63,7 @@ The token is first created on provider side within `ProviderDataPlaneProxyDataFl
 having _HttpProxy_ as destination type. This data flow controller encrypts the content address and builds a signed token
 containing this encrypted address as claim along with the contract id. This token is wrapped into an `EndpointDataReference` (EDR) object along with the
 URL of Data Plane to be used as proxy for querying the data. The Data Plane instance to be used is determined through the `DataPlaneSelectorService`.
+If the extension is provided in a runtime with an embedded Data Plane and it exposes the `public` API, the embedded Data Plane will be used as proxy.
 
 > **_NOTE:_**  For a Data Plane instance to be eligible for the transfer, it must:
 >  - contains `HttpProxy` in the `allowedDestTypes`

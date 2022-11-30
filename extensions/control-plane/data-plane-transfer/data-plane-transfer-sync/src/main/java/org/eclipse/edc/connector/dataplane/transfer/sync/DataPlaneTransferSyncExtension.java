@@ -18,13 +18,17 @@ package org.eclipse.edc.connector.dataplane.transfer.sync;
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.dataplane.spi.DataPlanePublicApiUrl;
+import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyReferenceService;
 import org.eclipse.edc.connector.dataplane.transfer.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.dataplane.transfer.sync.api.DataPlaneTokenValidationApiController;
 import org.eclipse.edc.connector.dataplane.transfer.sync.flow.ProviderDataPlaneProxyDataFlowController;
 import org.eclipse.edc.connector.dataplane.transfer.sync.proxy.DataPlaneTransferConsumerProxyTransformer;
 import org.eclipse.edc.connector.dataplane.transfer.sync.proxy.DataPlaneTransferProxyReferenceServiceImpl;
+import org.eclipse.edc.connector.dataplane.transfer.sync.proxy.DataPlaneTransferProxyResolver;
 import org.eclipse.edc.connector.dataplane.transfer.sync.proxy.DataPlaneTransferProxyResolverImpl;
+import org.eclipse.edc.connector.dataplane.transfer.sync.proxy.EmbeddedDataPlaneTransferProxyResolve;
 import org.eclipse.edc.connector.dataplane.transfer.sync.security.PublicKeyParser;
 import org.eclipse.edc.connector.dataplane.transfer.sync.validation.ContractValidationRule;
 import org.eclipse.edc.connector.dataplane.transfer.sync.validation.ExpirationDateValidationRule;
@@ -37,6 +41,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -44,6 +49,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.web.spi.WebService;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -70,32 +76,29 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     private static final String DEPRECATED_API_CONTEXT_ALIAS = "validation";
 
     @Inject
+    private Monitor monitor;
+    @Inject
     private DataPlaneSelectorClient selectorClient;
-
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
-
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-
     @Inject
     private WebService webService;
-
     @Inject
     private DataFlowManager dataFlowManager;
-
     @Inject
     private EndpointDataReferenceTransformerRegistry transformerRegistry;
-
+    @Inject(required = false)
+    private DataPlaneManager dataPlaneManager;
+    @Inject(required = false)
+    private DataPlanePublicApiUrl dataPlanePublicApiUrl;
     @Inject
     private Vault vault;
-
     @Inject
     private Clock clock;
-
     @Inject
     private PrivateKeyResolver privateKeyResolver;
-
     @Inject
     private DataEncrypter dataEncrypter;
 
@@ -110,9 +113,7 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var keyPair = createKeyPair(context);
-        var selectorStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
-
-        var proxyResolver = new DataPlaneTransferProxyResolverImpl(selectorClient, selectorStrategy);
+        DataPlaneTransferProxyResolver proxyResolver = createProxyResolver(context);
 
         var controller = createTokenValidationApiController(keyPair.getPublic(), dataEncrypter, context.getTypeManager());
         if (context.getConfig().hasPath("web.http." + DEPRECATED_API_CONTEXT_ALIAS)) {
@@ -130,6 +131,19 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
         var consumerProxyTransformer = new DataPlaneTransferConsumerProxyTransformer(proxyResolver, proxyReferenceService);
         transformerRegistry.registerTransformer(consumerProxyTransformer);
+    }
+
+    @NotNull
+    private DataPlaneTransferProxyResolver createProxyResolver(ServiceExtensionContext context) {
+
+        // If it's embedded DataPlane and it provides the APIs use the embedded DataPlane public URL
+        if (dataPlaneManager != null && dataPlanePublicApiUrl != null) {
+            monitor.info("Using embedded DataPlane API as TransferProxy");
+            return new EmbeddedDataPlaneTransferProxyResolve(dataPlanePublicApiUrl);
+        } else {
+            var selectorStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
+            return new DataPlaneTransferProxyResolverImpl(selectorClient, selectorStrategy);
+        }
     }
 
     /**
