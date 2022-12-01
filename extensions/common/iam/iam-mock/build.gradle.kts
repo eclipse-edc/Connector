@@ -21,11 +21,9 @@ dependencies {
     implementation("com.auth0:java-jwt:4.2.1")
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("iam-mock") {
-            artifactId = "iam-mock"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

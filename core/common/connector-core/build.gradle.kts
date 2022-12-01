@@ -38,8 +38,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("connector-core") {
-            artifactId = "connector-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

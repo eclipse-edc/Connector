@@ -27,8 +27,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("jetty-micrometer") {
-            artifactId = "jetty-micrometer"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

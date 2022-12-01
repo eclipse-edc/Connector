@@ -32,8 +32,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("oauth2-core") {
-            artifactId = "oauth2-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

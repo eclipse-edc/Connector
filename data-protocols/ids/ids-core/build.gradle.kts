@@ -29,11 +29,9 @@ dependencies {
     implementation(project(":data-protocols:ids:ids-jsonld-serdes"))
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("ids-core") {
-            artifactId = "ids-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

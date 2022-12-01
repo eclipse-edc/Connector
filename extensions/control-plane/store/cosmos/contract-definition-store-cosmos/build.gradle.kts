@@ -28,11 +28,9 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("contract-definition-store-cosmos") {
-            artifactId = "contract-definition-store-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

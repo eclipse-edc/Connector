@@ -29,11 +29,9 @@ dependencies {
     testImplementation(project(":core:common:junit"))
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("transfer-pull-http-receiver") {
-            artifactId = "transfer-pull-http-receiver"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

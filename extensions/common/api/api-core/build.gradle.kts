@@ -35,8 +35,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("api-core") {
-            artifactId = "api-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

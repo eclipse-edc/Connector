@@ -29,8 +29,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("oauth2-daps") {
-            artifactId = "oauth2-daps"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

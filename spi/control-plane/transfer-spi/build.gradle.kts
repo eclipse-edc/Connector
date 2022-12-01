@@ -31,8 +31,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-spi") {
-            artifactId = "transfer-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -23,8 +23,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("aggregate-service-spi") {
-            artifactId = "aggregate-service-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -32,11 +32,9 @@ dependencies {
     testImplementation(libs.mockito.inline)
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("vault-azure") {
-            artifactId = "vault-azure"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

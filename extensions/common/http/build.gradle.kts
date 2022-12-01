@@ -24,8 +24,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("http") {
-            artifactId = "http"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

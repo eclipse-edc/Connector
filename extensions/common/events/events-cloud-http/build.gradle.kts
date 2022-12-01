@@ -31,8 +31,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("events-cloud-http") {
-            artifactId = "events-cloud-http"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

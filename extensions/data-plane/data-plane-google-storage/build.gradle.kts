@@ -30,8 +30,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-google-storage") {
-            artifactId = "data-plane-google-storage"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

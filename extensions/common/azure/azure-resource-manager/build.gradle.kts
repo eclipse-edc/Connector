@@ -30,8 +30,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure-resource-manager") {
-            artifactId = "azure-resource-manager"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -25,8 +25,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("provision-aws-s3") {
-            artifactId = "provision-aws-s3"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

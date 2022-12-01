@@ -24,8 +24,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("catalog-spi") {
-            artifactId = "catalog-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

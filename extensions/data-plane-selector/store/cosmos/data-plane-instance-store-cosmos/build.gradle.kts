@@ -14,11 +14,9 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("data-plane-instance-store-azure-cosmos") {
-            artifactId = "data-plane-instance-store-azure-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

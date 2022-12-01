@@ -35,8 +35,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-client") {
-            artifactId = "data-plane-client"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

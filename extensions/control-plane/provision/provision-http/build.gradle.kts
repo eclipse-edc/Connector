@@ -36,11 +36,9 @@ dependencies {
     testImplementation(libs.awaitility)
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("provision-http") {
-            artifactId = "provision-http"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

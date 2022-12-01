@@ -30,8 +30,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-core") {
-            artifactId = "transfer-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

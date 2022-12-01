@@ -28,8 +28,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("control-plane-cosmos") {
-            artifactId = "control-plane-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

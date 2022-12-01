@@ -36,8 +36,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("control-plane-core") {
-            artifactId = "control-plane-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

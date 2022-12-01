@@ -17,15 +17,13 @@ plugins {
     `maven-publish`
 }
 
-publishing {
-    dependencies {
-        api(project(":spi:common:core-spi"))
-        api(project(":spi:common:aggregate-service-spi"))
-    }
+dependencies {
+    api(project(":spi:common:core-spi"))
+}
 
+publishing {
     publications {
-        create<MavenPublication>("web-spi") {
-            artifactId = "web-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

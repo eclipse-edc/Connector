@@ -34,8 +34,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("sql-lease") {
-            artifactId = "sql-lease"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

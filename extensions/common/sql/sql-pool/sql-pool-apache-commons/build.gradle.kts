@@ -34,8 +34,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("sql-pool-apache-commons") {
-            artifactId = "sql-pool-apache-commons"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

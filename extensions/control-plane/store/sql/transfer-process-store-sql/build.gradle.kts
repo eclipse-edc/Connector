@@ -38,8 +38,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-process-store-sql") {
-            artifactId = "transfer-process-store-sql"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }
