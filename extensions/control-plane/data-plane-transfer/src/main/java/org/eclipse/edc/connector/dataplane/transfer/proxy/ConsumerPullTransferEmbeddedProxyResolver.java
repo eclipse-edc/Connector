@@ -18,12 +18,12 @@ import org.eclipse.edc.connector.dataplane.spi.DataPlanePublicApiUrl;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-public class EmbeddedDataPlaneTransferProxyResolver implements DataProxyResolver {
+public class ConsumerPullTransferEmbeddedProxyResolver implements ConsumerPullTransferProxyResolver {
 
 
     private final DataPlanePublicApiUrl embeddedUrl;
 
-    public EmbeddedDataPlaneTransferProxyResolver(DataPlanePublicApiUrl embeddedUrl) {
+    public ConsumerPullTransferEmbeddedProxyResolver(DataPlanePublicApiUrl embeddedUrl) {
         this.embeddedUrl = embeddedUrl;
     }
 

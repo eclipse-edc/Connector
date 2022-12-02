@@ -49,12 +49,12 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class DataPlaneTransferDefaultServicesExtensionTest {
+class ConsumerPullTransferKeyPairExtensionTest {
 
     private ServiceExtensionContext context;
     private PrivateKeyResolver privateKeyResolver;
     private Vault vault;
-    private DataPlaneTransferDefaultServicesExtension extension;
+    private ConsumerPullTransferKeyPairExtension extension;
 
     @BeforeEach
     public void setUp(ServiceExtensionContext context, ObjectFactory factory) {
@@ -68,12 +68,12 @@ class DataPlaneTransferDefaultServicesExtensionTest {
         this.context = spy(context); //used to inject the config
         when(this.context.getMonitor()).thenReturn(monitor);
 
-        extension = factory.constructInstance(DataPlaneTransferDefaultServicesExtension.class);
+        extension = factory.constructInstance(ConsumerPullTransferKeyPairExtension.class);
     }
 
     @Test
     void verifyRandomKeyPairWrapperIfNoSettingProvided() {
-        var wrapper = extension.getKeyPairWrapper(context);
+        var wrapper = extension.keyPairWrapper(context);
 
         var keys = wrapper.get();
         assertThat(keys).isNotNull();
@@ -101,7 +101,7 @@ class DataPlaneTransferDefaultServicesExtensionTest {
         );
         when(context.getConfig()).thenReturn(config);
 
-        var wrapper = extension.getKeyPairWrapper(context);
+        var wrapper = extension.keyPairWrapper(context);
 
         var keys = wrapper.get();
         assertThat(keys).isNotNull();

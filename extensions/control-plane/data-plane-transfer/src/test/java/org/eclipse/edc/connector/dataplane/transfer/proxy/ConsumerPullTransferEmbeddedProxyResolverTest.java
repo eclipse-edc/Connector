@@ -27,16 +27,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class EmbeddedPlaneTransferProxyResolverTest {
+class ConsumerPullTransferEmbeddedProxyResolverTest {
 
 
     private DataPlanePublicApiUrl dataPlanePublicApiUrl;
-    private DataProxyResolver resolver;
+    private ConsumerPullTransferEmbeddedProxyResolver resolver;
 
     @BeforeEach
     public void setUp() {
         dataPlanePublicApiUrl = mock(DataPlanePublicApiUrl.class);
-        resolver = new EmbeddedDataPlaneTransferProxyResolver(dataPlanePublicApiUrl);
+        resolver = new ConsumerPullTransferEmbeddedProxyResolver(dataPlanePublicApiUrl);
     }
 
     @Test

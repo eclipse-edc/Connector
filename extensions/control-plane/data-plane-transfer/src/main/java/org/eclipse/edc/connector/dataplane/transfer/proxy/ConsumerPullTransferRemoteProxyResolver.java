@@ -20,14 +20,14 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import static org.eclipse.edc.connector.dataplane.transfer.spi.DataPlaneTransferConstants.HTTP_PROXY;
 
-public class DataProxyResolverImpl implements DataProxyResolver {
+public class ConsumerPullTransferRemoteProxyResolver implements ConsumerPullTransferProxyResolver {
     private static final String PUBLIC_API_URL_PROPERTY = "publicApiUrl";
 
     private final DataPlaneSelectorClient selectorClient;
     private final String selectorStrategy;
 
 
-    public DataProxyResolverImpl(DataPlaneSelectorClient selectorClient, String selectorStrategy) {
+    public ConsumerPullTransferRemoteProxyResolver(DataPlaneSelectorClient selectorClient, String selectorStrategy) {
         this.selectorClient = selectorClient;
         this.selectorStrategy = selectorStrategy;
     }

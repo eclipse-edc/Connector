@@ -22,8 +22,8 @@ import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 @OpenAPIDefinition
-@Tag(name = "Token Validation")
-public interface ControlPlaneTokenValidationApi {
+@Tag(name = "Consumer Pull Token Validation")
+public interface ConsumerPullTransferTokenValidationApi {
 
     @Operation(description = "Checks that the provided token has been signed by the present entity and asserts its validity. " +
             "If token is valid, then the data address contained in its claims is decrypted and returned back to the caller.",

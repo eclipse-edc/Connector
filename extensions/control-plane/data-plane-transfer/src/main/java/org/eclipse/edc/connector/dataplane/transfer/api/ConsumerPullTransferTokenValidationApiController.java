@@ -31,12 +31,12 @@ import static java.lang.String.join;
 import static org.eclipse.edc.connector.dataplane.transfer.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 
 @Path("/token")
-public class ControlPlaneTokenValidationApiController implements ControlPlaneTokenValidationApi {
+public class ConsumerPullTransferTokenValidationApiController implements ConsumerPullTransferTokenValidationApi {
     private final TokenValidationService service;
     private final DataEncrypter dataEncrypter;
     private final TypeManager typeManager;
 
-    public ControlPlaneTokenValidationApiController(TokenValidationService service, DataEncrypter dataEncrypter, TypeManager typeManager) {
+    public ConsumerPullTransferTokenValidationApiController(TokenValidationService service, DataEncrypter dataEncrypter, TypeManager typeManager) {
         this.service = service;
         this.dataEncrypter = dataEncrypter;
         this.typeManager = typeManager;

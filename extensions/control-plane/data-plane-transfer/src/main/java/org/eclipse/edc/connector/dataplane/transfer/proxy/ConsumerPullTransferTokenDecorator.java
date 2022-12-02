@@ -29,13 +29,13 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
  * - a contract id (used to check if contract between consumer and provider is still valid).
  * - the address of the data source formatted as an encrypted string.
  */
-public class DataProxyTokenDecorator implements JwtDecorator {
+public class ConsumerPullTransferTokenDecorator implements JwtDecorator {
 
     private final Date expirationDate;
     private final String contractId;
     private final String encryptedDataAddress;
 
-    public DataProxyTokenDecorator(Date expirationDate, String contractId, String encryptedDataAddress) {
+    public ConsumerPullTransferTokenDecorator(Date expirationDate, String contractId, String encryptedDataAddress) {
         this.expirationDate = expirationDate;
         this.contractId = contractId;
         this.encryptedDataAddress = encryptedDataAddress;

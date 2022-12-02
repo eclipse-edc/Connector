@@ -12,11 +12,14 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.transfer.proxy;
+package org.eclipse.edc.connector.dataplane.transfer.flow;
 
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyCreationRequest;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataProxyReferenceService;
+import org.eclipse.edc.connector.dataplane.transfer.proxy.ConsumerPullTransferProxyResolver;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -26,29 +29,36 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.dataplane.transfer.spi.DataPlaneTransferConstants.HTTP_PROXY;
 
-public class DataProxyServiceImpl implements DataProxyService {
+public class ConsumerPullTransferDataFlowController implements DataFlowController {
 
-    private final DataProxyResolver proxyResolver;
-    private final DataProxyReferenceService proxyReferenceService;
     private final String connectorId;
+    private final ConsumerPullTransferProxyResolver proxyResolver;
+    private final ConsumerPullTransferEndpointDataReferenceService proxyReferenceService;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
 
-    public DataProxyServiceImpl(DataProxyResolver proxyResolver, DataProxyReferenceService proxyReferenceService, String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    public ConsumerPullTransferDataFlowController(String connectorId, ConsumerPullTransferProxyResolver proxyResolver, ConsumerPullTransferEndpointDataReferenceService proxyReferenceService, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+        this.connectorId = connectorId;
         this.proxyResolver = proxyResolver;
         this.proxyReferenceService = proxyReferenceService;
-        this.connectorId = connectorId;
         this.dispatcherRegistry = dispatcherRegistry;
     }
 
+
     @Override
-    public StatusResult<Void> createProxyReferenceAndDispatch(DataRequest dataRequest, DataAddress contentAddress) {
+    public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
+        return HTTP_PROXY.equals(dataRequest.getDestinationType());
+    }
+
+    @Override
+    public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var proxyUrl = proxyResolver.resolveProxyUrl(contentAddress);
         if (proxyUrl.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, format("Failed to resolve proxy url for data request %s%n %s", dataRequest.getId(), proxyUrl.getFailureDetail()));
         }
 
-        var proxyCreationRequest = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
+        var proxyCreationRequest = ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder.newInstance()
                 .id(dataRequest.getId())
                 .contentAddress(contentAddress)
                 .proxyEndpoint(proxyUrl.getContent())

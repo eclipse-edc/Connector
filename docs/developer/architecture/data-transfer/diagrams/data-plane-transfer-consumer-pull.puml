@@ -51,7 +51,7 @@ box "Provider ecosystem" #ProviderColor
 end box
 
 title
- **Data Plane Transfer - Client Pull**
+ **Data Plane Transfer - Consumer Pull**
 end title
 autonumber 1
 == Initialization ==

@@ -15,8 +15,7 @@
 package org.eclipse.edc.connector.dataplane.transfer.proxy;
 
 import jakarta.ws.rs.core.HttpHeaders;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyCreationRequest;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataProxyReferenceService;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
 import org.eclipse.edc.connector.dataplane.transfer.spi.security.DataEncrypter;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -45,7 +44,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class DataProxyReferenceServiceImplTest {
+class ConsumerPullTransferEndpointDataReferenceServiceImplTest {
 
 
     private static final TypeManager TYPE_MANAGER = new TypeManager();
@@ -53,7 +52,7 @@ class DataProxyReferenceServiceImplTest {
     private final Instant now = Instant.now();
     private final ThreadLocalRandom random = ThreadLocalRandom.current();
     private long tokenValiditySeconds;
-    private DataProxyReferenceService proxyManager;
+    private ConsumerPullTransferEndpointDataReferenceServiceImpl proxyManager;
     private TokenGenerationService tokenGeneratorMock;
     private DataEncrypter encrypterMock;
 
@@ -63,7 +62,7 @@ class DataProxyReferenceServiceImplTest {
         tokenValiditySeconds = random.nextLong(100L);
         encrypterMock = mock(DataEncrypter.class);
         Clock clock = Clock.fixed(now, UTC);
-        proxyManager = new DataProxyReferenceServiceImpl(tokenGeneratorMock, TYPE_MANAGER, tokenValiditySeconds, encrypterMock, clock);
+        proxyManager = new ConsumerPullTransferEndpointDataReferenceServiceImpl(tokenGeneratorMock, TYPE_MANAGER, tokenValiditySeconds, encrypterMock, clock);
     }
 
     /**
@@ -79,12 +78,12 @@ class DataProxyReferenceServiceImplTest {
         var proxyEndpoint = "test.proxy.endpoint";
         var generatedToken = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
 
-        var decoratorCaptor = ArgumentCaptor.forClass(DataProxyTokenDecorator.class);
+        var decoratorCaptor = ArgumentCaptor.forClass(ConsumerPullTransferTokenDecorator.class);
 
         when(encrypterMock.encrypt(addressStr)).thenReturn(encryptedDataAddress);
         when(tokenGeneratorMock.generate(any())).thenReturn(Result.success(generatedToken));
 
-        var proxyCreationRequest = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
+        var proxyCreationRequest = ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder.newInstance()
                 .id(id)
                 .contentAddress(address)
                 .contractId(contractId)
@@ -121,13 +120,13 @@ class DataProxyReferenceServiceImplTest {
     @Test
     void tokenGenerationFails_shouldReturnFailedResult() {
         var errorMsg = "test-errormsg";
-        var request = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
+        var request = ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder.newInstance()
                 .contentAddress(DataAddress.Builder.newInstance().type("test-type").build())
                 .contractId(UUID.randomUUID().toString())
                 .proxyEndpoint("test.proxy.endpoint")
                 .build();
 
-        when(tokenGeneratorMock.generate(any(DataProxyTokenDecorator.class))).thenReturn(Result.failure(errorMsg));
+        when(tokenGeneratorMock.generate(any(ConsumerPullTransferTokenDecorator.class))).thenReturn(Result.failure(errorMsg));
 
         var result = proxyManager.createProxyReference(request);
 

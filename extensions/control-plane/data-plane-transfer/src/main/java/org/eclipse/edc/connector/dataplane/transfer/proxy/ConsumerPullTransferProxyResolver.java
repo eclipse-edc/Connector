@@ -14,11 +14,13 @@
 
 package org.eclipse.edc.connector.dataplane.transfer.proxy;
 
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 @FunctionalInterface
-public interface DataProxyResolver {
+@ExtensionPoint
+public interface ConsumerPullTransferProxyResolver {
     /**
      * Resolve the public Api URL of the Data Plane that will by used as proxy for querying the data.
      *

@@ -18,8 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.HttpHeaders;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.eclipse.edc.connector.dataplane.spi.resolver.DataPlaneDataAddressResolver;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
@@ -27,20 +26,25 @@ import java.io.IOException;
 
 import static java.lang.String.format;
 
-public class TokenValidationClientImpl implements DataPlaneDataAddressResolver {
+public class ConsumerPullTransferDataAddressResolver implements DataAddressResolver {
 
     private final OkHttpClient httpClient;
     private final String endpoint;
     private final ObjectMapper mapper;
-    private final Monitor monitor;
 
-    public TokenValidationClientImpl(OkHttpClient httpClient, String endpoint, ObjectMapper mapper, Monitor monitor) {
+    public ConsumerPullTransferDataAddressResolver(OkHttpClient httpClient, String endpoint, ObjectMapper mapper) {
         this.httpClient = httpClient;
         this.endpoint = endpoint;
         this.mapper = mapper;
-        this.monitor = monitor;
     }
 
+    /**
+     * Resolves access token received in input of Data Plane public API (consumer pull) into the {@link DataAddress}
+     * of the requested data.
+     *
+     * @param token Access token received in input of the Data Plane public API
+     * @return Data address
+     */
     @Override
     public Result<DataAddress> resolve(String token) {
         var request = new Request.Builder().url(endpoint).header(HttpHeaders.AUTHORIZATION, token).get().build();

@@ -12,11 +12,13 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.transfer.proxy;
+package org.eclipse.edc.connector.dataplane.transfer.flow;
 
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyCreationRequest;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataProxyReferenceService;
+import org.eclipse.edc.connector.dataplane.transfer.proxy.ConsumerPullTransferProxyResolver;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.MessageContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.result.Result;
@@ -39,22 +41,28 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class DataProxyServiceImplTest {
+class ConsumerPullTransferDataFlowControllerTest {
 
     private String connectorId;
-    private DataProxyResolver proxyResolverMock;
+    private ConsumerPullTransferProxyResolver proxyResolverMock;
     private RemoteMessageDispatcherRegistry dispatcherRegistryMock;
-    private DataProxyReferenceService proxyReferenceServiceMock;
-    private DataProxyServiceImpl proxyService;
+    private ConsumerPullTransferEndpointDataReferenceService proxyReferenceServiceMock;
+    private ConsumerPullTransferDataFlowController flowController;
 
 
     @BeforeEach
     void setUp() {
         connectorId = "test";
-        proxyResolverMock = mock(DataProxyResolver.class);
+        proxyResolverMock = mock(ConsumerPullTransferProxyResolver.class);
         dispatcherRegistryMock = mock(RemoteMessageDispatcherRegistry.class);
-        proxyReferenceServiceMock = mock(DataProxyReferenceService.class);
-        proxyService = new DataProxyServiceImpl(proxyResolverMock, proxyReferenceServiceMock, connectorId, dispatcherRegistryMock);
+        proxyReferenceServiceMock = mock(ConsumerPullTransferEndpointDataReferenceService.class);
+        flowController = new ConsumerPullTransferDataFlowController(connectorId, proxyResolverMock, proxyReferenceServiceMock, dispatcherRegistryMock);
+    }
+
+    @Test
+    void verifyCanHandle() {
+        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType(HTTP_PROXY).build(), null)).isTrue();
+        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType("not-http-proxy").build(), null)).isFalse();
     }
 
     @Test
@@ -65,13 +73,13 @@ class DataProxyServiceImplTest {
         var proxyUrl = "proxy.test.url";
 
         var edrRequestCaptor = ArgumentCaptor.forClass(EndpointDataReferenceMessage.class);
-        var proxyCreationRequestCaptor = ArgumentCaptor.forClass(DataPlaneTransferProxyCreationRequest.class);
+        var proxyCreationRequestCaptor = ArgumentCaptor.forClass(ConsumerPullTransferEndpointDataReferenceCreationRequest.class);
 
         when(dispatcherRegistryMock.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
         when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.success(edr));
         when(proxyResolverMock.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
 
-        var result = proxyService.createProxyReferenceAndDispatch(request, dataAddress);
+        var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
 
         verify(proxyReferenceServiceMock).createProxyReference(proxyCreationRequestCaptor.capture());
         verify(dispatcherRegistryMock).send(eq(Object.class), edrRequestCaptor.capture(), any(MessageContext.class));
@@ -100,7 +108,7 @@ class DataProxyServiceImplTest {
 
         when(proxyResolverMock.resolveProxyUrl(dataAddress)).thenReturn(Result.failure(errorMsg));
 
-        var result = proxyService.createProxyReferenceAndDispatch(request, dataAddress);
+        var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
 
         verify(dispatcherRegistryMock, never()).send(any(), any(), any());
         verify(proxyResolverMock).resolveProxyUrl(any());
@@ -119,7 +127,7 @@ class DataProxyServiceImplTest {
         when(proxyResolverMock.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
         when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.failure(errorMsg));
 
-        var result = proxyService.createProxyReferenceAndDispatch(request, dataAddress);
+        var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
 
         verify(proxyResolverMock).resolveProxyUrl(any());
 

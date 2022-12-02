@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.transfer.flow;
 
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
-import org.eclipse.edc.connector.dataplane.transfer.proxy.DataProxyService;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -30,31 +29,23 @@ import java.util.UUID;
 
 import static org.eclipse.edc.connector.dataplane.transfer.spi.DataPlaneTransferConstants.HTTP_PROXY;
 
-public class DataPlaneTransferDataFlowController implements DataFlowController {
-
-    private final DataProxyService dataPlaneProxyService;
+public class ProviderPushTransferDataFlowController implements DataFlowController {
+    
     private final ControlPlaneApiUrl callbackUrl;
     private final DataPlaneClient dataPlaneClient;
 
-    public DataPlaneTransferDataFlowController(DataProxyService dataPlaneProxyService, ControlPlaneApiUrl callbackUrl, DataPlaneClient dataPlaneClient) {
-        this.dataPlaneProxyService = dataPlaneProxyService;
+    public ProviderPushTransferDataFlowController(ControlPlaneApiUrl callbackUrl, DataPlaneClient dataPlaneClient) {
         this.callbackUrl = callbackUrl;
         this.dataPlaneClient = dataPlaneClient;
     }
 
     @Override
     public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
-        return true;
+        return !HTTP_PROXY.equals(dataRequest.getDestinationType());
     }
 
     @Override
     public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
-        if (HTTP_PROXY.equals(dataRequest.getDestinationType())) {
-            // client pull data transfer
-            return dataPlaneProxyService.createProxyReferenceAndDispatch(dataRequest, contentAddress);
-        }
-
-        // provider push data transfer
         var dataFlowRequest = createRequest(dataRequest, contentAddress);
         var result = dataPlaneClient.transfer(dataFlowRequest);
         if (result.failed()) {

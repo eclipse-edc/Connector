@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.transfer.flow;
 
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
-import org.eclipse.edc.connector.dataplane.transfer.proxy.DataProxyService;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
@@ -37,47 +36,33 @@ import static org.eclipse.edc.connector.dataplane.transfer.spi.DataPlaneTransfer
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class DataPlaneTransferDataFlowControllerTest {
+class ProviderPushTransferDataFlowControllerTest {
 
-    private DataProxyService dataPlaneProxyServiceMock;
     private DataPlaneClient dataPlaneClientMock;
-    private DataPlaneTransferDataFlowController flowController;
+    private ProviderPushTransferDataFlowController flowController;
 
 
     @BeforeEach
     void setUp() throws MalformedURLException {
-        dataPlaneProxyServiceMock = mock(DataProxyService.class);
         var callbackUrlMock = mock(ControlPlaneApiUrl.class);
         var url = new URL("http://localhost");
         when(callbackUrlMock.get()).thenReturn(url);
         dataPlaneClientMock = mock(DataPlaneClient.class);
-        flowController = new DataPlaneTransferDataFlowController(dataPlaneProxyServiceMock, callbackUrlMock, dataPlaneClientMock);
+        flowController = new ProviderPushTransferDataFlowController(callbackUrlMock, dataPlaneClientMock);
     }
 
     @Test
     void verifyCanHandle() {
-        assertThat(flowController.canHandle(mock(DataRequest.class), null)).isTrue();
+        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType(HTTP_PROXY).build(), null)).isFalse();
+        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType("not-http-proxy").build(), null)).isTrue();
     }
 
     @Test
-    void verifyClientPullDataTransfer() {
-        var request = createDataRequest(HTTP_PROXY);
-        var dataAddress = testDataAddress();
-        when(dataPlaneProxyServiceMock.createProxyReferenceAndDispatch(request, dataAddress)).thenReturn(StatusResult.success());
-
-        var result = flowController.initiateFlow(request, dataAddress, null);
-
-        assertThat(result.succeeded()).isTrue();
-        verifyNoInteractions(dataPlaneClientMock);
-    }
-
-    @Test
-    void verifyResultFailedResultIfProviderPushDataTransferFails() {
+    void verifyReturnFailedResultIfTransferFails() {
         var errorMsg = "error";
-        var request = createDataRequest("test");
+        var request = createDataRequest();
 
         when(dataPlaneClientMock.transfer(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
 
@@ -87,12 +72,11 @@ class DataPlaneTransferDataFlowControllerTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
-        verifyNoInteractions(dataPlaneProxyServiceMock);
     }
 
     @Test
-    void verifyProviderDataPushTransfer() {
-        var request = createDataRequest("test");
+    void verifyTransferSuccess() {
+        var request = createDataRequest();
         var source = testDataAddress();
 
         when(dataPlaneClientMock.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
@@ -109,11 +93,10 @@ class DataPlaneTransferDataFlowControllerTest {
         assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
         assertThat(captured.getProperties()).isEmpty();
         assertThat(captured.getCallbackAddress()).isNotNull();
-        verifyNoInteractions(dataPlaneProxyServiceMock);
     }
 
     @Test
-    void verifyProviderDataPushTransferWithAdditionalProperties() {
+    void verifyTransferSuccessWithAdditionalProperties() {
         var properties = Map.of("foo", "bar", "hello", "world");
         var request = createDataRequest("test", properties);
         var source = testDataAddress();
@@ -132,16 +115,14 @@ class DataPlaneTransferDataFlowControllerTest {
         assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
         assertThat(captured.getProperties()).containsExactlyInAnyOrderEntriesOf(properties);
         assertThat(captured.getCallbackAddress()).isNotNull();
-        verifyNoInteractions(dataPlaneProxyServiceMock);
-        verifyNoInteractions(dataPlaneProxyServiceMock);
     }
 
     private static DataAddress testDataAddress() {
         return DataAddress.Builder.newInstance().type("test-type").build();
     }
 
-    private static DataRequest createDataRequest(String destinationType) {
-        return createDataRequest(destinationType, Map.of());
+    private static DataRequest createDataRequest() {
+        return createDataRequest("test", Map.of());
     }
 
     private static DataRequest createDataRequest(String destinationType, Map<String, String> properties) {

@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.dataplane.transfer.proxy;
 
 import jakarta.ws.rs.core.HttpHeaders;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyCreationRequest;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataProxyReferenceService;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
 import org.eclipse.edc.connector.dataplane.transfer.spi.security.DataEncrypter;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.result.Result;
@@ -30,7 +30,7 @@ import java.util.HashMap;
 
 import static org.eclipse.edc.connector.dataplane.transfer.spi.DataPlaneTransferConstants.CONTRACT_ID;
 
-public class DataProxyReferenceServiceImpl implements DataProxyReferenceService {
+public class ConsumerPullTransferEndpointDataReferenceServiceImpl implements ConsumerPullTransferEndpointDataReferenceService {
 
     private final TokenGenerationService tokenGenerationService;
     private final TypeManager typeManager;
@@ -38,7 +38,7 @@ public class DataProxyReferenceServiceImpl implements DataProxyReferenceService 
     private final DataEncrypter dataEncrypter;
     private final Clock clock;
 
-    public DataProxyReferenceServiceImpl(TokenGenerationService tokenGenerationService, TypeManager typeManager, long tokenValiditySeconds, DataEncrypter dataEncrypter, Clock clock) {
+    public ConsumerPullTransferEndpointDataReferenceServiceImpl(TokenGenerationService tokenGenerationService, TypeManager typeManager, long tokenValiditySeconds, DataEncrypter dataEncrypter, Clock clock) {
         this.tokenGenerationService = tokenGenerationService;
         this.typeManager = typeManager;
         this.tokenValiditySeconds = tokenValiditySeconds;
@@ -51,9 +51,9 @@ public class DataProxyReferenceServiceImpl implements DataProxyReferenceService 
      * as a proxy to query the data from the data source.
      */
     @Override
-    public Result<EndpointDataReference> createProxyReference(@NotNull DataPlaneTransferProxyCreationRequest request) {
+    public Result<EndpointDataReference> createProxyReference(@NotNull ConsumerPullTransferEndpointDataReferenceCreationRequest request) {
         var encryptedDataAddress = dataEncrypter.encrypt(typeManager.writeValueAsString(request.getContentAddress()));
-        var decorator = new DataProxyTokenDecorator(Date.from(clock.instant().plusSeconds(tokenValiditySeconds)), request.getContractId(), encryptedDataAddress);
+        var decorator = new ConsumerPullTransferTokenDecorator(Date.from(clock.instant().plusSeconds(tokenValiditySeconds)), request.getContractId(), encryptedDataAddress);
         var tokenGenerationResult = tokenGenerationService.generate(decorator);
         if (tokenGenerationResult.failed()) {
             return Result.failure(tokenGenerationResult.getFailureMessages());

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.transfer.proxy;
 
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyCreationRequest;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataProxyReferenceService;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
@@ -33,11 +33,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class DataProxyConsumerTransformerTest {
+class ConsumerPullTransferProxyTransformerTest {
 
-    private DataProxyResolver proxyResolverMock;
-    private DataProxyReferenceService proxyReferenceServiceMock;
-    private DataProxyConsumerTransformer transformer;
+    private ConsumerPullTransferProxyResolver proxyResolverMock;
+    private ConsumerPullTransferEndpointDataReferenceService proxyReferenceServiceMock;
+    private ConsumerPullTransferProxyTransformer transformer;
 
     /**
      * Creates dummy {@link EndpointDataReference}.
@@ -57,9 +57,9 @@ class DataProxyConsumerTransformerTest {
 
     @BeforeEach
     public void setUp() {
-        proxyResolverMock = mock(DataProxyResolver.class);
-        proxyReferenceServiceMock = mock(DataProxyReferenceService.class);
-        transformer = new DataProxyConsumerTransformer(proxyResolverMock, proxyReferenceServiceMock);
+        proxyResolverMock = mock(ConsumerPullTransferProxyResolver.class);
+        proxyReferenceServiceMock = mock(ConsumerPullTransferEndpointDataReferenceService.class);
+        transformer = new ConsumerPullTransferProxyTransformer(proxyResolverMock, proxyReferenceServiceMock);
     }
 
     /**
@@ -69,7 +69,7 @@ class DataProxyConsumerTransformerTest {
     void transformation_success() {
         var inputEdr = createEndpointDataReference();
         var outputEdr = createEndpointDataReference();
-        var proxyCreationRequestCapture = ArgumentCaptor.forClass(DataPlaneTransferProxyCreationRequest.class);
+        var proxyCreationRequestCapture = ArgumentCaptor.forClass(ConsumerPullTransferEndpointDataReferenceCreationRequest.class);
         var proxyUrl = "some.proxy.url";
 
         when(proxyResolverMock.resolveProxyUrl(any())).thenReturn(Result.success(proxyUrl));

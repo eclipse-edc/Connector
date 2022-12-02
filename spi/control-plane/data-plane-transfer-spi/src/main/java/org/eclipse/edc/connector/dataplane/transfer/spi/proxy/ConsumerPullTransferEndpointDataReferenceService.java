@@ -22,6 +22,6 @@ import org.jetbrains.annotations.NotNull;
  * Service that generated an {@link EndpointDataReference} for a http data proxy.
  */
 @FunctionalInterface
-public interface DataProxyReferenceService {
-    Result<EndpointDataReference> createProxyReference(@NotNull DataPlaneTransferProxyCreationRequest request);
+public interface ConsumerPullTransferEndpointDataReferenceService {
+    Result<EndpointDataReference> createProxyReference(@NotNull ConsumerPullTransferEndpointDataReferenceCreationRequest request);
 }

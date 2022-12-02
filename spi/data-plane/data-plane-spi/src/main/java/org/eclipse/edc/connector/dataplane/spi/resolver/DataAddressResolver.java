@@ -18,15 +18,15 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
- * Resolves the access token received in input of Data Plane public API into a {@link DataAddress}.
+ * Resolves an access token into a {@link DataAddress}.
  */
 @FunctionalInterface
-public interface DataPlaneDataAddressResolver {
+public interface DataAddressResolver {
 
     /**
      * Resolve token to a {@link DataAddress}.
      *
-     * @param token Access token received in input of Data Plane public API.
+     * @param token Access token.
      * @return Data address.
      */
     Result<DataAddress> resolve(String token);

@@ -21,7 +21,7 @@ paths:
         "403":
           description: Token is invalid
       tags:
-      - Token Validation
+      - Consumer Pull Token Validation
 components:
   schemas:
     DataAddress:

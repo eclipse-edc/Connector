@@ -36,18 +36,18 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ControlPlaneTokenValidationApiControllerTest {
+class ConsumerPullTransferTokenValidationApiControllerTest {
 
     private static final TypeManager TYPE_MANAGER = new TypeManager();
 
     private final DataEncrypter encrypterMock = mock(DataEncrypter.class);
     private final TokenValidationService tokenValidationServiceMock = mock(TokenValidationService.class);
 
-    private ControlPlaneTokenValidationApiController controller;
+    private ConsumerPullTransferTokenValidationApiController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new ControlPlaneTokenValidationApiController(tokenValidationServiceMock, encrypterMock, TYPE_MANAGER);
+        controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationServiceMock, encrypterMock, TYPE_MANAGER);
     }
 
     @Test

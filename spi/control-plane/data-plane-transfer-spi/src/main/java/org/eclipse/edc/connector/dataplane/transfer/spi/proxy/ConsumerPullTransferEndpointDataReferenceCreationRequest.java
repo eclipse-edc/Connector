@@ -26,14 +26,14 @@ import java.util.UUID;
 /**
  * POJO class for requesting creation of a proxy using Data Plane Public API that wraps a data source.
  */
-public class DataPlaneTransferProxyCreationRequest {
+public class ConsumerPullTransferEndpointDataReferenceCreationRequest {
     private final String id;
     private final DataAddress contentAddress;
     private final String proxyEndpoint;
     private final String contractId;
     private final Map<String, String> properties;
 
-    private DataPlaneTransferProxyCreationRequest(String id, DataAddress contentAddress, String proxyEndpoint, String contractId, Map<String, String> properties) {
+    private ConsumerPullTransferEndpointDataReferenceCreationRequest(String id, DataAddress contentAddress, String proxyEndpoint, String contractId, Map<String, String> properties) {
         this.id = id;
         this.contentAddress = contentAddress;
         this.proxyEndpoint = proxyEndpoint;
@@ -77,40 +77,40 @@ public class DataPlaneTransferProxyCreationRequest {
         }
 
         @JsonCreator
-        public static DataPlaneTransferProxyCreationRequest.Builder newInstance() {
-            return new DataPlaneTransferProxyCreationRequest.Builder();
+        public static ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder newInstance() {
+            return new ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder();
         }
 
-        public DataPlaneTransferProxyCreationRequest.Builder id(String id) {
+        public ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder id(String id) {
             this.id = id;
             return this;
         }
 
-        public DataPlaneTransferProxyCreationRequest.Builder contentAddress(DataAddress address) {
+        public ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder contentAddress(DataAddress address) {
             this.contentAddress = address;
             return this;
         }
 
-        public DataPlaneTransferProxyCreationRequest.Builder proxyEndpoint(String proxyEndpoint) {
+        public ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder proxyEndpoint(String proxyEndpoint) {
             this.proxyEndpoint = proxyEndpoint;
             return this;
         }
 
-        public DataPlaneTransferProxyCreationRequest.Builder contractId(String contractId) {
+        public ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder contractId(String contractId) {
             this.contractId = contractId;
             return this;
         }
 
-        public DataPlaneTransferProxyCreationRequest.Builder property(String key, String value) {
+        public ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder property(String key, String value) {
             this.properties.put(key, value);
             return this;
         }
 
-        public DataPlaneTransferProxyCreationRequest build() {
+        public ConsumerPullTransferEndpointDataReferenceCreationRequest build() {
             Objects.requireNonNull(contentAddress, "contentAddress");
             Objects.requireNonNull(contractId, "contractId");
             Objects.requireNonNull(proxyEndpoint, "proxyEndpoint");
-            return new DataPlaneTransferProxyCreationRequest(id, contentAddress, proxyEndpoint, contractId, properties);
+            return new ConsumerPullTransferEndpointDataReferenceCreationRequest(id, contentAddress, proxyEndpoint, contractId, properties);
         }
     }
 }

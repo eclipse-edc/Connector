@@ -15,17 +15,19 @@
 package org.eclipse.edc.connector.dataplane.transfer.security;
 
 import org.eclipse.edc.connector.dataplane.transfer.spi.security.KeyPairWrapper;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyPair;
 
-public class KeyPairWrapperImpl implements KeyPairWrapper {
+public class ConsumerPullTransferKeyPair implements KeyPairWrapper {
 
     private final KeyPair keyPair;
 
-    public KeyPairWrapperImpl(KeyPair keyPair) {
+    public ConsumerPullTransferKeyPair(KeyPair keyPair) {
         this.keyPair = keyPair;
     }
 
+    @NotNull
     @Override
     public KeyPair get() {
         return keyPair;

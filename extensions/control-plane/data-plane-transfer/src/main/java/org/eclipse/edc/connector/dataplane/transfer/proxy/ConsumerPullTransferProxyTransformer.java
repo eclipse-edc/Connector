@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.transfer.proxy;
 
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataPlaneTransferProxyCreationRequest;
-import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.DataProxyReferenceService;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
+import org.eclipse.edc.connector.dataplane.transfer.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformer;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -32,12 +32,12 @@ import static org.eclipse.edc.connector.dataplane.transfer.spi.DataPlaneTransfer
  * This implies that the data query should first hit the consumer Data Plane, which then forward the
  * call to the provider Data Plane, which finally reach the actual data source.
  */
-public class DataProxyConsumerTransformer implements EndpointDataReferenceTransformer {
+public class ConsumerPullTransferProxyTransformer implements EndpointDataReferenceTransformer {
 
-    private final DataProxyResolver proxyResolver;
-    private final DataProxyReferenceService proxyReferenceCreator;
+    private final ConsumerPullTransferProxyResolver proxyResolver;
+    private final ConsumerPullTransferEndpointDataReferenceService proxyReferenceCreator;
 
-    public DataProxyConsumerTransformer(DataProxyResolver proxyResolver, DataProxyReferenceService proxyCreator) {
+    public ConsumerPullTransferProxyTransformer(ConsumerPullTransferProxyResolver proxyResolver, ConsumerPullTransferEndpointDataReferenceService proxyCreator) {
         this.proxyResolver = proxyResolver;
         this.proxyReferenceCreator = proxyCreator;
     }
@@ -66,7 +66,7 @@ public class DataProxyConsumerTransformer implements EndpointDataReferenceTransf
             return Result.failure(format("Failed to resolve proxy url for endpoint data reference %s\n %s", edr.getId(), String.join(",", proxyUrl.getFailureMessages())));
         }
 
-        var builder = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
+        var builder = ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder.newInstance()
                 .id(edr.getId())
                 .contentAddress(address)
                 .proxyEndpoint(proxyUrl.getContent())
