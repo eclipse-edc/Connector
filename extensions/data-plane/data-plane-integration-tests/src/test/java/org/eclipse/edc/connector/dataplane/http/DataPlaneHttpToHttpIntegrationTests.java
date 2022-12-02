@@ -280,10 +280,10 @@ public class DataPlaneHttpToHttpIntegrationTests {
     }
 
     /**
-     * Validate if intermittently sink is dropping connection than DPF server doesn't retry to deliver data.
+     * Validate if intermittently sink is dropping connection than DPF server will retry to deliver data.
      */
     @Test
-    void transfer_sinkTemporaryDropsConnection_noRetry(TypeManager typeManager) {
+    void transfer_sinkTemporaryDropsConnection_retry(TypeManager typeManager) {
         // Arrange
         // HTTP Source Request & Response
         var body = UUID.randomUUID().toString();
@@ -313,11 +313,11 @@ public class DataPlaneHttpToHttpIntegrationTests {
                 VerificationTimes.once()
         );
 
-        // Verify HTTP Sink server called exactly twice.
+        // Verify HTTP Sink server called exactly three times.
         // One extra call to sink is done because internally okhttp client by default retires on connection failure.
         httpSinkMockServer.verify(
                 postRequest(body),
-                VerificationTimes.exactly(2)
+                VerificationTimes.exactly(3)
         );
     }
 
@@ -451,8 +451,8 @@ public class DataPlaneHttpToHttpIntegrationTests {
     private HttpRequest postRequest(String responseBody) {
         return request()
                 .withMethod(HttpMethod.POST.name())
-                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.APPLICATION_OCTET_STREAM.toString())
                 .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
+                .withContentType(MediaType.APPLICATION_OCTET_STREAM)
                 .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
     }
 

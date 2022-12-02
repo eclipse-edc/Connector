@@ -17,10 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.failsafe.Failsafe;
-import dev.failsafe.RetryPolicy;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -28,9 +25,9 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.util.string.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -47,25 +44,25 @@ public class RemoteDataPlaneSelectorClient implements DataPlaneSelectorClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private static final String SELECT_PATH = "/select";
     private final String baseUrl;
-    private final RetryPolicy<Object> retryStrategy;
-    private final OkHttpClient client;
+    private final EdcHttpClient client;
     private final ObjectMapper mapper;
 
-    public RemoteDataPlaneSelectorClient(OkHttpClient client, String baseUrl, RetryPolicy<Object> retryPolicy, ObjectMapper mapper) {
+    public RemoteDataPlaneSelectorClient(EdcHttpClient client, String baseUrl, ObjectMapper mapper) {
         this.baseUrl = baseUrl;
-        retryStrategy = retryPolicy;
         this.client = client;
         this.mapper = mapper;
     }
 
     @Override
     public List<DataPlaneInstance> getAll() {
-        var rq = new Request.Builder().get().url(baseUrl).build();
+        try {
+            var request = new Request.Builder().get().url(baseUrl).build();
 
-        try (var response = executeRequest(rq)) {
-            var tr = new TypeReference<List<DataPlaneInstance>>() {
-            };
-            return handleResponse(response, tr, Collections.emptyList());
+            try (var response = client.execute(request)) {
+                var tr = new TypeReference<List<DataPlaneInstance>>() {
+                };
+                return handleResponse(response, tr, Collections.emptyList());
+            }
         } catch (IOException e) {
             throw new EdcException(e);
         }
@@ -97,22 +94,19 @@ public class RemoteDataPlaneSelectorClient implements DataPlaneSelectorClient {
         } catch (JsonProcessingException e) {
             throw new EdcException(e);
         }
-        var rq = new Request.Builder().post(body).url(baseUrl + SELECT_PATH).build();
+        var request = new Request.Builder().post(body).url(baseUrl + SELECT_PATH).build();
 
-        try (var response = executeRequest(rq)) {
+        try {
+            try (var response = client.execute(request)) {
 
-            TypeReference<DataPlaneInstance> tr = new TypeReference<>() {
-            };
-            return handleResponse(response, tr, null);
+                TypeReference<DataPlaneInstance> tr = new TypeReference<>() {
+                };
+                return handleResponse(response, tr, null);
 
+            }
         } catch (IOException e) {
             throw new EdcException(e);
         }
-    }
-
-    @NotNull
-    private Response executeRequest(Request rq) throws IOException {
-        return Failsafe.with(retryStrategy).get(() -> client.newCall(rq).execute());
     }
 
     private <R> R handleResponse(Response response, TypeReference<? extends R> tr, R defaultValue) {

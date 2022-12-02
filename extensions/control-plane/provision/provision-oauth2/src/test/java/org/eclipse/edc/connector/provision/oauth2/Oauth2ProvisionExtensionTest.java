@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.provision.oauth2;
 
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -28,6 +27,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -43,6 +43,7 @@ import java.util.UUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 
 @ExtendWith(EdcExtension.class)
 class Oauth2ProvisionExtensionTest {
@@ -51,7 +52,7 @@ class Oauth2ProvisionExtensionTest {
     void setUp(EdcExtension extension) {
         var typeManager = new TypeManager();
         Interceptor interceptor = chain -> successfulResponse(typeManager.writeValueAsString(Map.of("access_token", "token")));
-        extension.registerServiceMock(OkHttpClient.class, new OkHttpClient.Builder().addInterceptor(interceptor).build());
+        extension.registerServiceMock(EdcHttpClient.class, testHttpClient(interceptor));
     }
 
     @Test

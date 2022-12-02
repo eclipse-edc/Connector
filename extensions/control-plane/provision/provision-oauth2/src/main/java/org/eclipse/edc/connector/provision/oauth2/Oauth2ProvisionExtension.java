@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.provision.oauth2;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -33,7 +33,7 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
     private ProvisionManager provisionManager;
 
     @Inject
-    private OkHttpClient httpClient;
+    private EdcHttpClient httpClient;
 
     @Override
     public String name() {

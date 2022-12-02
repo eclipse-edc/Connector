@@ -18,11 +18,9 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:http-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     implementation(project(":core:common:util"))
-
-    implementation(libs.okhttp)
-    implementation(libs.failsafe.core)
 
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)

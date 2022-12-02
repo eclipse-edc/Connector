@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.api;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
@@ -23,8 +22,8 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
-import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
@@ -42,14 +41,13 @@ import java.util.concurrent.Executors;
 @Extension(value = DataPlaneApiExtension.NAME)
 public class DataPlaneApiExtension implements ServiceExtension {
     public static final String NAME = "Data Plane API";
-    public static final int DEFAULT_PUBLIC_PORT = 8185;
-    public static final String PUBLIC_API_CONFIG = "web.http.public";
-    @Setting
-    private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
-
+    private static final int DEFAULT_PUBLIC_PORT = 8185;
+    private static final String PUBLIC_API_CONFIG = "web.http.public";
     private static final String PUBLIC_CONTEXT_ALIAS = "public";
     private static final String PUBLIC_CONTEXT_PATH = "/api/v1/public";
 
+    @Setting
+    private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
 
     private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(PUBLIC_API_CONFIG)
@@ -58,18 +56,21 @@ public class DataPlaneApiExtension implements ServiceExtension {
             .defaultPort(DEFAULT_PUBLIC_PORT)
             .name(NAME)
             .build();
+
     @Inject
     private WebServer webServer;
+
     @Inject
     private WebServiceConfigurer webServiceConfigurer;
+
     @Inject
     private DataPlaneManager dataPlaneManager;
+
     @Inject
     private WebService webService;
+
     @Inject
-    private OkHttpClient httpClient;
-    @Inject
-    private Hostname hostname;
+    private EdcHttpClient httpClient;
 
     @Inject
     private ControlApiConfiguration controlApiConfiguration;
@@ -98,5 +99,3 @@ public class DataPlaneApiExtension implements ServiceExtension {
         webService.registerResource(configuration.getContextAlias(), publicApiController);
     }
 }
-
-

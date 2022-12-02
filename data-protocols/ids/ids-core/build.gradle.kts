@@ -25,7 +25,6 @@ dependencies {
     api(libs.fraunhofer.infomodel)
 
     implementation(libs.jakarta.rsApi)
-    implementation(libs.okhttp)
     implementation(project(":data-protocols:ids:ids-jsonld-serdes"))
 }
 

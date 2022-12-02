@@ -16,12 +16,11 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -46,7 +45,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,7 +58,6 @@ class RemoteDataPlaneClientTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    // Data Plane API
     private static final int DATA_PLANE_API_PORT = getFreePort();
     private static final String DATA_PLANE_PATH = "/transfer";
     private static final String DATA_PLANE_API_URI = "http://localhost:" + DATA_PLANE_API_PORT + DATA_PLANE_PATH;
@@ -91,23 +89,20 @@ class RemoteDataPlaneClientTest {
 
     @BeforeEach
     public void init() {
-        var okHttpClient = testOkHttpClient();
         selectorClientMock = mock(DataPlaneSelectorClient.class);
         var selectionStrategy = "test";
-        dataPlaneClient = new RemoteDataPlaneClient(okHttpClient, selectorClientMock, selectionStrategy, RetryPolicy.ofDefaults(), MAPPER);
+        dataPlaneClient = new RemoteDataPlaneClient(testHttpClient(), selectorClientMock, selectionStrategy, MAPPER);
     }
 
     @Test
     void verifyCtor() {
-        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(null, selectorClientMock, "test", mock(RetryPolicy.class), MAPPER))
+        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(null, selectorClientMock, "test", MAPPER))
                 .withMessageContaining("Http client");
-        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(mock(OkHttpClient.class), null, "test", mock(RetryPolicy.class), MAPPER))
+        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(mock(EdcHttpClient.class), null, "test", MAPPER))
                 .withMessageContaining("Data plane selector client");
-        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(mock(OkHttpClient.class), selectorClientMock, null, mock(RetryPolicy.class), MAPPER))
+        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(mock(EdcHttpClient.class), selectorClientMock, null, MAPPER))
                 .withMessageContaining("Selector strategy");
-        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(mock(OkHttpClient.class), selectorClientMock, "test", null, MAPPER))
-                .withMessageContaining("Retry policy");
-        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(mock(OkHttpClient.class), selectorClientMock, "test", mock(RetryPolicy.class), null))
+        assertThatNullPointerException().isThrownBy(() -> new RemoteDataPlaneClient(mock(EdcHttpClient.class), selectorClientMock, "test", null))
                 .withMessageContaining("Object mapper");
     }
 

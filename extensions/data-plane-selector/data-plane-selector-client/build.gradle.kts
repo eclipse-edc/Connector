@@ -17,9 +17,8 @@ plugins {
 
 dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:common:http-spi"))
     implementation(project(":core:common:util"))
-    implementation(libs.failsafe.core)
-    implementation(libs.okhttp)
 
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:data-plane-selector:data-plane-selector-api"))

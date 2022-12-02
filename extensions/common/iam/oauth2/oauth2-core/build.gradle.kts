@@ -17,12 +17,11 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:http-spi"))
     api(project(":spi:common:oauth2-spi"))
     implementation(project(":core:common:jwt-core"))
 
     implementation(libs.nimbus.jwt)
-    implementation(libs.okhttp)
-    implementation(libs.failsafe.okhttp)
 
     testImplementation(project(":core:common:junit"))
 

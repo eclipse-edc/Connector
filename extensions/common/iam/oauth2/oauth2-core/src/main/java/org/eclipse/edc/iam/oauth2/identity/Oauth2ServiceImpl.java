@@ -17,17 +17,15 @@
 
 package org.eclipse.edc.iam.oauth2.identity;
 
-import dev.failsafe.RetryPolicy;
 import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import org.eclipse.edc.iam.oauth2.Oauth2Configuration;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.JwtDecoratorRegistry;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -40,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.Map;
 
-import static dev.failsafe.okhttp.FailsafeCall.with;
 import static java.lang.String.format;
 
 /**
@@ -55,8 +52,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     private final Monitor monitor;
     private final Oauth2Configuration configuration;
-    private final OkHttpClient httpClient;
-    private final RetryPolicy<Response> retryPolicy;
+    private final EdcHttpClient httpClient;
     private final TypeManager typeManager;
     private final JwtDecoratorRegistry jwtDecoratorRegistry;
     private final TokenGenerationService tokenGenerationService;
@@ -69,22 +65,20 @@ public class Oauth2ServiceImpl implements IdentityService {
      * @param monitor                                        The monitor
      * @param configuration                                  The configuration
      * @param tokenGenerationService                         Service used to generate the signed tokens;
-     * @param client                                         Http client
-     * @param retryPolicy                                    Retry policy
+     * @param httpClient                                     Http client
      * @param jwtDecoratorRegistry                           Registry containing the decorator for build the JWT
      * @param typeManager                                    Type manager
      * @param tokenValidationService                         Service used for token validation
      * @param credentialsRequestAdditionalParametersProvider Provides additional form parameters
      */
     public Oauth2ServiceImpl(Monitor monitor, Oauth2Configuration configuration, TokenGenerationService tokenGenerationService,
-                             OkHttpClient client, RetryPolicy<Response> retryPolicy, JwtDecoratorRegistry jwtDecoratorRegistry,
+                             EdcHttpClient httpClient, JwtDecoratorRegistry jwtDecoratorRegistry,
                              TypeManager typeManager, TokenValidationService tokenValidationService,
                              CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider) {
         this.monitor = monitor;
         this.configuration = configuration;
-        this.retryPolicy = retryPolicy;
+        this.httpClient = httpClient;
         this.typeManager = typeManager;
-        httpClient = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
         this.tokenGenerationService = tokenGenerationService;
         this.tokenValidationService = tokenValidationService;
@@ -136,7 +130,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     @NotNull
     private Result<TokenRepresentation> requestToken(Request request) {
         try (
-                var response = with(retryPolicy).compose(httpClient.newCall(request)).execute();
+                var response = httpClient.execute(request);
                 var body = response.body()
         ) {
             if (body == null) {

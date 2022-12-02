@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.protocol.ids;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.protocol.ids.serialization.IdsTypeManagerUtil;
 import org.eclipse.edc.protocol.ids.service.CatalogServiceImpl;
@@ -64,9 +63,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     @Inject
     private IdentityService identityService;
-
-    @Inject
-    private OkHttpClient okHttpClient;
 
     @Override
     public String name() {

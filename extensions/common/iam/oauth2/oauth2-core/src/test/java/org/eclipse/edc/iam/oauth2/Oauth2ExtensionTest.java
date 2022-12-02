@@ -15,9 +15,9 @@
 package org.eclipse.edc.iam.oauth2;
 
 import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -57,7 +57,7 @@ public class Oauth2ExtensionTest {
         context.registerService(CertificateResolver.class, certificateResolver);
         context.registerService(CredentialsRequestAdditionalParametersProvider.class, mock(CredentialsRequestAdditionalParametersProvider.class));
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
-        context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
+        context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
         extension = factory.constructInstance(Oauth2Extension.class);
         this.context = spy(context);
     }

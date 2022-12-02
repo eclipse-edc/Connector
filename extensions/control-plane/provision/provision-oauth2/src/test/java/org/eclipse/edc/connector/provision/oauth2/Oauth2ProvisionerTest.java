@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.provision.oauth2;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -39,7 +39,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
@@ -49,7 +49,7 @@ class Oauth2ProvisionerTest {
 
     private final int port = getFreePort();
     private final ClientAndServer server = startClientAndServer(port);
-    private final OkHttpClient httpClient = testOkHttpClient();
+    private final EdcHttpClient httpClient = testHttpClient();
 
     private final TypeManager typeManager = new TypeManager();
     private final Oauth2Provisioner provisioner = new Oauth2Provisioner(httpClient, typeManager);

@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.dataplane.api.validation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.HttpHeaders;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
@@ -28,11 +28,11 @@ import static java.lang.String.format;
 
 public class ConsumerPullTransferDataAddressResolver implements DataAddressResolver {
 
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
     private final String endpoint;
     private final ObjectMapper mapper;
 
-    public ConsumerPullTransferDataAddressResolver(OkHttpClient httpClient, String endpoint, ObjectMapper mapper) {
+    public ConsumerPullTransferDataAddressResolver(EdcHttpClient httpClient, String endpoint, ObjectMapper mapper) {
         this.httpClient = httpClient;
         this.endpoint = endpoint;
         this.mapper = mapper;
@@ -48,7 +48,7 @@ public class ConsumerPullTransferDataAddressResolver implements DataAddressResol
     @Override
     public Result<DataAddress> resolve(String token) {
         var request = new Request.Builder().url(endpoint).header(HttpHeaders.AUTHORIZATION, token).get().build();
-        try (var response = httpClient.newCall(request).execute()) {
+        try (var response = httpClient.execute(request)) {
             var body = response.body();
             var stringBody = body != null ? body.string() : null;
             if (stringBody == null) {
