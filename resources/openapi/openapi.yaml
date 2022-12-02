@@ -1209,29 +1209,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataPlaneInstance'
-  /token:
-    get:
-      tags:
-      - Consumer Pull Token Validation
-      description: "Checks that the provided token has been signed by the present\
-        \ entity and asserts its validity. If token is valid, then the data address\
-        \ contained in its claims is decrypted and returned back to the caller."
-      operationId: validate
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Token is valid
-        "400":
-          description: Request was malformed
-        "403":
-          description: Token is invalid
   /policydefinitions:
     get:
       tags:
@@ -1486,6 +1463,29 @@ paths:
           description: default response
           content:
             application/json: {}
+  /token:
+    get:
+      tags:
+      - Consumer Pull Token Validation
+      description: "Checks that the provided token has been signed by the present\
+        \ entity and asserts its validity. If token is valid, then the data address\
+        \ contained in its claims is decrypted and returned back to the caller."
+      operationId: validate
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Token is valid
+        "400":
+          description: Request was malformed
+        "403":
+          description: Token is invalid
   /transferprocess:
     get:
       tags:

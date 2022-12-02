@@ -25,7 +25,7 @@ dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":core:data-plane:data-plane-util"))
-    implementation(project(":extensions:control-plane:data-plane-transfer"))
+    implementation(project(":extensions:control-plane:transfer-data-plane"))
     implementation(project(":extensions:data-plane:data-plane-client"))
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))

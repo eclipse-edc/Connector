@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:control-plane:api:management-api"))
-    implementation(project(":extensions:control-plane:data-plane-transfer"))
+    implementation(project(":extensions:control-plane:transfer-data-plane"))
     implementation(project(":extensions:data-plane:data-plane-client"))
 
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
