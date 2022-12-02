@@ -15,178 +15,79 @@
 
 package org.eclipse.edc.protocol.ids.api.configuration;
 
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurerImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH;
-import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_PORT;
-import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_WEBHOOK_ADDRESS;
-import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.IDS_API_CONFIG;
-import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.IDS_API_CONTEXT_ALIAS;
 import static org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfigurationExtension.IDS_WEBHOOK_ADDRESS;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(DependencyInjectionExtension.class)
 public class IdsApiConfigurationExtensionTest {
 
-    private WebServer webServer;
-    private ServiceExtensionContext context;
+    private final WebServer webServer = mock(WebServer.class);
+    private final Monitor monitor = mock(Monitor.class);
+    private final WebServiceConfigurer configurator = mock(WebServiceConfigurer.class);
+
     private IdsApiConfigurationExtension extension;
 
-    private WebServiceConfigurer configurator;
-
-    private ArgumentCaptor<String> contextNameCaptor;
-    private ArgumentCaptor<Integer> portCaptor;
-    private ArgumentCaptor<String> pathCaptor;
-    private ArgumentCaptor<IdsApiConfiguration> apiConfigCaptor;
-
     @BeforeEach
-    void setUp() {
-        var monitor = new ConsoleMonitor();
+    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+        context.registerService(Monitor.class, monitor);
+        context.registerService(WebServer.class, webServer);
+        context.registerService(WebServiceConfigurer.class, configurator);
 
-        webServer = mock(WebServer.class);
-        context = mock(ServiceExtensionContext.class);
-        configurator = new WebServiceConfigurerImpl();
-
-        when(context.getMonitor()).thenReturn(monitor);
-        when(context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS))
-                .thenReturn(DEFAULT_IDS_WEBHOOK_ADDRESS);
-
-        extension = new IdsApiConfigurationExtension();
-        contextNameCaptor = ArgumentCaptor.forClass(String.class);
-        portCaptor = ArgumentCaptor.forClass(Integer.class);
-        pathCaptor = ArgumentCaptor.forClass(String.class);
-        apiConfigCaptor = ArgumentCaptor.forClass(IdsApiConfiguration.class);
-        setField("webServer", webServer);
-        setField("configurator", configurator);
-
+        extension = factory.constructInstance(IdsApiConfigurationExtension.class);
     }
 
     @Test
-    void initializeWithDefault() {
-        var config = ConfigFactory.fromMap(new HashMap<>());
-        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
+    void initialize_useCurrentContextName(ServiceExtensionContext context) {
+        var spyContext = spy(context);
+        when(spyContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("web.http.protocol.port", "1111")));
+        when(spyContext.getSetting(eq(IDS_WEBHOOK_ADDRESS), any())).thenReturn("http://hostname");
+        var webServiceConfiguration = WebServiceConfiguration.Builder
+                .newInstance().contextAlias("protocol").path("/path").port(8273).build();
+        when(configurator.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
 
-        extension.initialize(context);
+        extension.initialize(spyContext);
 
-        verify(webServer, times(1))
-                .addPortMapping(contextNameCaptor.capture(), portCaptor.capture(), pathCaptor.capture());
-        assertThat(contextNameCaptor.getValue()).isEqualTo(IDS_API_CONTEXT_ALIAS);
-        assertThat(portCaptor.getValue()).isEqualTo(DEFAULT_IDS_PORT);
-        assertThat(pathCaptor.getValue()).isEqualTo(DEFAULT_IDS_API_PATH);
-
-        verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IDS_API_CONFIG);
-        verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
-        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
-        verifyNoMoreInteractions(context);
-
-        var idsApiConfig = apiConfigCaptor.getValue();
-        assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(DEFAULT_IDS_WEBHOOK_ADDRESS + DEFAULT_IDS_API_PATH + "/data");
+        verify(configurator).configure(any(), eq(webServer), argThat(settings -> "protocol".equals(settings.getContextAlias())));
+        var configuration = spyContext.getService(IdsApiConfiguration.class);
+        assertThat(configuration.getContextAlias()).isEqualTo("protocol");
+        assertThat(configuration.getIdsWebhookAddress()).isEqualTo("http://hostname/path/data");
     }
 
     @Test
-    void initializeWithCustomSettings() {
-        var path = "/api/ids/custom";
-        var apiConfig = new HashMap<String, String>();
-        apiConfig.put("port", String.valueOf(8765));
-        apiConfig.put("path", path);
+    void initialize_shouldUseDeprecatedContextName_whenRelatedSettingsExist(ServiceExtensionContext context) {
+        var spyContext = spy(context);
+        var webServiceConfiguration = WebServiceConfiguration.Builder
+                .newInstance().contextAlias("ids").path("/any").port(8273).build();
+        when(configurator.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
+        when(spyContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("web.http.ids.port", "1111")));
 
-        var config = ConfigFactory.fromMap(apiConfig);
-        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
+        extension.initialize(spyContext);
 
-        var address = "http://somehost:1234";
-        when(context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS))
-                .thenReturn(address);
-
-        extension.initialize(context);
-
-        verifyNoInteractions(webServer);
-
-        verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IDS_API_CONFIG);
-        verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
-        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
-        verifyNoMoreInteractions(context);
-
-        var idsApiConfig = apiConfigCaptor.getValue();
-        assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(address + path + "/data");
+        var configuration = spyContext.getService(IdsApiConfiguration.class);
+        assertThat(configuration.getContextAlias()).isEqualTo("ids");
+        verify(configurator).configure(any(), eq(webServer), argThat(settings -> "ids".equals(settings.getContextAlias())));
+        verify(monitor).warning(anyString());
     }
-
-    @Test
-    void initializeWithOnlyPortSet() {
-        var apiConfig = new HashMap<String, String>();
-        apiConfig.put("port", String.valueOf(8765));
-
-        var config = ConfigFactory.fromMap(apiConfig);
-        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
-
-        extension.initialize(context);
-
-        verifyNoInteractions(webServer);
-
-        verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IDS_API_CONFIG);
-        verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
-        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
-        verifyNoMoreInteractions(context);
-
-        var idsApiConfig = apiConfigCaptor.getValue();
-        assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(DEFAULT_IDS_WEBHOOK_ADDRESS + DEFAULT_IDS_API_PATH + "/data");
-    }
-
-    @Test
-    void initializeWithOnlyPathSet() {
-        var path = "/api/ids/custom";
-        var apiConfig = new HashMap<String, String>();
-        apiConfig.put("path", path);
-
-        var config = ConfigFactory.fromMap(apiConfig);
-        when(context.getConfig(IDS_API_CONFIG)).thenReturn(config);
-
-        extension.initialize(context);
-
-        verifyNoInteractions(webServer);
-
-        verify(context, times(1)).getMonitor();
-        verify(context, times(1)).getConfig(IDS_API_CONFIG);
-        verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
-        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
-        verifyNoMoreInteractions(context);
-
-        var idsApiConfig = apiConfigCaptor.getValue();
-        assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(DEFAULT_IDS_WEBHOOK_ADDRESS + path + "/data");
-    }
-
-    private void setField(String field, Object value) {
-        try {
-            Field webServerField = IdsApiConfigurationExtension.class.getDeclaredField(field);
-            webServerField.setAccessible(true);
-            webServerField.set(extension, value);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            //
-        }
-    }
-
-
 }

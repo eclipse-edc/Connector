@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
-import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
@@ -91,9 +90,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @Inject
     private ProviderContractNegotiationManager providerNegotiationManager;
-
-    @Inject
-    private ContractValidationService contractValidationService;
 
     @Inject
     private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
