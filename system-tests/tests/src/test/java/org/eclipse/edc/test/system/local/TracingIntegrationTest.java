@@ -72,7 +72,7 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
             "TransferProcessManagerImpl.processInitial", // verify context propagation in TransferProcessManagerImpl
             "TransferProcessManagerImpl.initiateProviderRequest", // verify context propagation in TransferProcessManagerImpl
             "TransferProcessManagerImpl.processProvisioned", // verify context propagation in TransferProcessManagerImpl
-            "EmbeddedDataPlaneTransferClient.transfer", // DPF call
+            "EmbeddedDataPlaneClient.transfer", // DPF call
             "PipelineServiceImpl.transfer", // verify context propagation in DataPlaneManagerImpl
             "FileTransferDataSink.transferParts" // verify context propagation in ParallelSink
     );

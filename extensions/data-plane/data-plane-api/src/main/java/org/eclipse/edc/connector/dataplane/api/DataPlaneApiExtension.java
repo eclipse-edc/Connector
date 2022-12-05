@@ -18,7 +18,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
-import org.eclipse.edc.connector.dataplane.api.validation.TokenValidationClientImpl;
+import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.DataPlanePublicApiUrl;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -95,19 +95,16 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
 
-        var tokenValidationClient = new TokenValidationClientImpl(httpClient, validationEndpoint, typeManager.getMapper(), monitor);
+        var dataAddressResolver = new ConsumerPullTransferDataAddressResolver(httpClient, validationEndpoint, typeManager.getMapper());
 
         var executorService = context.getService(ExecutorInstrumentation.class)
                 .instrument(Executors.newSingleThreadExecutor(), DataPlanePublicApiController.class.getSimpleName());
 
         webService.registerResource(controlApiConfiguration.getContextAlias(), new DataPlaneControlApiController(dataPlaneManager));
 
-
         configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
-        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, monitor, executorService);
+        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, dataAddressResolver, monitor, executorService);
         webService.registerResource(configuration.getContextAlias(), publicApiController);
-
-
     }
 
     @Provider

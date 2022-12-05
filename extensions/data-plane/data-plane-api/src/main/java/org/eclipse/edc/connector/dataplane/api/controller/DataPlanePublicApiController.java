@@ -29,8 +29,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.dataplane.spi.api.TokenValidationClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSink;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -50,17 +50,17 @@ import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions
 public class DataPlanePublicApiController implements DataPlanePublicApi {
 
     private final DataPlaneManager dataPlaneManager;
-    private final TokenValidationClient tokenValidationClient;
+    private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
     private final Monitor monitor;
     private final ExecutorService executorService;
 
     public DataPlanePublicApiController(DataPlaneManager dataPlaneManager,
-                                        TokenValidationClient tokenValidationClient,
+                                        DataAddressResolver dataAddressResolver,
                                         Monitor monitor,
                                         ExecutorService executorService) {
         this.dataPlaneManager = dataPlaneManager;
-        this.tokenValidationClient = tokenValidationClient;
+        this.dataAddressResolver = dataAddressResolver;
         this.requestSupplier = new DataFlowRequestSupplier();
         this.monitor = monitor;
         this.executorService = executorService;
@@ -158,14 +158,14 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
     }
 
     /**
-     * Invoke the {@link TokenValidationClient} with the provided token to retrieve the source data address.
+     * Invoke the {@link DataAddressResolver} with the provided token to retrieve the source data address.
      *
      * @param token input token
      * @return the source {@link DataAddress}.
-     * @throws NotAuthorizedException if {@link TokenValidationClient} invokation failed.
+     * @throws NotAuthorizedException if {@link DataAddressResolver} invokation failed.
      */
     private DataAddress extractSourceDataAddress(String token) {
-        var result = tokenValidationClient.call(token);
+        var result = dataAddressResolver.resolve(token);
         if (result.failed()) {
             throw new NotAuthorizedException(String.join(", ", result.getFailureMessages()));
         }
