@@ -23,13 +23,17 @@ dependencies {
 
     implementation(libs.okhttp)
     implementation(libs.failsafe.core)
+
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
+    testImplementation(project(":core:common:junit"))
 }
 
 
 publishing {
     publications {
-        create<MavenPublication>("http-receiver") {
-            artifactId = "http-receiver"
+        create<MavenPublication>("transfer-pull-http-receiver") {
+            artifactId = "transfer-pull-http-receiver"
             from(components["java"])
         }
     }
