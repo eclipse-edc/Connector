@@ -16,7 +16,9 @@ package org.eclipse.edc.connector.contract.spi.types.command;
 
 /**
  * Command for cancelling a specific ContractNegotiation.
+ * @deprecated please decline the negotiation instead.
  */
+@Deprecated(since = "milestone8")
 public class CancelNegotiationCommand extends SingleContractNegotiationCommand {
     public CancelNegotiationCommand(String negotiationId) {
         super(negotiationId);

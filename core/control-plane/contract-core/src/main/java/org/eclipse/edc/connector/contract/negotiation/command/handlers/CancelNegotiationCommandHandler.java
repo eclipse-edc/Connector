@@ -21,7 +21,10 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 /**
  * Handler for {@link CancelNegotiationCommand}s. Transitions the specified ContractNegotiation
  * to the error state.
+ *
+ * @deprecated please decline the negotiation instead.
  */
+@Deprecated(since = "milestone8")
 public class CancelNegotiationCommandHandler extends SingleContractNegotiationCommandHandler<CancelNegotiationCommand> {
 
     public CancelNegotiationCommandHandler(ContractNegotiationStore store) {

@@ -67,7 +67,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @GET
     @Override
-    @Deprecated
+    @Deprecated(since = "milestone8")
     public List<ContractNegotiationDto> getNegotiations(@Valid @BeanParam QuerySpecDto querySpecDto) {
         return queryContractNegotiations(querySpecDto);
     }
@@ -138,6 +138,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @POST
     @Path("/{id}/cancel")
     @Override
+    @Deprecated(since = "milestone8")
     public void cancelNegotiation(@PathParam("id") String id) {
         monitor.debug(format("Attempting to cancel contract definition with id %s", id));
         var result = service.cancel(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));

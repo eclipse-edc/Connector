@@ -70,7 +70,9 @@ public interface ContractNegotiationService {
      *
      * @param negotiationId the id of the contract negotiation to be canceled
      * @return successful result if the contract negotiation is canceled correctly, failure otherwise
+     * @deprecated please use "decline" instead
      */
+    @Deprecated(since = "milestone8")
     ServiceResult<ContractNegotiation> cancel(String negotiationId);
 
     /**

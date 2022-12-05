@@ -46,7 +46,7 @@ public interface ContractNegotiationApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
             deprecated = true
     )
-    @Deprecated
+    @Deprecated(since = "milestone8")
     List<ContractNegotiationDto> getNegotiations(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Returns all contract negotiations according to a query",
@@ -110,6 +110,11 @@ public interface ContractNegotiationApi {
     IdResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto);
 
 
+    /**
+     * This is deprecated as the current implementation transit the negotiation to ERRROR. Please use "declineNegotiation" instead.
+     * @param id negotiation id
+     * @deprecated please use /decline to terminate negotiation
+     */
     @Operation(description = "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
             "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
             responses = {
@@ -120,6 +125,7 @@ public interface ContractNegotiationApi {
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
+    @Deprecated(since = "milestone8")
     void cancelNegotiation(String id);
 
     @Operation(description = "Requests cancelling the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
