@@ -33,5 +33,5 @@ dependencies {
 
     implementation(project(":extensions:control-plane:provision:provision-http"))
     implementation(project(":extensions:control-plane:provision:provision-oauth2"))
-    implementation(project(":extensions:control-plane:http-receiver"))
+    implementation(project(":extensions:control-plane:transfer-pull-http-receiver"))
 }
