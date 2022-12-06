@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       sovity GmbH
+ *       sovity GmbH - Renaming Settings to Lower Case
  *
  */
 
