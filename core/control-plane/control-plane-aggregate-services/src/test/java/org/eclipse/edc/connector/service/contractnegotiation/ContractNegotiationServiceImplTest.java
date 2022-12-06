@@ -18,12 +18,12 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
+import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -40,13 +40,13 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -233,38 +233,37 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void decline_shouldSucceedIfManagerIsBeingAbleToDeclineIt() {
-        var negotiation = createContractNegotiation("negotiationId");
-        when(manager.declined(any(), any())).thenReturn(StatusResult.success(negotiation));
+        var negotiation = createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build();
+        when(store.find("negotiationId")).thenReturn(negotiation);
 
         var result = service.decline("negotiationId");
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).matches(it -> it.getId().equals("negotiationId"));
-        verify(manager).declined(isA(ClaimToken.class), eq("negotiationId"));
+        verify(manager).enqueueCommand(and(isA(DeclineNegotiationCommand.class), argThat(it -> "negotiationId".equals(it.getNegotiationId()))));
     }
 
     @Test
-    void decline_shouldFailIfManagerIsNotBeingAbleToDeclineIt() {
+    void decline_shouldNotCancelNegationIfItDoesNotExist() {
         when(store.find("negotiationId")).thenReturn(null);
-        when(manager.declined(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+        var result = service.decline("negotiationId");
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.reason()).isEqualTo(NOT_FOUND);
+        verifyNoInteractions(manager);
+    }
+
+    @Test
+    void decline_shouldFailIfCannotBeDeclined() {
+        var negotiation = createContractNegotiationBuilder("negotiationId").state(CONFIRMED.code()).build();
+        when(store.find("negotiationId")).thenReturn(negotiation);
 
         var result = service.decline("negotiationId");
 
         assertThat(result.failed()).isTrue();
         assertThat(result.reason()).isEqualTo(CONFLICT);
-        verify(manager).declined(isA(ClaimToken.class), eq("negotiationId"));
-    }
-
-    @Test
-    void decline_shouldFailIfManagerIsNotBeingAbleToDeclineItAndThrowsException() {
-        when(store.find("negotiationId")).thenReturn(null);
-        when(manager.declined(any(), any())).thenThrow(new IllegalStateException("Cannot transition from a state to another"));
-
-        var result = service.decline("negotiationId");
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.reason()).isEqualTo(CONFLICT);
-        verify(manager).declined(isA(ClaimToken.class), eq("negotiationId"));
+        verifyNoInteractions(manager);
     }
 
     @NotNull
