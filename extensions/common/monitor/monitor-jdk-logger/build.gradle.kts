@@ -23,8 +23,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("monitor-jdk-logger") {
-            artifactId = "monitor-jdk-logger"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

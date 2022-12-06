@@ -25,8 +25,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("policy-engine") {
-            artifactId = "policy-engine"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -28,8 +28,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("vault-hashicorp") {
-            artifactId = "vault-hashicorp"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

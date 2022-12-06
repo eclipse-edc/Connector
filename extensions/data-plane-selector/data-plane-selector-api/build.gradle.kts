@@ -31,11 +31,9 @@ dependencies {
     testImplementation(libs.okhttp)
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("data-plane-selector-api") {
-            artifactId = "data-plane-selector-api"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

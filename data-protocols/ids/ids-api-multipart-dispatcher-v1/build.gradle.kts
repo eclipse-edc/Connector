@@ -34,8 +34,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids-api-multipart-dispatcher-v1") {
-            artifactId = "ids-api-multipart-dispatcher-v1"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

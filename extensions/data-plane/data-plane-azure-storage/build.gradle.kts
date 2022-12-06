@@ -31,8 +31,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-azure-storage") {
-            artifactId = "data-plane-azure-storage"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

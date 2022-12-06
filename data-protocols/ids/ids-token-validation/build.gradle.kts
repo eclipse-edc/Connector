@@ -28,8 +28,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids-token-validation") {
-            artifactId = "ids-token-validation"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

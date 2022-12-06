@@ -24,11 +24,9 @@ dependencies {
     implementation(libs.jakarta.rsApi)
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("ids-spi") {
-            artifactId = "ids-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

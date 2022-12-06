@@ -22,8 +22,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("oauth2-spi") {
-            artifactId = "oauth2-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

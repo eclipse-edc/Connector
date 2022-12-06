@@ -31,8 +31,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("jetty-core") {
-            artifactId = "jetty-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

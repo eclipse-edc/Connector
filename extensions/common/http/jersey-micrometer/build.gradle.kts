@@ -23,8 +23,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("jersey-micrometer") {
-            artifactId = "jersey-micrometer"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

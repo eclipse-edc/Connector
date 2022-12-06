@@ -23,8 +23,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-data-plane-spi") {
-            artifactId = "transfer-data-plane-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

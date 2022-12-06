@@ -16,8 +16,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("identity-did-core") {
-            artifactId = "identity-did-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

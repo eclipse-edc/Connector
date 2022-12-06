@@ -13,8 +13,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("identity-did-web") {
-            artifactId = "identity-did-web"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

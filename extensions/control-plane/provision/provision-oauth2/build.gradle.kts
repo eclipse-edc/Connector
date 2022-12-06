@@ -33,11 +33,9 @@ dependencies {
     testImplementation(libs.mockserver.netty)
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("provision-oauth2") {
-            artifactId = "provision-oauth2"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

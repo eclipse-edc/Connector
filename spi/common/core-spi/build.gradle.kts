@@ -35,8 +35,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("core-spi") {
-            artifactId = "core-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

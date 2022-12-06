@@ -10,8 +10,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("identity-did-spi") {
-            artifactId = "identity-did-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

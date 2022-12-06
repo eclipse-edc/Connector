@@ -26,8 +26,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("decentralized-identity") {
-            artifactId = "decentralized-identity"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -25,8 +25,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("auth-tokenbased") {
-            artifactId = "auth-tokenbased"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

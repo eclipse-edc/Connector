@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,26 +8,17 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Amadeus - initial API and implementation
  *
  */
 
 plugins {
     `java-library`
-    `java-test-fixtures`
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":core:common:util"))
-
-    implementation(libs.azure.cosmos)
-    implementation(libs.failsafe.core)
-
-
-    testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
-
-    testFixturesImplementation(libs.azure.cosmos)
+    api(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-sync"))
+    api(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
 }
 
 publishing {

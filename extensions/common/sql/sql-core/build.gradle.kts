@@ -36,8 +36,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("sql-core") {
-            artifactId = "sql-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

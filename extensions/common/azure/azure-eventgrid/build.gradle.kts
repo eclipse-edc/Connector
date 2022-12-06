@@ -25,8 +25,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure-eventgrid") {
-            artifactId = "azure-eventgrid"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -30,8 +30,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure-test") {
-            artifactId = "azure-test"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

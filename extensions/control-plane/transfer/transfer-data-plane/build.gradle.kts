@@ -43,8 +43,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-data-plane") {
-            artifactId = "transfer-data-plane"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

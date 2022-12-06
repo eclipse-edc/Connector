@@ -16,11 +16,9 @@ dependencies {
 
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("data-plane-store-sql") {
-            artifactId = "data-plane-store-sql"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

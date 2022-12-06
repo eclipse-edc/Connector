@@ -34,8 +34,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("asset-api") {
-            artifactId = "asset-api"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }
