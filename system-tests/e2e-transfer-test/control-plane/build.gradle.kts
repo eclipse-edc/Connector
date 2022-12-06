@@ -17,19 +17,21 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":common:token-generation-lib"))
-    implementation(project(":core"))
-    implementation(project(":data-protocols:ids")) {
-        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
-    }
-    implementation(project(":extensions:filesystem:vault-fs"))
-    implementation(project(":extensions:http"))
-    implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":extensions:api:data-management"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
-    implementation(project(":extensions:data-plane-selector"))
-    implementation(project(":extensions:http-provisioner"))
-    implementation(project(":extensions:http-receiver"))
+    implementation(project(":core:common:jwt-core"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":data-protocols:ids"))
+    implementation(project(":extensions:common:vault:vault-filesystem"))
+    implementation(project(":extensions:common:http"))
+    implementation(project(":extensions:common:iam:iam-mock"))
+    implementation(project(":extensions:control-plane:api:management-api"))
+    implementation(project(":extensions:control-plane:transfer:transfer-data-plane"))
+    implementation(project(":extensions:data-plane:data-plane-client"))
+
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
+
+    implementation(project(":extensions:control-plane:provision:provision-http"))
+    implementation(project(":extensions:control-plane:provision:provision-oauth2"))
+    implementation(project(":extensions:control-plane:transfer:transfer-pull-http-receiver"))
 }

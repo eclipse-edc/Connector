@@ -7,7 +7,7 @@ changelog:
     authors:
       - dependabot[bot]
   categories:
-    - title: Bugs
+    - title: Bugfixes
       labels:
         - bug
     - title: New Features & Improvements

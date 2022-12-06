@@ -12,29 +12,23 @@
  *
  */
 
-val infoModelVersion: String by project
-val nimbusVersion: String by project
-
 plugins {
     `java-library`
 }
 
 dependencies {
-    api(project(":spi"))
-    api(project(":core:base"))
-    api(project(":common:util"))
+    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":core:common:util"))
     api(project(":data-protocols:ids:ids-spi"))
-    api(project(":extensions:iam:oauth2:oauth2-spi"))
+    api(project(":spi:common:oauth2-spi"))
+    api(project(":spi:common:jwt-spi"))
 
-    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
-
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    api(libs.fraunhofer.infomodel)
 }
 
 publishing {
     publications {
-        create<MavenPublication>("ids-token-validation") {
-            artifactId = "ids-token-validation"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

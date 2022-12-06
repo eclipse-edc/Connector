@@ -10,7 +10,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           operations-per-run: 1000
           days-before-issue-stale: 28
@@ -18,6 +18,7 @@ jobs:
           stale-issue-label: "stale"
           stale-issue-message: "This issue is stale because it has been open for 28 days with no activity."
           close-issue-message: "This issue was closed because it has been inactive for 7 days since being marked as stale."
+          close-issue-reason: 'not_planned'
           days-before-pr-stale: -1 # ignore PRs (overwrite default days-before-stale)
           days-before-pr-close: -1 # ignore PRs (overwrite default days-before-close)
           remove-issue-stale-when-updated: true
@@ -30,7 +31,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           operations-per-run: 1000
           days-before-issue-stale: 14
@@ -38,6 +39,7 @@ jobs:
           stale-issue-label: "stale"
           stale-issue-message: "This issue is stale because it has been open for 14 days with no activity."
           close-issue-message: "This issue was closed because it has been inactive for 7 days since being marked as stale."
+          close-issue-reason: 'not_planned'
           days-before-pr-stale: -1 # ignore PRs (overwrite default days-before-stale)
           days-before-pr-close: -1 # ignore PRs (overwrite default days-before-close)
           remove-issue-stale-when-updated: true
@@ -51,7 +53,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           operations-per-run: 1000
           days-before-issue-stale: -1 # ignore issues (overwrite default days-before-stale)

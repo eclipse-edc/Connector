@@ -1,0 +1,72 @@
+/*
+ *  Copyright (c) 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
+ *
+ */
+
+package org.eclipse.edc.connector.dataplane.http.pipeline;
+
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.jetbrains.annotations.NotNull;
+
+import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
+
+/**
+ * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link HttpDataAddress#HTTP_DATA}.
+ */
+public class HttpDataSourceFactory implements DataSourceFactory {
+
+    private final OkHttpClient httpClient;
+    private final RetryPolicy<Object> retryPolicy;
+    private final HttpRequestParamsSupplier supplier;
+
+    public HttpDataSourceFactory(OkHttpClient httpClient, RetryPolicy<Object> retryPolicy, HttpRequestParamsSupplier supplier) {
+        this.httpClient = httpClient;
+        this.retryPolicy = retryPolicy;
+        this.supplier = supplier;
+    }
+
+    @Override
+    public boolean canHandle(DataFlowRequest request) {
+        return HTTP_DATA.equals(request.getSourceDataAddress().getType());
+    }
+
+    @Override
+    public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+        try {
+            createSource(request);
+        } catch (Exception e) {
+            return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
+        }
+        return VALID;
+    }
+
+    @Override
+    public DataSource createSource(DataFlowRequest request) {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .copyFrom(request.getSourceDataAddress())
+                .build();
+        return HttpDataSource.Builder.newInstance()
+                .httpClient(httpClient)
+                .requestId(request.getId())
+                .name(dataAddress.getName())
+                .params(supplier.apply(request))
+                .retryPolicy(retryPolicy)
+                .build();
+    }
+}

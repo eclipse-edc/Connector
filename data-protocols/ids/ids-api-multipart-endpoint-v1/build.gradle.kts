@@ -12,43 +12,36 @@
  *       Fraunhofer Institute for Software and Systems Engineering - added dependency
  *
  */
-val infoModelVersion: String by project
-val rsApi: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
 
 plugins {
     `java-library`
 }
 
 dependencies {
-    api(project(":spi"))
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
-    api(project(":extensions:http"))
+    api(project(":extensions:common:http"))
 
     implementation(project(":data-protocols:ids:ids-api-configuration"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jersey.multipart)
 
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.35.0")
-    testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.35.0")
-    testImplementation("net.javacrumbs.json-unit:json-unit:2.35.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.36.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit:2.36.0")
 
-    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testImplementation(project(":extensions:junit"))
+    testImplementation(libs.okhttp)
+    testImplementation(project(":core:common:junit"))
 
-    testImplementation(project(":core:transfer"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":core:control-plane:control-plane-core"))
 
 }
 
 publishing {
     publications {
-        create<MavenPublication>("ids-api-multipart-endpoint-v1") {
-            artifactId = "ids-api-multipart-endpoint-v1"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

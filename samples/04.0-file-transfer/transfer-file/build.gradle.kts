@@ -18,19 +18,17 @@ plugins {
     id("application")
 }
 
-val openTelemetryVersion: String by project
-
 dependencies {
-    api(project(":spi"))
-    implementation(project(":core:transfer"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
-    implementation(project(":extensions:data-plane-selector:selector-client"))
-    implementation(project(":extensions:data-plane-selector:selector-core"))
-    implementation(project(":extensions:data-plane-selector:selector-store"))
-    implementation(project(":extensions:data-plane:data-plane-framework"))
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
+    implementation(project(":core:data-plane:data-plane-util"))
+    implementation(project(":extensions:control-plane:transfer:transfer-data-plane"))
+    implementation(project(":extensions:data-plane:data-plane-client"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
+    implementation(libs.opentelemetry.annotations)
 
-    implementation(project(":extensions:data-plane:data-plane-spi"))
-
-    api(project(":extensions:dataloading"))
+    implementation(project(":spi:data-plane:data-plane-spi"))
 }

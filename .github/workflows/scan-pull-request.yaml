@@ -10,18 +10,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-for-changelog-modifications:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v3
-      - name: Check for new entries
-        uses: brettcannon/check-for-changed-files@v1
-        with:
-          file-pattern: 'CHANGELOG.md'
-          skip-label: 'no-changelog'
-          failure-message: 'Missing changes in CHANGELOG.md. Please add relevant information if needed.'
-
   check-pull-request-title:
     runs-on: ubuntu-latest
     continue-on-error: false
@@ -34,11 +22,23 @@ jobs:
           #
           # Valid examples would be
           # - fix: resolve minor issue
-          # - assetindex: update some dependency
-          # - docs(sample5): update docs for configuration
+          # - docs(Sample5): update docs for configuration
           # - feat(management-api)!: change path to access contract agreements
           #
           # Invalid examples would be
           # - Add cool feature
           # - Feature/some cool improvement
-          regex: '(?<type>\w+)(?<scope>(?:\([^()\r\n]*\)|\()?(?<breaking>!)?):(?<subject>.*)?'
+          # - fix: resolve minor issue.
+          regex: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(\w+((,|\/|\\)?\s?\w+)+\))?!?: [\S ]{1,80}[^\.]$'
+          allowed_prefixes: 'build,chore,ci,docs,feat,fix,perf,refactor,revert,style,test'
+          prefix_case_sensitive: true
+
+  check-for-assigned-labels:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v3
+      - uses: agilepathway/label-checker@v1.2.9
+        with:
+          any_of: api,bug,build,dependencies,documentation,enhancement,no-changelog,refactoring
+          repo_token: ${{ secrets.GITHUB_TOKEN }}

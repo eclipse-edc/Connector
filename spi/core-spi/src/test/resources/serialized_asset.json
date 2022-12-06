@@ -1,9 +1,0 @@
-{
-  "properties": {
-    "asset:prop:contenttype": "application/json",
-    "asset:prop:version": "1.0",
-    "asset:prop:id": "abcd123",
-    "anotherProperty": "some value",
-    "numberVal": 42069
-  }
-}

@@ -6,6 +6,16 @@ emitted from the core of the EDC and also emit custom events.
 ## Subscribe to events
 The entry point for event listening is the `EventRouter` component, on which an `EventSubscriber` can be registered.
 
+Actually, there are two ways to register an `EventSubscriber`:
+- **async**: every event will be sent to the subscriber in an asynchronous way. Features:
+  - fast, as the main thread won't be blocked during dispatchment. 
+  - not-reliable, as an eventual subscriber dispatch failure won't get handled.
+  - to be used for notifications and for send-and-forget event dispatchment.
+- **sync**: every event will be sent to the subscriber in a synchronous way. Features:
+  - slow, as the subscriber will block the main thread until the event is dispatched
+  - reliable, an eventual exception will be thrown to the caller, and it could make a transactional context fail
+  - to be used for event persistence and to satisfy the "at-least-one" rule.
+
 Extension example:
 ```java
 public class ExampleEventSubscriptionExtension implements ServiceExtension {
@@ -14,7 +24,8 @@ public class ExampleEventSubscriptionExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        eventRouter.register(new ExampleEventSubscriber());
+        eventRouter.register(new ExampleEventSubscriber()); // asynchronous dispatch
+        eventRouter.registerSync(new ExampleEventSubscriber()); // synchronous dispatch
     }
 }
 ```
@@ -30,13 +41,23 @@ public class ExampleEventSubscriber implements EventSubscriber {
 }
 ```
 
-All the events are subclass of the `Event` abstract class so to filter events it's enough to check the type at runtime.
+To filter events, the payload classes of the events can be used. There are 5 "Intermediate superclasses" (AssetEventPayload, 
+ContractDefinitionEventPayload, ContractNegotiationEventPayload, PolicyDefinitionEventPayload, TransferProcessEventPayload) of 
+which one payload class inherits in each case. These intermediate superclasses inherit again from the class EventPayload. Thus, 
+in addition to filtering on a specific event, such as TransferProcessCompleted, it is possible to react to a group of events 
+that generally have to do with Assets, ContractDefinition, ContractNegotiation, PolicyDefinition and TransferProcess. You can 
+also filter for the EventClass directly, like seen in the example for the event AssetCreated.
+
 ```java
 public class ExampleEventSubscriber implements EventSubscriber {
     
     public void on(Event event) {
-        if (event instanceof AssertCreated) {
-            // react only to AssertCreated events
+        if (event instanceof AssetCreated) {
+            // react only to AssetCreated events
+        }
+        
+        if (event.getPayload() instanceof TransferProcessEventPayload) {
+            // react on Events related to TransferProcessEvents
         }
     }
     
@@ -87,7 +108,8 @@ public class SomethingHappened extends Event {
 ```
 All the data regarding an event should be contained in the `Payload` class.
 
-As you may notice, we use the builder pattern to construct objects, as stated in the [Architecture Principles document](../architecture/architecture-principles.md).
+As you may notice, we use the builder pattern to construct objects, as stated in
+the [Architecture Principles document](architecture/coding-principles.md).
 The extended builder will inherit all the builder method from the superclass.
 The `validate` method is the place where validations on the payload can be added.
 
@@ -134,4 +156,4 @@ doing so, the event can be deserialized using the `Event` superclass as type:
 var deserialized = typeManager.readValue(json, Event.class);
 // deserialized will have the `SomethingHappened` type at runtime
 ```
-(please take a look at the [`EventTest`](../../spi/core-spi/src/test/java/org/eclipse/dataspaceconnector/spi/event/EventTest.java) class for a serialization/deserialization example)
+(please take a look at the [`EventTest`](../../spi/common/core-spi/src/test/java/org/eclipse/edc/spi/event/EventTest.java) class for a serialization/deserialization example)

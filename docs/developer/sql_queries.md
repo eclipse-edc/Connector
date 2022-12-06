@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Datamanagement API (DM API) offers a very open and unrestricted query feature: as long as it can be expressed as a
+The Management API (DM API) offers a very open and unrestricted query feature: as long as it can be expressed as a
 3-tuple in the form
 
 ```
@@ -133,11 +133,11 @@ special Postgres function `json_array_elements()` is used. Please refer to
 the [official documentation](https://www.postgresql.org/docs/9.5/functions-json.html).
 
 For an example of how this is done, please look at how
-the [TransferProcessMapping](../../extensions/sql/transfer-process-store-sql/src/main/java/org/eclipse/dataspaceconnector/sql/transferprocess/store/schema/postgres/TransferProcessMapping.java)
+the [TransferProcessMapping](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/store/sql/transferprocess/store/schema/postgres/TransferProcessMapping.java)
 maps a `ResourceManifest`, which in turn contains a `List<ResourceDefinition>` using
-the [ResourceManifestMapping](../../extensions/sql/transfer-process-store-sql/src/main/java/org/eclipse/dataspaceconnector/sql/transferprocess/store/schema/postgres/ResourceManifestMapping.java)
+the [ResourceManifestMapping](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/store/sql/transferprocess/store/schema/postgres/ResourceManifestMapping.java)
 . Finally, the `SqlQueryStatement`
-gets [assembled using the aforementioned JSON array function](../../extensions/sql/transfer-process-store-sql/src/main/java/org/eclipse/dataspaceconnector/sql/transferprocess/store/schema/postgres/PostgresDialectStatements.java)
+gets [assembled using the aforementioned JSON array function](../../extensions/control-plane/store/sql/transfer-process-store-sql/src/main/java/org/eclipse/edc/connector/store/sql/transferprocess/store/schema/postgres/PostgresDialectStatements.java)
 .
 
 ## Prepared statements using the `SqlQueryStatement`

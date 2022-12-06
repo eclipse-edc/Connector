@@ -2,26 +2,32 @@ openapi: 3.0.1
 paths:
   /catalog:
     get:
+      deprecated: true
       operationId: getCatalog
       parameters:
       - in: query
         name: providerUrl
+        required: true
         schema:
           type: string
+          example: null
       - in: query
         name: offset
         schema:
           type: integer
           format: int32
+          example: null
       - in: query
         name: limit
         schema:
           type: integer
           format: int32
+          example: null
       - in: query
         name: filter
         schema:
           type: string
+          example: null
       - in: query
         name: sort
         schema:
@@ -29,10 +35,30 @@ paths:
           enum:
           - ASC
           - DESC
+          example: null
       - in: query
         name: sortField
         schema:
           type: string
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+          description: Gets contract offers (=catalog) of a single connector
+      tags:
+      - Catalog
+  /catalog/request:
+    post:
+      operationId: requestCatalog
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/CatalogRequestDto'
+        required: true
       responses:
         default:
           content:
@@ -46,111 +72,176 @@ components:
   schemas:
     Action:
       type: object
+      example: null
       properties:
         constraint:
           $ref: '#/components/schemas/Constraint'
         includedIn:
           type: string
+          example: null
         type:
           type: string
+          example: null
     Asset:
       type: object
+      example: null
       properties:
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+        id:
+          type: string
+          example: null
         properties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
     Catalog:
       type: object
+      example: null
       properties:
         contractOffers:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/ContractOffer'
         id:
           type: string
+          example: null
+    CatalogRequestDto:
+      type: object
+      example: null
+      properties:
+        providerUrl:
+          type: string
+          example: null
+        querySpec:
+          $ref: '#/components/schemas/QuerySpecDto'
+      required:
+      - providerUrl
     Constraint:
       type: object
       discriminator:
         propertyName: edctype
+      example: null
       properties:
         edctype:
           type: string
+          example: null
       required:
       - edctype
     ContractOffer:
       type: object
+      example: null
       properties:
         asset:
           $ref: '#/components/schemas/Asset'
-        assetId:
-          type: string
         consumer:
           type: string
           format: uri
+          example: null
         contractEnd:
           type: string
           format: date-time
+          example: null
         contractStart:
           type: string
           format: date-time
+          example: null
         id:
           type: string
+          example: null
         offerEnd:
           type: string
           format: date-time
+          example: null
         offerStart:
           type: string
           format: date-time
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
         provider:
           type: string
           format: uri
+          example: null
+    CriterionDto:
+      type: object
+      example: null
+      properties:
+        operandLeft:
+          type: object
+          example: null
+        operandRight:
+          type: object
+          example: null
+        operator:
+          type: string
+          example: null
+      required:
+      - operandLeft
+      - operator
     Duty:
       type: object
+      example: null
       properties:
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         consequence:
           $ref: '#/components/schemas/Duty'
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         parentPermission:
           $ref: '#/components/schemas/Permission'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
     Permission:
       type: object
+      example: null
       properties:
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         duties:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Duty'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
     Policy:
       type: object
+      example: null
       properties:
         '@type':
           type: string
@@ -158,44 +249,89 @@ components:
           - SET
           - OFFER
           - CONTRACT
+          example: null
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         extensibleProperties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
         inheritsFrom:
           type: string
+          example: null
         obligations:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Duty'
         permissions:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Permission'
         prohibitions:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
+          example: null
     Prohibition:
       type: object
+      example: null
       properties:
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
+    QuerySpecDto:
+      type: object
+      example: null
+      properties:
+        filter:
+          type: string
+          example: null
+        filterExpression:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+          example: null
+        offset:
+          type: integer
+          format: int32
+          example: null
+        sortField:
+          type: string
+          example: null
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+          example: null

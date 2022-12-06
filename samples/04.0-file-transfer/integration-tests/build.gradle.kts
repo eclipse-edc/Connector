@@ -14,17 +14,20 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
-val restAssured: String by project
-val awaitility: String by project
-
-
 dependencies {
-    testImplementation(project(":extensions:junit"))
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(project(":core:common:junit"))
+
+    testFixturesImplementation(project(":spi:control-plane:control-plane-spi"))
+    testFixturesImplementation(project(":core:common:junit"))
+    testFixturesImplementation(project(":extensions:control-plane:api:management-api:transfer-process-api"))
+    testFixturesImplementation(project(":extensions:common:api:api-core"))
+    testFixturesImplementation(libs.restAssured)
+    testFixturesImplementation(libs.awaitility)
+    testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(libs.junit.jupiter.api)
 
     testCompileOnly(project(":samples:04.0-file-transfer:consumer"))
     testCompileOnly(project(":samples:04.0-file-transfer:provider"))

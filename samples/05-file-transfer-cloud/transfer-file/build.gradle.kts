@@ -16,22 +16,15 @@ plugins {
     `java-library`
 }
 
-val openTelemetryVersion: String by project
-
 dependencies {
-    api(project(":spi"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
+    implementation(project(":extensions:data-plane:data-plane-azure-storage"))
+    implementation(project(":extensions:data-plane:data-plane-aws-s3"))
+    implementation(project(":extensions:control-plane:transfer:transfer-data-plane"))
+    implementation(project(":extensions:data-plane:data-plane-client"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    implementation(project(":core:transfer"))
-    implementation(project(":extensions:dataloading"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
-    implementation(project(":extensions:data-plane-selector:selector-client"))
-    implementation(project(":extensions:data-plane-selector:selector-core"))
-    implementation(project(":extensions:data-plane-selector:selector-store"))
-    implementation(project(":extensions:data-plane:data-plane-framework"))
-    implementation(project(":extensions:data-plane:data-plane-spi"))
-
-    implementation(project(":extensions:aws:data-plane-s3"))
-    implementation(project(":extensions:azure:data-plane:storage"))
-
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+    implementation(libs.opentelemetry.annotations)
 }

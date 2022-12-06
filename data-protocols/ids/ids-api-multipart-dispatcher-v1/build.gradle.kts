@@ -12,40 +12,29 @@
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
-val infoModelVersion: String by project
-val rsApi: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
 
 plugins {
     `java-library`
 }
 
 dependencies {
-    api(project(":spi"))
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
     implementation(project(":data-protocols:ids:ids-api-configuration"))
-    implementation(project(":extensions:http"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jersey.multipart)
+    implementation(libs.okhttp)
 
-    testImplementation(project(":core:transfer"))
-    testImplementation(project(":core:defaults"))
-
+    testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
-
-    testImplementation(project(":extensions:junit"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("ids-api-multipart-dispatcher-v1") {
-            artifactId = "ids-api-multipart-dispatcher-v1"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -11,32 +11,27 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-val infoModelVersion: String by project
-val rsApi: String by project
-
 plugins {
     `java-library`
 }
 
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":data-protocols:ids:ids-spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
     api(project(":data-protocols:ids:ids-core"))
 
-    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+    api(libs.fraunhofer.infomodel)
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    testImplementation(project(":extensions:junit"))
+    implementation(libs.jakarta.rsApi)
+    testImplementation(project(":core:common:junit"))
 
 }
 
 publishing {
     publications {
-        create<MavenPublication>("ids-api-transform-v1") {
-            artifactId = "ids-api-transform-v1"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

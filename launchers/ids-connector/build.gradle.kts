@@ -19,27 +19,25 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val jupiterVersion: String by project
-
 dependencies {
-    api(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:filesystem:vault-fs"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
+    implementation(project(":extensions:common:vault:vault-filesystem"))
 
-    implementation(project(":extensions:iam:oauth2:oauth2-core"))
-    implementation(project(":extensions:iam:daps"))
+    implementation(project(":extensions:common:iam:oauth2:oauth2-core"))
+    implementation(project(":extensions:common:iam:oauth2:oauth2-daps"))
 
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

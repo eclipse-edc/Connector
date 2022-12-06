@@ -43,6 +43,7 @@ paths:
         required: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Missing access token
@@ -113,29 +114,44 @@ components:
   schemas:
     DataAddress:
       type: object
+      example: null
       properties:
         properties:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
     DataFlowRequest:
       type: object
+      example: null
       properties:
+        callbackAddress:
+          type: string
+          format: url
+          example: null
         destinationDataAddress:
           $ref: '#/components/schemas/DataAddress'
         id:
           type: string
+          example: null
         processId:
           type: string
+          example: null
         properties:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
         sourceDataAddress:
           $ref: '#/components/schemas/DataAddress'
         traceContext:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
         trackable:
           type: boolean
+          example: null

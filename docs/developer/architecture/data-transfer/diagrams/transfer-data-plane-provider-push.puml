@@ -1,0 +1,75 @@
+'
+'  Copyright (c) 2022 Amadeus
+'
+'  This program and the accompanying materials are made available under the
+'  terms of the Apache License, Version 2.0 which is available at
+'  https://www.apache.org/licenses/LICENSE-2.0
+'
+'  SPDX-License-Identifier: Apache-2.0
+'
+'  Contributors:
+'      Amadeus - Initial Version
+'
+
+@startuml
+
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+skinparam BoxPadding 10
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology
+
+autonumber
+
+box "Consumer ecosystem" #ConsumerColor
+    participant CBE as "Backend Service"
+end box
+
+ box Consumer EDC #ConsumerColor
+    participant CCP as "Control Plane" #Business
+    participant CDPS as "Data Plane Selector" #Business
+    participant CDP as "Data Plane" #Business
+end box
+
+box Provider EDC #ProviderColor
+    participant PDP as "Data Plane" #Business
+    participant PDPS as "Data Plane Selector" #Business
+    participant PCP as "Control Plane" #Business
+end box
+
+box "Provider ecosystem" #ProviderColor
+    participant PBE as "Backend Service"
+end box
+
+title
+ **Data Plane Transfer - Provider Push**
+end title
+autonumber 1
+
+activate CCP
+CCP ->> PCP : initiate data transfer (see `TransferProcessApiController`)
+activate PCP
+PCP ->> PCP : create `DataFlowRequest`
+PCP ->> PDPS : ask for data plane instance
+activate PDPS
+return data plane instance
+PCP ->> PDP : send `DataFlowRequest`
+activate PDP
+PDP ->> PDP : validate `DataFlowRequest`
+return acknowledge that request is valid
+PDP ->> PDP : create `DataSink`/`DataSource`\n based on `DataFlowRequest`
+PDP ->> PBE : fetch data
+activate PBE
+PDP ->> CBE : transfer data
+activate CBE
+
+@enduml

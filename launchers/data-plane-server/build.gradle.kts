@@ -12,8 +12,6 @@
  *
  */
 
-val okHttpVersion: String by project
-val failsafeVersion: String by project
 
 plugins {
     `java-library`
@@ -22,21 +20,18 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:web-spi"))
-    implementation(project(":core:base"))
-    implementation(project(":core:boot"))
-    implementation(project(":core:micrometer"))
-    implementation(project(":extensions:http"))
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:data-plane:data-plane-spi"))
-    implementation(project(":extensions:data-plane:data-plane-framework"))
+    api(project(":spi:common:web-spi"))
+    implementation(project(":extensions:common:metrics:micrometer-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
+    implementation(project(":extensions:common:http"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:data-plane:data-plane-http"))
-    implementation(project(":extensions:azure:data-plane:storage"))
+    implementation(project(":extensions:data-plane:data-plane-azure-storage"))
     implementation(project(":extensions:data-plane:data-plane-api"))
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
@@ -45,14 +40,10 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveFileName.set("data-plane-server.jar")
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("data-plane-server") {
-            artifactId = "data-plane-server"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }
 }
-
-

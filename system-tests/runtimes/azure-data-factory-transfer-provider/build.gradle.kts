@@ -19,52 +19,36 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val rsApi: String by project
-val azureIdentityVersion: String by project
-val azureResourceManagerDataFactory: String by project
-val azureResourceManagerVersion: String by project
-
-
 dependencies {
-    api(project(":spi"))
-    implementation(project(":common:util"))
+    implementation(project(":spi:data-plane:data-plane-spi"))
+    implementation(project(":core:common:util"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
+    implementation(project(":extensions:control-plane:transfer:transfer-data-plane"))
+    implementation(project(":extensions:data-plane:data-plane-client"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
+    implementation(project(":extensions:data-plane:data-plane-azure-data-factory"))
+    implementation(project(":extensions:common:azure:azure-resource-manager"))
+    implementation(project(":extensions:common:api:api-observability"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
+    implementation(project(":extensions:common:iam:iam-mock"))
+    implementation(project(":extensions:control-plane:api:management-api"))
+    implementation(project(":extensions:control-plane:provision:provision-blob"))
+    implementation(project(":extensions:common:vault:vault-azure"))
+    implementation(project(":data-protocols:ids"))
 
-    implementation(project(":core:transfer"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
-    implementation(project(":extensions:data-plane-selector:selector-client"))
-    implementation(project(":extensions:data-plane-selector:selector-core"))
-    implementation(project(":extensions:data-plane-selector:selector-store"))
-    implementation(project(":extensions:data-plane:data-plane-framework"))
-    implementation(project(":extensions:azure:data-plane:data-factory"))
-    implementation(project(":extensions:azure:resource-manager"))
-    implementation("com.azure:azure-identity:${azureIdentityVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-datafactory:${azureResourceManagerDataFactory}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-storage:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
-    implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
-
-    implementation(project(":extensions:data-plane:data-plane-spi"))
-
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-    implementation(project(":core"))
-
-    implementation(project(":extensions:api:observability"))
-
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":extensions:api:data-management"))
-    implementation(project(":extensions:azure:blobstorage"))
-    implementation(project(":extensions:azure:vault"))
-
-    implementation(project(":data-protocols:ids")) {
-        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
-    }
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.azure.identity)
+    implementation(libs.azure.resourcemanager.datafactory)
+    implementation(libs.azure.resourcemanager.storage)
+    implementation(libs.azure.resourcemanager.keyvault)
+    implementation(libs.azure.resourcemanager)
+    implementation(libs.azure.resourcemanager.authorization)
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

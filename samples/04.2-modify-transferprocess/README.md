@@ -102,7 +102,7 @@ that will eventually get processed by the `TransferProcessManager`, resulting in
 ```bash
 INFO 2022-01-14T12:45:38.176484 Running watchdog - submit command
 INFO 2022-01-14T12:45:38.176795 will retire TP with id [tp-sample-04.2] due to timeout
-DEBUG 2022-01-14T12:45:38.177363 Successfully processed command [class org.eclipse.dataspaceconnector.samples.sample042.CheckTransferProcessTimeoutCommand]
+DEBUG 2022-01-14T12:45:38.177363 Successfully processed command [class CheckTransferProcessTimeoutCommand]
 ```
 
 _Note: The command queue is not accessible through the `ServiceExtensionContext`, precisely for the aforementioned reason._
@@ -122,3 +122,7 @@ In order to run the sample, enter the following commands in a shell:
 ./gradlew samples:04.2-modify-transferprocess:consumer:build
 java -Dedc.fs.config=samples/04.2-modify-transferprocess/consumer/config.properties -jar samples/04.2-modify-transferprocess/consumer/build/libs/consumer.jar
 ```
+
+---
+
+[Previous Chapter](../04.1-file-transfer-listener/README.md) | [Next Chapter](../04.3-open-telemetry/README.md)

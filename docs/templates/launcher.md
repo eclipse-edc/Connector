@@ -12,7 +12,7 @@ The following modules are used for this launcher.
 
 | Name | Description |
 | :----| :-----------|
-| extensions:api:data-management | _this is an example_ |
+| extensions:api:management-api | _this is an example_ |
 
 ## Configuration
 

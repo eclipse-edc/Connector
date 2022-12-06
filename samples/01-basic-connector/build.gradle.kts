@@ -20,11 +20,11 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

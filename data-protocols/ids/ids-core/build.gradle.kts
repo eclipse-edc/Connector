@@ -9,12 +9,9 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - update dependencies
  *
  */
-
-val infoModelVersion: String by project
-val rsApi: String by project
-val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -22,23 +19,19 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
-    api(project(":common:util"))
+    api(project(":core:common:util"))
     api(project(":data-protocols:ids:ids-spi"))
 
-    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+    api(libs.fraunhofer.infomodel)
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-
-    implementation(project(":core:policy:policy-engine"))
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.okhttp)
+    implementation(project(":data-protocols:ids:ids-jsonld-serdes"))
 }
-
 
 publishing {
     publications {
-        create<MavenPublication>("ids-core") {
-            artifactId = "ids-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

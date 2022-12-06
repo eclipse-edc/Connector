@@ -17,13 +17,15 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:web-spi"))
+
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("ids-api-configuration") {
-            artifactId = "ids-api-configuration"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

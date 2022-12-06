@@ -13,53 +13,36 @@
  *
  */
 
-val openTelemetryVersion: String by project
-
 plugins {
     `java-library`
     id("application")
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val rsApi: String by project
-
 dependencies {
-    api(project(":spi"))
-    implementation(project(":common:util"))
+    implementation(project(":core:common:util"))
 
-    implementation(project(":core:transfer"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
-    implementation(project(":extensions:data-plane-selector:selector-client"))
-    implementation(project(":extensions:data-plane-selector:selector-core"))
-    implementation(project(":extensions:data-plane-selector:selector-store"))
-    implementation(project(":extensions:data-plane:data-plane-framework"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
+    implementation(project(":core:data-plane:data-plane-util"))
+    implementation(project(":extensions:control-plane:transfer:transfer-data-plane"))
+    implementation(project(":extensions:data-plane:data-plane-client"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    implementation(project(":extensions:data-plane:data-plane-spi"))
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.opentelemetry.annotations)
 
+    implementation(project(":extensions:common:api:api-observability"))
 
-    api(project(":extensions:dataloading"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
+    implementation(project(":extensions:common:iam:iam-mock"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
-
-    implementation(project(":core"))
-
-
-
-
-
-    implementation(project(":extensions:api:observability"))
-
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:iam:iam-mock"))
-
-    implementation(project(":data-protocols:ids")) {
-        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
-    }
+    implementation(project(":data-protocols:ids"))
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

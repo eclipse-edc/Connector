@@ -19,7 +19,6 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
@@ -30,8 +29,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids") {
-            artifactId = "ids"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

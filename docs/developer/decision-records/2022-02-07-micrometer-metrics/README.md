@@ -22,7 +22,7 @@ The [OpenTelemetry agent](https://github.com/open-telemetry/opentelemetry-java-i
 
 ## Spike
 
-We built a [spike](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/compare/main...agera-edc:spike/419/7-micrometer-metrics?expand=1) in a repository fork. The spike configures Micrometer to collect metrics in multiple ways.
+We built a [spike](https://github.com/eclipse-edc/Connector/compare/main...agera-edc:spike/419/7-micrometer-metrics?expand=1) in a repository fork. The spike configures Micrometer to collect metrics in multiple ways.
 
 ### Micrometer registry
 

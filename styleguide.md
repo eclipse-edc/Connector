@@ -53,7 +53,7 @@ If you absolutely want to make sure that no piece of ever-so-slightly misformatt
 advise you to use the [SaveActions plugin](https://plugins.jetbrains.com/plugin/7642-save-actions) for IntelliJ IDEA. It
 takes care that your code is always correctly formatted. Unfortunately SaveActions has no export feature, so please just
 copy this configuration:
-![](/home/paul/dev/DataSpaceConnector/resources/save_actions_screenshot.png)
+![](resources/save_actions_screenshot.png)
 
 ## [Optional] Generic `.editorConfig`
 

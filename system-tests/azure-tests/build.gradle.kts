@@ -19,14 +19,8 @@ plugins {
     `maven-publish`
 }
 
-val gatlingVersion: String by project
-val storageBlobVersion: String by project
-val restAssured: String by project
-val assertj: String by project
-val faker: String by project
-
 dependencies {
-    testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
+    testImplementation(libs.gatling) {
         exclude(group = "io.gatling", module = "gatling-jms")
         exclude(group = "io.gatling", module = "gatling-jms-java")
         exclude(group = "io.gatling", module = "gatling-mqtt")
@@ -38,17 +32,16 @@ dependencies {
         exclude(group = "io.gatling", module = "gatling-graphite")
     }
 
-    testImplementation(project(":extensions:azure:blobstorage:blob-core"))
-    testFixturesImplementation(project(":extensions:azure:blobstorage:blob-core"))
-    testImplementation(project(":extensions:junit"))
+    testImplementation(project(":extensions:common:azure:azure-blob-core"))
+    testFixturesImplementation(project(":extensions:common:azure:azure-blob-core"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":system-tests:tests")))
-    testImplementation(testFixtures(project(":extensions:azure:azure-test")))
+    testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testFixturesImplementation(testFixtures(project(":system-tests:tests")))
-    testFixturesImplementation(testFixtures(project(":extensions:azure:azure-test")))
-    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
-    testFixturesImplementation("com.github.javafaker:javafaker:${faker}")
-    testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-    testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testFixturesImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
+    testFixturesImplementation(libs.assertj)
+    testImplementation(libs.azure.storageblob)
+    testFixturesImplementation(libs.restAssured)
 
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))

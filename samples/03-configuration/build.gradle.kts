@@ -20,21 +20,19 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val rsApi: String by project
-
 dependencies {
-    api(project(":core"))
-    api(project(":extensions:http"))
+    implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":extensions:common:http"))
 
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation(libs.jakarta.rsApi)
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

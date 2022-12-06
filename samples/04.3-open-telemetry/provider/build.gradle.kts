@@ -18,30 +18,25 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-val jupiterVersion: String by project
-val rsApi: String by project
-
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:control-plane:control-plane-core"))
 
-    implementation(project(":extensions:api:observability"))
+    implementation(project(":extensions:common:api:api-observability"))
 
-    implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":extensions:iam:iam-mock"))
+    implementation(project(":extensions:common:configuration:configuration-filesystem"))
+    implementation(project(":extensions:common:iam:iam-mock"))
 
-    implementation(project(":extensions:api:auth-tokenbased"))
-    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:common:auth:auth-tokenbased"))
+    implementation(project(":extensions:control-plane:api:management-api"))
 
-    implementation(project(":data-protocols:ids")) {
-        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
-    }
+    implementation(project(":data-protocols:ids"))
 
     implementation(project(":samples:04.0-file-transfer:transfer-file"))
-    runtimeOnly(project(":extensions:jdk-logger-monitor"))
+    runtimeOnly(project(":extensions:common:monitor:monitor-jdk-logger"))
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

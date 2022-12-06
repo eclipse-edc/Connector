@@ -4,7 +4,7 @@ A comprehensive and consistent way of logging is a crucial pillar for operabilit
 
 ## Logging component
 
-Logs must only be produced using the [`Monitor`](../../spi/core-spi/src/main/java/org/eclipse/dataspaceconnector/spi/monitor/Monitor.java) service, 
+Logs must only be produced using the [`Monitor`](../../spi/common/core-spi/src/main/java/org/eclipse/edc/spi/monitor/Monitor.java) service, 
 which offers 4 different log levels:
 
 ### `severe` 

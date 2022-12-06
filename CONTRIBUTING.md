@@ -1,12 +1,10 @@
-Contributing to the Project
-===================================
+# Contributing to the Project
 
 Thank you for your interest in contributing to
-the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technology.dataspaceconnector)!
+the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technology.edc)!
 
 ## Table of Contents
 
-* [Project Description](#project-description)
 * [Code Of Conduct](#code-of-conduct)
 * [Eclipse Contributor Agreement](#eclipse-contributor-agreement)
 * [How to Contribute](#how-to-contribute)
@@ -17,11 +15,8 @@ the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technolo
 * [Project and Milestone Planning](#project-and-milestone-planning)
   * [Milestones](#milestones)
   * [Projects](#projects)
+  * [Releases](#releases)
 * [Contact Us](#contact-us)
-
-## Project Description
-
-See [README.md](README.md) for a comprehensive project description.
 
 ## Code Of Conduct
 
@@ -45,26 +40,26 @@ to GitHub.
 
 If you want to share an idea to further enhance
 the project or discuss potential use cases, please feel free to create a discussion at the
-[GitHub Discussions page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions).
+[GitHub Discussions page](https://github.com/eclipse-edc/Connector/discussions).
 If you feel there is a bug or an issue, contribute to the discussions in
-[existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen),
+[existing issues](https://github.com/eclipse-edc/Connector/issues?q=is%3Aissue+is%3Aopen),
 otherwise [create a new issue](#create-an-issue). 
 
 ### Create an Issue
 
 If you have identified a bug or want to formulate a working item that you want to concentrate on, 
 feel free to create a new issue at our project's corresponding
-[GitHub Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/new).
+[GitHub Issues page](https://github.com/eclipse-edc/Connector/issues/new).
 
 Before doing so, please consider searching for potentially suitable
-[existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen).
+[existing issues](https://github.com/eclipse-edc/Connector/issues?q=is%3Aissue+is%3Aopen).
 
 We also use [GitHub's default label set](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)
 extended by custom ones to classify issues and improve findability.
 
 If an issue appears to cover changes that will have a (huge) impact on the code base and needs to 
 first be discussed, or if you just have a question regarding the usage of the software, please 
-create a [discussion](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions) 
+create a [discussion](https://github.com/eclipse-edc/Connector/discussions) 
 before raising an issue.
 
 Please note that if an issue covers a topic or the response to a question that may be interesting 
@@ -103,13 +98,13 @@ we would appreciate if your pull request applies to the following points:
 
 * The git commit messages should comply to the following format:
     ```
-    <component>: <description>
+    <prefix>(<scope>): <description>
     ```
 
   Use the [imperative mood](https://github.com/git/git/blob/master/Documentation/SubmittingPatches)
   as in "Fix bug" or "Add feature" rather than "Fixed bug" or "Added feature" and
   [mention the GitHub issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
-  e.g. `transfer process: improve logging, closes #3`.
+  e.g. `chore(transfer process): improve logging`.
 
   All committers, and all commits, are bound to
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)
@@ -122,15 +117,9 @@ we would appreciate if your pull request applies to the following points:
 
 * Add documentation files to new modules. See [here](#add-documentation) for more details.
 
-* Add relevant changes (e.g., no typo fixes, updated readme files, fixes of stuck test) to the 
-  [changelog](CHANGELOG.md). If these refer to a new feature, add this to the `Overview` section 
-  and add your changes to the `Detailed Changes` section according to the rules documented on 
-  <http://keepachangelog.com>. Include more information via linking to existing pull requests,
-  issues, or discussions.
-
 * If a new module has been added or a significant part of the code has been changed and you should 
   or want to be seen as the contact person for any further changes, please add appropriate 
-  information to the [CODEOWNERS](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CODEOWNERS) 
+  information to the [CODEOWNERS](https://github.com/eclipse-edc/Connector/blob/main/CODEOWNERS) 
   file. You can find instructions on how to do this at <https://help.github.com/articles/about-codeowners/>.
   Please note that this file does not represent all contributions to the code. What persons and organizations
   actually contributed to each file can be seen on GitHub and is documented in the license headers.
@@ -194,7 +183,7 @@ The group of committers chooses issues based on customer needs and contributions
 
 ### Milestones
 
-Milestones are organized at the [GitHub Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
+Milestones are organized at the [GitHub Milestones page](https://github.com/eclipse-edc/Connector/milestones).
 They are numbered in ascending order. There, contributors, users, and adopters can track the progress.
 
 Please note that the due date of a milestone does not imply any guarantee that all linked issued will 
@@ -216,15 +205,27 @@ the relations and progresses.
 
 ### Projects
 
-The [GitHub Projects page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects)
+The [GitHub Projects page](https://github.com/eclipse-edc/Connector/projects)
 provides a general overview of the project's working items. Every new issue is automatically assigned
-to the ["Dataspace Connector" project](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1).
+to the ["Dataspace Connector" project](https://github.com/eclipse-edc/Connector/projects/1).
 It can be unassigned or moved to any other project that is provided.
 
 In every project, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
 independent of their association to a specific milestone.
 
-### Contact Us
+### Releases
+
+Please find more information about our release approach [here](docs/developer/releases.md).
+
+## Contact Us
 
 If you have questions or suggestions, do not hesitate to contact the project developers via
-the [project's "dev" list](https://dev.eclipse.org/mailman/listinfo/dataspaceconnector-dev). 
+the [project's "dev" list](https://dev.eclipse.org/mailman/listinfo/edc-dev). 
+
+You may also want to join our [Discord server](https://discord.gg/n4sD9qtjMQ).
+
+There, we provide a biweekly meeting on fridays 2-3 p.m. (CET) to give any interested person the
+opportunity to get in touch with the committer team. We are meeting in the "general" voice channel.
+Find more details about the schedule [on GitHub](https://github.com/eclipse-edc/Connector/discussions/1303).
+
+_If you have a "contributor" or "committer" status, you will also have access to private channels._

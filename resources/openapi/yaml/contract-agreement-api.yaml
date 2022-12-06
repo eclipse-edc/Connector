@@ -1,0 +1,369 @@
+openapi: 3.0.1
+paths:
+  /contractagreements:
+    get:
+      deprecated: true
+      description: Gets all contract agreements according to a particular query
+      operationId: getAllAgreements
+      parameters:
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          format: int32
+          example: null
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          format: int32
+          example: null
+      - in: query
+        name: filter
+        schema:
+          type: string
+          example: null
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+          example: null
+      - in: query
+        name: sortField
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ContractAgreementDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+      tags:
+      - Contract Agreement
+  /contractagreements/request:
+    post:
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAllAgreements
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ContractAgreementDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+      tags:
+      - Contract Agreement
+  /contractagreements/{id}:
+    get:
+      description: Gets an contract agreement with the given ID
+      operationId: getContractAgreement
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractAgreementDto'
+          description: The contract agreement
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An contract agreement with the given ID does not exist
+      tags:
+      - Contract Agreement
+components:
+  schemas:
+    Action:
+      type: object
+      example: null
+      properties:
+        constraint:
+          $ref: '#/components/schemas/Constraint'
+        includedIn:
+          type: string
+          example: null
+        type:
+          type: string
+          example: null
+    ApiErrorDetail:
+      type: object
+      example: null
+      properties:
+        invalidValue:
+          type: string
+          example: null
+        message:
+          type: string
+          example: null
+        path:
+          type: string
+          example: null
+        type:
+          type: string
+          example: null
+    Constraint:
+      type: object
+      discriminator:
+        propertyName: edctype
+      example: null
+      properties:
+        edctype:
+          type: string
+          example: null
+      required:
+      - edctype
+    ContractAgreementDto:
+      type: object
+      example: null
+      properties:
+        assetId:
+          type: string
+          example: null
+        consumerAgentId:
+          type: string
+          example: null
+        contractEndDate:
+          type: integer
+          format: int64
+          example: null
+        contractSigningDate:
+          type: integer
+          format: int64
+          example: null
+        contractStartDate:
+          type: integer
+          format: int64
+          example: null
+        id:
+          type: string
+          example: null
+        policy:
+          $ref: '#/components/schemas/Policy'
+        providerAgentId:
+          type: string
+          example: null
+      required:
+      - assetId
+      - consumerAgentId
+      - id
+      - policy
+      - providerAgentId
+    CriterionDto:
+      type: object
+      example: null
+      properties:
+        operandLeft:
+          type: object
+          example: null
+        operandRight:
+          type: object
+          example: null
+        operator:
+          type: string
+          example: null
+      required:
+      - operandLeft
+      - operator
+    Duty:
+      type: object
+      example: null
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+          example: null
+        assigner:
+          type: string
+          example: null
+        consequence:
+          $ref: '#/components/schemas/Duty'
+        constraints:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Constraint'
+        parentPermission:
+          $ref: '#/components/schemas/Permission'
+        target:
+          type: string
+          example: null
+        uid:
+          type: string
+          example: null
+    Permission:
+      type: object
+      example: null
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+          example: null
+        assigner:
+          type: string
+          example: null
+        constraints:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Constraint'
+        duties:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+          example: null
+        uid:
+          type: string
+          example: null
+    Policy:
+      type: object
+      example: null
+      properties:
+        '@type':
+          type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+          example: null
+        assignee:
+          type: string
+          example: null
+        assigner:
+          type: string
+          example: null
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+        inheritsFrom:
+          type: string
+          example: null
+        obligations:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Duty'
+        permissions:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Permission'
+        prohibitions:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Prohibition'
+        target:
+          type: string
+          example: null
+    Prohibition:
+      type: object
+      example: null
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+          example: null
+        assigner:
+          type: string
+          example: null
+        constraints:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Constraint'
+        target:
+          type: string
+          example: null
+        uid:
+          type: string
+          example: null
+    QuerySpecDto:
+      type: object
+      example: null
+      properties:
+        filter:
+          type: string
+          example: null
+        filterExpression:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+          example: null
+        offset:
+          type: integer
+          format: int32
+          example: null
+        sortField:
+          type: string
+          example: null
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+          example: null
