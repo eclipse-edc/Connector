@@ -60,7 +60,7 @@ public class JwtUtils {
                 .issuer(issuer)
                 .subject(subject)
                 .audience(audience)
-                .expirationTime(Date.from(clock.instant().plus(10, ChronoUnit.MINUTES)))
+                .expirationTime(Date.from(clock.instant().plus(10, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
 
@@ -115,7 +115,7 @@ public class JwtUtils {
 
         var claimsVerifier = new DefaultJWTClaimsVerifier<>(exactMatchClaims, requiredClaims);
         try {
-            claimsVerifier.verify(jwtClaimsSet);
+            claimsVerifier.verify(jwtClaimsSet, null);
         } catch (BadJWTException e) {
             return Result.failure("Claim verification failed. " + e.getMessage());
         }
