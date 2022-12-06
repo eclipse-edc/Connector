@@ -45,3 +45,4 @@
 - [2022-10-31 Service Layer](2022-10-31-aggregate-service-layer/)
 - [2022-11-09 API Restructuring](2022-11-09-api-refactoring/)
 - [2022-11-28 Release Management](2022-11-28-release-management/)
+- [2022-12-05 EDC Http Client](2022-12-05-edc-http-client/)
