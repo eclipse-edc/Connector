@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       sovity GmbH
  *
  */
 
@@ -19,25 +20,25 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 interface CommonsConnectionPoolConfigKeys {
 
     @Setting(required = false)
-    String POOL_MAX_IDLE_CONNECTIONS = "pool.maxIdleConnections";
+    String POOL_MAX_IDLE_CONNECTIONS = "pool.maxidleconnections";
 
     @Setting(required = false)
-    String POOL_MAX_TOTAL_CONNECTIONS = "pool.maxTotalConnections";
+    String POOL_MAX_TOTAL_CONNECTIONS = "pool.maxtotalconnections";
 
     @Setting(required = false)
-    String POOL_MIN_IDLE_CONNECTIONS = "pool.minIdleConnections";
+    String POOL_MIN_IDLE_CONNECTIONS = "pool.minidleconnections";
 
     @Setting(required = false)
-    String POOL_TEST_CONNECTION_ON_BORROW = "pool.testConnectionOnBorrow";
+    String POOL_TEST_CONNECTION_ON_BORROW = "pool.testconnectiononborrow";
 
     @Setting(required = false)
-    String POOL_TEST_CONNECTION_ON_CREATE = "pool.testConnectionOnCreate";
+    String POOL_TEST_CONNECTION_ON_CREATE = "pool.testconnectiononcreate";
 
     @Setting(required = false)
-    String POOL_TEST_CONNECTION_ON_RETURN = "pool.testConnectionOnReturn";
+    String POOL_TEST_CONNECTION_ON_RETURN = "pool.testconnectiononreturn";
 
     @Setting(required = false)
-    String POOL_TEST_CONNECTION_WHILE_IDLE = "pool.testConnectionWhileIdle";
+    String POOL_TEST_CONNECTION_WHILE_IDLE = "pool.testconnectionwhileidle";
 
     @Setting(required = false)
     String POOL_TEST_QUERY = "pool.testQuery";
