@@ -21,6 +21,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.RollbackException;
+import javax.transaction.Synchronization;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
@@ -49,6 +50,32 @@ public class AtomikosTransactionContext implements TransactionContext {
             block.execute();
             return null;
         });
+    }
+
+    @Override
+    public void registerSynchronization(TransactionSynchronization sync) {
+        if (transactionManager == null) {
+            throw new EdcException("Transaction context was not initialized");
+        }
+        try {
+            var transaction = transactionManager.getTransaction();
+            if (transaction == null) {
+                throw new EdcException("A transaction is not active");
+            }
+            transaction.registerSynchronization(new Synchronization() {
+                @Override
+                public void beforeCompletion() {
+                    sync.beforeCompletion();
+                }
+
+                @Override
+                public void afterCompletion(int i) {
+
+                }
+            });
+        } catch (SystemException | RollbackException e) {
+            throw new EdcException(e);
+        }
     }
 
     @Override

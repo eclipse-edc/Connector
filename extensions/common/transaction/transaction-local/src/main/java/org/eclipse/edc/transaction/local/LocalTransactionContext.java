@@ -24,6 +24,8 @@ import org.eclipse.edc.transaction.spi.local.LocalTransactionResource;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
 /**
  * Implements a transaction context for local resources. The purpose of this implementation is to provide a portable transaction programming model for code that executes in
  * environments where a proper JTA transaction manager is not available.
@@ -38,6 +40,15 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
 
     public LocalTransactionContext(Monitor monitor) {
         this.monitor = monitor;
+    }
+
+    @Override
+    public void registerSynchronization(TransactionSynchronization sync) {
+        var transaction = transactions.get();
+        if (transaction == null) {
+            throw new EdcException("Error registering transaction synchronization: a transaction is not active");
+        }
+        transaction.registerSynchronization(sync);
     }
 
     @Override
@@ -70,6 +81,8 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
             throw new EdcException(e.getMessage(), e);
         } finally {
             if (startedTransaction) {
+                // notify syncs before resources are called
+                transaction.getSynchronizations().forEach(TransactionSynchronization::beforeCompletion);
                 if (transaction.isRollbackOnly()) {
                     resources.forEach(localTransactionResource -> {
                         try {
@@ -100,13 +113,25 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
 
     private static class Transaction {
         private boolean rollbackOnly = false;
+        private List<TransactionSynchronization> synchronizations;
 
-        public boolean isRollbackOnly() {
+        boolean isRollbackOnly() {
             return rollbackOnly;
         }
 
         void setRollbackOnly() {
             rollbackOnly = true;
+        }
+
+        List<TransactionSynchronization> getSynchronizations() {
+            return synchronizations == null ? emptyList() : synchronizations;
+        }
+
+        void registerSynchronization(TransactionSynchronization sync) {
+            if (synchronizations == null) {
+                synchronizations = new ArrayList<>();
+            }
+            synchronizations.add(sync);
         }
     }
 }
