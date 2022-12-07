@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -59,7 +60,7 @@ import static org.mockito.Mockito.when;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
-public class CatalogApiControllerIntegrationTest {
+class CatalogApiControllerIntegrationTest {
 
     private final int port = getFreePort();
     private final String authKey = "123456";
@@ -82,11 +83,7 @@ public class CatalogApiControllerIntegrationTest {
 
     @Test
     void getProviderCatalog() {
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .build();
+        var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
         when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
@@ -104,11 +101,7 @@ public class CatalogApiControllerIntegrationTest {
 
     @Test
     void getProviderCatalog_shouldFailWithoutProviderUrl() {
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .build();
+        var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
         when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
@@ -123,11 +116,7 @@ public class CatalogApiControllerIntegrationTest {
 
     @Test
     void postCatalogRequest() {
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .build();
+        var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
         when(dispatcher.send(any(), any(), any()))
@@ -169,11 +158,7 @@ public class CatalogApiControllerIntegrationTest {
 
     @Test
     void postCatalogRequest_whenOnlyProviderUrl_shouldUseDefault() {
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .build();
+        var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
         when(dispatcher.send(any(), any(), any()))
@@ -198,7 +183,7 @@ public class CatalogApiControllerIntegrationTest {
         var requestCaptor = ArgumentCaptor.forClass(CatalogRequest.class);
         verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture(), any(MessageContext.class));
         var rq = requestCaptor.getValue().getQuerySpec();
-        assertThat(rq.getOffset()).isEqualTo(0);
+        assertThat(rq.getOffset()).isZero();
         assertThat(rq.getLimit()).isEqualTo(50);
         assertThat(rq.getSortField()).isNull();
         assertThat(rq.getSortOrder()).isEqualTo(SortOrder.ASC);
@@ -251,6 +236,16 @@ public class CatalogApiControllerIntegrationTest {
                 .basePath("/api/v1/management")
                 .header("x-api-key", authKey)
                 .when();
+    }
+
+    private static ContractOffer createContractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .build();
     }
 
     @Provides(ContractOfferResolver.class)

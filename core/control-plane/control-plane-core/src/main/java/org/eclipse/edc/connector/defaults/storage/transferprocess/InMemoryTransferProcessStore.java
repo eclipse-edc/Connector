@@ -61,12 +61,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void create(TransferProcess process) {
-        store.upsert(process);
-    }
-
-    @Override
-    public void update(TransferProcess process) {
+    public void save(TransferProcess process) {
         store.upsert(process);
     }
 

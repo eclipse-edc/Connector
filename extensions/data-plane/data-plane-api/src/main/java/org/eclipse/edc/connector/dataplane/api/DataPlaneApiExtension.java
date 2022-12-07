@@ -15,18 +15,29 @@
 package org.eclipse.edc.connector.dataplane.api;
 
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
-import org.eclipse.edc.connector.dataplane.api.validation.TokenValidationClientImpl;
+import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
+import org.eclipse.edc.connector.dataplane.spi.DataPlanePublicApiUrl;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
+import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.Executors;
 
 /**
@@ -37,18 +48,40 @@ import java.util.concurrent.Executors;
 @Extension(value = DataPlaneApiExtension.NAME)
 public class DataPlaneApiExtension implements ServiceExtension {
     public static final String NAME = "Data Plane API";
+    public static final int DEFAULT_PUBLIC_PORT = 8185;
+    public static final String PUBLIC_API_CONFIG = "web.http.public";
     @Setting
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
-    private static final String CONTROL = "control";
-    private static final String PUBLIC = "public";
+
+    private static final String PUBLIC_CONTEXT_ALIAS = "public";
+    private static final String PUBLIC_CONTEXT_PATH = "/api/v1/public";
+
+
+    private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
+            .apiConfigKey(PUBLIC_API_CONFIG)
+            .contextAlias(PUBLIC_CONTEXT_ALIAS)
+            .defaultPath(PUBLIC_CONTEXT_PATH)
+            .defaultPort(DEFAULT_PUBLIC_PORT)
+            .name(NAME)
+            .build();
+    @Inject
+    private WebServer webServer;
+
+    @Inject
+    private WebServiceConfigurer webServiceConfigurer;
+
+    private WebServiceConfiguration configuration;
     @Inject
     private DataPlaneManager dataPlaneManager;
-
     @Inject
     private WebService webService;
-
     @Inject
     private OkHttpClient httpClient;
+    @Inject
+    private Hostname hostname;
+
+    @Inject
+    private ControlApiConfiguration controlApiConfiguration;
 
     @Override
     public String name() {
@@ -62,15 +95,26 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
 
-        var tokenValidationClient = new TokenValidationClientImpl(httpClient, validationEndpoint, typeManager.getMapper(), monitor);
+        var dataAddressResolver = new ConsumerPullTransferDataAddressResolver(httpClient, validationEndpoint, typeManager.getMapper());
 
         var executorService = context.getService(ExecutorInstrumentation.class)
                 .instrument(Executors.newSingleThreadExecutor(), DataPlanePublicApiController.class.getSimpleName());
 
-        webService.registerResource(CONTROL, new DataPlaneControlApiController(dataPlaneManager));
+        webService.registerResource(controlApiConfiguration.getContextAlias(), new DataPlaneControlApiController(dataPlaneManager));
 
-        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, monitor, executorService);
-        webService.registerResource(PUBLIC, publicApiController);
+        configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
+        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, dataAddressResolver, monitor, executorService);
+        webService.registerResource(configuration.getContextAlias(), publicApiController);
+    }
+
+    @Provider
+    public DataPlanePublicApiUrl dataPlanePublicApiUrl() {
+        try {
+            var url = new URL(String.format("http://%s:%s%s", hostname.get(), configuration.getPort(), configuration.getPath()));
+            return () -> url;
+        } catch (MalformedURLException e) {
+            throw new EdcException(e);
+        }
     }
 }
 

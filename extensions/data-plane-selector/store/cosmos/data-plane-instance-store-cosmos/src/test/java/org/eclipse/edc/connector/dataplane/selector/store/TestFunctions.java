@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.store.cosmos.DataPlaneInstanceDocument;
 
 import java.util.UUID;
@@ -24,8 +24,8 @@ public class TestFunctions {
 
     public static final int DATA_PLANE_TURN_COUNT = 0;
 
-    public static DataPlaneInstanceImpl generateDataPlaneInstance() {
-        return DataPlaneInstanceImpl.Builder.newInstance()
+    public static DataPlaneInstance generateDataPlaneInstance() {
+        return DataPlaneInstance.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .url(DATA_PLANE_URL)
                 .turnCount(DATA_PLANE_TURN_COUNT)

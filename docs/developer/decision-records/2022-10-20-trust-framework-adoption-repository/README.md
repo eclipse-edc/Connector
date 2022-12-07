@@ -2,7 +2,7 @@
 
 ## Decision
 
-A new repository called Adoption Framework Repository will be created in the [EDC project](https://github.com/eclipse-dataspaceconnector).
+A new repository called Adoption Framework Repository will be created in the [EDC project](https://github.com/eclipse-edc).
 This repository will provide some generic extensions and documentation enabling to enforce the compliance with trust framework.
 As compliance with Gaia-X was stated as a goal in the proposal on the part of the EDC project, the repository will cover the
 configuration of these generic extensions in order to comply with the [Gaia-X Trust Framework](https://gaia-x.eu/wp-content/uploads/2022/05/Gaia-X-Trust-Framework-22.04.pdf).
@@ -28,5 +28,5 @@ extensions in the same repository. This approach enables to make the EDC compone
 
 ## Approach
 
-A request will be emitted to the Eclipse Foundation asking for the creation of a new repository under the [EDC project](https://github.com/eclipse-dataspaceconnector).
+A request will be emitted to the Eclipse Foundation asking for the creation of a new repository under the [EDC project](https://github.com/eclipse-edc).
 Then, all extensions and documentations related to compliance with trust framework will be placed into this repository.

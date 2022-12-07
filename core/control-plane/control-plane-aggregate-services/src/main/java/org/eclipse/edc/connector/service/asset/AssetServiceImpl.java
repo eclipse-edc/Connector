@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.observe.asset.AssetObservable;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -37,13 +38,17 @@ public class AssetServiceImpl implements AssetService {
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
     private final AssetObservable observable;
+    private final DataAddressValidator dataAddressValidator;
     private final QueryValidator queryValidator;
 
-    public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable) {
+    public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore,
+                            TransactionContext transactionContext, AssetObservable observable,
+                            DataAddressValidator dataAddressValidator) {
         this.index = index;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
+        this.dataAddressValidator = dataAddressValidator;
         queryValidator = new AssetQueryValidator();
     }
 
@@ -57,7 +62,7 @@ public class AssetServiceImpl implements AssetService {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            return ServiceResult.badRequest(result.getFailureMessages().toArray(new String[0]));
+            return ServiceResult.badRequest(result.getFailureMessages());
         }
 
         return ServiceResult.success(transactionContext.execute(() -> index.queryAssets(query)));
@@ -65,6 +70,11 @@ public class AssetServiceImpl implements AssetService {
 
     @Override
     public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
+        var validDataAddress = dataAddressValidator.validate(dataAddress);
+        if (validDataAddress.failed()) {
+            return ServiceResult.badRequest(validDataAddress.getFailureMessages());
+        }
+
         return transactionContext.execute(() -> {
             if (findById(asset.getId()) == null) {
                 index.accept(asset, dataAddress);

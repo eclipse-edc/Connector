@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
 
 public class TestFunctions {
 

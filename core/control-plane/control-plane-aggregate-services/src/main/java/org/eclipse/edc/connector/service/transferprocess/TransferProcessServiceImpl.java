@@ -22,16 +22,21 @@ import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
+import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataAddressResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
+import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
@@ -55,15 +60,18 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final QueryValidator queryValidator;
     private final ContractNegotiationStore negotiationStore;
     private final ContractValidationService contractValidationService;
+    private final DataAddressValidator dataAddressValidator;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
                                       TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
-                                      ContractValidationService contractValidationService) {
+                                      ContractValidationService contractValidationService,
+                                      DataAddressValidator dataAddressValidator) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
         this.contractValidationService = contractValidationService;
+        this.dataAddressValidator = dataAddressValidator;
         queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
 
@@ -112,6 +120,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<String> initiateTransfer(DataRequest request) {
+        var validDestination = dataAddressValidator.validate(request.getDataDestination());
+        if (validDestination.failed()) {
+            return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
+        }
+
         return transactionContext.execute(() -> {
             var transferInitiateResult = manager.initiateConsumerRequest(request);
             return Optional.ofNullable(transferInitiateResult)
@@ -121,9 +134,14 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                     .orElse(ServiceResult.conflict("Request couldn't be initialised."));
         });
     }
-    
+
     @Override
     public @NotNull ServiceResult<String> initiateTransfer(DataRequest request, ClaimToken claimToken) {
+        var validDestination = dataAddressValidator.validate(request.getDataDestination());
+        if (validDestination.failed()) {
+            return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
+        }
+
         return transactionContext.execute(() ->
                 Optional.ofNullable(negotiationStore.findContractAgreement(request.getContractId()))
                         .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement))
@@ -133,7 +151,17 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                         .map(ServiceResult::success)
                         .orElse(ServiceResult.conflict("Request couldn't be initialised.")));
     }
-    
+
+    @Override
+    public ServiceResult<TransferProcess> completeDeprovision(String transferProcessId, DeprovisionedResource resource) {
+        return apply(transferProcessId, completeDeprovisionImpl(resource));
+    }
+
+    @Override
+    public ServiceResult<TransferProcess> addProvisionedResource(String transferProcessId, ProvisionResponse response) {
+        return apply(transferProcessId, addProvisionedResourceImpl(response));
+    }
+
     private Map<Class<?>, List<Class<?>>> getSubtypes() {
         return Map.of(
                 ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
@@ -208,5 +236,19 @@ public class TransferProcessServiceImpl implements TransferProcessService {
             return ServiceResult.success(transferProcess);
         };
 
+    }
+
+    private Function<TransferProcess, ServiceResult<TransferProcess>> completeDeprovisionImpl(DeprovisionedResource resource) {
+        return (transferProcess -> {
+            manager.enqueueCommand(new DeprovisionCompleteCommand(transferProcess.getId(), resource));
+            return ServiceResult.success(transferProcess);
+        });
+    }
+
+    private Function<TransferProcess, ServiceResult<TransferProcess>> addProvisionedResourceImpl(ProvisionResponse response) {
+        return (transferProcess -> {
+            manager.enqueueCommand(new AddProvisionedResourceCommand(transferProcess.getId(), response));
+            return ServiceResult.success(transferProcess);
+        });
     }
 }

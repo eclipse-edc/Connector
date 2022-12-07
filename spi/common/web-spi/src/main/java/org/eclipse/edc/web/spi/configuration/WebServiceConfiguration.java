@@ -21,12 +21,11 @@ import java.util.Objects;
  */
 public class WebServiceConfiguration {
 
-    private String contextAlias;
-    private Integer port;
-    private String path;
+    protected String contextAlias;
+    protected Integer port;
+    protected String path;
 
-
-    private WebServiceConfiguration() {
+    protected WebServiceConfiguration() {
     }
 
     public String getPath() {
@@ -41,10 +40,8 @@ public class WebServiceConfiguration {
         return contextAlias;
     }
 
-
     public static class Builder {
         private final WebServiceConfiguration config;
-
 
         private Builder() {
             config = new WebServiceConfiguration();

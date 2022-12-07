@@ -36,10 +36,14 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
@@ -48,7 +52,6 @@ import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -59,6 +62,8 @@ import static org.mockito.Mockito.when;
 
 class ContractOfferResolverImplTest {
 
+    private final Instant now = Instant.now();
+    private final Clock clock = Clock.fixed(now, UTC);
     private static final Range DEFAULT_RANGE = new Range(0, 10);
     private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
@@ -69,7 +74,7 @@ class ContractOfferResolverImplTest {
 
     @BeforeEach
     void setUp() {
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore);
+        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore, clock);
     }
 
     @Test
@@ -86,7 +91,10 @@ class ContractOfferResolverImplTest {
 
         var offers = contractOfferResolver.queryContractOffers(getQuery());
 
-        assertThat(offers).hasSize(2);
+        assertThat(offers)
+                .hasSize(2)
+                .allSatisfy(contractOffer -> assertThat(contractOffer.getContractEnd().toInstant())
+                        .isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity())));
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(assetIndex).queryAssets(isA(QuerySpec.class));
@@ -104,7 +112,7 @@ class ContractOfferResolverImplTest {
 
         var result = contractOfferResolver.queryContractOffers(getQuery());
 
-        assertThat(result).hasSize(0);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -233,6 +241,7 @@ class ContractOfferResolverImplTest {
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "1").build())
+                .validity(10)
                 .build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
@@ -258,7 +267,7 @@ class ContractOfferResolverImplTest {
                 .filter(concat(contractDefinition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()))
                 .range(DEFAULT_RANGE)
                 .build();
-        verify(assetIndex).queryAssets(eq(expectedQuerySpec));
+        verify(assetIndex).queryAssets(expectedQuerySpec);
     }
 
     @NotNull
@@ -278,7 +287,8 @@ class ContractOfferResolverImplTest {
                 .id(id)
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .validity(TimeUnit.MINUTES.toSeconds(10));
     }
 
     private Asset.Builder createAsset(String id) {

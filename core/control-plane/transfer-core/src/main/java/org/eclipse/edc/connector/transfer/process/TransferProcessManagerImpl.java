@@ -67,9 +67,10 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
+import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_BATCH_SIZE;
+import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
@@ -102,8 +103,8 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * before conducting the next iteration. A wait strategy may implement a backoff scheme.
  */
 public class TransferProcessManagerImpl implements TransferProcessManager, ProvisionCallbackDelegate {
-    private int batchSize = 5;
-    private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private int batchSize = DEFAULT_BATCH_SIZE;
+    private WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
@@ -270,8 +271,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             process.transitionInitial();
         }
         observable.invokeForEach(l -> l.preCreated(process));
-        transferProcessStore.create(process);
+        transferProcessStore.save(process);
         observable.invokeForEach(l -> l.initiated(process));
+        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+
         return StatusResult.success(process.getId());
     }
 
@@ -354,8 +357,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private boolean processProvisioned(TransferProcess process) {
         if (CONSUMER == process.getType()) {
             process.transitionRequesting();
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.preRequesting(process));
+            updateTransferProcess(process, l -> l.preRequesting(process));
         } else {
             return processProviderRequest(process);
         }
@@ -391,7 +393,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
             process.transitionInProgressOrStreaming();
             updateTransferProcess(process, l -> l.preInProgress(process));
-            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             return true;
         } else {
             monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED);
@@ -474,10 +475,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processDeprovisioned(TransferProcess process) {
         process.transitionEnded();
-        observable.invokeForEach(l -> l.preEnded(process));
-        transferProcessStore.update(process);
+        updateTransferProcess(process, l -> l.preEnded(process));
         observable.invokeForEach(l -> l.ended(process));
-        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
         return true;
     }
 
@@ -512,14 +511,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.provisioned(transferProcess));
         } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
             transferProcess.transitionProvisioningRequested();
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.provisioningRequested(transferProcess));
         } else {
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
         }
     }
 
@@ -543,14 +542,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.deprovisioned(transferProcess));
         } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
             transferProcess.transitionDeprovisioningRequested();
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
             observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
-            transferProcessStore.update(transferProcess);
+            transferProcessStore.save(transferProcess);
         }
     }
 
@@ -599,7 +598,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private void transitionToCompleted(TransferProcess process) {
         process.transitionCompleted();
-        monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
         updateTransferProcess(process, l -> l.preCompleted(process));
         observable.invokeForEach(l -> l.completed(process));
     }
@@ -691,7 +689,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         transferProcess.transitionRequested();
         updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
         observable.invokeForEach(l -> l.requested(transferProcess));
-        monitor.debug("TransferProcessManager: Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
     }
 
     private void sendCustomerRequestFailure(TransferProcess transferProcess, Throwable e) {
@@ -710,16 +707,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 TransferProcessStates.from(transferProcess.getState())), e);
         // update state count and timestamp
         transferProcess.transitionRequesting();
-        transferProcessStore.update(transferProcess);
+        transferProcessStore.save(transferProcess);
     }
 
     private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {
         observable.invokeForEach(observe);
-        transferProcessStore.update(transferProcess);
+        transferProcessStore.save(transferProcess);
+        monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
     }
 
     private void breakLease(TransferProcess process) {
-        transferProcessStore.update(process);
+        transferProcessStore.save(process);
     }
 
     public static class Builder {

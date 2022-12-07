@@ -232,6 +232,10 @@ components:
         id:
           type: string
           example: null
+        validity:
+          type: integer
+          format: int64
+          example: null
       required:
       - accessPolicyId
       - contractPolicyId
@@ -257,6 +261,10 @@ components:
             $ref: '#/components/schemas/CriterionDto'
         id:
           type: string
+          example: null
+        validity:
+          type: integer
+          format: int64
           example: null
     CriterionDto:
       type: object

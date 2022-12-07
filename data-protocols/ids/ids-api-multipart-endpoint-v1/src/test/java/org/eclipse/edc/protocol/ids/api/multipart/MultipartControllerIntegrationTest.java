@@ -79,6 +79,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
@@ -96,7 +97,7 @@ import static org.mockito.Mockito.when;
 
 @ComponentTest
 @ExtendWith(EdcExtension.class)
-public class MultipartControllerIntegrationTest {
+class MultipartControllerIntegrationTest {
     private static final int IDS_PORT = getFreePort();
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private static final String CATALOG_ID = UUID.randomUUID().toString();
@@ -264,6 +265,8 @@ public class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
@@ -524,6 +527,8 @@ public class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
@@ -603,6 +608,8 @@ public class MultipartControllerIntegrationTest {
                         ._permission_(new PermissionBuilder()
                                 ._target_(URI.create("urn:artifact:" + assetId))
                                 .build())
+                        ._contractStart_(CalendarUtil.gregorianNow())
+                        ._contractEnd_(CalendarUtil.gregorianNow())
                         .build());
         var asset = Asset.Builder.newInstance().id(assetId).build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());

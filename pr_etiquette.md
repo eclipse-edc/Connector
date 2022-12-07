@@ -4,7 +4,8 @@
 
 Submitting pull requests in EDC should be done while adhering to a couple of simple rules.
 
-- Familiarize yourself with [coding style](styleguide.md), [architectural patterns](docs/developer/architecture/architecture-principles.md) and
+- Familiarize yourself with [coding style](styleguide.md)
+  , [architectural patterns](docs/developer/architecture/coding-principles.md) and
   other contribution guidelines.
 - No surprise PRs please. Before you submit a PR, open a discussion or an issue outlining your planned work and give
   people time to comment. It may even be advisable to contact committers using the `@mention` feature. Unsolicited PRs
@@ -34,7 +35,7 @@ Submitting pull requests in EDC should be done while adhering to a couple of sim
   - The title must follow the format as `<type>(<optional scope>): <description>`.
     `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test` are allowed for the `<type>`.
   - The length must be kept under 80 characters.
-  - See [check-pull-request-title job of GitHub workflow](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/.github/workflows/scan-pull-request.yaml) for checking details.
+  - See [check-pull-request-title job of GitHub workflow](https://github.com/eclipse-edc/Connector/blob/main/.github/workflows/scan-pull-request.yaml) for checking details.
 
 ## As a reviewer
 

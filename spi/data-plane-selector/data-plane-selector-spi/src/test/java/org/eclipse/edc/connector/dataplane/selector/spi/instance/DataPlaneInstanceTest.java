@@ -27,7 +27,7 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DataPlaneInstanceImplTest {
+class DataPlaneInstanceTest {
 
     private ObjectMapper mapper;
 

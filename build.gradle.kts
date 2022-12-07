@@ -15,7 +15,7 @@
 
 plugins {
     `java-library`
-    // todo: remove once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/2191 is complete
+    // todo: remove once https://github.com/eclipse-edc/Connector/issues/2191 is complete
     id("org.hidetake.swagger.generator") version "2.19.2"
 }
 
@@ -28,7 +28,10 @@ val defaultVersion: String by project
 val annotationProcessorVersion: String by project
 val metaModelVersion: String by project
 
-val actualVersion: String = (project.findProperty("edcVersion") ?: defaultVersion) as String
+var actualVersion: String = (project.findProperty("version") ?: defaultVersion) as String
+if (actualVersion == "unspecified") {
+    actualVersion = defaultVersion
+}
 
 buildscript {
     dependencies {
@@ -99,7 +102,7 @@ if (project.hasProperty("dependency.analysis")) {
     }
 }
 
-// todo: remove once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/2191 is complete
+// todo: remove once https://github.com/eclipse-edc/Connector/issues/2191 is complete
 swaggerSources {
     create("edc").apply {
         setInputFile(file("./resources/openapi/openapi.yaml"))

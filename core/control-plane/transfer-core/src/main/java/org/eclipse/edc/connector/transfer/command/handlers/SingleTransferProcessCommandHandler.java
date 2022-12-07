@@ -44,7 +44,7 @@ public abstract class SingleTransferProcessCommandHandler<T extends SingleTransf
         } else {
             if (modify(transferProcess, command)) {
                 transferProcess.setModified();
-                store.update(transferProcess);
+                store.save(transferProcess);
                 postAction(transferProcess);
             }
         }

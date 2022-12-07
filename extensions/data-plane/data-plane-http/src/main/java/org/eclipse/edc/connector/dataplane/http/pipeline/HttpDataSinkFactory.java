@@ -26,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
-import static org.eclipse.edc.spi.types.domain.HttpDataAddress.DATA_TYPE;
+import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
 
 /**
- * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataAddress#DATA_TYPE}.
+ * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataAddress#HTTP_DATA}.
  */
 public class HttpDataSinkFactory implements DataSinkFactory {
     private final OkHttpClient httpClient;
@@ -52,7 +52,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return DATA_TYPE.equals(request.getDestinationDataAddress().getType());
+        return HTTP_DATA.equals(request.getDestinationDataAddress().getType());
     }
 
     @Override

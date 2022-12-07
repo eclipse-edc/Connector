@@ -66,7 +66,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void getAllTransferProcesses(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID));
+        store.save(createTransferProcess(PROCESS_ID));
 
         baseRequest()
                 .get("/transferprocess")
@@ -87,7 +87,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void queryAllTransferProcesses(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID));
+        store.save(createTransferProcess(PROCESS_ID));
 
         baseRequest()
                 .contentType(JSON)
@@ -101,7 +101,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void queryAllTransferProcesses_withPaging(TransferProcessStore store) {
         IntStream.range(0, 10)
-                .forEach(i -> store.create(createTransferProcess(PROCESS_ID + i)));
+                .forEach(i -> store.save(createTransferProcess(PROCESS_ID + i)));
 
         baseRequest()
                 .contentType(JSON)
@@ -116,7 +116,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void queryAllTransferProcesses_withFilter(TransferProcessStore store) {
         IntStream.range(0, 10)
-                .forEach(i -> store.create(createTransferProcess(PROCESS_ID + i)));
+                .forEach(i -> store.save(createTransferProcess(PROCESS_ID + i)));
 
         baseRequest()
                 .contentType(JSON)
@@ -131,7 +131,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void getSingleTransferProcess(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID));
+        store.save(createTransferProcess(PROCESS_ID));
         baseRequest()
                 .get("/transferprocess/" + PROCESS_ID)
                 .then()
@@ -152,7 +152,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void getSingleTransferProcessState(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID, PROVISIONING.code()));
+        store.save(createTransferProcess(PROCESS_ID, PROVISIONING.code()));
 
         var state = baseRequest()
                 .get("/transferprocess/" + PROCESS_ID + "/state")
@@ -174,7 +174,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void cancel(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID, IN_PROGRESS.code()));
+        store.save(createTransferProcess(PROCESS_ID, IN_PROGRESS.code()));
 
         baseRequest()
                 .contentType(JSON)
@@ -194,7 +194,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void cancel_conflict(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID, COMPLETED.code()));
+        store.save(createTransferProcess(PROCESS_ID, COMPLETED.code()));
         baseRequest()
                 .contentType(JSON)
                 .post("/transferprocess/" + PROCESS_ID + "/cancel")
@@ -204,7 +204,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void deprovision(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID, COMPLETED.code()));
+        store.save(createTransferProcess(PROCESS_ID, COMPLETED.code()));
 
         baseRequest()
                 .contentType(JSON)
@@ -224,7 +224,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void deprovision_conflict(TransferProcessStore store) {
-        store.create(createTransferProcess(PROCESS_ID, INITIAL.code()));
+        store.save(createTransferProcess(PROCESS_ID, INITIAL.code()));
 
         baseRequest()
                 .contentType(JSON)

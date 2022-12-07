@@ -42,6 +42,6 @@ And now, they can be applied to `AssetIndex` search query when constructing the 
 ## Considerations and limitations
 
 - there is no standardized query language nor will there be one for the foreseeable future;
-- querying is based on the "Canonical format": (https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/docs/developer/sql_queries.md),
+- querying is based on the "Canonical format": (https://github.com/eclipse-edc/Connector/blob/main/docs/developer/sql_queries.md),
   i.e. the schema of the queried objects, i.e. their Java class. That implies that the client must have knowledge of the schema; 
 - that schema is subject to change without special notice.

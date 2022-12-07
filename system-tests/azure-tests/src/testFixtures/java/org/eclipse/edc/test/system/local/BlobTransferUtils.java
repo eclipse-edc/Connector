@@ -40,6 +40,9 @@ public class BlobTransferUtils {
     private static final String POLICIES_PATH = "/policydefinitions";
     private static final String CONTRACT_DEFINITIONS_PATH = "/contractdefinitions";
 
+    private BlobTransferUtils() {
+    }
+
     public static void createAsset(String accountName, String containerName) {
         var asset = Map.of(
                 "asset", Map.of(

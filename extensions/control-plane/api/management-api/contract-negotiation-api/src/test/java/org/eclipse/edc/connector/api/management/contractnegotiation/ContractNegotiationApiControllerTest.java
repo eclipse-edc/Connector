@@ -44,6 +44,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -194,7 +195,7 @@ class ContractNegotiationApiControllerTest {
         assertThat(negotiationId.getId()).isEqualTo("negotiationId");
         assertThat(negotiationId).isInstanceOf(IdResponseDto.class);
         assertThat(negotiationId.getId()).isNotEmpty();
-        assertThat(negotiationId.getCreatedAt()).isNotEqualTo(0L);
+        assertThat(negotiationId.getCreatedAt()).isNotZero();
     }
 
     @Test
@@ -298,6 +299,8 @@ class ContractNegotiationApiControllerTest {
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .asset(Asset.Builder.newInstance().id("test-asset").build())
+                        .contractStart(ZonedDateTime.now())
+                        .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())
                 .build();
     }

@@ -38,6 +38,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_BATCH_SIZE;
+import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_ITERATION_WAIT;
 
 public abstract class AbstractContractNegotiationManager {
 
@@ -52,8 +54,8 @@ public abstract class AbstractContractNegotiationManager {
     protected Clock clock;
     protected Telemetry telemetry;
     protected ExecutorInstrumentation executorInstrumentation;
-    protected int batchSize = 5;
-    protected WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    protected int batchSize = DEFAULT_BATCH_SIZE;
+    protected WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
     protected PolicyDefinitionStore policyStore;
     protected SendRetryManager<StatefulEntity> sendRetryManager;
 

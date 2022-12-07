@@ -54,7 +54,6 @@ import java.time.Duration;
 
 @BaseExtension
 @Provides({
-        HealthCheckService.class,
         Monitor.class,
         TypeManager.class,
         Clock.class,

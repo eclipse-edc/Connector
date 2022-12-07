@@ -43,7 +43,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.api.ControlPlaneApiExtension.DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -54,23 +53,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 public class TransferProcessHttpClientIntegrationTest {
 
-    private final String authKey = "123456";
     private final int port = getFreePort();
-
-    private TransferService service;
+    private final TransferService service = mock(TransferService.class);
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-
-        service = mock(TransferService.class);
         when(service.canHandle(any())).thenReturn(true);
-
 
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
-                "web.http.controlplane.port", String.valueOf(port),
-                "web.http.controlplane.path", DEFAULT_CONTROL_PLANE_API_CONTEXT_PATH
+                "web.http.control.port", String.valueOf(port),
+                "web.http.control.path", "/control"
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
@@ -80,7 +74,7 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success()));
         var id = "tp-id";
-        store.create(createTransferProcess(id));
+        store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
 
         await().untilAsserted(() -> {
@@ -90,12 +84,11 @@ public class TransferProcessHttpClientIntegrationTest {
         });
     }
 
-
     @Test
     void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error")));
         var id = "tp-id";
-        store.create(createTransferProcess(id));
+        store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
 
         await().untilAsserted(() -> {
@@ -111,7 +104,7 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithException(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(CompletableFuture.failedFuture(new EdcException("error")));
         var id = "tp-id";
-        store.create(createTransferProcess(id));
+        store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
 
         await().untilAsserted(() -> {

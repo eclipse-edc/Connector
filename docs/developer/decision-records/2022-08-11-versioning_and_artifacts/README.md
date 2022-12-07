@@ -16,13 +16,13 @@ flexible than git refs, but at the same time improves coherence and setup speed.
 ## General rules
 
 > for the sake of brevity, the term "our" refers to all original implementation projects inside the
-`eclipse-dataspaceconnector` org in [Github](https://github.com/eclipse-dataspaceconnector/). At the time of this
+`eclipse-edc` org in [Github](https://github.com/eclipse-edc/). At the time of this
 > writing that includes `DataSpaceConnector` (a.k.a. "EDC"),
-`RegistrationService` (a.k.a. "RS", [see Github](https://github.com/eclipse-dataspaceconnector/RegistrationService)),
-`IdentityHub` (a.k.a. "IH", [see Github](https://github.com/eclipse-dataspaceconnector/IdentityHub),
+`RegistrationService` (a.k.a. "RS", [see Github](https://github.com/eclipse-edc/RegistrationService)),
+`IdentityHub` (a.k.a. "IH", [see Github](https://github.com/eclipse-edc/IdentityHub),
 `MinimumViableDataspace` (a.k.a. "MVD"
-> , [see Github](https://github.com/eclipse-dataspaceconnector/MinimumViableDataspace))) and `FederatedCatalog` (a.k.a.
-"FC", [see Github](https://github.com/eclipse-dataspaceconnector/FederatedCatalog)).
+> , [see Github](https://github.com/eclipse-edc/MinimumViableDataspace))) and `FederatedCatalog` (a.k.a.
+"FC", [see Github](https://github.com/eclipse-edc/FederatedCatalog)).
 
 All "our" projects must
 

@@ -28,7 +28,6 @@ import java.util.List;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/instances")
-
 public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
     private final DataPlaneSelectorService selectionService;

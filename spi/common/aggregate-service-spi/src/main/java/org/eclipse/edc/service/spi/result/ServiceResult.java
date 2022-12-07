@@ -41,7 +41,11 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
     }
 
     public static <T> ServiceResult<T> badRequest(String... message) {
-        return new ServiceResult<>(null, new ServiceFailure(List.of(message), BAD_REQUEST));
+        return badRequest(List.of(message));
+    }
+
+    public static <T> ServiceResult<T> badRequest(List<String> messages) {
+        return new ServiceResult<>(null, new ServiceFailure(messages, BAD_REQUEST));
     }
 
     public ServiceFailure.Reason reason() {

@@ -27,6 +27,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
+import java.time.Clock;
+
 @Extension(value = ContractNegotiationApiExtension.NAME)
 public class ContractNegotiationApiExtension implements ServiceExtension {
 
@@ -43,6 +45,9 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationService service;
 
+    @Inject
+    private Clock clock;
+
     @Override
     public String name() {
         return NAME;
@@ -52,7 +57,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         transformerRegistry.register(new ContractNegotiationToContractNegotiationDtoTransformer());
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
-        transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer());
+        transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer(clock));
 
         var monitor = context.getMonitor();
 

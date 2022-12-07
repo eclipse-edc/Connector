@@ -32,7 +32,7 @@ repositories {
     }
 }
 
-// pick-up the latest version from https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/releases
+// pick-up the latest version from https://github.com/eclipse-edc/Connector/releases
 val edcVersion = "<x.x.x>"
 
 dependencies {

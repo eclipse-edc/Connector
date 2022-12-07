@@ -44,3 +44,4 @@
 - [2022-10-21 Gradle Version Catalogs](2022-10-21-gradle-versioncatalogs/)
 - [2022-10-31 Service Layer](2022-10-31-aggregate-service-layer/)
 - [2022-11-09 API Restructuring](2022-11-09-api-refactoring/)
+- [2022-11-28 Release Management](2022-11-28-release-management/)

@@ -24,7 +24,6 @@ import okhttp3.Response;
 import org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorServiceImpl;
 import org.eclipse.edc.connector.dataplane.selector.core.DataPlaneSelectorImpl;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategy;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.connector.dataplane.selector.store.InMemoryDataPlaneInstanceStore;
@@ -92,7 +91,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
         jetty = new JettyService(config, monitor);
 
         TypeManager typeManager = new TypeManager();
-        typeManager.registerTypes(DataPlaneInstanceImpl.class);
+        typeManager.registerTypes(DataPlaneInstance.class);
         objectMapper = typeManager.getMapper();
         JerseyRestService jerseyService = new JerseyRestService(jetty, typeManager, mock(JerseyConfiguration.class), monitor);
         jetty.start();

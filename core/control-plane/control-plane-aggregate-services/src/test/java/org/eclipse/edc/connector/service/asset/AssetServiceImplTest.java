@@ -18,9 +18,12 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.observe.asset.AssetObservable;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -37,12 +40,14 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AssetServiceImplTest {
@@ -51,8 +56,10 @@ class AssetServiceImplTest {
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final AssetObservable observable = mock(AssetObservable.class);
+    private final DataAddressValidator dataAddressValidator = mock(DataAddressValidator.class);
 
-    private final AssetServiceImpl service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable);
+    private final AssetServiceImpl service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext,
+            observable, dataAddressValidator);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -111,6 +118,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldCreateAssetIfItDoesNotAlreadyExist() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var assetId = "assetId";
         var asset = createAsset(assetId);
         when(index.findById(assetId)).thenReturn(null);
@@ -127,6 +135,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldNotCreateAssetIfItAlreadyExists() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var asset = createAsset("assetId");
         when(index.findById("assetId")).thenReturn(asset);
         var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
@@ -134,6 +143,20 @@ class AssetServiceImplTest {
         var inserted = service.create(asset, dataAddress);
 
         assertThat(inserted.succeeded()).isFalse();
+    }
+
+    @Test
+    void createAsset_shouldNotCreateAssetIfDataAddressInvalid() {
+        var asset = createAsset("assetId");
+        var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
+        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("Data address is invalid"));
+
+        var result = service.create(asset, dataAddress);
+
+        assertThat(result).satisfies(ServiceResult::failed)
+                .extracting(ServiceResult::reason)
+                .isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(index);
     }
 
     @Test

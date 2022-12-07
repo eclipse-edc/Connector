@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
@@ -237,6 +238,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
                 .contractPolicyId("contract")
                 .accessPolicyId(accessPolicyId)
                 .selectorExpression(createSelectorExpression())
+                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
     }
 

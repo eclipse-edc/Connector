@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.TestDataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store.DataPlaneInstanceStoreTestBase;

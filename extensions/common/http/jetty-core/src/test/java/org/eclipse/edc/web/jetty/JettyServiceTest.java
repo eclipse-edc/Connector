@@ -45,6 +45,7 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
 class JettyServiceTest {
+
     private JettyService jettyService;
     private Monitor monitor;
     private TestController testController;
@@ -126,20 +127,31 @@ class JettyServiceTest {
     }
 
     @Test
-    @DisplayName("Verifies that an invalid path spec causes 404")
-    void verifyInvalidPathSpecCauses404() {
+    void verifyCustomPathRoot() {
         var config = ConfigFactory.fromMap(Map.of(
                 "web.http.port", "7171",
-                "web.http.another.port", "9191",
-                "web.http.another.name", "another",
-                "web.http.another.path", "another")); //misses leading slash
+                "web.http.path", "/"));
         jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
 
         jettyService.start();
 
-        jettyService.registerServlet("another", new ServletContainer(createTestResource()));
+        jettyService.registerServlet("default", new ServletContainer(createTestResource()));
 
-        assertThat(executeRequest("http://localhost:9191/another/test/resource").code()).isEqualTo(404);
+        assertThat(executeRequest("http://localhost:7171/test/resource").code()).isEqualTo(200);
+    }
+
+    @Test
+    void verifyInvalidPathSpecThrowsException() {
+        var config = ConfigFactory.fromMap(Map.of(
+                "web.http.port", "7171",
+                "web.http.another.port", "9191",
+                "web.http.another.path", "another")); //misses leading slash
+        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+
+        assertThatThrownBy(() -> jettyService.start()).isInstanceOf(EdcException.class)
+                .hasMessage("Error starting Jetty service")
+                .hasRootCauseInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseMessage("A context path must start with /: another");
     }
 
     @Test

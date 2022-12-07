@@ -158,7 +158,7 @@ Let's also make sure that the code is checked out before and integration tests o
 jobs:
   Postgres-Integration-Tests:
     # run only on upstream repo
-    if: github.repository_owner == 'eclipse-dataspaceconnector'
+    if: github.repository_owner == 'eclipse-edc'
     runs-on: ubuntu-latest
 
     # taken from https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers

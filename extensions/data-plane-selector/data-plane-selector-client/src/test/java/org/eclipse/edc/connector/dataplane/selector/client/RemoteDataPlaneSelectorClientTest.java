@@ -18,7 +18,6 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.types.TypeManager;

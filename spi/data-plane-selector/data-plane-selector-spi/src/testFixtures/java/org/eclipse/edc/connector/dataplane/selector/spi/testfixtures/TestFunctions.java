@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.selector.spi.testfixtures;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 public class TestFunctions {

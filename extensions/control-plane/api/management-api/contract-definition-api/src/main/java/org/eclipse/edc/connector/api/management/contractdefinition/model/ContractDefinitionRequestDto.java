@@ -21,14 +21,21 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.api.model.CriterionDto;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @JsonDeserialize(builder = ContractDefinitionRequestDto.Builder.class)
 public class ContractDefinitionRequestDto {
+
+    /**
+     * Default validity is set to one year.
+     */
+    private static final long DEFAULT_VALIDITY = TimeUnit.DAYS.toSeconds(365);
 
     private String id;
     @NotNull(message = "accessPolicyId cannot be null")
@@ -38,6 +45,8 @@ public class ContractDefinitionRequestDto {
     @Valid
     @NotNull(message = "criteria cannot be null")
     private List<CriterionDto> criteria = new ArrayList<>();
+    @Positive(message = "validity must be positive")
+    private long validity = DEFAULT_VALIDITY;
 
     private ContractDefinitionRequestDto() {
     }
@@ -61,6 +70,10 @@ public class ContractDefinitionRequestDto {
 
     public List<CriterionDto> getCriteria() {
         return criteria;
+    }
+
+    public long getValidity() {
+        return validity;
     }
 
     public String getId() {
@@ -92,6 +105,11 @@ public class ContractDefinitionRequestDto {
 
         public Builder criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
+            return this;
+        }
+
+        public Builder validity(long validity) {
+            dto.validity = validity;
             return this;
         }
 

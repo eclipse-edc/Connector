@@ -29,6 +29,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
+import java.util.concurrent.TimeUnit;
+
 public class CloudTransferExtension implements ServiceExtension {
     @Inject
     private AssetIndex assetIndex;
@@ -79,12 +81,14 @@ public class CloudTransferExtension implements ServiceExtension {
                 .accessPolicyId(policyId)
                 .contractPolicyId(policyId)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
+                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
 
         var contractDefinition2 = ContractDefinition.Builder.newInstance()
                 .id("2")
                 .accessPolicyId(policyId)
                 .contractPolicyId(policyId)
+                .validity(TimeUnit.HOURS.toSeconds(1))
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "2").build())
                 .build();
 

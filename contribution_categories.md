@@ -8,7 +8,7 @@ There are currently two possible levels of adoption for the EDC project:
 
 ## Get referenced as "friend"
 
-This means we will add a link to our [known friends](known_friends.md) list, where we reference projects and features that we are aware of. These are repositories that have no direct affiliation with EDC and are hosted outside of the `eclipse-dataspaceconnector` GitHub organization. We call this a "friend" of EDC (derived from the C++ [`friend class` concept](https://en.cppreference.com/w/cpp/language/friend)). 
+This means we will add a link to our [known friends](known_friends.md) list, where we reference projects and features that we are aware of. These are repositories that have no direct affiliation with EDC and are hosted outside of the `eclipse-edc` GitHub organization. We call this a "friend" of EDC (derived from the C++ [`friend class` concept](https://en.cppreference.com/w/cpp/language/friend)). 
 In order to become a "friend" of EDC, we do a quick scan of the code base to make sure it does not contain anything offensive, or that contradicts our code of conduct, ethics or other core OSS values. 
 
 The EDC core team does not maintain or endorse "friend" projects in any way, nor is it responsible for it, but we do provide a URL list to make it easier for other developers to find related projects and get an overview of the EDC market spread.
@@ -19,7 +19,7 @@ This is the easiest way to "get in" and will be the suitable form of adoption fo
 
 This means the contribution gets added to the EDC code base, and is henceforth maintained by the EDC core team. The barrier of entry for this is much higher than for "friends", and a more in-depth review of the code will be performed. 
 
-Note that this covers both what we call the [EDC Core repository](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector) as well as any current or future repositories in the `eclipse-dataspaceconnector` GitHub organization.
+Note that this covers both what we call the [EDC Core repository](https://github.com/eclipse-edc/Connector) as well as any current or future repositories in the `eclipse-edc` GitHub organization.
 It is up to the committers to decide where the code will eventually be hosted in case of adoption.
 
 However, in order to do a preliminary check, please go through the following bullet points:
@@ -44,7 +44,8 @@ Features that have a large impact on the code base are very complex to thoroughl
 
 And on a more general level:
 - does your contribution comply with our [licensing](LICENSE)?
-- does the code adhere to our [styleguide](styleguide.md) and our [architectural principles](docs/developer/architecture/architecture-principles.md)?
+- does the code adhere to our [styleguide](styleguide.md) and
+  our [architectural principles](docs/developer/architecture/coding-principles.md)?
 - are you willing to accept our [contributing guidelines](CONTRIBUTING.md)?
 - are you prepared to make frequent contributions and help out with maintaining this feature?
 

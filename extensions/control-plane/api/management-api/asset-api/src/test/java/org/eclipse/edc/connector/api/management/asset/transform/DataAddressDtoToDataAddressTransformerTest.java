@@ -34,7 +34,7 @@ class DataAddressDtoToDataAddressTransformerTest {
     }
 
     @Test
-    void transform() {
+    void shouldTransform() {
         var context = mock(TransformerContext.class);
         var dataAddressDto = DataAddressDto.Builder.newInstance()
                 .properties(Map.of("type", "any"))

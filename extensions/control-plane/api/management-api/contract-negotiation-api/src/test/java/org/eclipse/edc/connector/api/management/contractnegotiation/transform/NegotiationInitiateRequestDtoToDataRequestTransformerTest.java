@@ -18,6 +18,10 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Negoti
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest.Type.INITIAL;
@@ -25,8 +29,10 @@ import static org.mockito.Mockito.mock;
 
 class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
+    private final Instant now = Instant.now();
+    private final Clock clock = Clock.fixed(now, UTC);
     private final TransformerContext context = mock(TransformerContext.class);
-    private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer();
+    private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer(clock);
 
     @Test
     void inputOutputType() {
@@ -45,11 +51,14 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
         var request = transformer.transform(dto, context);
 
+        assertThat(request).isNotNull();
         assertThat(request.getConnectorId()).isEqualTo("connectorId");
         assertThat(request.getConnectorAddress()).isEqualTo("address");
         assertThat(request.getProtocol()).isEqualTo("protocol");
         assertThat(request.getType()).isEqualTo(INITIAL);
         assertThat(request.getContractOffer().getId()).isEqualTo("offerId");
+        assertThat(request.getContractOffer().getContractStart().toInstant()).isEqualTo(clock.instant());
+        assertThat(request.getContractOffer().getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(dto.getOffer().getValidity()));
         assertThat(request.getContractOffer().getPolicy()).isNotNull();
     }
 }

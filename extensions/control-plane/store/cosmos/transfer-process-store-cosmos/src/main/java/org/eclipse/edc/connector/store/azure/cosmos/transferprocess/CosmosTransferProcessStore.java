@@ -117,20 +117,11 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void create(TransferProcess process) {
+    public void save(TransferProcess process) {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
-
-        //todo: configure indexing
-        var document = new TransferProcessDocument(process, partitionKey);
-        failsafeExecutor.run(() -> cosmosDbApi.saveItem(document));
-    }
-
-    @Override
-    public void update(TransferProcess process) {
-        var document = new TransferProcessDocument(process, partitionKey);
         try {
             leaseContext.acquireLease(process.getId());
-            failsafeExecutor.run(() -> cosmosDbApi.saveItem(document));
+            failsafeExecutor.run(() -> cosmosDbApi.saveItem(new TransferProcessDocument(process, partitionKey)));
             leaseContext.breakLease(process.getId());
         } catch (BadRequestException ex) {
             throw new EdcException(ex);

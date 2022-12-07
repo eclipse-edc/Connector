@@ -37,7 +37,7 @@ import static java.util.Collections.emptyMap;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class HttpDataAddress extends DataAddress {
 
-    public static final String DATA_TYPE = "HttpData";
+    public static final String HTTP_DATA = "HttpData";
 
     private static final String NAME = "name";
     private static final String PATH = "path";
@@ -58,6 +58,7 @@ public class HttpDataAddress extends DataAddress {
 
     private HttpDataAddress() {
         super();
+        this.setType(HTTP_DATA);
     }
 
     @JsonIgnore
@@ -137,11 +138,10 @@ public class HttpDataAddress extends DataAddress {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends DataAddress.Builder {
+    public static final class Builder extends DataAddress.Builder<HttpDataAddress, Builder> {
 
         private Builder() {
             super(new HttpDataAddress());
-            this.type(DATA_TYPE);
         }
 
         @JsonCreator
@@ -230,8 +230,8 @@ public class HttpDataAddress extends DataAddress {
 
         @Override
         public HttpDataAddress build() {
-            this.type(DATA_TYPE);
-            return (HttpDataAddress) address;
+            this.type(HTTP_DATA);
+            return address;
         }
     }
 }
