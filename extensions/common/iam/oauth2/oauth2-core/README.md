@@ -10,7 +10,7 @@ This extension provides an `IdentityService` implementation based on the OAuth2 
 | `edc.oauth.provider.audience`     | Provider audience to be put in the outgoing token as 'aud' claim                           | false     | id of the connector                 |
 | `edc.oauth.endpoint.audience`     | Endpoint audience to verify incoming token 'aud' claim                                     | false     | `edc.oauth.provider.audience` value |
 | `edc.oauth.provider.jwks.url`     | URL from which well-known public keys of Authorization server can be fetched               | false     | http://localhost/empty_jwks_url     | 
-| `edc.oauth.public.key.alias`      | Alias of public associated with client certificate                                         | true      | null                                |
+| `edc.oauth.certificate.alias`     | Alias of public associated with client certificate                                         | true      | null                                |
 | `edc.oauth.private.key.alias`     | Alias of private key (used to sign the token)                                              | true      | null                                |
 | `edc.oauth.provider.jwks.refresh` | Interval at which public keys are refreshed from Authorization server (in minutes)         | false     | 5                                   |
 | `edc.oauth.client.id`             | Public identifier of the client                                                            | true      | null                                |

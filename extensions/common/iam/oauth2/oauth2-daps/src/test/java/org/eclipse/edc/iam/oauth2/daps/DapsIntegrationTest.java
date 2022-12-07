@@ -43,7 +43,7 @@ class DapsIntegrationTest {
             "edc.oauth.provider.audience", AUDIENCE_IDS_CONNECTORS_ALL,
             "edc.oauth.endpoint.audience", AUDIENCE_IDS_CONNECTORS_ALL,
             "edc.oauth.provider.jwks.url", DAPS_URL + "/.well-known/jwks.json",
-            "edc.oauth.public.key.alias", CLIENT_KEYSTORE_KEY_ALIAS,
+            "edc.oauth.certificate.alias", CLIENT_KEYSTORE_KEY_ALIAS,
             "edc.oauth.private.key.alias", CLIENT_KEYSTORE_KEY_ALIAS
     );
 

@@ -64,7 +64,7 @@ this launcher's directory. Please adjust this for your setup as follows:
   supported by the DAPS. Therefore, this property has to be set to `idsc:IDS_CONNECTORS_ALL`.
 * `edc.oauth.provider.jwks.url`: Set this to the URL of the DAPS you want to use followed by 
   `/.well-known/jwks.json`.
-* `edc.oauth.public.key.alias`: Set this to your certificate's `alias` in the keystore.
+* `edc.oauth.certificate.alias`: Set this to your certificate's `alias` in the keystore.
 * `edc.oauth.private.key.alias`: Set this to your certificate's `alias` in the keystore.
 
 ### Getting the Certificate Identifier
