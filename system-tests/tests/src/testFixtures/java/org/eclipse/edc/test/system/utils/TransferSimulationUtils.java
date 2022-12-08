@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.doWhileDuring;
@@ -53,6 +54,7 @@ public abstract class TransferSimulationUtils {
     public static final String DESCRIPTION = "[Contract negotiation and file transfer]";
 
     public static final String PROVIDER_ASSET_ID = "test-document";
+    public static final long PROVIDER_CONTRACT_VALIDITY = TimeUnit.HOURS.toSeconds(1);
     public static final String PROVIDER_ASSET_FILE = "text-document.txt";
 
     public static final String TRANSFER_SUCCESSFUL = "Transfer successful";
@@ -68,7 +70,7 @@ public abstract class TransferSimulationUtils {
     /**
      * Gatling chain for performing contract negotiation and file transfer.
      *
-     * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
+     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
      * @param simulationConfiguration Configuration for transfers.
      */
     public static ChainBuilder contractNegotiationAndTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
@@ -188,7 +190,7 @@ public abstract class TransferSimulationUtils {
      * <p>
      * Saves the Transfer Process ID into the {@see TRANSFER_PROCESS_ID} session key.
      *
-     * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
+     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
      * @param simulationConfiguration Configuration for transfers.
      */
     private static ChainBuilder startTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
@@ -215,7 +217,7 @@ public abstract class TransferSimulationUtils {
      * <p>
      * Expects the Transfer Process ID to be provided in the {@see TRANSFER_PROCESS_ID} session key.
      *
-     * @param state state to wait for.
+     * @param state       state to wait for.
      * @param maxDuration maximum duration to wait for.
      */
     private static ChainBuilder waitForTransferState(TransferProcessStates state, Duration maxDuration) {
@@ -255,7 +257,7 @@ public abstract class TransferSimulationUtils {
     private static String loadContractAgreement(String providerUrl, String offerId) {
         var policy = Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
-                        .target("test-document")
+                        .target(PROVIDER_ASSET_ID)
                         .action(Action.Builder.newInstance().type("USE").build())
                         .build())
                 .type(PolicyType.SET)
@@ -267,7 +269,8 @@ public abstract class TransferSimulationUtils {
                 "offer", Map.of(
                         "offerId", offerId,
                         "assetId", PROVIDER_ASSET_ID,
-                        "policy", policy
+                        "policy", policy,
+                        "validity", PROVIDER_CONTRACT_VALIDITY
                 )
         );
 

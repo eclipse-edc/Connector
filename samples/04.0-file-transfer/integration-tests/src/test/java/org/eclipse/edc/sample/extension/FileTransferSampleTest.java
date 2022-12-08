@@ -26,7 +26,7 @@ import java.util.Map;
 import static org.eclipse.edc.sample.extension.FileTransferSampleTestCommon.getFileFromRelativePath;
 
 @EndToEndTest
-public class FileTransferSampleTest {
+class FileTransferSampleTest {
 
     static final String CONSUMER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/consumer/config.properties";
     static final String PROVIDER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/provider/config.properties";

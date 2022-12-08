@@ -34,12 +34,6 @@
         "@policytype": "set"
       }
     },
-    "asset": {
-      "properties": {
-        "ids:byteSize": null,
-        "asset:prop:id": "test-document",
-        "ids:fileName": null
-      }
-    }
+    "validity": 3600
   }
 }

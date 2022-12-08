@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.time.temporal.ChronoUnit;
 
 import static java.lang.String.format;
 
@@ -78,7 +79,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure(
                     "The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
-        
+
         var targetAsset = assetIndex.findById(offer.getAsset().getId());
         if (targetAsset == null) {
             return Result.failure("Invalid target: " + offer.getAsset().getId());
@@ -87,6 +88,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var contractPolicyDef = policyStore.findById(contractDefinition.getContractPolicyId());
         if (contractPolicyDef == null) {
             return Result.failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
+        }
+
+        var offerValidity = ChronoUnit.SECONDS.between(offer.getContractStart(), offer.getContractEnd());
+        if (offerValidity != contractDefinition.getValidity()) {
+            return Result.failure(format("Offer validity %ss does not match contract definition validity %ss", offerValidity, contractDefinition.getValidity()));
         }
 
         if (!policyEquality.test(contractPolicyDef.getPolicy().withTarget(targetAsset.getId()), offer.getPolicy())) {
