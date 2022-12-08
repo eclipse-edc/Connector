@@ -41,7 +41,7 @@ interface CommonsConnectionPoolConfigKeys {
     String POOL_TEST_CONNECTION_WHILE_IDLE = "pool.testconnectionwhileidle";
 
     @Setting(required = false)
-    String POOL_TEST_QUERY = "pool.testQuery";
+    String POOL_TEST_QUERY = "pool.testquery";
 
     @Setting(required = true)
     String URL = "url";
