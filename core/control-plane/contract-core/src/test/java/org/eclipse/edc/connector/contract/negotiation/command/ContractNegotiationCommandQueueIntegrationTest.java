@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.command.BoundedCommandQueue;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.statemachine.retry.SendRetryManager;
@@ -55,7 +54,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private String negotiationId;
     private ContractNegotiation negotiation;
     private TestCommand command;
-    private SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+    private SendRetryManager sendRetryManager = mock(SendRetryManager.class);
 
     @BeforeEach
     void setUp() {

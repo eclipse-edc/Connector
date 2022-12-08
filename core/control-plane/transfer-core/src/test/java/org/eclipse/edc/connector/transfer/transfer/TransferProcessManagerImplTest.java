@@ -46,7 +46,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -118,7 +117,7 @@ class TransferProcessManagerImplTest {
     private final PolicyArchive policyArchive = mock(PolicyArchive.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
-    private final SendRetryManager<StatefulEntity<?>> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager sendRetryManager = mock(SendRetryManager.class);
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
     private TransferProcessManagerImpl manager;

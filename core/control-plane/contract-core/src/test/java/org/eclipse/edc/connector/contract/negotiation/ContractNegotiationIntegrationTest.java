@@ -34,7 +34,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -104,7 +103,7 @@ class ContractNegotiationIntegrationTest {
 
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
-        SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+        var sendRetryManager = mock(SendRetryManager.class);
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(providerDispatcherRegistry)
