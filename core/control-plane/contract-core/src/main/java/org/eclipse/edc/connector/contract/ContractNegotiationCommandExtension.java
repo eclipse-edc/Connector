@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.contract;
 
 import org.eclipse.edc.connector.contract.negotiation.command.handlers.CancelNegotiationCommandHandler;
+import org.eclipse.edc.connector.contract.negotiation.command.handlers.DeclineNegotiationCommandHandler;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -44,6 +45,7 @@ public class ContractNegotiationCommandExtension implements ServiceExtension {
 
     private void registerDefaultCommandHandlers(CommandHandlerRegistry registry) {
         registry.register(new CancelNegotiationCommandHandler(store));
+        registry.register(new DeclineNegotiationCommandHandler(store));
     }
 
 }

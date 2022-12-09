@@ -57,6 +57,7 @@ class DeclineNegotiationCommandHandlerTest {
         commandHandler.handle(command);
 
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
+        assertThat(negotiation.getErrorDetail()).isNotBlank();
         assertThat(negotiation.getUpdatedAt()).isNotEqualTo(originalTime);
     }
 

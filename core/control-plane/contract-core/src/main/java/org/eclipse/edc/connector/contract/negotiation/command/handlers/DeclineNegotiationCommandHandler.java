@@ -41,6 +41,7 @@ public class DeclineNegotiationCommandHandler extends SingleContractNegotiationC
     @Override
     protected boolean modify(ContractNegotiation negotiation) {
         negotiation.transitionDeclining();
+        negotiation.setErrorDetail("Declined");
         return true;
     }
 
