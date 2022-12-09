@@ -19,25 +19,19 @@ import org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurati
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApiController;
 import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
-import org.eclipse.edc.connector.dataplane.spi.DataPlanePublicApiUrl;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.concurrent.Executors;
 
 /**
@@ -66,11 +60,8 @@ public class DataPlaneApiExtension implements ServiceExtension {
             .build();
     @Inject
     private WebServer webServer;
-
     @Inject
     private WebServiceConfigurer webServiceConfigurer;
-
-    private WebServiceConfiguration configuration;
     @Inject
     private DataPlaneManager dataPlaneManager;
     @Inject
@@ -102,19 +93,9 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
         webService.registerResource(controlApiConfiguration.getContextAlias(), new DataPlaneControlApiController(dataPlaneManager));
 
-        configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
+        var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
         var publicApiController = new DataPlanePublicApiController(dataPlaneManager, dataAddressResolver, monitor, executorService);
         webService.registerResource(configuration.getContextAlias(), publicApiController);
-    }
-
-    @Provider
-    public DataPlanePublicApiUrl dataPlanePublicApiUrl() {
-        try {
-            var url = new URL(String.format("http://%s:%s%s", hostname.get(), configuration.getPort(), configuration.getPath()));
-            return () -> url;
-        } catch (MalformedURLException e) {
-            throw new EdcException(e);
-        }
     }
 }
 

@@ -29,15 +29,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ConsumerPullTransferRemoteProxyResolverTest {
+class ConsumerPullTransferProxyResolverImplTest {
 
     private DataPlaneSelectorClient selectorClient;
-    private ConsumerPullTransferRemoteProxyResolver resolver;
+    private ConsumerPullTransferProxyResolverImpl resolver;
 
     @BeforeEach
     public void setUp() {
         selectorClient = mock(DataPlaneSelectorClient.class);
-        resolver = new ConsumerPullTransferRemoteProxyResolver(selectorClient, UUID.randomUUID().toString());
+        resolver = new ConsumerPullTransferProxyResolverImpl(selectorClient, UUID.randomUUID().toString());
     }
 
     @Test
