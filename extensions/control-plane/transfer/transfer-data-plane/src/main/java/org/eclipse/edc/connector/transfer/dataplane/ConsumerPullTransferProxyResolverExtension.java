@@ -15,13 +15,9 @@
 
 package org.eclipse.edc.connector.transfer.dataplane;
 
-import org.eclipse.edc.connector.dataplane.client.EmbeddedDataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
-import org.eclipse.edc.connector.dataplane.spi.DataPlanePublicApiUrl;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferEmbeddedProxyResolver;
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyResolver;
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferRemoteProxyResolver;
+import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyResolverImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -39,12 +35,6 @@ public class ConsumerPullTransferProxyResolverExtension implements ServiceExtens
     @Inject
     private DataPlaneSelectorClient selectorClient;
 
-    @Inject
-    private DataPlaneClient dataPlaneClient;
-
-    @Inject(required = false)
-    private DataPlanePublicApiUrl dataPlanePublicApiUrl;
-
     @Override
     public String name() {
         return NAME;
@@ -52,13 +42,7 @@ public class ConsumerPullTransferProxyResolverExtension implements ServiceExtens
 
     @Provider
     public ConsumerPullTransferProxyResolver proxyResolver(ServiceExtensionContext context) {
-        // If it's embedded DataPlane and it provides the APIs use the embedded DataPlane public URL
-        if (dataPlaneClient instanceof EmbeddedDataPlaneClient && dataPlanePublicApiUrl != null) {
-            context.getMonitor().info("Using embedded proxy resolver for 'consumer pull' transfer");
-            return new ConsumerPullTransferEmbeddedProxyResolver(dataPlanePublicApiUrl);
-        }
-
         var selectorStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, DEFAULT_DPF_SELECTOR_STRATEGY);
-        return new ConsumerPullTransferRemoteProxyResolver(selectorClient, selectorStrategy);
+        return new ConsumerPullTransferProxyResolverImpl(selectorClient, selectorStrategy);
     }
 }
