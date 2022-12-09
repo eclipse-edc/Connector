@@ -22,8 +22,8 @@ import org.eclipse.edc.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.edc.azure.testfixtures.CosmosTestClient;
 import org.eclipse.edc.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
-import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.TestDataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store.DataPlaneInstanceStoreTestBase;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.AfterAll;
@@ -63,7 +63,7 @@ class CosmosDataPlaneInstanceStoreIntegrationTest extends DataPlaneInstanceStore
     static void prepareCosmosClient() {
         var client = CosmosTestClient.createClient();
         typeManager = new TypeManager();
-        typeManager.registerTypes(ContractDefinition.class, DataPlaneInstanceDocument.class, TestDataPlaneInstance.class);
+        typeManager.registerTypes(ContractDefinition.class, DataPlaneInstanceDocument.class, DataPlaneInstance.class);
 
         var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());

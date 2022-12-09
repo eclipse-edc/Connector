@@ -34,11 +34,11 @@ public class TestFunctions {
                 .build();
     }
 
-    public static TestDataPlaneInstance createCustomInstance(String id, String name) {
-        return TestDataPlaneInstance.Builder.newInstance()
+    public static DataPlaneInstance createCustomInstance(String id, String name) {
+        return DataPlaneInstance.Builder.newInstance()
                 .id(id)
                 .url("http://somewhere.com:1234/api/v1")
-                .name(name)
+                .property("name", "name")
                 .build();
     }
 

@@ -55,7 +55,6 @@ class DataPlaneInstanceTest {
         var json = mapper.writeValueAsString(inst);
 
         assertThat(json).isNotNull()
-                .contains("\"edctype\":\"DataPlaneInstance\"")
                 .contains("url\":\"http://localhost:8234/some/path\"")
                 .contains("\"turnCount\":7")
                 .contains("\"someprop\":\"someval\"");

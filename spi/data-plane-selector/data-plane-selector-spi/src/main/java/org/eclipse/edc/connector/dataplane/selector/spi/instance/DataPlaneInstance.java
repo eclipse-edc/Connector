@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.Polymorphic;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,7 +34,7 @@ import java.util.UUID;
  * Representations of a data plane instance. Every DPF has an ID and a URL as well as a number, how often it was selected,
  * and a timestamp of its last selection time. In addition, there are extensible properties to hold specific properties.
  */
-public class DataPlaneInstance implements Polymorphic {
+public class DataPlaneInstance {
 
     private Map<String, Object> properties;
 

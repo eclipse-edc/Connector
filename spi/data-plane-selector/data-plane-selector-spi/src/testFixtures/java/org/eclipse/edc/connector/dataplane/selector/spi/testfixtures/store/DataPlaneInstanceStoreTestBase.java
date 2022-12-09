@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
-import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.TestDataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.TestFunctions;
 import org.junit.jupiter.api.Test;
 
@@ -71,7 +70,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
 
 
         Assertions.assertThat(customInstance)
-                .isInstanceOf(TestDataPlaneInstance.class)
+                .isInstanceOf(DataPlaneInstance.class)
                 .usingRecursiveComparison()
                 .isEqualTo(custom);
     }
