@@ -214,11 +214,11 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return a {@link StatusResult}: OK
      */
     private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
-        // TODO: why we validate offer in a different way if it is the initial one?
         Result<ContractOffer> result;
         if (negotiation.getContractOffers().isEmpty()) {
             result = validationService.validateInitialOffer(token, offer);
         } else {
+            // TODO: this is actually dead code because "counter-offers" are not supported.
             var lastOffer = negotiation.getLastContractOffer();
             result = validationService.validate(token, offer, lastOffer);
         }
