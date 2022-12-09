@@ -67,7 +67,7 @@ public class PermissionToIdsPermissionTransformer implements IdsTypeTransformer<
         }
 
         var assigner = object.getAssigner();
-            if (assigner != null) {
+        if (assigner != null) {
             builder._assigner_(List.of(URI.create(assigner)));
         }
 
