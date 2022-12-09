@@ -21,11 +21,9 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegoti
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.transform.ContractAgreementTransformerOutput;
-import org.eclipse.edc.protocol.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -83,21 +81,9 @@ public class ContractAgreementHandler implements Handler {
             return createMultipartResponse(badParameters(message, connectorId));
         }
 
-        // search for matching asset
-        // TODO remove fake asset (description request to fetch original metadata --> store/cache)
-        var assetId = IdsId.from(permission.getTarget()).getContent().getValue();
-        var asset = Asset.Builder.newInstance().id(assetId).build();
-
-        // Create contract offer request
-        var input = ContractTransformerInput.Builder.newInstance()
-                .contract(contractAgreement)
-                .asset(asset)
-                .build();
-
-        var result = transformerRegistry.transform(input, ContractAgreementTransformerOutput.class);
+        var result = transformerRegistry.transform(contractAgreement, ContractAgreementTransformerOutput.class);
         if (result.failed()) {
-            monitor.debug(String.format("Could not transform contract agreement: [%s]",
-                    String.join(", ", result.getFailureMessages())));
+            monitor.debug(String.format("Could not transform contract agreement: [%s]", result.getFailureDetail()));
             return createMultipartResponse(badParameters(message, connectorId));
         }
 
