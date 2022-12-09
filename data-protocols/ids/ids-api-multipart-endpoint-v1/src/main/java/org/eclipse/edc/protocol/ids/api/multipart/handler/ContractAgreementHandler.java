@@ -85,7 +85,8 @@ public class ContractAgreementHandler implements Handler {
 
         // search for matching asset
         // TODO remove fake asset (description request to fetch original metadata --> store/cache)
-        var asset = Asset.Builder.newInstance().id(String.valueOf(permission.getTarget())).build();
+        var assetId = IdsId.from(permission.getTarget()).getContent().getValue();
+        var asset = Asset.Builder.newInstance().id(assetId).build();
 
         // Create contract offer request
         var input = ContractTransformerInput.Builder.newInstance()

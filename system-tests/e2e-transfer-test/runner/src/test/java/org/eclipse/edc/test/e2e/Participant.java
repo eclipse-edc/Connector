@@ -152,7 +152,20 @@ public class Participant {
             contractAgreementId.set(agreementId);
         });
 
-        return contractAgreementId.get();
+        var id = contractAgreementId.get();
+        assertThat(id).isNotEmpty();
+        return id;
+    }
+
+    public Map<String, Object> getContractAgreement(String contractAgreementId) {
+        return given()
+                .baseUri(controlPlaneManagement.toString())
+                .contentType(JSON)
+                .when()
+                .get("/contractagreements/{id}", contractAgreementId)
+                .then()
+                .statusCode(200)
+                .extract().body().as(Map.class);
     }
 
     private String getContractNegotiationField(String negotiationId, String fieldName) {

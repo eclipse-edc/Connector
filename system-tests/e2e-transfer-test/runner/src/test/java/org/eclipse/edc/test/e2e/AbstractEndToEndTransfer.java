@@ -59,8 +59,8 @@ public abstract class AbstractEndToEndTransfer {
                 .get();
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
-
-        assertThat(contractAgreementId).isNotEmpty();
+        var contractAgreement = CONSUMER.getContractAgreement(contractAgreementId);
+        assertThat(contractAgreement.get("assetId")).isEqualTo(assetId);
 
         var dataRequestId = UUID.randomUUID().toString();
         var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
@@ -107,8 +107,6 @@ public abstract class AbstractEndToEndTransfer {
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
 
-        assertThat(contractAgreementId).isNotEmpty();
-
         var dataRequestId = UUID.randomUUID().toString();
         var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
 
@@ -138,8 +136,6 @@ public abstract class AbstractEndToEndTransfer {
                 .get();
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
-
-        assertThat(contractAgreementId).isNotEmpty();
 
         var destination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(CONSUMER.backendService() + "/api/consumer/store")
@@ -180,8 +176,6 @@ public abstract class AbstractEndToEndTransfer {
                 .get();
         var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
-
-        assertThat(contractAgreementId).isNotEmpty();
 
         var destination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(CONSUMER.backendService() + "/api/consumer/store")
