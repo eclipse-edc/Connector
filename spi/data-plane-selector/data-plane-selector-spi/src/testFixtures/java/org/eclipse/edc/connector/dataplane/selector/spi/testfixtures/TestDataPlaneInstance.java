@@ -33,7 +33,7 @@ import java.util.UUID;
 
 @JsonDeserialize(builder = TestDataPlaneInstance.Builder.class)
 @JsonTypeName("dataspaceconnector:testdataplaneinstance")
-public class TestDataPlaneInstance implements DataPlaneInstance {
+public class TestDataPlaneInstance extends DataPlaneInstance {
 
     private Map<String, Object> properties;
     private int turnCount;
@@ -44,6 +44,7 @@ public class TestDataPlaneInstance implements DataPlaneInstance {
     private String name;
 
     private TestDataPlaneInstance() {
+        super();
         turnCount = 0;
         lastActive = Instant.now().toEpochMilli();
         properties = new HashMap<>();

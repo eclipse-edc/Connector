@@ -28,7 +28,7 @@ public class TestFunctions {
     }
 
     public static DataPlaneInstance createInstance(String id) {
-        return DataPlaneInstanceImpl.Builder.newInstance()
+        return DataPlaneInstance.Builder.newInstance()
                 .id(id)
                 .url("http://somewhere.com:1234/api/v1")
                 .build();

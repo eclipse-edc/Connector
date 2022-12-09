@@ -53,7 +53,7 @@ public class DataPlaneInstance implements Polymorphic {
 
     private String id;
 
-    private DataPlaneInstance() {
+    protected DataPlaneInstance() {
         turnCount = 0;
         lastActive = Instant.now().toEpochMilli();
         properties = new HashMap<>();

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.transfer.dataplane.proxy;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ class ConsumerPullTransferRemoteProxyResolverTest {
     void verifyResolveSuccess() {
         var address = DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
         var proxyUrl = "test.proxy.url";
-        var instance = DataPlaneInstanceImpl.Builder.newInstance()
+        var instance = DataPlaneInstance.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .url("http://some.test.url")
                 .property("publicApiUrl", proxyUrl)
@@ -82,7 +83,7 @@ class ConsumerPullTransferRemoteProxyResolverTest {
     @Test
     void verifyFailedResultReturnedIfDataPlaneInstanceDoesNotContainPublicApiUrl() {
         var address = DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
-        var instance = DataPlaneInstanceImpl.Builder.newInstance()
+        var instance = DataPlaneInstance.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .url("http://some.test.url")
                 .build();

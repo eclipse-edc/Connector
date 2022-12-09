@@ -58,7 +58,7 @@ class RemoteDataPlaneSelectorClientTest {
     public static void prepare() {
 
         typeManager = new TypeManager();
-        typeManager.registerTypes(DataPlaneInstanceImpl.class);
+        typeManager.registerTypes(DataPlaneInstance.class);
         var objectMapper = typeManager.getMapper();
         port = TestUtils.getFreePort();
         monitor = new ConsoleMonitor();

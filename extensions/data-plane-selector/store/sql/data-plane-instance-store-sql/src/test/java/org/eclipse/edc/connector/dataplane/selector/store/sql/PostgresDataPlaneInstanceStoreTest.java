@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql;
 
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.TestDataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store.DataPlaneInstanceStoreTestBase;
@@ -52,7 +53,7 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
     void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
 
         var typeManager = new TypeManager();
-        typeManager.registerTypes(DataPlaneInstanceImpl.class);
+        typeManager.registerTypes(DataPlaneInstance.class);
         typeManager.registerTypes(TestDataPlaneInstance.class);
 
 
