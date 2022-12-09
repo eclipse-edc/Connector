@@ -35,8 +35,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("asset-index-sql") {
-            artifactId = "asset-index-sql"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

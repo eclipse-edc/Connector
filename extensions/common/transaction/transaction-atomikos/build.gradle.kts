@@ -31,8 +31,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transaction-atomikos") {
-            artifactId = "transaction-atomikos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

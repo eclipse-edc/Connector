@@ -17,19 +17,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    implementation(project(":core:common:util"))
-
-    implementation(libs.okhttp)
-    implementation(libs.failsafe.core)
+    api(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-sync"))
+    api(project(":extensions:control-plane:data-plane-transfer:data-plane-transfer-client"))
 }
-
 
 publishing {
     publications {
-        create<MavenPublication>("http-receiver") {
-            artifactId = "http-receiver"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

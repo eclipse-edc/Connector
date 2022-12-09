@@ -32,8 +32,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-aws-s3") {
-            artifactId = "data-plane-aws-s3"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

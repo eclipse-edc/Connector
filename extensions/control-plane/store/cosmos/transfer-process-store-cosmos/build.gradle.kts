@@ -31,11 +31,9 @@ dependencies {
     testImplementation(testFixtures(project(":spi:control-plane:transfer-spi")))
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("transfer-process-store-cosmos") {
-            artifactId = "transfer-process-store-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

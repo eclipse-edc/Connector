@@ -32,8 +32,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure-blob-core") {
-            artifactId = "azure-blob-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -23,7 +23,6 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import net.minidev.json.JSONObject;
 import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.EdcException;
@@ -63,6 +62,24 @@ public class TokenGenerationServiceImpl implements TokenGenerationService {
         this.baseDecorator = new BaseDecorator(jwsAlgorithm);
     }
 
+    /**
+     * Generate a token signer based on a private key.
+     */
+    private static JWSSigner createSigner(PrivateKey privateKey) {
+        switch (privateKey.getAlgorithm()) {
+            case KEY_ALGO_EC:
+                try {
+                    return new ECDSASigner((ECPrivateKey) privateKey);
+                } catch (JOSEException e) {
+                    throw new EdcException("Failed to generate token signed for EC key: " + e.getMessage());
+                }
+            case KEY_ALGO_RSA:
+                return new RSASSASigner(privateKey);
+            default:
+                throw new EdcException("Key algorithm not handled: " + privateKey.getAlgorithm());
+        }
+    }
+
     @Override
     public Result<TokenRepresentation> generate(@NotNull JwtDecorator... decorators) {
         var header = createHeader(decorators);
@@ -85,7 +102,7 @@ public class TokenGenerationServiceImpl implements TokenGenerationService {
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         try {
-            return JWSHeader.parse(new JSONObject(map));
+            return JWSHeader.parse(map);
         } catch (ParseException e) {
             throw new EdcException("Error parsing JWSHeader, this should never happens since the algorithm is always valid", e);
         }
@@ -106,24 +123,6 @@ public class TokenGenerationServiceImpl implements TokenGenerationService {
     @NotNull
     private Stream<JwtDecorator> allDecorators(@NotNull JwtDecorator[] decorators) {
         return Stream.concat(Stream.of(this.baseDecorator), Arrays.stream(decorators));
-    }
-
-    /**
-     * Generate a token signer based on a private key.
-     */
-    private static JWSSigner createSigner(PrivateKey privateKey) {
-        switch (privateKey.getAlgorithm()) {
-            case KEY_ALGO_EC:
-                try {
-                    return new ECDSASigner((ECPrivateKey) privateKey);
-                } catch (JOSEException e) {
-                    throw new EdcException("Failed to generate token signed for EC key: " + e.getMessage());
-                }
-            case KEY_ALGO_RSA:
-                return new RSASSASigner(privateKey);
-            default:
-                throw new EdcException("Key algorithm not handled: " + privateKey.getAlgorithm());
-        }
     }
 
     /**

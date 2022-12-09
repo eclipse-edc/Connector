@@ -40,7 +40,7 @@ put these data into its Azure Blob Storage.
 ### Interfaces
 
 This extension introduces a Control Plane endpoint used by the Data Plane for validating the access token received in input
-of its public API. OpenApi documentation can be found [here](../../../resources/openapi/yaml/transfer-data-plane.yaml).
+of its public API. OpenApi documentation can be found [here](../../../../resources/openapi/yaml/transfer-data-plane.yaml).
 
 ### Configurations
 
@@ -57,7 +57,7 @@ of its public API. OpenApi documentation can be found [here](../../../resources/
 
 ### Consumer pull
 
-![alt text](../../../docs/developer/architecture/data-transfer/diagrams/transfer-data-plane-consumer-pull.png)
+![alt text](../../../../docs/developer/architecture/data-transfer/diagrams/transfer-data-plane-consumer-pull.png)
 
 0. Provider and consumer agree to a contract (not displayed in the diagram)
 1. Consumer initiates the transfer process, i.e. sends `DataRequest` with destination type equals to `HttpProxy`
@@ -92,7 +92,7 @@ of its public API. OpenApi documentation can be found [here](../../../resources/
 
 ### Provider push
 
-![alt text](../../../docs/developer/architecture/data-transfer/diagrams/transfer-data-plane-provider-push.png)
+![alt text](../../../../docs/developer/architecture/data-transfer/diagrams/transfer-data-plane-provider-push.png)
 
 0. Provider and consumer agree to a contract (not displayed in the diagram)
 1. Consumer initiates the transfer process, i.e. sends `DataRequest` with any destination type other than `HttpProxy`

@@ -32,11 +32,9 @@ dependencies {
 
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("contract-negotiation-store-cosmos") {
-            artifactId = "contract-negotiation-store-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

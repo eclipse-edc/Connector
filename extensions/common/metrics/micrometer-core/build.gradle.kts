@@ -43,8 +43,7 @@ tasks.withType<Test> {
 
 publishing {
     publications {
-        create<MavenPublication>("micrometer-core") {
-            artifactId = "micrometer-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

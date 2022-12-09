@@ -32,8 +32,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("aws-s3-test") {
-            artifactId = "aws-s3-test"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

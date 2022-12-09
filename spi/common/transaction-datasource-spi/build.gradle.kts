@@ -22,8 +22,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transaction-datasource-spi") {
-            artifactId = "transaction-datasource-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

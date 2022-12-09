@@ -27,8 +27,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("control-plane-aggregate-services") {
-            artifactId = "control-plane-aggregate-services"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

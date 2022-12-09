@@ -29,11 +29,9 @@ dependencies {
 
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("asset-index-cosmos") {
-            artifactId = "asset-index-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

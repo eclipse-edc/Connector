@@ -35,8 +35,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("junit") {
-            artifactId = "junit"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

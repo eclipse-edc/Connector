@@ -32,8 +32,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-selector-spi") {
-            artifactId = "data-plane-selector-spi"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

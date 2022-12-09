@@ -31,11 +31,9 @@ dependencies {
 
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("policy-definition-store-cosmos") {
-            artifactId = "policy-definition-store-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

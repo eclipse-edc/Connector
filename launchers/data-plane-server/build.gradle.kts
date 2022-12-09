@@ -40,11 +40,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveFileName.set("data-plane-server.jar")
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("data-plane-server") {
-            artifactId = "data-plane-server"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -24,10 +24,10 @@ dependencies {
     implementation(libs.googlecloud.storage)
     implementation(libs.googlecloud.iam.credentials)
 }
+
 publishing {
     publications {
-        create<MavenPublication>("gcp-core") {
-            artifactId = "gcp-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

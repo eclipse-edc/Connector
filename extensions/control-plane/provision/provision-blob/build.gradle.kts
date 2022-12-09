@@ -28,8 +28,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("provision-blob") {
-            artifactId = "provision-blob"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

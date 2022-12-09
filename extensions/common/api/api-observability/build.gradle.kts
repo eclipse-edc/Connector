@@ -30,8 +30,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("api-observability") {
-            artifactId = "api-observability"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

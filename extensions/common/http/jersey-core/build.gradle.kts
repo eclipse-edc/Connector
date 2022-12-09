@@ -32,8 +32,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("jersey-core") {
-            artifactId = "jersey-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

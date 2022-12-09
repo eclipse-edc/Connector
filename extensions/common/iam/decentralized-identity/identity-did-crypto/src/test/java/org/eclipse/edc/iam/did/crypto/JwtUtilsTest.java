@@ -63,6 +63,18 @@ class JwtUtilsTest {
         return Arguments.of(builderOperator, expectSuccess, name);
     }
 
+    private static JWTClaimsSet applyOperator(UnaryOperator<JWTClaimsSet.Builder> builderOperator, SignedJWT vc) throws ParseException {
+        var claimsSetBuilder = new JWTClaimsSet.Builder(vc.getJWTClaimsSet());
+        var claimsSet = builderOperator.apply(claimsSetBuilder).build();
+
+        // claims that are present but are null are still valid, so we need to remove them. That is only possible by creating a new claims set
+        var bldr = new JWTClaimsSet.Builder();
+        claimsSet.getClaims().entrySet().stream().filter(e -> e.getValue() != null)
+                .forEach(e -> bldr.claim(e.getKey(), e.getValue()));
+
+        return bldr.build();
+    }
+
     @BeforeEach
     void setup() throws JOSEException {
         privateKey = new EcPrivateKeyWrapper((ECKey) getJwk("private_p256.pem"));
@@ -78,7 +90,7 @@ class JwtUtilsTest {
         assertThat(vc.getJWTClaimsSet().getSubject()).isEqualTo("test-subject");
         assertThat(vc.getJWTClaimsSet().getAudience()).containsExactly("test-audience");
         assertThat(vc.getJWTClaimsSet().getJWTID()).satisfies(UUID::fromString);
-        assertThat(vc.getJWTClaimsSet().getExpirationTime()).isEqualTo(now.plus(10, MINUTES).truncatedTo(SECONDS));
+        assertThat(vc.getJWTClaimsSet().getExpirationTime().toInstant().truncatedTo(SECONDS)).isEqualTo(now.plus(10, MINUTES).truncatedTo(SECONDS));
     }
 
     @Test
@@ -91,7 +103,7 @@ class JwtUtilsTest {
         //deserialize
         var deserialized = SignedJWT.parse(jwtString);
 
-        assertThat(deserialized.getJWTClaimsSet()).isEqualTo(vc.getJWTClaimsSet());
+        assertThat(deserialized.getJWTClaimsSet()).usingRecursiveComparison().isEqualTo(vc.getJWTClaimsSet());
         assertThat(deserialized.getHeader().getAlgorithm()).isEqualTo(vc.getHeader().getAlgorithm());
         assertThat(deserialized.getPayload().toString()).isEqualTo(vc.getPayload().toString());
     }
@@ -128,9 +140,7 @@ class JwtUtilsTest {
     void verifyJwt_OnClaims(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String ignoredName) throws Exception {
         var vc = create(privateKey, "test-issuer", "test-subject", "test-audience", clock);
 
-        var claimsSetBuilder = new JWTClaimsSet.Builder(vc.getJWTClaimsSet());
-        var claimsSet = builderOperator.apply(claimsSetBuilder).build();
-
+        JWTClaimsSet claimsSet = applyOperator(builderOperator, vc);
         var jwt = new SignedJWT(vc.getHeader(), claimsSet);
         jwt.sign(privateKey.signer());
 

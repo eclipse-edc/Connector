@@ -31,8 +31,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("contract-core") {
-            artifactId = "contract-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

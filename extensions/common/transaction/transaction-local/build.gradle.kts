@@ -25,8 +25,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transaction-local") {
-            artifactId = "transaction-local"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

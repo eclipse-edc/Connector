@@ -30,11 +30,9 @@ dependencies {
     testFixturesImplementation(libs.azure.cosmos)
 }
 
-
 publishing {
     publications {
-        create<MavenPublication>("azure-cosmos-core") {
-            artifactId = "azure-cosmos-core"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

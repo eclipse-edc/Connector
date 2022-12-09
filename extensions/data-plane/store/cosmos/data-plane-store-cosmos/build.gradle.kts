@@ -16,12 +16,9 @@ dependencies {
 
 }
 
-
-
 publishing {
     publications {
-        create<MavenPublication>("data-plane-store-cosmos") {
-            artifactId = "data-plane-store-cosmos"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

@@ -40,8 +40,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-azure-data-factory") {
-            artifactId = "data-plane-azure-data-factory"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }

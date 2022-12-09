@@ -23,8 +23,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids-jsonld-serdes") {
-            artifactId = "ids-jsonld-serdes"
+        create<MavenPublication>(project.name) {
             from(components["java"])
         }
     }
