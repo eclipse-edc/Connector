@@ -113,7 +113,7 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
 
     private static class Transaction {
         private boolean rollbackOnly = false;
-        private List<TransactionSynchronization> synchronizations;
+        private List<TransactionSynchronization> synchronizations;  // lazy instantiate the collection to avoid object creation if not needed
 
         boolean isRollbackOnly() {
             return rollbackOnly;
