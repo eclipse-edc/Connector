@@ -170,7 +170,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .managedResources(resultSet.getBoolean(statements.getManagedResourcesColumn()))
                 .transferType(fromJson(resultSet.getString(statements.getTransferTypeColumn()), TransferType.class))
                 .processId(resultSet.getString(statements.getProcessIdColumn()))
-                .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
+                .properties(fromJson(resultSet.getString(statements.getDataRequestPropertiesColumn()), getTypeRef()))
                 .build();
     }
 
@@ -253,7 +253,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getProvisionedResourceSet()),
                 toJson(process.getContentDataAddress()),
                 process.getType().toString(),
-                toJson(process.getDeprovisionedResources()));
+                toJson(process.getDeprovisionedResources()),
+                toJson(process.getProperties()));
 
         //insert DataRequest
         var dr = process.getDataRequest();
@@ -296,6 +297,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
                 .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), new TypeReference<>() {
                 }))
+                .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
                 .build();
     }
 

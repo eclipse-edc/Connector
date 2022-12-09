@@ -48,7 +48,7 @@ class DataRequestMapping extends TranslationMapping {
         add(FIELD_CONTRACT_ID, statements.getContractIdColumn());
         add(FIELD_DATA_DESTINATION, new JsonFieldMapping(statements.getDataDestinationColumn()));
         add(FIELD_MANAGED_RESOURCES, statements.getManagedResourcesColumn());
-        add(FIELD_PROPERTIES, new JsonFieldMapping(statements.getPropertiesColumn()));
+        add(FIELD_PROPERTIES, new JsonFieldMapping(statements.getDataRequestPropertiesColumn()));
         add(FIELD_TRANSFER_TYPE, new JsonFieldMapping(statements.getTransferTypeColumn()));
         add(FIELD_TRANSFER_PROCESS_ID, statements.getTransferProcessIdFkColumn());
     }

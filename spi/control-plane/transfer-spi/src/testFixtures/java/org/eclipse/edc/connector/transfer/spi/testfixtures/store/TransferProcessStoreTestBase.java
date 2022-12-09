@@ -34,6 +34,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -65,7 +66,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void create() {
-        var t = TestFunctions.createTransferProcess("test-id");
+        var t = TestFunctions.createTransferProcessBuilder("test-id").properties(Map.of("key", "value")).build();
         getTransferProcessStore().save(t);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
