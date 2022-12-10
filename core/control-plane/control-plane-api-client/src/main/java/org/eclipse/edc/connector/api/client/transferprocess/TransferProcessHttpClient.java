@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.edc.connector.api.client.transferprocess;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
