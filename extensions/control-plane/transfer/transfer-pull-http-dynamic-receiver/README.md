@@ -1,9 +1,9 @@
 # Http Dynamic EDR receiver
 
-This extension is similar to the HTTP EDR receiver. The difference is that the URL is not configured
-at startup time, but instead the callback url is provided to the consumer when initiating a transfer request 
+This extension is similar to the [HTTP EDR receiver](../transfer-pull-http-receiver). The difference is that the URL is not configured
+at startup time, but instead the callback url is provided to the consumer connector when initiating a transfer request 
 by passing a custom property in the transfer request payload e.g. The URL will be stored in the transfer process
-and will be used by the consumer to dispatch the EDR
+and will be used by the consumer connector to dispatch the EDR
 
 ```json
 {
