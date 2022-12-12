@@ -35,6 +35,11 @@ dependencies {
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
 }
+edcBuild {
+    swagger {
+        apiGroup.set("control-api")
+    }
+}
 
 publishing {
     publications {

@@ -34,6 +34,12 @@ dependencies {
     testImplementation(libs.awaitility)
 }
 
+edcBuild {
+    swagger {
+        apiGroup.set("control-api")
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>(project.name) {

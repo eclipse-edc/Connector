@@ -30,6 +30,13 @@ dependencies {
     testImplementation(project(":core:common:junit"))
 }
 
+edcBuild {
+    swagger {
+        apiGroup.set("management-api")
+    }
+}
+
+
 publishing {
     publications {
         create<MavenPublication>(project.name) {
