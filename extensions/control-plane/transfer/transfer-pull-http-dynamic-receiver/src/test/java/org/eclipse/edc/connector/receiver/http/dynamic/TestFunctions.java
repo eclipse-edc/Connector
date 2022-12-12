@@ -17,13 +17,10 @@ package org.eclipse.edc.connector.receiver.http.dynamic;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.eclipse.edc.connector.receiver.http.dynamic.HttpDynamicEndpointDataReferenceReceiver.HTTP_RECEIVER_ENDPOINT;
 
@@ -34,8 +31,11 @@ public class TestFunctions {
                 .id(id)
                 .state(TransferProcessStates.IN_PROGRESS.code())
                 .type(TransferProcess.Type.CONSUMER)
+                .contentDataAddress(HttpDataAddress.Builder.newInstance()
+                        .baseUrl("http://localhost:8080/test")
+                        .build())
                 .dataRequest(DataRequest.Builder.newInstance()
-                        .destinationType("file")
+                        .destinationType("HttpProxy")
                         .build())
                 .properties(properties)
                 .build();
@@ -43,16 +43,6 @@ public class TestFunctions {
 
     public static TransferProcess createTransferProcess(String id) {
         return createTransferProcess(id, new HashMap<>());
-    }
-
-    public static DataFlowRequest createDataFlowRequest(String processId, URL callbackAddress) {
-        return DataFlowRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .processId(processId)
-                .callbackAddress(callbackAddress)
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("file").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("file").build())
-                .build();
     }
 
 

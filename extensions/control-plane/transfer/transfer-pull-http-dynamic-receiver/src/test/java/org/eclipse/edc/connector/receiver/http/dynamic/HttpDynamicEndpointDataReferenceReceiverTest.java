@@ -20,7 +20,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -44,7 +43,6 @@ import static org.eclipse.edc.connector.receiver.http.dynamic.TestFunctions.tran
 import static org.eclipse.edc.connector.receiver.http.dynamic.TestFunctions.transferPropertiesWithAuth;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMostOnce;
@@ -163,7 +161,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
-        assertThrows(EdcException.class, () -> receiver.send(edr));
+        assertThat(receiver.send(edr).get()).matches(Result::failed);
     }
 
     @Test
@@ -179,7 +177,8 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
-        assertThrows(EdcException.class, () -> receiver.send(edr));
+        assertThat(receiver.send(edr).get()).matches(Result::failed);
+
     }
 
     @Test
@@ -196,7 +195,9 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
-        assertThrows(EdcException.class, () -> receiver.send(edr));
+
+        assertThat(receiver.send(edr).get()).matches(Result::failed);
+
     }
 
     @Test

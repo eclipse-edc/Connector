@@ -21,7 +21,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -65,12 +64,12 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
         var processId = transferProcessStore.processIdForDataRequestId(edr.getId());
 
         if (processId == null) {
-            throw new EdcException(format("Failed to found processId for DataRequestId %s", edr.getId()));
+            return CompletableFuture.completedFuture(Result.failure(format("Failed to found processId for DataRequestId %s", edr.getId())));
         }
         var transferProcess = transferProcessStore.find(processId);
 
         if (transferProcess == null) {
-            throw new EdcException(format("Failed to found transfer process for id %s", processId));
+            return CompletableFuture.completedFuture(Result.failure(format("Failed to found transfer process for id %s", processId)));
         }
 
         var endpoint = transferProcess.getProperties().get(HTTP_RECEIVER_ENDPOINT);
@@ -96,13 +95,9 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
         }
         try (var response = with(retryPolicy).get(() -> httpClient.newCall(requestBuilder.build()).execute())) {
             if (response.isSuccessful()) {
-                var body = response.body();
-                if (body == null) {
-                    throw new EdcException(format("Received empty response body when receiving endpoint data reference at uri: %s", endpoint));
-                }
                 return CompletableFuture.completedFuture(Result.success());
             } else {
-                throw new EdcException(format("Received error code %s when transferring endpoint data reference at uri: %s", response.code(), endpoint));
+                return CompletableFuture.completedFuture(Result.failure(format("Received error code %s when transferring endpoint data reference at uri: %s", response.code(), endpoint)));
             }
         }
     }
