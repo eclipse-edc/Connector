@@ -196,9 +196,9 @@ class ContractValidationServiceImplTest {
                 .id("1:2")
                 .build();
 
-        boolean isValid = validationService.validateAgreement(claimToken, agreement);
+        var isValid = validationService.validateAgreement(claimToken, agreement);
 
-        assertThat(isValid).isTrue();
+        assertThat(isValid.succeeded()).isTrue();
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
         verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
@@ -210,14 +210,35 @@ class ContractValidationServiceImplTest {
         var isValid =
                 validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), past);
 
-        assertThat(isValid).isFalse();
+        assertThat(isValid.failed()).isTrue();
     }
 
     @Test
     void verifyContractAgreementNotStartedYet() {
         var isValid = validateAgreementDate(MIN.getEpochSecond(), MAX.getEpochSecond(), MAX.getEpochSecond());
 
-        assertThat(isValid).isFalse();
+        assertThat(isValid.failed()).isTrue();
+    }
+
+    @Test
+    void validateAgreement_failsIfIdIsNotValid() {
+        var token = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement().id("not a valid ID").build();
+        var result = validationService.validateAgreement(token, agreement);
+
+        assertThat(result.failed()).isTrue();
+
+    }
+
+    @Test
+    void verifyAgreement_failsIfContractDefinitionIsNull() {
+        var agreement = createContractAgreement().id("1:2").build();
+        var token = ClaimToken.Builder.newInstance().build();
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(definitionService.definitionFor(any(), any())).thenReturn(null);
+        var result = validationService.validateAgreement(token, agreement);
+
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -249,10 +270,11 @@ class ContractValidationServiceImplTest {
 
         var result = validationService.validateConfirmed(agreement, offer);
 
+
         assertThat(result.failed()).isTrue();
     }
 
-    private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
+    private Result<ContractAgreement> validateAgreementDate(long signingDate, long startDate, long endDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(createContractDefinition());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
