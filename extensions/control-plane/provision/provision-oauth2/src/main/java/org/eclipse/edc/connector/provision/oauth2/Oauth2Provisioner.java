@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.provision.oauth2;
 
 import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.transfer.spi.provision.Provisioner;
@@ -24,6 +23,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
@@ -43,10 +43,10 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 class Oauth2Provisioner implements Provisioner<Oauth2ResourceDefinition, Oauth2ProvisionedResource> {
 
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
     private final TypeManager typeManager;
 
-    Oauth2Provisioner(OkHttpClient httpClient, TypeManager typeManager) {
+    Oauth2Provisioner(EdcHttpClient httpClient, TypeManager typeManager) {
         this.httpClient = httpClient;
         this.typeManager = typeManager;
     }
@@ -71,7 +71,7 @@ class Oauth2Provisioner implements Provisioner<Oauth2ResourceDefinition, Oauth2P
 
         var url = resourceDefinition.getTokenUrl();
         var request = new Request.Builder().url(url).header("Accept", "application/json").post(requestBody).build();
-        try (var response = httpClient.newCall(request).execute()) { // TODO: failsafe
+        try (var response = httpClient.execute(request)) {
 
             var stringBody = getStringBody(response);
             if (!response.isSuccessful()) {

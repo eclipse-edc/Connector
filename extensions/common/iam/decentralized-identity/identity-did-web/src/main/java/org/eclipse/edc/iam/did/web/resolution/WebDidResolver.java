@@ -15,10 +15,10 @@
 package org.eclipse.edc.iam.did.web.resolution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolver;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ import static java.lang.String.format;
 public class WebDidResolver implements DidResolver {
     private static final String DID_METHOD = "web";
 
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
     private final WebDidUrlResolver urlResolver;
@@ -41,7 +41,7 @@ public class WebDidResolver implements DidResolver {
     /**
      * Creates a resolver that executes standard DNS lookups.
      */
-    public WebDidResolver(OkHttpClient httpClient, boolean useHttpsScheme, ObjectMapper mapper, Monitor monitor) {
+    public WebDidResolver(EdcHttpClient httpClient, boolean useHttpsScheme, ObjectMapper mapper, Monitor monitor) {
         this.httpClient = httpClient;
         this.urlResolver = new WebDidUrlResolver(useHttpsScheme);
         this.mapper = mapper;
@@ -65,7 +65,7 @@ public class WebDidResolver implements DidResolver {
         }
 
         var request = new Request.Builder().url(url).get().build();
-        try (var response = httpClient.newCall(request).execute()) {
+        try (var response = httpClient.execute(request)) {
             if (response.code() != 200) {
                 return Result.failure(format("Error resolving DID: %s. HTTP Code was: %s", didKey, response.code()));
             }

@@ -17,12 +17,14 @@ package org.eclipse.edc.connector.core;
 import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.connector.core.base.OkHttpClientFactory;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -104,17 +106,25 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     }
 
     @Provider
+    public EdcHttpClient edcHttpClient(ServiceExtensionContext context) {
+        return new EdcHttpClientImpl(
+                okHttpClient(context),
+                retryPolicy(context)
+        );
+    }
+
+    @Provider
     public OkHttpClient okHttpClient(ServiceExtensionContext context) {
         return OkHttpClientFactory.create(context, okHttpEventListener);
     }
 
     @Provider
-    public RetryPolicy<?> retryPolicy(ServiceExtensionContext context) {
+    public <T> RetryPolicy<T> retryPolicy(ServiceExtensionContext context) {
         var maxRetries = context.getSetting(MAX_RETRIES, 5);
         var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
         var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
 
-        return RetryPolicy.builder()
+        return RetryPolicy.<T>builder()
                 .withMaxRetries(maxRetries)
                 .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS)
                 .build();

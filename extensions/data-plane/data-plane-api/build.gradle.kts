@@ -20,12 +20,12 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:http-spi"))
     api(project(":spi:common:web-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":extensions:common:api:control-api-configuration"))
 
-    implementation(libs.okhttp)
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":extensions:common:http"))

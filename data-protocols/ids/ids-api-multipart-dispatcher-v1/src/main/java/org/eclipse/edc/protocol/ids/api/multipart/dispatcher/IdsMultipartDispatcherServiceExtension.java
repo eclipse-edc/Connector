@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.protocol.ids.api.multipart.dispatcher;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
@@ -30,6 +29,7 @@ import org.eclipse.edc.protocol.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
@@ -46,7 +46,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     private Monitor monitor;
 
     @Inject
-    private OkHttpClient httpClient;
+    private EdcHttpClient httpClient;
 
     @Inject
     private DynamicAttributeTokenService dynamicAttributeTokenService;

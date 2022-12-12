@@ -23,15 +23,14 @@ import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MultipartBody;
 import okhttp3.MultipartReader;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
-import org.eclipse.edc.protocol.ids.message.FutureCallback;
 import org.eclipse.edc.protocol.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -51,12 +50,12 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
  */
 public class IdsMultipartSender {
 
-    private Monitor monitor;
-    private OkHttpClient httpClient;
-    private DynamicAttributeTokenService tokenService;
-    private ObjectMapper objectMapper;
+    private final Monitor monitor;
+    private final EdcHttpClient httpClient;
+    private final DynamicAttributeTokenService tokenService;
+    private final ObjectMapper objectMapper;
 
-    public IdsMultipartSender(Monitor monitor, OkHttpClient httpClient,
+    public IdsMultipartSender(Monitor monitor, EdcHttpClient httpClient,
                               DynamicAttributeTokenService tokenService,
                               ObjectMapper objectMapper) {
         this.monitor = monitor;
@@ -154,10 +153,7 @@ public class IdsMultipartSender {
                 .post(multipartRequestBody)
                 .build();
 
-        // Execute call
-        var future = new CompletableFuture<R>();
-
-        httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> {
+        return httpClient.executeAsync(httpRequest, r -> {
             monitor.debug("Response received from connector. Status " + r.code());
             if (r.isSuccessful()) {
                 try (var body = r.body()) {
@@ -177,9 +173,7 @@ public class IdsMultipartSender {
             } else {
                 throw new EdcException(format("Received an error from connector (%s): %s %s", requestUrl, r.code(), r.message()));
             }
-        }));
-
-        return future;
+        });
     }
 
     /**

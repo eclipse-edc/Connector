@@ -15,9 +15,6 @@
 
 package org.eclipse.edc.iam.oauth2;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
-import okhttp3.Response;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
@@ -34,6 +31,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
@@ -83,7 +81,7 @@ public class Oauth2Extension implements ServiceExtension {
     private IdentityProviderKeyResolver providerKeyResolver;
 
     @Inject
-    private OkHttpClient okHttpClient;
+    private EdcHttpClient httpClient;
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
@@ -97,9 +95,6 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
 
-    @Inject
-    private RetryPolicy<Response> retryPolicy;
-
     @Override
     public String name() {
         return NAME;
@@ -110,7 +105,7 @@ public class Oauth2Extension implements ServiceExtension {
         var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
         var keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
         var identityProviderKeyResolverConfiguration = new IdentityProviderKeyResolverConfiguration(jwksUrl, keyRefreshInterval);
-        providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), okHttpClient, context.getTypeManager(), identityProviderKeyResolverConfiguration);
+        providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), httpClient, context.getTypeManager(), identityProviderKeyResolverConfiguration);
 
         var configuration = createConfig(context);
 
@@ -129,8 +124,7 @@ public class Oauth2Extension implements ServiceExtension {
                 context.getMonitor(),
                 configuration,
                 new TokenGenerationServiceImpl(privateKey),
-                okHttpClient,
-                retryPolicy,
+                httpClient,
                 jwtDecoratorRegistry,
                 context.getTypeManager(),
                 new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),

@@ -22,6 +22,5 @@ dependencies {
     implementation(project(":core:common:connector-core"))
 
     implementation(libs.nimbus.jwt)
-    implementation(libs.okhttp)
     implementation(libs.jakarta.rsApi)
 }

@@ -18,9 +18,9 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
@@ -33,11 +33,11 @@ import static okhttp3.MediaType.get;
 public class BackendServiceHttpProvisionerController {
 
     private final Monitor monitor;
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
     private final TypeManager typeManager;
     private final int exposedHttpPort;
 
-    public BackendServiceHttpProvisionerController(Monitor monitor, OkHttpClient httpClient, TypeManager typeManager, int exposedHttpPort) {
+    public BackendServiceHttpProvisionerController(Monitor monitor, EdcHttpClient httpClient, TypeManager typeManager, int exposedHttpPort) {
         this.monitor = monitor;
         this.httpClient = httpClient;
         this.typeManager = typeManager;
@@ -71,7 +71,7 @@ public class BackendServiceHttpProvisionerController {
                 .post(RequestBody.create(typeManager.writeValueAsString(requestBody), get("application/json")))
                 .build();
 
-        try (var response = httpClient.newCall(callbackRequest).execute()) {
+        try (var response = httpClient.execute(callbackRequest)) {
             var body = response.body();
             var string = body.string();
             if (response.isSuccessful()) {

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector.client;
 
-import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
@@ -38,7 +37,7 @@ import java.util.List;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstance;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -57,10 +56,8 @@ class RemoteDataPlaneSelectorClientTest {
 
     @BeforeAll
     public static void prepare() {
-
         typeManager = new TypeManager();
         typeManager.registerTypes(DataPlaneInstanceImpl.class);
-        var objectMapper = typeManager.getMapper();
         port = TestUtils.getFreePort();
         monitor = new ConsoleMonitor();
         config = new JettyConfiguration(null, null);
@@ -74,13 +71,10 @@ class RemoteDataPlaneSelectorClientTest {
 
     @BeforeEach
     void setUp() {
-
         jetty = startRestApi();
 
-        // set up client
-        RetryPolicy<Object> retryPolicy = RetryPolicy.ofDefaults();
         var url = format(BASE_URL, port);
-        client = new RemoteDataPlaneSelectorClient(testOkHttpClient(), url, retryPolicy, typeManager.getMapper());
+        client = new RemoteDataPlaneSelectorClient(testHttpClient(), url, typeManager.getMapper());
     }
 
     @Test

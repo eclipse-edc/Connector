@@ -20,15 +20,12 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.MediaType;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.PortMapping;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,11 +34,10 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -63,22 +59,21 @@ public class JerseyRestServiceTest {
 
     @Test
     @DisplayName("Verifies that a resource is available under the default path")
-    void verifyDefaultContextPath() throws IOException {
+    void verifyDefaultContextPath() {
         startJetty(PortMapping.getDefault(httpPort));
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
 
-        var response = executeRequest("http://localhost:" + httpPort + "/api/test/resource");
-
-        assertThat(response.code()).isEqualTo(200);
-        var body = response.body();
-        assertThat(body).isNotNull();
-        assertThat(body.string()).isEqualTo("exists");
+        given()
+                .get("http://localhost:" + httpPort + "/api/test/resource")
+                .then()
+                .statusCode(200)
+                .body(is("exists"));
     }
 
     @Test
     @DisplayName("Verifies that a second resource is available under a specific path and port")
-    void verifyAnotherContextPath() throws IOException {
+    void verifyAnotherContextPath() {
         var anotherPort = getFreePort();
         startJetty(
                 PortMapping.getDefault(httpPort),
@@ -88,21 +83,17 @@ public class JerseyRestServiceTest {
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
 
+        given()
+                .get("http://localhost:" + anotherPort + "/path/test/resource")
+                .then()
+                .statusCode(200)
+                .body(is("exists"));
 
-        var response = executeRequest("http://localhost:" + anotherPort + "/path/test/resource");
-
-        assertThat(response.code()).isEqualTo(200);
-        var body = response.body();
-        assertThat(body).isNotNull();
-        assertThat(body.string()).isEqualTo("exists");
-
-
-        var response2 = executeRequest("http://localhost:" + httpPort + "/api/test/resource");
-
-        assertThat(response2.code()).isEqualTo(200);
-        var body2 = response2.body();
-        assertThat(body2).isNotNull();
-        assertThat(body2.string()).isEqualTo("exists");
+        given()
+                .get("http://localhost:" + httpPort + "/api/test/resource")
+                .then()
+                .statusCode(200)
+                .body(is("exists"));
     }
 
     @Test
@@ -134,19 +125,21 @@ public class JerseyRestServiceTest {
         jerseyRestService.start();
 
         //verify that the first request hits the filter
-        var response = executeRequest("http://localhost:" + anotherPort + "/path/test/resource");
-
-        assertThat(response.code()).isEqualTo(200);
+        given()
+                .get("http://localhost:" + anotherPort + "/path/test/resource")
+                .then()
+                .statusCode(200);
         verify(filterMock).filter(any(ContainerRequestContext.class));
         verifyNoMoreInteractions(filterMock);
 
         //verify that the second request does NOT hit the filter
         reset(filterMock);
-        var response2 = executeRequest("http://localhost:" + httpPort + "/api/test/resource");
+        given()
+                .get("http://localhost:" + httpPort + "/api/test/resource")
+                .then()
+                .statusCode(200);
 
-        assertThat(response2.code()).isEqualTo(200);
         verifyNoInteractions(filterMock);
-
     }
 
     @Test
@@ -169,9 +162,11 @@ public class JerseyRestServiceTest {
         jerseyRestService.start();
 
         //verify that the first request hits only the bar filter
-        var response = executeRequest("http://localhost:" + port2 + "/bar/test/resource");
+        given()
+                .get("http://localhost:" + port2 + "/bar/test/resource")
+                .then()
+                .statusCode(200);
 
-        assertThat(response.code()).isEqualTo(200);
         verify(fooRequestFilter, never()).filter(any(ContainerRequestContext.class));
         verify(barFilter).filter(any(ContainerRequestContext.class));
         verifyNoMoreInteractions(barFilter);
@@ -179,8 +174,11 @@ public class JerseyRestServiceTest {
         reset(barFilter, fooRequestFilter);
 
         //  verify that the second request only hits the foo filter
-        var response2 = executeRequest("http://localhost:" + port1 + "/foo/test/resource");
-        assertThat(response2.code()).isEqualTo(200);
+        given()
+                .get("http://localhost:" + port1 + "/foo/test/resource")
+                .then()
+                .statusCode(200);
+
         verify(barFilter, never()).filter(any());
         verify(fooRequestFilter).filter(any());
         verifyNoMoreInteractions(fooRequestFilter);
@@ -228,19 +226,6 @@ public class JerseyRestServiceTest {
         jettyService = new JettyService(config, monitorMock);
         jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.none(), monitorMock);
         jettyService.start();
-    }
-
-    @NotNull
-    private Response executeRequest(String url) {
-
-        try {
-            var client = testOkHttpClient();
-            var request = new Request.Builder().url(url).build();
-            return client.newCall(request).execute();
-        } catch (IOException e) {
-            fail(e);
-        }
-        return null;
     }
 
     //needs to be public, otherwise it won't get picked up

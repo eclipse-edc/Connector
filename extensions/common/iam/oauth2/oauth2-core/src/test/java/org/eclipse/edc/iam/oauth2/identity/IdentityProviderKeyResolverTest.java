@@ -18,13 +18,13 @@ package org.eclipse.edc.iam.oauth2.identity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.iam.oauth2.jwt.JwkKeys;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +38,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,13 +49,13 @@ class IdentityProviderKeyResolverTest {
     private static final String JWKS_FILE = "jwks_response.json";
     private final Interceptor interceptor = mock(Interceptor.class);
     private final TypeManager typeManager = new TypeManager();
-    private final OkHttpClient okHttpClient = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+    private final EdcHttpClient httpClient = testHttpClient(interceptor);
     private JwkKeys testKeys;
     private IdentityProviderKeyResolver resolver;
 
     @BeforeEach
     void setUp() {
-        resolver = new IdentityProviderKeyResolver(mock(Monitor.class), okHttpClient, typeManager, new IdentityProviderKeyResolverConfiguration(JWKS_URL, 1));
+        resolver = new IdentityProviderKeyResolver(mock(Monitor.class), httpClient, typeManager, new IdentityProviderKeyResolverConfiguration(JWKS_URL, 1));
 
         try (var stream = getClass().getClassLoader().getResourceAsStream(JWKS_FILE)) {
             testKeys = new ObjectMapper().readValue(stream, JwkKeys.class);

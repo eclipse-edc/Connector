@@ -28,7 +28,6 @@ dependencies {
     implementation(libs.assertj)
     implementation(libs.junit.jupiter.api)
     runtimeOnly(libs.junit.jupiter.engine)
-    implementation(libs.okhttp)
 
     implementation("org.junit-pioneer:junit-pioneer:1.9.1")
 }

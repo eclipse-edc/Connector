@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.provision.http.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.provision.http.config.ProvisionerConfiguration;
@@ -28,6 +27,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -52,14 +52,14 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
     private final URL endpoint;
     private final URL callbackAddress;
     private final PolicyEngine policyEngine;
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
 
     public HttpProviderProvisioner(ProvisionerConfiguration configuration,
                                    URL callbackAddress,
                                    PolicyEngine policyEngine,
-                                   OkHttpClient httpClient,
+                                   EdcHttpClient httpClient,
                                    ObjectMapper objectMapper,
                                    Monitor monitor) {
         name = configuration.getName();
@@ -96,7 +96,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
             return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "HttpProviderProvisioner: fatal error serializing request: " + e.getMessage()));
         }
 
-        try (var response = httpClient.newCall(request).execute()) {
+        try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
                 return completedFuture(StatusResult.success(ProvisionResponse.Builder.newInstance().inProcess(true).build()));
             } else if (response.code() >= 500 && response.code() <= 504) {
@@ -125,7 +125,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
             return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Fatal error serializing request: " + e.getMessage()));
         }
 
-        try (var response = httpClient.newCall(request).execute()) {
+        try (var response = httpClient.execute(request)) {
             if (response.code() == 200) {
                 var deprovisionedResource = DeprovisionedResource.Builder.newInstance()
                         .provisionedResourceId(provisionedResource.getTransferProcessId())

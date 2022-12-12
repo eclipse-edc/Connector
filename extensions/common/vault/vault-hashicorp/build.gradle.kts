@@ -17,11 +17,9 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:http-spi"))
 
     implementation(project(":core:common:util"))
-
-    implementation(libs.okhttp)
-    api(libs.failsafe.core)
 
     testImplementation(project(":core:common:junit"))
 }

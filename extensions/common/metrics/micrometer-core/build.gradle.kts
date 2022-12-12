@@ -19,8 +19,8 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(libs.okhttp)
     api(libs.micrometer)
+    api(libs.okhttp)
 
     testImplementation(project(":extensions:common:api:api-observability"))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))

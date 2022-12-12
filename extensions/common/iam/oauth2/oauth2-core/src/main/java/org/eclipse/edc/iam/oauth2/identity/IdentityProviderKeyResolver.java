@@ -15,11 +15,11 @@
 
 package org.eclipse.edc.iam.oauth2.identity;
 
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.edc.iam.oauth2.jwt.JwkKey;
 import org.eclipse.edc.iam.oauth2.jwt.JwkKeys;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -56,10 +56,10 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver {
     private final IdentityProviderKeyResolverConfiguration configuration;
     private final ScheduledExecutorService executorService;
     private final AtomicReference<Map<String, RSAPublicKey>> cache = new AtomicReference<>(emptyMap()); // the current key cache, atomic for thread-safety
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
     private final Predicate<JwkKey> isRsa = key -> RSA.equals(key.getKty());
 
-    public IdentityProviderKeyResolver(Monitor monitor, OkHttpClient httpClient, TypeManager typeManager, IdentityProviderKeyResolverConfiguration configuration) {
+    public IdentityProviderKeyResolver(Monitor monitor, EdcHttpClient httpClient, TypeManager typeManager, IdentityProviderKeyResolverConfiguration configuration) {
         this.monitor = monitor;
         this.httpClient = httpClient;
         this.typeManager = typeManager;
@@ -99,7 +99,8 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver {
      * @return succeed if keys are retrieved correctly, failure otherwise
      */
     protected Result<Map<String, RSAPublicKey>> getKeys() {
-        try (var response = httpClient.newCall(new Request.Builder().url(configuration.getJwksUrl()).get().build()).execute()) {
+        var request = new Request.Builder().url(configuration.getJwksUrl()).get().build();
+        try (var response = httpClient.execute(request)) {
             if (response.code() == 200) {
                 var body = response.body();
                 if (body == null) {

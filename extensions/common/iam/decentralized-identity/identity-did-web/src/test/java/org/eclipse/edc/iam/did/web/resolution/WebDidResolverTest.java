@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.Mockito.mock;
 
 class WebDidResolverTest {
@@ -71,13 +71,7 @@ class WebDidResolverTest {
     }
 
     private WebDidResolver createResolver(Interceptor... interceptors) {
-        var builder = testOkHttpClient().newBuilder();
-        for (Interceptor interceptor : interceptors) {
-            builder.addInterceptor(interceptor);
-        }
-        var mapper = new ObjectMapper();
-        Monitor monitor = mock(Monitor.class);
-        return new WebDidResolver(builder.build(), true, mapper, monitor);
+        return new WebDidResolver(testHttpClient(interceptors), true, new ObjectMapper(), mock(Monitor.class));
     }
 
 }

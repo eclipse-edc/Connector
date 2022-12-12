@@ -14,15 +14,14 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import dev.failsafe.RetryPolicy;
 import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -77,9 +76,7 @@ class DataSourceToDataSinkTests {
         when(interceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(200, getRequest(invocation)));
 
-        var sourceClient = testOkHttpClient().newBuilder()
-                .addInterceptor(interceptor)
-                .build();
+        var sourceClient = testHttpClient(interceptor);
 
         var dataSource = HttpDataSource.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
@@ -88,13 +85,10 @@ class DataSourceToDataSinkTests {
                         .build())
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
                 .build();
 
-        var sinkClient = testOkHttpClient().newBuilder()
-                .addInterceptor(interceptor)
-                .build();
+        var sinkClient = testHttpClient(interceptor);
 
         var dataSink = HttpDataSink.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
@@ -126,9 +120,7 @@ class DataSourceToDataSinkTests {
         when(sourceInterceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(errorCode, getRequest(invocation)));
 
-        var sourceClient = testOkHttpClient().newBuilder()
-                .addInterceptor(sourceInterceptor)
-                .build();
+        var sourceClient = testHttpClient(sourceInterceptor);
 
         var dataSource = HttpDataSource.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
@@ -137,11 +129,10 @@ class DataSourceToDataSinkTests {
                         .build())
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
                 .build();
 
-        var sinkClient = mock(OkHttpClient.class);
+        var sinkClient = mock(EdcHttpClient.class);
 
         var dataSink = HttpDataSink.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
@@ -172,9 +163,7 @@ class DataSourceToDataSinkTests {
         when(sourceInterceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(200, getRequest(invocation)));
 
-        var sourceClient = testOkHttpClient().newBuilder()
-                .addInterceptor(sourceInterceptor)
-                .build();
+        var sourceClient = testHttpClient(sourceInterceptor);
 
         var dataSource = HttpDataSource.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
@@ -183,7 +172,6 @@ class DataSourceToDataSinkTests {
                         .build())
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
                 .build();
 
@@ -193,9 +181,7 @@ class DataSourceToDataSinkTests {
                 .thenAnswer(invocation -> createResponse(errorCode, getRequest(invocation)));
 
 
-        var sinkClient = testOkHttpClient().newBuilder()
-                .addInterceptor(sinkInterceptor)
-                .build();
+        var sinkClient = testHttpClient(sinkInterceptor);
 
         var dataSink = HttpDataSink.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
