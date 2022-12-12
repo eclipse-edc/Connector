@@ -66,6 +66,7 @@ jobs:
     env:
       rootDir: resources/openapi/yaml/${{ matrix.apiGroup }}
       SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_TOKEN }}
+      SWAGGERHUB_USER: ${{ secrets.SWAGGERHUB_USER }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
@@ -76,9 +77,17 @@ jobs:
         run: |
           ./gradlew -PapiTitle="${{ matrix.apiGroup }}" -PapiDescription="REST API documentation for the ${{ matrix.apiGroup }}" :mergeApiSpec --input=${{ env.rootDir }} --output=${{ matrix.apiGroup }}.yaml
 
-      # Publish the generated files to SwaggerHub
+      # install swaggerhub CLI
+      - name: Install SwaggerHub CLI
+        run: npm i -g swaggerhub-cli
+
+      # create API, will fail if exists
+      - name: Create API
+        continue-on-error: true
+        run: |
+          swaggerhub api:create ${{ SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+
+      # Post the API to SwaggerHub as "unpublished", because published APIs cannot be overwritten
       - name: Publish API Specs to SwaggerHub
         run: |
-          npm i -g swaggerhub-cli
-          #swaggerhub api:update edc/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
-          swaggerhub api:create edc/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+          swaggerhub api:update ${{ SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
