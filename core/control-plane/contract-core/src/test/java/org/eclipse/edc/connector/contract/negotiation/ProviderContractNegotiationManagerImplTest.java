@@ -129,7 +129,7 @@ class ProviderContractNegotiationManagerImplTest {
                         n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
                         n.getProtocol().equals(request.getProtocol()) &&
                         n.getCorrelationId().equals(request.getCorrelationId()) &&
-                        n.getContractOffers().size() == 2 &&
+                        n.getContractOffers().size() == 1 &&
                         n.getLastContractOffer().equals(contractOffer)
         ));
         verify(validationService).validateInitialOffer(token, contractOffer);
@@ -223,9 +223,8 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.CONFIRMING.code() &&
-                        n.getContractOffers().size() == 3 &&
-                        n.getContractOffers().get(1).equals(contractOffer) &&
-                        n.getContractOffers().get(2).equals(validatedOffer)
+                n.getContractOffers().size() == 2 &&
+                n.getLastContractOffer().equals(contractOffer)
         ));
 
         verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));

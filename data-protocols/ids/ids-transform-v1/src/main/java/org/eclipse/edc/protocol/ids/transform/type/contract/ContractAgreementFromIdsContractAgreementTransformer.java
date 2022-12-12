@@ -23,7 +23,6 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.ids.spi.transform.ContractAgreementTransformerOutput;
-import org.eclipse.edc.protocol.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
@@ -39,11 +38,11 @@ import java.util.stream.Collectors;
 /**
  * Transforms an IDS ContractAgreement into an {@link ContractAgreement}.
  */
-public class ContractAgreementFromIdsContractAgreementTransformer implements IdsTypeTransformer<ContractTransformerInput, ContractAgreementTransformerOutput> {
+public class ContractAgreementFromIdsContractAgreementTransformer implements IdsTypeTransformer<de.fraunhofer.iais.eis.ContractAgreement, ContractAgreementTransformerOutput> {
 
     @Override
-    public Class<ContractTransformerInput> getInputType() {
-        return ContractTransformerInput.class;
+    public Class<de.fraunhofer.iais.eis.ContractAgreement> getInputType() {
+        return de.fraunhofer.iais.eis.ContractAgreement.class;
     }
 
     @Override
@@ -52,14 +51,16 @@ public class ContractAgreementFromIdsContractAgreementTransformer implements Ids
     }
 
     @Override
-    public @Nullable ContractAgreementTransformerOutput transform(ContractTransformerInput object, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreementTransformerOutput transform(de.fraunhofer.iais.eis.ContractAgreement contractAgreement, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
-        if (object == null) {
+        if (contractAgreement == null) {
             return null;
         }
 
-        var contractAgreement = (de.fraunhofer.iais.eis.ContractAgreement) object.getContract();
-        var asset = object.getAsset();
+        if (contractAgreement.getPermission().isEmpty()) {
+            context.reportProblem("ContractAgreement's Policy should contain at least one permission");
+            return null;
+        }
 
         var edcPermissions = Optional.of(contractAgreement)
                 .map(Contract::getPermission)
@@ -87,11 +88,13 @@ public class ContractAgreementFromIdsContractAgreementTransformer implements Ids
 
         var policy = PropertyUtil.addIdsContractPropertiesToPolicy(contractAgreement.getProperties(), policyBuilder).build();
 
+        var assetId = edcPermissions.get(0).getTarget();
+
         var builder = ContractAgreement.Builder.newInstance()
                 .policy(policy)
                 .consumerAgentId(String.valueOf(contractAgreement.getConsumer()))
                 .providerAgentId(String.valueOf(contractAgreement.getProvider()))
-                .assetId(asset.getId());
+                .assetId(assetId);
 
         var result = IdsId.from(contractAgreement.getId());
         if (result.failed()) {

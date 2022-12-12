@@ -119,6 +119,9 @@ public class Participant {
                 .contentType(JSON).contentType(JSON);
     }
 
+    /**
+     * Start contract negotiation, waits for agreement, check asset id and returns the agreement id
+     */
     public String negotiateContract(Participant provider, ContractOffer contractOffer) {
         var request = Map.of(
                 "connectorId", "provider",
@@ -131,7 +134,7 @@ public class Participant {
                 )
         );
 
-        return given()
+        var negotiationId = given()
                 .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .body(typeManager.writeValueAsString(request))
@@ -140,6 +143,13 @@ public class Participant {
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getString("id");
+
+        var contractAgreementId = getContractAgreementId(negotiationId);
+
+        var assetId = getContractAgreementField(contractAgreementId, "assetId");
+        assertThat(assetId).isEqualTo(contractOffer.getAsset().getId());
+
+        return contractAgreementId;
     }
 
     public String getContractAgreementId(String negotiationId) {
@@ -152,19 +162,9 @@ public class Participant {
             contractAgreementId.set(agreementId);
         });
 
-        return contractAgreementId.get();
-    }
-
-    private String getContractNegotiationField(String negotiationId, String fieldName) {
-        return given()
-                .baseUri(controlPlaneManagement.toString())
-                .contentType(JSON)
-                .when()
-                .get("/contractnegotiations/{id}", negotiationId)
-                .then()
-                .statusCode(200)
-                .extract().body().jsonPath()
-                .getString(fieldName);
+        var id = contractAgreementId.get();
+        assertThat(id).isNotEmpty();
+        return id;
     }
 
     public String dataRequest(String id, String contractAgreementId, String assetId, Participant provider, DataAddress dataAddress) {
@@ -395,6 +395,30 @@ public class Participant {
 
     public String getName() {
         return name;
+    }
+
+    private String getContractAgreementField(String contractAgreementId, String fieldName) {
+        return given()
+                .baseUri(controlPlaneManagement.toString())
+                .contentType(JSON)
+                .when()
+                .get("/contractagreements/{id}", contractAgreementId)
+                .then()
+                .statusCode(200)
+                .extract().body().jsonPath()
+                .getString(fieldName);
+    }
+
+    private String getContractNegotiationField(String negotiationId, String fieldName) {
+        return given()
+                .baseUri(controlPlaneManagement.toString())
+                .contentType(JSON)
+                .when()
+                .get("/contractnegotiations/{id}", negotiationId)
+                .then()
+                .statusCode(200)
+                .extract().body().jsonPath()
+                .getString(fieldName);
     }
 
     @NotNull

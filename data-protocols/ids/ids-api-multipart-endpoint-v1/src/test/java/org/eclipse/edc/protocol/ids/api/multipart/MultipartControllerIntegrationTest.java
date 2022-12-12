@@ -92,7 +92,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -666,7 +668,7 @@ class MultipartControllerIntegrationTest {
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
-        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
+        var content = extractNamedMultipartContent(response);
 
         assertThat(content)
                 .hasSize(1)
@@ -692,6 +694,7 @@ class MultipartControllerIntegrationTest {
         });
         jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
         jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        verify(consumerContractNegotiationManager).confirmed(any(), any(), argThat(agreement -> assetId.equals(agreement.getAssetId())), any());
     }
 
     @Test
