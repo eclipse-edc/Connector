@@ -19,9 +19,7 @@ package org.eclipse.edc.protocol.ids.service;
 import org.eclipse.edc.protocol.ids.spi.domain.connector.Connector;
 import org.eclipse.edc.protocol.ids.spi.service.CatalogService;
 import org.eclipse.edc.protocol.ids.spi.service.ConnectorService;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -30,25 +28,19 @@ import java.util.Objects;
 public class ConnectorServiceImpl implements ConnectorService {
     private static final String SYSTEM_VERSION = "0.0.1-SNAPSHOT"; // TODO update before/during build
 
-    private final Monitor monitor;
     private final ConnectorServiceSettings connectorServiceSettings;
     private final CatalogService dataCatalogService;
 
     public ConnectorServiceImpl(
-            @NotNull Monitor monitor,
             @NotNull ConnectorServiceSettings connectorServiceSettings,
             @NotNull CatalogService dataCatalogService) {
-        this.monitor = Objects.requireNonNull(monitor);
         this.connectorServiceSettings = Objects.requireNonNull(connectorServiceSettings);
         this.dataCatalogService = Objects.requireNonNull(dataCatalogService);
     }
 
-    @NotNull
     @Override
-    public Connector getConnector(@NotNull ClaimToken claimToken, QuerySpec querySpec) {
-        Objects.requireNonNull(claimToken);
-
-        var catalog = dataCatalogService.getDataCatalog(claimToken, querySpec);
+    public Connector getConnector(@NotNull DescriptionRequest descriptionRequest) {
+        var catalog = dataCatalogService.getDataCatalog(descriptionRequest);
 
         return Connector.Builder
                 .newInstance()

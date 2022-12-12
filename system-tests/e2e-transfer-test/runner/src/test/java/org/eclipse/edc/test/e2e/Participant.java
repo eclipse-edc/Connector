@@ -55,6 +55,7 @@ public class Participant {
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
     private final URI backendService = URI.create("http://localhost:" + getFreePort());
     private final URI idsEndpoint = URI.create("http://localhost:" + getFreePort());
+    private final URI connectorId = URI.create("urn:connector:" + UUID.randomUUID());
     private final String name;
     private final TypeManager typeManager = new TypeManager();
 
@@ -260,18 +261,31 @@ public class Participant {
                 .statusCode(204);
     }
 
-    public Catalog getCatalog(URI provider) {
-        String response = given()
-                .baseUri(controlPlaneManagement.toString())
-                .contentType(JSON)
-                .when()
-                .queryParam("providerUrl", provider + IDS_PATH + "/data")
-                .get("/catalog")
-                .then()
-                .statusCode(200)
-                .extract().body().asString();
+    public Catalog getCatalog(Participant provider) {
+        var catalogReference = new AtomicReference<Catalog>();
 
-        return typeManager.readValue(response, Catalog.class);
+        await().atMost(timeout).untilAsserted(() -> {
+            var response = given()
+                    .baseUri(controlPlaneManagement.toString())
+                    .contentType(JSON)
+                    .when()
+                    .queryParam("providerUrl", provider.idsEndpoint() + IDS_PATH + "/data")
+                    .get("/catalog")
+                    .then()
+                    .statusCode(200)
+                    .extract().body().asString();
+
+            var catalog = typeManager.readValue(response, Catalog.class);
+
+            assertThat(catalog.getContractOffers())
+                    .hasSizeGreaterThan(0)
+                    .allMatch(offer -> connectorId.equals(offer.getConsumer()))
+                    .allMatch(offer -> provider.connectorId.equals(offer.getProvider()));
+
+            catalogReference.set(catalog);
+        });
+
+        return catalogReference.get();
     }
 
     public URI idsEndpoint() {
@@ -289,6 +303,7 @@ public class Participant {
                 put("web.http.management.path", controlPlaneManagement.getPath());
                 put("web.http.control.port", String.valueOf(controlPlaneControl.getPort()));
                 put("web.http.control.path", controlPlaneControl.getPath());
+                put("edc.ids.id", connectorId.toString());
                 put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");

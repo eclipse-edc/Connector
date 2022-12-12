@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.mapper.EdcApiExceptionMapper;
 import org.eclipse.edc.web.spi.WebService;
 
 public class BackendServiceTestExtension implements ServiceExtension {
@@ -44,5 +45,6 @@ public class BackendServiceTestExtension implements ServiceExtension {
         webService.registerResource(new ConsumerBackendServiceController(context.getMonitor()));
         webService.registerResource(new BackendServiceHttpProvisionerController(context.getMonitor(), httpClient, typeManager, exposedHttpPort));
         webService.registerResource(new Oauth2TokenController(context.getMonitor()));
+        webService.registerResource(new EdcApiExceptionMapper());
     }
 }

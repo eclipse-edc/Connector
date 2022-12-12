@@ -100,7 +100,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         var dataCatalogService = new CatalogServiceImpl(dataCatalogId, contractOfferResolver);
         context.registerService(CatalogService.class, dataCatalogService);
 
-        var connectorService = new ConnectorServiceImpl(monitor, connectorServiceSettings, dataCatalogService);
+        var connectorService = new ConnectorServiceImpl(connectorServiceSettings, dataCatalogService);
         context.registerService(ConnectorService.class, connectorService);
 
         context.registerService(DynamicAttributeTokenService.class, new DynamicAttributeTokenServiceImpl(identityService));

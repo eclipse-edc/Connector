@@ -32,9 +32,9 @@ import org.eclipse.edc.protocol.ids.spi.service.ConnectorService;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
+import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.eclipse.edc.protocol.ids.spi.types.container.OfferedAsset;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -111,7 +111,15 @@ public class DescriptionRequestHandler implements Handler {
             return createMultipartResponse(notFound(message, connectorId));
         }
 
-        var object = descriptionHandler.getObject(message, idsId, multipartRequest.getClaimToken());
+        var descriptionRequest = DescriptionRequest.Builder.newInstance()
+                .id(idsId)
+                .provider(connectorId.toUri())
+                .consumer(message.getIssuerConnector())
+                .claimToken(multipartRequest.getClaimToken())
+                .querySpec(getQuerySpec(message, objectMapper))
+                .build();
+
+        var object = descriptionHandler.getObject(descriptionRequest);
         var result = transformerRegistry.transform(object, descriptionHandler.getType());
         if (result.failed()) {
             monitor.warning(String.format("Could not retrieve requested element with ID %s:%s: [%s]",
@@ -126,7 +134,7 @@ public class DescriptionRequestHandler implements Handler {
     private interface DescriptionHandler<T extends ModelClass> {
         Class<T> getType();
 
-        Object getObject(DescriptionRequestMessage requestMessage, IdsId idsId, ClaimToken claimToken);
+        Object getObject(DescriptionRequest descriptionRequest);
     }
 
     private class ArtifactDescriptionHandler implements DescriptionHandler<Artifact> {
@@ -136,8 +144,8 @@ public class DescriptionRequestHandler implements Handler {
         }
 
         @Override
-        public Object getObject(DescriptionRequestMessage requestMessage, IdsId idsId, ClaimToken claimToken) {
-            return assetIndex.findById(idsId.getValue());
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return assetIndex.findById(descriptionRequest.getId().getValue());
         }
     }
 
@@ -148,8 +156,8 @@ public class DescriptionRequestHandler implements Handler {
         }
 
         @Override
-        public Object getObject(DescriptionRequestMessage requestMessage, IdsId idsId, ClaimToken claimToken) {
-            return assetIndex.findById(idsId.getValue());
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return assetIndex.findById(descriptionRequest.getId().getValue());
         }
     }
 
@@ -160,8 +168,8 @@ public class DescriptionRequestHandler implements Handler {
         }
 
         @Override
-        public Object getObject(DescriptionRequestMessage requestMessage, IdsId idsId, ClaimToken claimToken) {
-            return connectorService.getConnector(claimToken, getQuerySpec(requestMessage, objectMapper));
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return connectorService.getConnector(descriptionRequest);
         }
     }
 
@@ -172,8 +180,8 @@ public class DescriptionRequestHandler implements Handler {
         }
 
         @Override
-        public Object getObject(DescriptionRequestMessage requestMessage, IdsId idsId, ClaimToken claimToken) {
-            return catalogService.getDataCatalog(claimToken, getQuerySpec(requestMessage, objectMapper));
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return catalogService.getDataCatalog(descriptionRequest);
         }
     }
 
@@ -184,8 +192,8 @@ public class DescriptionRequestHandler implements Handler {
         }
 
         @Override
-        public Object getObject(DescriptionRequestMessage requestMessage, IdsId idsId, ClaimToken claimToken) {
-            var assetId = idsId.getValue();
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            var assetId = descriptionRequest.getId().getValue();
             var asset = assetIndex.findById(assetId);
             if (asset == null) {
                 monitor.warning(format("Asset with ID %s does not exist.", assetId));
@@ -193,7 +201,7 @@ public class DescriptionRequestHandler implements Handler {
             }
 
             var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
-                    .claimToken(claimToken)
+                    .claimToken(descriptionRequest.getClaimToken())
                     .assetsCriterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                     .build();
 
