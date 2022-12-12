@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  * The implementation supports a pluggable retry strategy (e.g. an exponential wait mechanism
  * so as not to overflow the remote service when it becomes available again).
  */
-public class EntitySendRetryManager implements SendRetryManager<StatefulEntity> {
+public class EntitySendRetryManager implements SendRetryManager {
     private final Monitor monitor;
     private final Supplier<WaitStrategy> delayStrategySupplier;
     private final int retryLimit;
@@ -40,8 +40,8 @@ public class EntitySendRetryManager implements SendRetryManager<StatefulEntity> 
     }
 
     @Override
-    public boolean shouldDelay(StatefulEntity process) {
-        int retryCount = process.getStateCount() - 1;
+    public <T extends StatefulEntity<T>> boolean shouldDelay(T entity) {
+        int retryCount = entity.getStateCount() - 1;
         if (retryCount <= 0) {
             return false;
         }
@@ -56,19 +56,20 @@ public class EntitySendRetryManager implements SendRetryManager<StatefulEntity> 
         // Get the delay time following the number of failures.
         var waitMillis = delayStrategy.retryInMillis();
 
-        long remainingWaitMillis = process.getStateTimestamp() + waitMillis - clock.millis();
+        long remainingWaitMillis = entity.getStateTimestamp() + waitMillis - clock.millis();
         if (remainingWaitMillis > 0) {
-            monitor.debug(String.format("Process %s %s retry #%d will not be attempted before %d ms.", process.getId(), process.getClass().getSimpleName(), retryCount, remainingWaitMillis));
+            monitor.debug(String.format("Entity %s %s retry #%d will not be attempted before %d ms.", entity.getId(), entity.getClass().getSimpleName(), retryCount, remainingWaitMillis));
             return true;
         } else {
-            monitor.debug(String.format("Process %s %s retry #%d of %d.", process.getId(), process.getClass().getSimpleName(), retryCount, retryLimit));
+            monitor.debug(String.format("Entity %s %s retry #%d of %d.", entity.getId(), entity.getClass().getSimpleName(), retryCount, retryLimit));
             return false;
         }
 
     }
 
     @Override
-    public boolean retriesExhausted(StatefulEntity entity) {
+    public <T extends StatefulEntity<T>> boolean retriesExhausted(T entity) {
         return entity.getStateCount() > retryLimit;
     }
+
 }

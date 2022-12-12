@@ -30,8 +30,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_APPROVED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_OFFERED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.UNSAVED;
 
 /**
  * Represents a contract negotiation.
@@ -51,7 +68,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
-    private Type type = Type.CONSUMER;
+    private Type type = CONSUMER;
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
 
@@ -134,7 +151,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state INITIAL.
      */
     public void transitionInitial() {
-        transition(ContractNegotiationStates.INITIAL, ContractNegotiationStates.REQUESTING, ContractNegotiationStates.UNSAVED);
+        transition(INITIAL, REQUESTING, UNSAVED);
     }
 
     /**
@@ -144,7 +161,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.REQUESTING, ContractNegotiationStates.INITIAL);
+        transition(REQUESTING, REQUESTING, INITIAL);
     }
 
     /**
@@ -152,9 +169,9 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
-            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.UNSAVED);
+            transition(REQUESTED, UNSAVED);
         } else {
-            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
+            transition(REQUESTED, REQUESTED, REQUESTING);
         }
     }
 
@@ -162,10 +179,10 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state REQUESTED.
      */
     public void transitionOffering() {
-        if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.REQUESTED);
+        if (CONSUMER == type) {
+            transition(CONSUMER_OFFERING, CONSUMER_OFFERING, REQUESTED);
         } else {
-            transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.REQUESTED);
+            transition(PROVIDER_OFFERING, PROVIDER_OFFERING, PROVIDER_OFFERED, REQUESTED);
         }
     }
 
@@ -174,10 +191,10 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * provider.
      */
     public void transitionOffered() {
-        if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
+        if (CONSUMER == type) {
+            transition(CONSUMER_OFFERED, PROVIDER_OFFERED, CONSUMER_OFFERING);
         } else {
-            transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
+            transition(PROVIDER_OFFERED, PROVIDER_OFFERED, PROVIDER_OFFERING);
         }
     }
 
@@ -188,7 +205,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
         }
-        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
+        transition(CONSUMER_APPROVING, CONSUMER_APPROVING, CONSUMER_OFFERED, REQUESTED);
     }
 
     /**
@@ -198,54 +215,63 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVED state");
         }
-        transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
+        transition(CONSUMER_APPROVED, CONSUMER_APPROVED, CONSUMER_APPROVING, PROVIDER_OFFERED);
+    }
+
+    /**
+     * Tells if the negotiation can be declined, so if it can be put in the `DECLINING` state
+     *
+     * @return true if the negotiation can be declined, false otherwise
+     */
+    public boolean canDecline() {
+        Stream<ContractNegotiationStates> validStartingStates;
+
+        if (CONSUMER == type) {
+            validStartingStates = Stream.of(DECLINING, REQUESTED, CONSUMER_OFFERED, CONSUMER_APPROVED);
+        } else {
+            validStartingStates = Stream.of(REQUESTED, DECLINING, REQUESTED, PROVIDER_OFFERED);
+        }
+
+        return validStartingStates.map(ContractNegotiationStates::code).anyMatch(code -> code == state);
     }
 
     /**
      * Transition to state DECLINING.
      */
     public void transitionDeclining() {
-        if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
-        } else {
-            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
-        }
+        transition(DECLINING, state -> canDecline());
     }
 
     /**
      * Transition to state DECLINED.
      */
     public void transitionDeclined() {
-        if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
+        if (CONSUMER == type) {
+            transition(DECLINED, DECLINING, CONSUMER_OFFERED, REQUESTED);
         } else {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONFIRMING,
-                    ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.REQUESTED);
+            transition(DECLINED, DECLINING, PROVIDER_OFFERED, CONFIRMING, CONFIRMED, REQUESTED);
         }
-
     }
 
     /**
      * Transition to state CONFIRMING (type provider only).
      */
     public void transitionConfirming() {
-        if (Type.CONSUMER == type) {
+        if (CONSUMER == type) {
             throw new IllegalStateException("Consumer processes have no CONFIRMING state");
         }
-        transition(ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED);
+        transition(CONFIRMING, CONFIRMING, REQUESTED, PROVIDER_OFFERED);
     }
 
     /**
      * Transition to state CONFIRMED.
      */
     public void transitionConfirmed() {
-        if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONSUMER_APPROVED,
-                    ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONFIRMED);
+        if (CONSUMER == type) {
+            transition(CONFIRMED, CONFIRMING, CONSUMER_APPROVED, REQUESTED, CONSUMER_OFFERED, CONFIRMED);
         } else {
-            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING);
+            transition(CONFIRMED, CONFIRMING);
         }
-
     }
 
     /**
@@ -307,7 +333,18 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * @param starts The allowed previous states.
      */
     private void transition(ContractNegotiationStates end, ContractNegotiationStates... starts) {
-        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
+        transition(end, (state) -> Arrays.stream(starts).anyMatch(s -> s == state));
+    }
+
+    /**
+     * Transition to a given end state if the passed predicate test correctly. Increases the
+     * state count if transitioned to the same state and updates the state timestamp.
+     *
+     * @param end          The desired state.
+     * @param canTransitTo Tells if the negotiation can transit to that state.
+     */
+    private void transition(ContractNegotiationStates end, Predicate<ContractNegotiationStates> canTransitTo) {
+        if (!canTransitTo.test(ContractNegotiationStates.from(state))) {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", ContractNegotiationStates.from(state), ContractNegotiationStates.from(end.code())));
         }
         transitionTo(end.code());

@@ -40,7 +40,6 @@ import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.CommandProcessor;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -123,7 +122,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private StateMachineManager stateMachineManager;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private SendRetryManager<StatefulEntity> sendRetryManager;
+    private SendRetryManager sendRetryManager;
     private Clock clock;
 
     private TransferProcessManagerImpl() {
