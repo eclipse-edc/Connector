@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.contract.spi.negotiation;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -29,7 +28,6 @@ import org.eclipse.edc.spi.response.StatusResult;
  * <p>
  * All operations are idempotent.
  */
-
 @ExtensionPoint
 public interface ConsumerContractNegotiationManager extends ContractNegotiationManager {
 
@@ -37,11 +35,6 @@ public interface ConsumerContractNegotiationManager extends ContractNegotiationM
      * Initiates a contract negotiation for the given provider offer. The offer will have been obtained from a previous contract offer request sent to the provider.
      */
     StatusResult<ContractNegotiation> initiate(ContractOfferRequest contractOffer);
-
-    /**
-     * An offer was received from the provider.
-     */
-    StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash);
 
     /**
      * The negotiation has been confirmed by the provider and the final contract received.

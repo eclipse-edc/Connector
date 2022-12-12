@@ -118,28 +118,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
-        if (isMandatoryAttributeMissing(offer)) {
-            return Result.failure("Mandatory attributes are missing.");
-        }
-
-        var contractId = ContractId.parse(offer.getId());
-        if (!contractId.isValid()) {
-            return Result.failure("Invalid id: " + offer.getId());
-        }
-
-        // TODO implement validation against latest offer within the negotiation
-
-        var agent = agentService.createFor(token);
-        var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, offer.getPolicy(), agent);
-        if (policyResult.failed()) {
-            return Result.failure(format("Policy not fulfilled for ContractOffer %s", offer.getId()));
-        }
-
-        return Result.success(offer);
-    }
-
-    @Override
     public Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement) {
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {

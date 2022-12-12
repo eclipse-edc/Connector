@@ -131,57 +131,6 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testOfferReceivedInvalidId() {
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-
-        var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
-
-        assertThat(result.fatalError()).isTrue();
-        verifyNoInteractions(listener);
-    }
-
-    @Test
-    void testOfferReceivedConfirmOffer() {
-        var negotiationRequested = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-        when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
-                .thenReturn(Result.success(contractOffer));
-        when(store.find(negotiationRequested.getId())).thenReturn(negotiationRequested);
-
-        var result = negotiationManager.offerReceived(token, negotiationRequested.getId(), contractOffer, "hash");
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation ->
-                negotiation.getState() == CONSUMER_APPROVING.code() &&
-                        negotiation.getContractOffers().size() == 2 &&
-                        negotiation.getContractOffers().get(1).equals(contractOffer)
-        ));
-        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
-    }
-
-    @Test
-    void testOfferReceivedDeclineOffer() {
-        var negotiationRequested = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-        when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
-                .thenReturn(Result.failure("error"));
-        when(store.find(negotiationRequested.getId())).thenReturn(negotiationRequested);
-
-        var result = negotiationManager.offerReceived(token, negotiationRequested.getId(), contractOffer, "hash");
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation ->
-                negotiation.getState() == DECLINING.code() &&
-                        negotiation.getContractOffers().size() == 2 &&
-                        negotiation.getContractOffers().get(1).equals(contractOffer)
-        ));
-        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
-    }
-
-    @Test
     void testConfirmedInvalidId() {
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);

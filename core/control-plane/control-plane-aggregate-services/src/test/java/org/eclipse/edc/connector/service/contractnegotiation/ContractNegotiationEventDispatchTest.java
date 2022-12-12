@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.service.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.ContractId;
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrategy;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
@@ -32,10 +31,8 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationApproved;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConfirmed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
@@ -78,30 +75,6 @@ class ContractNegotiationEventDispatchTest {
                 "edc.negotiation.provider.send.retry.limit", "0"
         ));
         extension.registerServiceMock(NegotiationWaitStrategy.class, () -> 1);
-    }
-
-    @Test
-    void shouldDispatchEventsOnConsumerContractNegotiationStateChanges(ContractNegotiationService service, EventRouter eventRouter,
-                                                                       RemoteMessageDispatcherRegistry dispatcherRegistry, ConsumerContractNegotiationManager manager) {
-        dispatcherRegistry.register(succeedingDispatcher());
-        eventRouter.register(eventSubscriber);
-        var policy = Policy.Builder.newInstance().build();
-        var contractOfferRequest = createContractOfferRequest(policy);
-
-        var initiateResult = service.initiateNegotiation(contractOfferRequest);
-
-        await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(ContractNegotiationInitiated.class));
-            verify(eventSubscriber).on(isA(ContractNegotiationRequested.class));
-        });
-
-        manager.offerReceived(token, initiateResult.getId(), contractOfferRequest.getContractOffer(), "any");
-
-        await().untilAsserted(() -> verify(eventSubscriber).on(isA(ContractNegotiationApproved.class)));
-
-        manager.confirmed(token, initiateResult.getId(), createContractAgreement(policy), policy);
-
-        await().untilAsserted(() -> verify(eventSubscriber).on(isA(ContractNegotiationConfirmed.class)));
     }
 
     @Test

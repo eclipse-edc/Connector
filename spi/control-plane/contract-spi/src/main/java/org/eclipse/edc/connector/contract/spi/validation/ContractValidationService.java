@@ -47,12 +47,6 @@ public interface ContractValidationService {
     Result<ContractOffer> validateInitialOffer(ClaimToken token, ContractOffer offer);
 
     /**
-     * During the negotiation process, it may be necessary to validate a contract offer against one that is only persisted by the contract negotiation and not known to the ContractDefinitionService.
-     */
-    @NotNull
-    Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer);
-
-    /**
      * Validates the contract agreement that the consumer referenced in its transfer request.
      * The {@code ClaimToken} must represent the same counter-party, that is referenced in the contract agreement.
      *
