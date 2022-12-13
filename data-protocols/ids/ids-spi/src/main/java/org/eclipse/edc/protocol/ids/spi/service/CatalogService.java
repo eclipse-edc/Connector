@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public interface CatalogService {
 
     /**
-     * Provides the data catalog
+     * Provides the data catalog, which may be used by the IDS self-description of the connector.
      *
      * @return data catalog
      */
