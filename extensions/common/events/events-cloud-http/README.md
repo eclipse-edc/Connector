@@ -7,4 +7,4 @@ respecting the [CloudEvents HTTP spec v1.0.2](https://github.com/cloudevents/spe
 
 | Parameter name                    | Description                                       | Default value       |
 |-----------------------------------|---------------------------------------------------|---------------------|
-| `edc.events.cloudevents.endpoint` | The http endpoint where the events will be pushed | <mandatory setting> |
+| `edc.events.cloudevents.endpoint` | The http endpoint where the events will be pushed | _mandatory setting_ |
