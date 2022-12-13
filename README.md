@@ -2,7 +2,7 @@
   <br/>
     <img alt="Logo" width="100" src="resources/media/logo.png"/>
   <br/>
-      Eclipse Dataspace Connector
+      EDC Connector
   <br/>
 </h1>
 
