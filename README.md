@@ -1,9 +1,9 @@
 <h1 align="center">
-  <br>
+  <br/>
     <img alt="Logo" width="100" src="resources/media/logo.png"/>
-  <br>
+  <br/>
       Eclipse Dataspace Connector
-  <br>
+  <br/>
 </h1>
 
 <div align="center">
