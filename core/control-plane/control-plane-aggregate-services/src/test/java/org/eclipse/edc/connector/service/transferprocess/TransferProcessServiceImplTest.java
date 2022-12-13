@@ -202,8 +202,9 @@ class TransferProcessServiceImplTest {
         var dataRequest = dataRequest();
         var claimToken = claimToken();
         var processId = "processId";
+
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(true);
+        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
         when(manager.initiateProviderRequest(any())).thenReturn(StatusResult.success(processId));
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
 
@@ -219,7 +220,7 @@ class TransferProcessServiceImplTest {
         var dataRequest = dataRequest();
         var claimToken = claimToken();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(false);
+        when(validationService.validateAgreement(any(), any())).thenReturn(Result.failure("error"));
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
 
         var result = service.initiateTransfer(dataRequest, claimToken);

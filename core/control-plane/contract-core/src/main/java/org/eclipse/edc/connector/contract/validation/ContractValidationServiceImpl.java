@@ -140,25 +140,29 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public boolean validateAgreement(ClaimToken token, ContractAgreement agreement) {
+    public Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement) {
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
-            return false;
+            return Result.failure(format("The contract id %s does not follow the expected scheme", agreement.getId()));
         }
 
         if (!isStarted(agreement) || isExpired(agreement)) {
-            return false;
+            return Result.failure("The agreement has not started yet or it has expired");
         }
 
         var agent = agentService.createFor(token);
         var contractDefinition = contractDefinitionService.definitionFor(agent, contractId.definitionPart());
         if (contractDefinition == null) {
-            return false;
+            return Result.failure(format("The ContractDefinition with id %s either does not exist or the access to it is not granted.", agreement.getId()));
         }
-
-        return policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent).succeeded();
+        var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent);
+        if (!policyResult.succeeded()) {
+            return Result.failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));
+        }
+        return Result.success(agreement);
         // TODO validate counter-party
     }
+
 
     @Override
     public Result<Void> validateConfirmed(ContractAgreement agreement, ContractOffer latestOffer) {

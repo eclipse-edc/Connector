@@ -1,8 +1,8 @@
 # Implement a simple transfer listener
 
-In this sample, we build upon the [file transfer sample](../04.0-file-transfer/) to add functionality to react to transfer completion on the consumer connector side.
+In this sample, we build upon the [file transfer sample](../04.0-file-transfer/README.md) to add functionality to react to transfer completion on the consumer connector side.
 
-We will use the provider from the [file transfer sample](../04.0-file-transfer/), and the consumer built on the consumer from that sample, with a transfer process listener added.
+We will use the provider from the [file transfer sample](../04.0-file-transfer/README.md), and the consumer built on the consumer from that sample, with a transfer process listener added.
 
 Also, in order to keep things organized, the code in this example has been separated into several Java modules:
 
