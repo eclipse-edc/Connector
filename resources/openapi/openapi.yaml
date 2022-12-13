@@ -22,29 +22,6 @@ tags:
     \ path parameters and request body are supported (in the limits fixed by the HTTP\
     \ server) and can also conveyed to the actual data source."
 paths:
-  /token:
-    get:
-      tags:
-      - Consumer Pull Token Validation
-      description: "Checks that the provided token has been signed by the present\
-        \ entity and asserts its validity. If token is valid, then the data address\
-        \ contained in its claims is decrypted and returned back to the caller."
-      operationId: validate
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Token is valid
-        "400":
-          description: Request was malformed
-        "403":
-          description: Token is invalid
   /contractagreements:
     get:
       tags:
@@ -491,284 +468,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
-  /transferprocess:
-    get:
-      tags:
-      - Transfer Process
-      description: Returns all transfer process according to a query
-      operationId: getAllTransferProcesses
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransferProcessDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    post:
-      tags:
-      - Transfer Process
-      description: "Initiates a data transfer with the given parameters. Please note\
-        \ that successfully invoking this endpoint only means that the transfer was\
-        \ initiated. Clients must poll the /{id}/state endpoint to track the state"
-      operationId: initiateTransfer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TransferRequestDto'
-      responses:
-        "200":
-          description: The transfer was successfully initiated. Returns the transfer
-            process ID and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /transferprocess/request:
-    post:
-      tags:
-      - Transfer Process
-      description: Returns all transfer process according to a query
-      operationId: queryAllTransferProcesses
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransferProcessDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /transferprocess/{id}:
-    get:
-      tags:
-      - Transfer Process
-      description: Gets an transfer process with the given ID
-      operationId: getTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The transfer process
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferProcessDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /transferprocess/{id}/cancel:
-    post:
-      tags:
-      - Transfer Process
-      description: "Requests aborting the transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. Clients must poll the /{id}/state endpoint to\
-        \ track the state."
-      operationId: cancelTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Request to cancel the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /transferprocess/{id}/deprovision:
-    post:
-      tags:
-      - Transfer Process
-      description: "Requests the deprovisioning of resources associated with a transfer\
-        \ process. Due to the asynchronous nature of transfers, a successful response\
-        \ only indicates that the request was successfully received. This may take\
-        \ a long time, so clients must poll the /{id}/state endpoint to track the\
-        \ state."
-      operationId: deprovisionTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Request to deprovision the transfer process was successfully
-            received
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /transferprocess/{id}/state:
-    get:
-      tags:
-      - Transfer Process
-      description: Gets the state of a transfer process with the given ID
-      operationId: getTransferProcessState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The  transfer process's state
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferState'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An  transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
   /callback/{processId}/deprovision:
     post:
       tags:
@@ -815,62 +514,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /transferprocess/{processId}/complete:
-    post:
-      tags:
-      - Transfer Process Control Api
-      description: "Requests completion of the transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received"
-      operationId: complete
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-  /transferprocess/{processId}/fail:
-    post:
-      tags:
-      - Transfer Process Control Api
-      description: "Requests completion of the transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received"
-      operationId: fail
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TransferProcessFailStateDto'
-        required: true
-      responses:
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
   /instances:
     get:
       tags:
@@ -916,101 +559,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataPlaneInstance'
-  /transfer:
-    post:
-      tags:
-      - Data Plane control API
-      description: Initiates a data transfer for the given request. The transfer will
-        be performed asynchronously.
-      operationId: initiateTransfer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataFlowRequest'
-      responses:
-        "200":
-          description: Data transfer initiated
-        "400":
-          description: Failed to validate request
-  /transfer/{processId}:
-    get:
-      tags:
-      - Data Plane control API
-      description: Get the current state of a data transfer.
-      operationId: getTransferState
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Missing access token
-  /{any}:
-    get:
-      tags:
-      - Data Plane public API
-      description: Send `GET` data query to the Data Plane.
-      operationId: get
-      responses:
-        "400":
-          description: Missing access token
-        "403":
-          description: Access token is expired or invalid
-        "500":
-          description: Failed to transfer data
-    put:
-      tags:
-      - Data Plane public API
-      description: Send `PUT` data query to the Data Plane.
-      operationId: put
-      responses:
-        "400":
-          description: Missing access token
-        "403":
-          description: Access token is expired or invalid
-        "500":
-          description: Failed to transfer data
-    post:
-      tags:
-      - Data Plane public API
-      description: Send `POST` data query to the Data Plane.
-      operationId: post
-      responses:
-        "400":
-          description: Missing access token
-        "403":
-          description: Access token is expired or invalid
-        "500":
-          description: Failed to transfer data
-    delete:
-      tags:
-      - Data Plane public API
-      description: Send `DELETE` data query to the Data Plane.
-      operationId: delete
-      responses:
-        "400":
-          description: Missing access token
-        "403":
-          description: Access token is expired or invalid
-        "500":
-          description: Failed to transfer data
-    patch:
-      tags:
-      - Data Plane public API
-      description: Send `PATCH` data query to the Data Plane.
-      operationId: patch
-      responses:
-        "400":
-          description: Missing access token
-        "403":
-          description: Access token is expired or invalid
-        "500":
-          description: Failed to transfer data
   /policydefinitions:
     get:
       tags:
@@ -1764,6 +1312,458 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+  /token:
+    get:
+      tags:
+      - Consumer Pull Token Validation
+      description: "Checks that the provided token has been signed by the present\
+        \ entity and asserts its validity. If token is valid, then the data address\
+        \ contained in its claims is decrypted and returned back to the caller."
+      operationId: validate
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Token is valid
+        "400":
+          description: Request was malformed
+        "403":
+          description: Token is invalid
+  /transferprocess:
+    get:
+      tags:
+      - Transfer Process
+      description: Returns all transfer process according to a query
+      operationId: getAllTransferProcesses
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
+    post:
+      tags:
+      - Transfer Process
+      description: "Initiates a data transfer with the given parameters. Please note\
+        \ that successfully invoking this endpoint only means that the transfer was\
+        \ initiated. Clients must poll the /{id}/state endpoint to track the state"
+      operationId: initiateTransfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequestDto'
+      responses:
+        "200":
+          description: The transfer was successfully initiated. Returns the transfer
+            process ID and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/request:
+    post:
+      tags:
+      - Transfer Process
+      description: Returns all transfer process according to a query
+      operationId: queryAllTransferProcesses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/{id}:
+    get:
+      tags:
+      - Transfer Process
+      description: Gets an transfer process with the given ID
+      operationId: getTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The transfer process
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/{id}/cancel:
+    post:
+      tags:
+      - Transfer Process
+      description: "Requests aborting the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. Clients must poll the /{id}/state endpoint to\
+        \ track the state."
+      operationId: cancelTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Request to cancel the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/{id}/deprovision:
+    post:
+      tags:
+      - Transfer Process
+      description: "Requests the deprovisioning of resources associated with a transfer\
+        \ process. Due to the asynchronous nature of transfers, a successful response\
+        \ only indicates that the request was successfully received. This may take\
+        \ a long time, so clients must poll the /{id}/state endpoint to track the\
+        \ state."
+      operationId: deprovisionTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Request to deprovision the transfer process was successfully
+            received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/{id}/state:
+    get:
+      tags:
+      - Transfer Process
+      description: Gets the state of a transfer process with the given ID
+      operationId: getTransferProcessState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The  transfer process's state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferState'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An  transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/{processId}/complete:
+    post:
+      tags:
+      - Transfer Process Control Api
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: complete
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transferprocess/{processId}/fail:
+    post:
+      tags:
+      - Transfer Process Control Api
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: fail
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferProcessFailStateDto'
+        required: true
+      responses:
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /transfer:
+    post:
+      tags:
+      - Data Plane control API
+      description: Initiates a data transfer for the given request. The transfer will
+        be performed asynchronously.
+      operationId: initiateTransfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataFlowRequest'
+      responses:
+        "200":
+          description: Data transfer initiated
+        "400":
+          description: Failed to validate request
+  /transfer/{processId}:
+    get:
+      tags:
+      - Data Plane control API
+      description: Get the current state of a data transfer.
+      operationId: getTransferState
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Missing access token
+  /{any}:
+    get:
+      tags:
+      - Data Plane public API
+      description: Send `GET` data query to the Data Plane.
+      operationId: get
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    put:
+      tags:
+      - Data Plane public API
+      description: Send `PUT` data query to the Data Plane.
+      operationId: put
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    post:
+      tags:
+      - Data Plane public API
+      description: Send `POST` data query to the Data Plane.
+      operationId: post
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    delete:
+      tags:
+      - Data Plane public API
+      description: Send `DELETE` data query to the Data Plane.
+      operationId: delete
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+    patch:
+      tags:
+      - Data Plane public API
+      description: Send `PATCH` data query to the Data Plane.
+      operationId: patch
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
 components:
   schemas:
     Action:
