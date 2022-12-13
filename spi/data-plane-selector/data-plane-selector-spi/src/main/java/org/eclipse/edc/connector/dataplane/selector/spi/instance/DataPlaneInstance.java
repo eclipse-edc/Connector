@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.selector.spi.instance;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -23,6 +22,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,10 +38,8 @@ public class DataPlaneInstance {
 
     private Map<String, Object> properties;
 
-    @JsonProperty("allowedSourceTypes")
     private Set<String> allowedSourceTypes;
 
-    @JsonProperty("allowedDestTypes")
     private Set<String> allowedDestTypes;
 
     private int turnCount;
@@ -93,7 +91,15 @@ public class DataPlaneInstance {
     }
 
     public Map<String, Object> getProperties() {
-        return properties;
+        return Collections.unmodifiableMap(properties);
+    }
+
+    public Set<String> getAllowedSourceTypes() {
+        return Collections.unmodifiableSet(allowedSourceTypes);
+    }
+
+    public Set<String> getAllowedDestTypes() {
+        return Collections.unmodifiableSet(allowedDestTypes);
     }
 
 
