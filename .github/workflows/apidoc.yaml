@@ -1,0 +1,93 @@
+name: Verify and Publish OpenAPI Specs
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'CODEOWNERS'
+      - 'LICENSE'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Verify-OpenAPI-Definitions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        apiGroup: [ 'management-api', 'control-api' ]
+    env:
+      rootDir: resources/openapi/yaml/${{ matrix.apiGroup }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-build
+
+      - name: Save previous OpenAPI definition
+        run: |
+          mkdir -p git-sorted/${{ matrix.apiGroup }}
+          files=($(ls $rootDir)) 
+          for file in ${files[@]}; do
+            yq -P 'sort_keys(..)' $rootDir/$file > git-sorted/${{ matrix.apiGroup }}/$file
+          done
+
+      - name: Generate OpenAPI definitions from code
+        run: |
+          export
+          ./gradlew resolve
+
+      # Can be used (and yq tasks removed) when https://github.com/kpramesh2212/openapi-merger-plugin/pull/11/files is merged
+      #- name: Check OpenAPI definitions match code
+      #  run: git diff --exit-code
+
+      - name: Check OpenAPI definitions match code
+        run: |
+          mkdir -p git-regen/${{ matrix.apiGroup }}
+          files=($(ls resources/openapi/yaml/${{ matrix.apiGroup}})) 
+
+          for file in ${files[@]}; do
+            yq -P 'sort_keys(..)' $rootDir/$file > git-regen/${{ matrix.apiGroup }}/$file
+          done
+
+          diff -r git-sorted git-regen
+
+  Publish-To-SwaggerHub:
+    # do NOT run on forks. The Org ("edc") is unique all across SwaggerHub
+    if: github.repository == 'eclipse-edc/Connector' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: [ Verify-OpenAPI-Definitions ]
+    strategy:
+      matrix:
+        apiGroup: [ 'management-api', 'control-api' ]
+    env:
+      rootDir: resources/openapi/yaml/${{ matrix.apiGroup }}
+      SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_TOKEN }}
+      SWAGGERHUB_USER: ${{ secrets.SWAGGERHUB_USER }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-build
+      - uses: actions/setup-node@v3
+
+      # merge together all api groups
+      - name: Generate API Specs
+        run: |
+          ./gradlew -PapiTitle="${{ matrix.apiGroup }}" -PapiDescription="REST API documentation for the ${{ matrix.apiGroup }}" :mergeApiSpec --input=${{ env.rootDir }} --output=${{ matrix.apiGroup }}.yaml
+
+      # install swaggerhub CLI
+      - name: Install SwaggerHub CLI
+        run: npm i -g swaggerhub-cli
+
+      # create API, will fail if exists
+      - name: Create API
+        continue-on-error: true
+        run: |
+          swaggerhub api:create ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+
+      # Post the API to SwaggerHub as "unpublished", because published APIs cannot be overwritten
+      - name: Publish API Specs to SwaggerHub
+        run: |
+          swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish

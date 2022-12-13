@@ -8,7 +8,6 @@ dependencies {
     implementation(project(":extensions:common:iam:decentralized-identity:identity-did-crypto"))
 
     implementation(libs.jakarta.rsApi)
-    implementation(libs.okhttp)
 
     testImplementation(testFixtures(project(":extensions:common:iam:decentralized-identity:identity-did-test")))
     testImplementation(project(":core:common:junit"))

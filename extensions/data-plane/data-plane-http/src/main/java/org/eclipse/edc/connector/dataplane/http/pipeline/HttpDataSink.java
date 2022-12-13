@@ -15,9 +15,9 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.List;
@@ -32,13 +32,13 @@ public class HttpDataSink extends ParallelSink {
     private static final StatusResult<Void> ERROR_WRITING_DATA = StatusResult.failure(ERROR_RETRY, "Error writing data");
 
     private HttpRequestParams params;
-    private OkHttpClient httpClient;
+    private EdcHttpClient httpClient;
 
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
             var request = params.toRequest(part::openStream);
-            try (var response = httpClient.newCall(request).execute()) {
+            try (var response = httpClient.execute(request)) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s",
                             response.code(), response.message(), part.name(), request.url().url(), request));
@@ -68,7 +68,7 @@ public class HttpDataSink extends ParallelSink {
             return this;
         }
 
-        public Builder httpClient(OkHttpClient httpClient) {
+        public Builder httpClient(EdcHttpClient httpClient) {
             sink.httpClient = httpClient;
             return this;
         }

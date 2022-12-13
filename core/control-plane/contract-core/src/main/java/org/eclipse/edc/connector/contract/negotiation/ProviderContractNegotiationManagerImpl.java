@@ -214,9 +214,16 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return a {@link StatusResult}: OK
      */
     private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
-        var result = validateLastOffer(negotiation, token, offer);
+        Result<ContractOffer> result;
+        if (negotiation.getContractOffers().isEmpty()) {
+            result = validationService.validateInitialOffer(token, offer);
+        } else {
+            // TODO: this is actually dead code because "counter-offers" are not supported.
+            var lastOffer = negotiation.getLastContractOffer();
+            result = validationService.validate(token, offer, lastOffer);
+        }
 
-        negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
+        negotiation.addContractOffer(offer);
 
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer received. Will be rejected: " + result.getFailureDetail());
@@ -230,7 +237,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
-        negotiation.addContractOffer(result.getContent());
         negotiation.transitionConfirming();
         negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
@@ -249,14 +255,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
     private boolean processCommand(ContractNegotiationCommand command) {
         return commandProcessor.processCommandQueue(command);
-    }
-
-    private Result<ContractOffer> validateLastOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
-        if (negotiation.getContractOffers().isEmpty()) {
-            return validationService.validateInitialOffer(token, offer);
-        }
-        var lastOffer = negotiation.getLastContractOffer();
-        return validationService.validate(token, offer, lastOffer);
     }
 
     /**

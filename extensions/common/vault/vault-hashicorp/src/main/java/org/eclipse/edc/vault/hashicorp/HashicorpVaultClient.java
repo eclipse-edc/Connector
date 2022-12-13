@@ -14,12 +14,11 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import dev.failsafe.RetryPolicy;
 import okhttp3.Headers;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +29,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Objects;
-
-import static dev.failsafe.Failsafe.with;
 
 public class HashicorpVaultClient {
     static final String VAULT_DATA_ENTRY_NAME = "content";
@@ -47,17 +44,15 @@ public class HashicorpVaultClient {
     @NotNull
     private final HashicorpVaultConfig hashicorpVaultConfig;
     @NotNull
-    private final OkHttpClient okHttpClient;
+    private final EdcHttpClient httpClient;
     @NotNull
     private final TypeManager typeManager;
-    @NotNull
-    private final RetryPolicy<Object> retryPolicy;
 
-    HashicorpVaultClient(@NotNull HashicorpVaultConfig hashicorpVaultConfig, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager, @NotNull RetryPolicy<Object> retryPolicy) {
+    HashicorpVaultClient(@NotNull HashicorpVaultConfig hashicorpVaultConfig, @NotNull EdcHttpClient httpClient,
+                         @NotNull TypeManager typeManager) {
         this.hashicorpVaultConfig = hashicorpVaultConfig;
-        this.okHttpClient = okHttpClient;
+        this.httpClient = httpClient;
         this.typeManager = typeManager;
-        this.retryPolicy = retryPolicy;
     }
 
     public Result<String> getSecretValue(@NotNull String key) {
@@ -65,7 +60,7 @@ public class HashicorpVaultClient {
         var headers = getHeaders();
         var request = new Request.Builder().url(requestUri).headers(headers).get().build();
 
-        try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
+        try (var response = httpClient.execute(request)) {
 
             if (response.isSuccessful()) {
                 if (response.code() == HTTP_CODE_404) {
@@ -105,7 +100,7 @@ public class HashicorpVaultClient {
                         .post(createRequestBody(requestPayload))
                         .build();
 
-        try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
+        try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
                 var responseBody = Objects.requireNonNull(response.body()).string();
                 var responsePayload =
@@ -124,10 +119,12 @@ public class HashicorpVaultClient {
         var headers = getHeaders();
         var request = new Request.Builder().url(requestUri).headers(headers).delete().build();
 
-        try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
+        try (var response = httpClient.execute(request)) {
             return response.isSuccessful() || response.code() == HTTP_CODE_404
                     ? Result.success()
                     : Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, response.code()));
+        } catch (IOException e) {
+            return Result.failure(e.getMessage());
         }
     }
 

@@ -27,14 +27,13 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.iam.oauth2.Oauth2Configuration;
 import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -61,7 +60,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
@@ -87,7 +86,7 @@ class Oauth2ServiceImplTest {
     private static final String OAUTH2_SERVER_URL = "http://localhost:" + OAUTH2_SERVER_PORT;
 
     private final Instant now = Instant.now();
-    private final OkHttpClient okHttpClient = testOkHttpClient();
+    private final EdcHttpClient httpClient = testHttpClient();
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider = mock(CredentialsRequestAdditionalParametersProvider.class);
     private Oauth2ServiceImpl authService;
@@ -129,8 +128,8 @@ class Oauth2ServiceImplTest {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
 
-        authService = new Oauth2ServiceImpl(mock(Monitor.class), configuration, tokenGenerationService, okHttpClient,
-                RetryPolicy.ofDefaults(), new JwtDecoratorRegistryImpl(), new TypeManager(), tokenValidationService,
+        authService = new Oauth2ServiceImpl(mock(Monitor.class), configuration, tokenGenerationService, httpClient,
+                new JwtDecoratorRegistryImpl(), new TypeManager(), tokenValidationService,
                 credentialsRequestAdditionalParametersProvider);
     }
 

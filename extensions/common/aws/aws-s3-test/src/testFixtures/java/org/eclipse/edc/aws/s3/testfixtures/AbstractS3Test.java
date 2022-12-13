@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.aws.s3.testfixtures;
 
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.edc.aws.s3.AwsClientProvider;
 import org.eclipse.edc.aws.s3.AwsClientProviderConfiguration;
@@ -52,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.util.configuration.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -106,9 +106,9 @@ public abstract class AbstractS3Test {
      * @return true if HTTP status [200..300[
      */
     private static boolean isMinioAvailable() throws IOException {
-        var httpClient = new OkHttpClient();
+        var httpClient = testHttpClient();
         var healthRq = new Request.Builder().url(S3_ENDPOINT + "/minio/health/live").get().build();
-        try (var response = httpClient.newCall(healthRq).execute()) {
+        try (var response = httpClient.execute(healthRq)) {
             return response.isSuccessful();
         }
     }

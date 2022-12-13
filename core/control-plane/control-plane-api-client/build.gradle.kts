@@ -17,10 +17,10 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:http-spi"))
     api(project(":spi:control-plane:control-plane-api-client-spi"))
 
     implementation(libs.failsafe.core)
-    implementation(libs.okhttp)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))

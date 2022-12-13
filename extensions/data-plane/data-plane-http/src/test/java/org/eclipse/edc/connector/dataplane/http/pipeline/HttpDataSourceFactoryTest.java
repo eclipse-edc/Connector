@@ -17,10 +17,9 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -37,8 +36,7 @@ import static org.mockito.Mockito.when;
 
 class HttpDataSourceFactoryTest {
 
-    private static final OkHttpClient HTTP_CLIENT = mock(OkHttpClient.class);
-    private static final RetryPolicy<Object> RETRY_POLICY = RetryPolicy.ofDefaults();
+    private static final EdcHttpClient HTTP_CLIENT = mock(EdcHttpClient.class);
 
     private final HttpRequestParamsSupplier supplierMock = mock(HttpRequestParamsSupplier.class);
 
@@ -55,7 +53,7 @@ class HttpDataSourceFactoryTest {
 
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSourceFactory(HTTP_CLIENT, RETRY_POLICY, supplierMock);
+        factory = new HttpDataSourceFactory(HTTP_CLIENT, supplierMock);
     }
 
     @Test
@@ -99,7 +97,6 @@ class HttpDataSourceFactoryTest {
                 .params(params)
                 .name(address.getName())
                 .requestId(request.getId())
-                .retryPolicy(RETRY_POLICY)
                 .httpClient(HTTP_CLIENT)
                 .build();
 

@@ -14,13 +14,12 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.selector.client.EmbeddedDataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.client.RemoteDataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
@@ -42,17 +41,14 @@ class DataPlaneInstanceClientExtensionTest {
     private static final String EDC_DPF_SELECTOR_URL_SETTING = "edc.dpf.selector.url";
     private DataPlaneInstanceClientExtension extension;
     private ServiceExtensionContext context;
-    private ObjectFactory factory;
 
     @BeforeEach
-    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-
-        this.context = context;
-        this.factory = factory;
+    void setUp(ServiceExtensionContext context) {
+        this.context = spy(context);
     }
 
     @Test
-    void initialize_noSetting_shouldUseEmbedded() {
+    void initialize_noSetting_shouldUseEmbedded(ObjectFactory factory) {
         context.registerService(DataPlaneSelectorService.class, mock(DataPlaneSelectorService.class));
         extension = factory.constructInstance(DataPlaneInstanceClientExtension.class);
 
@@ -63,7 +59,7 @@ class DataPlaneInstanceClientExtensionTest {
     }
 
     @Test
-    void initialize_noSetting_shouldUseEmbedded_serviceMissing() {
+    void initialize_noSetting_shouldUseEmbedded_serviceMissing(ObjectFactory factory) {
         // DataPlaneSelectorService not registered, should raise exception
         extension = factory.constructInstance(DataPlaneInstanceClientExtension.class);
 
@@ -75,13 +71,11 @@ class DataPlaneInstanceClientExtensionTest {
     }
 
     @Test
-    void initialize_withSetting() {
+    void initialize_withSetting(ObjectFactory factory) {
         var config = ConfigFactory.fromMap(Map.of(EDC_DPF_SELECTOR_URL_SETTING, "http://someurl.com:1234"));
-        context = spy(context);
         when(context.getConfig()).thenReturn(config);
 
-        context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
-        context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
+        context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
         extension = factory.constructInstance(DataPlaneInstanceClientExtension.class);
 
         extension.initialize(context);
@@ -91,35 +85,17 @@ class DataPlaneInstanceClientExtensionTest {
     }
 
     @Test
-    void initialize_withSetting_okHttpMissing() {
+    void initialize_withSetting_httpClientMissing(ObjectFactory factory) {
         var config = ConfigFactory.fromMap(Map.of(EDC_DPF_SELECTOR_URL_SETTING, "http://someurl.com:1234"));
-        context = spy(context);
         when(context.getConfig()).thenReturn(config);
 
-        context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
         extension = factory.constructInstance(DataPlaneInstanceClientExtension.class);
 
         assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(NullPointerException.class)
-                .hasMessage("If [" + EDC_DPF_SELECTOR_URL_SETTING + "] is specified, a OkHttpClient instance must be provided");
+                .hasMessage("If [" + EDC_DPF_SELECTOR_URL_SETTING + "] is specified, an EdcHttpClient instance must be provided");
 
         var client = context.getService(DataPlaneSelectorClient.class, true);
         assertThat(client).isNull();
     }
 
-    @Test
-    void initialize_withSetting_retryPolicyMissing() {
-
-        var config = ConfigFactory.fromMap(Map.of(EDC_DPF_SELECTOR_URL_SETTING, "http://someurl.com:1234"));
-        context = spy(context);
-        when(context.getConfig()).thenReturn(config);
-
-        context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
-        extension = factory.constructInstance(DataPlaneInstanceClientExtension.class);
-
-        assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(NullPointerException.class)
-                .hasMessage("If [" + EDC_DPF_SELECTOR_URL_SETTING + "] is specified, a RetryPolicy instance must be provided");
-
-        var client = context.getService(DataPlaneSelectorClient.class, true);
-        assertThat(client).isNull();
-    }
 }

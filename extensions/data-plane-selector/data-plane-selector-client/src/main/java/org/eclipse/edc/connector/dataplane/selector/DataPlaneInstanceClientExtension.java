@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.selector.client.EmbeddedDataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.client.RemoteDataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -24,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.util.string.StringUtils;
@@ -43,11 +42,7 @@ public class DataPlaneInstanceClientExtension implements ServiceExtension {
     private DataPlaneSelectorService selector;
 
     @Inject(required = false)
-    private OkHttpClient okHttpClient;
-
-    @Inject(required = false)
-    private RetryPolicy retryPolicy;
-
+    private EdcHttpClient httpClient;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -61,9 +56,8 @@ public class DataPlaneInstanceClientExtension implements ServiceExtension {
             client = new EmbeddedDataPlaneSelectorClient(selector);
             monitor.debug("Using embedded DPF selector");
         } else {
-            Objects.requireNonNull(okHttpClient, format("If [%s] is specified, a OkHttpClient instance must be provided", DPF_SELECTOR_URL_SETTING));
-            Objects.requireNonNull(retryPolicy, format("If [%s] is specified, a RetryPolicy instance must be provided", DPF_SELECTOR_URL_SETTING));
-            client = new RemoteDataPlaneSelectorClient(okHttpClient, url, retryPolicy, context.getTypeManager().getMapper());
+            Objects.requireNonNull(httpClient, format("If [%s] is specified, an EdcHttpClient instance must be provided", DPF_SELECTOR_URL_SETTING));
+            client = new RemoteDataPlaneSelectorClient(httpClient, url, context.getTypeManager().getMapper());
             monitor.debug("Using remote DPF selector");
         }
 

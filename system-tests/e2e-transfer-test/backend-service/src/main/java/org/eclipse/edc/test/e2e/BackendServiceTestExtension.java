@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.test.e2e;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -27,7 +27,7 @@ public class BackendServiceTestExtension implements ServiceExtension {
     private WebService webService;
 
     @Inject
-    private OkHttpClient okHttpClient;
+    private EdcHttpClient httpClient;
 
     @Inject
     private TypeManager typeManager;
@@ -42,7 +42,7 @@ public class BackendServiceTestExtension implements ServiceExtension {
         var exposedHttpPort = context.getConfig().getInteger("web.http.port");
         webService.registerResource(new ProviderBackendApiController());
         webService.registerResource(new ConsumerBackendServiceController(context.getMonitor()));
-        webService.registerResource(new BackendServiceHttpProvisionerController(context.getMonitor(), okHttpClient, typeManager, exposedHttpPort));
+        webService.registerResource(new BackendServiceHttpProvisionerController(context.getMonitor(), httpClient, typeManager, exposedHttpPort));
         webService.registerResource(new Oauth2TokenController(context.getMonitor()));
     }
 }

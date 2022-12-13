@@ -16,11 +16,8 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.failsafe.Failsafe;
-import dev.failsafe.RetryPolicy;
 import io.opentelemetry.extension.annotations.WithSpan;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -30,10 +27,10 @@ import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -48,14 +45,12 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private final DataPlaneSelectorClient selectorClient;
     private final String selectorStrategy;
-    private final RetryPolicy<Object> retryPolicy;
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
 
-    public RemoteDataPlaneClient(OkHttpClient httpClient, DataPlaneSelectorClient selectorClient, String selectorStrategy, RetryPolicy<Object> retryPolicy, ObjectMapper mapper) {
+    public RemoteDataPlaneClient(EdcHttpClient httpClient, DataPlaneSelectorClient selectorClient, String selectorStrategy, ObjectMapper mapper) {
         this.selectorClient = Objects.requireNonNull(selectorClient, "Data plane selector client");
         this.selectorStrategy = Objects.requireNonNull(selectorStrategy, "Selector strategy");
-        this.retryPolicy = Objects.requireNonNull(retryPolicy, "Retry policy");
         this.httpClient = Objects.requireNonNull(httpClient, "Http client");
         this.mapper = Objects.requireNonNull(mapper, "Object mapper");
     }
@@ -76,14 +71,11 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
         }
         var rq = new Request.Builder().post(body).url(instance.getUrl()).build();
 
-        try (var response = executeRequest(rq)) {
+        try (var response = httpClient.execute(rq)) {
             return handleResponse(response, request.getId());
+        } catch (IOException e) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, e.getMessage());
         }
-    }
-
-    @NotNull
-    private Response executeRequest(Request rq) {
-        return Failsafe.with(retryPolicy).get(() -> httpClient.newCall(rq).execute());
     }
 
     private StatusResult<Void> handleResponse(Response response, String requestId) {

@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.client;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
@@ -23,8 +21,11 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import java.util.Objects;
 
 /**
  * This extension provides the Data Plane API:
@@ -45,10 +46,7 @@ public class DataPlaneClientExtension implements ServiceExtension {
     private DataPlaneSelectorClient dataPlaneSelectorClient;
 
     @Inject(required = false)
-    private OkHttpClient httpClient;
-
-    @Inject(required = false)
-    private RetryPolicy<Object> retryPolicy;
+    private EdcHttpClient httpClient;
 
     @Override
     public String name() {
@@ -64,8 +62,9 @@ public class DataPlaneClientExtension implements ServiceExtension {
         }
 
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
+        Objects.requireNonNull(httpClient, "To use remote Data Plane client, an EdcHttpClient instance must be registered");
         var selectionStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
-        return new RemoteDataPlaneClient(httpClient, dataPlaneSelectorClient, selectionStrategy, retryPolicy, context.getTypeManager().getMapper());
+        return new RemoteDataPlaneClient(httpClient, dataPlaneSelectorClient, selectionStrategy, context.getTypeManager().getMapper());
     }
 }
 

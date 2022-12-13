@@ -33,7 +33,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -81,7 +80,7 @@ class ProviderContractNegotiationManagerImplTest {
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
-    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager sendRetryManager = mock(SendRetryManager.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
     private ProviderContractNegotiationManagerImpl negotiationManager;
 
@@ -130,7 +129,7 @@ class ProviderContractNegotiationManagerImplTest {
                         n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
                         n.getProtocol().equals(request.getProtocol()) &&
                         n.getCorrelationId().equals(request.getCorrelationId()) &&
-                        n.getContractOffers().size() == 2 &&
+                        n.getContractOffers().size() == 1 &&
                         n.getLastContractOffer().equals(contractOffer)
         ));
         verify(validationService).validateInitialOffer(token, contractOffer);
@@ -224,9 +223,8 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.CONFIRMING.code() &&
-                        n.getContractOffers().size() == 3 &&
-                        n.getContractOffers().get(1).equals(contractOffer) &&
-                        n.getContractOffers().get(2).equals(validatedOffer)
+                n.getContractOffers().size() == 2 &&
+                n.getLastContractOffer().equals(contractOffer)
         ));
 
         verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));

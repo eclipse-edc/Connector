@@ -32,7 +32,6 @@ dependencies {
     testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.36.0")
     testImplementation("net.javacrumbs.json-unit:json-unit:2.36.0")
 
-    testImplementation(libs.okhttp)
     testImplementation(project(":core:common:junit"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))

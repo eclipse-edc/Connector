@@ -12,7 +12,8 @@ This context will expose the controllers defined by the following modules:
 - `data-management-api`
 - `data-plane-selector`
 - `federated-catalog`
-- `http-provisioner`.
+- `http-provisioner`
+- `observability-api`
 
 Network context: intra-organization
 

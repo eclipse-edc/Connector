@@ -19,12 +19,11 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:http-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
 
-    implementation(libs.failsafe.core)
-    implementation(libs.okhttp)
     implementation(libs.opentelemetry.annotations)
 
     testImplementation(project(":core:common:junit"))

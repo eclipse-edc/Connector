@@ -15,10 +15,9 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -31,13 +30,11 @@ import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
  */
 public class HttpDataSourceFactory implements DataSourceFactory {
 
-    private final OkHttpClient httpClient;
-    private final RetryPolicy<Object> retryPolicy;
+    private final EdcHttpClient httpClient;
     private final HttpRequestParamsSupplier supplier;
 
-    public HttpDataSourceFactory(OkHttpClient httpClient, RetryPolicy<Object> retryPolicy, HttpRequestParamsSupplier supplier) {
+    public HttpDataSourceFactory(EdcHttpClient httpClient, HttpRequestParamsSupplier supplier) {
         this.httpClient = httpClient;
-        this.retryPolicy = retryPolicy;
         this.supplier = supplier;
     }
 
@@ -66,7 +63,6 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .requestId(request.getId())
                 .name(dataAddress.getName())
                 .params(supplier.apply(request))
-                .retryPolicy(retryPolicy)
                 .build();
     }
 }

@@ -14,14 +14,13 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -42,10 +41,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault";
 
     @Inject
-    private OkHttpClient okHttpClient;
-
-    @Inject
-    private RetryPolicy retryPolicy;
+    private EdcHttpClient httpClient;
 
     private Vault vault;
 
@@ -70,7 +66,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = loadHashicorpVaultClientConfig(context);
 
-        var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager(), retryPolicy);
+        var client = new HashicorpVaultClient(config, httpClient, context.getTypeManager());
 
         vault = new HashicorpVault(client, context.getMonitor());
         privateKeyResolver = new VaultPrivateKeyResolver(vault);

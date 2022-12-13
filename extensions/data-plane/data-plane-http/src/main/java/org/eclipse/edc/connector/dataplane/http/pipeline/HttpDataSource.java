@@ -15,10 +15,9 @@
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,15 +25,13 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
 
 public class HttpDataSource implements DataSource {
     private String name;
     private HttpRequestParams params;
     private String requestId;
-    private RetryPolicy<Object> retryPolicy;
-    private OkHttpClient httpClient;
+    private EdcHttpClient httpClient;
 
     @Override
     public Stream<Part> openPartStream() {
@@ -42,7 +39,7 @@ public class HttpDataSource implements DataSource {
     }
 
     private HttpPart getPart() {
-        try (var response = with(retryPolicy).get(() -> httpClient.newCall(params.toRequest()).execute())) {
+        try (var response = httpClient.execute(params.toRequest())) {
             var body = response.body();
             var stringBody = body != null ? body.string() : null;
             if (stringBody == null) {
@@ -83,12 +80,7 @@ public class HttpDataSource implements DataSource {
             return this;
         }
 
-        public Builder retryPolicy(RetryPolicy<Object> retryPolicy) {
-            dataSource.retryPolicy = retryPolicy;
-            return this;
-        }
-
-        public Builder httpClient(OkHttpClient httpClient) {
+        public Builder httpClient(EdcHttpClient httpClient) {
             dataSource.httpClient = httpClient;
             return this;
         }
@@ -96,7 +88,6 @@ public class HttpDataSource implements DataSource {
         public HttpDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.httpClient, "httpClient");
-            Objects.requireNonNull(dataSource.retryPolicy, "retryPolicy");
             return dataSource;
         }
 

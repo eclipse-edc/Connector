@@ -23,8 +23,6 @@ dependencies {
     testImplementation(project(":extensions:common:vault:vault-filesystem"))
     testImplementation(project(":extensions:common:iam:oauth2:oauth2-core"))
     testImplementation(project(":core:common:junit"))
-
-    testImplementation(libs.okhttp)
 }
 
 publishing {

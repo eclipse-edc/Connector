@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.dataplane.selector.api;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -30,6 +29,7 @@ import org.eclipse.edc.connector.dataplane.selector.store.InMemoryDataPlaneInsta
 import org.eclipse.edc.connector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -50,7 +50,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstance;
 import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstanceBuilder;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.Mockito.mock;
 
 @ApiTest
@@ -58,14 +58,13 @@ class DataplaneSelectorApiControllerIntegrationTest {
 
     public static final MediaType JSON_TYPE = MediaType.parse("application/json");
     private static int port;
-    private static DataplaneSelectorApiController controller;
     private static InMemoryDataPlaneInstanceStore store;
     private static JettyConfiguration config;
     private static Monitor monitor;
     private final TypeReference<List<DataPlaneInstance>> listTypeRef = new TypeReference<>() {
     };
     private ObjectMapper objectMapper;
-    private OkHttpClient client;
+    private EdcHttpClient client;
     private JettyService jetty;
     private SelectionStrategyRegistry selectionStrategyRegistry;
 
@@ -79,14 +78,14 @@ class DataplaneSelectorApiControllerIntegrationTest {
 
     @BeforeEach
     void setup() {
-        client = testOkHttpClient();
+        client = testHttpClient();
 
         selectionStrategyRegistry = new DefaultSelectionStrategyRegistry(); //in-memory
 
         store = new InMemoryDataPlaneInstanceStore();
         var selector = new DataPlaneSelectorImpl(store);
         var service = new DataPlaneSelectorServiceImpl(selector, store, selectionStrategyRegistry);
-        controller = new DataplaneSelectorApiController(service);
+        var controller = new DataplaneSelectorApiController(service);
 
         jetty = new JettyService(config, monitor);
 
@@ -276,16 +275,16 @@ class DataplaneSelectorApiControllerIntegrationTest {
 
     @NotNull
     private Response get(String url) throws IOException {
-        return client.newCall(new Request.Builder().get().url(url).build()).execute();
+        return client.execute(new Request.Builder().get().url(url).build());
     }
 
     @NotNull
     private Response post(String url, RequestBody requestBody) throws IOException {
-        return client.newCall(new Request.Builder().post(requestBody).url(url).build()).execute();
+        return client.execute(new Request.Builder().post(requestBody).url(url).build());
     }
 
     @NotNull
     private Response delete(String url) throws IOException {
-        return client.newCall(new Request.Builder().delete().url(url).build()).execute();
+        return client.execute(new Request.Builder().delete().url(url).build());
     }
 }

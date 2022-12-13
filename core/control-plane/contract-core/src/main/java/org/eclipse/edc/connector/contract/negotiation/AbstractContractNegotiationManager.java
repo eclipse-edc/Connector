@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.command.CommandProcessor;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.retry.WaitStrategy;
@@ -57,7 +56,7 @@ public abstract class AbstractContractNegotiationManager {
     protected int batchSize = DEFAULT_BATCH_SIZE;
     protected WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
     protected PolicyDefinitionStore policyStore;
-    protected SendRetryManager<StatefulEntity> sendRetryManager;
+    protected SendRetryManager sendRetryManager;
 
     /**
      * Gives the name of the manager
@@ -142,7 +141,7 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
-        public Builder<T> sendRetryManager(SendRetryManager<StatefulEntity> sendRetryManager) {
+        public Builder<T> sendRetryManager(SendRetryManager sendRetryManager) {
             manager.sendRetryManager = sendRetryManager;
             return this;
         }

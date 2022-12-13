@@ -14,13 +14,12 @@
 
 package org.eclipse.edc.connector.receiver.http;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.util.string.StringUtils;
@@ -35,14 +34,12 @@ public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtens
     private static final String HTTP_RECEIVER_AUTH_KEY = "edc.receiver.http.auth-key";
     @Setting
     private static final String HTTP_RECEIVER_AUTH_CODE = "edc.receiver.http.auth-code";
+
     @Inject
     private EndpointDataReferenceReceiverRegistry receiverRegistry;
 
     @Inject
-    private OkHttpClient httpClient;
-
-    @Inject
-    private RetryPolicy retryPolicy;
+    private EdcHttpClient httpClient;
 
     @Override
     public String name() {
@@ -62,7 +59,6 @@ public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtens
                 .authHeader(authKey, authCode)
                 .httpClient(httpClient)
                 .typeManager(context.getTypeManager())
-                .retryPolicy(retryPolicy)
                 .monitor(context.getMonitor())
                 .build();
         receiverRegistry.registerReceiver(receiver);

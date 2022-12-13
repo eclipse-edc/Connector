@@ -17,6 +17,7 @@ package org.eclipse.edc.transaction.local;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.transaction.spi.local.LocalTransactionResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -137,6 +138,20 @@ class LocalTransactionContextTest {
         verify(dsResource2, times(1)).start();
         verify(dsResource, times(1)).rollback();
         verify(dsResource2, times(1)).rollback();  // ensure commit was called on resource after the exception was thrown
+    }
+
+    @Test
+    void verifySynchronization() {
+        var sync = mock(TransactionContext.TransactionSynchronization.class);
+
+        // the sync should be invoked
+        transactionContext.execute(() -> transactionContext.registerSynchronization(sync));
+
+        // the sync should be cleared and should not be invoked again
+        transactionContext.execute(() -> {
+        });
+
+        verify(sync, times(1)).beforeCompletion();
     }
 
     @BeforeEach

@@ -14,17 +14,37 @@
 
 package org.eclipse.edc.transaction.spi;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Default implementation for TransactionContext, to be used only for testing/sampling purposes
  */
 public class NoopTransactionContext implements TransactionContext {
+    private ThreadLocal<List<TransactionSynchronization>> synchronizations = ThreadLocal.withInitial(ArrayList::new);
+
     @Override
     public void execute(TransactionBlock block) {
         block.execute();
+        notifyAndClearSyncs();
     }
 
     @Override
     public <T> T execute(ResultTransactionBlock<T> block) {
-        return block.execute();
+        var result = block.execute();
+        notifyAndClearSyncs();
+        return result;
     }
+
+    @Override
+    public void registerSynchronization(TransactionSynchronization sync) {
+        synchronizations.get().add(sync);
+    }
+
+    private void notifyAndClearSyncs() {
+        var syncList = synchronizations.get();
+        syncList.forEach(TransactionSynchronization::beforeCompletion);
+        syncList.clear();
+    }
+
 }

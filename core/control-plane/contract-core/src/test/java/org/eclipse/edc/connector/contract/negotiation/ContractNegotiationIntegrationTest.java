@@ -34,7 +34,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -104,7 +103,7 @@ class ContractNegotiationIntegrationTest {
 
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
-        SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+        var sendRetryManager = mock(SendRetryManager.class);
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(providerDispatcherRegistry)
@@ -174,7 +173,7 @@ class ContractNegotiationIntegrationTest {
 
                     // Assert that provider and consumer have the same offers and agreement stored
                     assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(providerNegotiation.getContractOffers()).hasSize(2);
+                    assertThat(providerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
                     assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
@@ -188,11 +187,12 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferDeclined() {
+        when(providerDispatcherRegistry.send(any(), isA(ContractRejection.class), any())).then(onProviderSentRejection());
         when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class), any())).then(onConsumerSentOfferRequest());
         consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
 
-        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
+        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.failure("must be declined"));
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -219,7 +219,7 @@ class ContractNegotiationIntegrationTest {
 
                     // Assert that provider and consumer have the same offers stored
                     assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(providerNegotiation.getContractOffers()).hasSize(2);
+                    assertThat(providerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
                     // Assert that no agreement has been stored on either side
@@ -265,7 +265,7 @@ class ContractNegotiationIntegrationTest {
 
                     // Assert that provider and consumer have the same offers stored
                     assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(providerNegotiation.getContractOffers()).hasSize(2);
+                    assertThat(providerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
                     // Assert that no agreement has been stored on either side
@@ -534,6 +534,15 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractAgreementRequest request = i.getArgument(1);
             var result = consumerManager.confirmed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
+            return toFuture(result);
+        };
+    }
+
+    @NotNull
+    private Answer<Object> onProviderSentRejection() {
+        return i -> {
+            ContractRejection request = i.getArgument(1);
+            var result = consumerManager.declined(token, request.getCorrelationId());
             return toFuture(result);
         };
     }

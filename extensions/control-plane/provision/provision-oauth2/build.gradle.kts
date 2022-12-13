@@ -18,11 +18,10 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:common:http-spi"))
     api(project(":spi:common:web-spi"))
     implementation(project(":extensions:common:api:api-core"))
 
-    implementation(libs.okhttp)
-    implementation(libs.failsafe.core)
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:control-plane:control-plane-core"))

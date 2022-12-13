@@ -78,7 +78,6 @@ class CatalogApiControllerIntegrationTest {
                 "web.http.management.path", "/api/v1/management",
                 "edc.api.auth.key", authKey
         ));
-
     }
 
     @Test

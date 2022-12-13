@@ -57,10 +57,7 @@ public abstract class AbstractEndToEndTransfer {
                 .filter(o -> o.getAsset().getId().equals(assetId))
                 .findFirst()
                 .get();
-        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
-        var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
-
-        assertThat(contractAgreementId).isNotEmpty();
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
 
         var dataRequestId = UUID.randomUUID().toString();
         var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
@@ -104,10 +101,7 @@ public abstract class AbstractEndToEndTransfer {
                 .filter(o -> o.getAsset().getId().equals(assetId))
                 .findFirst()
                 .get();
-        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
-        var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
-
-        assertThat(contractAgreementId).isNotEmpty();
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
 
         var dataRequestId = UUID.randomUUID().toString();
         var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
@@ -136,10 +130,7 @@ public abstract class AbstractEndToEndTransfer {
                 .filter(o -> o.getAsset().getId().equals(assetId))
                 .findFirst()
                 .get();
-        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
-        var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
-
-        assertThat(contractAgreementId).isNotEmpty();
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
 
         var destination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(CONSUMER.backendService() + "/api/consumer/store")
@@ -178,10 +169,7 @@ public abstract class AbstractEndToEndTransfer {
                 .filter(o -> o.getAsset().getId().equals(assetId))
                 .findFirst()
                 .get();
-        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
-        var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
-
-        assertThat(contractAgreementId).isNotEmpty();
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
 
         var destination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(CONSUMER.backendService() + "/api/consumer/store")

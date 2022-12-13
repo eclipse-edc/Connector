@@ -33,7 +33,7 @@ import java.net.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.provision.http.HttpProvisionerFixtures.createResponse;
 import static org.eclipse.edc.connector.provision.http.config.ProvisionerConfiguration.ProvisionerType.PROVIDER;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,6 +41,21 @@ import static org.mockito.Mockito.when;
 class HttpProviderProvisionerTest {
     private HttpProviderProvisioner provisioner;
     private Interceptor delegate;
+
+    @BeforeEach
+    void setUp() throws MalformedURLException {
+        var configuration = ProvisionerConfiguration.Builder.newInstance()
+                .name("test")
+                .provisionerType(PROVIDER)
+                .dataAddressType("test")
+                .policyScope("test")
+                .endpoint(new URL("http://bar.com"))
+                .build();
+
+        delegate = mock(Interceptor.class);
+        provisioner = new HttpProviderProvisioner(configuration, new URL("http://foo.com"), mock(PolicyEngine.class),
+                testHttpClient(delegate), new ObjectMapper(), mock(Monitor.class));
+    }
 
     @Test
     void verifyCanProvision() {
@@ -160,21 +175,6 @@ class HttpProviderProvisionerTest {
         assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY);
     }
 
-
-    @BeforeEach
-    void setUp() throws MalformedURLException {
-        var configuration = ProvisionerConfiguration.Builder.newInstance()
-                .name("test")
-                .provisionerType(PROVIDER)
-                .dataAddressType("test")
-                .policyScope("test")
-                .endpoint(new URL("http://bar.com"))
-                .build();
-
-        delegate = mock(Interceptor.class);
-        var httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
-        provisioner = new HttpProviderProvisioner(configuration, new URL("http://foo.com"), mock(PolicyEngine.class), httpClient, new ObjectMapper(), mock(Monitor.class));
-    }
 
     private HttpProviderResourceDefinition createResourceDefinition() {
         return HttpProviderResourceDefinition.Builder.newInstance()

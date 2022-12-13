@@ -18,13 +18,13 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
+import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -101,12 +101,18 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     public ServiceResult<ContractNegotiation> decline(String negotiationId) {
         return transactionContext.execute(() -> {
             try {
-                var declineResult = manager.declined(ClaimToken.Builder.newInstance().build(), negotiationId);
-                if (declineResult.succeeded()) {
-                    return ServiceResult.success(declineResult.getContent());
-                } else {
-                    return ServiceResult.conflict(format("Cannot decline ContractNegotiation %s", negotiationId));
+                var negotiation = store.find(negotiationId);
+                if (negotiation == null) {
+                    return ServiceResult.notFound(format("ContractNegotiation %s does not exist", negotiationId));
                 }
+
+                if (negotiation.canDecline()) {
+                    manager.enqueueCommand(new DeclineNegotiationCommand(negotiationId));
+                    return ServiceResult.success(negotiation);
+                } else {
+                    return ServiceResult.conflict(format("Cannot decline ContractNegotiation %s as it is in state %s", negotiationId, ContractNegotiationStates.from(negotiation.getState())));
+                }
+
             } catch (Exception e) {
                 return ServiceResult.conflict(format("Cannot decline ContractNegotiation %s: %s", negotiationId, e.getLocalizedMessage()));
             }
