@@ -22,6 +22,9 @@ import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Duration;
+
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,7 +34,8 @@ import static org.mockito.Mockito.when;
 class DeclineNegotiationCommandHandlerTest {
 
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
-
+    private final Clock now = Clock.systemUTC();
+    private final Clock future = Clock.offset(now, Duration.ofMinutes(1));
     private DeclineNegotiationCommandHandler commandHandler;
 
     @BeforeEach
@@ -48,6 +52,8 @@ class DeclineNegotiationCommandHandlerTest {
                 .counterPartyAddress("https://counter-party")
                 .protocol("test-protocol")
                 .state(ContractNegotiationStates.REQUESTED.code())
+                .clock(future)
+                .updatedAt(now.millis())
                 .build();
         var originalTime = negotiation.getUpdatedAt();
         var command = new DeclineNegotiationCommand(negotiationId);
@@ -58,7 +64,7 @@ class DeclineNegotiationCommandHandlerTest {
 
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
         assertThat(negotiation.getErrorDetail()).isNotBlank();
-        assertThat(negotiation.getUpdatedAt()).isNotEqualTo(originalTime);
+        assertThat(negotiation.getUpdatedAt()).isGreaterThan(originalTime);
     }
 
     @Test

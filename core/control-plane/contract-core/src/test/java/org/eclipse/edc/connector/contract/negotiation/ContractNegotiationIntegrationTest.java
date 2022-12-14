@@ -44,7 +44,6 @@ import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
@@ -52,7 +51,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -62,7 +60,6 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -277,245 +274,11 @@ class ContractNegotiationIntegrationTest {
                 });
     }
 
-    @Test
-    @Disabled
-    void testNegotiation_counterOfferAccepted() {
-        consumerNegotiationId = null;
-        ContractOffer initialOffer = getContractOffer();
-        ContractOffer counterOffer = getCounterOffer();
-
-        when(validationService.validateInitialOffer(token, initialOffer)).thenReturn(Result.success(null));
-        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-        when(validationService.validateConfirmed(any(ContractAgreement.class), eq(counterOffer)))
-                .thenReturn(Result.success());
-
-        // Start provider and consumer negotiation managers
-        providerManager.start();
-        consumerManager.start();
-
-        // Create an initial request and trigger consumer manager
-        var request = ContractOfferRequest.Builder.newInstance()
-                .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
-                .contractOffer(initialOffer)
-                .protocol("protocol")
-                .build();
-        consumerManager.initiate(request);
-
-        await().atMost(DEFAULT_TEST_TIMEOUT)
-                .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> {
-
-                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-
-                    // Assert that provider and consumer have the same number of offers stored
-                    assertNegotiations(consumerNegotiation, providerNegotiation, 2);
-
-                    // Assert that initial offer is the same
-                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
-
-                    // Assert that counter offer is the same
-                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-
-                    // Assert that same agreement is stored on both sides
-                    assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
-                    assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
-
-                    verify(validationService, atLeastOnce()).validateInitialOffer(token, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
-                    verify(validationService, atLeastOnce()).validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class));
-                });
-    }
-
-    @Test
-    @Disabled
-    void testNegotiation_counterOfferDeclined() {
-        consumerNegotiationId = null;
-
-        ContractOffer initialOffer = getContractOffer();
-        ContractOffer counterOffer = getCounterOffer();
-
-        when(validationService.validateInitialOffer(token, initialOffer)).thenReturn(Result.success(null));
-        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-
-        // Start provider and consumer negotiation managers
-        providerManager.start();
-        consumerManager.start();
-
-        // Create an initial request and trigger consumer manager
-        var request = ContractOfferRequest.Builder.newInstance()
-                .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
-                .contractOffer(initialOffer)
-                .protocol("protocol")
-                .build();
-        consumerManager.initiate(request);
-
-        // Wait for negotiation to finish with time out at 15 seconds
-        await().atMost(DEFAULT_TEST_TIMEOUT)
-                .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> {
-
-                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-
-                    // Assert that provider and consumer have the same number of offers stored
-                    assertNegotiations(consumerNegotiation, providerNegotiation, 2);
-
-                    // Assert that initial offer is the same
-                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
-
-                    // Assert that counter offer is the same
-                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-
-                    // Assert that no agreement has been stored on either side
-                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
-                    assertThat(providerNegotiation.getContractAgreement()).isNull();
-                    verify(validationService, atLeastOnce()).validateInitialOffer(token, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
-                    verify(validationService, atLeastOnce()).validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class));
-                });
-    }
-
-    @Test
-    @Disabled
-    void testNegotiation_consumerCounterOfferAccepted() {
-        consumerNegotiationId = null;
-
-        // Create an initial contract offer and two counter offers
-        ContractOffer initialOffer = getContractOffer();
-        ContractOffer counterOffer = getCounterOffer();
-        ContractOffer consumerCounterOffer = getConsumerCounterOffer();
-
-        // Mock validation of initial offer on provider side => counter offer
-        when(validationService.validateInitialOffer(token, initialOffer)).thenReturn(Result.success(null));
-
-        //Mock validation of counter offer on consumer side => counter offer
-        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-
-        //Mock validation of second counter offer on provider side => accept
-        when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
-
-        // Mock validation of agreement on consumer side
-        when(validationService.validateConfirmed(any(ContractAgreement.class), eq(consumerCounterOffer)))
-                .thenReturn(Result.success());
-
-        // Start provider and consumer negotiation managers
-        providerManager.start();
-        consumerManager.start();
-
-        // Create an initial request and trigger consumer manager
-        var request = ContractOfferRequest.Builder.newInstance()
-                .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
-                .contractOffer(initialOffer)
-                .protocol("protocol")
-                .build();
-        consumerManager.initiate(request);
-
-        // Wait for negotiation to finish with time out at 15 seconds
-        await().atMost(DEFAULT_TEST_TIMEOUT)
-                .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> {
-
-                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-
-                    // Assert that provider and consumer have the same number of offers stored
-                    assertNegotiations(consumerNegotiation, providerNegotiation, 3);
-
-                    // Assert that initial offer is the same
-                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
-
-                    // Assert that first counter offer is the same
-                    assertThat(consumerNegotiation.getContractOffers().get(1)).isEqualTo(providerNegotiation.getContractOffers().get(1));
-
-                    // Assert that second counter offer is the same
-                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-
-                    // Assert that same agreement is stored on both sides
-                    assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
-                    assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
-
-                    verify(validationService, atLeastOnce()).validateInitialOffer(token, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
-                    verify(validationService, atLeastOnce()).validateConfirmed(any(ContractAgreement.class), eq(consumerCounterOffer));
-                });
-    }
-
-    @Test
-    @Disabled
-    void testNegotiation_consumerCounterOfferDeclined() {
-        consumerNegotiationId = null;
-
-        // Create an initial contract offer and two counter offers
-        ContractOffer initialOffer = getContractOffer();
-        ContractOffer counterOffer = getCounterOffer();
-        ContractOffer consumerCounterOffer = getConsumerCounterOffer();
-
-        // Mock validation of initial offer on provider side => counter offer
-        when(validationService.validateInitialOffer(token, initialOffer)).thenReturn(Result.success(null));
-
-        //Mock validation of counter offer on consumer side => counter offer
-        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-
-        //Mock validation of second counter offer on provider side => decline
-        when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
-
-        // Start provider and consumer negotiation managers
-        providerManager.start();
-        consumerManager.start();
-
-        // Create an initial request and trigger consumer manager
-        var request = ContractOfferRequest.Builder.newInstance()
-                .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
-                .contractOffer(initialOffer)
-                .protocol("protocol")
-                .build();
-        consumerManager.initiate(request);
-
-        // Wait for negotiation to finish with time out at 15 seconds
-        // Wait for negotiation to finish with time out at 15 seconds
-        await().atMost(DEFAULT_TEST_TIMEOUT)
-                .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> {
-
-                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-
-                    // Assert that provider and consumer have the same number of offers stored
-                    assertNegotiations(consumerNegotiation, providerNegotiation, 3);
-
-                    // Assert that initial offer is the same
-                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
-
-                    // Assert that first counter offer is the same
-                    assertThat(consumerNegotiation.getContractOffers().get(1)).isEqualTo(providerNegotiation.getContractOffers().get(1));
-
-                    // Assert that second counter offer is the same
-                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-
-                    // Assert that no agreement has been stored on either side
-                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
-                    assertThat(providerNegotiation.getContractAgreement()).isNull();
-
-                    verify(validationService, atLeastOnce()).validateInitialOffer(token, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
-                    verify(validationService, atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
-                });
-    }
-
     private Answer<Object> onConsumerSentOfferRequest() {
         return i -> {
             ContractOfferRequest request = i.getArgument(1);
             consumerNegotiationId = request.getCorrelationId();
-            var result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-            if (result.fatalError()) {
-                result = providerManager.requested(token, request);
-            }
+            var result = providerManager.requested(token, request);
             return toFuture(result);
         };
     }
@@ -547,13 +310,6 @@ class ContractNegotiationIntegrationTest {
         };
     }
 
-    private void assertNegotiations(ContractNegotiation consumerNegotiation, ContractNegotiation providerNegotiation, int expectedSize) {
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(expectedSize);
-        assertThat(consumerNegotiation.getContractOffers()).hasSameSizeAs(providerNegotiation.getContractOffers());
-    }
-
     /**
      * Creates the initial contract offer.
      *
@@ -567,56 +323,6 @@ class ContractNegotiationIntegrationTest {
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
                 .asset(Asset.Builder.newInstance().build())
-                .policy(Policy.Builder.newInstance()
-                        .type(PolicyType.CONTRACT)
-                        .assigner("assigner")
-                        .assignee("assignee")
-                        .duty(Duty.Builder.newInstance()
-                                .action(Action.Builder.newInstance()
-                                        .type("USE")
-                                        .build())
-                                .build())
-                        .build())
-                .build();
-    }
-
-    /**
-     * Creates the first counter offer.
-     *
-     * @return the contract offer.
-     */
-    private ContractOffer getCounterOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(2))
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
-                .policy(Policy.Builder.newInstance()
-                        .type(PolicyType.CONTRACT)
-                        .assigner("assigner")
-                        .assignee("assignee")
-                        .duty(Duty.Builder.newInstance()
-                                .action(Action.Builder.newInstance()
-                                        .type("USE")
-                                        .build())
-                                .build())
-                        .build())
-                .build();
-    }
-
-    /**
-     * Creates the second counter offer.
-     *
-     * @return the contract offer.
-     */
-    private ContractOffer getConsumerCounterOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(3))
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
                 .policy(Policy.Builder.newInstance()
                         .type(PolicyType.CONTRACT)
                         .assigner("assigner")
