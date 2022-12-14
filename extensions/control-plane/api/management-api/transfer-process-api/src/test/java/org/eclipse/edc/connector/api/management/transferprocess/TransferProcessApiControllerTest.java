@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -194,7 +194,7 @@ class TransferProcessApiControllerTest {
 
         when(service.deprovision(transferProcess.getId())).thenReturn(ServiceResult.conflict("conflict"));
 
-        assertThatThrownBy(() -> controller.deprovisionTransferProcess(transferProcess.getId())).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.deprovisionTransferProcess(transferProcess.getId())).isInstanceOf(ObjectConflictException.class);
     }
 
     @Test
@@ -221,7 +221,7 @@ class TransferProcessApiControllerTest {
 
         when(service.cancel(transferProcess.getId())).thenReturn(ServiceResult.conflict("conflict"));
 
-        assertThatThrownBy(() -> controller.cancelTransferProcess(transferProcess.getId())).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.cancelTransferProcess(transferProcess.getId())).isInstanceOf(ObjectConflictException.class);
     }
 
     @Test

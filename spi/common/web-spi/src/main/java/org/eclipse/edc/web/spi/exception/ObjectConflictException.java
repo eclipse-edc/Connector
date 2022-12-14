@@ -14,16 +14,20 @@
 
 package org.eclipse.edc.web.spi.exception;
 
-import static java.lang.String.format;
+import java.util.List;
 
-public class ObjectExistsException extends EdcApiException {
+public class ObjectConflictException extends EdcApiException {
 
-    public ObjectExistsException(Class<?> objectType, String objectId) {
-        super(format("Object of type %s already exists with ID = %s", objectType.getSimpleName(), objectId));
+    public ObjectConflictException(String message) {
+        super(message);
+    }
+
+    public ObjectConflictException(List<String> messages) {
+        super(messages);
     }
 
     @Override
     public String getType() {
-        return "ObjectExists";
+        return "ObjectConflict";
     }
 }

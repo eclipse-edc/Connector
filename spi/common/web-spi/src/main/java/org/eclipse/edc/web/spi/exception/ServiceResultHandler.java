@@ -57,7 +57,7 @@ public class ServiceResultHandler {
             case NOT_FOUND:
                 return new ObjectNotFoundException(clazz, id);
             case CONFLICT:
-                return new ObjectExistsException(clazz, id);
+                return new ObjectConflictException(failure.getMessages());
             case BAD_REQUEST:
                 return new InvalidRequestException(failure.getMessages());
             default:
