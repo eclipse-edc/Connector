@@ -53,8 +53,6 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(DataPlaneInstance.class);
-        typeManager.registerTypes(DataPlaneInstance.class);
-
 
         store = new SqlDataPlaneInstanceStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), statements, typeManager.getMapper());
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
