@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -77,18 +77,22 @@ public class WebServiceSettings {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(useDefaultContext, apiConfigKey, defaultPort, defaultPath, contextAlias, name);
+    }
+
+    @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         WebServiceSettings that = (WebServiceSettings) o;
         return useDefaultContext == that.useDefaultContext && apiConfigKey.equals(that.apiConfigKey) &&
                 defaultPort.equals(that.defaultPort) && defaultPath.equals(that.defaultPath) &&
                 Objects.equals(contextAlias, that.contextAlias) && name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(useDefaultContext, apiConfigKey, defaultPort, defaultPath, contextAlias, name);
     }
 
     public static class Builder {
