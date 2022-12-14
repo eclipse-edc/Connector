@@ -14,15 +14,20 @@
 
 package org.eclipse.edc.web.spi.exception;
 
-import static java.lang.String.format;
+import java.util.List;
 
-public class ObjectNotModifiableException extends EdcApiException {
-    public ObjectNotModifiableException(String objectId, String objectType) {
-        super(format("Object of type %s with ID=%s is not modifiable", objectType, objectId));
+public class ObjectConflictException extends EdcApiException {
+
+    public ObjectConflictException(String message) {
+        super(message);
+    }
+
+    public ObjectConflictException(List<String> messages) {
+        super(messages);
     }
 
     @Override
     public String getType() {
-        return "ObjectNotModifiable";
+        return "ObjectConflict";
     }
 }

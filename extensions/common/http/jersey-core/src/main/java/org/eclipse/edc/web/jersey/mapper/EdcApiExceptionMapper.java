@@ -23,9 +23,8 @@ import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.EdcApiException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
-import org.eclipse.edc.web.spi.exception.ObjectNotModifiableException;
 
 import java.util.Map;
 
@@ -50,8 +49,7 @@ public class EdcApiExceptionMapper implements ExceptionMapper<EdcApiException> {
                 NotAuthorizedException.class, FORBIDDEN,
                 InvalidRequestException.class, BAD_REQUEST,
                 ObjectNotFoundException.class, NOT_FOUND,
-                ObjectExistsException.class, CONFLICT,
-                ObjectNotModifiableException.class, CONFLICT,
+                ObjectConflictException.class, CONFLICT,
                 BadGatewayException.class, BAD_GATEWAY
         );
     }

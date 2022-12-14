@@ -27,7 +27,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -213,7 +213,7 @@ class PolicyDefinitionApiControllerTest {
         when(transformerRegistry.transform(isA(PolicyDefinitionRequestDto.class), eq(PolicyDefinition.class)))
                 .thenReturn(Result.success(policyDefinition));
 
-        assertThatThrownBy(() -> controller.createPolicy(dto)).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.createPolicy(dto)).isInstanceOf(ObjectConflictException.class);
     }
 
     @Test
@@ -240,6 +240,6 @@ class PolicyDefinitionApiControllerTest {
     @Test
     void deletePolicy_conflicts() {
         when(service.deleteById("id")).thenReturn(ServiceResult.conflict("Conflicting"));
-        assertThatThrownBy(() -> controller.deletePolicy("id")).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.deletePolicy("id")).isInstanceOf(ObjectConflictException.class);
     }
 }

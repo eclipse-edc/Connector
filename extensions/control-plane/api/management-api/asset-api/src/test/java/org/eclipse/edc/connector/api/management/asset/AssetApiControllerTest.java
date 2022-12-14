@@ -32,7 +32,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,7 +114,7 @@ public class AssetApiControllerTest {
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
 
-        assertThatThrownBy(() -> controller.createAsset(assetEntry)).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.createAsset(assetEntry)).isInstanceOf(ObjectConflictException.class);
     }
 
     @Test
@@ -270,7 +270,7 @@ public class AssetApiControllerTest {
     void deleteAsset_conflicts() {
         when(service.delete("id")).thenReturn(ServiceResult.conflict("conflicting"));
 
-        assertThatThrownBy(() -> controller.removeAsset("id")).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.removeAsset("id")).isInstanceOf(ObjectConflictException.class);
     }
 
 }

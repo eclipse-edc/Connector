@@ -35,7 +35,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
@@ -99,17 +98,14 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         var contractDefinition = transformResult.getContent();
 
-        var result = service.create(contractDefinition);
-        if (result.succeeded()) {
-            monitor.debug(format("Contract definition created %s", result.getContent().getId()));
-            var resultContent = result.getContent();
-            return IdResponseDto.Builder.newInstance()
-                    .id(resultContent.getId())
-                    .createdAt(resultContent.getCreatedAt())
-                    .build();
-        } else {
-            throw new ObjectExistsException(ContractDefinition.class, dto.getId());
-        }
+        var resultContent = service.create(contractDefinition).orElseThrow(exceptionMapper(ContractDefinition.class, dto.getId()));
+
+        monitor.debug(format("Contract definition created %s", resultContent.getId()));
+        return IdResponseDto.Builder.newInstance()
+                .id(resultContent.getId())
+                .createdAt(resultContent.getCreatedAt())
+                .build();
+
     }
 
     @DELETE

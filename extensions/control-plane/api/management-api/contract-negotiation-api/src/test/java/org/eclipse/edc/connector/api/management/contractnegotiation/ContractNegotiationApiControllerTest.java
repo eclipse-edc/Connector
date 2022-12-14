@@ -34,7 +34,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -233,7 +233,7 @@ class ContractNegotiationApiControllerTest {
     void cancel_notPossible() {
         when(service.cancel("negotiationId")).thenReturn(ServiceResult.conflict("conflict"));
 
-        assertThatThrownBy(() -> controller.cancelNegotiation("negotiationId")).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.cancelNegotiation("negotiationId")).isInstanceOf(ObjectConflictException.class);
     }
 
     @Test
@@ -257,7 +257,7 @@ class ContractNegotiationApiControllerTest {
     void decline_notPossible() {
         when(service.decline("negotiationId")).thenReturn(ServiceResult.conflict("conflict"));
 
-        assertThatThrownBy(() -> controller.declineNegotiation("negotiationId")).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.declineNegotiation("negotiationId")).isInstanceOf(ObjectConflictException.class);
     }
 
     @ParameterizedTest
