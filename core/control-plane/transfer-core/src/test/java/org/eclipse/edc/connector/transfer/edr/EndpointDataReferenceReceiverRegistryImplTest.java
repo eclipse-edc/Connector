@@ -16,11 +16,13 @@ package org.eclipse.edc.connector.transfer.edr;
 
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,12 +44,14 @@ class EndpointDataReferenceReceiverRegistryImplTest {
         receiver1 = mock(EndpointDataReferenceReceiver.class);
         receiver2 = mock(EndpointDataReferenceReceiver.class);
         registry = new EndpointDataReferenceReceiverRegistryImpl();
-        registry.registerReceiver(receiver1);
-        registry.registerReceiver(receiver2);
+
     }
 
     @Test
     void receiveAll_success() {
+        registry.registerReceiver(receiver1);
+        registry.registerReceiver(receiver2);
+
         var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
@@ -63,6 +67,9 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
     @Test
     void receiveAll_failsBecauseReceiverReturnsFailedResult_shouldReturnFailedResult() {
+        registry.registerReceiver(receiver1);
+        registry.registerReceiver(receiver2);
+
         var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
         var errorMsg = "Test error message";
 
@@ -82,6 +89,9 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
     @Test
     void receiveAll_failsBecauseReceiverThrows_shouldReturnFailedResult() {
+        registry.registerReceiver(receiver1);
+        registry.registerReceiver(receiver2);
+
         var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
         var errorMsg = "Test error message";
 
@@ -97,5 +107,15 @@ class EndpointDataReferenceReceiverRegistryImplTest {
             assertThat(res.failed()).isTrue();
             assertThat(res.getFailureMessages().stream().anyMatch(s -> s.contains(errorMsg))).isTrue();
         });
+    }
+
+    @Test
+    void receiveAll_throwsExceptionIfNoReceiversRegistered() {
+        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var future = registry.receiveAll(edr);
+        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
+                .withThrowableOfType(ExecutionException.class)
+                .withRootCauseInstanceOf(EdcException.class)
+                .withMessageContaining("no registered receivers.");
     }
 }
