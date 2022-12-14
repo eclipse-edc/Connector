@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.ids.jsonld;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Action;
@@ -37,6 +38,8 @@ import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Frequency;
 import de.fraunhofer.iais.eis.Language;
 import de.fraunhofer.iais.eis.LeftOperand;
+import de.fraunhofer.iais.eis.LogicalConstraint;
+import de.fraunhofer.iais.eis.LogicalConstraintBuilder;
 import de.fraunhofer.iais.eis.PaymentModality;
 import de.fraunhofer.iais.eis.Permission;
 import de.fraunhofer.iais.eis.PermissionBuilder;
@@ -356,6 +359,27 @@ class SerializationTest {
         assertThat(((IdsConstraintImpl) constraint).getUnit()).isEqualTo(uri);
 
         assertEquals(resultString, objectMapper.writeValueAsString(resultObj));
+    }
+
+    @Test
+    void logicalConstraint() throws JsonProcessingException {
+        var resource = new RdfResource();
+        resource.setValue(string);
+        resource.setType(string);
+
+        var constraint = new IdsConstraintBuilder(uri)
+                .leftOperand(leftOperand.name())
+                .operator(binaryOperator)
+                .rightOperand(resource)
+                .unit(uri)
+                .pipEndpoint(uri)
+                .build();
+        var orConstraint = new LogicalConstraintBuilder()._or_(constraint).build();
+
+        var resultString = objectMapper.writeValueAsString(orConstraint);
+        var logicalConstraint = objectMapper.readValue(resultString, LogicalConstraint.class);
+
+        assertThat(logicalConstraint.getOr()).hasSize(1);
     }
 
     // build objects
