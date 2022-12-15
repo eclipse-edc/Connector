@@ -20,7 +20,6 @@ import de.fraunhofer.iais.eis.RepresentationBuilder;
 import org.eclipse.edc.protocol.ids.transform.type.asset.AssetToIdsResourceTransformer;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,27 +47,6 @@ class AssetToIdsResourceTransformerTest {
     void setUp() {
         context = mock(TransformerContext.class);
         transformer = new AssetToIdsResourceTransformer();
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(Asset.Builder.newInstance().build(), null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
     }
 
     @Test

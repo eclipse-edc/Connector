@@ -20,8 +20,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public class CriterionDtoToCriterionTransformer implements DtoTransformer<CriterionDto, Criterion> {
 
     @Override
@@ -35,12 +33,7 @@ public class CriterionDtoToCriterionTransformer implements DtoTransformer<Criter
     }
 
     @Override
-    public @Nullable Criterion transform(@Nullable CriterionDto object, @NotNull TransformerContext context) {
-        return Optional.ofNullable(object)
-                .map(criterion -> new Criterion(criterion.getOperandLeft(), criterion.getOperator(), criterion.getOperandRight()))
-                .orElseGet(() -> {
-                    context.reportProblem("input criterion is null");
-                    return null;
-                });
+    public @Nullable Criterion transform(@NotNull CriterionDto object, @NotNull TransformerContext context) {
+        return new Criterion(object.getOperandLeft(), object.getOperator(), object.getOperandRight());
     }
 }

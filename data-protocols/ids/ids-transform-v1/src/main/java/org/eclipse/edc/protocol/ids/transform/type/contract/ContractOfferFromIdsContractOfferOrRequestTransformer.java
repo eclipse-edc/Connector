@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Transforms an IDS ContractRequest into an {@link ContractOffer}.
@@ -48,12 +47,7 @@ public class ContractOfferFromIdsContractOfferOrRequestTransformer implements Id
     }
 
     @Override
-    public @Nullable ContractOffer transform(ContractTransformerInput object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable ContractOffer transform(@NotNull ContractTransformerInput object, @NotNull TransformerContext context) {
         var contract = object.getContract();
         var asset = object.getAsset();
 

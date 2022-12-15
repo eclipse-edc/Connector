@@ -21,8 +21,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public class PolicyDefinitionRequestDtoToPolicyDefinitionTransformer implements DtoTransformer<PolicyDefinitionRequestDto, PolicyDefinition> {
 
     @Override
@@ -36,16 +34,10 @@ public class PolicyDefinitionRequestDtoToPolicyDefinitionTransformer implements 
     }
 
     @Override
-    public @Nullable PolicyDefinition transform(@Nullable PolicyDefinitionRequestDto object, @NotNull TransformerContext context) {
-        return Optional.ofNullable(object)
-                .map(input -> PolicyDefinition.Builder.newInstance()
-                        .id(input.getId())
-                        .policy(input.getPolicy())
-                        .build()
-                )
-                .orElseGet(() -> {
-                    context.reportProblem("input policy definition is null");
-                    return null;
-                });
+    public @Nullable PolicyDefinition transform(@NotNull PolicyDefinitionRequestDto object, @NotNull TransformerContext context) {
+        return PolicyDefinition.Builder.newInstance()
+                .id(object.getId())
+                .policy(object.getPolicy())
+                .build();
     }
 }

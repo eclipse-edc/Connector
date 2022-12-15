@@ -68,13 +68,6 @@ class OfferedAssetToIdsResourceTransformerTest {
     }
 
     @Test
-    void transform_nullInputGivesNullResult() {
-        var result = transformer.transform(null, context);
-
-        assertThat(result).isNull();
-    }
-
-    @Test
     void transform() {
         var representation = new RepresentationBuilder().build();
         when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);

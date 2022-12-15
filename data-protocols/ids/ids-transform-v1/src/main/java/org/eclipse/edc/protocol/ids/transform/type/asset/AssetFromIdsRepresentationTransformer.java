@@ -25,7 +25,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -46,12 +45,7 @@ public class AssetFromIdsRepresentationTransformer implements IdsTypeTransformer
     }
 
     @Override
-    public @Nullable Asset transform(Representation object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Asset transform(@NotNull Representation object, @NotNull TransformerContext context) {
         var result = IdsId.from(object.getId());
         if (result.failed()) {
             context.reportProblem("id of incoming IDS representation expected to be not null");

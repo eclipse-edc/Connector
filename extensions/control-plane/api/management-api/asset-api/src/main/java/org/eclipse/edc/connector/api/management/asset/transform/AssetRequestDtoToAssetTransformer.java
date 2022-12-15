@@ -21,8 +21,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetRequestDto, Asset> {
 
     @Override
@@ -36,17 +34,10 @@ public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetRe
     }
 
     @Override
-    public @Nullable Asset transform(@Nullable AssetRequestDto object, @NotNull TransformerContext context) {
-        return Optional.ofNullable(object)
-                .map(input -> Asset.Builder.newInstance()
-                        .id(input.getId())
-                        .properties(input.getProperties())
-                        .build()
-                )
-                .orElseGet(() -> {
-                    context.reportProblem("input asset is null");
-                    return null;
-                });
-
+    public @Nullable Asset transform(@NotNull AssetRequestDto object, @NotNull TransformerContext context) {
+        return Asset.Builder.newInstance()
+                .id(object.getId())
+                .properties(object.getProperties())
+                .build();
     }
 }

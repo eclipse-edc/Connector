@@ -42,7 +42,7 @@ public class ConstraintFromIdsLogicalConstraintTransformer implements IdsTypeTra
     }
 
     @Override
-    public @Nullable Constraint transform(LogicalConstraint constraint, @NotNull TransformerContext context) {
+    public @Nullable Constraint transform(@NotNull LogicalConstraint constraint, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (constraint == null) {
             return null;

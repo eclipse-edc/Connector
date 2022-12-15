@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
-import java.util.Objects;
 
 public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, Artifact> {
 
@@ -41,12 +40,7 @@ public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, 
     }
 
     @Override
-    public @Nullable Artifact transform(Asset object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Artifact transform(@NotNull Asset object, @NotNull TransformerContext context) {
         var id = IdsId.Builder.newInstance().value(object.getId()).type(IdsType.ARTIFACT).build().toUri();
         var builder = new ArtifactBuilder(id);
 

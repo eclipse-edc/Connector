@@ -70,7 +70,7 @@ public class TypeTransformerRegistryImplTest {
         }
 
         @Override
-        public @Nullable Integer transform(@Nullable String object, @NotNull TransformerContext context) {
+        public @Nullable Integer transform(@NotNull String object, @NotNull TransformerContext context) {
             try {
                 return Integer.valueOf(object);
             } catch (Exception e) {

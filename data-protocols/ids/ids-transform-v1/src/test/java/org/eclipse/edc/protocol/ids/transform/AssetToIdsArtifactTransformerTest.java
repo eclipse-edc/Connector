@@ -27,7 +27,6 @@ import java.net.URI;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 class AssetToIdsArtifactTransformerTest {
@@ -61,25 +60,6 @@ class AssetToIdsArtifactTransformerTest {
         assertThat(idsAsset.getProperties())
                 .isNotNull()
                 .containsEntry("somekey", "somevalue");
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForAll() {
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> transformer.transform(null, null));
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> transformer.transform(Asset.Builder.newInstance().build(), null));
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        assertThat(result).isNull();
     }
 
     @Test

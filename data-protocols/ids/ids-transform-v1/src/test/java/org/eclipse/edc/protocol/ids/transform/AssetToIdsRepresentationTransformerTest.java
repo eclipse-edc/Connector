@@ -51,27 +51,6 @@ class AssetToIdsRepresentationTransformerTest {
     }
 
     @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(Asset.Builder.newInstance().build(), null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
-    }
-
-    @Test
     void testSuccessfulSimple() {
         var asset = Asset.Builder.newInstance().id(REPRESENTATION_ID).build();
         var artifact = new ArtifactBuilder().build();

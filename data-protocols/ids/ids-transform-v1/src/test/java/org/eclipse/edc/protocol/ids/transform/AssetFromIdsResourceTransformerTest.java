@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 class AssetFromIdsResourceTransformerTest {
@@ -73,25 +72,6 @@ class AssetFromIdsResourceTransformerTest {
                 ._description_(new TypedLiteral(ASSET_DESCRIPTION))
                 .build();
         context = mock(TransformerContext.class);
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForAll() {
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> transformer.transform(null, null));
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> transformer.transform(resource, null));
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        assertThat(result).isNull();
     }
 
     @Test

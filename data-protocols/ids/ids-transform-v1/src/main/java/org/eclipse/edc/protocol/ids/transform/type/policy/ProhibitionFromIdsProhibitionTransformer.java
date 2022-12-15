@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public class ProhibitionFromIdsProhibitionTransformer implements IdsTypeTransformer<de.fraunhofer.iais.eis.Prohibition, Prohibition> {
 
     @Override
@@ -37,12 +35,7 @@ public class ProhibitionFromIdsProhibitionTransformer implements IdsTypeTransfor
     }
 
     @Override
-    public @Nullable Prohibition transform(de.fraunhofer.iais.eis.Prohibition object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Prohibition transform(de.fraunhofer.iais.eis.@NotNull Prohibition object, @NotNull TransformerContext context) {
         var builder = Prohibition.Builder.newInstance();
         for (var idsConstraint : object.getConstraint()) {
             var edcConstraint = context.transform(idsConstraint, Constraint.class);

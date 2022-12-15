@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class CriterionToCriterionDtoTransformerTest {
 
@@ -42,13 +41,4 @@ class CriterionToCriterionDtoTransformerTest {
         assertThat(dto).usingRecursiveComparison().isEqualTo(criterion);
     }
 
-    @Test
-    void transform_nullInput() {
-        var context = mock(TransformerContext.class);
-
-        var definition = transformer.transform(null, context);
-
-        assertThat(definition).isNull();
-        verify(context).reportProblem("input criterion is null");
-    }
 }

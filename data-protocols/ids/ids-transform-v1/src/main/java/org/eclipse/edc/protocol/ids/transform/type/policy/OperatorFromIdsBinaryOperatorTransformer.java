@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class OperatorFromIdsBinaryOperatorTransformer implements IdsTypeTransformer<BinaryOperator, Operator> {
     private static final Map<BinaryOperator, Operator> MAPPING = new HashMap<>() {
@@ -50,12 +49,7 @@ public class OperatorFromIdsBinaryOperatorTransformer implements IdsTypeTransfor
     }
 
     @Override
-    public @Nullable Operator transform(@Nullable BinaryOperator object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Operator transform(@NotNull BinaryOperator object, @NotNull TransformerContext context) {
         var operator = MAPPING.get(object);
         if (operator == null) {
             context.reportProblem(String.format("cannot transform IDS operator %s", object));

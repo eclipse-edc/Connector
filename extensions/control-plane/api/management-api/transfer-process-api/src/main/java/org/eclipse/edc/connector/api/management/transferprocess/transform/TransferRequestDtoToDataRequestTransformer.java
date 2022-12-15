@@ -37,12 +37,7 @@ public class TransferRequestDtoToDataRequestTransformer implements DtoTransforme
     }
 
     @Override
-    public @Nullable DataRequest transform(@Nullable TransferRequestDto object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable DataRequest transform(@NotNull TransferRequestDto object, @NotNull TransformerContext context) {
         // Generate a DataRequest ID if none is provided (used for idempotency)
         String id = Objects.requireNonNullElseGet(object.getId(), () -> UUID.randomUUID().toString());
 
