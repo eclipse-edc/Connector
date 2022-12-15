@@ -16,12 +16,9 @@ package org.eclipse.edc.transform.spi;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
@@ -35,49 +32,43 @@ public class TypeTransformerRegistryImplTest {
     }
 
     @Test
-    void shouldTransform_whenInputAndOutputTypesAreHandledByRegisteredTransformer() {
+    void transformerFor_shouldReturnTheCorrectTransformer() {
+        var transformer = registry.transformerFor("a string", Integer.class);
+
+        assertThat(transformer).isInstanceOf(StringIntegerTypeTransformer.class);
+    }
+
+    @Test
+    void transformerFor_shouldThrowExceptionWhenTransformerDoesNotExist() {
+        var aLong = 4L;
+        assertThatThrownBy(() -> registry.transformerFor(aLong, Integer.class)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> registry.transformerFor(String.class, Long.class)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> registry.transformerFor(aLong, Integer.class)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> registry.transformerFor(aLong, Float.class)).isInstanceOf(EdcException.class);
+    }
+
+    @Test
+    void transform_shouldSucceed_whenInputAndOutputTypesAreHandledByRegisteredTransformer() {
         var result = registry.transform("5", Integer.class);
 
         assertThat(result).matches(Result::succeeded).extracting(Result::getContent).isEqualTo(5);
     }
 
     @Test
-    void shouldFail_whenTransformerFails() {
+    void transform_shouldFail_whenTransformerFails() {
         var result = registry.transform("not an integer", Integer.class);
 
         assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList().hasSize(1);
     }
 
     @Test
-    void shouldThrowException_whenTransformerIsNotFound() {
+    void transform_shouldThrowException_whenTransformerIsNotFound() {
         assertThatThrownBy(() -> registry.transform(3, String.class)).isInstanceOf(EdcException.class);
     }
 
     @Test
-    void shouldThrowException_whenInputIsNull() {
+    void transform_shouldThrowException_whenInputIsNull() {
         assertThatThrownBy(() -> registry.transform(null, Integer.class)).isInstanceOf(NullPointerException.class);
     }
 
-    private static class StringIntegerTypeTransformer implements TypeTransformer<String, Integer> {
-        @Override
-        public Class<String> getInputType() {
-            return String.class;
-        }
-
-        @Override
-        public Class<Integer> getOutputType() {
-            return Integer.class;
-        }
-
-        @Override
-        public @Nullable Integer transform(@NotNull String object, @NotNull TransformerContext context) {
-            try {
-                return Integer.valueOf(object);
-            } catch (Exception e) {
-                context.reportProblem(format("String %s cannot be transformed to integer: %s", object, e.getMessage()));
-                return null;
-            }
-
-        }
-    }
 }

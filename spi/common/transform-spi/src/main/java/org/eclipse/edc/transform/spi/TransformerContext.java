@@ -43,7 +43,7 @@ public interface TransformerContext {
      * Transforms the input object and any contained types, returning its transformed representation or null if the
      * operation cannot be completed or input is null.
      *
-     * @param object   the instance to transform
+     * @param input   the instance to transform
      * @param <INPUT>  the instance type
      * @param <OUTPUT> the transformed object type
      * @return the transformed representation or null

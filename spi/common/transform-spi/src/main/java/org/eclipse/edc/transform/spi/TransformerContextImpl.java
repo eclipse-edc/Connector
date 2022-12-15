@@ -48,12 +48,7 @@ public class TransformerContextImpl implements TransformerContext {
             return null;
         }
 
-        var result = registry.transform(object, outputType);
-        if (result.succeeded()) {
-            return result.getContent();
-        } else {
-            result.getFailureMessages().forEach(this::reportProblem);
-            return null;
-        }
+        return registry.transformerFor(object, outputType)
+                .transform(object, this);
     }
 }

@@ -34,16 +34,21 @@ public class TypeTransformerRegistryImpl<T extends TypeTransformer<?, ?>> implem
     }
 
     @Override
+    public @NotNull <INPUT, OUTPUT> TypeTransformer<INPUT, OUTPUT> transformerFor(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType) {
+        return transformers.stream()
+                .filter(t -> t.getInputType().isInstance(input) && t.getOutputType().equals(outputType))
+                .findAny()
+                .map(it -> (TypeTransformer<INPUT, OUTPUT>) it)
+                .orElseThrow(() -> new EdcException(format("No Transformer registered that can handle %s -> %s", input.getClass(), outputType)));
+    }
+
+    @Override
     public <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType) {
         Objects.requireNonNull(input);
 
         var context = new TransformerContextImpl(this);
 
-        var transformer = transformers.stream()
-                .filter(t -> t.getInputType().isInstance(input) && t.getOutputType().equals(outputType))
-                .findAny()
-                .map(it -> (TypeTransformer<INPUT, OUTPUT>)it)
-                .orElseThrow(() -> new EdcException(format("No Transformer registered that can handle %s -> %s", input.getClass(), outputType)));
+        var transformer = transformerFor(input, outputType);
 
         var result = transformer.transform(input, context);
         if (context.hasProblems()) {

@@ -28,6 +28,18 @@ public interface TypeTransformerRegistry<T extends TypeTransformer<?, ?>> {
     void register(T transformer);
 
     /**
+     * Returns a transformer that can transfor input to outputType
+     * Throws an exception if the transformer cannot be found.
+     *
+     * @param <INPUT> input type
+     * @param <OUTPUT> output type
+     * @param input the input object
+     * @param outputType the output type
+     * @return a transformer able to transform the input to the output
+     */
+    @NotNull <INPUT, OUTPUT> TypeTransformer<INPUT, OUTPUT> transformerFor(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType);
+
+    /**
      * Transforms the input and any contained types, returning its transformed representation or null if the operation cannot be completed.
      *
      * @param <INPUT>    the instance type
