@@ -40,11 +40,11 @@ public class TypeTransformerRegistryImplTest {
 
     @Test
     void transformerFor_shouldThrowExceptionWhenTransformerDoesNotExist() {
-        var aLong = 4L;
-        assertThatThrownBy(() -> registry.transformerFor(aLong, Integer.class)).isInstanceOf(EdcException.class);
+        var notString = 4L;
+        assertThatThrownBy(() -> registry.transformerFor(notString, Integer.class)).isInstanceOf(EdcException.class);
         assertThatThrownBy(() -> registry.transformerFor(String.class, Long.class)).isInstanceOf(EdcException.class);
-        assertThatThrownBy(() -> registry.transformerFor(aLong, Integer.class)).isInstanceOf(EdcException.class);
-        assertThatThrownBy(() -> registry.transformerFor(aLong, Float.class)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> registry.transformerFor(notString, Integer.class)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> registry.transformerFor(notString, Float.class)).isInstanceOf(EdcException.class);
     }
 
     @Test

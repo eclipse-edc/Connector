@@ -48,9 +48,7 @@ public class TypeTransformerRegistryImpl<T extends TypeTransformer<?, ?>> implem
 
         var context = new TransformerContextImpl(this);
 
-        var transformer = transformerFor(input, outputType);
-
-        var result = transformer.transform(input, context);
+        var result = context.transform(input, outputType);
         if (context.hasProblems()) {
             return Result.failure(context.getProblems());
         } else {
