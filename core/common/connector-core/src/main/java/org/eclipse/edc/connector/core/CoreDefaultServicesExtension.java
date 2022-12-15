@@ -19,11 +19,11 @@ import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.connector.core.base.OkHttpClientFactory;
+import org.eclipse.edc.connector.core.base.RetryPolicyFactory;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
@@ -39,7 +39,6 @@ import org.eclipse.edc.transaction.datasource.spi.DefaultDataSourceRegistry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 
 /**
@@ -48,12 +47,6 @@ import java.util.concurrent.Executors;
  */
 public class CoreDefaultServicesExtension implements ServiceExtension {
 
-    @Setting(value = "Maximum retries for the retry policy before a failure is propagated")
-    public static final String MAX_RETRIES = "edc.core.retry.retries.max";
-    @Setting(value = "Minimum number of milliseconds for exponential backoff")
-    public static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
-    @Setting(value = "Maximum number of milliseconds for exponential backoff. ")
-    public static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
     public static final String NAME = "Core Default Services";
 
     /**
@@ -120,14 +113,7 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
 
     @Provider
     public <T> RetryPolicy<T> retryPolicy(ServiceExtensionContext context) {
-        var maxRetries = context.getSetting(MAX_RETRIES, 5);
-        var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
-        var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
-
-        return RetryPolicy.<T>builder()
-                .withMaxRetries(maxRetries)
-                .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS)
-                .build();
+        return RetryPolicyFactory.create(context);
     }
 
 }
