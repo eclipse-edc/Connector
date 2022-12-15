@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.dataplane.selector.client;
 import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -57,7 +56,7 @@ class RemoteDataPlaneSelectorClientTest {
     @BeforeAll
     public static void prepare() {
         typeManager = new TypeManager();
-        typeManager.registerTypes(DataPlaneInstanceImpl.class);
+        typeManager.registerTypes(DataPlaneInstance.class);
         port = TestUtils.getFreePort();
         monitor = new ConsoleMonitor();
         config = new JettyConfiguration(null, null);

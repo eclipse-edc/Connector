@@ -27,20 +27,20 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DataPlaneInstanceImplTest {
+class DataPlaneInstanceTest {
 
     private ObjectMapper mapper;
 
     @BeforeEach
     void setup() {
         var tm = new TypeManager();
-        tm.registerTypes(DataPlaneInstanceImpl.class);
+        tm.registerTypes(DataPlaneInstance.class);
         mapper = tm.getMapper();
     }
 
     @Test
     void verifySerialization() throws MalformedURLException, JsonProcessingException {
-        var inst = DataPlaneInstanceImpl.Builder.newInstance()
+        var inst = DataPlaneInstance.Builder.newInstance()
                 .id("test-id")
                 .turnCount(7)
                 .lastActive(Instant.now().toEpochMilli())
@@ -55,12 +55,11 @@ class DataPlaneInstanceImplTest {
         var json = mapper.writeValueAsString(inst);
 
         assertThat(json).isNotNull()
-                .contains("\"edctype\":\"dataspaceconnector:dataplaneinstance\"")
                 .contains("url\":\"http://localhost:8234/some/path\"")
                 .contains("\"turnCount\":7")
                 .contains("\"someprop\":\"someval\"");
 
-        var deserialized = mapper.readValue(json, DataPlaneInstanceImpl.class);
+        var deserialized = mapper.readValue(json, DataPlaneInstance.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(inst);
 
         var deserializedItf = mapper.readValue(json, DataPlaneInstance.class);
@@ -74,7 +73,7 @@ class DataPlaneInstanceImplTest {
         var destType1 = "destType1";
         var destType2 = "destType2";
 
-        var inst = DataPlaneInstanceImpl.Builder.newInstance()
+        var inst = DataPlaneInstance.Builder.newInstance()
                 .id("test-id")
                 .url(new URL("http://localhost:8234/some/path"))
                 .allowedSourceType(srcType1)
