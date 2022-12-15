@@ -16,11 +16,14 @@ package org.eclipse.edc.connector.provision.oauth2;
 
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import java.time.Clock;
 
 @Extension(value = Oauth2ProvisionExtension.NAME)
 public class Oauth2ProvisionExtension implements ServiceExtension {
@@ -33,7 +36,13 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
     private ProvisionManager provisionManager;
 
     @Inject
-    private EdcHttpClient httpClient;
+    private PrivateKeyResolver privateKeyResolver;
+
+    @Inject
+    private Clock clock;
+
+    @Inject
+    private Oauth2Client client;
 
     @Override
     public String name() {
@@ -48,7 +57,7 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
         resourceManifestGenerator.registerGenerator(new Oauth2ProviderResourceDefinitionGenerator());
         resourceManifestGenerator.registerGenerator(new Oauth2ConsumerResourceDefinitionGenerator());
 
-        provisionManager.register(new Oauth2Provisioner(httpClient, typeManager));
+        provisionManager.register(new Oauth2Provisioner(client, privateKeyResolver, clock));
     }
 
 }

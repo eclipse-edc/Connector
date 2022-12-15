@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.oauth2.jwt;
+package org.eclipse.edc.iam.oauth2.spi;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
@@ -33,24 +32,21 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
-class DefaultJwtDecoratorTest {
-
+class Oauth2AssertionDecoratorTest {
     private static final long TOKEN_EXPIRATION = 500;
 
     private String audience;
     private String clientId;
     private final Instant now = Instant.now();
 
-    private DefaultJwtDecorator decorator;
+    private Oauth2AssertionDecorator decorator;
 
     @BeforeEach
     void setUp() {
         audience = "test-audience";
         clientId = UUID.randomUUID().toString();
-        byte[] certificate = new byte[50];
-        new Random().nextBytes(certificate);
         var clock = Clock.fixed(now, UTC);
-        decorator = new DefaultJwtDecorator(audience, clientId, certificate, clock, TOKEN_EXPIRATION);
+        decorator = new Oauth2AssertionDecorator(audience, clientId, clock, TOKEN_EXPIRATION);
     }
 
     @Test
@@ -68,9 +64,6 @@ class DefaultJwtDecoratorTest {
 
     @Test
     void headers() {
-        var result = decorator.headers();
-
-        assertThat(result).containsKey("x5t");
+        assertThat(decorator.headers()).isEmpty();
     }
-
 }

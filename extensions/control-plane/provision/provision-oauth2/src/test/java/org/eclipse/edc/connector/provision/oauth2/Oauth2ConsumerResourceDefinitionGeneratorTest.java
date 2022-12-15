@@ -75,7 +75,7 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void canGenerate() {
+    void canGenerate_clientSecret() {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
                 .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
@@ -89,6 +89,41 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest {
         var definition = generator.canGenerate(dataRequest, simplePolicy());
 
         assertThat(definition).isTrue();
+    }
+
+    @Test
+    void canGenerate_privateKey() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.PRIVATE_KEY_NAME, "aKeySecret")
+                .property(Oauth2DataAddressSchema.VALIDITY, "600")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
+                .build();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .dataDestination(dataAddress)
+                .build();
+
+        var definition = generator.canGenerate(dataRequest, simplePolicy());
+
+        assertThat(definition).isTrue();
+    }
+
+    @Test
+    void canGenerate_privateKey_missingExpiration() {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
+                .property(Oauth2DataAddressSchema.PRIVATE_KEY_NAME, "aKeySecret")
+                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
+                .build();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .dataDestination(dataAddress)
+                .build();
+
+        var definition = generator.canGenerate(dataRequest, simplePolicy());
+
+        assertThat(definition).isFalse();
     }
 
     @Test

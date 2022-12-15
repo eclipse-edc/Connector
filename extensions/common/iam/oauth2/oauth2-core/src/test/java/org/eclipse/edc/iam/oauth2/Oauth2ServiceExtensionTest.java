@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.oauth2;
 
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
@@ -41,11 +42,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-public class Oauth2ExtensionTest {
+class Oauth2ServiceExtensionTest {
 
     private ServiceExtensionContext context;
-    private Oauth2Extension extension;
-
+    private Oauth2ServiceExtension extension;
     private CertificateResolver certificateResolver;
     private PrivateKeyResolver privateKeyResolver;
 
@@ -55,10 +55,11 @@ public class Oauth2ExtensionTest {
         privateKeyResolver = mock(PrivateKeyResolver.class);
         context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
         context.registerService(CertificateResolver.class, certificateResolver);
+        context.registerService(Oauth2Client.class, mock(Oauth2Client.class));
         context.registerService(CredentialsRequestAdditionalParametersProvider.class, mock(CredentialsRequestAdditionalParametersProvider.class));
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
         context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
-        extension = factory.constructInstance(Oauth2Extension.class);
+        extension = factory.constructInstance(Oauth2ServiceExtension.class);
         this.context = spy(context);
     }
 
@@ -105,7 +106,7 @@ public class Oauth2ExtensionTest {
         var privateKey = mock(PrivateKey.class);
 
         when(privateKey.getAlgorithm()).thenReturn("RSA");
-        when(certificate.getEncoded()).thenReturn(new byte[]{});
+        when(certificate.getEncoded()).thenReturn(new byte[] {});
         when(certificateResolver.resolveCertificate("alias")).thenReturn(certificate);
         when(privateKeyResolver.resolvePrivateKey("p_alias", PrivateKey.class)).thenReturn(privateKey);
     }

@@ -27,31 +27,28 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.iam.oauth2.Oauth2Configuration;
+import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
 import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
+import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
-import org.eclipse.edc.spi.types.TypeManager;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -59,21 +56,14 @@ import java.util.UUID;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockserver.matchers.Times.once;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.JsonBody.json;
-import static org.mockserver.model.Parameter.param;
-import static org.mockserver.model.ParameterBody.params;
-import static org.mockserver.stop.Stop.stopQuietly;
 
 class Oauth2ServiceImplTest {
 
@@ -82,26 +72,14 @@ class Oauth2ServiceImplTest {
     private static final String PUBLIC_CERTIFICATE_ALIAS = "cert-test";
     private static final String PROVIDER_AUDIENCE = "audience-test";
     private static final String ENDPOINT_AUDIENCE = "endpoint-audience-test";
-    private static final int OAUTH2_SERVER_PORT = getFreePort();
-    private static final String OAUTH2_SERVER_URL = "http://localhost:" + OAUTH2_SERVER_PORT;
+    private static final String OAUTH2_SERVER_URL = "http://oauth2-server.com";
 
     private final Instant now = Instant.now();
-    private final EdcHttpClient httpClient = testHttpClient();
+    private final Oauth2Client client = mock(Oauth2Client.class);
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider = mock(CredentialsRequestAdditionalParametersProvider.class);
     private Oauth2ServiceImpl authService;
     private JWSSigner jwsSigner;
-    private ClientAndServer oauth2Server;
-
-    @BeforeEach
-    public void startServer() {
-        oauth2Server = ClientAndServer.startClientAndServer(OAUTH2_SERVER_PORT);
-    }
-
-    @AfterEach
-    public void stopServer() {
-        stopQuietly(oauth2Server);
-    }
 
     @BeforeEach
     void setUp() throws JOSEException {
@@ -112,7 +90,7 @@ class Oauth2ServiceImplTest {
         var privateKeyResolverMock = mock(PrivateKeyResolver.class);
         var certificateResolverMock = mock(CertificateResolver.class);
         when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(testKey.toPublicKey());
-        var configuration = Oauth2Configuration.Builder.newInstance()
+        var configuration = Oauth2ServiceConfiguration.Builder.newInstance()
                 .tokenUrl(OAUTH2_SERVER_URL)
                 .clientId(CLIENT_ID)
                 .privateKeyAlias(PRIVATE_KEY_ALIAS)
@@ -128,86 +106,81 @@ class Oauth2ServiceImplTest {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
 
-        authService = new Oauth2ServiceImpl(mock(Monitor.class), configuration, tokenGenerationService, httpClient,
-                new JwtDecoratorRegistryImpl(), new TypeManager(), tokenValidationService,
-                credentialsRequestAdditionalParametersProvider);
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, client, new JwtDecoratorRegistryImpl(), tokenValidationService, credentialsRequestAdditionalParametersProvider);
     }
 
     @Test
     void obtainClientCredentials() {
         when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-        var clientCredentialsRequest = new HttpRequest().withBody(params(
-                param("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"),
-                param("grant_type", "client_credentials"),
-                param("client_assertion", "token"),
-                param("scope", "scope")
-        ));
-        var responseBody = Map.of("access_token", "accessToken");
-        oauth2Server.when(clientCredentialsRequest, once()).respond(new HttpResponse().withStatusCode(200).withBody(json(responseBody)));
-        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
+        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
+
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .audience("audience")
+                .scope("scope")
+                .build();
+
+        when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("accessToken").build()));
 
         var result = authService.obtainClientCredentials(tokenParameters);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getToken()).isEqualTo("accessToken");
-        oauth2Server.verify(clientCredentialsRequest);
+        var captor = ArgumentCaptor.forClass(Oauth2CredentialsRequest.class);
+        verify(client).requestToken(captor.capture());
+        var captured = captor.getValue();
+        assertThat(captured).isNotNull()
+                .isInstanceOf(PrivateKeyOauth2CredentialsRequest.class);
+        var capturedRequest = (PrivateKeyOauth2CredentialsRequest) captured;
+        assertThat(capturedRequest.getGrantType()).isEqualTo("client_credentials");
+        assertThat(capturedRequest.getScope()).isEqualTo("scope");
+        assertThat(capturedRequest.getClientAssertion()).isEqualTo("assertionToken");
+        assertThat(capturedRequest.getClientAssertionType()).isEqualTo("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
     }
 
     @Test
     void obtainClientCredentials_addsAdditionalFormParameters() {
         when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-        var clientCredentialsRequest = new HttpRequest().withBody(params(
-                param("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"),
-                param("grant_type", "client_credentials"),
-                param("client_assertion", "token"),
-                param("scope", "scope"),
-                param("parameterKey", "parameterValue")
-        ));
-        var responseBody = Map.of("access_token", "accessToken");
-        oauth2Server.when(clientCredentialsRequest, once()).respond(new HttpResponse().withStatusCode(200).withBody(json(responseBody)));
-        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
+        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
-        authService.obtainClientCredentials(tokenParameters);
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .audience("audience")
+                .scope("scope")
+                .build();
 
-        oauth2Server.verify(clientCredentialsRequest);
-    }
-
-    @Test
-    void obtainClientCredentials_failsIfServerIsNotReachable() {
-        oauth2Server.stop();
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
+        when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("accessToken").build()));
 
         var result = authService.obtainClientCredentials(tokenParameters);
 
-        assertThat(result).matches(AbstractResult::failed);
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getToken()).isEqualTo("accessToken");
+        var captor = ArgumentCaptor.forClass(Oauth2CredentialsRequest.class);
+        verify(client).requestToken(captor.capture());
+        var captured = captor.getValue();
+        assertThat(captured).isNotNull()
+                .isInstanceOf(PrivateKeyOauth2CredentialsRequest.class);
+        var capturedRequest = (PrivateKeyOauth2CredentialsRequest) captured;
+        assertThat(capturedRequest.getGrantType()).isEqualTo("client_credentials");
+        assertThat(capturedRequest.getScope()).isEqualTo("scope");
+        assertThat(capturedRequest.getClientAssertion()).isEqualTo("assertionToken");
+        assertThat(capturedRequest.getParams()).containsEntry("parameterKey", "parameterValue");
     }
 
     @Test
-    void obtainClientCredentials_failsIfResponseIsNotSuccessful() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
-        oauth2Server.when(request(), once()).respond(new HttpResponse().withStatusCode(500));
+    void obtainClientCredentials_verifyReturnsFailureIfOauth2ClientFails() {
+        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
+        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
+
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .audience("audience")
+                .scope("scope")
+                .build();
+
+        when(client.requestToken(any())).thenReturn(Result.failure("test error"));
 
         var result = authService.obtainClientCredentials(tokenParameters);
 
-        assertThat(result).matches(AbstractResult::failed);
-    }
-
-    @Test
-    void obtainClientCredentials_failsIfResponseBodyIsNotValidJson() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-        var tokenParameters = TokenParameters.Builder.newInstance().audience("audience").scope("scope").build();
-        oauth2Server.when(request(), once()).respond(new HttpResponse().withStatusCode(200).withBody("not a valid body"));
-
-        var result = authService.obtainClientCredentials(tokenParameters);
-
-        assertThat(result).matches(AbstractResult::failed);
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureDetail()).contains("test error");
     }
 
     @Test
@@ -260,6 +233,19 @@ class Oauth2ServiceImplTest {
         assertThat(result.getContent().getClaims()).hasSize(3).containsKeys(AUDIENCE, NOT_BEFORE, EXPIRATION_TIME);
     }
 
+    private PrivateKeyOauth2CredentialsRequest createRequest(Map<String, String> additional) {
+        return PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
+                .grantType("client_credentials")
+                .clientAssertion("assertion-token")
+                .scope("scope")
+                .params(additional)
+                .build();
+    }
+
+    private PrivateKeyOauth2CredentialsRequest createRequest() {
+        return createRequest(Collections.emptyMap());
+    }
+
     private RSAKey testKey() throws JOSEException {
         return new RSAKeyGenerator(2048)
                 .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
@@ -275,7 +261,7 @@ class Oauth2ServiceImplTest {
         var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID("an-id").build();
 
         try {
-            SignedJWT jwt = new SignedJWT(header, claimsSet);
+            var jwt = new SignedJWT(header, claimsSet);
             jwt.sign(jwsSigner);
             return TokenRepresentation.Builder.newInstance().token(jwt.serialize()).build();
         } catch (JOSEException e) {

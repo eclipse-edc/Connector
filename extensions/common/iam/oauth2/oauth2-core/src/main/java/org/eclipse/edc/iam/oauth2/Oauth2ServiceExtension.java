@@ -18,12 +18,14 @@ package org.eclipse.edc.iam.oauth2;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
-import org.eclipse.edc.iam.oauth2.jwt.DefaultJwtDecorator;
 import org.eclipse.edc.iam.oauth2.jwt.Oauth2JwtDecoratorRegistryRegistryImpl;
+import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
 import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
+import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -39,8 +41,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.security.PrivateKey;
-import java.security.cert.CertificateEncodingException;
 import java.time.Clock;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
@@ -49,10 +51,10 @@ import static java.lang.String.format;
  * Provides OAuth2 client credentials flow support.
  */
 @Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class, Oauth2ValidationRulesRegistry.class })
-@Extension(value = Oauth2Extension.NAME)
-public class Oauth2Extension implements ServiceExtension {
+@Extension(value = Oauth2ServiceExtension.NAME)
+public class Oauth2ServiceExtension implements ServiceExtension {
 
-    public static final String NAME = "OAuth2";
+    public static final String NAME = "OAuth2 Identity Service";
     private static final int DEFAULT_TOKEN_EXPIRATION = 5;
     @Setting
     private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
@@ -93,6 +95,9 @@ public class Oauth2Extension implements ServiceExtension {
     private Clock clock;
 
     @Inject
+    private Oauth2Client oauth2Client;
+
+    @Inject
     private CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
 
     @Override
@@ -109,9 +114,11 @@ public class Oauth2Extension implements ServiceExtension {
 
         var configuration = createConfig(context);
 
-        var defaultDecorator = new DefaultJwtDecorator(configuration.getProviderAudience(), configuration.getClientId(), getEncodedClientCertificate(configuration), context.getClock(), configuration.getTokenExpiration());
+        var certificate = Optional.ofNullable(configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias()))
+                .orElseThrow(() -> new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias()));
         var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
-        jwtDecoratorRegistry.register(defaultDecorator);
+        jwtDecoratorRegistry.register(new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), context.getClock(), configuration.getTokenExpiration()));
+        jwtDecoratorRegistry.register(new X509CertificateDecorator(certificate));
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
@@ -121,12 +128,10 @@ public class Oauth2Extension implements ServiceExtension {
         var privateKey = configuration.getPrivateKeyResolver().resolvePrivateKey(privateKeyAlias, PrivateKey.class);
 
         var oauth2Service = new Oauth2ServiceImpl(
-                context.getMonitor(),
                 configuration,
                 new TokenGenerationServiceImpl(privateKey),
-                httpClient,
+                oauth2Client,
                 jwtDecoratorRegistry,
-                context.getTypeManager(),
                 new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
                 credentialsRequestAdditionalParametersProvider
         );
@@ -144,20 +149,7 @@ public class Oauth2Extension implements ServiceExtension {
         providerKeyResolver.stop();
     }
 
-    private byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {
-        var certificate = configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias());
-        if (certificate == null) {
-            throw new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias());
-        }
-
-        try {
-            return certificate.getEncoded();
-        } catch (CertificateEncodingException e) {
-            throw new EdcException("Failed to encode certificate: " + e);
-        }
-    }
-
-    private Oauth2Configuration createConfig(ServiceExtensionContext context) {
+    private Oauth2ServiceConfiguration createConfig(ServiceExtensionContext context) {
         var providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getConnectorId());
         var endpointAudience = context.getSetting(ENDPOINT_AUDIENCE, providerAudience);
         var tokenUrl = context.getConfig().getString(TOKEN_URL);
@@ -165,7 +157,7 @@ public class Oauth2Extension implements ServiceExtension {
         var privateKeyAlias = context.getConfig().getString(PRIVATE_KEY_ALIAS);
         var clientId = context.getConfig().getString(CLIENT_ID);
         var tokenExpiration = context.getSetting(TOKEN_EXPIRATION, DEFAULT_TOKEN_EXPIRATION);
-        return Oauth2Configuration.Builder.newInstance()
+        return Oauth2ServiceConfiguration.Builder.newInstance()
                 .identityProviderKeyResolver(providerKeyResolver)
                 .tokenUrl(tokenUrl)
                 .providerAudience(providerAudience)

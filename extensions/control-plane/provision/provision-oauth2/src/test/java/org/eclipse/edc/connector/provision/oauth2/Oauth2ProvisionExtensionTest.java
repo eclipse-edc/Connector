@@ -14,22 +14,19 @@
 
 package org.eclipse.edc.connector.provision.oauth2;
 
-import okhttp3.Interceptor;
-import okhttp3.MediaType;
-import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,22 +34,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
 class Oauth2ProvisionExtensionTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        var typeManager = new TypeManager();
-        Interceptor interceptor = chain -> successfulResponse(typeManager.writeValueAsString(Map.of("access_token", "token")));
-        extension.registerServiceMock(EdcHttpClient.class, testHttpClient(interceptor));
+        extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
     }
 
     @Test
@@ -105,13 +101,12 @@ class Oauth2ProvisionExtensionTest {
                 .build();
     }
 
-    private Response successfulResponse(String responseBody) {
-        return new Response.Builder()
-                .code(200)
-                .message("any")
-                .body(ResponseBody.create(responseBody, MediaType.get("application/json")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://any").build())
-                .build();
+    public static class TestExtension implements ServiceExtension {
+        @Provider
+        public Oauth2Client oauth2Client() {
+            var client = mock(Oauth2Client.class);
+            when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
+            return client;
+        }
     }
 }

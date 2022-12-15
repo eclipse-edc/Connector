@@ -20,7 +20,9 @@ import java.util.function.Predicate;
 
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
+import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.VALIDITY;
 
 /**
  * Validates {@link DataAddress}, returns true if the Address has the fields needed for the OAuth2 provisioning
@@ -30,9 +32,12 @@ public class Oauth2DataAddressValidator implements Predicate<DataAddress> {
     private final Predicate<DataAddress> isHttpDataType = dataAddress -> "HttpData".equals(dataAddress.getType());
     private final Predicate<DataAddress> hasClientId = dataAddress -> dataAddress.hasProperty(CLIENT_ID);
     private final Predicate<DataAddress> hasClientSecret = dataAddress -> dataAddress.hasProperty(CLIENT_SECRET);
+    private final Predicate<DataAddress> hasPrivateKeySecret = dataAddress -> dataAddress.hasProperty(PRIVATE_KEY_NAME);
+    private final Predicate<DataAddress> hasValidity = dataAddress -> dataAddress.hasProperty(VALIDITY);
     private final Predicate<DataAddress> hasTokenUrl = dataAddress -> dataAddress.hasProperty(TOKEN_URL);
 
-    private final Predicate<DataAddress> isValid = isHttpDataType.and(hasClientId).and(hasClientSecret).and(hasTokenUrl);
+    private final Predicate<DataAddress> isValid = isHttpDataType.and(hasClientId).and(hasTokenUrl)
+            .and(hasClientSecret.or(hasPrivateKeySecret.and(hasValidity)));
 
     @Override
     public boolean test(DataAddress dataAddress) {

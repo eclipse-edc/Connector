@@ -18,4 +18,6 @@ public interface Oauth2DataAddressSchema {
     String CLIENT_ID = "oauth2:clientId";
     String CLIENT_SECRET = "oauth2:clientSecret";
     String TOKEN_URL = "oauth2:tokenUrl";
+    String VALIDITY = "oauth2:validity";
+    String PRIVATE_KEY_NAME = "oauth2:privateKeyName";
 }

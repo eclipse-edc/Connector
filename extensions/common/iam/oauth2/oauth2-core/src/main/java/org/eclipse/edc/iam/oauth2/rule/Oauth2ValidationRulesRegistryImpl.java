@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.rule;
 
-import org.eclipse.edc.iam.oauth2.Oauth2Configuration;
+import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.edc.jwt.TokenValidationRulesRegistryImpl;
 
@@ -25,7 +25,7 @@ import java.time.Clock;
  */
 public class Oauth2ValidationRulesRegistryImpl extends TokenValidationRulesRegistryImpl implements Oauth2ValidationRulesRegistry {
 
-    public Oauth2ValidationRulesRegistryImpl(Oauth2Configuration configuration, Clock clock) {
+    public Oauth2ValidationRulesRegistryImpl(Oauth2ServiceConfiguration configuration, Clock clock) {
         this.addRule(new Oauth2AudienceValidationRule(configuration.getEndpointAudience()));
         this.addRule(new Oauth2NotBeforeValidationRule(clock, configuration.getNotBeforeValidationLeeway()));
         this.addRule(new Oauth2ExpirationIssuedAtValidationRule(clock));

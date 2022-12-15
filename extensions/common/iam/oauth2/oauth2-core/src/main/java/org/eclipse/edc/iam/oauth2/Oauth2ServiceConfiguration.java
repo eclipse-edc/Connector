@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 /**
  * Configuration values and dependencies for {@link Oauth2ServiceImpl}.
  */
-public class Oauth2Configuration {
+public class Oauth2ServiceConfiguration {
 
     private String tokenUrl;
     private String clientId;
@@ -37,7 +37,7 @@ public class Oauth2Configuration {
 
     private Long tokenExpiration;
 
-    private Oauth2Configuration() {
+    private Oauth2ServiceConfiguration() {
 
     }
 
@@ -86,7 +86,7 @@ public class Oauth2Configuration {
     }
 
     public static class Builder {
-        private final Oauth2Configuration configuration = new Oauth2Configuration();
+        private final Oauth2ServiceConfiguration configuration = new Oauth2ServiceConfiguration();
 
         private Builder() {
         }
@@ -156,7 +156,7 @@ public class Oauth2Configuration {
             return this;
         }
 
-        public Oauth2Configuration build() {
+        public Oauth2ServiceConfiguration build() {
             return configuration;
         }
     }

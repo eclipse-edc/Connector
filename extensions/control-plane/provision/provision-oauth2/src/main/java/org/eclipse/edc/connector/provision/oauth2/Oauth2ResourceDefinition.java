@@ -20,10 +20,16 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
+import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.VALIDITY;
 
 /**
  * An OAuth2 resource definition
@@ -35,7 +41,6 @@ public class Oauth2ResourceDefinition extends ResourceDefinition {
     private DataAddress dataAddress;
 
     private Oauth2ResourceDefinition() {
-
     }
 
     public DataAddress getDataAddress() {
@@ -47,14 +52,29 @@ public class Oauth2ResourceDefinition extends ResourceDefinition {
         return initializeBuilder(new Builder()).dataAddress(dataAddress);
     }
 
+    @NotNull
     public String getClientId() {
         return dataAddress.getProperty(CLIENT_ID);
     }
 
+    @Nullable
     public String getClientSecret() {
         return dataAddress.getProperty(CLIENT_SECRET);
     }
 
+    @Nullable
+    public String getPrivateKeyName() {
+        return dataAddress.getProperty(PRIVATE_KEY_NAME);
+    }
+
+    @Nullable
+    public Long getValidity() {
+        return Optional.ofNullable(dataAddress.getProperty(VALIDITY))
+                .map(Long::parseLong)
+                .orElse(null);
+    }
+
+    @NotNull
     public String getTokenUrl() {
         return dataAddress.getProperty(TOKEN_URL);
     }
