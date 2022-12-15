@@ -141,7 +141,7 @@ class IdsTransformServiceExtensionTest {
         }
 
         @Override
-        public <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType) {
+        public <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType) {
             throw new RuntimeException("Not intended to be used within this Test");
         }
     }
