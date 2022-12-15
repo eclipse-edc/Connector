@@ -48,8 +48,7 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressProperties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-        assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
+        var catalog = CONSUMER.getCatalog(PROVIDER);
 
         var contractOffer = catalog
                 .getContractOffers()
@@ -89,11 +88,7 @@ public abstract class AbstractEndToEndTransfer {
                 "proxyQueryParams", "true"
         ));
 
-        await().atMost(timeout).untilAsserted(() -> {
-            var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-            assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
-        });
-        var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
+        var catalog = CONSUMER.getCatalog(PROVIDER);
 
         var contractOffer = catalog
                 .getContractOffers()
@@ -121,8 +116,7 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressProperties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-        assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
+        var catalog = CONSUMER.getCatalog(PROVIDER);
 
         var contractOffer = catalog
                 .getContractOffers()
@@ -160,8 +154,7 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressOauth2Properties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-        assertThat(catalog.getContractOffers()).hasSizeGreaterThan(0);
+        var catalog = CONSUMER.getCatalog(PROVIDER);
 
         var contractOffer = catalog
                 .getContractOffers()

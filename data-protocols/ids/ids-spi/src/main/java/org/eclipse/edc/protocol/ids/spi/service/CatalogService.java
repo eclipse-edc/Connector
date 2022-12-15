@@ -16,9 +16,8 @@
 package org.eclipse.edc.protocol.ids.spi.service;
 
 import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,10 +27,10 @@ import org.jetbrains.annotations.NotNull;
 public interface CatalogService {
 
     /**
-     * Provides the data catalog
+     * Provides the data catalog, which may be used by the IDS self-description of the connector.
      *
      * @return data catalog
      */
     @NotNull
-    Catalog getDataCatalog(ClaimToken claimToken, QuerySpec querySpec);
+    Catalog getDataCatalog(@NotNull DescriptionRequest descriptionRequest);
 }

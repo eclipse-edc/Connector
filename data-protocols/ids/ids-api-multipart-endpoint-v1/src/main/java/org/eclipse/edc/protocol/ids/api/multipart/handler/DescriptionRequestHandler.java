@@ -32,15 +32,15 @@ import org.eclipse.edc.protocol.ids.spi.service.ConnectorService;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
+import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.eclipse.edc.protocol.ids.spi.types.container.OfferedAsset;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -49,6 +49,11 @@ import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.badPa
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.descriptionResponse;
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.notFound;
+import static org.eclipse.edc.protocol.ids.spi.types.IdsType.ARTIFACT;
+import static org.eclipse.edc.protocol.ids.spi.types.IdsType.CATALOG;
+import static org.eclipse.edc.protocol.ids.spi.types.IdsType.CONNECTOR;
+import static org.eclipse.edc.protocol.ids.spi.types.IdsType.REPRESENTATION;
+import static org.eclipse.edc.protocol.ids.spi.types.IdsType.RESOURCE;
 
 public class DescriptionRequestHandler implements Handler {
     private final Monitor monitor;
@@ -59,6 +64,14 @@ public class DescriptionRequestHandler implements Handler {
     private final ContractOfferResolver contractOfferResolver;
     private final ConnectorService connectorService;
     private final ObjectMapper objectMapper;
+
+    private final Map<IdsType, DescriptionHandler<?>> descriptionHandlers = Map.of(
+            ARTIFACT, new ArtifactDescriptionHandler(),
+            REPRESENTATION, new RepresentationDescriptionHandler(),
+            CONNECTOR, new ConnectorDescriptionHandler(),
+            CATALOG, new CatalogDescriptionHandler(),
+            RESOURCE, new ResourceDescriptionHandler()
+    );
 
     public DescriptionRequestHandler(
             @NotNull Monitor monitor,
@@ -86,31 +99,31 @@ public class DescriptionRequestHandler implements Handler {
 
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
-        var claimToken = multipartRequest.getClaimToken();
         var message = (DescriptionRequestMessage) multipartRequest.getHeader();
 
-        // Get ID of requested element
-        var requestedElement = IdsId.from(message.getRequestedElement());
+        var idsId = IdsId.from(message.getRequestedElement()).asOptional()
+                .orElse(IdsId.Builder.newInstance().type(CONNECTOR).value("fallback").build());
 
-        var querySpec = getQuerySpec(message, objectMapper);
+        var descriptionHandler = descriptionHandlers.get(idsId.getType());
 
-        // Retrieve and transform requested element
-        Result<? extends ModelClass> result;
-        if (requestedElement.failed() || requestedElement.getContent() == null ||
-                (requestedElement.getContent().getType() == IdsType.CONNECTOR)) {
-            result = getConnector(claimToken, querySpec);
-        } else {
-            var retrievedObject = retrieveRequestedElement(requestedElement.getContent(), claimToken, querySpec);
-            if (retrievedObject == null) {
-                return createMultipartResponse(notFound(message, connectorId));
-            }
-            result = transformRequestedElement(retrievedObject, requestedElement.getContent().getType());
+        if (descriptionHandler == null) {
+            monitor.warning("Cannot handle DescriptionRequest with type " + idsId.getType());
+            return createMultipartResponse(notFound(message, connectorId));
         }
 
+        var descriptionRequest = DescriptionRequest.Builder.newInstance()
+                .id(idsId)
+                .provider(connectorId.toUri())
+                .consumer(message.getIssuerConnector())
+                .claimToken(multipartRequest.getClaimToken())
+                .querySpec(getQuerySpec(message, objectMapper))
+                .build();
+
+        var object = descriptionHandler.getObject(descriptionRequest);
+        var result = transformerRegistry.transform(object, descriptionHandler.getType());
         if (result.failed()) {
             monitor.warning(String.format("Could not retrieve requested element with ID %s:%s: [%s]",
-                    requestedElement.getContent().getType(), requestedElement.getContent().getValue(),
-                    String.join(", ", result.getFailureMessages())));
+                    idsId.getType(), idsId.getValue(), result.getFailureDetail()));
 
             return createMultipartResponse(badParameters(message, connectorId));
         }
@@ -118,69 +131,87 @@ public class DescriptionRequestHandler implements Handler {
         return createMultipartResponse(descriptionResponse(message, connectorId), result.getContent());
     }
 
-    private Result<Connector> getConnector(ClaimToken claimToken, QuerySpec querySpec) {
-        return transformerRegistry.transform(connectorService.getConnector(claimToken, querySpec), Connector.class);
+    private interface DescriptionHandler<T extends ModelClass> {
+        Class<T> getType();
+
+        Object getObject(DescriptionRequest descriptionRequest);
     }
 
-    /**
-     * Retrieves the requested element specified by the IdsId. If the requested element is a
-     * catalog or resource, the given range is used.
-     *
-     * @param idsId the ID.
-     * @param claimToken the claim token of the requesting connector.
-     * @param querySpec the QuerySpec containing Range and/or filtering criteria.
-     * @return the requested element.
-     */
-    private Object retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, QuerySpec querySpec) {
-        var type = idsId.getType();
-        switch (type) {
-            case ARTIFACT:
-            case REPRESENTATION:
-                return assetIndex.findById(idsId.getValue());
-            case CATALOG:
-                return catalogService.getDataCatalog(claimToken, querySpec);
-            case RESOURCE:
-                var assetId = idsId.getValue();
-                var asset = assetIndex.findById(assetId);
-                if (asset == null) {
-                    return Result.failure(format("Asset with ID %s does not exist.", assetId));
-                }
+    private class ArtifactDescriptionHandler implements DescriptionHandler<Artifact> {
+        @Override
+        public Class<Artifact> getType() {
+            return Artifact.class;
+        }
 
-                var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
-                        .claimToken(claimToken)
-                        .assetsCriterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
-                        .build();
+        @Override
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return assetIndex.findById(descriptionRequest.getId().getValue());
+        }
+    }
 
-                try (var stream = contractOfferResolver.queryContractOffers(contractOfferQuery)) {
-                    var targetingContractOffers = stream.collect(toList());
+    private class RepresentationDescriptionHandler implements DescriptionHandler<Representation> {
+        @Override
+        public Class<Representation> getType() {
+            return Representation.class;
+        }
 
-                    return new OfferedAsset(asset, targetingContractOffers);
-                }
+        @Override
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return assetIndex.findById(descriptionRequest.getId().getValue());
+        }
+    }
 
-            default:
+    private class ConnectorDescriptionHandler implements DescriptionHandler<Connector> {
+        @Override
+        public Class<Connector> getType() {
+            return Connector.class;
+        }
+
+        @Override
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return connectorService.getConnector(descriptionRequest);
+        }
+    }
+
+    private class CatalogDescriptionHandler implements DescriptionHandler<ResourceCatalog> {
+        @Override
+        public Class<ResourceCatalog> getType() {
+            return ResourceCatalog.class;
+        }
+
+        @Override
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            return catalogService.getDataCatalog(descriptionRequest);
+        }
+    }
+
+    private class ResourceDescriptionHandler implements DescriptionHandler<Resource> {
+        @Override
+        public Class<Resource> getType() {
+            return Resource.class;
+        }
+
+        @Override
+        public Object getObject(DescriptionRequest descriptionRequest) {
+            var assetId = descriptionRequest.getId().getValue();
+            var asset = assetIndex.findById(assetId);
+            if (asset == null) {
+                monitor.warning(format("Asset with ID %s does not exist.", assetId));
                 return null;
+            }
+
+            var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
+                    .claimToken(descriptionRequest.getClaimToken())
+                    .assetsCriterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
+                    .build();
+
+            try (var stream = contractOfferResolver.queryContractOffers(contractOfferQuery)) {
+                var targetingContractOffers = stream.collect(toList());
+
+                return new OfferedAsset(asset, targetingContractOffers);
+            }
         }
     }
 
-    /**
-     * Transforms the requested element as defined by the IdsType.
-     *
-     * @param object the object to transform.
-     * @param type the IDS target type.
-     * @return the transformation result,
-     */
-    private Result<? extends ModelClass> transformRequestedElement(Object object, IdsType type) {
-        switch (type) {
-            case ARTIFACT:
-                return transformerRegistry.transform(object, Artifact.class);
-            case CATALOG:
-                return transformerRegistry.transform(object, ResourceCatalog.class);
-            case REPRESENTATION:
-                return transformerRegistry.transform(object, Representation.class);
-            case RESOURCE:
-                return transformerRegistry.transform(object, Resource.class);
-            default:
-                return Result.failure(format("Unknown requested element type: %s", type));
-        }
-    }
+
 }

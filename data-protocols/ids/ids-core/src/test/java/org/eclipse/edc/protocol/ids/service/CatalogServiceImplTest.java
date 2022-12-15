@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -50,8 +51,12 @@ class CatalogServiceImplTest {
 
         var offers = Arrays.asList(createContractOffer("1"), createContractOffer("2"));
         when(contractOfferResolver.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
+        var descriptionRequest = DescriptionRequest.Builder.newInstance()
+                .claimToken(claimToken)
+                .querySpec(QuerySpec.none())
+                .build();
 
-        var result = dataCatalogService.getDataCatalog(claimToken, QuerySpec.none());
+        var result = dataCatalogService.getDataCatalog(descriptionRequest);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
