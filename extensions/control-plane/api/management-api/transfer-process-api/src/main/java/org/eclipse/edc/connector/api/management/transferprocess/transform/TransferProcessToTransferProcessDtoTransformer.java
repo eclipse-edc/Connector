@@ -37,10 +37,7 @@ public class TransferProcessToTransferProcessDtoTransformer implements DtoTransf
     }
 
     @Override
-    public @Nullable TransferProcessDto transform(@Nullable TransferProcess object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
+    public @Nullable TransferProcessDto transform(@NotNull TransferProcess object, @NotNull TransformerContext context) {
         return TransferProcessDto.Builder.newInstance()
                 .id(object.getId())
                 .type(object.getType().name())

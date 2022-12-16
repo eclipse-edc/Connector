@@ -63,13 +63,6 @@ public class ContractAgreementFromIdsContractAgreementTransformerTest {
     }
 
     @Test
-    void shouldReturnNull_ifInputIsNull() {
-        var result = transformer.transform(null, context);
-
-        assertThat(result).isNull();
-    }
-
-    @Test
     void shouldTransform() {
         var edcPermission = Permission.Builder.newInstance().target("assetId").build();
         var edcProhibition = mock(Prohibition.class);

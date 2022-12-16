@@ -20,8 +20,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public class ActionToIdsActionTransformer implements IdsTypeTransformer<Action, de.fraunhofer.iais.eis.Action> {
 
     @Override
@@ -35,12 +33,7 @@ public class ActionToIdsActionTransformer implements IdsTypeTransformer<Action, 
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.Action transform(Action object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable de.fraunhofer.iais.eis.Action transform(@NotNull Action object, @NotNull TransformerContext context) {
         var type = object.getType();
 
         de.fraunhofer.iais.eis.Action idsAction;

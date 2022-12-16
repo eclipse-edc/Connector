@@ -24,7 +24,6 @@ import org.eclipse.edc.protocol.ids.transform.type.contract.ContractOfferToIdsCo
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,27 +51,6 @@ class ContractOfferToIdsContractOfferTransformerTest {
     void setUp() {
         transformer = new ContractOfferToIdsContractOfferTransformer();
         context = mock(TransformerContext.class);
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(contractOffer(Policy.Builder.newInstance().build()), null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
     }
 
     @Test

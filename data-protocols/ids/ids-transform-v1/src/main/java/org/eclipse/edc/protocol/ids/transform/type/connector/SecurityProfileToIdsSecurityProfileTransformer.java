@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class SecurityProfileToIdsSecurityProfileTransformer implements IdsTypeTransformer<SecurityProfile, de.fraunhofer.iais.eis.SecurityProfile> {
     private static final Map<SecurityProfile, de.fraunhofer.iais.eis.SecurityProfile> MAPPING = new HashMap<>() {
@@ -45,12 +44,7 @@ public class SecurityProfileToIdsSecurityProfileTransformer implements IdsTypeTr
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.SecurityProfile transform(SecurityProfile object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable de.fraunhofer.iais.eis.SecurityProfile transform(@NotNull SecurityProfile object, @NotNull TransformerContext context) {
         return MAPPING.get(object);
     }
 }

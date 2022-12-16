@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public class ExpressionToIdsRdfResourceTransformer implements IdsTypeTransformer<Expression, RdfResource> {
 
     @Override
@@ -37,12 +35,7 @@ public class ExpressionToIdsRdfResourceTransformer implements IdsTypeTransformer
     }
 
     @Override
-    public @Nullable RdfResource transform(Expression object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable RdfResource transform(@NotNull Expression object, @NotNull TransformerContext context) {
         String value = null;
         if (object instanceof LiteralExpression) {
             value = ((LiteralExpression) object).asString();

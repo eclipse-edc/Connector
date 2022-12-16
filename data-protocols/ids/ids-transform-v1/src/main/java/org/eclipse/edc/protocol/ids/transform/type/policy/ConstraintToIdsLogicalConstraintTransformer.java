@@ -29,8 +29,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 /**
  * Transforms an EDC constraint to its corresponding IDS type. Specifically, an EDC {@link MultiplicityConstraint} is transformed to a
  * {@link de.fraunhofer.iais.eis.LogicalConstraint}; an EDC {@link AtomicConstraint} is transformed to a {@link de.fraunhofer.iais.eis.Constraint}.
@@ -48,12 +46,7 @@ public class ConstraintToIdsLogicalConstraintTransformer implements IdsTypeTrans
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.LogicalConstraint transform(Constraint object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable de.fraunhofer.iais.eis.LogicalConstraint transform(@NotNull Constraint object, @NotNull TransformerContext context) {
         if (object instanceof MultiplicityConstraint) {
             return transformMultiplicityConstraint((MultiplicityConstraint) object, context);
         } else {

@@ -36,27 +36,6 @@ public class ActionFromIdsActionTransformerTest {
     }
 
     @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(Action.USE, null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
-    }
-
-    @Test
     void testSuccessfulMap() {
         var result = transformer.transform(Action.USE, context);
 

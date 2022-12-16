@@ -51,7 +51,7 @@ public class ContractAgreementFromIdsContractAgreementTransformer implements Ids
     }
 
     @Override
-    public @Nullable ContractAgreementTransformerOutput transform(de.fraunhofer.iais.eis.ContractAgreement contractAgreement, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreementTransformerOutput transform(de.fraunhofer.iais.eis.@NotNull ContractAgreement contractAgreement, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (contractAgreement == null) {
             return null;

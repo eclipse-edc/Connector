@@ -67,14 +67,4 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
         verify(context, times(1)).transform(isA(CriterionDto.class), eq(Criterion.class));
     }
 
-    @Test
-    void transform_nullInput() {
-        var context = mock(TransformerContext.class);
-
-        var definition = transformer.transform(null, context);
-
-        assertThat(definition).isNull();
-        verify(context).reportProblem("input contract definition is null");
-    }
-
 }

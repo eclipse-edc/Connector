@@ -21,8 +21,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public class DataRequestToDataRequestDtoTransformer implements DtoTransformer<DataRequest, DataRequestDto> {
 
     @Override
@@ -36,11 +34,7 @@ public class DataRequestToDataRequestDtoTransformer implements DtoTransformer<Da
     }
 
     @Override
-    public @Nullable DataRequestDto transform(@Nullable DataRequest object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
+    public @Nullable DataRequestDto transform(@NotNull DataRequest object, @NotNull TransformerContext context) {
         return DataRequestDto.Builder.newInstance()
                 .id(object.getId())
                 .assetId(object.getAssetId())

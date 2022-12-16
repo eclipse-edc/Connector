@@ -50,7 +50,7 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
     }
 
     @Override
-    public @Nullable ContractAgreement transform(ContractAgreementRequest request, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreement transform(@NotNull ContractAgreementRequest request, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (request == null) {
             return null;

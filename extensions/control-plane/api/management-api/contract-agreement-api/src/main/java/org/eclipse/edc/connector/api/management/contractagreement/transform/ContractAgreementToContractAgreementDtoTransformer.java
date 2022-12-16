@@ -34,7 +34,7 @@ public class ContractAgreementToContractAgreementDtoTransformer implements DtoTr
     }
 
     @Override
-    public @Nullable ContractAgreementDto transform(@Nullable ContractAgreement object, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreementDto transform(@NotNull ContractAgreement object, @NotNull TransformerContext context) {
         return ContractAgreementDto.Builder.newInstance()
                 .id(object.getId())
                 .assetId(object.getAssetId())

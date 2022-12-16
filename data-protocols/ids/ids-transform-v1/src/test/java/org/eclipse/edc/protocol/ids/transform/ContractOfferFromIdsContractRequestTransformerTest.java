@@ -88,36 +88,6 @@ public class ContractOfferFromIdsContractRequestTransformerTest {
     }
 
     @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext_contractRequest() {
-        var input = ContractTransformerInput.Builder.newInstance().contract(idsContractRequest).asset(asset).build();
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(input, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext_contractOffer() {
-        var input = ContractTransformerInput.Builder.newInstance().contract(idsContractOffer).asset(asset).build();
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(input, null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
-    }
-
-    @Test
     void testSuccessfulSimple_contractRequest() {
         var input = ContractTransformerInput.Builder.newInstance().contract(idsContractRequest).asset(asset).build();
         Permission edcPermission = mock(Permission.class);

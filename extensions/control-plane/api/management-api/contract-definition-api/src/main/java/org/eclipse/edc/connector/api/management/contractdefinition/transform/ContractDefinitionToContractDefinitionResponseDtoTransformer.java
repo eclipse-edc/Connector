@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 import static java.util.stream.Collectors.toList;
 
 public class ContractDefinitionToContractDefinitionResponseDtoTransformer implements DtoTransformer<ContractDefinition, ContractDefinitionResponseDto> {
@@ -39,22 +37,15 @@ public class ContractDefinitionToContractDefinitionResponseDtoTransformer implem
     }
 
     @Override
-    public @Nullable ContractDefinitionResponseDto transform(@Nullable ContractDefinition object, @NotNull TransformerContext context) {
-        return Optional.ofNullable(object)
-                .map(input -> {
-                    var criteria = object.getSelectorExpression().getCriteria().stream().map(it -> context.transform(it, CriterionDto.class)).collect(toList());
-                    return ContractDefinitionResponseDto.Builder.newInstance()
-                            .id(object.getId())
-                            .accessPolicyId(object.getAccessPolicyId())
-                            .createdAt(object.getCreatedAt())
-                            .contractPolicyId(object.getContractPolicyId())
-                            .criteria(criteria)
-                            .validity(input.getValidity())
-                            .build();
-                })
-                .orElseGet(() -> {
-                    context.reportProblem("input contract definition is null");
-                    return null;
-                });
+    public @Nullable ContractDefinitionResponseDto transform(@NotNull ContractDefinition object, @NotNull TransformerContext context) {
+        var criteria = object.getSelectorExpression().getCriteria().stream().map(it -> context.transform(it, CriterionDto.class)).collect(toList());
+        return ContractDefinitionResponseDto.Builder.newInstance()
+                .id(object.getId())
+                .accessPolicyId(object.getAccessPolicyId())
+                .createdAt(object.getCreatedAt())
+                .contractPolicyId(object.getContractPolicyId())
+                .criteria(criteria)
+                .validity(object.getValidity())
+                .build();
     }
 }

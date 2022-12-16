@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Objects;
 
 public class AssetToIdsRepresentationTransformer implements IdsTypeTransformer<Asset, Representation> {
 
@@ -44,12 +43,7 @@ public class AssetToIdsRepresentationTransformer implements IdsTypeTransformer<A
     }
 
     @Override
-    public @Nullable Representation transform(Asset object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Representation transform(@NotNull Asset object, @NotNull TransformerContext context) {
         var artifact = context.transform(object, Artifact.class);
         var id = IdsId.Builder.newInstance().value(object.getId()).type(IdsType.REPRESENTATION).build().toUri();
 

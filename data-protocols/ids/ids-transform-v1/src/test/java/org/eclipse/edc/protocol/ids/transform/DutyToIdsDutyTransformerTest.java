@@ -53,27 +53,6 @@ class DutyToIdsDutyTransformerTest {
     }
 
     @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(Duty.Builder.newInstance().build(), null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
-    }
-
-    @Test
     void testSuccessfulMap() {
         Action edcAction = mock(Action.class);
         de.fraunhofer.iais.eis.Action idsAction = de.fraunhofer.iais.eis.Action.READ;
