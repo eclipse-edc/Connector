@@ -207,7 +207,7 @@ the relations and progresses.
 
 The [GitHub Projects page](https://github.com/eclipse-edc/Connector/projects)
 provides a general overview of the project's working items. Every new issue is automatically assigned
-to the ["Dataspace Connector" project](https://github.com/eclipse-edc/Connector/projects/1).
+to the ["Dataspace Connector" project](https://github.com/orgs/eclipse-edc/projects/3).
 It can be unassigned or moved to any other project that is provided.
 
 In every project, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
