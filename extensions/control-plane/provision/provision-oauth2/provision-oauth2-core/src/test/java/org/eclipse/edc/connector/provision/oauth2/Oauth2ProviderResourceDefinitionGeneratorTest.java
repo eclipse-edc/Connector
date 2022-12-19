@@ -24,11 +24,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
-class Oauth2ProviderResourceDefinitionGeneratorTest {
+class Oauth2ProviderResourceDefinitionGeneratorTest extends AbstractOauth2DataAddressValidationTest {
 
     private final ProviderResourceDefinitionGenerator generator = new Oauth2ProviderResourceDefinitionGenerator();
 
@@ -61,7 +61,7 @@ class Oauth2ProviderResourceDefinitionGeneratorTest {
                 .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
                 .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                 .build();
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(null, dataAddress, simplePolicy()));
+        assertThatNullPointerException().isThrownBy(() -> generator.generate(null, dataAddress, simplePolicy()));
     }
 
     @Test
@@ -71,7 +71,7 @@ class Oauth2ProviderResourceDefinitionGeneratorTest {
                 .destinationType("any")
                 .build();
 
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, null, simplePolicy()));
+        assertThatNullPointerException().isThrownBy(() -> generator.generate(dataRequest, null, simplePolicy()));
     }
 
     @Test
@@ -86,34 +86,16 @@ class Oauth2ProviderResourceDefinitionGeneratorTest {
                 .destinationType("any")
                 .build();
 
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dataRequest, dataAddress, null));
+        assertThatNullPointerException().isThrownBy(() -> generator.generate(dataRequest, dataAddress, null));
     }
 
-    @Test
-    void canGenerate() {
-        var dataAddress = HttpDataAddress.Builder.newInstance()
-                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
-                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
-                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
-                .build();
+    @Override
+    protected boolean test(DataAddress address) {
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .destinationType("any")
                 .build();
-
-        var definition = generator.canGenerate(dataRequest, dataAddress, simplePolicy());
-
-        assertThat(definition).isTrue();
-    }
-
-    @Test
-    void canGenerate_noOauth2Parameters() {
-        var dataRequest = DataRequest.Builder.newInstance().id(UUID.randomUUID().toString()).destinationType("HttpData").build();
-        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
-
-        var definition = generator.canGenerate(dataRequest, dataAddress, simplePolicy());
-
-        assertThat(definition).isFalse();
+        return generator.canGenerate(dataRequest, address, simplePolicy());
     }
 
     private Policy simplePolicy() {

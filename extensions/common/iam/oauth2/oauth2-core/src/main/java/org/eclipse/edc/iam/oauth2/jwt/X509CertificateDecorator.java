@@ -24,6 +24,10 @@ import java.util.Map;
 
 import static org.eclipse.edc.iam.oauth2.jwt.Fingerprint.sha1Base64Fingerprint;
 
+/**
+ * Creates the 'x5t' header containing the base64url-encoded SHA-1 thumbprint of the DER encoding of the thumbprint of the
+ * X.509 certificate corresponding to the key used to sign the JWT. This header is requested by some Oauth2 servers.
+ */
 public class X509CertificateDecorator implements JwtDecorator {
     private final byte[] certificate;
 

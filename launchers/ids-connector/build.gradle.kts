@@ -27,8 +27,7 @@ dependencies {
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:common:vault:vault-filesystem"))
 
-    implementation(project(":extensions:common:iam:oauth2:oauth2-core"))
-    implementation(project(":extensions:common:iam:oauth2:oauth2-client"))
+    implementation(project(":extensions:common:iam:oauth2:oauth2-service"))
     implementation(project(":extensions:common:iam:oauth2:oauth2-daps"))
 
     implementation(project(":extensions:control-plane:api:management-api"))

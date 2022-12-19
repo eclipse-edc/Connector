@@ -1,4 +1,4 @@
-# OAuth2 Provision
+# OAuth2 Provision Core
 
 This extension can be used when there's a data endpoint that requires OAuth2 authentication through the
 [*client credentials flow*](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow)

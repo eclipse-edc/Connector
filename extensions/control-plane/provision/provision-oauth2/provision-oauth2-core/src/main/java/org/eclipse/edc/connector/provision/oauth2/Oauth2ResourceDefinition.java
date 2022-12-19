@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
@@ -37,6 +38,8 @@ import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema
 @JsonDeserialize(builder = Oauth2ResourceDefinition.Builder.class)
 @JsonTypeName("dataspaceconnector:oauth2resourcedefinition")
 public class Oauth2ResourceDefinition extends ResourceDefinition {
+
+    private static final long DEFAULT_TOKEN_VALIDITY = TimeUnit.MINUTES.toSeconds(5);
 
     private DataAddress dataAddress;
 
@@ -67,11 +70,10 @@ public class Oauth2ResourceDefinition extends ResourceDefinition {
         return dataAddress.getProperty(PRIVATE_KEY_NAME);
     }
 
-    @Nullable
-    public Long getValidity() {
+    public long getValidity() {
         return Optional.ofNullable(dataAddress.getProperty(VALIDITY))
                 .map(Long::parseLong)
-                .orElse(null);
+                .orElse(DEFAULT_TOKEN_VALIDITY);
     }
 
     @NotNull

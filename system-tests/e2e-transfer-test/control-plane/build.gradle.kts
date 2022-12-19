@@ -21,7 +21,6 @@ dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":data-protocols:ids"))
     implementation(project(":extensions:common:vault:vault-filesystem"))
-    implementation(project(":extensions:common:iam:oauth2:oauth2-client"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:control-plane:api:management-api"))
@@ -33,6 +32,6 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
 
     implementation(project(":extensions:control-plane:provision:provision-http"))
-    implementation(project(":extensions:control-plane:provision:provision-oauth2"))
+    implementation(project(":extensions:control-plane:provision:provision-oauth2:provision-oauth2"))
     implementation(project(":extensions:control-plane:transfer:transfer-pull-http-receiver"))
 }
