@@ -59,14 +59,4 @@ styleguide.md @paullatzelsperger
 
 /resources/ @paullatzelsperger
 
-/samples/01-basic-connector/ @paullatzelsperger
-/samples/02-health-endpoint/ @paullatzelsperger
-/samples/03-configuration/ @paullatzelsperger
-/samples/04.0-file-transfer/ @ronjaquensel
-/samples/04.1-file-transfer-listener/ @paullatzelsperger
-/samples/04.2-modify-transferprocess/ @paullatzelsperger
-/samples/04.3-open-telemetry/ @jimmarino
-/samples/05-file-transfer-cloud/ @paullatzelsperger
-/samples/other/ @paullatzelsperger
-
 /system-tests/ @ndr-brt
