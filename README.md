@@ -72,7 +72,8 @@ embedded into any form of application deployment.
 Developer documentation can be found under [docs/developer](docs/developer/),
 where the main concepts and decisions are captured as [decision records](docs/developer/decision-records/).
 
-Some more documentation can be found at [extensions](extensions/), [launchers](launchers/) and [samples](samples/).
+Some more documentation can be found at [extensions](extensions/), [launchers](launchers/) and
+[the samples repository](https://github.com/eclipse-edc/Samples).
 
 For detailed information about the whole project, please take a look at
 our [GitHub pages](https://eclipse-edc.github.io/docs).
@@ -224,8 +225,8 @@ Launchers are essentially connector packages that are runnable. What modules get
 capabilities a connector has) is defined by the `build.gradle.kts` file inside the launcher subdirectory. That's also
 where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
 connector to become operational the `runtime` needs to perform several important tasks (="bootstrapping"). For an
-example take a look
-at [this runtime](samples/other/custom-runtime/src/main/java/org/eclipse/edc/sample/runtime/CustomRuntime.java)
+example take a look at
+[this runtime](https://github.com/eclipse-edc/Samples/blob/main/other/custom-runtime/src/main/java/org/eclipse/edc/sample/runtime/CustomRuntime.java)
 
 ### `resources/charts`
 
@@ -235,12 +236,6 @@ your connector runtime, and deploy the resulting image to Kubernetes.
 ### `data-protocols`
 
 Contains implementations for communication protocols a connector might use, such as IDS.
-
-### `samples`
-
-Contains code that demonstrates how the connector can be used in various scenarios. For example, it shows how to run a
-connector from a unit test in order to try out functionality quickly or how to implement an outward-facing REST API for
-a connector.
 
 ## Releases
 
