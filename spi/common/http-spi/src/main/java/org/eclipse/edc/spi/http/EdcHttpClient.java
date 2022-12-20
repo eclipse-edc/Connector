@@ -16,8 +16,10 @@ package org.eclipse.edc.spi.http;
 
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -34,6 +36,25 @@ public interface EdcHttpClient {
      * @throws IOException on connection error.
      */
     Response execute(Request request) throws IOException;
+
+    /**
+     * Executes the specified request synchronously applying the mapping function to the response.
+     *
+     * @param request the {@link Request}.
+     *                @param mappingFunction the function that will be applied to the {@link Response}.
+     * @return a {@link Result}, containing the object returned by the mappingFunction
+     */
+    <T> Result<T> execute(Request request, Function<Response, Result<T>> mappingFunction);
+
+    /**
+     * Executes the specified request synchronously applying the mapping function to the response.
+     * Accepts a list of {@link FallbackFactories} that could apply retry in particular occasions.
+     *
+     * @param request the {@link Request}.
+     *                @param mappingFunction the function that will be applied to the {@link Response}.
+     * @return a {@link Result}, containing the object returned by the mappingFunction
+     */
+    <T> Result<T> execute(Request request, List<FallbackFactory> fallbacks, Function<Response, Result<T>> mappingFunction);
 
     /**
      * Executes the specified request asynchronously, maps the response with the mappingFunction.

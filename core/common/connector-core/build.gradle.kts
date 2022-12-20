@@ -28,13 +28,13 @@ dependencies {
     implementation(project(":core:common:policy-engine"))
     implementation(project(":core:common:util"))
 
-    api(libs.failsafe.okhttp)
     implementation(libs.dnsOverHttps)
     implementation(libs.bouncyCastle.bcpkix)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.mockserver.netty)
 }
 
 publishing {

@@ -21,15 +21,15 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
-import static java.lang.String.format;
+import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBe;
 
 public class Oauth2ClientImpl implements Oauth2Client {
 
@@ -41,28 +41,22 @@ public class Oauth2ClientImpl implements Oauth2Client {
 
     private final EdcHttpClient httpClient;
     private final TypeManager typeManager;
-    private final Monitor monitor;
 
-    public Oauth2ClientImpl(EdcHttpClient httpClient, TypeManager typeManager, Monitor monitor) {
+    public Oauth2ClientImpl(EdcHttpClient httpClient, TypeManager typeManager) {
         this.httpClient = httpClient;
         this.typeManager = typeManager;
-        this.monitor = monitor;
     }
 
     @Override
     public Result<TokenRepresentation> requestToken(Oauth2CredentialsRequest request) {
-        try (var response = httpClient.execute(toRequest(request))) {
-            var stringBody = getStringBody(response);
-            if (!response.isSuccessful()) {
-                return failure(request.getUrl(), format("Server responded %s - %s at the client_credentials request", response.code(), stringBody));
-            }
+        return httpClient.execute(toRequest(request), List.of(statusMustBe(200)), this::handleResponse);
+    }
 
-            var responseBody = typeManager.readValue(stringBody, Map.class);
-            var token = responseBody.get(RESPONSE_ACCESS_TOKEN_CLAIM).toString();
-            return Result.success(TokenRepresentation.Builder.newInstance().token(token).build());
-        } catch (IOException e) {
-            return failure(request.getUrl(), request.getGrantType() + " request failed", e);
-        }
+    private Result<TokenRepresentation> handleResponse(Response response) {
+        return getStringBody(response)
+                .map(it -> typeManager.readValue(it, Map.class))
+                .map(it -> it.get(RESPONSE_ACCESS_TOKEN_CLAIM).toString())
+                .map(it -> TokenRepresentation.Builder.newInstance().token(it).build());
     }
 
     private static Request toRequest(Oauth2CredentialsRequest request) {
@@ -81,29 +75,17 @@ public class Oauth2ClientImpl implements Oauth2Client {
     }
 
     @NotNull
-    private static String getStringBody(Response response) throws IOException {
-        var body = response.body();
-        if (body != null) {
-            return body.string();
-        } else {
-            return "";
+    private Result<String> getStringBody(Response response) {
+        try (var body = response.body()) {
+            if (body != null) {
+                return Result.success(body.string());
+            } else {
+                return Result.failure("Body is null");
+            }
+        } catch (IOException e) {
+            return Result.failure("Cannot read response body as String: " + e.getMessage());
         }
+
     }
 
-    @NotNull
-    private Result<TokenRepresentation> failure(String url, String message) {
-        return Result.failure(failureMessage(url, message));
-    }
-
-    @NotNull
-    private Result<TokenRepresentation> failure(String url, String message, Exception e) {
-        var fullMessage = failureMessage(url, message);
-        monitor.severe(fullMessage, e);
-        return Result.failure(fullMessage);
-    }
-
-    @NotNull
-    private String failureMessage(String url, String message) {
-        return format("Error requesting oauth2 token from %s: %s", url, message);
-    }
 }

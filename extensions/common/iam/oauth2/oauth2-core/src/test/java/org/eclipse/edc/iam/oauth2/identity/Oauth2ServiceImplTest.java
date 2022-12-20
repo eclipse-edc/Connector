@@ -48,7 +48,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -240,10 +239,6 @@ class Oauth2ServiceImplTest {
                 .scope("scope")
                 .params(additional)
                 .build();
-    }
-
-    private PrivateKeyOauth2CredentialsRequest createRequest() {
-        return createRequest(Collections.emptyMap());
     }
 
     private RSAKey testKey() throws JOSEException {

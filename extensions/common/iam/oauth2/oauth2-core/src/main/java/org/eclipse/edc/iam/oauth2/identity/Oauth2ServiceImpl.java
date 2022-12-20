@@ -97,4 +97,5 @@ public class Oauth2ServiceImpl implements IdentityService {
                 .params(credentialsRequestAdditionalParametersProvider.provide(parameters))
                 .build();
     }
+
 }

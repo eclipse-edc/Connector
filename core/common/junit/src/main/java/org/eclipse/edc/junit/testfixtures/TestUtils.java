@@ -19,6 +19,7 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 public class TestUtils {
     public static final int MAX_TCP_PORT = 65_535;
@@ -161,7 +163,7 @@ public class TestUtils {
      * @return an {@link OkHttpClient.Builder}.
      */
     public static EdcHttpClient testHttpClient(Interceptor... interceptors) {
-        return new EdcHttpClientImpl(testOkHttpClient(interceptors), RetryPolicy.ofDefaults());
+        return new EdcHttpClientImpl(testOkHttpClient(interceptors), RetryPolicy.ofDefaults(), mock(Monitor.class));
     }
 
     /**

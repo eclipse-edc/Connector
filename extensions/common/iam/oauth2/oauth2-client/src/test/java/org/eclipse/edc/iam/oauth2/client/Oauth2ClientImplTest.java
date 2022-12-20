@@ -16,7 +16,6 @@ package org.eclipse.edc.iam.oauth2.client;
 
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
-import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.MediaType.APPLICATION_JSON;
 
@@ -47,7 +45,7 @@ class Oauth2ClientImplTest {
 
     @BeforeEach
     public void setUp() {
-        client = new Oauth2ClientImpl(testHttpClient(), typeManager, mock(Monitor.class));
+        client = new Oauth2ClientImpl(testHttpClient(), typeManager);
     }
 
     @Test
@@ -78,9 +76,8 @@ class Oauth2ClientImplTest {
         var result = client.requestToken(request);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureDetail()).contains("Server responded 400");
+        assertThat(result.getFailureDetail()).startsWith("Server response");
     }
-
 
     @Test
     void verifyFailureIfServerIsNotReachable() {
@@ -91,9 +88,8 @@ class Oauth2ClientImplTest {
         var result = client.requestToken(request);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureDetail()).contains("client_credentials request failed");
+        assertThat(result.getFailureDetail()).startsWith("Failed to connect to");
     }
-
 
     private Oauth2CredentialsRequest createRequest() {
         return SharedSecretOauth2CredentialsRequest.Builder.newInstance()

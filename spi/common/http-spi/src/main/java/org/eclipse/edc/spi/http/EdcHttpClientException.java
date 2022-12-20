@@ -12,22 +12,13 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-}
+package org.eclipse.edc.spi.http;
 
-dependencies {
-    api(project(":spi:common:core-spi"))
+import org.eclipse.edc.spi.EdcException;
 
-    api(libs.okhttp)
-    api(libs.failsafe.okhttp)
-}
+public class EdcHttpClientException extends EdcException {
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
+    public EdcHttpClientException(String message) {
+        super(message);
     }
 }
