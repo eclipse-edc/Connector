@@ -41,7 +41,7 @@
 
 <p align="center">
   <a href="#contributing">Contribute</a> •
-  <a href="https://eclipse-dataspacecomponents.github.io/docs/">Docs</a> •
+  <a href="https://eclipse-edc.github.io/docs/">Docs</a> •
   <a href="https://github.com/eclipse-edc/Connector/issues">Issues</a> •
   <a href="https://github.com/eclipse-edc/Connector/blob/main/LICENSE">License</a> •
   <a href="https://github.com/eclipse-edc/Connector/discussions/1303">Q&A</a>
@@ -57,7 +57,6 @@ Please also refer to:
 - The [Eclipse Project Homepage](https://projects.eclipse.org/projects/technology.edc)
 - [International Data Spaces](https://www.internationaldataspaces.org)
 - The [GAIA-X](https://gaia-x.eu) project
-- The [Onboarding Guide](onboarding.md)
 
 ### Built with
 
@@ -72,12 +71,26 @@ embedded into any form of application deployment.
 Developer documentation can be found under [docs/developer](docs/developer/),
 where the main concepts and decisions are captured as [decision records](docs/developer/decision-records/).
 
-Some more documentation can be found at [extensions](extensions/), [launchers](launchers/) and [samples](samples/).
+Some more documentation can be found at [extensions](extensions/), [launchers](launchers/) and
+[the samples repository](https://github.com/eclipse-edc/Samples).
 
 For detailed information about the whole project, please take a look at
 our [GitHub pages](https://eclipse-edc.github.io/docs).
 
 ## Getting Started
+
+### Onboarding and first steps
+
+If you are not yet familiar with the EDC nomenclature, we strongly advise reading the
+[documentation](https://eclipse-edc.github.io/docs/#/) and/or watching the
+[introductory videos](https://www.youtube.com/@eclipsedataspaceconnector9622/featured).
+
+#### Samples
+
+The [Samples repository](https://github.com/eclipse-edc/Samples) provides a set of examples for getting familiar with
+the EDC framework and learning how to set up and use a connector. The samples begin with the very basics (e.g. learning
+how to write an extension or use a configuration file) and then move on to more complex scenarios (e.g. performing
+different data transfers). More samples will be added in the future, so be sure to check back regularly.
 
 ### Add Maven dependencies
 
@@ -224,8 +237,8 @@ Launchers are essentially connector packages that are runnable. What modules get
 capabilities a connector has) is defined by the `build.gradle.kts` file inside the launcher subdirectory. That's also
 where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
 connector to become operational the `runtime` needs to perform several important tasks (="bootstrapping"). For an
-example take a look
-at [this runtime](samples/other/custom-runtime/src/main/java/org/eclipse/edc/sample/runtime/CustomRuntime.java)
+example take a look at
+[this runtime](https://github.com/eclipse-edc/Samples/blob/main/other/custom-runtime/src/main/java/org/eclipse/edc/sample/runtime/CustomRuntime.java)
 
 ### `resources/charts`
 
@@ -235,12 +248,6 @@ your connector runtime, and deploy the resulting image to Kubernetes.
 ### `data-protocols`
 
 Contains implementations for communication protocols a connector might use, such as IDS.
-
-### `samples`
-
-Contains code that demonstrates how the connector can be used in various scenarios. For example, it shows how to run a
-connector from a unit test in order to try out functionality quickly or how to implement an outward-facing REST API for
-a connector.
 
 ## Releases
 

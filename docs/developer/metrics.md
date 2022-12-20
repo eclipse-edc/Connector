@@ -2,7 +2,7 @@
 
 EDC provides extensions for instrumentation with the [Micrometer](https://micrometer.io/) metrics library to automatically collect metrics from the host system, JVM, and frameworks and libraries used in EDC (including OkHttp, Jetty, Jersey and ExecutorService).
 
-See [sample 04.3](../../samples/04.3-open-telemetry/README.md) for an example of an instrumented EDC consumer. 
+See [sample 04.3](https://github.com/eclipse-edc/Samples/blob/main/04.3-open-telemetry/README.md) for an example of an instrumented EDC consumer. 
 
 ## Micrometer Extension
 
