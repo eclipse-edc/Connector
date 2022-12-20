@@ -41,7 +41,7 @@
 
 <p align="center">
   <a href="#contributing">Contribute</a> •
-  <a href="https://eclipse-dataspacecomponents.github.io/docs/">Docs</a> •
+  <a href="https://eclipse-edc.github.io/docs/">Docs</a> •
   <a href="https://github.com/eclipse-edc/Connector/issues">Issues</a> •
   <a href="https://github.com/eclipse-edc/Connector/blob/main/LICENSE">License</a> •
   <a href="https://github.com/eclipse-edc/Connector/discussions/1303">Q&A</a>
@@ -57,7 +57,6 @@ Please also refer to:
 - The [Eclipse Project Homepage](https://projects.eclipse.org/projects/technology.edc)
 - [International Data Spaces](https://www.internationaldataspaces.org)
 - The [GAIA-X](https://gaia-x.eu) project
-- The [Onboarding Guide](onboarding.md)
 
 ### Built with
 
@@ -79,6 +78,19 @@ For detailed information about the whole project, please take a look at
 our [GitHub pages](https://eclipse-edc.github.io/docs).
 
 ## Getting Started
+
+### Onboarding and first steps
+
+If you are not yet familiar with the EDC nomenclature, we strongly advise reading the
+[documentation](https://eclipse-edc.github.io/docs/#/) and/or watching the
+[introductory videos](https://www.youtube.com/@eclipsedataspaceconnector9622/featured).
+
+#### Samples
+
+The [Samples repository](https://github.com/eclipse-edc/Samples) provides a set of examples for getting familiar with
+the EDC framework and learning how to set up and use a connector. The samples begin with the very basics (e.g. learning
+how to write an extension or use a configuration file) and then move on to more complex scenarios (e.g. performing
+different data transfers). More samples will be added in the future, so be sure to check back regularly.
 
 ### Add Maven dependencies
 
