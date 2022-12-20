@@ -1,0 +1,17 @@
+name: Add to Project
+
+on:
+  issues:
+    types: [ opened ]
+  pull_request_target:
+    types: [ opened ]
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issue
+        uses: actions/add-to-project@v0.4.0
+        with:
+          project-url: https://github.com/orgs/eclipse-edc/projects/3
+          github-token: ${{ secrets.ORGANIZATION_PROJECT }}
