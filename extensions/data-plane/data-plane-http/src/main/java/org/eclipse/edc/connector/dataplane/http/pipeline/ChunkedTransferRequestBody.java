@@ -20,22 +20,20 @@ import okio.BufferedSink;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.function.Supplier;
 
 /**
  * Streams content into an OK HTTP buffered sink in chunks.
- *
+ * <p>
  * Due to OkHttp implementation an extra header will be created (no-overridable) Transfer-Encoding with value chunked
  *
  * @see <a href="https://github.com/square/okhttp/blob/master/docs/features/calls.md">OkHttp Dcoumentation</a>
  */
 public class ChunkedTransferRequestBody extends RequestBody {
-    private final Supplier<InputStream> bodySupplier;
+    private final byte[] bytes;
     private final String contentType;
 
-    public ChunkedTransferRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
-        this.bodySupplier = contentSupplier;
+    public ChunkedTransferRequestBody(byte[] bytes, String contentType) {
+        this.bytes = bytes;
         this.contentType = contentType;
     }
 
@@ -46,8 +44,8 @@ public class ChunkedTransferRequestBody extends RequestBody {
 
     @Override
     public void writeTo(@NotNull BufferedSink sink) throws IOException {
-        try (var os = sink.outputStream(); var is = bodySupplier.get()) {
-            is.transferTo(os);
+        try (var os = sink.outputStream()) {
+            os.write(bytes);
         }
     }
 }

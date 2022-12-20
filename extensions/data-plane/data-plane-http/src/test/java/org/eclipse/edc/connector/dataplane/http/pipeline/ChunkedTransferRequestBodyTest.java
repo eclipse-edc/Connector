@@ -18,7 +18,6 @@ import okio.BufferedSink;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -36,7 +35,7 @@ class ChunkedTransferRequestBodyTest {
 
         when(sink.outputStream()).thenReturn(outputStream);
 
-        var body = new ChunkedTransferRequestBody(() -> new ByteArrayInputStream(content.getBytes()), HttpDataAddress.OCTET_STREAM);
+        var body = new ChunkedTransferRequestBody(content.getBytes(), HttpDataAddress.OCTET_STREAM);
         body.writeTo(sink);
 
         assertThat(outputStream).hasToString(content);

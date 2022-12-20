@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -77,7 +76,7 @@ class HttpRequestParamsTests {
     @Test
     void verifyComplexUrl() {
         var path = "testpath";
-        var queryParams = "test-queryparams";
+        var queryParams = "foo=bar&hello=world";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(baseUrl)
                 .method(HttpMethod.GET.name())
@@ -88,6 +87,24 @@ class HttpRequestParamsTests {
         var httpRequest = params.toRequest();
 
         assertThat(httpRequest.url().url()).hasToString(String.format("%s/%s?%s", baseUrl, path, queryParams));
+        assertThat(httpRequest.method()).isEqualTo(HttpMethod.GET.name());
+    }
+
+    @Test
+    void verifyAggregatesQueryParamsAndPathFromBaseUrl() {
+        var compositeBaseUrl = baseUrl + "/basepath?foo=bar";
+        var path = "testpath";
+        var queryParams = "hello=world";
+        var params = HttpRequestParams.Builder.newInstance()
+                .baseUrl(compositeBaseUrl)
+                .method(HttpMethod.GET.name())
+                .path(path)
+                .queryParams(queryParams)
+                .build();
+
+        var httpRequest = params.toRequest();
+
+        assertThat(httpRequest.url().url()).hasToString(String.format("%s/basepath/%s?foo=bar&%s", baseUrl, path, queryParams));
         assertThat(httpRequest.method()).isEqualTo(HttpMethod.GET.name());
     }
 
@@ -138,7 +155,7 @@ class HttpRequestParamsTests {
                 .contentType(contentType)
                 .build();
 
-        var httpRequest = params.toRequest(() -> new ByteArrayInputStream(body.getBytes()));
+        var httpRequest = params.toRequest(body.getBytes());
 
         var requestBody = httpRequest.body();
         assertThat(requestBody).isNotNull();

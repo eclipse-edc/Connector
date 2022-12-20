@@ -201,7 +201,7 @@ class HttpRequestParamsSupplierTest {
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
         assertThat(HttpTestFixtures.formatRequestBodyAsString(body)).isEqualTo(supplier.body);
         assertThat(httpRequest.method()).isEqualTo(supplier.method);
-        assertThat(httpRequest.body().contentLength()).isEqualTo(-1L);
+        assertThat(body.contentLength()).isEqualTo(-1L);
     }
 
     @Test
@@ -220,7 +220,7 @@ class HttpRequestParamsSupplierTest {
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
         assertThat(HttpTestFixtures.formatRequestBodyAsString(body)).isEqualTo(supplier.body);
         assertThat(httpRequest.method()).isEqualTo(supplier.method);
-        assertThat(httpRequest.body().contentLength()).isEqualTo(supplier.body.getBytes().length);
+        assertThat(body.contentLength()).isEqualTo(supplier.body.getBytes().length);
     }
 
     private String asJson(Map<String, String> map) {
@@ -253,7 +253,7 @@ class HttpRequestParamsSupplierTest {
             this.method = new Random().nextBoolean() ? "PUT" : "POST";
             this.isOneGo = isOneGo;
             this.path = "somepath";
-            this.queryParams = "testqueryparam";
+            this.queryParams = "foo=bar&hello=world";
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
             this.body = "Test-Body";
         }
