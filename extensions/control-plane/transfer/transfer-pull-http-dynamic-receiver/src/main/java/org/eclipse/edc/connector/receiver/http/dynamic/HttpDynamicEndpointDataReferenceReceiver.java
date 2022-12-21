@@ -54,6 +54,7 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
 
     private String authKey;
     private String authToken;
+    private String fallbackEndpoint;
 
     private HttpDynamicEndpointDataReferenceReceiver() {
     }
@@ -74,10 +75,15 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
 
         var endpoint = transferProcess.getProperties().get(HTTP_RECEIVER_ENDPOINT);
 
+        if (endpoint == null) {
+            endpoint = fallbackEndpoint;
+        }
+
         if (endpoint != null) {
+            monitor.debug(format("Sending EDR to %s", endpoint));
             return sendEdr(edr, endpoint);
         } else {
-            monitor.debug(format("Missing %s property in the transfer process properties", HTTP_RECEIVER_ENDPOINT));
+            monitor.debug(format("Missing %s property in the transfer process properties or fallback endpoint in configuration", HTTP_RECEIVER_ENDPOINT));
             return CompletableFuture.completedFuture(Result.success());
         }
 
@@ -142,6 +148,11 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
         public Builder authHeader(String key, String code) {
             receiver.authKey = key;
             receiver.authToken = code;
+            return this;
+        }
+
+        public Builder fallbackEndpoint(String fallbackEndpoint) {
+            receiver.fallbackEndpoint = fallbackEndpoint;
             return this;
         }
 

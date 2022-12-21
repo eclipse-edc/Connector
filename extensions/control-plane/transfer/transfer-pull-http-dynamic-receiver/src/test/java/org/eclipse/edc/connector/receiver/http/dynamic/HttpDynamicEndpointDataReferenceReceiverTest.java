@@ -113,6 +113,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
         receiverEndpointServer.when(request).respond(successfulResponse());
         var result = receiver.send(edr).get();
         assertThat(result).satisfies(Result::success);
+        verify(httpClient, atMostOnce()).newCall(any());
     }
 
     @Test
@@ -145,6 +146,8 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
         receiverEndpointServer.when(request).respond(successfulResponse());
         var result = receiver.send(edr).get();
         assertThat(result).satisfies(Result::success);
+        verify(httpClient, atMostOnce()).newCall(any());
+
     }
 
     @Test
@@ -162,6 +165,8 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
         receiverEndpointServer.when(request).respond(successfulResponse());
 
         assertThat(receiver.send(edr).get()).matches(Result::failed);
+        verify(httpClient, atMostOnce()).newCall(any());
+
     }
 
     @Test
@@ -219,6 +224,36 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
 
         verify(monitor, atMostOnce()).debug(anyString());
         verify(httpClient, never()).newCall(any());
+    }
+
+    @Test
+    public void send_shouldForwardTheEdr_whenReceiverUrlMissingAndFallbackConfigured() throws ExecutionException, InterruptedException {
+
+        receiver = HttpDynamicEndpointDataReferenceReceiver.Builder.newInstance()
+                .httpClient(httpClient)
+                .retryPolicy(retryPolicy)
+                .typeManager(typeManager)
+                .transferProcessStore(transferProcessStore)
+                .fallbackEndpoint(receiverUrl())
+                .monitor(monitor)
+                .build();
+
+        when(transferProcessStore.processIdForDataRequestId(any())).thenReturn(TRANSFER_ID);
+        when(transferProcessStore.find(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID));
+
+        var edr = createEndpointDataReferenceBuilder()
+                .build();
+
+        var request = request().withPath("/" + RECEIVER_ENDPOINT_PATH)
+                .withMethod(HttpMethod.POST.name())
+                .withBody(typeManager.writeValueAsString(edr));
+
+        receiverEndpointServer.when(request).respond(successfulResponse());
+        var result = receiver.send(edr).get();
+        assertThat(result).satisfies(Result::success);
+
+        verify(httpClient, atMostOnce()).newCall(any());
+
     }
 
     private EndpointDataReference.Builder createEndpointDataReferenceBuilder() {

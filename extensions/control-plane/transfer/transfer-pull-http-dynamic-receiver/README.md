@@ -30,7 +30,8 @@ and will be used by the consumer connector to dispatch the EDR
 
 ## Configuration
 
-| Parameter name                        | Description                                              | Mandatory | Default value |
-|---------------------------------------|----------------------------------------------------------|-----------|---------------|
-| `edc.receiver.http.dynamic.auth-key`  | The header name that will be sent with the EDR request.  | false     | null          |
-| `edc.receiver.http.dynamic.auth-code` | The header value that will be sent with the EDR request. | false     | null          |
+| Parameter name                        | Description                                                 | Mandatory | Default value |
+|---------------------------------------|-------------------------------------------------------------|-----------|---------------|
+| `edc.receiver.http.dynamic.endpoint`  | The fallbacke endpoint when the URL is missing from the TP. | false     | null          |
+| `edc.receiver.http.dynamic.auth-key`  | The header name that will be sent with the EDR request.     | false     | null          |
+| `edc.receiver.http.dynamic.auth-code` | The header value that will be sent with the EDR request.    | false     | null          |
