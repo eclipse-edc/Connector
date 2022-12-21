@@ -63,6 +63,8 @@ public class DependencyGraph {
      */
     public List<InjectionContainer<ServiceExtension>> of(List<ServiceExtension> loadedExtensions) {
         var extensions = sortByType(loadedExtensions);
+        var syntheticExtension = new SyntheticExtension();
+        extensions.add(syntheticExtension);
         var dependencyMap = createDependencyMap(extensions);
 
         var sort = new TopologicalSort<ServiceExtension>();
@@ -112,6 +114,7 @@ public class DependencyGraph {
             throw new EdcException(string);
         }
 
+        extensions.remove(syntheticExtension);
         sort.sort(extensions);
 
         // todo: should the list of InjectionContainers be generated directly by the flatmap?

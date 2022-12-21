@@ -25,11 +25,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DependencyGraphTest {
 
-    private DependencyGraph sorter;
+    private DependencyGraph graph;
 
     @BeforeEach
     void setUp() {
-        sorter = new DependencyGraph();
+        graph = new DependencyGraph();
     }
 
     @Test
@@ -38,7 +38,7 @@ class DependencyGraphTest {
 
         var dependentExtension = TestFunctions.createDependentExtension(true);
 
-        var list = sorter.of(TestFunctions.createList(dependentExtension, providerExtension));
+        var list = graph.of(TestFunctions.createList(dependentExtension, providerExtension));
         assertThat(list).extracting(InjectionContainer::getInjectionTarget)
                 .contains(providerExtension, Index.atIndex(2))
                 .contains(dependentExtension, Index.atIndex(3));
@@ -51,7 +51,7 @@ class DependencyGraphTest {
         var provider = TestFunctions.createProviderExtension(true);
         var dependentExtension = TestFunctions.createDependentExtension(true);
 
-        var list = sorter.of(TestFunctions.createList(dependentExtension, provider, defaultProvider));
+        var list = graph.of(TestFunctions.createList(dependentExtension, provider, defaultProvider));
         assertThat(list).extracting(InjectionContainer::getInjectionTarget)
                 .contains(provider, Index.atIndex(2))
                 .contains(defaultProvider, Index.atIndex(3))
@@ -62,14 +62,14 @@ class DependencyGraphTest {
     void sortExtensions_missingDependency() {
 
         var dependentExtension = TestFunctions.createDependentExtension(true);
-        assertThatThrownBy(() -> sorter.of(TestFunctions.createList(dependentExtension))).isInstanceOf(EdcInjectionException.class);
+        assertThatThrownBy(() -> graph.of(TestFunctions.createList(dependentExtension))).isInstanceOf(EdcInjectionException.class);
     }
 
     @Test
     void sortExtensions_missingOptionalDependency() {
 
         var dependentExtension = TestFunctions.createDependentExtension(false);
-        assertThat(sorter.of(TestFunctions.createList(dependentExtension))).hasSize(3)
+        assertThat(graph.of(TestFunctions.createList(dependentExtension))).hasSize(3)
                 .extracting(InjectionContainer::getInjectionTarget)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(dependentExtension);
@@ -80,5 +80,13 @@ class DependencyGraphTest {
 
     }
 
+    @Test
+    void sortExtension_verifySyntheticProvider() {
+
+        var list = graph.of(TestFunctions.createList());
+        assertThat(list)
+                .extracting(InjectionContainer::getInjectionTarget)
+                .noneMatch(se -> se instanceof SyntheticExtension);
+    }
 
 }
