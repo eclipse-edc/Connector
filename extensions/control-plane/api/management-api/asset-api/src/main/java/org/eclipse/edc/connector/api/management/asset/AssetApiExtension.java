@@ -20,10 +20,12 @@ import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetRequestDtoToAssetTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetToAssetResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.DataAddressDtoToDataAddressTransformer;
+import org.eclipse.edc.connector.api.management.asset.transform.DataAddressToDataAddressDtoTransformer;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
@@ -45,6 +47,9 @@ public class AssetApiExtension implements ServiceExtension {
     @Inject
     private AssetService assetService;
 
+    @Inject
+    private DataAddressResolver dataAddressResolver;
+
     @Override
     public String name() {
         return NAME;
@@ -55,10 +60,11 @@ public class AssetApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         transformerRegistry.register(new AssetRequestDtoToAssetTransformer());
-        transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
         transformerRegistry.register(new AssetToAssetResponseDtoTransformer());
+        transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
+        transformerRegistry.register(new DataAddressToDataAddressDtoTransformer());
 
-        webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, transformerRegistry));
+        webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, dataAddressResolver, transformerRegistry));
     }
 
 }

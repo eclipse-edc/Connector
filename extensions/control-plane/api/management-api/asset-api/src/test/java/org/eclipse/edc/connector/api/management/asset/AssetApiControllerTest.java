@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -53,13 +54,15 @@ import static org.mockito.Mockito.when;
 public class AssetApiControllerTest {
 
     private final AssetService service = mock(AssetService.class);
+
+    private final DataAddressResolver dataAddressResolver = mock(DataAddressResolver.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
     private AssetApiController controller;
 
     @BeforeEach
     void setUp() {
         var monitor = mock(Monitor.class);
-        controller = new AssetApiController(monitor, service, transformerRegistry);
+        controller = new AssetApiController(monitor, service, dataAddressResolver, transformerRegistry);
     }
 
     @Test
@@ -271,6 +274,18 @@ public class AssetApiControllerTest {
         when(service.delete("id")).thenReturn(ServiceResult.conflict("conflicting"));
 
         assertThatThrownBy(() -> controller.removeAsset("id")).isInstanceOf(ObjectConflictException.class);
+    }
+
+    @Test
+    void getDataAddressForAssetById() {
+
+        when(dataAddressResolver.resolveForAsset("id")).thenReturn(DataAddress.Builder.newInstance().type("any").build());
+        when(transformerRegistry.transform(isA(DataAddress.class), eq(DataAddressDto.class))).thenReturn(Result.success(DataAddressDto.Builder.newInstance().build()));
+
+        var assetDto = controller.getAssetDataAddress("id");
+
+        assertThat(assetDto).isNotNull();
+        verify(transformerRegistry).transform(isA(DataAddress.class), eq(DataAddressDto.class));
     }
 
 }
