@@ -7,8 +7,8 @@
 </h1>
 
 <div align="center">
-  <a href="https://github.com/eclipse-edc/Connector/actions/workflows/verify.yaml">
-    <img src="https://img.shields.io/github/workflow/status/eclipse-edc/Connector/Test%20Code%20(Style,%20Tests)?logo=GitHub&style=flat-square"
+  <a href="https://github.com/eclipse-edc/Connector/actions/workflows/verify.yaml?query=branch%3Amain">
+    <img src="https://img.shields.io/github/actions/workflow/status/eclipse-edc/Connector/verify.yaml?branch=main&logo=GitHub&style=flat-square"
     alt="Tests status" />
   </a>
   <a href="https://app.codecov.io/gh/eclipse-edc/Connector">
