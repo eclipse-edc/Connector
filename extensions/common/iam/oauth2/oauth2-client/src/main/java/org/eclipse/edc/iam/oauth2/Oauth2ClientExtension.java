@@ -26,7 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 @Extension(value = Oauth2ClientExtension.NAME)
 public class Oauth2ClientExtension implements ServiceExtension {
 
-    public static final String NAME = "OAuth2 Core";
+    public static final String NAME = "OAuth2 Client";
 
     @Inject
     private EdcHttpClient httpClient;
@@ -38,6 +38,6 @@ public class Oauth2ClientExtension implements ServiceExtension {
 
     @Provider
     public Oauth2Client oauth2Client(ServiceExtensionContext context) {
-        return new Oauth2ClientImpl(httpClient, context.getTypeManager(), context.getMonitor());
+        return new Oauth2ClientImpl(httpClient, context.getTypeManager());
     }
 }

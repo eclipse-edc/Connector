@@ -33,9 +33,8 @@ public class DefaultPrivateKeyParseFunction implements Function<String, PrivateK
 
     @Override
     public PrivateKey apply(String encoded) {
-        var pemParser = new PEMParser(new StringReader(encoded));
-        var converter = new JcaPEMKeyConverter();
-        try {
+        try (var pemParser = new PEMParser(new StringReader(encoded))) {
+            var converter = new JcaPEMKeyConverter();
             var o = pemParser.readObject();
             if (o instanceof PEMKeyPair) {
                 var keyPair = (PEMKeyPair) o;

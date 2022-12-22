@@ -12,22 +12,21 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-}
+package org.eclipse.edc.spi.http;
 
-dependencies {
-    api(project(":spi:common:core-spi"))
+import dev.failsafe.Fallback;
+import okhttp3.Request;
+import okhttp3.Response;
 
-    api(libs.okhttp)
-    api(libs.failsafe.okhttp)
-}
-
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
+/**
+ * Factory for {@link Fallback} instances given a {@link Request}
+ */
+public interface FallbackFactory {
+    /**
+     * Create a {@link Fallback} from a {@link Request}
+     *
+     * @param request the {@link Request}
+     * @return a {@link Fallback} instance
+     */
+    Fallback<Response> create(Request request);
 }

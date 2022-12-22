@@ -102,7 +102,8 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     public EdcHttpClient edcHttpClient(ServiceExtensionContext context) {
         return new EdcHttpClientImpl(
                 okHttpClient(context),
-                retryPolicy(context)
+                retryPolicy(context),
+                context.getMonitor()
         );
     }
 

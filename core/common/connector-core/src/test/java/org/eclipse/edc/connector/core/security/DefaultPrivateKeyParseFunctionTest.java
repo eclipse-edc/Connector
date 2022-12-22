@@ -21,6 +21,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
+import java.security.Security;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -29,11 +30,12 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class DefaultPrivateKeyParseFunctionTest {
 
-
     private DefaultPrivateKeyParseFunction parseFunction;
 
     @BeforeEach
     public void setUp() {
+        Security.removeProvider("BC"); // TODO: this is to make this test working on the CI
+        // because there's a test in this module that uses mockserver, that seems to add the BC provider, making this test break.
         parseFunction = new DefaultPrivateKeyParseFunction();
     }
 
@@ -59,10 +61,8 @@ class DefaultPrivateKeyParseFunctionTest {
      * Load content from a resource file.
      */
     private String loadResourceFile(String file) throws IOException {
-        return new String(
-                Objects.requireNonNull(
-                                DefaultPrivateKeyParseFunctionTest.class.getClassLoader().getResourceAsStream(file)
-                        )
-                        .readAllBytes());
+        try (var resourceAsStream = DefaultPrivateKeyParseFunctionTest.class.getClassLoader().getResourceAsStream(file)) {
+            return new String(Objects.requireNonNull(resourceAsStream).readAllBytes());
+        }
     }
 }
