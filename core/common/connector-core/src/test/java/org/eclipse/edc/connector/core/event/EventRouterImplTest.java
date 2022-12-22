@@ -89,6 +89,10 @@ class EventRouterImplTest {
 
     private static class TestEvent extends Event<TestEvent.Payload> {
 
+        public static class Payload extends EventPayload {
+
+        }
+
         public static class Builder extends Event.Builder<TestEvent, Payload, Builder> {
 
             public static Builder newInstance() {
@@ -105,8 +109,5 @@ class EventRouterImplTest {
             }
         }
 
-        public static class Payload extends EventPayload {
-
-        }
     }
 }

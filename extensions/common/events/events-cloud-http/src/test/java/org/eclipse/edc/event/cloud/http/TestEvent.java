@@ -19,6 +19,18 @@ import org.eclipse.edc.spi.event.EventPayload;
 
 class TestEvent extends Event<TestEvent.Payload> {
 
+    public static class Payload extends EventPayload {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+    }
+
     public static class Builder extends Event.Builder<TestEvent, Payload, Builder> {
 
         public static Builder newInstance() {
@@ -40,15 +52,4 @@ class TestEvent extends Event<TestEvent.Payload> {
         }
     }
 
-    public static class Payload extends EventPayload {
-        private String data;
-
-        public String getData() {
-            return data;
-        }
-
-        public void setData(String data) {
-            this.data = data;
-        }
-    }
 }

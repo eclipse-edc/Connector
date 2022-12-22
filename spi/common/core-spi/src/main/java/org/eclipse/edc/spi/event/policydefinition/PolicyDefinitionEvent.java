@@ -25,10 +25,10 @@ import java.util.Objects;
  */
 public abstract class PolicyDefinitionEvent<P extends PolicyDefinitionEvent.Payload> extends Event<P> {
 
-    public static abstract class Payload extends EventPayload {
+    public abstract static class Payload extends EventPayload {
         protected String policyDefinitionId;
 
-        public String getContractDefinitionId() {
+        public String getPolicyDefinitionId() {
             return policyDefinitionId;
         }
     }

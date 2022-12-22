@@ -14,5 +14,8 @@
 
 package org.eclipse.edc.spi.event;
 
+/**
+ * Mark class that represent a payload in an {@link Event}
+ */
 public abstract class EventPayload {
 }

@@ -25,7 +25,7 @@ import java.util.Objects;
  */
 public abstract class ContractDefinitionEvent<P extends ContractDefinitionEvent.Payload> extends Event<P> {
 
-    public static abstract class Payload extends EventPayload {
+    public abstract static class Payload extends EventPayload {
         protected String contractDefinitionId;
 
         public String getContractDefinitionId() {

@@ -25,7 +25,7 @@ import java.util.Objects;
  */
 public abstract class AssetEvent<P extends AssetEvent.Payload> extends Event<P> {
 
-    public static abstract class Payload extends EventPayload {
+    public abstract static class Payload extends EventPayload {
         protected String assetId;
 
         public String getAssetId() {
