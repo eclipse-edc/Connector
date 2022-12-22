@@ -14,19 +14,22 @@
 
 package org.eclipse.edc.spi.event.transferprocess;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * This event is raised when the TransferProcess has been requested to the provider.
  */
-public class TransferProcessRequested extends Event<TransferProcessRequested.Payload> {
+public class TransferProcessRequested extends TransferProcessEvent<TransferProcessRequested.Payload> {
 
     private TransferProcessRequested() {
     }
 
-    public static class Builder extends Event.Builder<TransferProcessRequested, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a TransferProcess Requested Event
+     *
+     */
+    public static class Payload extends TransferProcessEvent.Payload {
+    }
+
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessRequested, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,21 +39,6 @@ public class TransferProcessRequested extends Event<TransferProcessRequested.Pay
             super(new TransferProcessRequested(), new Payload());
         }
 
-        public Builder transferProcessId(String transferProcessId) {
-            event.payload.transferProcessId = transferProcessId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.transferProcessId);
-        }
     }
 
-    /**
-     * This class contains all event specific attributes of a TransferProcess Requested Event
-     *
-     */
-    public static class Payload extends TransferProcessEventPayload {
-    }
 }
