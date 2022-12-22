@@ -20,8 +20,8 @@ import org.eclipse.edc.spi.event.EventPayload;
 import java.util.Objects;
 
 /**
- *  Class as organizational between level to catch events of type TransferProcess to catch them together in an Event Subscriber
- *  Contains data related to assets
+ *  Class as organizational between level to catch events of type ContractDefinition to catch them together in an Event Subscriber
+ *  Contains data related to contract definitions
  */
 public abstract class ContractDefinitionEvent<P extends ContractDefinitionEvent.Payload> extends Event<P> {
 

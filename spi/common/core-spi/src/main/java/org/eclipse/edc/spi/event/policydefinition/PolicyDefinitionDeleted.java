@@ -15,19 +15,22 @@
 
 package org.eclipse.edc.spi.event.policydefinition;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * Describe a PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.
  */
-public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Payload> {
+public class PolicyDefinitionDeleted extends PolicyDefinitionEvent<PolicyDefinitionDeleted.Payload> {
 
     private PolicyDefinitionDeleted() {
     }
 
-    public static class Builder extends Event.Builder<PolicyDefinitionDeleted, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a PolicyDefinition Deletion Event
+     *
+     */
+    public static class Payload extends PolicyDefinitionEvent.Payload {
+    }
+
+    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionDeleted, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,22 +39,6 @@ public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Paylo
         private Builder() {
             super(new PolicyDefinitionDeleted(), new Payload());
         }
-
-        public Builder policyDefinitionId(String policyDefinitionId) {
-            event.payload.policyDefinitionId = policyDefinitionId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.policyDefinitionId);
-        }
     }
 
-    /**
-     * This class contains all event specific attributes of a PolicyDefinition Deletion Event
-     *
-     */
-    public static class Payload extends PolicyDefinitionEventPayload {
-    }
 }
