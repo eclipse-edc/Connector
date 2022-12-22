@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.transfer.process.ProvisionCallbackDelegate;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
 
@@ -33,8 +34,8 @@ public class DeprovisionCompleteCommandHandler implements CommandHandler<Deprovi
     }
 
     @Override
-    public void handle(DeprovisionCompleteCommand command) {
-        delegate.handleDeprovisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getResource())));
+    public Result<Void> handle(DeprovisionCompleteCommand command) {
+        return delegate.handleDeprovisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getResource())));
     }
 
     @Override

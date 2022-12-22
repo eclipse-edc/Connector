@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.command.CommandHandler;
+import org.eclipse.edc.spi.result.Result;
 
 import static java.lang.String.format;
 
@@ -36,7 +37,7 @@ public abstract class SingleTransferProcessCommandHandler<T extends SingleTransf
     }
 
     @Override
-    public void handle(T command) {
+    public Result<Void> handle(T command) {
         var transferProcessId = command.getTransferProcessId();
         var transferProcess = store.find(transferProcessId);
         if (transferProcess == null) {
@@ -46,7 +47,9 @@ public abstract class SingleTransferProcessCommandHandler<T extends SingleTransf
                 transferProcess.setModified();
                 store.save(transferProcess);
                 postAction(transferProcess);
+                return Result.success();
             }
+            return Result.failure("The TransferProcess could not be modified");
         }
     }
 

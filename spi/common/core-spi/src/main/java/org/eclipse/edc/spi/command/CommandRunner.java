@@ -45,8 +45,7 @@ public class CommandRunner<C extends Command> {
             return Result.failure("No command handler found for command type " + commandClass);
         }
         try {
-            handler.handle(command);
-            return Result.success();
+            return handler.handle(command);
         } catch (RuntimeException ex) {
             command.increaseErrorCount();
             monitor.severe("Error when processing a command", ex);

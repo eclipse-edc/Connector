@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
 
@@ -35,8 +36,8 @@ public class AddProvisionedResourceCommandHandler implements CommandHandler<AddP
     }
 
     @Override
-    public void handle(AddProvisionedResourceCommand command) {
-        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getProvisionResponse())));
+    public Result<Void> handle(AddProvisionedResourceCommand command) {
+        return delegate.handleProvisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getProvisionResponse())));
     }
 
     @Override

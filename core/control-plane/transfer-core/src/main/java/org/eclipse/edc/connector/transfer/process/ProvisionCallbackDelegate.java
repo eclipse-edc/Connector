@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
 
@@ -28,10 +29,10 @@ public interface ProvisionCallbackDelegate {
     /**
      * Called when the {@link ProvisionManager} completes provisioning.
      */
-    void handleProvisionResult(String transferProcessId, List<StatusResult<ProvisionResponse>> provisionResponse);
+    Result<Void> handleProvisionResult(String transferProcessId, List<StatusResult<ProvisionResponse>> provisionResponse);
 
     /**
      * Called when the {@link ProvisionManager} completes deprovisioning.
      */
-    void handleDeprovisionResult(String transferProcessId, List<StatusResult<DeprovisionedResource>> provisionResponse);
+    Result<Void> handleDeprovisionResult(String transferProcessId, List<StatusResult<DeprovisionedResource>> provisionResponse);
 }

@@ -183,16 +183,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @Override
-    public void handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
+    public Result<Void> handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
-            monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
-            return;
+            return Result.failure("TransferProcessManager: no TransferProcess found for provisioned resources");
         }
 
         if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
-            return;
+            return Result.failure(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
+
         }
 
         var validationResult = responses.stream()
@@ -207,7 +206,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (validationResult.failed()) {
             var message = format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
             transitionToError(transferProcess, message);
-            return;
+            return Result.failure(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail()));
         }
 
         var provisionResponses = responses.stream()
@@ -216,19 +215,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .collect(Collectors.toList());
 
         handleProvisionResponses(transferProcess, provisionResponses);
+        return Result.success();
     }
 
     @Override
-    public void handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
+    public Result<Void> handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
-            monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
-            return;
+            return Result.failure("TransferProcessManager: no TransferProcess found for deprovisioned resources");
         }
 
         if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
-            return;
+            return Result.failure(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
         }
 
         var validationResult = responses.stream()
@@ -241,7 +239,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (validationResult.failed()) {
             var message = format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
             transitionToError(transferProcess, message);
-            return;
+            return Result.failure(format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail()));
         }
 
         var deprovisionResponses = responses.stream()
@@ -250,6 +248,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .collect(Collectors.toList());
 
         handleDeprovisionResponses(transferProcess, deprovisionResponses);
+        return Result.success();
     }
 
     private StatusResult<String> initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {

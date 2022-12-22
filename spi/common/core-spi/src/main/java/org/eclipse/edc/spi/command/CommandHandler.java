@@ -15,6 +15,8 @@
 
 package org.eclipse.edc.spi.command;
 
+import org.eclipse.edc.spi.result.Result;
+
 /**
  * CommandHandlers receive a {@link Command} object and act on it. If possible, command handlers should
  * not perform lengthy operations as this could block the command queue.
@@ -31,6 +33,6 @@ public interface CommandHandler<T extends Command> {
     /**
      * Processes the command.
      */
-    void handle(T command);
+    Result<Void> handle(T command);
 
 }

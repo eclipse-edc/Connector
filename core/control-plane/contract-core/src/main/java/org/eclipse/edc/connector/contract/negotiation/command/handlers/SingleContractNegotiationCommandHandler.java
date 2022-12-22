@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.types.command.SingleContractNegoti
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.command.CommandHandler;
+import org.eclipse.edc.spi.result.Result;
 
 import static java.lang.String.format;
 
@@ -44,7 +45,7 @@ public abstract class SingleContractNegotiationCommandHandler<T extends SingleCo
      * @param command the command.
      */
     @Override
-    public void handle(SingleContractNegotiationCommand command) {
+    public Result<Void> handle(SingleContractNegotiationCommand command) {
         var negotiationId = command.getNegotiationId();
         var negotiation = store.find(negotiationId);
         if (negotiation == null) {
@@ -53,7 +54,9 @@ public abstract class SingleContractNegotiationCommandHandler<T extends SingleCo
             if (modify(negotiation)) {
                 negotiation.setModified();
                 store.save(negotiation);
+                return Result.success();
             }
+            return Result.failure("The ContractNegotiation could not be modified ");
         }
     }
 
