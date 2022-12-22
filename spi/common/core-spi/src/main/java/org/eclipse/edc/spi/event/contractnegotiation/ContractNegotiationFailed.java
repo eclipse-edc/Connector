@@ -15,19 +15,22 @@
 
 package org.eclipse.edc.spi.event.contractnegotiation;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * This event is raised when the ContractNegotiation has failed.
  */
-public class ContractNegotiationFailed extends Event<ContractNegotiationFailed.Payload> {
+public class ContractNegotiationFailed extends ContractNegotiationEvent<ContractNegotiationFailed.Payload> {
 
     private ContractNegotiationFailed() {
     }
 
-    public static class Builder extends Event.Builder<ContractNegotiationFailed, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a ContractNegotiation Failed Event
+     *
+     */
+    public static class Payload extends ContractNegotiationEvent.Payload {
+    }
+
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationFailed, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,22 +39,6 @@ public class ContractNegotiationFailed extends Event<ContractNegotiationFailed.P
         private Builder() {
             super(new ContractNegotiationFailed(), new Payload());
         }
-
-        public Builder contractNegotiationId(String contractNegotiationId) {
-            event.payload.contractNegotiationId = contractNegotiationId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.contractNegotiationId);
-        }
     }
 
-    /**
-     * This class contains all event specific attributes of a ContractNegotiation Failed Event
-     *
-     */
-    public static class Payload extends ContractNegotiationEventPayload {
-    }
 }
