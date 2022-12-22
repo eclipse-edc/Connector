@@ -70,12 +70,12 @@ public class BaseRuntimeFixture extends BaseRuntime {
     }
 
     @Override
-    protected List<InjectionContainer<ServiceExtension>> createExtensions() {
+    protected List<InjectionContainer<ServiceExtension>> createExtensions(ServiceExtensionContext context) {
 
         if (extensions != null && !extensions.isEmpty()) {
-            return new DependencyGraph().of(extensions);
+            return new DependencyGraph(context).of(extensions);
         } else {
-            return super.createExtensions();
+            return super.createExtensions(context);
         }
     }
 

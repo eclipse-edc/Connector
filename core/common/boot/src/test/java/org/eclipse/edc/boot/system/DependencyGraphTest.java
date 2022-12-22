@@ -15,6 +15,7 @@
 package org.eclipse.edc.boot.system;
 
 import org.assertj.core.data.Index;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.EdcInjectionException;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 class DependencyGraphTest {
 
@@ -29,7 +31,7 @@ class DependencyGraphTest {
 
     @BeforeEach
     void setUp() {
-        graph = new DependencyGraph();
+        graph = new DependencyGraph(mock(ServiceExtensionContext.class));
     }
 
     @Test
@@ -74,19 +76,4 @@ class DependencyGraphTest {
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(dependentExtension);
     }
-
-    @Test
-    void sortExtensions_multipleDefaultProviders() {
-
-    }
-
-    @Test
-    void sortExtension_verifySyntheticProvider() {
-
-        var list = graph.of(TestFunctions.createList());
-        assertThat(list)
-                .extracting(InjectionContainer::getInjectionTarget)
-                .noneMatch(se -> se instanceof SyntheticExtension);
-    }
-
 }

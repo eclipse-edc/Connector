@@ -22,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.EdcInjectionException;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.eclipse.edc.spi.system.injection.InjectionPoint;
@@ -42,6 +43,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Optional.ofNullable;
+
 
 /**
  * Converts an unsorted list of {@link ServiceExtension} instances into a directed graph based on dependency direction, i.e.
@@ -49,6 +52,11 @@ import java.util.stream.Stream;
  */
 public class DependencyGraph {
     private final InjectionPointScanner injectionPointScanner = new InjectionPointScanner();
+    private final ServiceExtensionContext context;
+
+    public DependencyGraph(ServiceExtensionContext context) {
+        this.context = context;
+    }
 
     /**
      * Sorts all {@link ServiceExtension} implementors, that were found on the classpath, according to their dependencies.
@@ -63,8 +71,6 @@ public class DependencyGraph {
      */
     public List<InjectionContainer<ServiceExtension>> of(List<ServiceExtension> loadedExtensions) {
         var extensions = sortByType(loadedExtensions);
-        var syntheticExtension = new SyntheticExtension();
-        extensions.add(syntheticExtension);
         var dependencyMap = createDependencyMap(extensions);
 
         var sort = new TopologicalSort<ServiceExtension>();
@@ -74,15 +80,16 @@ public class DependencyGraph {
         var injectionPoints = extensions.stream()
                 .flatMap(ext -> getInjectedFields(ext).stream()
                         .peek(injectionPoint -> {
-                            var providers = dependencyMap.get(injectionPoint.getFeatureName());
-                            if (providers == null) {
+                            if (!canResolve(dependencyMap, injectionPoint.getFeatureName())) {
                                 if (injectionPoint.isRequired()) {
                                     unsatisfiedInjectionPoints.add(injectionPoint);
                                 }
                             } else {
-                                providers.stream()
-                                        .filter(d -> !Objects.equals(d, ext)) // remove dependencies onto oneself
-                                        .forEach(provider -> sort.addDependency(ext, provider));
+                                // get() would return null, if the feature is already in the context's service list
+                                ofNullable(dependencyMap.get(injectionPoint.getFeatureName()))
+                                        .ifPresent(l -> l.stream()
+                                                .filter(d -> !Objects.equals(d, ext)) // remove dependencies onto oneself
+                                                .forEach(provider -> sort.addDependency(ext, provider)));
                             }
                         })
                 )
@@ -114,7 +121,6 @@ public class DependencyGraph {
             throw new EdcException(string);
         }
 
-        extensions.remove(syntheticExtension);
         sort.sort(extensions);
 
         // todo: should the list of InjectionContainers be generated directly by the flatmap?
@@ -122,6 +128,22 @@ public class DependencyGraph {
         return extensions.stream()
                 .map(se -> new InjectionContainer<>(se, injectionPoints.stream().filter(ip -> ip.getInstance() == se).collect(Collectors.toSet())))
                 .collect(Collectors.toList());
+    }
+
+    private boolean canResolve(Map<String, List<ServiceExtension>> dependencyMap, String featureName) {
+        var providers = dependencyMap.get(featureName);
+        if (providers != null) {
+            return true;
+        } else {
+            // attempt to interpret the feature name as class name, instantiate it and see if the context has that service
+            try {
+                var cls = Class.forName(featureName);
+                return context.hasService(cls);
+            } catch (ClassNotFoundException e) {
+                //noop necessary, feature is not a classname
+            }
+            return false;
+        }
     }
 
     private Map<String, List<ServiceExtension>> createDependencyMap(List<ServiceExtension> extensions) {
