@@ -19,6 +19,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.api.model.MutableDto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @JsonDeserialize(builder = TransferProcessDto.Builder.class)
 public class TransferProcessDto extends MutableDto {
     private String id;
@@ -28,6 +31,8 @@ public class TransferProcessDto extends MutableDto {
     private String errorDetail;
     private DataRequestDto dataRequest;
     private DataAddressInformationDto dataDestination;
+
+    private Map<String, String> properties = new HashMap<>();
 
     private TransferProcessDto() {
     }
@@ -104,6 +109,11 @@ public class TransferProcessDto extends MutableDto {
 
         public Builder dataDestination(DataAddressInformationDto dataDestination) {
             dto.dataDestination = dataDestination;
+            return this;
+        }
+
+        public Builder properties(Map<String, String> properties) {
+            dto.properties = properties;
             return this;
         }
 

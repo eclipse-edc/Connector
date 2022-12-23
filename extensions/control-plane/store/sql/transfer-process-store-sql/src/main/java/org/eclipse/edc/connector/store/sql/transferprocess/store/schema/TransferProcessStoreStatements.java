@@ -123,6 +123,10 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
     }
 
     default String getPropertiesColumn() {
+        return "transferprocess_properties";
+    }
+
+    default String getDataRequestPropertiesColumn() {
         return "properties";
     }
 

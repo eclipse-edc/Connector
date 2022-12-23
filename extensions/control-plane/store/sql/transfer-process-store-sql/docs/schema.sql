@@ -19,19 +19,20 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     transferprocess_id       VARCHAR           NOT NULL
         CONSTRAINT transfer_process_pk
             PRIMARY KEY,
-    type                     VARCHAR           NOT NULL,
-    state                    INTEGER           NOT NULL,
-    state_count              INTEGER DEFAULT 0 NOT NULL,
-    state_time_stamp         BIGINT,
-    created_at               BIGINT            NOT NULL,
-    updated_at               BIGINT            NOT NULL,
-    trace_context            JSON,
-    error_detail             VARCHAR,
-    resource_manifest        JSON,
-    provisioned_resource_set JSON,
-    content_data_address     JSON,
-    deprovisioned_resources  JSON,
-    lease_id                 VARCHAR
+    type                       VARCHAR           NOT NULL,
+    state                      INTEGER           NOT NULL,
+    state_count                INTEGER DEFAULT 0 NOT NULL,
+    state_time_stamp           BIGINT,
+    created_at                 BIGINT            NOT NULL,
+    updated_at                 BIGINT            NOT NULL,
+    trace_context              JSON,
+    error_detail               VARCHAR,
+    resource_manifest          JSON,
+    provisioned_resource_set   JSON,
+    content_data_address       JSON,
+    deprovisioned_resources    JSON,
+    transferprocess_properties JSON,
+    lease_id                   VARCHAR
         CONSTRAINT transfer_process_lease_lease_id_fk
             REFERENCES edc_lease
             ON DELETE SET NULL
