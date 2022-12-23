@@ -24,9 +24,12 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.connector.dataplane.util.validation.ValidationRule;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import static org.eclipse.edc.aws.s3.S3BucketSchema.ACCESS_KEY_ID;
 import static org.eclipse.edc.aws.s3.S3BucketSchema.BUCKET_NAME;
@@ -38,9 +41,14 @@ public class S3DataSourceFactory implements DataSourceFactory {
     private final ValidationRule<DataAddress> validation = new S3DataAddressValidationRule();
     private final ValidationRule<DataAddress> credentialsValidation = new S3DataAddressCredentialsValidationRule();
     private final AwsClientProvider clientProvider;
+    private final Vault vault;
 
-    public S3DataSourceFactory(AwsClientProvider clientProvider) {
+    private final TypeManager typeManager;
+
+    public S3DataSourceFactory(AwsClientProvider clientProvider, Vault vault, TypeManager typeManager) {
         this.clientProvider = clientProvider;
+        this.vault = vault;
+        this.typeManager = typeManager;
     }
 
     @Override
@@ -64,11 +72,17 @@ public class S3DataSourceFactory implements DataSourceFactory {
 
         var source = request.getSourceDataAddress();
 
-        var secretToken = new AwsSecretToken(source.getProperty(ACCESS_KEY_ID), source.getProperty(SECRET_ACCESS_KEY));
-
-        var client = credentialsValidation.apply(source).succeeded()
-                ? clientProvider.s3Client(source.getProperty(REGION), secretToken)
-                : clientProvider.s3Client(source.getProperty(REGION));
+        S3Client client;
+        var secret = vault.resolveSecret(source.getKeyName());
+        if (secret != null) {
+            var secretToken = typeManager.readValue(secret, AwsSecretToken.class);
+            client = clientProvider.s3Client(source.getProperty(REGION), secretToken);
+        } else if (credentialsValidation.apply(source).succeeded()) {
+            var secretToken = new AwsSecretToken(source.getProperty(ACCESS_KEY_ID), source.getProperty(SECRET_ACCESS_KEY));
+            client = clientProvider.s3Client(source.getProperty(REGION), secretToken);
+        } else {
+            client = clientProvider.s3Client(source.getProperty(REGION));
+        }
 
         return S3DataSource.Builder.newInstance()
                 .bucketName(source.getProperty(BUCKET_NAME))
