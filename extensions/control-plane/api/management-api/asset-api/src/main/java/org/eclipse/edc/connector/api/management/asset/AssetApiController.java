@@ -31,7 +31,9 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
+import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -58,9 +60,12 @@ public class AssetApiController implements AssetApi {
     private final AssetService service;
     private final DtoTransformerRegistry transformerRegistry;
 
-    public AssetApiController(Monitor monitor, AssetService service, DtoTransformerRegistry transformerRegistry) {
+    private final DataAddressResolver dataAddressResolver;
+
+    public AssetApiController(Monitor monitor, AssetService service, DataAddressResolver dataAddressResolver, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.service = service;
+        this.dataAddressResolver = dataAddressResolver;
         this.transformerRegistry = transformerRegistry;
     }
 
@@ -122,6 +127,20 @@ public class AssetApiController implements AssetApi {
         monitor.debug(format("Attempting to delete Asset with id %s", id));
         service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
         monitor.debug(format("Asset deleted %s", id));
+    }
+
+
+    @GET
+    @Path("{id}/address")
+    @Override
+    public DataAddressDto getAssetDataAddress(@PathParam("id") String id) {
+        monitor.debug(format("Attempting to return DataAddress of an Asset with id %s", id));
+        return Optional.of(id)
+                .map(it -> dataAddressResolver.resolveForAsset(id))
+                .map(it -> transformerRegistry.transform(it, DataAddressDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
     }
 
     private List<AssetResponseDto> queryAssets(QuerySpecDto querySpecDto) {

@@ -207,6 +207,44 @@ paths:
           description: An asset with the given ID does not exist
       tags:
       - Asset
+  /assets/{id}/address:
+    get:
+      description: Gets a data address of an asset with the given ID
+      operationId: getAssetDataAddress
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataAddressDto'
+          description: The data address
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An asset with the given ID does not exist
+      tags:
+      - Asset
 components:
   schemas:
     ApiErrorDetail:
