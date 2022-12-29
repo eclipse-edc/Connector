@@ -10,7 +10,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@v7
         with:
           operations-per-run: 1000
           days-before-issue-stale: 28
@@ -31,7 +31,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@v7
         with:
           operations-per-run: 1000
           days-before-issue-stale: 14
@@ -53,7 +53,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@v7
         with:
           operations-per-run: 1000
           days-before-issue-stale: -1 # ignore issues (overwrite default days-before-stale)
