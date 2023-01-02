@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.StatusResult;
 
-import java.io.IOException;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -38,35 +37,22 @@ public class HttpDataSink extends ParallelSink {
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
-            try (var is = part.openStream()) {
-                var result = transferPart(part.name(), is.readAllBytes());
-                if (result.failed()) {
-                    return result;
+            var request = params.toRequest(part::openStream);
+            try (var response = httpClient.execute(request)) {
+                if (!response.isSuccessful()) {
+                    monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s",
+                            response.code(), response.message(), part.name(), request.url().url(), request));
+                    return ERROR_WRITING_DATA;
                 }
-            } catch (IOException e) {
-                monitor.severe(format("Failed to open stream for part: %s", part.name()), e);
+
+                return StatusResult.success();
+            } catch (Exception e) {
+                monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), request.url().url(), request), e);
                 return ERROR_WRITING_DATA;
             }
         }
         return StatusResult.success();
     }
-
-    private StatusResult<Void> transferPart(String name, byte[] bytes) {
-        var request = params.toRequest(bytes);
-        try (var response = httpClient.execute(request)) {
-            if (!response.isSuccessful()) {
-                monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s",
-                        response.code(), response.message(), name, request.url().url(), request));
-                return ERROR_WRITING_DATA;
-            }
-
-            return StatusResult.success();
-        } catch (Exception e) {
-            monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", name, request.url().url(), request), e);
-            return ERROR_WRITING_DATA;
-        }
-    }
-
 
     private HttpDataSink() {
     }

@@ -27,30 +27,32 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpHeaders.Values.APPLICATION_JSON;
 import static io.netty.handler.codec.http.HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HttpRequestParamsSupplierTest {
 
-    private final Vault vault = Mockito.mock(Vault.class);
-    private final TypeManager typeManager = new TypeManager();
+    private static final TypeManager TYPE_MANAGER = new TypeManager();
+
+    private final Vault vault = mock(Vault.class);
     private TestHttpRequestParamsSupplier supplier;
 
     @BeforeEach
     public void setUp() {
-        supplier = new TestHttpRequestParamsSupplier(vault, typeManager);
+        supplier = new TestHttpRequestParamsSupplier(vault, TYPE_MANAGER);
     }
 
     @Test
@@ -195,7 +197,7 @@ class HttpRequestParamsSupplierTest {
 
         var httpRequest = supplier.apply(request).toRequest();
 
-        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
+        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.getQueryParamsString());
         var body = httpRequest.body();
         assertThat(body).isNotNull();
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
@@ -211,10 +213,10 @@ class HttpRequestParamsSupplierTest {
                 .build();
         var request = createRequest(dataAddress);
 
-        var supplier = new TestHttpRequestParamsSupplier(vault, true, typeManager);
+        var supplier = new TestHttpRequestParamsSupplier(vault, true, TYPE_MANAGER);
         var httpRequest = supplier.apply(request).toRequest();
 
-        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
+        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.getQueryParamsString());
         var body = httpRequest.body();
         assertThat(body).isNotNull();
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
@@ -224,7 +226,7 @@ class HttpRequestParamsSupplierTest {
     }
 
     private String asJson(Map<String, String> map) {
-        return typeManager.writeValueAsString(map);
+        return TYPE_MANAGER.writeValueAsString(map);
     }
 
     private DataFlowRequest createRequest(DataAddress source) {
@@ -239,7 +241,7 @@ class HttpRequestParamsSupplierTest {
 
         private final String method;
         private final String path;
-        private final String queryParams;
+        private final Map<String, String> queryParams;
         private final String contentType;
         private final String body;
         private final boolean isOneGo;
@@ -253,7 +255,7 @@ class HttpRequestParamsSupplierTest {
             this.method = new Random().nextBoolean() ? "PUT" : "POST";
             this.isOneGo = isOneGo;
             this.path = "somepath";
-            this.queryParams = "foo=bar&hello=world";
+            this.queryParams = Map.of("foo", "bar", "hello", "world");
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
             this.body = "Test-Body";
         }
@@ -279,7 +281,7 @@ class HttpRequestParamsSupplierTest {
         }
 
         @Override
-        protected @Nullable String extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
+        protected @NotNull Map<String, String> extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
             return queryParams;
         }
 
@@ -291,6 +293,12 @@ class HttpRequestParamsSupplierTest {
         @Override
         protected @Nullable String extractBody(HttpDataAddress address, DataFlowRequest request) {
             return body;
+        }
+
+        public String getQueryParamsString() {
+            return queryParams.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.joining("&"));
         }
     }
 }

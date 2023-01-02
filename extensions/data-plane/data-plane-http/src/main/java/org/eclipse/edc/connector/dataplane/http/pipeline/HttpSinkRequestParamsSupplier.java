@@ -21,6 +21,8 @@ import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -41,12 +43,14 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
-    protected @NotNull DataAddress selectAddress(DataFlowRequest request) {
+    @NotNull
+    protected DataAddress selectAddress(DataFlowRequest request) {
         return request.getDestinationDataAddress();
     }
 
     @Override
-    protected @NotNull String extractMethod(HttpDataAddress address, DataFlowRequest request) {
+    @NotNull
+    protected String extractMethod(HttpDataAddress address, DataFlowRequest request) {
         return Optional.ofNullable(address.getMethod()).orElse(DEFAULT_METHOD);
     }
 
@@ -56,8 +60,9 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
-    protected String extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
-        return null;
+    @NotNull
+    protected Map<String, String> extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
+        return Collections.emptyMap();
     }
 
     @Override

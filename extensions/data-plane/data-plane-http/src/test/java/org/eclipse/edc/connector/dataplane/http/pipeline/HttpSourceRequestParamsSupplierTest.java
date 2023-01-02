@@ -122,6 +122,30 @@ class HttpSourceRequestParamsSupplierTest {
 
     @Test
     void extractQueryParams() {
+        var queryParams = "foo=bar&hello=world";
+        var address = HttpDataAddress.Builder.newInstance()
+                .proxyQueryParams(Boolean.TRUE.toString())
+                .build();
+        var request = createRequest(address, Map.of(DataFlowRequestSchema.QUERY_PARAMS, queryParams));
+
+        var result = supplier.extractQueryParams(address, request);
+
+        assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("foo", "bar", "hello", "world"));
+    }
+
+    @Test
+    void extractQueryParamsFilteredByProxy() {
+        var queryParams = "foo=bar&hello=world";
+        var address = HttpDataAddress.Builder.newInstance().build();
+        var request = createRequest(address, Map.of(DataFlowRequestSchema.QUERY_PARAMS, queryParams));
+
+        var result = supplier.extractQueryParams(address, request);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void extractQueryParamsInvalidFormat_shouldIgnore() {
         var queryParams = "test-queryparams";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyQueryParams(Boolean.TRUE.toString())
@@ -130,7 +154,7 @@ class HttpSourceRequestParamsSupplierTest {
 
         var result = supplier.extractQueryParams(address, request);
 
-        assertThat(result).isEqualTo(queryParams);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -142,18 +166,7 @@ class HttpSourceRequestParamsSupplierTest {
 
         var result = supplier.extractQueryParams(address, request);
 
-        assertThat(result).isNull();
-    }
-
-    @Test
-    void extractQueryParamsFilteredByProxy() {
-        var queryParams = "test-queryparams";
-        var address = HttpDataAddress.Builder.newInstance().build();
-        var request = createRequest(address, Map.of(DataFlowRequestSchema.QUERY_PARAMS, queryParams));
-
-        var result = supplier.extractPath(address, request);
-
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 
     @Test

@@ -23,6 +23,9 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
@@ -69,17 +72,37 @@ public class HttpSourceRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
-    protected @Nullable String extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
-        return Boolean.parseBoolean(address.getProxyQueryParams()) ? request.getProperties().get(QUERY_PARAMS) : null;
+    @NotNull
+    protected Map<String, String> extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
+        if (Boolean.parseBoolean(address.getProxyQueryParams())) {
+            return Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))
+                    .map(this::parseQueryParams)
+                    .orElse(Collections.emptyMap());
+        }
+        return Collections.emptyMap();
     }
 
     @Override
-    protected @Nullable String extractContentType(HttpDataAddress address, DataFlowRequest request) {
+    @Nullable
+    protected String extractContentType(HttpDataAddress address, DataFlowRequest request) {
         return Boolean.parseBoolean(address.getProxyBody()) ? request.getProperties().get(MEDIA_TYPE) : null;
     }
 
     @Override
-    protected @Nullable String extractBody(HttpDataAddress address, DataFlowRequest request) {
+    @Nullable
+    protected String extractBody(HttpDataAddress address, DataFlowRequest request) {
         return Boolean.parseBoolean(address.getProxyBody()) ? request.getProperties().get(BODY) : null;
     }
+
+    private Map<String, String> parseQueryParams(@NotNull String s) {
+        var result = new HashMap<String, String>();
+        for (var param : s.split("&")) {
+            var split = param.split("=");
+            if (split.length == 2) {
+                result.put(split[0], split[1]);
+            }
+        }
+        return result;
+    }
+
 }

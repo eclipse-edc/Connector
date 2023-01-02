@@ -19,9 +19,11 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class HttpRequestParams {
 
@@ -31,7 +33,7 @@ public class HttpRequestParams {
     private String method;
     private String baseUrl;
     private String path;
-    private String queryParams;
+    private final Map<String, String> queryParams = new HashMap<>();
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String body;
     private boolean nonChunkedTransfer = DEFAULT_NON_CHUNKED_TRANSFER;
@@ -43,17 +45,20 @@ public class HttpRequestParams {
      * @return HTTP request.
      */
     public Request toRequest() {
-        return toRequest(body != null ? body.getBytes() : null);
+        if (body == null) {
+            return toRequest(null);
+        }
+        return toRequest(new StringRequestBodySupplier(body));
     }
 
     /**
      * Creates HTTP request from the current set of parameters and the provided request body.
      *
-     * @param bytes the request body.
+     * @param bodySupplier the request body supplier.
      * @return HTTP request.
      */
-    public Request toRequest(@Nullable byte[] bytes) {
-        var requestBody = createRequestBody(bytes);
+    public Request toRequest(@Nullable Supplier<InputStream> bodySupplier) {
+        var requestBody = createRequestBody(bodySupplier);
         var requestBuilder = new Request.Builder()
                 .url(toUrl())
                 .method(method, requestBody);
@@ -62,11 +67,12 @@ public class HttpRequestParams {
     }
 
     @Nullable
-    private RequestBody createRequestBody(byte[] bytes) {
-        if (bytes == null || contentType == null) {
+    private RequestBody createRequestBody(@Nullable Supplier<InputStream> bodySupplier) {
+        if (bodySupplier == null || contentType == null) {
             return null;
         }
-        return nonChunkedTransfer ? new NonChunkedTransferRequestBody(bytes, contentType) : new ChunkedTransferRequestBody(bytes, contentType);
+        return nonChunkedTransfer ? new NonChunkedTransferRequestBody(bodySupplier, contentType) :
+                new ChunkedTransferRequestBody(bodySupplier, contentType);
     }
 
 
@@ -82,23 +88,10 @@ public class HttpRequestParams {
         if (path != null && !path.isBlank()) {
             builder.addPathSegments(path);
         }
-        if (queryParams != null) {
-            parseQueryParams(queryParams).forEach(builder::addQueryParameter);
-        }
-
+        queryParams.forEach(builder::addQueryParameter);
         return builder.build();
     }
 
-    private static Map<String, String> parseQueryParams(String s) {
-        var result = new HashMap<String, String>();
-        for (var param : s.split("&")) {
-            var split = param.split("=");
-            if (split.length == 2) {
-                result.put(split[0], split[1]);
-            }
-        }
-        return result;
-    }
 
     public static class Builder {
         private final HttpRequestParams params;
@@ -112,8 +105,13 @@ public class HttpRequestParams {
             return this;
         }
 
-        public HttpRequestParams.Builder queryParams(String queryParams) {
-            params.queryParams = queryParams;
+        public HttpRequestParams.Builder queryParam(String key, String value) {
+            params.queryParams.put(key, value);
+            return this;
+        }
+
+        public HttpRequestParams.Builder queryParams(Map<String, String> queryParams) {
+            params.queryParams.putAll(queryParams);
             return this;
         }
 
