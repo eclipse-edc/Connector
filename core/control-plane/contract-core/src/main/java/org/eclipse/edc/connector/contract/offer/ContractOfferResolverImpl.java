@@ -32,7 +32,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -94,7 +93,11 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                     if (skip.get() >= numAssets) {
                         offers = Stream.empty();
                     } else {
-                        offers = createContractOffers(definition, querySpecBuilder.build());
+                        offers = createContractOffers(definition, querySpecBuilder.build())
+                                .map(offerBuilder -> offerBuilder
+                                        .provider(query.getProvider())
+                                        .consumer(query.getConsumer())
+                                        .build());
                     }
 
                     numSeenAssets.addAndGet(numAssets);
@@ -104,7 +107,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     }
 
     @NotNull
-    private Stream<@NotNull ContractOffer> createContractOffers(ContractDefinition definition, QuerySpec assetQuerySpec) {
+    private Stream<ContractOffer.Builder> createContractOffers(ContractDefinition definition, QuerySpec assetQuerySpec) {
         return Optional.of(definition.getContractPolicyId())
                 .map(policyStore::findById)
                 .map(policyDefinition -> assetIndex.queryAssets(assetQuerySpec)
@@ -113,16 +116,12 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     }
 
     @NotNull
-    private ContractOffer createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
+    private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
                 .policy(policy.withTarget(asset.getId()))
                 .asset(asset)
-                // TODO: this is a workaround for the bug described in https://github.com/eclipse-edc/Connector/issues/753
-                .provider(URI.create("urn:connector:provider"))
-                .consumer(URI.create("urn:connector:consumer"))
                 .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone()))
-                .build();
+                .contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone()));
     }
 }

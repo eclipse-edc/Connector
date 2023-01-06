@@ -57,27 +57,6 @@ public class ConstraintFromIdsConstraintTransformerTest {
     }
 
     @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(idsConstraint, null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
-    }
-
-    @Test
     void testTransform() {
         var expectedLeftExpression = new LiteralExpression("left");
         var expectedRightExpression = new LiteralExpression("right");

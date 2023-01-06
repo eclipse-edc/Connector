@@ -39,7 +39,6 @@ import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MultipartBody;
 import okhttp3.MultipartReader;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -61,6 +60,7 @@ import org.eclipse.edc.protocol.ids.spi.types.IdsType;
 import org.eclipse.edc.protocol.ids.util.CalendarUtil;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -92,7 +92,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -128,10 +130,10 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void requestConnectorSelfDescriptionWithoutId(OkHttpClient httpClient) throws Exception {
+    void requestConnectorSelfDescriptionWithoutId(EdcHttpClient httpClient) throws Exception {
         var request = createRequest(getDescriptionRequestMessage());
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -189,12 +191,12 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void requestConnectorSelfDescriptionWithId(OkHttpClient httpClient) throws Exception {
+    void requestConnectorSelfDescriptionWithId(EdcHttpClient httpClient) throws Exception {
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CONNECTOR_ID).type(IdsType.CONNECTOR).build()
         ));
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -252,7 +254,7 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void requestDataCatalogWithAssets(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestDataCatalogWithAssets(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         var assetId = UUID.randomUUID().toString();
         var asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -274,7 +276,7 @@ class MultipartControllerIntegrationTest {
                 IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build()
         ));
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -339,12 +341,12 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void requestDataCatalogNoAssets(OkHttpClient httpClient) throws Exception {
+    void requestDataCatalogNoAssets(EdcHttpClient httpClient) throws Exception {
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build()
         ));
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -388,7 +390,7 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void requestArtifact(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestArtifact(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -402,7 +404,7 @@ class MultipartControllerIntegrationTest {
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.ARTIFACT).build()
         ));
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -449,7 +451,7 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void requestRepresentation(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestRepresentation(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -463,7 +465,7 @@ class MultipartControllerIntegrationTest {
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.REPRESENTATION).build()
         ));
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -514,7 +516,7 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void requestResource(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void requestResource(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -536,7 +538,7 @@ class MultipartControllerIntegrationTest {
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.RESOURCE).build()
         ));
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -598,7 +600,7 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testHandleContractRequest(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void testHandleContractRequest(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         when(providerContractNegotiationManager.requested(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
         var assetId = "1234";
         var request = createRequestWithPayload(getContractRequestMessage(),
@@ -614,7 +616,7 @@ class MultipartControllerIntegrationTest {
         var asset = Asset.Builder.newInstance().id(assetId).build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
@@ -645,7 +647,7 @@ class MultipartControllerIntegrationTest {
     }
 
     @Test
-    void testHandleContractAgreement(OkHttpClient httpClient, AssetIndex assetIndex) throws Exception {
+    void testHandleContractAgreement(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
         var assetId = "1234";
         var request = createRequestWithPayload(getContractAgreementMessage(),
                 new ContractAgreementBuilder(URI.create("urn:contractagreement:1"))
@@ -662,11 +664,11 @@ class MultipartControllerIntegrationTest {
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
         when(consumerContractNegotiationManager.confirmed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
-        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
+        var content = extractNamedMultipartContent(response);
 
         assertThat(content)
                 .hasSize(1)
@@ -692,14 +694,15 @@ class MultipartControllerIntegrationTest {
         });
         jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
         jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        verify(consumerContractNegotiationManager).confirmed(any(), any(), argThat(agreement -> assetId.equals(agreement.getAssetId())), any());
     }
 
     @Test
-    void testHandleContractRejection(OkHttpClient httpClient) throws Exception {
+    void testHandleContractRejection(EdcHttpClient httpClient) throws Exception {
         when(providerContractNegotiationManager.declined(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
         var request = createRequest(getContractRejectionMessage());
 
-        var response = httpClient.newCall(request).execute();
+        var response = httpClient.execute(request);
 
         assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 

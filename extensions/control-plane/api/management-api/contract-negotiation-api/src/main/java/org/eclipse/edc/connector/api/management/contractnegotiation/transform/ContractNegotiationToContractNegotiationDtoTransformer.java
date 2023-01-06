@@ -37,7 +37,7 @@ public class ContractNegotiationToContractNegotiationDtoTransformer implements D
     }
 
     @Override
-    public @Nullable ContractNegotiationDto transform(@Nullable ContractNegotiation object, @NotNull TransformerContext context) {
+    public @Nullable ContractNegotiationDto transform(@NotNull ContractNegotiation object, @NotNull TransformerContext context) {
         return ContractNegotiationDto.Builder.newInstance()
                 .id(object.getId())
                 .type(object.getType())

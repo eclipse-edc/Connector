@@ -19,9 +19,7 @@ import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.protocol.ids.transform.type.policy.ExpressionFromIdsLeftOperandTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -46,27 +44,6 @@ class ExpressionFromIdsLeftOperandTransformerTest {
     void setUp() {
         transformer = new ExpressionFromIdsLeftOperandTransformer();
         context = mock(TransformerContext.class);
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(leftOperand, null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
     }
 
     @ParameterizedTest

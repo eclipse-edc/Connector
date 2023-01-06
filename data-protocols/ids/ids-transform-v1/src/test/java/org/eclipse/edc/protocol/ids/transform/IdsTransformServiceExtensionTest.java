@@ -34,13 +34,10 @@ import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.ids.spi.domain.connector.Connector;
 import org.eclipse.edc.protocol.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.edc.protocol.ids.spi.types.container.OfferedAsset;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -49,29 +46,23 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 
 @ExtendWith(DependencyInjectionExtension.class)
 class IdsTransformServiceExtensionTest {
 
-    private Map<Class<?>, List<Class<?>>> knownConvertibles;
     private IdsTransformServiceExtension idsTransformServiceExtension;
 
     private ServiceExtensionContext serviceExtensionContext;
+    private final IdsTransformerRegistry transformerRegistry = mock(IdsTransformerRegistry.class);
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        knownConvertibles = new HashMap<>();
-
-        var transformerRegistry = new TestTransformerRegistry(knownConvertibles);
         context.registerService(IdsTransformerRegistry.class, transformerRegistry);
         idsTransformServiceExtension = factory.constructInstance(IdsTransformServiceExtension.class);
         serviceExtensionContext = context;
@@ -82,12 +73,10 @@ class IdsTransformServiceExtensionTest {
     void verifyRequiredTransformerRegistered(Class<?> inputType, Class<?> outputType) {
         idsTransformServiceExtension.initialize(serviceExtensionContext);
 
-        assertThat(knownConvertibles).containsKey(inputType);
-        assertThat(knownConvertibles).extracting((m) -> m.get(inputType)).isNotNull();
-        assertThat(knownConvertibles.get(inputType)).contains(outputType);
+        verify(transformerRegistry).register(argThat(t -> t.getInputType().equals(inputType) && t.getOutputType().equals(outputType)));
     }
 
-    static class VerifyRequiredTransformerRegisteredArgumentsProvider implements ArgumentsProvider {
+    private static class VerifyRequiredTransformerRegisteredArgumentsProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
@@ -119,30 +108,6 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(ResourceCatalog.class, Catalog.class),
                     Arguments.arguments(SecurityProfile.class, de.fraunhofer.iais.eis.SecurityProfile.class)
             );
-        }
-    }
-
-    private static class TestTransformerRegistry implements IdsTransformerRegistry {
-        private final Map<Class<?>, List<Class<?>>> knownConvertibles;
-
-        TestTransformerRegistry(Map<Class<?>, List<Class<?>>> knownConvertibles) {
-            this.knownConvertibles = knownConvertibles;
-        }
-
-        @Override
-        public void register(IdsTypeTransformer<?, ?> transformer) {
-            Objects.requireNonNull(transformer.getInputType());
-            Objects.requireNonNull(transformer.getOutputType());
-
-            knownConvertibles.computeIfAbsent(
-                            transformer.getInputType(),
-                            (k) -> new LinkedList<>())
-                    .add(transformer.getOutputType());
-        }
-
-        @Override
-        public <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType) {
-            throw new RuntimeException("Not intended to be used within this Test");
         }
     }
 }

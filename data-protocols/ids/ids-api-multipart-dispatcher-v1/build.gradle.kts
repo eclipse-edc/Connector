@@ -18,6 +18,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:http-spi"))
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
@@ -25,7 +26,6 @@ dependencies {
 
     implementation(libs.jakarta.rsApi)
     implementation(libs.jersey.multipart)
-    implementation(libs.okhttp)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))

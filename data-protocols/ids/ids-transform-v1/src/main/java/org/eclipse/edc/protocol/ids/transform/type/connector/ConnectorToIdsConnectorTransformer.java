@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Connector, de.fraunhofer.iais.eis.Connector> {
 
@@ -46,12 +45,7 @@ public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Co
 
     @Nullable
     @Override
-    public de.fraunhofer.iais.eis.Connector transform(Connector object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public de.fraunhofer.iais.eis.Connector transform(@NotNull Connector object, @NotNull TransformerContext context) {
         var builder = new BaseConnectorBuilder(object.getId().toUri());
 
         if (object.getDataCatalogs() != null) {

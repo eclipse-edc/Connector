@@ -64,7 +64,7 @@ this launcher's directory. Please adjust this for your setup as follows:
   supported by the DAPS. Therefore, this property has to be set to `idsc:IDS_CONNECTORS_ALL`.
 * `edc.oauth.provider.jwks.url`: Set this to the URL of the DAPS you want to use followed by 
   `/.well-known/jwks.json`.
-* `edc.oauth.public.key.alias`: Set this to your certificate's `alias` in the keystore.
+* `edc.oauth.certificate.alias`: Set this to your certificate's `alias` in the keystore.
 * `edc.oauth.private.key.alias`: Set this to your certificate's `alias` in the keystore.
 
 ### Getting the Certificate Identifier
@@ -233,16 +233,24 @@ To do so, follow these steps:
 
 1. Checkout the [Omejdn DAPS repository](https://github.com/International-Data-Spaces-Association/omejdn-daps)
 2. Retrieve the submodules: 
-   > git submodule update --init --remote
+   ```bash
+   git submodule update --init --remote
+   ```
 3. Generate a key and a certificate for the DAPS instance:
-   > openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/omejdn/omejdn.key -out daps.cert
+   ```bash
+    openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/omejdn/omejdn.key -out daps.cert
+   ```
 4. Modify `.env` in the project root: set `DAPS_DOMAIN` to the URL your DAPS instance will be running at.
 5. Register a connector (the security profile is optional and will default to *idsc:BASE_SECURITY_PROFILE* if not
    specified):
-   > scripts/register_connector.sh <client-name-for-connector> <security-profile>
+   ```bash
+   scripts/register_connector.sh <client-name-for-connector> <security-profile>
+   ```
 6. Optionally, you can register more connectors by running step 5 multiple times with different client names.
 7. Run the DAPS:
-   > docker compose -f compose-development.yml up
+   ```bash
+   docker compose -f compose-development.yml up
+   ```
 8. When you see `omejdn-server_1  | == Sinatra (v2.1.0) has taken the stage on 4567 for development with backup from Thin`
    in the logs, the DAPS is ready to accept requests.
    

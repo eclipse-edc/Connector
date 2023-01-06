@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -63,6 +64,7 @@ class TransferProcessTest {
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .stateCount(1)
                 .stateTimestamp(1)
+                .properties(Map.of("k", "v"))
                 .build();
 
         var copy = process.copy();
@@ -72,6 +74,7 @@ class TransferProcessTest {
         assertEquals(process.getCreatedAt(), copy.getCreatedAt());
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
+        assertEquals(process.getProperties(), copy.getProperties());
         assertNotNull(process.getContentDataAddress());
 
         assertThat(process).usingRecursiveComparison().isEqualTo(copy);

@@ -5,9 +5,9 @@ plugins {
 
 dependencies {
     api(project(":spi:common:identity-did-spi"))
+    api(project(":spi:common:http-spi"))
     api(project(":core:common:util"))
 
-    implementation(libs.dnsOverHttps)
     testImplementation(project(":core:common:junit"))
 }
 

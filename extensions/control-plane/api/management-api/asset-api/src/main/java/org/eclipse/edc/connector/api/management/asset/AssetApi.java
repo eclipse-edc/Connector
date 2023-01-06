@@ -26,6 +26,7 @@ import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
+import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
@@ -88,5 +89,17 @@ public interface AssetApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
     void removeAsset(String id);
+
+
+    @Operation(description = "Gets a data address of an asset with the given ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "The data address",
+                            content = @Content(schema = @Schema(implementation = DataAddressDto.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            })
+    DataAddressDto getAssetDataAddress(String id);
 }
 

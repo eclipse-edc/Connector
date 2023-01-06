@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.provision.http;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.provision.http.config.ConfigParser;
 import org.eclipse.edc.connector.provision.http.config.ProvisionerConfiguration;
 import org.eclipse.edc.connector.provision.http.impl.HttpProviderProvisioner;
@@ -27,6 +26,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerato
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -43,27 +43,15 @@ public class HttpProvisionerExtension implements ServiceExtension {
     protected ProvisionManager provisionManager;
     @Inject
     protected PolicyEngine policyEngine;
+
     @Inject
-    protected OkHttpClient httpClient;
+    private EdcHttpClient httpClient;
+
     @Inject
     private ResourceManifestGenerator manifestGenerator;
-    private OkHttpClient overrideHttpClient;
 
     @Inject
     private HttpProvisionerWebhookUrl callbackUrl;
-
-    /**
-     * Default ctor.
-     */
-    public HttpProvisionerExtension() {
-    }
-
-    /**
-     * Overrides the default HTTP client. Intended for testing.
-     */
-    public HttpProvisionerExtension(OkHttpClient httpClient) {
-        overrideHttpClient = httpClient;
-    }
 
     @Override
     public String name() {
@@ -75,13 +63,12 @@ public class HttpProvisionerExtension implements ServiceExtension {
 
         var configurations = ConfigParser.parseConfigurations(context.getConfig());
 
-        var client = overrideHttpClient != null ? overrideHttpClient : httpClient;
         var typeManager = context.getTypeManager();
         var monitor = context.getMonitor();
 
         for (var configuration : configurations) {
 
-            var provisioner = new HttpProviderProvisioner(configuration, callbackUrl.get(), policyEngine, client, typeManager.getMapper(), monitor);
+            var provisioner = new HttpProviderProvisioner(configuration, callbackUrl.get(), policyEngine, httpClient, typeManager.getMapper(), monitor);
 
             if (configuration.getProvisionerType() == ProvisionerConfiguration.ProvisionerType.PROVIDER) {
                 var generator = new HttpProviderResourceDefinitionGenerator(configuration.getDataAddressType());

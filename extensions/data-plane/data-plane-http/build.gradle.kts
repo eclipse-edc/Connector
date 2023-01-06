@@ -18,16 +18,13 @@ plugins {
 
 dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":spi:common:http-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":core:data-plane:data-plane-util"))
-
-    implementation(libs.okhttp)
-    implementation(libs.failsafe.core)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
-    testFixturesImplementation(libs.okhttp)
 }
 
 publishing {

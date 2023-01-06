@@ -40,7 +40,7 @@ public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QueryS
     }
 
     @Override
-    public @Nullable QuerySpec transform(@Nullable QuerySpecDto query, @NotNull TransformerContext context) {
+    public @Nullable QuerySpec transform(@NotNull QuerySpecDto query, @NotNull TransformerContext context) {
         var builder = QuerySpec.Builder.newInstance()
                 .limit(query.getLimit())
                 .offset(query.getOffset())

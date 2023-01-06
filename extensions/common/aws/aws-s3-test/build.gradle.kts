@@ -22,7 +22,6 @@ dependencies {
     testFixturesApi(project(":core:common:junit"))
     testFixturesImplementation(project(":extensions:common:aws:aws-s3-core"))
 
-    testFixturesImplementation(libs.okhttp) // needed for MinIO health probe
     testFixturesImplementation(libs.awaitility)
     testFixturesImplementation(libs.assertj)
     testFixturesImplementation(libs.junit.jupiter.api)

@@ -34,6 +34,7 @@ import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
@@ -44,6 +45,7 @@ import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
@@ -199,7 +201,8 @@ class TransferProcessApiControllerIntegrationTest {
                 .contentType(JSON)
                 .post("/transferprocess/" + PROCESS_ID + "/cancel")
                 .then()
-                .statusCode(409);
+                .statusCode(409)
+                .body("[0].message", startsWith(format("TransferProcess %s cannot be canceled as it is in state", PROCESS_ID)));
     }
 
     @Test
@@ -230,7 +233,8 @@ class TransferProcessApiControllerIntegrationTest {
                 .contentType(JSON)
                 .post("/transferprocess/" + PROCESS_ID + "/deprovision")
                 .then()
-                .statusCode(409);
+                .statusCode(409)
+                .body("[0].message", startsWith(format("TransferProcess %s cannot be deprovisioned as it is in state", PROCESS_ID)));
     }
 
     @Test

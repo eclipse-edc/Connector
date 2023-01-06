@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -53,7 +53,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
         //todo: add authentication
         //var filter = new AuthenticationRequestFilter();
 
-        context.getTypeManager().registerTypes(DataPlaneInstanceImpl.class);
+        context.getTypeManager().registerTypes(DataPlaneInstance.class);
 
         var controller = new DataplaneSelectorApiController(selectionService);
 

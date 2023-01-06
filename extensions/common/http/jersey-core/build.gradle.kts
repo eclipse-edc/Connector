@@ -25,7 +25,6 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
 
-    testImplementation(libs.okhttp)
     testImplementation(libs.restAssured)
     testImplementation(libs.jersey.beanvalidation) //for validation
 }

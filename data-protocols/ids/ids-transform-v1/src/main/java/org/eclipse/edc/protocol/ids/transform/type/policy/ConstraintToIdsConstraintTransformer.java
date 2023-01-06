@@ -42,7 +42,7 @@ public class ConstraintToIdsConstraintTransformer implements IdsTypeTransformer<
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.Constraint transform(Constraint constraint, @NotNull TransformerContext context) {
+    public @Nullable de.fraunhofer.iais.eis.Constraint transform(@NotNull Constraint constraint, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (constraint == null) {
             return null;

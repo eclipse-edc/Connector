@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.transferprocess.transform;
 
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.DataRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
@@ -23,7 +22,6 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.transform.spi.TransformerContextImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,8 +32,7 @@ import static org.mockito.Mockito.mock;
 
 public class TransferProcessTransformerTestData {
 
-    DtoTransformerRegistry registry = mock(DtoTransformerRegistry.class);
-    TransformerContext context = new TransformerContextImpl(registry);
+    TransformerContext context = mock(TransformerContext.class);
     String id = UUID.randomUUID().toString();
     TransferProcess.Type type = TransferProcess.Type.CONSUMER;
     TransferProcessStates state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];

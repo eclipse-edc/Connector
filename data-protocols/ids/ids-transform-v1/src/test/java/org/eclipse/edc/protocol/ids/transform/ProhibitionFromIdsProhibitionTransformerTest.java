@@ -66,27 +66,6 @@ public class ProhibitionFromIdsProhibitionTransformerTest {
     }
 
     @Test
-    void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(idsPermission, null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        Assertions.assertNull(result);
-    }
-
-    @Test
     void testSuccessfulSimple() {
         Constraint edcConstraint = mock(Constraint.class);
 

@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CatalogToIdsResourceCatalogTransformer implements IdsTypeTransformer<Catalog, ResourceCatalog> {
@@ -45,12 +44,7 @@ public class CatalogToIdsResourceCatalogTransformer implements IdsTypeTransforme
     }
 
     @Override
-    public @Nullable ResourceCatalog transform(Catalog object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable ResourceCatalog transform(@NotNull Catalog object, @NotNull TransformerContext context) {
         var id = IdsId.Builder.newInstance().value(object.getId()).type(IdsType.CATALOG).build().toUri();
         var builder = new ResourceCatalogBuilder(id);
 

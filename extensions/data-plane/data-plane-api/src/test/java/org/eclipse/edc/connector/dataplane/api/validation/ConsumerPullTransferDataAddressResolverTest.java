@@ -32,7 +32,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.once;
 import static org.mockserver.stop.Stop.stopQuietly;
@@ -58,8 +58,7 @@ class ConsumerPullTransferDataAddressResolverTest {
 
     @BeforeEach
     public void setUp() {
-        var httpClient = testOkHttpClient();
-        resolver = new ConsumerPullTransferDataAddressResolver(httpClient, TOKEN_VALIDATION_SERVER_URL, MAPPER);
+        resolver = new ConsumerPullTransferDataAddressResolver(testHttpClient(), TOKEN_VALIDATION_SERVER_URL, MAPPER);
     }
 
     @AfterEach

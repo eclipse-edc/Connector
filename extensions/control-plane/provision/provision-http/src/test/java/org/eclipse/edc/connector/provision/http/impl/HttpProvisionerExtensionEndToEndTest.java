@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.provision.http.HttpProvisionerExtension;
 import org.eclipse.edc.connector.provision.http.HttpProvisionerWebhookUrl;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
@@ -32,6 +31,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -54,7 +54,7 @@ import static org.eclipse.edc.connector.provision.http.HttpProvisionerFixtures.T
 import static org.eclipse.edc.connector.provision.http.HttpProvisionerFixtures.createResponse;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -76,10 +76,9 @@ public class HttpProvisionerExtensionEndToEndTest {
                 "web.http.management.port", String.valueOf(dataPort),
                 "web.http.management.path", "/api/v1/management"
         ));
-        var httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
-        extension.registerSystemExtension(ServiceExtension.class, new HttpProvisionerExtension(httpClient));
+        extension.registerServiceMock(EdcHttpClient.class, testHttpClient(delegate));
         extension.registerSystemExtension(ServiceExtension.class, new DummyCallbackUrlExtension());
         extension.setConfiguration(PROVISIONER_CONFIG);
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {

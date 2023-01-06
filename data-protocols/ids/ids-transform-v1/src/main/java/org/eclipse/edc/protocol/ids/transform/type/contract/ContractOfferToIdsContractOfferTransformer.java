@@ -49,7 +49,7 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.ContractOffer transform(ContractOffer object, @NotNull TransformerContext context) {
+    public @Nullable de.fraunhofer.iais.eis.ContractOffer transform(@NotNull ContractOffer object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null || object.getPolicy() == null) {
             return null;

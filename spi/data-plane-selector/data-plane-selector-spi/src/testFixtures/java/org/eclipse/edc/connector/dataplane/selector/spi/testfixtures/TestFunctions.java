@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.selector.spi.testfixtures;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 public class TestFunctions {
@@ -29,17 +28,17 @@ public class TestFunctions {
     }
 
     public static DataPlaneInstance createInstance(String id) {
-        return DataPlaneInstanceImpl.Builder.newInstance()
+        return DataPlaneInstance.Builder.newInstance()
                 .id(id)
                 .url("http://somewhere.com:1234/api/v1")
                 .build();
     }
 
-    public static TestDataPlaneInstance createCustomInstance(String id, String name) {
-        return TestDataPlaneInstance.Builder.newInstance()
+    public static DataPlaneInstance createCustomInstance(String id, String name) {
+        return DataPlaneInstance.Builder.newInstance()
                 .id(id)
                 .url("http://somewhere.com:1234/api/v1")
-                .name(name)
+                .property("name", "name")
                 .build();
     }
 

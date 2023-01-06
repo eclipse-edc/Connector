@@ -14,25 +14,20 @@
 
 package org.eclipse.edc.iam.did.web;
 
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.dnsoverhttps.DnsOverHttps;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.did.web.resolution.WebDidResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.util.string.StringUtils;
-
-import static java.util.Objects.requireNonNull;
 
 
 /**
  * Initializes support for resolving Web DIDs.
  */
-
 @Extension(value = WebDidExtension.NAME)
 public class WebDidExtension implements ServiceExtension {
     public static final String NAME = "Web DID";
@@ -47,6 +42,9 @@ public class WebDidExtension implements ServiceExtension {
     @Inject
     private DidResolverRegistry resolverRegistry;
 
+    @Inject
+    private EdcHttpClient httpClient;
+
     @Override
     public String name() {
         return NAME;
@@ -58,23 +56,22 @@ public class WebDidExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var useHttpsScheme = context.getSetting(USE_HTTPS_SCHEME, true);
 
-        OkHttpClient httpClient = getOkHttpClient(context);
+        var httpClient = getHttpClient(context);
 
         var resolver = new WebDidResolver(httpClient, useHttpsScheme, mapper, monitor);
 
         resolverRegistry.register(resolver);
     }
 
-    private OkHttpClient getOkHttpClient(ServiceExtensionContext context) {
-        var httpClient = context.getService(OkHttpClient.class);
+    private EdcHttpClient getHttpClient(ServiceExtensionContext context) {
         var dnsServer = context.getSetting(ConfigurationKeys.DNS_OVER_HTTPS, null);
 
-        if (!StringUtils.isNullOrEmpty(dnsServer)) {
+        if (StringUtils.isNullOrEmpty(dnsServer)) {
+            return httpClient;
+        } else {
             // use DNS over HTTPS for name lookups
-            var dns = new DnsOverHttps.Builder().client(httpClient).url(requireNonNull(HttpUrl.get(dnsServer))).includeIPv6(false).build();
-            httpClient = httpClient.newBuilder().dns(dns).build();
+            return httpClient.withDns(dnsServer);
         }
-        return httpClient;
     }
 
 }

@@ -19,8 +19,8 @@ import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.protocol.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.edc.protocol.ids.spi.service.CatalogService;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
+import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,12 +49,12 @@ class ConnectorServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        connectorService = new ConnectorServiceImpl(mock(Monitor.class), connectorServiceSettings, dataCatalogService);
+        connectorService = new ConnectorServiceImpl(connectorServiceSettings, dataCatalogService);
     }
 
     @Test
     void getConnector() {
-        when(dataCatalogService.getDataCatalog(any(), any())).thenReturn(mock(Catalog.class));
+        when(dataCatalogService.getDataCatalog(any())).thenReturn(mock(Catalog.class));
         when(connectorServiceSettings.getId()).thenReturn(CONNECTOR_ID);
         when(connectorServiceSettings.getTitle()).thenReturn(CONNECTOR_TITLE);
         when(connectorServiceSettings.getDescription()).thenReturn(CONNECTOR_DESCRIPTION);
@@ -63,8 +63,13 @@ class ConnectorServiceImplTest {
         when(connectorServiceSettings.getMaintainer()).thenReturn(CONNECTOR_MAINTAINER);
         when(connectorServiceSettings.getCurator()).thenReturn(CONNECTOR_CURATOR);
         var claimToken = ClaimToken.Builder.newInstance().build();
+        var descriptionRequest = DescriptionRequest.Builder.newInstance()
+                .id(IdsId.from("urn:connector:any").getContent())
+                .claimToken(claimToken)
+                .querySpec(QuerySpec.none())
+                .build();
 
-        var result = connectorService.getConnector(claimToken, QuerySpec.none());
+        var result = connectorService.getConnector(descriptionRequest);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CONNECTOR_ID);
@@ -75,7 +80,7 @@ class ConnectorServiceImplTest {
         assertThat(result.getMaintainer()).isEqualTo(CONNECTOR_MAINTAINER);
         assertThat(result.getCurator()).isEqualTo(CONNECTOR_CURATOR);
         assertThat(result.getConnectorVersion()).isEqualTo(CONNECTOR_VERSION);
-        verify(dataCatalogService).getDataCatalog(any(), any());
+        verify(dataCatalogService).getDataCatalog(any());
         verify(connectorServiceSettings).getId();
         verify(connectorServiceSettings).getTitle();
         verify(connectorServiceSettings).getDescription();

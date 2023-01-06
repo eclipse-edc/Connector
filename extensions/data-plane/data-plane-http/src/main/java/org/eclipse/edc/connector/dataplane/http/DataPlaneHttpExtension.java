@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpSinkRequestParamsSupplier;
@@ -26,6 +24,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -37,16 +36,19 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 public class DataPlaneHttpExtension implements ServiceExtension {
     public static final String NAME = "Data Plane HTTP";
     private static final int DEFAULT_PART_SIZE = 5;
+
     @Setting
     private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
+
     @Inject
-    private OkHttpClient httpClient;
-    @Inject
-    private RetryPolicy retryPolicy;
+    private EdcHttpClient httpClient;
+
     @Inject
     private PipelineService pipelineService;
+
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
+
     @Inject
     private Vault vault;
 
@@ -61,7 +63,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
 
         var sourceParamsSupplier = new HttpSourceRequestParamsSupplier(vault, context.getTypeManager());
-        var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, sourceParamsSupplier);
+        var sourceFactory = new HttpDataSourceFactory(httpClient, sourceParamsSupplier);
         pipelineService.registerFactory(sourceFactory);
 
         var sinkParamsSupplier = new HttpSinkRequestParamsSupplier(vault, context.getTypeManager());

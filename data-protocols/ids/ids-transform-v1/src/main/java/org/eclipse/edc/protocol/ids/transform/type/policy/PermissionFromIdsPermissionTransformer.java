@@ -25,8 +25,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public class PermissionFromIdsPermissionTransformer implements IdsTypeTransformer<de.fraunhofer.iais.eis.Permission, Permission> {
 
     @Override
@@ -40,12 +38,7 @@ public class PermissionFromIdsPermissionTransformer implements IdsTypeTransforme
     }
 
     @Override
-    public @Nullable Permission transform(de.fraunhofer.iais.eis.Permission object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Permission transform(de.fraunhofer.iais.eis.@NotNull Permission object, @NotNull TransformerContext context) {
         var builder = Permission.Builder.newInstance();
         if (object.getPostDuty() != null && !object.getPostDuty().isEmpty()) {
             context.reportProblem("Cannot map IDS permission post duty to EDC (ODRL)");

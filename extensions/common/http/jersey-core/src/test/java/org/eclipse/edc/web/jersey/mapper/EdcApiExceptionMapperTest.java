@@ -21,9 +21,8 @@ import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.EdcApiException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
-import org.eclipse.edc.web.spi.exception.ObjectNotModifiableException;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -60,9 +59,8 @@ class EdcApiExceptionMapperTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(new ObjectNotModifiableException("1234", "test-type"), 409),
                     Arguments.of(new AuthenticationFailedException(), 401),
-                    Arguments.of(new ObjectExistsException(Object.class, "test-object-id"), 409),
+                    Arguments.of(new ObjectConflictException(List.of("conflict")), 409),
                     Arguments.of(new ObjectNotFoundException(Object.class, "test-object-id"), 404),
                     Arguments.of(new NotAuthorizedException(), 403),
                     Arguments.of(new InvalidRequestException(List.of("detail")), 400),

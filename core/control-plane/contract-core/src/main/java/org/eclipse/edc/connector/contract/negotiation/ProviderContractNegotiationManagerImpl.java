@@ -27,11 +27,9 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 import org.jetbrains.annotations.NotNull;
@@ -141,52 +139,28 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
-        return processIncomingOffer(negotiation, token, request.getContractOffer());
-    }
+        var offer = request.getContractOffer();
+        var result = validationService.validateInitialOffer(token, offer);
 
-    /**
-     * Tells this manager that a new contract offer has been received for a {@link ContractNegotiation}. The offer is
-     * validated and the ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
-     *
-     * @param token         Claim token of the consumer that send the contract request.
-     * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param offer         The contract offer.
-     * @param hash          A hash of all previous contract offers.
-     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
-     */
-    @WithSpan
-    @Override
-    public StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
-        var negotiation = negotiationStore.findForCorrelationId(correlationId);
-        if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR);
+        negotiation.addContractOffer(offer);
+
+        if (result.failed()) {
+            monitor.debug("[Provider] Contract offer received. Will be rejected: " + result.getFailureDetail());
+            negotiation.setErrorDetail(result.getFailureMessages().get(0));
+            negotiation.transitionDeclining();
+            negotiationStore.save(negotiation);
+
+            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            return StatusResult.success(negotiation);
         }
 
-        return processIncomingOffer(negotiation, token, offer);
-    }
-
-    /**
-     * Tells this manager that a previously sent contract offer has been approved by the consumer. Transitions the
-     * corresponding {@link ContractNegotiation} to state CONFIRMING.
-     *
-     * @param token         Claim token of the consumer that send the contract request.
-     * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param agreement     Agreement sent by consumer.
-     * @param hash          A hash of all previous contract offers.
-     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
-     */
-    @Override
-    public StatusResult<ContractNegotiation> consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
-        var negotiation = negotiationStore.findForCorrelationId(correlationId);
-        if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR);
-        }
-
-        monitor.debug("[Provider] Contract offer has been approved by consumer.");
+        monitor.debug("[Provider] Contract offer received. Will be approved.");
         negotiation.transitionConfirming();
         negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+
         return StatusResult.success(negotiation);
     }
 
@@ -204,41 +178,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return negotiation;
     }
 
-    /**
-     * Processes an incoming offer for a {@link ContractNegotiation}. The offer is validated and the corresponding
-     * ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
-     *
-     * @param negotiation The ContractNegotiation.
-     * @param token       Claim token of the consumer that send the contract request.
-     * @param offer       The contract offer.
-     * @return a {@link StatusResult}: OK
-     */
-    private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
-        var result = validateLastOffer(negotiation, token, offer);
-
-        negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
-
-        if (result.failed()) {
-            monitor.debug("[Provider] Contract offer received. Will be rejected: " + result.getFailureDetail());
-            negotiation.setErrorDetail(result.getFailureMessages().get(0));
-            negotiation.transitionDeclining();
-            negotiationStore.save(negotiation);
-
-            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-            return StatusResult.success(negotiation);
-        }
-
-        monitor.debug("[Provider] Contract offer received. Will be approved.");
-        negotiation.addContractOffer(result.getContent());
-        negotiation.transitionConfirming();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-
-        return StatusResult.success(negotiation);
-    }
-
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
         return new StateProcessorImpl<>(() -> negotiationStore.nextForState(state.code(), batchSize), telemetry.contextPropagationMiddleware(function));
     }
@@ -249,14 +188,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
     private boolean processCommand(ContractNegotiationCommand command) {
         return commandProcessor.processCommandQueue(command);
-    }
-
-    private Result<ContractOffer> validateLastOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
-        if (negotiation.getContractOffers().isEmpty()) {
-            return validationService.validateInitialOffer(token, offer);
-        }
-        var lastOffer = negotiation.getLastContractOffer();
-        return validationService.validate(token, offer, lastOffer);
     }
 
     /**

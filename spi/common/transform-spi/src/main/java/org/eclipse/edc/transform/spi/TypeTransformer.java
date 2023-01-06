@@ -35,8 +35,9 @@ public interface TypeTransformer<INPUT, OUTPUT> {
     Class<OUTPUT> getOutputType();
 
     /**
-     * Transforms the object.
+     * Transforms the object, the input can never be null.
+     * Returns null if the transformation failed.
      */
     @Nullable
-    OUTPUT transform(@Nullable INPUT object, @NotNull TransformerContext context);
+    OUTPUT transform(@NotNull INPUT input, @NotNull TransformerContext context);
 }

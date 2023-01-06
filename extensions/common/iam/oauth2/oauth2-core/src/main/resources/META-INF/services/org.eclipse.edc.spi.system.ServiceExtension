@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.iam.oauth2.Oauth2Extension
-org.eclipse.edc.iam.oauth2.Oauth2DefaultServicesExtension
+org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension
+org.eclipse.edc.iam.oauth2.Oauth2ServiceDefaultServicesExtension

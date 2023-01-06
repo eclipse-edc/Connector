@@ -51,14 +51,14 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getInsertStatement() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?%s, ?%s, ?%s, ?, ?%s);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?%s, ?%s, ?%s, ?, ?%s, ?%s);",
                 // keys
                 getTransferProcessTableName(), getIdColumn(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
                 getCreatedAtColumn(), getUpdatedAtColumn(),
                 getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(),
-                getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(),
+                getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(), getPropertiesColumn(),
                 // values
-                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
+                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
     }
 
     @Override
@@ -99,7 +99,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                         "VALUES (?, ?, ?, ?, ?, ?, ?%s, ?%s, ?%s, ?, ?, ?);",
                 getDataRequestTable(), getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getConnectorIdColumn(),
                 getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(),
-                getPropertiesColumn(),
+                getDataRequestPropertiesColumn(),
                 getTransferTypeColumn(), getTransferProcessIdFkColumn(), getProtocolColumn(), getManagedResourcesColumn(),
                 getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
     }
@@ -115,7 +115,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
         return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s WHERE %s=?",
                 getDataRequestTable(),
                 getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getProtocolColumn(), getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(),
-                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getPropertiesColumn(), getFormatAsJsonOperator(), getTransferTypeColumn(), getFormatAsJsonOperator(),
+                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestPropertiesColumn(), getFormatAsJsonOperator(), getTransferTypeColumn(), getFormatAsJsonOperator(),
                 getDataRequestIdColumn());
     }
 

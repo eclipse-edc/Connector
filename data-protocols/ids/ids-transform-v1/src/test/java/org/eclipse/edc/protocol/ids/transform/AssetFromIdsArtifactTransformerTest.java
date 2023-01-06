@@ -26,7 +26,6 @@ import java.math.BigInteger;
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -48,25 +47,6 @@ class AssetFromIdsArtifactTransformerTest {
     void setUp() {
         transformer = new AssetFromIdsArtifactTransformer();
         context = mock(TransformerContext.class);
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForAll() {
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> transformer.transform(null, null));
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> transformer.transform(new ArtifactBuilder().build(), null));
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        assertThat(result).isNull();
     }
 
     @Test

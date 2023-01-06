@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.dataplane.client;
 
 import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ class DataPlaneClientExtensionTest {
 
     @Test
     void verifyReturnRemoteClient(ServiceExtensionContext context, ObjectFactory factory) {
-        context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
+        context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
         context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
         context.registerService(DataPlaneSelectorClient.class, mock(DataPlaneSelectorClient.class));
 

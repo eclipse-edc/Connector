@@ -31,7 +31,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 import org.jetbrains.annotations.NotNull;
@@ -106,51 +105,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        return StatusResult.success(negotiation);
-    }
-
-    /**
-     * Tells this manager that a new contract offer has been received for a {@link ContractNegotiation}. Validates the
-     * offer against the last contract offer for that ContractNegotiation and transitions the ContractNegotiation to
-     * CONSUMER_APPROVING, CONSUMER_OFFERING or DECLINING.
-     *
-     * @param token         Claim token of the consumer that send the contract request.
-     * @param negotiationId Id of the ContractNegotiation.
-     * @param contractOffer The contract offer.
-     * @param hash          A hash of all previous contract offers.
-     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id or no last offer found for negotiation; OK otherwise
-     */
-    @WithSpan
-    @Override
-    public StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
-        var negotiation = negotiationStore.find(negotiationId);
-        if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR);
-        }
-
-        var latestOffer = negotiation.getLastContractOffer();
-        if (latestOffer == null) {
-            monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
-            return StatusResult.failure(FATAL_ERROR);
-        }
-
-        Result<ContractOffer> result = validationService.validate(token, contractOffer, latestOffer);
-        negotiation.addContractOffer(contractOffer); // TODO persist unchecked offer of provider?
-        if (result.failed()) {
-            monitor.debug("[Consumer] Contract offer received. Will be rejected: " + result.getFailureDetail());
-            negotiation.setErrorDetail(result.getFailureMessages().get(0));
-            negotiation.transitionDeclining();
-            negotiationStore.save(negotiation);
-        } else {
-            // Offer has been approved.
-            monitor.debug("[Consumer] Contract offer received. Will be approved.");
-            negotiation.transitionApproving();
-            negotiationStore.save(negotiation);
-        }
-
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-
         return StatusResult.success(negotiation);
     }
 

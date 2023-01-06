@@ -14,12 +14,11 @@
 
 package org.eclipse.edc.event.cloud.http;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.event.EventRouter;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -34,7 +33,7 @@ public class CloudEventsHttpExtension implements ServiceExtension {
     static final String EDC_EVENTS_CLOUDEVENTS_ENDPOINT = "edc.events.cloudevents.endpoint";
 
     @Inject
-    private OkHttpClient okHttpClient;
+    private EdcHttpClient httpClient;
 
     @Inject
     private EventRouter eventRouter;
@@ -48,14 +47,11 @@ public class CloudEventsHttpExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
 
-    @Inject
-    private RetryPolicy<Object> retryPolicy;
-
     @Override
     public void initialize(ServiceExtensionContext context) {
         var endpoint = context.getConfig().getString(EDC_EVENTS_CLOUDEVENTS_ENDPOINT);
 
-        eventRouter.register(new CloudEventsPublisher(endpoint, context.getMonitor(), typeManager, okHttpClient, clock, hostname, retryPolicy));
+        eventRouter.register(new CloudEventsPublisher(endpoint, context.getMonitor(), typeManager, httpClient, clock, hostname));
     }
 
 }

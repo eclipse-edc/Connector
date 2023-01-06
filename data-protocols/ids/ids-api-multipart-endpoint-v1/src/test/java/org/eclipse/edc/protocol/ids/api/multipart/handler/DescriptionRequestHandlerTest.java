@@ -132,7 +132,7 @@ class DescriptionRequestHandlerTest {
                 .claimToken(ClaimToken.Builder.newInstance().build())
                 .build();
 
-        when(connectorService.getConnector(any(), any())).thenReturn(connector);
+        when(connectorService.getConnector(any())).thenReturn(connector);
         when(transformerRegistry.transform(connector, de.fraunhofer.iais.eis.Connector.class)).thenReturn(Result.success(idsConnector));
 
         var response = handler.handleRequest(request);
@@ -141,7 +141,10 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsConnector);
 
         verify(connectorService, times(1))
-                .getConnector(any(), argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo));
+                .getConnector(argThat(descriptionRequest -> {
+                    var querySpec = descriptionRequest.getQuerySpec();
+                    return querySpec.getRange().getFrom() == rangeFrom && querySpec.getRange().getTo() == rangeTo;
+                }));
         verifyNoMoreInteractions(connectorService);
         verifyNoInteractions(catalogService, contractOfferResolver, assetIndex);
     }
@@ -155,7 +158,7 @@ class DescriptionRequestHandlerTest {
                 .claimToken(ClaimToken.Builder.newInstance().build())
                 .build();
 
-        when(catalogService.getDataCatalog(any(), any())).thenReturn(catalog);
+        when(catalogService.getDataCatalog(any())).thenReturn(catalog);
         when(transformerRegistry.transform(catalog, ResourceCatalog.class)).thenReturn(Result.success(idsCatalog));
 
         var response = handler.handleRequest(request);
@@ -164,11 +167,13 @@ class DescriptionRequestHandlerTest {
         assertThat(response.getPayload()).isNotNull().isEqualTo(idsCatalog);
 
         verify(catalogService, times(1))
-                .getDataCatalog(any(),
-                        argThat(query -> query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo &&
-                                query.getFilterExpression().get(0).getOperandLeft().equals(PROPERTY) &&
-                                query.getFilterExpression().get(0).getOperandRight().equals(VALUE) &&
-                                query.getFilterExpression().get(0).getOperator().equals(EQUALS_SIGN)));
+                .getDataCatalog(argThat(descriptionRequest -> {
+                    var query = descriptionRequest.getQuerySpec();
+                    return query.getRange().getFrom() == rangeFrom && query.getRange().getTo() == rangeTo &&
+                            query.getFilterExpression().get(0).getOperandLeft().equals(PROPERTY) &&
+                            query.getFilterExpression().get(0).getOperandRight().equals(VALUE) &&
+                            query.getFilterExpression().get(0).getOperator().equals(EQUALS_SIGN);
+                }));
         verifyNoMoreInteractions(catalogService);
         verifyNoInteractions(connectorService, contractOfferResolver, assetIndex);
     }

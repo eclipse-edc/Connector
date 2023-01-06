@@ -62,7 +62,6 @@ public abstract class DependencyRulesTask extends DefaultTask {
                     !pathFromRoot.startsWith("common/") && // exception: modules may depend on common module
                     !pathFromRoot.startsWith("extensions/http/jetty-core/") && // exception: modules might depend on `jetty` (this exception should be removed once there is an SPI for jetty)
                     !project.getPath().startsWith(":launchers:") && // exception: launchers may depend on other modules
-                    !project.getPath().startsWith(":samples:") && // exception: samples may depend on other modules
                     !project.getPath().startsWith(":system-tests:") // exception: system-tests may depend on other modules
             ) {
                 dependencyError(format("modules may only depend on '*-spi' modules. Invalid dependency: %s", dependency));
@@ -73,20 +72,13 @@ public abstract class DependencyRulesTask extends DefaultTask {
                 dependencyError(format("modules may not depend on launcher modules. Invalid dependency: %s", dependency));
             }
 
-            if (pathFromRoot.startsWith("samples/") && // no module may depend on samples (exceptions follow)
-                    !project.getPath().startsWith(":samples:") // exception: other samples might depend on samples
-            ) {
-                dependencyError(format("modules may not depend on samples modules. Invalid dependency: %s", dependency));
-            }
-
             if (pathFromRoot.startsWith("system-tests/") // no module may depend on system-tests
             ) {
                 dependencyError(format("modules may not depend on system-tests modules. Invalid dependency: %s", dependency));
             }
 
             if (CROSS_MODULE_DEPENDENCY_PATTERN.matcher(pathFromThisModule.toString()).matches() && // there should not be "cross-module" dependencies at the same level
-                    !dependency.getName().endsWith("-core") && // exception: technology libs such as "blob-core"
-                    !pathFromRoot.startsWith("samples/") // exception: samples may refer to own modules
+                    !dependency.getName().endsWith("-core") // exception: technology libs such as "blob-core"
             ) {
                 dependencyError(format("there should not be \"cross-module\" dependencies at the same level. Invalid dependency: %s", dependency));
             }

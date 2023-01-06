@@ -53,7 +53,7 @@ public class ConnectorIdUtil {
         }
 
         var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
-        throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
+        throw new EdcException(String.format(message, EDC_IDS_ID, value));
     }
 
 }

@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
-import java.util.Objects;
 
 public class ProhibitionToIdsProhibitionTransformer implements IdsTypeTransformer<Prohibition, de.fraunhofer.iais.eis.Prohibition> {
 
@@ -43,12 +42,7 @@ public class ProhibitionToIdsProhibitionTransformer implements IdsTypeTransforme
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.Prohibition transform(Prohibition object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable de.fraunhofer.iais.eis.Prohibition transform(@NotNull Prohibition object, @NotNull TransformerContext context) {
         var id = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.PROHIBITION).build().toUri();
         var builder = new ProhibitionBuilder(id);
 

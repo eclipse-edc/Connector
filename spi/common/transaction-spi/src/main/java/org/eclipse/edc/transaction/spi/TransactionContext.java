@@ -40,6 +40,11 @@ public interface TransactionContext {
     <T> T execute(ResultTransactionBlock<T> block);
 
     /**
+     * Registers a synchronization that will be called before a transaction commits or is rolled back.
+     */
+    void registerSynchronization(TransactionSynchronization sync);
+
+    /**
      * Defines a block of transactional code.
      */
     @FunctionalInterface
@@ -58,5 +63,13 @@ public interface TransactionContext {
     @FunctionalInterface
     interface ResultTransactionBlock<T> {
         T execute();
+    }
+
+    /**
+     * Implementations receive callbacks before a transaction commits or is rolled back.
+     */
+    @FunctionalInterface
+    interface TransactionSynchronization {
+        void beforeCompletion();
     }
 }

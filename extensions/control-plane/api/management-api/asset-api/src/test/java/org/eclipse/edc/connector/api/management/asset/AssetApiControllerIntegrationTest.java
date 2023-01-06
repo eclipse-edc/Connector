@@ -283,6 +283,28 @@ public class AssetApiControllerIntegrationTest {
                 .statusCode(409);
     }
 
+    @Test
+    void getAssetAddress(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        baseRequest()
+                .get("/assets/id/address")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("properties.size()", greaterThan(0));
+    }
+
+    @Test
+    void getAssetAddress_notFound() {
+        baseRequest()
+                .get("/assets/not-existent-id/address")
+                .then()
+                .statusCode(404);
+    }
+
     private ContractNegotiation createContractNegotiation(Asset asset) {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

@@ -31,7 +31,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -51,27 +50,6 @@ class CatalogToIdsResourceCatalogTransformerTest {
     void setUp() {
         transformer = new CatalogToIdsResourceCatalogTransformer();
         context = mock(TransformerContext.class);
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForAll() {
-        assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
-    }
-
-    @Test
-    void testThrowsNullPointerExceptionForContext() {
-        assertThrows(NullPointerException.class, () -> {
-            transformer.transform(Catalog.Builder.newInstance().build(), null);
-        });
-    }
-
-    @Test
-    void testReturnsNull() {
-        var result = transformer.transform(null, context);
-
-        assertThat(result).isNull();
     }
 
     @Test

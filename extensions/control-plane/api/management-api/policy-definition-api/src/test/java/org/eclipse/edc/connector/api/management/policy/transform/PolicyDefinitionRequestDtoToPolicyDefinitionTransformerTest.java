@@ -23,7 +23,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class PolicyDefinitionRequestDtoToPolicyDefinitionTransformerTest {
 
@@ -49,16 +48,6 @@ class PolicyDefinitionRequestDtoToPolicyDefinitionTransformerTest {
         assertThat(policyDefinition.getId()).isEqualTo(policyDefinitionDto.getId());
         assertThat(policyDefinition.getPolicy()).isEqualTo(policyDefinitionDto.getPolicy());
         assertThat(policyDefinition.getCreatedAt()).isNotEqualTo(0L); //should be set automatically
-    }
-
-    @Test
-    void transform_nullInput() {
-        var context = mock(TransformerContext.class);
-
-        var definition = transformer.transform(null, context);
-
-        assertThat(definition).isNull();
-        verify(context).reportProblem("input policy definition is null");
     }
 
 }

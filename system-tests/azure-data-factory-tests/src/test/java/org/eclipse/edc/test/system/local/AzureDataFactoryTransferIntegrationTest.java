@@ -64,7 +64,7 @@ import static org.eclipse.edc.test.system.utils.GatlingUtils.runGatling;
 import static org.eclipse.edc.test.system.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
 
 @AzureDataFactoryIntegrationTest
-public class AzureDataFactoryTransferIntegrationTest {
+class AzureDataFactoryTransferIntegrationTest {
 
     private static final List<Runnable> CONTAINER_CLEANUP = new ArrayList<>();
     private static final String EDC_FS_CONFIG = "edc.fs.config";
@@ -152,7 +152,7 @@ public class AzureDataFactoryTransferIntegrationTest {
     }
 
     @Test
-    public void transferBlob_success() {
+    void transferBlob_success() {
         // Arrange
         var vault = AzureVault.authenticateWithSecret(new ConsoleMonitor(), AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET, KEY_VAULT_NAME);
         var account2Key = Objects.requireNonNull(vault.resolveSecret(format("%s-key1", CONSUMER_STORAGE_ACCOUNT_NAME)));

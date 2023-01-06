@@ -14,9 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceImpl;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
-import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.TestDataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store.DataPlaneInstanceStoreTestBase;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.postgres.PostgresDataPlaneInstanceStatements;
@@ -53,9 +52,7 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
     void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
 
         var typeManager = new TypeManager();
-        typeManager.registerTypes(DataPlaneInstanceImpl.class);
-        typeManager.registerTypes(TestDataPlaneInstance.class);
-
+        typeManager.registerTypes(DataPlaneInstance.class);
 
         store = new SqlDataPlaneInstanceStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), statements, typeManager.getMapper());
         var schema = Files.readString(Paths.get("./docs/schema.sql"));

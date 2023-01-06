@@ -15,9 +15,9 @@
 
 package org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.protocol.ids.serialization.IdsTypeManagerUtil;
 import org.eclipse.edc.protocol.ids.spi.service.DynamicAttributeTokenService;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -40,7 +40,7 @@ class IdsMultipartSenderTest {
 
         var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
-        var sender = new IdsMultipartSender(mock(Monitor.class), mock(OkHttpClient.class), tokenService, objectMapper);
+        var sender = new IdsMultipartSender(mock(Monitor.class), mock(EdcHttpClient.class), tokenService, objectMapper);
         var senderDelegate = mock(MultipartSenderDelegate.class);
 
         var result = sender.send(new TestRemoteMessage(), senderDelegate);

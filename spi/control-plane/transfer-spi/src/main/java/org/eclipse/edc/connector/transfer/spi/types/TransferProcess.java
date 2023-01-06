@@ -29,7 +29,10 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -104,6 +107,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
+    private Map<String, String> properties = new HashMap<>();
+
 
     private TransferProcess() {
     }
@@ -132,6 +137,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return contentDataAddress;
     }
 
+    public void setContentDataAddress(DataAddress dataAddress) {
+        contentDataAddress = dataAddress;
+    }
+
     public void transitionInitial() {
         transition(INITIAL, UNSAVED);
     }
@@ -149,10 +158,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         provisionedResourceSet.addResource(resource);
         setModified();
 
-    }
-
-    public void setContentDataAddress(DataAddress dataAddress) {
-        contentDataAddress = dataAddress;
     }
 
     public void addDeprovisionedResource(DeprovisionedResource resource) {
@@ -204,6 +209,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         var deprovisionedResources = this.deprovisionedResources.stream().map(DeprovisionedResource::getProvisionedResourceId).collect(toSet());
         return provisionedResourceSet.getResources().stream().filter(r -> !deprovisionedResources.contains(r.getId())).collect(toList());
+    }
+
+    public Map<String, String> getProperties() {
+        return Collections.unmodifiableMap(properties);
     }
 
     public boolean deprovisionComplete() {
@@ -310,6 +319,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .provisionedResourceSet(provisionedResourceSet)
                 .contentDataAddress(contentDataAddress)
                 .deprovisionedResources(deprovisionedResources)
+                .properties(properties)
                 .type(type);
         return copy(builder);
     }
@@ -398,6 +408,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         public Builder deprovisionedResources(List<DeprovisionedResource> resources) {
             entity.deprovisionedResources = resources;
+            return this;
+        }
+
+        public Builder properties(Map<String, String> properties) {
+            entity.properties = properties;
             return this;
         }
 

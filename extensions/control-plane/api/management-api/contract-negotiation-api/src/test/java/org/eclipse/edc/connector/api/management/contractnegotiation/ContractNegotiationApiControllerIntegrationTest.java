@@ -42,12 +42,18 @@ import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
@@ -55,9 +61,12 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     private final int port = getFreePort();
     private final String authKey = "123456";
+    private final RemoteMessageDispatcher dispatcher = mock(RemoteMessageDispatcher.class);
+    private final String protocol = "protocol";
 
     @BeforeEach
     void setUp(EdcExtension extension) {
+        when(dispatcher.protocol()).thenReturn("protocol");
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
@@ -236,7 +245,6 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .statusCode(400)
                 .extract().body().asString();
 
-        System.out.println(result);
         assertThat(result).isNotBlank();
     }
 
@@ -252,14 +260,24 @@ class ContractNegotiationApiControllerIntegrationTest {
     }
 
     @Test
-    void decline(ContractNegotiationStore store) {
-        store.save(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
+    void decline(ContractNegotiationStore store, RemoteMessageDispatcherRegistry registry) {
+        registry.register(dispatcher);
+        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(null));
+        var negotiation = createContractNegotiationBuilder("negotiationId")
+                .state(REQUESTED.code())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        store.save(negotiation);
 
         baseRequest()
                 .contentType(JSON)
                 .post("/contractnegotiations/negotiationId/decline")
                 .then()
                 .statusCode(204);
+
+        await().untilAsserted(() -> {
+            assertThat(store.find("negotiationId").getState()).isEqualTo(DECLINED.code());
+        });
     }
 
     private RequestSpecification baseRequest() {
@@ -290,7 +308,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .id(negotiationId)
                 .counterPartyId(UUID.randomUUID().toString())
                 .counterPartyAddress("address")
-                .protocol("protocol");
+                .protocol(protocol);
     }
 
     private static class TestRemoteMessageDispatcher implements RemoteMessageDispatcher {

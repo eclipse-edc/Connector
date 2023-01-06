@@ -28,8 +28,14 @@ dependencies {
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.okhttp)
 }
+
+edcBuild {
+    swagger {
+        apiGroup.set("management-api")
+    }
+}
+
 
 publishing {
     publications {

@@ -44,6 +44,11 @@ public class TransformerContextImpl implements TransformerContext {
 
     @Override
     public <INPUT, OUTPUT> @Nullable OUTPUT transform(INPUT object, Class<OUTPUT> outputType) {
-        return registry.transform(object, outputType).getContent();
+        if (object == null) {
+            return null;
+        }
+
+        return registry.transformerFor(object, outputType)
+                .transform(object, this);
     }
 }

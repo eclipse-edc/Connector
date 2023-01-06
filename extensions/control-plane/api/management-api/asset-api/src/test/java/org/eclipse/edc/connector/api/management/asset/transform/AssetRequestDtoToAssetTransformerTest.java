@@ -23,7 +23,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class AssetRequestDtoToAssetTransformerTest {
 
@@ -71,13 +70,4 @@ class AssetRequestDtoToAssetTransformerTest {
         assertThat(asset.getProperties()).containsExactlyInAnyOrderEntriesOf(assetDto.getProperties());
     }
 
-    @Test
-    void transform_nullInput() {
-        var context = mock(TransformerContext.class);
-
-        var asset = transformer.transform(null, context);
-
-        assertThat(asset).isNull();
-        verify(context).reportProblem("input asset is null");
-    }
 }

@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
-import java.util.Objects;
 
 public class DutyToIdsDutyTransformer implements IdsTypeTransformer<Duty, de.fraunhofer.iais.eis.Duty> {
 
@@ -42,12 +41,7 @@ public class DutyToIdsDutyTransformer implements IdsTypeTransformer<Duty, de.fra
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.Duty transform(Duty object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable de.fraunhofer.iais.eis.Duty transform(@NotNull Duty object, @NotNull TransformerContext context) {
         var id = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.OBLIGATION).build().toUri();
         var builder = new DutyBuilder(id);
         for (var edcConstraint : object.getConstraints()) {

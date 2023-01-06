@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.ids.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.AbstractConstraint;
 import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
@@ -111,7 +110,6 @@ public final class IdsTypeManagerUtil {
         typeManager.registerSerializer("ids", Duty.class, new JsonLdSerializer<>(Duty.class, IdsConstants.CONTEXT));
         typeManager.registerSerializer("ids", Action.class, new JsonLdSerializer<>(Action.class, IdsConstants.CONTEXT));
         typeManager.registerSerializer("ids", LogicalConstraint.class, new JsonLdSerializer<>(LogicalConstraint.class, IdsConstants.CONTEXT));
-        typeManager.registerSerializer("ids", AbstractConstraint.class, new JsonLdSerializer<>(AbstractConstraint.class, IdsConstants.CONTEXT));
         typeManager.registerSerializer("ids", Constraint.class, new JsonLdSerializer<>(Constraint.class, IdsConstants.CONTEXT));
 
         // connector/offer

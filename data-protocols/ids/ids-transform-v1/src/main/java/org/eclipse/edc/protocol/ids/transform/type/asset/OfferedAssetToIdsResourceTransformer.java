@@ -46,11 +46,7 @@ public class OfferedAssetToIdsResourceTransformer implements IdsTypeTransformer<
     }
 
     @Override
-    public @Nullable Resource transform(OfferedAsset object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Resource transform(@NotNull OfferedAsset object, @NotNull TransformerContext context) {
         var asset = object.getAsset();
         var id = IdsId.Builder.newInstance().value(asset.getId()).type(IdsType.RESOURCE).build().toUri();
 

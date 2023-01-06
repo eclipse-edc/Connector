@@ -21,8 +21,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer<Expression, String> {
 
     @Override
@@ -36,12 +34,7 @@ public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer
     }
 
     @Override
-    public @Nullable String transform(Expression object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable String transform(@NotNull Expression object, @NotNull TransformerContext context) {
         if (!(object instanceof LiteralExpression)) {
             context.reportProblem(String.format("Cannot transform %s. Supported type: LiteralExpression", object.getClass().getName()));
             return null;

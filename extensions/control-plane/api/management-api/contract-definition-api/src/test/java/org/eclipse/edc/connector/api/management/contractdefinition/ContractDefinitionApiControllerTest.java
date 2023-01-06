@@ -27,7 +27,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectExistsException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -207,7 +207,7 @@ class ContractDefinitionApiControllerTest {
         when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(createContractDefinition(UUID.randomUUID().toString())));
         when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
 
-        assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(ObjectConflictException.class);
     }
 
     @Test
@@ -239,7 +239,7 @@ class ContractDefinitionApiControllerTest {
     void delete_notPossible() {
         when(service.delete("definitionId")).thenReturn(ServiceResult.conflict("conflict"));
 
-        assertThatThrownBy(() -> controller.deleteContractDefinition("definitionId")).isInstanceOf(ObjectExistsException.class);
+        assertThatThrownBy(() -> controller.deleteContractDefinition("definitionId")).isInstanceOf(ObjectConflictException.class);
     }
 
     private ContractDefinition createContractDefinition(String id) {

@@ -20,11 +20,9 @@ import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistryImpl;
 import org.eclipse.edc.api.transformer.QuerySpecDtoToQuerySpecTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-@Provides(DtoTransformerRegistry.class)
 @Extension(value = ApiCoreExtension.NAME)
 public class ApiCoreExtension implements ServiceExtension {
 
@@ -35,12 +33,12 @@ public class ApiCoreExtension implements ServiceExtension {
         return NAME;
     }
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
+    @Provider
+    public DtoTransformerRegistry transformerRegistry() {
         var transformerRegistry = new DtoTransformerRegistryImpl();
         transformerRegistry.register(new QuerySpecDtoToQuerySpecTransformer());
         transformerRegistry.register(new CriterionToCriterionDtoTransformer());
         transformerRegistry.register(new CriterionDtoToCriterionTransformer());
-        context.registerService(DtoTransformerRegistry.class, transformerRegistry);
+        return transformerRegistry;
     }
 }

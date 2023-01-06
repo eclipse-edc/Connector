@@ -173,7 +173,7 @@ class LocalDataPlaneSelectorClient implements DataPlaneSelectorClient {
 
 // when the DPF selector is remote
 class RemoteDataPlaneSelectorClient implements DataPlaneSelectorClient {
-    private final OkHttpClient client;
+    private final EdcHttpClient client;
     private String strategyName; //could be null
 
     // CTor(s)

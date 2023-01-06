@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -16,15 +16,12 @@ package org.eclipse.edc.connector.api.client.transferprocess;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.failsafe.Failsafe;
-import dev.failsafe.RetryPolicy;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.api.client.transferprocess.model.TransferProcessFailRequest;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
@@ -39,19 +36,15 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
 
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
 
-    private final RetryPolicy<Object> retryPolicy;
-    private final OkHttpClient okHttpClient;
-
+    private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
 
-    public TransferProcessHttpClient(OkHttpClient okHttpClient, RetryPolicy<Object> retryPolicy, ObjectMapper mapper, Monitor monitor) {
-        this.okHttpClient = okHttpClient;
-        this.retryPolicy = retryPolicy;
+    public TransferProcessHttpClient(EdcHttpClient httpClient, ObjectMapper mapper, Monitor monitor) {
+        this.httpClient = httpClient;
         this.mapper = mapper;
         this.monitor = monitor;
     }
-
 
     @Override
     public void completed(DataFlowRequest dataFlowRequest) {
@@ -63,13 +56,12 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
         sendRequest(dataFlowRequest, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
     }
 
-
     private void sendRequest(DataFlowRequest dataFlowRequest, String action, Object body) {
 
         if (dataFlowRequest.getCallbackAddress() != null) {
             try {
-                var rq = createRequest(buildUrl(dataFlowRequest, action), body);
-                try (var response = executeRequest(rq)) {
+                var request = createRequest(buildUrl(dataFlowRequest, action), body);
+                try (var response = httpClient.execute(request)) {
                     if (!response.isSuccessful()) {
                         monitor.severe(String.format("Failed to send callback request: received %s from the TransferProcess API", response.code()));
                     }
@@ -89,14 +81,8 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
         return url.toString();
     }
 
-    @NotNull
-    private Response executeRequest(Request rq) {
-        return Failsafe.with(retryPolicy).get(() -> okHttpClient.newCall(rq).execute());
-    }
-
-
     private Request createRequest(String url, Object body) throws JsonProcessingException {
-        RequestBody requestBody = null;
+        RequestBody requestBody;
         if (body != null) {
             requestBody =
                     RequestBody.create(mapper.writeValueAsString(body), TYPE_JSON);

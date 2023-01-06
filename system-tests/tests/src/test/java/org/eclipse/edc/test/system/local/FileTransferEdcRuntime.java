@@ -65,6 +65,5 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.management.path", PROVIDER_MANAGEMENT_PATH,
                     "web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT),
                     "web.http.ids.path", IDS_PATH,
-                    "edc.samples.04.asset.path", PROVIDER_ASSET_PATH,
                     "ids.webhook.address", PROVIDER_IDS_API));
 }

@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class PermissionToIdsPermissionTransformer implements IdsTypeTransformer<Permission, de.fraunhofer.iais.eis.Permission> {
 
@@ -45,12 +44,7 @@ public class PermissionToIdsPermissionTransformer implements IdsTypeTransformer<
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.Permission transform(Permission object, @NotNull TransformerContext context) {
-        Objects.requireNonNull(context);
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable de.fraunhofer.iais.eis.Permission transform(@NotNull Permission object, @NotNull TransformerContext context) {
         var permissionId = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.PERMISSION).build().toUri();
         var builder = new PermissionBuilder(permissionId);
         for (var edcConstraint : object.getConstraints()) {

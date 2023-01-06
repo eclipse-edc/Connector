@@ -16,10 +16,13 @@ package org.eclipse.edc.transaction.atomikos;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import javax.transaction.Status;
+import javax.transaction.Synchronization;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 
@@ -87,6 +90,22 @@ class AtomikosTransactionContextTest {
 
         verify(transaction, times(1)).setRollbackOnly();
         verify(transactionManager, times(1)).rollback();
+    }
+
+    @Test
+    void verifySynchronization() throws Exception {
+        var sync = mock(TransactionContext.TransactionSynchronization.class);
+
+        when(transactionManager.getTransaction()).thenReturn(null, transaction);
+
+        // the sync should be invoked
+        transactionContext.execute(() -> transactionContext.registerSynchronization(sync));
+
+        // the sync should be cleared and should not be invoked again
+        transactionContext.execute(() -> {
+        });
+
+        verify(transaction, times(1)).registerSynchronization(Mockito.isA(Synchronization.class));
     }
 
     @BeforeEach

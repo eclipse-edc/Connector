@@ -1,4 +1,3 @@
-package org.eclipse.edc.connector.spi.catalog;
 /*
  *  Copyright (c) 2020 - 2022 Bayerische Motoren Werke Aktiengesellschaft
  *
@@ -12,6 +11,8 @@ package org.eclipse.edc.connector.spi.catalog;
  *       Bayerische Motoren Werke Aktiengesellschaft - initial API and implementation
  *
  */
+
+package org.eclipse.edc.connector.spi.catalog;
 
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.spi.query.QuerySpec;

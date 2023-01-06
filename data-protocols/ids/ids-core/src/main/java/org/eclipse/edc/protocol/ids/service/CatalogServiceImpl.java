@@ -20,8 +20,7 @@ import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.protocol.ids.spi.service.CatalogService;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -39,19 +38,17 @@ public class CatalogServiceImpl implements CatalogService {
         this.contractOfferResolver = Objects.requireNonNull(contractOfferResolver);
     }
 
-    /**
-     * Provides the dataCatalog object, which may be used by the IDS self-description of the connector.
-     *
-     * @return data catalog
-     */
     @Override
-    @NotNull
-    public Catalog getDataCatalog(ClaimToken claimToken, QuerySpec querySpec) {
+    public @NotNull Catalog getDataCatalog(@NotNull DescriptionRequest descriptionRequest) {
+        var querySpec = descriptionRequest.getQuerySpec();
 
         var query = ContractOfferQuery.Builder.newInstance()
-                .claimToken(claimToken)
+                .claimToken(descriptionRequest.getClaimToken())
                 .assetsCriteria(querySpec.getFilterExpression())
-                .range(querySpec.getRange()).build();
+                .range(querySpec.getRange())
+                .provider(descriptionRequest.getProvider())
+                .consumer(descriptionRequest.getConsumer())
+                .build();
 
         try (var offers = contractOfferResolver.queryContractOffers(query)) {
             return Catalog.Builder.newInstance()

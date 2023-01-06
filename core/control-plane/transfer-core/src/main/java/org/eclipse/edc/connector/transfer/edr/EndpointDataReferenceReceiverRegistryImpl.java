@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.transfer.edr;
 
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +41,18 @@ public class EndpointDataReferenceReceiverRegistryImpl implements EndpointDataRe
 
     @Override
     public @NotNull CompletableFuture<Result<Void>> receiveAll(@NotNull EndpointDataReference edr) {
-        return receivers.stream()
-                .map(receiver -> receiver.send(edr))
-                .collect(asyncAllOf())
-                .thenApply(results -> results.stream()
-                        .filter(Result::failed)
-                        .findFirst()
-                        .map(failed -> Result.<Void>failure(failed.getFailureMessages()))
-                        .orElse(Result.success()))
-                .exceptionally(throwable -> Result.failure("Failed to receive endpoint data reference: " + throwable.getMessage()));
+        if (receivers.isEmpty()) {
+            return CompletableFuture.failedFuture(new EdcException("There are no registered receivers."));
+        } else {
+            return receivers.stream()
+                    .map(receiver -> receiver.send(edr))
+                    .collect(asyncAllOf())
+                    .thenApply(results -> results.stream()
+                            .filter(Result::failed)
+                            .findFirst()
+                            .map(failed -> Result.<Void>failure(failed.getFailureMessages()))
+                            .orElse(Result.success()))
+                    .exceptionally(throwable -> Result.failure("Failed to receive endpoint data reference: " + throwable.getMessage()));
+        }
     }
 }

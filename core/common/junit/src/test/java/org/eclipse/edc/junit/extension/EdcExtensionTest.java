@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.junit.extension;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.junit.testfixtures.MockVault;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.MonitorExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,23 +34,22 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(EdcExtension.class)
 class EdcExtensionTest {
 
-    private OkHttpClient testClient;
-
+    private EdcHttpClient testClient;
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        testClient = mock(OkHttpClient.class);
+        testClient = mock(EdcHttpClient.class);
         // registers a mock(Monitor.class)
         var mockMonitorExtension = new MockMonitorExtension();
         extension.registerSystemExtension(MonitorExtension.class, mockMonitorExtension);
-        extension.registerServiceMock(OkHttpClient.class, testClient);
+        extension.registerServiceMock(EdcHttpClient.class, testClient);
     }
 
     @Test
     void registerServiceMock_serviceAlreadyExists(EdcExtension extension) {
         var mockedMonitor = extension.getContext().getMonitor();
-        assertThat(extension.getContext().getService(OkHttpClient.class)).isEqualTo(testClient);
-        verify(mockedMonitor, atLeastOnce()).warning(startsWith("TestServiceExtensionContext: A service mock was registered for type okhttp3.OkHttpClient"));
+        assertThat(extension.getContext().getService(EdcHttpClient.class)).isEqualTo(testClient);
+        verify(mockedMonitor, atLeastOnce()).warning(startsWith("TestServiceExtensionContext: A service mock was registered for type org.eclipse.edc.spi.http.EdcHttpClient"));
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -57,7 +57,7 @@ public class ServiceResultHandler {
             case NOT_FOUND:
                 return new ObjectNotFoundException(clazz, id);
             case CONFLICT:
-                return new ObjectExistsException(clazz, id);
+                return new ObjectConflictException(failure.getMessages());
             case BAD_REQUEST:
                 return new InvalidRequestException(failure.getMessages());
             default:

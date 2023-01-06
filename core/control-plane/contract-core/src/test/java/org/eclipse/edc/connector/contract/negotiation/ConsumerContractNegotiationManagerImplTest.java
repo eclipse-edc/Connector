@@ -30,7 +30,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -80,7 +79,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
-    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager sendRetryManager = mock(SendRetryManager.class);
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -129,57 +128,6 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getLastContractOffer().equals(contractOffer))
         );
         verify(listener).initiated(any());
-    }
-
-    @Test
-    void testOfferReceivedInvalidId() {
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-
-        var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
-
-        assertThat(result.fatalError()).isTrue();
-        verifyNoInteractions(listener);
-    }
-
-    @Test
-    void testOfferReceivedConfirmOffer() {
-        var negotiationRequested = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-        when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
-                .thenReturn(Result.success(contractOffer));
-        when(store.find(negotiationRequested.getId())).thenReturn(negotiationRequested);
-
-        var result = negotiationManager.offerReceived(token, negotiationRequested.getId(), contractOffer, "hash");
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation ->
-                negotiation.getState() == CONSUMER_APPROVING.code() &&
-                        negotiation.getContractOffers().size() == 2 &&
-                        negotiation.getContractOffers().get(1).equals(contractOffer)
-        ));
-        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
-    }
-
-    @Test
-    void testOfferReceivedDeclineOffer() {
-        var negotiationRequested = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-        when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
-                .thenReturn(Result.failure("error"));
-        when(store.find(negotiationRequested.getId())).thenReturn(negotiationRequested);
-
-        var result = negotiationManager.offerReceived(token, negotiationRequested.getId(), contractOffer, "hash");
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation ->
-                negotiation.getState() == DECLINING.code() &&
-                        negotiation.getContractOffers().size() == 2 &&
-                        negotiation.getContractOffers().get(1).equals(contractOffer)
-        ));
-        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test

@@ -11,6 +11,7 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
+
 package org.eclipse.edc.connector.spi.contractagreement;
 
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
