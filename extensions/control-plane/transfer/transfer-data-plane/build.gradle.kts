@@ -35,7 +35,7 @@ dependencies {
     api(libs.nimbus.jwt)
     // Note: nimbus requires bouncycastle as mentioned in documentation:
     // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
-    api(libs.bouncyCastle.bcpkix)
+    api(libs.bouncyCastle.bcpkixJdk18on)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.jersey.multipart)
