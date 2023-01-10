@@ -80,13 +80,13 @@ public class DependencyGraph {
         var injectionPoints = extensions.stream()
                 .flatMap(ext -> getInjectedFields(ext).stream()
                         .peek(injectionPoint -> {
-                            if (!canResolve(dependencyMap, injectionPoint.getFeatureName())) {
+                            if (!canResolve(dependencyMap, injectionPoint.getType())) {
                                 if (injectionPoint.isRequired()) {
                                     unsatisfiedInjectionPoints.add(injectionPoint);
                                 }
                             } else {
                                 // get() would return null, if the feature is already in the context's service list
-                                ofNullable(dependencyMap.get(injectionPoint.getFeatureName()))
+                                ofNullable(dependencyMap.get(injectionPoint.getType()))
                                         .ifPresent(l -> l.stream()
                                                 .filter(d -> !Objects.equals(d, ext)) // remove dependencies onto oneself
                                                 .forEach(provider -> sort.addDependency(ext, provider)));
@@ -109,7 +109,7 @@ public class DependencyGraph {
             features.forEach(feature -> {
                 var dependencies = dependencyMap.get(feature);
                 if (dependencies == null) {
-                    unsatisfiedRequirements.add(feature);
+                    unsatisfiedRequirements.add(feature.getName());
                 } else {
                     dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
                 }
@@ -130,34 +130,28 @@ public class DependencyGraph {
                 .collect(Collectors.toList());
     }
 
-    private boolean canResolve(Map<String, List<ServiceExtension>> dependencyMap, String featureName) {
+    private boolean canResolve(Map<Class<?>, List<ServiceExtension>> dependencyMap, Class<?> featureName) {
         var providers = dependencyMap.get(featureName);
         if (providers != null) {
             return true;
         } else {
             // attempt to interpret the feature name as class name, instantiate it and see if the context has that service
-            try {
-                var cls = Class.forName(featureName);
-                return context.hasService(cls);
-            } catch (ClassNotFoundException e) {
-                //noop necessary, feature is not a classname
-            }
-            return false;
+            return context.hasService(featureName);
         }
     }
 
-    private Map<String, List<ServiceExtension>> createDependencyMap(List<ServiceExtension> extensions) {
-        Map<String, List<ServiceExtension>> dependencyMap = new HashMap<>();
+    private Map<Class<?>, List<ServiceExtension>> createDependencyMap(List<ServiceExtension> extensions) {
+        Map<Class<?>, List<ServiceExtension>> dependencyMap = new HashMap<>();
         extensions.forEach(ext -> getDefaultProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
         extensions.forEach(ext -> getProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
         return dependencyMap;
     }
 
-    private Set<String> getRequiredFeatures(Class<?> clazz) {
+    private Set<Class<?>> getRequiredFeatures(Class<?> clazz) {
         var requiresAnnotation = clazz.getAnnotation(Requires.class);
         if (requiresAnnotation != null) {
             var features = requiresAnnotation.value();
-            return Stream.of(features).map(Class::getName).collect(Collectors.toSet());
+            return Stream.of(features).collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
@@ -165,24 +159,23 @@ public class DependencyGraph {
     /**
      * Obtains all features a specific extension requires as strings
      */
-    private Set<String> getProvidedFeatures(ServiceExtension ext) {
-        var allProvides = new HashSet<String>();
+    private Set<Class<?>> getProvidedFeatures(ServiceExtension ext) {
+        var allProvides = new HashSet<Class<?>>();
 
         // check all @Provides
         var providesAnnotation = ext.getClass().getAnnotation(Provides.class);
         if (providesAnnotation != null) {
-            var featureStrings = Arrays.stream(providesAnnotation.value()).map(Class::getName).collect(Collectors.toSet());
+            var featureStrings = Arrays.stream(providesAnnotation.value()).collect(Collectors.toSet());
             allProvides.addAll(featureStrings);
         }
         // check all @Provider methods
-        allProvides.addAll(new ProviderMethodScanner(ext).nonDefaultProviders().stream().map(ProviderMethod::getReturnType).map(Class::getName).collect(Collectors.toSet()));
+        allProvides.addAll(new ProviderMethodScanner(ext).nonDefaultProviders().stream().map(ProviderMethod::getReturnType).collect(Collectors.toSet()));
         return allProvides;
     }
 
-    private Set<String> getDefaultProvidedFeatures(ServiceExtension ext) {
+    private Set<Class<?>> getDefaultProvidedFeatures(ServiceExtension ext) {
         return new ProviderMethodScanner(ext).defaultProviders().stream()
                 .map(ProviderMethod::getReturnType)
-                .map(Class::getName)
                 .collect(Collectors.toSet());
     }
 
