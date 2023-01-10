@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -280,6 +281,31 @@ class ContractOfferResolverImplTest {
                 .range(DEFAULT_RANGE)
                 .build();
         verify(assetIndex).queryAssets(expectedQuerySpec);
+    }
+
+    @Test
+    void shouldReturnMaximumContractEndtime() {
+
+        var contractDefinition = getContractDefBuilder("ContractForever").validity(Long.MAX_VALUE).build();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
+        var assetStream = Stream.of(Asset.Builder.newInstance().build());
+        when(assetIndex.countAssets(anyList())).thenReturn(1L);
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+        var query = ContractOfferQuery.builder()
+                .claimToken(ClaimToken.Builder.newInstance().build())
+                .provider(URI.create("urn:connector:edc-provider"))
+                .consumer(URI.create("urn:connector:edc-consumer"))
+                .build();
+
+        var offers = contractOfferResolver.queryContractOffers(query);
+
+        assertThat(offers)
+                .hasSize(1)
+                .allSatisfy(contractOffer -> assertThat(contractOffer.getContractEnd()).isEqualTo(Instant.ofEpochMilli(Long.MAX_VALUE).atZone(ZoneOffset.UTC)));
+
     }
 
     private ContractOfferQuery getQuery(int from, int to) {
