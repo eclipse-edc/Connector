@@ -38,3 +38,7 @@ dependencies {
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane-postgresql"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
 }
+
+edcBuild {
+    publish.set(false)
+}

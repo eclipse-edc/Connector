@@ -35,3 +35,7 @@ dependencies {
     implementation(project(":extensions:control-plane:provision:provision-oauth2:provision-oauth2"))
     implementation(project(":extensions:control-plane:transfer:transfer-pull-http-receiver"))
 }
+
+edcBuild {
+    publish.set(false)
+}

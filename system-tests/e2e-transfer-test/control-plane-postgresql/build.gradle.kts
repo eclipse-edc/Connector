@@ -23,3 +23,7 @@ dependencies {
     implementation(project(":extensions:common:transaction:transaction-local"))
     implementation(libs.postgres)
 }
+
+edcBuild {
+    publish.set(false)
+}

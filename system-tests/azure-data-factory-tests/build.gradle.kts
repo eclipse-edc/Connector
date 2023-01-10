@@ -44,3 +44,7 @@ dependencies {
     testRuntimeOnly(project(":system-tests:runtimes:azure-data-factory-transfer-provider"))
     testRuntimeOnly(project(":system-tests:runtimes:azure-data-factory-transfer-consumer"))
 }
+
+edcBuild {
+    publish.set(false)
+}

@@ -50,3 +50,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     mergeServiceFiles()
     archiveFileName.set("provider.jar")
 }
+
+edcBuild {
+    publish.set(false)
+}
