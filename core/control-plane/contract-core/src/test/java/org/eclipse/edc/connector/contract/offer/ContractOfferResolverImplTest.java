@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.Range;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -62,19 +63,20 @@ import static org.mockito.Mockito.when;
 
 class ContractOfferResolverImplTest {
 
+    private static final Range DEFAULT_RANGE = new Range(0, 10);
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
-    private static final Range DEFAULT_RANGE = new Range(0, 10);
     private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
+    private final Monitor monitor = mock(Monitor.class);
 
     private ContractOfferResolver contractOfferResolver;
 
     @BeforeEach
     void setUp() {
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore, clock);
+        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore, clock, monitor);
     }
 
     @Test

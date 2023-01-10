@@ -28,11 +28,14 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,13 +54,15 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyStore;
     private final Clock clock;
+    private final Monitor monitor;
 
-    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock) {
+    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock, Monitor monitor) {
         this.agentService = agentService;
         this.definitionService = definitionService;
         this.assetIndex = assetIndex;
         this.policyStore = policyStore;
         this.clock = clock;
+        this.monitor = monitor;
     }
 
     @Override
@@ -117,11 +122,20 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
+
+        ZonedDateTime contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(ZoneOffset.UTC);
+        try {
+            contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
+        } catch (ArithmeticException exception) {
+            monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
+                    "Changing contractEndTime to Maximum value possible in the ContractOffer");
+        }
+
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
                 .policy(policy.withTarget(asset.getId()))
                 .asset(asset)
                 .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone()));
+                .contractEnd(contractEndTime);
     }
 }

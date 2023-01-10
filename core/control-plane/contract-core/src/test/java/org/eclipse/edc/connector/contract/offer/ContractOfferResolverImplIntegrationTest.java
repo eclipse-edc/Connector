@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.Range;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -66,13 +67,14 @@ class ContractOfferResolverImplIntegrationTest {
     private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
+    private final Monitor monitor = mock(Monitor.class);
     private AssetIndex assetIndex;
     private ContractOfferResolver contractOfferResolver;
 
     @BeforeEach
     void setUp() {
         assetIndex = new InMemoryAssetIndex();
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore, clock);
+        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore, clock, monitor);
     }
 
     @Test
