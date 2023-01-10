@@ -23,10 +23,4 @@ dependencies {
     implementation(libs.azure.eventgrid)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

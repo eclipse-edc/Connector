@@ -26,10 +26,4 @@ dependencies {
     testImplementation(libs.bouncyCastle.bcprovJdk18on)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

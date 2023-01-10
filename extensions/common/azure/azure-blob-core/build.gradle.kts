@@ -30,10 +30,4 @@ dependencies {
     testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

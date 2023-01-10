@@ -23,10 +23,4 @@ dependencies {
     implementation(project(":core:common:policy-evaluator"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

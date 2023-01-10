@@ -30,10 +30,4 @@ dependencies {
     testFixturesImplementation(libs.azure.cosmos)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

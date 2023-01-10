@@ -22,10 +22,4 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

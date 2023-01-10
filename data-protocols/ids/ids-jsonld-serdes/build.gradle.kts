@@ -21,10 +21,4 @@ dependencies {
     testImplementation(project(":data-protocols:ids:ids-core"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

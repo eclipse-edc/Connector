@@ -23,10 +23,4 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:aws:aws-s3-test")))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

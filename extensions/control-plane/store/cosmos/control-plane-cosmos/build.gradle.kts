@@ -26,10 +26,4 @@ dependencies {
     api(project(":extensions:control-plane:store:cosmos:transfer-process-store-cosmos"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+
