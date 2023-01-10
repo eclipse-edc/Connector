@@ -123,13 +123,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
 
-        ZonedDateTime contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(ZoneOffset.UTC);
-        try {
-            contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
-        } catch (ArithmeticException exception) {
-            monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
-                    "Changing contractEndTime to Maximum value possible in the ContractOffer");
-        }
+        var contractEndTime = getContractEndtime(definition);
 
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
@@ -138,4 +132,18 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(contractEndTime);
     }
+
+    @NotNull
+    private ZonedDateTime getContractEndtime(ContractDefinition definition) {
+
+        var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(ZoneOffset.UTC);
+        try {
+            contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
+        } catch (ArithmeticException exception) {
+            monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
+                    "Changing contractEndTime to Maximum value possible in the ContractOffer");
+        }
+        return contractEndTime;
+    }
+
 }
