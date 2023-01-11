@@ -45,3 +45,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     mergeServiceFiles()
     archiveFileName.set("dataspace-connector.jar")
 }
+
+edcBuild {
+    publish.set(false)
+}

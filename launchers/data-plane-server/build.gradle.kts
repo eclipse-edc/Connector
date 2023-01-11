@@ -40,4 +40,6 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveFileName.set("data-plane-server.jar")
 }
 
-
+edcBuild {
+    publish.set(false)
+}
