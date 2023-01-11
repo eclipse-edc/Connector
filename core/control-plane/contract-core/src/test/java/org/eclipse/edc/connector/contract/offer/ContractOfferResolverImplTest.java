@@ -284,7 +284,7 @@ class ContractOfferResolverImplTest {
     }
 
     @Test
-    void shouldReturnMaximumContractEndtime() {
+    void shouldReturnMaximumContractEndtime_whenItExceedsMaximimLongValue() {
 
         var contractDefinition = getContractDefBuilder("ContractForever").validity(Long.MAX_VALUE).build();
 
