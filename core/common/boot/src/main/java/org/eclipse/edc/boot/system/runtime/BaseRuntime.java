@@ -47,7 +47,7 @@ import static java.lang.String.format;
  *     <li>{@link BaseRuntime#createTypeManager()}: instantiates a new {@link TypeManager}</li>
  *     <li>{@link BaseRuntime#createMonitor()} : instantiates a new {@link Monitor}</li>
  *     <li>{@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
- *     <li>{@link BaseRuntime#createExtensions()}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ExtensionLoader#loadServiceExtensions()}</li>
+ *     <li>{@link BaseRuntime#createExtensions(ServiceExtensionContext)}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ExtensionLoader#loadServiceExtensions(ServiceExtensionContext)}</li>
  *     <li>{@link BaseRuntime#bootExtensions(ServiceExtensionContext, List)}: initializes the service extensions by putting them through their lifecycle.
  *     By default this calls {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)} </li>
  *     <li>{@link BaseRuntime#onError(Exception)}: receives any Exception that was raised during initialization</li>
@@ -158,8 +158,8 @@ public class BaseRuntime {
      *
      * @return a list of {@code ServiceExtension}s
      */
-    protected List<InjectionContainer<ServiceExtension>> createExtensions() {
-        return extensionLoader.loadServiceExtensions();
+    protected List<InjectionContainer<ServiceExtension>> createExtensions(ServiceExtensionContext context) {
+        return extensionLoader.loadServiceExtensions(context);
     }
 
     /**
@@ -218,7 +218,7 @@ public class BaseRuntime {
 
         var name = getRuntimeName(context);
         try {
-            List<InjectionContainer<ServiceExtension>> newExtensions = createExtensions();
+            List<InjectionContainer<ServiceExtension>> newExtensions = createExtensions(context);
             bootExtensions(context, newExtensions);
 
             newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
