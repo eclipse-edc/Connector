@@ -20,9 +20,8 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -60,9 +59,9 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
-    @NotNull
-    protected Map<String, String> extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
-        return Collections.emptyMap();
+    @Nullable
+    protected String extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
+        return null;
     }
 
     @Override

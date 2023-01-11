@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpHeaders.Values.APPLICATION_JSON;
 import static io.netty.handler.codec.http.HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED;
@@ -197,7 +196,7 @@ class HttpRequestParamsSupplierTest {
 
         var httpRequest = supplier.apply(request).toRequest();
 
-        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.getQueryParamsString());
+        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
         var body = httpRequest.body();
         assertThat(body).isNotNull();
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
@@ -216,7 +215,7 @@ class HttpRequestParamsSupplierTest {
         var supplier = new TestHttpRequestParamsSupplier(vault, true, TYPE_MANAGER);
         var httpRequest = supplier.apply(request).toRequest();
 
-        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.getQueryParamsString());
+        assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
         var body = httpRequest.body();
         assertThat(body).isNotNull();
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
@@ -241,7 +240,7 @@ class HttpRequestParamsSupplierTest {
 
         private final String method;
         private final String path;
-        private final Map<String, String> queryParams;
+        private final String queryParams;
         private final String contentType;
         private final String body;
         private final boolean isOneGo;
@@ -255,7 +254,7 @@ class HttpRequestParamsSupplierTest {
             this.method = new Random().nextBoolean() ? "PUT" : "POST";
             this.isOneGo = isOneGo;
             this.path = "somepath";
-            this.queryParams = Map.of("foo", "bar", "hello", "world");
+            this.queryParams = "testqueryparam";
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
             this.body = "Test-Body";
         }
@@ -281,7 +280,7 @@ class HttpRequestParamsSupplierTest {
         }
 
         @Override
-        protected @NotNull Map<String, String> extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
+        protected @Nullable String extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
             return queryParams;
         }
 
@@ -293,12 +292,6 @@ class HttpRequestParamsSupplierTest {
         @Override
         protected @Nullable String extractBody(HttpDataAddress address, DataFlowRequest request) {
             return body;
-        }
-
-        public String getQueryParamsString() {
-            return queryParams.entrySet().stream()
-                    .map(entry -> entry.getKey() + "=" + entry.getValue())
-                    .collect(Collectors.joining("&"));
         }
     }
 }

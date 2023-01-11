@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.http.pipeline;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
@@ -33,7 +34,7 @@ public class HttpRequestParams {
     private String method;
     private String baseUrl;
     private String path;
-    private final Map<String, String> queryParams = new HashMap<>();
+    private String queryParams;
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String body;
     private boolean nonChunkedTransfer = DEFAULT_NON_CHUNKED_TRANSFER;
@@ -85,10 +86,12 @@ public class HttpRequestParams {
         var parsed = HttpUrl.parse(baseUrl);
         Objects.requireNonNull(parsed, "Failed to parse baseUrl: " + baseUrl);
         var builder = parsed.newBuilder();
-        if (path != null && !path.isBlank()) {
+        if (!StringUtils.isNullOrBlank(path)) {
             builder.addPathSegments(path);
         }
-        queryParams.forEach(builder::addQueryParameter);
+        if (!StringUtils.isNullOrBlank(queryParams)) {
+            builder.query(queryParams);
+        }
         return builder.build();
     }
 
@@ -105,13 +108,8 @@ public class HttpRequestParams {
             return this;
         }
 
-        public HttpRequestParams.Builder queryParam(String key, String value) {
-            params.queryParams.put(key, value);
-            return this;
-        }
-
-        public HttpRequestParams.Builder queryParams(Map<String, String> queryParams) {
-            params.queryParams.putAll(queryParams);
+        public HttpRequestParams.Builder queryParams(String queryParams) {
+            params.queryParams = queryParams;
             return this;
         }
 

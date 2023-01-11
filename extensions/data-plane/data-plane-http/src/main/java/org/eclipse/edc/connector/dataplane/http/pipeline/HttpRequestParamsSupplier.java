@@ -85,8 +85,8 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
     @Nullable
     protected abstract String extractPath(HttpDataAddress address, DataFlowRequest request);
 
-    @NotNull
-    protected abstract Map<String, String> extractQueryParams(HttpDataAddress address, DataFlowRequest request);
+    @Nullable
+    protected abstract String extractQueryParams(HttpDataAddress address, DataFlowRequest request);
 
     @Nullable
     protected abstract String extractContentType(HttpDataAddress address, DataFlowRequest request);

@@ -47,12 +47,13 @@ class HttpRequestParamsTests {
         assertBaseUrl(request.url().url());
     }
 
-    @Test
-    void verifyQueryParamsIgnoredWhenNullOrBlank() {
+    @ParameterizedTest
+    @NullAndEmptySource
+    void verifyQueryParamsIgnoredWhenNullOrBlank(String qp) {
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)
                 .method(HttpMethod.GET.name())
-                .queryParams(Map.of())
+                .queryParams(qp)
                 .build();
 
         var request = params.toRequest();
@@ -78,12 +79,12 @@ class HttpRequestParamsTests {
     @Test
     void verifyComplexUrl() {
         var path = "testpath";
+        var queryParams = "test-queryparams";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)
                 .method(HttpMethod.GET.name())
                 .path(path)
-                .queryParam("foo", "bar")
-                .queryParam("hello", "world")
+                .queryParams(queryParams)
                 .build();
 
         var httpRequest = params.toRequest();
@@ -91,31 +92,8 @@ class HttpRequestParamsTests {
         var url = httpRequest.url().url();
         assertBaseUrl(url);
         assertThat(url.getPath()).isEqualTo("/" + path);
-        assertThat(url.getQuery()).contains("foo=bar").contains("hello=world");
+        assertThat(url.getQuery()).isEqualTo(queryParams);
         assertThat(httpRequest.method()).isEqualTo(HttpMethod.GET.name());
-    }
-
-    @Test
-    void verifyAggregatesQueryParamsAndPathFromBaseUrl() {
-        var compositeBaseUrl = BASE_URL + "/basepath?foo=bar";
-        var path = "testpath";
-        var queryParams = Map.of("hello", "world");
-        var params = HttpRequestParams.Builder.newInstance()
-                .baseUrl(compositeBaseUrl)
-                .method(HttpMethod.GET.name())
-                .path(path)
-                .queryParams(queryParams)
-                .build();
-
-        var request = params.toRequest();
-
-        var url = request.url().url();
-        assertBaseUrl(url);
-        assertThat(url.getPath()).isEqualTo("/basepath/" + path);
-        assertThat(url.getQuery())
-                .contains("foo=bar")
-                .contains("hello=world");
-        assertThat(request.method()).isEqualTo(HttpMethod.GET.name());
     }
 
     @Test
