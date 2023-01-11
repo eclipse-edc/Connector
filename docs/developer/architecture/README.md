@@ -28,4 +28,4 @@ transferProcessObservable = context.getService(TransferProcessObservable.class);
 transferProcessObservable.registerListener(myTransferProcessListener);
 ```
 
-A sample is available at [04.1-file-transfer-listener](https://github.com/eclipse-edc/Samples/blob/main/04.1-file-transfer-listener/README.md).
+A sample is available at [04.1-file-transfer-listener](https://github.com/eclipse-edc/Samples/blob/main/transfer/transfer-02-file-transfer-listener/README.md).
