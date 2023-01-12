@@ -360,16 +360,18 @@ jobs:
 
   Upload-Test-Report:
     needs:
-      - Unit-Tests
-      - Azure-Storage-Integration-Tests
-      - Azure-CosmosDB-Integration-Tests
+      - API-Tests
       - Aws-Integration-Tests
+      - Azure-Cloud-Integration-Test
+      - Azure-CosmosDB-Integration-Tests
+      - Azure-Storage-Integration-Tests
+      - Component-Tests
       - Daps-Integration-Tests
       - End-To-End-Tests
-      - Postgresql-Integration-Tests
-      - Component-Tests
+      - Hashicorp-Vault-Integration-Tests
       - OpenTelemetry-Integration-Tests
-      - Azure-Cloud-Integration-Test
+      - Postgresql-Integration-Tests
+      - Unit-Tests
 
     permissions:
       checks: write
@@ -390,9 +392,10 @@ jobs:
 
   Upload-Coverage-Report-To-Codecov:
     needs:
+      - API-Tests
       - Unit-Tests
       - Component-Tests
-      - API-Tests
+
     runs-on: ubuntu-latest
     if: always()
     steps:

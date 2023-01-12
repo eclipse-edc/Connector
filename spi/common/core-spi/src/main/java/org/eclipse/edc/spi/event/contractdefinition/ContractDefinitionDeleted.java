@@ -15,19 +15,24 @@
 
 package org.eclipse.edc.spi.event.contractdefinition;
 
-import org.eclipse.edc.spi.event.Event;
-
 import java.util.Objects;
 
 /**
  * Describe a ContractDefinition deletion, after this has emitted, the ContractDefinition represented by the id won't be available anymore.
  */
-public class ContractDefinitionDeleted extends Event<ContractDefinitionDeleted.Payload> {
+public class ContractDefinitionDeleted extends ContractDefinitionEvent<ContractDefinitionDeleted.Payload> {
 
     private ContractDefinitionDeleted() {
     }
 
-    public static class Builder extends Event.Builder<ContractDefinitionDeleted, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a ContractDefinition Deletion Event
+     *
+     */
+    public static class Payload extends ContractDefinitionEvent.Payload {
+    }
+
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionDeleted, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -48,10 +53,4 @@ public class ContractDefinitionDeleted extends Event<ContractDefinitionDeleted.P
         }
     }
 
-    /**
-     * This class contains all event specific attributes of a ContractDefinition Deletion Event
-     *
-     */
-    public static class Payload extends ContractDefinitionEventPayload {
-    }
 }

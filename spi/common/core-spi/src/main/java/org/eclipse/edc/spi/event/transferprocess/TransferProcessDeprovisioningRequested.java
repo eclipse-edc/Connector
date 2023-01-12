@@ -14,19 +14,22 @@
 
 package org.eclipse.edc.spi.event.transferprocess;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  *  This event is raised when the TransferProcess has been requested for deprovisioning.
  */
-public class TransferProcessDeprovisioningRequested extends Event<TransferProcessDeprovisioningRequested.Payload> {
+public class TransferProcessDeprovisioningRequested extends TransferProcessEvent<TransferProcessDeprovisioningRequested.Payload> {
 
     private TransferProcessDeprovisioningRequested() {
     }
 
-    public static class Builder extends Event.Builder<TransferProcessDeprovisioningRequested, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a TransferProcess DeprovioningRequested Event
+     *
+     */
+    public static class Payload extends TransferProcessEvent.Payload {
+    }
+
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessDeprovisioningRequested, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -35,22 +38,6 @@ public class TransferProcessDeprovisioningRequested extends Event<TransferProces
         private Builder() {
             super(new TransferProcessDeprovisioningRequested(), new Payload());
         }
-
-        public Builder transferProcessId(String transferProcessId) {
-            event.payload.transferProcessId = transferProcessId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.transferProcessId);
-        }
     }
 
-    /**
-     * This class contains all event specific attributes of a TransferProcess DeprovioningRequested Event
-     *
-     */
-    public static class Payload extends TransferProcessEventPayload {
-    }
 }

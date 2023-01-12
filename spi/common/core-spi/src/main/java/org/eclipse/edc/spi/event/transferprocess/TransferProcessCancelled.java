@@ -14,19 +14,21 @@
 
 package org.eclipse.edc.spi.event.transferprocess;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * This event is raised when the TransferProcess has been cancelled.
  */
-public class TransferProcessCancelled extends Event<TransferProcessCancelled.Payload> {
+public class TransferProcessCancelled extends TransferProcessEvent<TransferProcessCancelled.Payload> {
 
     private TransferProcessCancelled() {
     }
 
-    public static class Builder extends Event.Builder<TransferProcessCancelled, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a TransferProcess Cancelled Event
+     */
+    public static class Payload extends TransferProcessEvent.Payload {
+    }
+
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessCancelled, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,21 +38,5 @@ public class TransferProcessCancelled extends Event<TransferProcessCancelled.Pay
             super(new TransferProcessCancelled(), new Payload());
         }
 
-        public Builder transferProcessId(String transferProcessId) {
-            event.payload.transferProcessId = transferProcessId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.transferProcessId);
-        }
-    }
-
-    /**
-     * This class contains all event specific attributes of a TransferProcess Cancelled Event
-     *
-     */
-    public static class Payload extends TransferProcessEventPayload {
     }
 }
