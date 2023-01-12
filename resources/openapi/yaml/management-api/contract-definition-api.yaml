@@ -236,6 +236,7 @@ components:
           type: integer
           format: int64
           example: null
+          maximum: 315360000
       required:
       - accessPolicyId
       - contractPolicyId
