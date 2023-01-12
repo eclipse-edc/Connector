@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.api.model.CriterionDto;
@@ -47,7 +46,6 @@ public class ContractDefinitionRequestDto {
     @NotNull(message = "criteria cannot be null")
     private List<CriterionDto> criteria = new ArrayList<>();
     @Positive(message = "validity must be positive")
-    @Max(value = 315360000L, message = "validity should not be longer than 10 years (315.360.000 seconds)")
     private long validity = DEFAULT_VALIDITY;
 
     private ContractDefinitionRequestDto() {
