@@ -122,7 +122,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
 
-        var contractEndTime = getContractEndtime(definition);
+        var contractEndTime = calculateContractEnd(definition);
 
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
@@ -133,7 +133,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     }
 
     @NotNull
-    private ZonedDateTime getContractEndtime(ContractDefinition definition) {
+    private ZonedDateTime calculateContractEnd(ContractDefinition definition) {
 
         var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(clock.getZone());
         try {
