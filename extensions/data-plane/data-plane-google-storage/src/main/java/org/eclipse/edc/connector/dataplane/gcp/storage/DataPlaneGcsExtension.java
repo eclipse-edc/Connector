@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.gcp.storage;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.gcp.common.GcpCredentials;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.security.Vault;
@@ -25,7 +26,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 
 @Extension(value = DataPlaneGcsExtension.NAME)
 public class DataPlaneGcsExtension implements ServiceExtension {
-
     public static final String NAME = "Data Plane Google Cloud Storage";
 
     @Inject
@@ -47,13 +47,14 @@ public class DataPlaneGcsExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         var monitor = context.getMonitor();
+        var gcpCredential = new GcpCredentials(vault, typeManager, monitor);
 
-        var sourceFactory = new GcsDataSourceFactory(monitor);
+
+        var sourceFactory = new GcsDataSourceFactory(monitor, gcpCredential);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new GcsDataSinkFactory(executorContainer.getExecutorService(), monitor, vault, typeManager);
+        var sinkFactory = new GcsDataSinkFactory(executorContainer.getExecutorService(), monitor, gcpCredential);
         pipelineService.registerFactory(sinkFactory);
     }
 }

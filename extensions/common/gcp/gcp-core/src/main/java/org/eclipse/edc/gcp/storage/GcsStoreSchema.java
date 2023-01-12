@@ -18,10 +18,14 @@ public class GcsStoreSchema {
     public static final String TYPE = "GoogleCloudStorage";
     public static final String BUCKET_NAME = "bucket_name";
     public static final String LOCATION = "location";
+    public static final String PROJECT_ID = "project_id";
     public static final String STORAGE_CLASS = "storage_class";
     public static final String SERVICE_ACCOUNT_NAME = "service_account_name";
     public static final String SERVICE_ACCOUNT_EMAIL = "service_account_email";
     public static final String BLOB_NAME = "blob_name";
+    public static final String SERVICE_ACCOUNT_KEY_NAME = "service_account_key_name";
+    public static final String SERVICE_ACCOUNT_KEY_VALUE = "service_account_value";
+
 
     private GcsStoreSchema() {
     }

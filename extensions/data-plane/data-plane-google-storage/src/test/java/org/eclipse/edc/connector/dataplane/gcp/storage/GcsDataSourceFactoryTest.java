@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.gcp.storage;
 
+import org.eclipse.edc.gcp.common.GcpCredentials;
 import org.eclipse.edc.gcp.storage.GcsStoreSchema;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class GcsDataSourceFactoryTest {
     Monitor monitor = mock(Monitor.class);
 
     private final GcsDataSourceFactory factory =
-            new GcsDataSourceFactory(monitor);
+            new GcsDataSourceFactory(monitor, mock(GcpCredentials.class));
 
     @Test
     void canHandle_returnsTrueWhenExpectedType() {

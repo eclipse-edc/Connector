@@ -15,19 +15,32 @@
 package org.eclipse.edc.connector.provision.gcp;
 
 import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Objects;
 
 public class GcsResourceDefinition extends ResourceDefinition {
 
+    private DataAddress dataAddress;
     private String location;
+
+    private String projectId;
     private String storageClass;
+
 
     private GcsResourceDefinition() {
     }
 
+    public DataAddress getDataAddress() {
+        return dataAddress;
+    }
+
     public String getLocation() {
         return this.location;
+    }
+
+    public String getProjectId() {
+        return this.projectId;
     }
 
     public String getStorageClass() {
@@ -37,7 +50,9 @@ public class GcsResourceDefinition extends ResourceDefinition {
     @Override
     public Builder toBuilder() {
         return initializeBuilder(new Builder())
+                .dataAddress(dataAddress)
                 .location(location)
+                .projectId(projectId)
                 .storageClass(storageClass);
     }
 
@@ -51,8 +66,18 @@ public class GcsResourceDefinition extends ResourceDefinition {
             return new Builder();
         }
 
+        public Builder dataAddress(DataAddress dataAddress) {
+            resourceDefinition.dataAddress = dataAddress;
+            return this;
+        }
+
         public Builder location(String location) {
             resourceDefinition.location = location;
+            return this;
+        }
+
+        public Builder projectId(String projectId) {
+            resourceDefinition.projectId = projectId;
             return this;
         }
 

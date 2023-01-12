@@ -23,6 +23,8 @@ dependencies {
     implementation(libs.googlecloud.iam.admin)
     implementation(libs.googlecloud.storage)
     implementation(libs.googlecloud.iam.credentials)
+
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

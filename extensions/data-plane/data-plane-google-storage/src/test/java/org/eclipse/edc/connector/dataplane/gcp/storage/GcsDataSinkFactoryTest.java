@@ -14,10 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.gcp.storage;
 
+import org.eclipse.edc.gcp.common.GcpCredentials;
 import org.eclipse.edc.gcp.storage.GcsStoreSchema;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -37,9 +36,7 @@ class GcsDataSinkFactoryTest {
     private final GcsDataSinkFactory factory = new GcsDataSinkFactory(
             mock(ExecutorService.class),
             mock(Monitor.class),
-            mock(Vault.class),
-            new TypeManager()
-    );
+            mock(GcpCredentials.class));
 
     @Test
     void canHandle_returnsTrueWhenExpectedType() {
