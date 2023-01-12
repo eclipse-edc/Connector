@@ -136,7 +136,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     @NotNull
     private ZonedDateTime getContractEndtime(ContractDefinition definition) {
 
-        var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(ZoneOffset.UTC);
+        var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(clock.getZone());
         try {
             contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
         } catch (ArithmeticException exception) {
