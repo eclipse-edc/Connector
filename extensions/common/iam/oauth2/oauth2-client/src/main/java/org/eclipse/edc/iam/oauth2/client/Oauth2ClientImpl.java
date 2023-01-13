@@ -70,7 +70,9 @@ public class Oauth2ClientImpl implements Oauth2Client {
 
     private static FormBody createRequestBody(Oauth2CredentialsRequest request) {
         var builder = new FormBody.Builder();
-        request.getParams().forEach(builder::add);
+        request.getParams().entrySet().stream()
+                .filter(entry -> entry.getValue() != null)
+                .forEach(entry -> builder.add(entry.getKey(), entry.getValue()));
         return builder.build();
     }
 

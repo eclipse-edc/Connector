@@ -20,4 +20,5 @@ public interface Oauth2DataAddressSchema {
     String TOKEN_URL = "oauth2:tokenUrl";
     String VALIDITY = "oauth2:validity";
     String PRIVATE_KEY_NAME = "oauth2:privateKeyName";
+    String SCOPE = "oauth2:scope";
 }

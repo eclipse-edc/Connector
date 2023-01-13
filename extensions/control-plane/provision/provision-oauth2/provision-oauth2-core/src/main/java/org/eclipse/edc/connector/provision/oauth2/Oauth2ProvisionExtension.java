@@ -57,7 +57,8 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
         resourceManifestGenerator.registerGenerator(new Oauth2ProviderResourceDefinitionGenerator());
         resourceManifestGenerator.registerGenerator(new Oauth2ConsumerResourceDefinitionGenerator());
 
-        provisionManager.register(new Oauth2Provisioner(client, privateKeyResolver, clock));
+        var requestFactory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock);
+        provisionManager.register(new Oauth2Provisioner(client, requestFactory));
     }
 
 }
