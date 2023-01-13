@@ -41,6 +41,7 @@ public class HttpDataAddress extends DataAddress {
 
     private static final String NAME = "name";
     private static final String PATH = "path";
+    private static final String QUERY_PARAMS = "queryParams";
     private static final String METHOD = "method";
     private static final String BASE_URL = "baseUrl";
     private static final String AUTH_KEY = "authKey";
@@ -74,6 +75,11 @@ public class HttpDataAddress extends DataAddress {
     @JsonIgnore
     public String getPath() {
         return getProperty(PATH);
+    }
+
+    @JsonIgnore
+    public String getQueryParams() {
+        return getProperty(QUERY_PARAMS);
     }
 
     @JsonIgnore
@@ -161,6 +167,11 @@ public class HttpDataAddress extends DataAddress {
 
         public Builder path(String path) {
             this.property(PATH, path);
+            return this;
+        }
+
+        public Builder queryParams(String queryParams) {
+            this.property(QUERY_PARAMS, queryParams);
             return this;
         }
 

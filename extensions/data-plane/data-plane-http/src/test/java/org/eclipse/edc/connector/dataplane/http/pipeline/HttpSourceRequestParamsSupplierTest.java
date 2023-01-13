@@ -121,8 +121,8 @@ class HttpSourceRequestParamsSupplierTest {
     }
 
     @Test
-    void extractQueryParams() {
-        var queryParams = "test-queryparams";
+    void extractQueryParams_onlyInRequest() {
+        var queryParams = "foo=bar&hello=world";
         var address = HttpDataAddress.Builder.newInstance()
                 .proxyQueryParams(Boolean.TRUE.toString())
                 .build();
@@ -134,11 +134,38 @@ class HttpSourceRequestParamsSupplierTest {
     }
 
     @Test
-    void extractQueryParamsEmpty() {
+    void extractQueryParams_onlyInDataAddress() {
+        var queryParams = "foo=bar&hello=world";
         var address = HttpDataAddress.Builder.newInstance()
+                .queryParams(queryParams)
                 .proxyQueryParams(Boolean.TRUE.toString())
                 .build();
-        var request = createRequest(address);
+        var request = createRequest(address, Map.of());
+
+        var result = supplier.extractQueryParams(address, request);
+
+        assertThat(result).isEqualTo(queryParams);
+    }
+
+    @Test
+    void extractQueryParams_dataAddressAndRequest() {
+        var queryParams = "foo=bar";
+        var address = HttpDataAddress.Builder.newInstance()
+                .queryParams(queryParams)
+                .proxyQueryParams(Boolean.TRUE.toString())
+                .build();
+        var request = createRequest(address, Map.of(DataFlowRequestSchema.QUERY_PARAMS, "hello=world"));
+
+        var result = supplier.extractQueryParams(address, request);
+
+        assertThat(result).isEqualTo("foo=bar&hello=world");
+    }
+
+    @Test
+    void extractQueryParamsFilteredByProxy() {
+        var queryParams = "foo=bar&hello=world";
+        var address = HttpDataAddress.Builder.newInstance().build();
+        var request = createRequest(address, Map.of(DataFlowRequestSchema.QUERY_PARAMS, queryParams));
 
         var result = supplier.extractQueryParams(address, request);
 
@@ -146,12 +173,13 @@ class HttpSourceRequestParamsSupplierTest {
     }
 
     @Test
-    void extractQueryParamsFilteredByProxy() {
-        var queryParams = "test-queryparams";
-        var address = HttpDataAddress.Builder.newInstance().build();
-        var request = createRequest(address, Map.of(DataFlowRequestSchema.QUERY_PARAMS, queryParams));
+    void extractQueryParamsEmpty() {
+        var address = HttpDataAddress.Builder.newInstance()
+                .proxyQueryParams(Boolean.TRUE.toString())
+                .build();
+        var request = createRequest(address);
 
-        var result = supplier.extractPath(address, request);
+        var result = supplier.extractQueryParams(address, request);
 
         assertThat(result).isNull();
     }
