@@ -117,6 +117,9 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private PolicyEngine policyEngine;
 
+    @Inject
+    private TypeManager typeManager;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -129,8 +132,6 @@ public class TransferCoreExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         var telemetry = context.getTelemetry();
-
-        var typeManager = context.getTypeManager();
 
         registerTypes(typeManager);
 

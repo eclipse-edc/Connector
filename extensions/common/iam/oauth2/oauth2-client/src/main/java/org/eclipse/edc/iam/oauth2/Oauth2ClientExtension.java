@@ -22,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 @Extension(value = Oauth2ClientExtension.NAME)
 public class Oauth2ClientExtension implements ServiceExtension {
@@ -31,6 +32,9 @@ public class Oauth2ClientExtension implements ServiceExtension {
     @Inject
     private EdcHttpClient httpClient;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -38,6 +42,6 @@ public class Oauth2ClientExtension implements ServiceExtension {
 
     @Provider
     public Oauth2Client oauth2Client(ServiceExtensionContext context) {
-        return new Oauth2ClientImpl(httpClient, context.getTypeManager());
+        return new Oauth2ClientImpl(httpClient, typeManager);
     }
 }

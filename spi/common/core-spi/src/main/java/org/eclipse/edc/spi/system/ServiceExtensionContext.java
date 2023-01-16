@@ -56,7 +56,10 @@ public interface ServiceExtensionContext extends SettingResolver {
 
     /**
      * Returns the type manager.
+     *
+     * @deprecated please @Inject this service instead of using this method, because it will be removed in the next releases.
      */
+    @Deprecated(since = "milestone8")
     default TypeManager getTypeManager() {
         return getService(TypeManager.class);
     }

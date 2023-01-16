@@ -102,6 +102,9 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     @Inject(required = false)
     private ControlPlaneApiUrl callbackUrl;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -110,9 +113,9 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var tokenValidationService = createTokenValidationService();
-        webService.registerResource(getApiContext(context), new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, context.getTypeManager()));
+        webService.registerResource(getApiContext(context), new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager));
 
-        var proxyReferenceService = createDataProxyReferenceService(context.getConfig(), context.getTypeManager());
+        var proxyReferenceService = createDataProxyReferenceService(context.getConfig(), typeManager);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(context.getConnectorId(), proxyResolver, proxyReferenceService, dispatcherRegistry));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, dataPlaneClient));
 

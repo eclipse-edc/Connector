@@ -29,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.SettingResolver;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -66,9 +67,8 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    private static String requiredSetting(SettingResolver context, String s) {
-        return Objects.requireNonNull(context.getSetting(s, null), s);
-    }
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public String name() {
@@ -100,7 +100,7 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
                 keyVaultLinkedService,
                 keyVaultClient,
                 dataFactoryClient,
-                context.getTypeManager());
+                typeManager);
         var pollDelay = Duration.ofMillis(context.getSetting(DATA_FACTORY_POLL_DELAY, 5000L));
         var transferManager = new AzureDataFactoryTransferManager(
                 monitor,
@@ -109,12 +109,16 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
                 maxDuration,
                 clock,
                 blobStoreApi,
-                context.getTypeManager(),
+                typeManager,
                 keyVaultClient,
                 pollDelay);
         var transferService = new AzureDataFactoryTransferService(
                 validator,
                 transferManager);
         registry.registerTransferService(transferService);
+    }
+
+    private String requiredSetting(SettingResolver context, String s) {
+        return Objects.requireNonNull(context.getSetting(s, null), s);
     }
 }

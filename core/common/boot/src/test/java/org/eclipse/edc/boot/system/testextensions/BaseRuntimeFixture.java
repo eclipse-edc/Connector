@@ -22,7 +22,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -80,8 +79,8 @@ public class BaseRuntimeFixture extends BaseRuntime {
     }
 
     @Override
-    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        var ctx = super.createContext(typeManager, monitor, telemetry);
+    protected @NotNull ServiceExtensionContext createContext(Monitor monitor, Telemetry telemetry) {
+        var ctx = super.createContext(monitor, telemetry);
         ctx.registerService(HealthCheckService.class, healthCheckService);
         return ctx;
     }

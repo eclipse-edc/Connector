@@ -49,6 +49,9 @@ public class AzureProvisionExtension implements ServiceExtension {
     @Inject
     private StatusCheckerRegistry statusCheckerRegistry;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return "Azure Provision";
@@ -67,7 +70,7 @@ public class AzureProvisionExtension implements ServiceExtension {
 
         statusCheckerRegistry.register(AzureBlobStoreSchema.TYPE, new ObjectContainerStatusChecker(blobStoreApi, retryPolicy));
 
-        registerTypes(context.getTypeManager());
+        registerTypes(typeManager);
     }
 
     private void registerTypes(TypeManager typeManager) {

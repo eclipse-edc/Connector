@@ -19,6 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.validation.ResourceInterceptorBinder;
 import org.eclipse.edc.web.jersey.validation.ResourceInterceptorProvider;
 import org.eclipse.edc.web.jetty.JettyService;
@@ -31,6 +32,10 @@ public class JerseyExtension implements ServiceExtension {
 
     @Inject
     private JettyService jettyService;
+
+    @Inject
+    private TypeManager typeManager;
+
     private ResourceInterceptorProvider provider;
 
     @Override
@@ -41,7 +46,6 @@ public class JerseyExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var typeManager = context.getTypeManager();
 
         var configuration = JerseyConfiguration.from(context);
 

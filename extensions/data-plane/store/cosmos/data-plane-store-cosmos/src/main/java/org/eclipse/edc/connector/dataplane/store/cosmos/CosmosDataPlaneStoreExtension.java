@@ -55,7 +55,7 @@ public class CosmosDataPlaneStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        context.getTypeManager().registerTypes(DataFlowRequestDocument.class);
+        typeManager.registerTypes(DataFlowRequestDocument.class);
     }
 
     @Provider

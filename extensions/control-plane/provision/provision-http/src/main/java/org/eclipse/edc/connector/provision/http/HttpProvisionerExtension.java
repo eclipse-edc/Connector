@@ -29,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import static java.lang.String.format;
 
@@ -53,6 +54,9 @@ public class HttpProvisionerExtension implements ServiceExtension {
     @Inject
     private HttpProvisionerWebhookUrl callbackUrl;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -63,11 +67,9 @@ public class HttpProvisionerExtension implements ServiceExtension {
 
         var configurations = ConfigParser.parseConfigurations(context.getConfig());
 
-        var typeManager = context.getTypeManager();
         var monitor = context.getMonitor();
 
         for (var configuration : configurations) {
-
             var provisioner = new HttpProviderProvisioner(configuration, callbackUrl.get(), policyEngine, httpClient, typeManager.getMapper(), monitor);
 
             if (configuration.getProvisionerType() == ProvisionerConfiguration.ProvisionerType.PROVIDER) {

@@ -42,6 +42,7 @@ public class CosmosPolicyStoreExtension implements ServiceExtension {
 
     @Inject
     private Monitor monitor;
+
     @Inject
     private CosmosClientProvider clientProvider;
 
@@ -61,7 +62,7 @@ public class CosmosPolicyStoreExtension implements ServiceExtension {
         var store = new CosmosPolicyDefinitionStore(cosmosDbApi, typeManager, retryPolicy, configuration.getPartitionKey(), monitor);
         context.registerService(PolicyDefinitionStore.class, store);
 
-        context.getTypeManager().registerTypes(PolicyDocument.class);
+        typeManager.registerTypes(PolicyDocument.class);
 
         context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 

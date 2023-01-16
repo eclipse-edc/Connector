@@ -28,7 +28,6 @@ import org.eclipse.edc.spi.system.SystemExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
@@ -130,8 +129,8 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     }
 
     @Override
-    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        context = new TestServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions(), serviceMocks);
+    protected @NotNull ServiceExtensionContext createContext(Monitor monitor, Telemetry telemetry) {
+        context = new TestServiceExtensionContext(monitor, telemetry, loadConfigurationExtensions(), serviceMocks);
         return context;
     }
 

@@ -49,6 +49,9 @@ public class AwsProvisionExtension implements ServiceExtension {
     @Inject
     private AwsClientProvider clientProvider;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -75,7 +78,7 @@ public class AwsProvisionExtension implements ServiceExtension {
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
         statusCheckerReg.register(S3BucketSchema.TYPE, new S3StatusChecker(clientProvider, retryPolicy));
 
-        registerTypes(context.getTypeManager());
+        registerTypes(typeManager);
     }
 
     @Override

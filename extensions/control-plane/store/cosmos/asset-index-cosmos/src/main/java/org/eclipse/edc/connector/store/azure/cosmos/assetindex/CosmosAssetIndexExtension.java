@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.types.TypeManager;
 
 /**
  * Provides a persistent implementation of the {@link AssetIndex} using CosmosDB.
@@ -41,6 +42,9 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
     @Inject
     private CosmosClientProvider clientProvider;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -52,13 +56,13 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
 
         var client = clientProvider.createClient(vault, configuration);
         var cosmosDbApi = new CosmosDbApiImpl(configuration, client);
-        var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class), context.getMonitor());
+        var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), typeManager, context.getService(RetryPolicy.class), context.getMonitor());
         context.registerService(AssetIndex.class, assetIndex);
         context.registerService(DataAddressResolver.class, assetIndex);
 
         context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 
-        context.getTypeManager().registerTypes(AssetDocument.class);
+        typeManager.registerTypes(AssetDocument.class);
     }
 
 }

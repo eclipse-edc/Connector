@@ -33,7 +33,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.EdcInjectionException;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -296,7 +295,7 @@ class ExtensionLoaderTest {
         when(defaultProvider.testObject()).thenCallRealMethod();
 
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(mock(Monitor.class), null, List.of());
 
         var list = TestFunctions.createInjectionContainers(TestFunctions.createList(defaultProvider, dependentExtension), context);
 
@@ -315,7 +314,7 @@ class ExtensionLoaderTest {
         var nonDefaultProvider = (ProviderExtension) Mockito.spy(TestFunctions.createProviderExtension(false));
         when(nonDefaultProvider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(mock(Monitor.class), null, List.of());
 
         var list = TestFunctions.createInjectionContainers(TestFunctions.createList(defaultProvider, dependentExtension, nonDefaultProvider), context);
 
@@ -333,7 +332,7 @@ class ExtensionLoaderTest {
         var nonDefaultProvider = (ProviderExtension) Mockito.spy(TestFunctions.createProviderExtension(false));
         when(nonDefaultProvider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(mock(Monitor.class), null, List.of());
 
         var list = TestFunctions.createInjectionContainers(TestFunctions.createList(dependentExtension, nonDefaultProvider), context);
 
@@ -350,7 +349,7 @@ class ExtensionLoaderTest {
         var defaultProvider = (ProviderDefaultServicesExtension) Mockito.spy(TestFunctions.createProviderExtension(true));
         when(defaultProvider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(mock(Monitor.class), null, List.of());
 
         var list = TestFunctions.createInjectionContainers(TestFunctions.createList(dependentExtension, defaultProvider), context);
 
@@ -371,7 +370,7 @@ class ExtensionLoaderTest {
         var provider = (ProviderExtension) Mockito.spy(TestFunctions.createProviderExtension(false));
         when(provider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(mock(Monitor.class), null, List.of());
 
         var list = TestFunctions.createInjectionContainers(TestFunctions.createList(dependentExtension, defaultProvider, provider), context);
 

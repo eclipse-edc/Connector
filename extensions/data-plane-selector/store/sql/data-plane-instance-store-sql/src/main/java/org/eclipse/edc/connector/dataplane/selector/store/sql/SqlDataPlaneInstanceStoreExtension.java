@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -47,15 +48,17 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
     @Inject(required = false)
     private DataPlaneInstanceStatements statements;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
     }
 
-
     @Provider
     public DataPlaneInstanceStore dataPlaneInstanceStore(ServiceExtensionContext context) {
-        return new SqlDataPlaneInstanceStore(dataSourceRegistry, getDataSourceName(context), transactionContext, statements, context.getTypeManager().getMapper());
+        return new SqlDataPlaneInstanceStore(dataSourceRegistry, getDataSourceName(context), transactionContext, statements, typeManager.getMapper());
     }
 
     /**

@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -47,9 +48,12 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
     @Inject(required = false)
     private TransferProcessStoreStatements statements;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var store = new SqlTransferProcessStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager().getMapper(), getStatementImpl(), context.getConnectorId(), clock);
+        var store = new SqlTransferProcessStore(dataSourceRegistry, getDataSourceName(context), trxContext, typeManager.getMapper(), getStatementImpl(), context.getConnectorId(), clock);
         context.registerService(TransferProcessStore.class, store);
     }
 
