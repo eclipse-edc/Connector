@@ -58,6 +58,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
 
@@ -120,6 +121,9 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private Telemetry telemetry;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -130,8 +134,6 @@ public class TransferCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-
-        var telemetry = context.getTelemetry();
 
         registerTypes(typeManager);
 

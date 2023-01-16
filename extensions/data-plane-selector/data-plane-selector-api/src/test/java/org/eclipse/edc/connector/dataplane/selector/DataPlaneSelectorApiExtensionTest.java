@@ -27,7 +27,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +86,7 @@ class DataPlaneSelectorApiExtensionTest {
 
     @NotNull
     private DefaultServiceExtensionContext contextWithConfig(Config config) {
-        var context = new DefaultServiceExtensionContext(monitor, mock(Telemetry.class), List.of(() -> config));
+        var context = new DefaultServiceExtensionContext(monitor, List.of(() -> config));
         context.initialize();
         return context;
     }

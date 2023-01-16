@@ -18,7 +18,6 @@ import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,8 +39,8 @@ import static java.util.Optional.ofNullable;
 public class TestServiceExtensionContext extends DefaultServiceExtensionContext {
     private final LinkedHashMap<Class<?>, Object> serviceMocks;
 
-    public TestServiceExtensionContext(Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions, LinkedHashMap<Class<?>, Object> serviceMocks) {
-        super(monitor, telemetry, configurationExtensions);
+    public TestServiceExtensionContext(Monitor monitor, List<ConfigurationExtension> configurationExtensions, LinkedHashMap<Class<?>, Object> serviceMocks) {
+        super(monitor, configurationExtensions);
         this.serviceMocks = serviceMocks;
     }
 

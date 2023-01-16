@@ -21,33 +21,22 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
 public class BaseRuntimeFixture extends BaseRuntime {
 
-
     private final Monitor monitor;
     private final List<ServiceExtension> extensions;
 
     private final HealthCheckService healthCheckService = mock(HealthCheckService.class);
 
-    private final Telemetry telemetry = mock(Telemetry.class);
-
-    public BaseRuntimeFixture(Monitor monitor) {
-        this(monitor, new ArrayList<>());
-    }
-
     public BaseRuntimeFixture(Monitor monitor, List<ServiceExtension> extensions) {
         this.monitor = monitor;
         this.extensions = extensions;
-
-
     }
 
     public void start() {
@@ -56,11 +45,6 @@ public class BaseRuntimeFixture extends BaseRuntime {
 
     public void stop() {
         super.shutdown();
-    }
-
-    @Override
-    protected @NotNull Telemetry createTelemetry() {
-        return telemetry;
     }
 
     @Override
@@ -79,8 +63,8 @@ public class BaseRuntimeFixture extends BaseRuntime {
     }
 
     @Override
-    protected @NotNull ServiceExtensionContext createContext(Monitor monitor, Telemetry telemetry) {
-        var ctx = super.createContext(monitor, telemetry);
+    protected @NotNull ServiceExtensionContext createContext(Monitor monitor) {
+        var ctx = super.createContext(monitor);
         ctx.registerService(HealthCheckService.class, healthCheckService);
         return ctx;
     }

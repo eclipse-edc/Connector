@@ -21,6 +21,7 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -33,6 +34,7 @@ class DataPlaneClientExtensionTest {
     @Test
     void verifyReturnEmbeddedClient(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataPlaneManager.class, mock(DataPlaneManager.class));
+        context.registerService(TypeManager.class, new TypeManager());
 
         var extension = factory.constructInstance(DataPlaneClientExtension.class);
 
@@ -46,6 +48,7 @@ class DataPlaneClientExtensionTest {
         context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
         context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
         context.registerService(DataPlaneSelectorClient.class, mock(DataPlaneSelectorClient.class));
+        context.registerService(TypeManager.class, new TypeManager());
 
         var extension = factory.constructInstance(DataPlaneClientExtension.class);
 

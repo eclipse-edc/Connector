@@ -34,6 +34,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -75,6 +76,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
+    @Inject
+    private Telemetry telemetry;
+
     @Override
     public String name() {
         return NAME;
@@ -98,8 +102,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var executorContainer = new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
         context.registerService(DataTransferExecutorServiceContainer.class, executorContainer);
-
-        var telemetry = context.getTelemetry();
 
         var queueCapacity = context.getSetting(QUEUE_CAPACITY, DEFAULT_QUEUE_CAPACITY);
         var workers = context.getSetting(WORKERS, DEFAULT_WORKERS);

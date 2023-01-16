@@ -27,6 +27,7 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,7 @@ class DataPlaneFrameworkExtensionTest {
     public void setUp(ServiceExtensionContext context) {
         when(transferService1.canHandle(request)).thenReturn(true);
         when(transferService2.canHandle(request)).thenReturn(true);
+        context.registerService(Telemetry.class, mock(Telemetry.class));
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
         context.registerService(TransferProcessApiClient.class, new NoopTransferProcessClient());
     }

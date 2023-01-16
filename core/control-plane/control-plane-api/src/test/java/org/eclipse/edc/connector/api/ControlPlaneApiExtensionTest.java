@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
@@ -70,6 +71,7 @@ class ControlPlaneApiExtensionTest {
         context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
         context.registerService(WebServiceConfigurer.class, webServiceConfigurer);
         context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(webServiceConfiguration));
+        context.registerService(TypeManager.class, mock(TypeManager.class));
 
         this.context = spy(context); //used to inject the config
         when(this.context.getMonitor()).thenReturn(monitor);

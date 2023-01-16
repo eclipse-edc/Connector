@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
@@ -49,10 +50,12 @@ public class FileTransferExtension implements ServiceExtension {
     @Inject
     private PolicyDefinitionStore policyStore;
 
+    @Inject
+    private Telemetry telemetry;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var telemetry = context.getTelemetry();
 
         var sourceFactory = new FileTransferDataSourceFactory();
         pipelineService.registerFactory(sourceFactory);

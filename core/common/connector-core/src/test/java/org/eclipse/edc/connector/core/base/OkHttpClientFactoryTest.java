@@ -26,7 +26,6 @@ import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -94,7 +93,7 @@ class OkHttpClientFactoryTest {
 
     @NotNull
     private DefaultServiceExtensionContext createContextWithConfig(Map<String, String> config) {
-        var context = new DefaultServiceExtensionContext(monitor, mock(Telemetry.class), List.of(() -> ConfigFactory.fromMap(config)));
+        var context = new DefaultServiceExtensionContext(monitor, List.of(() -> ConfigFactory.fromMap(config)));
         context.initialize();
         return context;
     }

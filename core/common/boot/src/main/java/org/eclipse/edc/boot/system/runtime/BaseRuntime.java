@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ import static java.lang.String.format;
  * the connector. It goes through the following steps, all of which are overridable:
  * <ul>
  *     <li>{@link BaseRuntime#createMonitor()} : instantiates a new {@link Monitor}</li>
- *     <li>{@link BaseRuntime#createContext(Monitor, Telemetry)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
+ *     <li>{@link BaseRuntime#createContext(Monitor)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
  *     <li>{@link BaseRuntime#createExtensions(ServiceExtensionContext)}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ExtensionLoader#loadServiceExtensions(ServiceExtensionContext)}</li>
  *     <li>{@link BaseRuntime#bootExtensions(ServiceExtensionContext, List)}: initializes the service extensions by putting them through their lifecycle.
  *     By default this calls {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)} </li>
@@ -97,20 +96,13 @@ public class BaseRuntime {
         monitor = createMonitor();
         MonitorProvider.setInstance(monitor);
 
-        var telemetry = createTelemetry();
-
-        var context = createContext(monitor, telemetry);
+        var context = createContext(monitor);
         initializeContext(context);
         return context;
     }
 
-    @NotNull
-    protected Telemetry createTelemetry() {
-        return ExtensionLoader.loadTelemetry();
-    }
-
     /**
-     * Initializes the context. If {@link BaseRuntime#createContext(Monitor, Telemetry)} is overridden and the (custom) context
+     * Initializes the context. If {@link BaseRuntime#createContext(Monitor)} is overridden and the (custom) context
      * needs to be initialized, this method should be overridden as well.
      *
      * @param context The context.
@@ -167,8 +159,8 @@ public class BaseRuntime {
      * @return a {@code ServiceExtensionContext}
      */
     @NotNull
-    protected ServiceExtensionContext createContext(Monitor monitor, Telemetry telemetry) {
-        return new DefaultServiceExtensionContext(monitor, telemetry, loadConfigurationExtensions());
+    protected ServiceExtensionContext createContext(Monitor monitor) {
+        return new DefaultServiceExtensionContext(monitor, loadConfigurationExtensions());
     }
 
     protected List<ConfigurationExtension> loadConfigurationExtensions() {

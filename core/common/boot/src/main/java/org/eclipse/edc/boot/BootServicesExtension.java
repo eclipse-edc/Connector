@@ -14,13 +14,16 @@
 
 package org.eclipse.edc.boot;
 
+import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
+
 
 @BaseExtension
 @Extension(value = BootServicesExtension.NAME)
@@ -36,5 +39,10 @@ public class BootServicesExtension implements ServiceExtension {
     @Provider
     public Clock clock() {
         return Clock.systemUTC();
+    }
+
+    @Provider
+    public Telemetry telemetry() {
+        return ExtensionLoader.loadTelemetry();
     }
 }

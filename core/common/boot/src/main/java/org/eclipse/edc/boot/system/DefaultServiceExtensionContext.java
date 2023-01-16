@@ -21,9 +21,7 @@ import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 
-import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +40,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private String connectorId;
     private Config config;
 
-    public DefaultServiceExtensionContext(Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
+    public DefaultServiceExtensionContext(Monitor monitor, List<ConfigurationExtension> configurationExtensions) {
         this.configurationExtensions = configurationExtensions;
-        // register as services
+        // register as service
         registerService(Monitor.class, monitor);
-        registerService(Telemetry.class, telemetry);
     }
 
     @Override
