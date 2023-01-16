@@ -121,7 +121,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         var certificate = Optional.ofNullable(configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias()))
                 .orElseThrow(() -> new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias()));
         var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
-        jwtDecoratorRegistry.register(new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), context.getClock(), configuration.getTokenExpiration()));
+        jwtDecoratorRegistry.register(new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), clock, configuration.getTokenExpiration()));
         jwtDecoratorRegistry.register(new X509CertificateDecorator(certificate));
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 

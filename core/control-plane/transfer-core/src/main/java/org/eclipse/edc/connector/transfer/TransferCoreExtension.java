@@ -165,7 +165,6 @@ public class TransferCoreExtension implements ServiceExtension {
 
         var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, 7);
         var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, 100L);
-        Clock clock = context.getClock();
         var sendRetryManager = new EntitySendRetryManager(monitor, () -> new ExponentialWaitStrategy(retryBaseDelay), clock, retryLimit);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()

@@ -47,7 +47,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         // register as services
         registerService(Monitor.class, monitor);
         registerService(Telemetry.class, telemetry);
-        registerService(Clock.class, Clock.systemUTC());
     }
 
     @Override
