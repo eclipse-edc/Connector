@@ -22,8 +22,10 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
@@ -41,11 +43,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.SCOPE;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.VALIDITY;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -54,10 +59,34 @@ class Oauth2CredentialsRequestFactoryTest {
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
     private final PrivateKeyResolver privateKeyResolver = mock(PrivateKeyResolver.class);
-    private final Oauth2CredentialsRequestFactory factory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock);
+    private final Vault vault = mock(Vault.class);
+    private final Monitor monitor = mock(Monitor.class);
+    private final Oauth2CredentialsRequestFactory factory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault, monitor);
 
     @Test
-    void shouldCreateSharedSecretRequest_whenPrivateKeyNameIsAbsent() {
+    void shouldCreateSharedSecretRequestWithKey_whenPrivateKeyNameIsAbsent() {
+        when(vault.resolveSecret("clientSecretKey")).thenReturn("clientSecret");
+        var address = defaultAddress()
+                .property(CLIENT_SECRET_KEY, "clientSecretKey")
+                .property(SCOPE, "scope")
+                .build();
+
+        var result = factory.create(createResourceDefinition(address));
+
+        assertThat(result).matches(Result::succeeded).extracting(Result::getContent)
+                .asInstanceOf(type(SharedSecretOauth2CredentialsRequest.class))
+                .satisfies(request -> {
+                    assertThat(request.getGrantType()).isEqualTo("client_credentials");
+                    assertThat(request.getClientId()).isEqualTo("clientId");
+                    assertThat(request.getClientSecret()).isEqualTo("clientSecret");
+                    assertThat(request.getUrl()).isEqualTo("http://oauth2-server.com/token");
+                    assertThat(request.getScope()).isEqualTo("scope");
+                });
+        verifyNoInteractions(privateKeyResolver);
+    }
+
+    @Test
+    void shouldCreateSharedSecretRequest_whenPrivateKeyNameIsAbsentAndSecret_deprecated() {
         var address = defaultAddress()
                 .property(CLIENT_SECRET, "clientSecret")
                 .property(SCOPE, "scope")
@@ -75,6 +104,20 @@ class Oauth2CredentialsRequestFactoryTest {
                     assertThat(request.getScope()).isEqualTo("scope");
                 });
         verifyNoInteractions(privateKeyResolver);
+        verify(monitor).warning(anyString());
+    }
+
+    @Test
+    void shouldFail_whenClientSecretCannotBeObtained() {
+        when(vault.resolveSecret("clientSecretKey")).thenReturn(null);
+        var address = defaultAddress()
+                .property(CLIENT_SECRET_KEY, "clientSecretKey")
+                .property(SCOPE, "scope")
+                .build();
+
+        var result = factory.create(createResourceDefinition(address));
+
+        assertThat(result).matches(Result::failed);
     }
 
     @Test

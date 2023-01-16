@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.SCOPE;
 import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
@@ -61,9 +62,21 @@ public class Oauth2ResourceDefinition extends ResourceDefinition {
         return dataAddress.getProperty(CLIENT_ID);
     }
 
+    /**
+     * The client secret shouldn't be stored in the data address anymore, please store the key and then put the value
+     * into the Vault
+     *
+     * @deprecated use getClientSecretKey instead
+     */
+    @Deprecated(since = "milestone8")
     @Nullable
     public String getClientSecret() {
         return dataAddress.getProperty(CLIENT_SECRET);
+    }
+
+    @Nullable
+    public String getClientSecretKey() {
+        return dataAddress.getProperty(CLIENT_SECRET_KEY);
     }
 
     @Nullable

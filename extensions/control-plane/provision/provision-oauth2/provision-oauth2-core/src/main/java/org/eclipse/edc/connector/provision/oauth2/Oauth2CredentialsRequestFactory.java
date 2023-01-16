@@ -20,12 +20,15 @@ import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
 import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
+import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.PrivateKey;
 import java.time.Clock;
+import java.util.Optional;
 
 /**
  * Factory class that provides methods to build {@link Oauth2CredentialsRequest} instances
@@ -35,10 +38,14 @@ public class Oauth2CredentialsRequestFactory {
     private static final String GRANT_CLIENT_CREDENTIALS = "client_credentials";
     private final PrivateKeyResolver privateKeyResolver;
     private final Clock clock;
+    private final Vault vault;
+    private Monitor monitor;
 
-    public Oauth2CredentialsRequestFactory(PrivateKeyResolver privateKeyResolver, Clock clock) {
+    public Oauth2CredentialsRequestFactory(PrivateKeyResolver privateKeyResolver, Clock clock, Vault vault, Monitor monitor) {
         this.privateKeyResolver = privateKeyResolver;
         this.clock = clock;
+        this.vault = vault;
+        this.monitor = monitor;
     }
 
     /**
@@ -67,11 +74,25 @@ public class Oauth2CredentialsRequestFactory {
 
     @NotNull
     private Result<Oauth2CredentialsRequest> createSharedSecretRequest(Oauth2ResourceDefinition resourceDefinition) {
+        var clientSecret = Optional.of(resourceDefinition)
+                .map(Oauth2ResourceDefinition::getClientSecretKey)
+                .map(vault::resolveSecret)
+                .orElseGet(() -> {
+                    monitor.warning("provision-oauth2: storing the client_secret into the DataAddress " +
+                            "oauth2:clientSecret property has been deprecated, please store it in the Vault and use the " +
+                            "oauth2:clientSecretKey property to reference it");
+                    return resourceDefinition.getClientSecret();
+                });
+
+        if (clientSecret == null) {
+            return Result.failure("Cannot resolve client secret from the vault: " + resourceDefinition.getClientSecretKey());
+        }
+
         return Result.success(SharedSecretOauth2CredentialsRequest.Builder.newInstance()
                 .url(resourceDefinition.getTokenUrl())
                 .grantType(GRANT_CLIENT_CREDENTIALS)
                 .clientId(resourceDefinition.getClientId())
-                .clientSecret(resourceDefinition.getClientSecret())
+                .clientSecret(clientSecret)
                 .scope(resourceDefinition.getScope())
                 .build());
     }
