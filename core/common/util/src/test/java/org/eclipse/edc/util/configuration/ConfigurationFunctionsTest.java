@@ -16,9 +16,11 @@ package org.eclipse.edc.util.configuration;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junitpioneer.jupiter.ClearEnvironmentVariable;
 import org.junitpioneer.jupiter.ClearSystemProperty;
 import org.junitpioneer.jupiter.SetEnvironmentVariable;
@@ -51,7 +53,7 @@ class ConfigurationFunctionsTest {
     }
 
     @ParameterizedTest
-    @MethodSource("propertiesSource")
+    @ArgumentsSource(PropertiesSource.class)
     @SetSystemProperty(key = SYS_PROP_1, value = VALUE_1)
     @SetSystemProperty(key = SYS_PROP_2, value = "")
     @SetSystemProperty(key = SYS_PROP_3, value = "    ")
@@ -61,10 +63,10 @@ class ConfigurationFunctionsTest {
     }
 
     @ParameterizedTest
+    @ArgumentsSource(EnvVarsSource.class)
     @SetEnvironmentVariable(key = ENV_VAR_1, value = VALUE_1)
     @SetEnvironmentVariable(key = ENV_VAR_2, value = "")
     @SetEnvironmentVariable(key = EDC_VAR_3, value = "    ")
-    @MethodSource("envVarsSource")
     public void returnEnv(String key, String expected) {
         String resultValue = ConfigurationFunctions.propOrEnv(key, DEFAULT);
         assertThat(resultValue).isEqualTo(expected);
@@ -76,20 +78,28 @@ class ConfigurationFunctionsTest {
         assertThat(resultValue).isEqualTo(DEFAULT);
     }
 
-    private static Stream<Arguments> propertiesSource() {
-        return Stream.of(
-                Arguments.of(SYS_PROP_1, VALUE_1),
-                Arguments.of(SYS_PROP_2, DEFAULT),
-                Arguments.of(SYS_PROP_3, DEFAULT)
-        );
+    private static class PropertiesSource implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(SYS_PROP_1, VALUE_1),
+                    Arguments.of(SYS_PROP_2, DEFAULT),
+                    Arguments.of(SYS_PROP_3, DEFAULT)
+            );
+        }
     }
 
-    private static Stream<Arguments> envVarsSource() {
-        return Stream.of(
-                Arguments.of(ENV_VAR_1, VALUE_1),
-                Arguments.of(SYS_PROP_1, VALUE_1),
-                Arguments.of(ENV_VAR_2, DEFAULT),
-                Arguments.of(EDC_VAR_3, DEFAULT)
-        );
+    private static class EnvVarsSource implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(ENV_VAR_1, VALUE_1),
+                    Arguments.of(SYS_PROP_1, VALUE_1),
+                    Arguments.of(ENV_VAR_2, DEFAULT),
+                    Arguments.of(EDC_VAR_3, DEFAULT)
+            );
+        }
     }
 }

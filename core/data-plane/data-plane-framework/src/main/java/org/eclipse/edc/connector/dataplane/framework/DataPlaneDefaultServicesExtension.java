@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.api.client.spi.transferprocess.NoopTransferProcessClient;
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -34,5 +35,10 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public TransferProcessApiClient transferProcessApiClient() {
         return new NoopTransferProcessClient();
+    }
+
+    @Provider(isDefault = true)
+    public TransferServiceSelectionStrategy transferServiceSelectionStrategy() {
+        return TransferServiceSelectionStrategy.selectFirst();
     }
 }

@@ -29,29 +29,22 @@ import static java.lang.String.format;
 public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     private final T instance;
     private final Field injectedField;
-    private final String featureString;
     private final boolean isRequired;
 
-    public FieldInjectionPoint(T instance, Field injectedField, String featureString) {
-        this(instance, injectedField, featureString, true);
+    public FieldInjectionPoint(T instance, Field injectedField) {
+        this(instance, injectedField, true);
     }
 
-    public FieldInjectionPoint(T instance, Field injectedField, String featureString, boolean isRequired) {
+    public FieldInjectionPoint(T instance, Field injectedField, boolean isRequired) {
         this.instance = instance;
         this.injectedField = injectedField;
         this.injectedField.setAccessible(true);
-        this.featureString = featureString;
         this.isRequired = isRequired;
     }
 
     @Override
     public T getInstance() {
         return instance;
-    }
-
-    @Override
-    public String getFeatureName() {
-        return featureString;
     }
 
     @Override

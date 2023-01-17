@@ -45,6 +45,7 @@ class DataPlaneClientExtensionTest {
 
     @Test
     void verifyReturnRemoteClient(ServiceExtensionContext context, ObjectFactory factory) {
+        context.registerService(DataPlaneManager.class, null);
         context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
         context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
         context.registerService(DataPlaneSelectorClient.class, mock(DataPlaneSelectorClient.class));

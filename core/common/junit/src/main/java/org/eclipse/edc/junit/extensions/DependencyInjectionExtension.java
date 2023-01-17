@@ -26,8 +26,10 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.mockito.Mockito;
 
 import static org.eclipse.edc.util.types.Cast.cast;
+import static org.mockito.Mockito.mock;
 
 /**
  * A JUnit extension for running an embedded EDC dependency injection container as part of a test fixture. This
@@ -42,11 +44,11 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
     private ObjectFactory factory;
 
     @Override
-    public void beforeEach(ExtensionContext extensionContext) throws Exception {
+    public void beforeEach(ExtensionContext extensionContext) {
         context = super.createServiceExtensionContext();
         context.initialize();
         factory = new ReflectiveObjectFactory(
-                new InjectorImpl(),
+                new InjectorImpl(Mockito::mock),
                 new InjectionPointScanner(),
                 context
         );

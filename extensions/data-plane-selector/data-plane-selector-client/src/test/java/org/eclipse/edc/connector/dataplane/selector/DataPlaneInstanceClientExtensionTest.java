@@ -60,7 +60,7 @@ class DataPlaneInstanceClientExtensionTest {
 
     @Test
     void initialize_noSetting_shouldUseEmbedded_serviceMissing(ObjectFactory factory) {
-        // DataPlaneSelectorService not registered, should raise exception
+        context.registerService(DataPlaneSelectorService.class, null);
         extension = factory.constructInstance(DataPlaneInstanceClientExtension.class);
 
         assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(NullPointerException.class)
@@ -86,6 +86,7 @@ class DataPlaneInstanceClientExtensionTest {
 
     @Test
     void initialize_withSetting_httpClientMissing(ObjectFactory factory) {
+        context.registerService(EdcHttpClient.class, null);
         var config = ConfigFactory.fromMap(Map.of(EDC_DPF_SELECTOR_URL_SETTING, "http://someurl.com:1234"));
         when(context.getConfig()).thenReturn(config);
 

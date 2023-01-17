@@ -63,17 +63,6 @@ class DataPlaneFrameworkExtensionTest {
     }
 
     @Test
-    void initialize_registers_DataPlaneManager_withDefaultStrategy(ServiceExtensionContext context, ObjectFactory factory) {
-        // Act
-        validateRequest(context, factory);
-
-        // Assert
-        // The default TransferServiceSelectionStrategy will select the first service
-        verify(transferService1).validate(request);
-        verify(transferService2, never()).validate(request);
-    }
-
-    @Test
     void initialize_registers_DataPlaneManager_withInjectedStrategy(ServiceExtensionContext context, ObjectFactory factory) {
         // Arrange
         // Inject a custom TransferServiceSelectionStrategy that will select the second service

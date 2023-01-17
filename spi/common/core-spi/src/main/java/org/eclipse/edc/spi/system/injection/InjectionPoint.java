@@ -22,8 +22,6 @@ package org.eclipse.edc.spi.system.injection;
 public interface InjectionPoint<T> {
     T getInstance();
 
-    String getFeatureName();
-
     Class<?> getType();
 
     boolean isRequired();

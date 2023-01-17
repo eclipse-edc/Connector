@@ -23,6 +23,7 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.EdcInjectionException;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ class SqlContractNegotiationStoreExtensionTest {
     void initialize(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
+        context.registerService(ContractNegotiationStatements.class, null);
+        context.registerService(TypeManager.class, new TypeManager());
 
         extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
 
@@ -55,6 +58,7 @@ class SqlContractNegotiationStoreExtensionTest {
     void initialize_withCustomSqlDialect(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
+        context.registerService(TypeManager.class, new TypeManager());
         var customSqlDialect = mock(ContractNegotiationStatements.class);
         context.registerService(ContractNegotiationStatements.class, customSqlDialect);
 
@@ -69,19 +73,11 @@ class SqlContractNegotiationStoreExtensionTest {
 
     @Test
     void initialize_missingDataSourceRegistry(ServiceExtensionContext context, ObjectFactory factory) {
+        context.registerService(DataSourceRegistry.class, null);
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
 
         assertThatThrownBy(() -> factory.constructInstance(SqlContractNegotiationStoreExtension.class))
                 .isInstanceOf(EdcInjectionException.class);
-    }
-
-    @Test
-    void initialize_missingTransactionContext(ServiceExtensionContext context, ObjectFactory factory) {
-        context.registerService(TransactionContext.class, mock(TransactionContext.class));
-
-        assertThatThrownBy(() -> factory.constructInstance(SqlContractNegotiationStoreExtension.class))
-                .isInstanceOf(EdcInjectionException.class);
-
     }
 
 }

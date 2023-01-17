@@ -37,7 +37,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
@@ -64,7 +63,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     private static final int DEFAULT_TRANSFER_THREADS = 10;
     private DataPlaneManagerImpl dataPlaneManager;
 
-    @Inject(required = false)
+    @Inject
     private TransferServiceSelectionStrategy transferServiceSelectionStrategy;
 
     @Inject(required = false)
@@ -92,8 +91,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         context.registerService(PipelineService.class, pipelineService);
         var transferService = new PipelineServiceTransferServiceImpl(pipelineService);
 
-        var transferServiceRegistry = new TransferServiceRegistryImpl(Objects.requireNonNullElseGet(transferServiceSelectionStrategy,
-                TransferServiceSelectionStrategy::selectFirst));
+        var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
         transferServiceRegistry.registerTransferService(transferService);
         context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
