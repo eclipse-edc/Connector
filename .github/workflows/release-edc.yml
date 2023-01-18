@@ -37,7 +37,7 @@ jobs:
           source_ref: ${{ github.ref }}
           target_branch: 'releases'
           commit_message_template: 'Merge commit for release of version v${{ env.EDC_VERSION }}'
-          
+
     outputs:
       edc-version: ${{ env.EDC_VERSION }}
 
