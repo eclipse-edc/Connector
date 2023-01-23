@@ -24,6 +24,8 @@ dependencies {
     api(libs.aws.iam)
     api(libs.aws.s3)
     api(libs.aws.sts)
+
+    testImplementation(project(":core:common:junit"))
 }
 
 publishing {

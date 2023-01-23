@@ -38,13 +38,13 @@ public class S3CoreExtension implements ServiceExtension {
 
     public static final String NAME = "S3";
     @Setting(value = "The key of the secret where the AWS Access Key Id is stored")
-    private static final String AWS_ACCESS_KEY = "edc.aws.access.key";
+    static final String AWS_ACCESS_KEY = "edc.aws.access.key";
     @Setting(value = "The key of the secret where the AWS Secret Access Key is stored")
-    private static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
+    static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
     @Setting(value = "If valued, the AWS clients will point to the specified endpoint")
-    private static final String AWS_ENDPOINT_OVERRIDE = "edc.aws.endpoint.override";
+    static final String AWS_ENDPOINT_OVERRIDE = "edc.aws.endpoint.override";
     @Setting(value = "The size of the thread pool used for the async clients")
-    private static final String AWS_ASYNC_CLIENT_THREAD_POOL_SIZE = "edc.aws.client.async.thread-pool-size";
+    static final String AWS_ASYNC_CLIENT_THREAD_POOL_SIZE = "edc.aws.client.async.thread-pool-size";
     @Inject
     private Vault vault;
 
@@ -75,7 +75,7 @@ public class S3CoreExtension implements ServiceExtension {
     }
 
     @NotNull
-    private AwsCredentialsProvider createCredentialsProvider(ServiceExtensionContext context) {
+    AwsCredentialsProvider createCredentialsProvider(ServiceExtensionContext context) {
         var accessKey = vault.resolveSecret(context.getSetting(AWS_ACCESS_KEY, AWS_ACCESS_KEY));
         var secretKey = vault.resolveSecret(context.getSetting(AWS_SECRET_KEY, AWS_SECRET_KEY));
 
