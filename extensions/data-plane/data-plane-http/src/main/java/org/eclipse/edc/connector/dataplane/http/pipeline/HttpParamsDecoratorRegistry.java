@@ -21,7 +21,6 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
  * Permits to register {@link HttpRequestParams} decorators, that are used to enrich the HTTP request with
  * information taken from {@link DataFlowRequest}
  */
-@ExtensionPoint
 public interface HttpParamsDecoratorRegistry {
 
     /**

@@ -29,6 +29,12 @@ The setting parameters of this extension are listed below:
 |:----------------------------------------------------|:---------------------------------------------------------------------|:----------|:--------------|
 | `edc.dataplane.http.sink.partition.size`  | Number of partitions for parallel message push in the `HttpDataSink` | false     | 5             |
 
+### Provided Services
+
+#### `HttpParamsDecoratorRegistry`
+This service could be used to register HTTP params decorators, that will be invoked before creating the HTTP request,
+both on `source` and on `sink` sides.
+
 ## Design Principles
 
 This extension provides implementations for `HttpDataSourceFactory`, `HttpDataSinkFactory`, `HttpDataSource` and `HttpDataSink`, which are triggered when

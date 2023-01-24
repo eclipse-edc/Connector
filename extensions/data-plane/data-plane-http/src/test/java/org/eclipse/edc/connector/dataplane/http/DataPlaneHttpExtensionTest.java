@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.http;
 
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpParamsDecoratorRegistry;
-import org.eclipse.edc.connector.dataplane.http.pipeline.HttpParamsDecoratorRegistryImpl;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.response.StatusResult;
