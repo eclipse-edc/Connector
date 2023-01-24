@@ -18,6 +18,6 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 @FunctionalInterface
 // TODO: document
-public interface HttpRequestParamsBuilderDecorator {
+public interface HttpParamsDecorator {
     HttpRequestParams.Builder decorate(DataFlowRequest dataFlowRequest, HttpRequestParams.Builder builder);
 }

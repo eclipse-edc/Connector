@@ -250,7 +250,7 @@ class HttpRequestParamsSupplierTest {
         }
 
         private TestHttpRequestParamsSupplier(Vault vault, boolean isOneGo, TypeManager typeManager) {
-            super(vault, typeManager, new HttpParamsDecoratorRegistry());
+            super(vault, typeManager, new HttpParamsDecoratorRegistryImpl());
             this.method = new Random().nextBoolean() ? "PUT" : "POST";
             this.isOneGo = isOneGo;
             this.path = "somepath";

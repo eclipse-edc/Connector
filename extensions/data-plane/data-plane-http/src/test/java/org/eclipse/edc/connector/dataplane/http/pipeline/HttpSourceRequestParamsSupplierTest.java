@@ -37,7 +37,7 @@ class HttpSourceRequestParamsSupplierTest {
 
     @BeforeEach
     public void setUp() {
-        supplier = new HttpSourceRequestParamsSupplier(null, new TypeManager(), new HttpParamsDecoratorRegistry());
+        supplier = new HttpSourceRequestParamsSupplier(null, new TypeManager(), new HttpParamsDecoratorRegistryImpl());
     }
 
     @Test

@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.dataplane.http;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpParamsDecoratorRegistry;
+import org.eclipse.edc.connector.dataplane.http.pipeline.HttpParamsDecoratorRegistryImpl;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpSinkRequestParamsSupplier;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpSourceRequestParamsSupplier;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
@@ -66,14 +67,14 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
 
 
-        var httpParamsDecoratorRegistry = new HttpParamsDecoratorRegistry();
-        context.registerService(HttpParamsDecoratorRegistry.class, httpParamsDecoratorRegistry);
+        var decoratorRegistry = new HttpParamsDecoratorRegistryImpl();
+        context.registerService(HttpParamsDecoratorRegistry.class, decoratorRegistry);
 
-        var sourceParamsSupplier = new HttpSourceRequestParamsSupplier(vault, context.getTypeManager(), httpParamsDecoratorRegistry);
+        var sourceParamsSupplier = new HttpSourceRequestParamsSupplier(vault, context.getTypeManager(), decoratorRegistry);
         var sourceFactory = new HttpDataSourceFactory(httpClient, sourceParamsSupplier, monitor);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkParamsSupplier = new HttpSinkRequestParamsSupplier(vault, context.getTypeManager(), httpParamsDecoratorRegistry);
+        var sinkParamsSupplier = new HttpSinkRequestParamsSupplier(vault, context.getTypeManager(), decoratorRegistry);
         var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, sinkParamsSupplier);
         pipelineService.registerFactory(sinkFactory);
     }

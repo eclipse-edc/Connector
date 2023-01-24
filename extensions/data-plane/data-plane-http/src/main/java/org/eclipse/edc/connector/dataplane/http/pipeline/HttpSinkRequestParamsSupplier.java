@@ -32,7 +32,7 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
 
     private static final String DEFAULT_METHOD = "POST";
 
-    public HttpSinkRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistry decoratorRegistry) {
+    public HttpSinkRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistryImpl decoratorRegistry) {
         super(vault, typeManager, decoratorRegistry);
     }
 

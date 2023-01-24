@@ -42,7 +42,7 @@ public class HttpSourceRequestParamsSupplier extends HttpRequestParamsSupplier {
 
     private static final String DEFAULT_METHOD = "GET";
 
-    public HttpSourceRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistry decoratorRegistry) {
+    public HttpSourceRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistryImpl decoratorRegistry) {
         super(vault, typeManager, decoratorRegistry);
     }
 

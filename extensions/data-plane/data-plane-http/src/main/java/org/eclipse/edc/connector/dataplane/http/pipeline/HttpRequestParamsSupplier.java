@@ -33,9 +33,9 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
 
     private final Vault vault;
     private final TypeManager typeManager;
-    protected final HttpParamsDecoratorRegistry decoratorRegistry;
+    protected final HttpParamsDecoratorRegistryImpl decoratorRegistry;
 
-    protected HttpRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistry decoratorRegistry) {
+    protected HttpRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistryImpl decoratorRegistry) {
         this.vault = vault;
         this.typeManager = typeManager;
         this.decoratorRegistry = decoratorRegistry;
