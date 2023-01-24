@@ -72,4 +72,8 @@ public interface DataSource {
         }
     }
 
+    interface Builder {
+
+    }
+
 }

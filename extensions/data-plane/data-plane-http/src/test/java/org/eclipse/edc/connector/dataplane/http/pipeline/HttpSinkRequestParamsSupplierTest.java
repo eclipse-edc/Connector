@@ -34,7 +34,7 @@ class HttpSinkRequestParamsSupplierTest {
 
     @BeforeEach
     public void setUp() {
-        supplier = new HttpSinkRequestParamsSupplier(null, new TypeManager());
+        supplier = new HttpSinkRequestParamsSupplier(null, new TypeManager(), new HttpParamsDecoratorRegistry());
     }
 
     @Test

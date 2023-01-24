@@ -33,10 +33,12 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
 
     private final Vault vault;
     private final TypeManager typeManager;
+    protected final HttpParamsDecoratorRegistry decoratorRegistry;
 
-    protected HttpRequestParamsSupplier(Vault vault, TypeManager typeManager) {
+    protected HttpRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistry decoratorRegistry) {
         this.vault = vault;
         this.typeManager = typeManager;
+        this.decoratorRegistry = decoratorRegistry;
     }
 
     /**
@@ -72,8 +74,12 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
                 });
         params.nonChunkedTransfer(extractNonChunkedTransfer(address));
 
+        decorate(request, params);
+
         return params.build();
     }
+
+    protected abstract void decorate(DataFlowRequest request, HttpRequestParams.Builder builder);
 
     protected abstract boolean extractNonChunkedTransfer(HttpDataAddress address);
 

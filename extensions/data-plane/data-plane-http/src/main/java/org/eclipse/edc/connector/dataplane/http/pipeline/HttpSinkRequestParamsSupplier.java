@@ -32,8 +32,13 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
 
     private static final String DEFAULT_METHOD = "POST";
 
-    public HttpSinkRequestParamsSupplier(Vault vault, TypeManager typeManager) {
-        super(vault, typeManager);
+    public HttpSinkRequestParamsSupplier(Vault vault, TypeManager typeManager, HttpParamsDecoratorRegistry decoratorRegistry) {
+        super(vault, typeManager, decoratorRegistry);
+    }
+
+    @Override
+    protected void decorate(DataFlowRequest request, HttpRequestParams.Builder builder) {
+        decoratorRegistry.decorateSink(request, builder);
     }
 
     @Override

@@ -250,13 +250,18 @@ class HttpRequestParamsSupplierTest {
         }
 
         private TestHttpRequestParamsSupplier(Vault vault, boolean isOneGo, TypeManager typeManager) {
-            super(vault, typeManager);
+            super(vault, typeManager, new HttpParamsDecoratorRegistry());
             this.method = new Random().nextBoolean() ? "PUT" : "POST";
             this.isOneGo = isOneGo;
             this.path = "somepath";
             this.queryParams = "testqueryparam";
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
             this.body = "Test-Body";
+        }
+
+        @Override
+        protected void decorate(DataFlowRequest request, HttpRequestParams.Builder builder) {
+
         }
 
         @Override

@@ -103,6 +103,10 @@ public class HttpRequestParams {
             return new HttpRequestParams.Builder();
         }
 
+        private Builder() {
+            params = new HttpRequestParams();
+        }
+
         public HttpRequestParams.Builder baseUrl(String baseUrl) {
             params.baseUrl = baseUrl;
             return this;
@@ -155,10 +159,6 @@ public class HttpRequestParams {
             Objects.requireNonNull(params.contentType, "contentType");
             params.headers.forEach((s, s2) -> Objects.requireNonNull(s2, "value for header: " + s));
             return params;
-        }
-
-        private Builder() {
-            params = new HttpRequestParams();
         }
     }
 }
