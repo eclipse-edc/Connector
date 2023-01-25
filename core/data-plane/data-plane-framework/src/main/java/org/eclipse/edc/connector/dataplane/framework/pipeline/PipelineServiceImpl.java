@@ -87,12 +87,11 @@ public class PipelineServiceImpl implements PipelineService {
         if (sourceFactory == null) {
             return noSourceFactory(request);
         }
-        var source = sourceFactory.createSource(request);
-
         var sinkFactory = getSinkFactory(request);
         if (sinkFactory == null) {
             return noSinkFactory(request);
         }
+        var source = sourceFactory.createSource(request);
         var sink = sinkFactory.createSink(request);
         monitor.debug(() -> format("Transferring from %s to %s.", source, sink));
         return sink.transfer(source);

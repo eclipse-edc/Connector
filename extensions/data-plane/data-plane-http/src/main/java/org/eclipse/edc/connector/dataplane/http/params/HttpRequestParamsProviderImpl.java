@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.http.params;
 
+import org.eclipse.edc.connector.dataplane.http.params.decorators.BaseCommonHttpParamsDecorator;
+import org.eclipse.edc.connector.dataplane.http.params.decorators.BaseSinkHttpParamsDecorator;
+import org.eclipse.edc.connector.dataplane.http.params.decorators.BaseSourceHttpParamsDecorator;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;

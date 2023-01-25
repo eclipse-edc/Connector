@@ -31,9 +31,9 @@ The setting parameters of this extension are listed below:
 
 ### Provided Services
 
-#### `HttpParamsDecoratorRegistry`
-This service could be used to register HTTP params decorators, that will be invoked before creating the HTTP request,
-both on `source` and on `sink` sides.
+#### `HttpRequestParamsProvider`
+This service could be used to register HTTP params decorators (implementors of `HttpParamsDecorator`), that will be 
+invoked before the HTTP request creation, both on `source` and on `sink` sides.
 
 ## Design Principles
 
