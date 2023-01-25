@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
-import org.eclipse.edc.connector.dataplane.http.pipeline.HttpParamsDecoratorRegistry;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -83,9 +83,9 @@ public class DataPlaneHttpExtensionTest {
     }
 
     @Test
-    void transferSourceToDestinationAddHeaders(PipelineService pipeline, HttpParamsDecoratorRegistry decoratorRegistry) {
-        decoratorRegistry.registerSourceDecorator((request, builder) -> builder.header("customSourceHeader", "customValue"));
-        decoratorRegistry.registerSinkDecorator((request, builder) -> builder.header("customSinkHeader", "customValue"));
+    void transferSourceToDestinationAddHeaders(PipelineService pipeline, HttpRequestParamsProvider decoratorRegistry) {
+        decoratorRegistry.registerSourceDecorator((request, address, builder) -> builder.header("customSourceHeader", "customValue"));
+        decoratorRegistry.registerSinkDecorator((request, address, builder) -> builder.header("customSinkHeader", "customValue"));
         var source = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://localhost:" + SOURCE_PORT)
                 .build();

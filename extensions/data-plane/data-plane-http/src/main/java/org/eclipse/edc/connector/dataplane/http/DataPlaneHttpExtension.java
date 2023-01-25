@@ -15,12 +15,10 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProviderImpl;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory;
-import org.eclipse.edc.connector.dataplane.http.pipeline.HttpParamsDecoratorRegistry;
-import org.eclipse.edc.connector.dataplane.http.pipeline.HttpParamsDecoratorRegistryImpl;
-import org.eclipse.edc.connector.dataplane.http.pipeline.HttpSinkRequestParamsSupplier;
-import org.eclipse.edc.connector.dataplane.http.pipeline.HttpSourceRequestParamsSupplier;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -31,11 +29,12 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 /**
  * Provides support for reading data from an HTTP endpoint and sending data to an HTTP endpoint.
  */
-@Provides(HttpParamsDecoratorRegistry.class)
+@Provides(HttpRequestParamsProvider.class)
 @Extension(value = DataPlaneHttpExtension.NAME)
 public class DataPlaneHttpExtension implements ServiceExtension {
     public static final String NAME = "Data Plane HTTP";
@@ -56,6 +55,9 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -66,16 +68,13 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
 
+        var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
+        context.registerService(HttpRequestParamsProvider.class, paramsProvider);
 
-        var decoratorRegistry = new HttpParamsDecoratorRegistryImpl();
-        context.registerService(HttpParamsDecoratorRegistry.class, decoratorRegistry);
-
-        var sourceParamsSupplier = new HttpSourceRequestParamsSupplier(vault, context.getTypeManager(), decoratorRegistry);
-        var sourceFactory = new HttpDataSourceFactory(httpClient, sourceParamsSupplier, monitor);
+        var sourceFactory = new HttpDataSourceFactory(httpClient, paramsProvider, monitor);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkParamsSupplier = new HttpSinkRequestParamsSupplier(vault, context.getTypeManager(), decoratorRegistry);
-        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, sinkParamsSupplier);
+        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, paramsProvider);
         pipelineService.registerFactory(sinkFactory);
     }
 

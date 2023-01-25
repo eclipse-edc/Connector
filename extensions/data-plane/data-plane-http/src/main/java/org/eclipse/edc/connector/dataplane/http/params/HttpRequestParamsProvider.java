@@ -12,16 +12,15 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.pipeline;
+package org.eclipse.edc.connector.dataplane.http.params;
 
-import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 /**
- * Permits to register {@link HttpRequestParams} decorators, that are used to enrich the HTTP request with
+ * Permit to register {@link HttpRequestParams} decorators, that are used to enrich the HTTP request with
  * information taken from {@link DataFlowRequest}
  */
-public interface HttpParamsDecoratorRegistry {
+public interface HttpRequestParamsProvider {
 
     /**
      * Register source decorator
@@ -34,12 +33,12 @@ public interface HttpParamsDecoratorRegistry {
     void registerSinkDecorator(HttpParamsDecorator decorator);
 
     /**
-     * Decorate http request params builder on the source side
+     * Provide HTTP request params for HttpDataSource
      */
-    void decorateSource(DataFlowRequest request, HttpRequestParams.Builder builder);
+    HttpRequestParams provideSourceParams(DataFlowRequest request);
 
     /**
-     * Decorate http request params builder on the sink side
+     * Provide HTTP request params for HttpDataSink
      */
-    void decorateSink(DataFlowRequest request, HttpRequestParams.Builder builder);
+    HttpRequestParams provideSinkParams(DataFlowRequest request);
 }

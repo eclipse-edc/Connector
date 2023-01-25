@@ -12,11 +12,14 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.pipeline;
+package org.eclipse.edc.connector.dataplane.http.params;
 
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.connector.dataplane.http.pipeline.ChunkedTransferRequestBody;
+import org.eclipse.edc.connector.dataplane.http.pipeline.NonChunkedTransferRequestBody;
+import org.eclipse.edc.connector.dataplane.http.pipeline.StringRequestBodySupplier;
 import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,6 +68,38 @@ public class HttpRequestParams {
                 .method(method, requestBody);
         headers.forEach(requestBuilder::addHeader);
         return requestBuilder.build();
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getQueryParams() {
+        return queryParams;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public boolean isNonChunkedTransfer() {
+        return nonChunkedTransfer;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
     @Nullable

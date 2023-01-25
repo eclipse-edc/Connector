@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.Request;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.edc.spi.EdcException;
@@ -46,26 +48,16 @@ import static org.mockito.Mockito.when;
 
 class HttpDataSinkFactoryTest {
 
-    private static final EdcHttpClient HTTP_CLIENT = mock(EdcHttpClient.class);
-    private static final Monitor MONITOR = mock(Monitor.class);
-    private static final ExecutorService EXECUTOR_SERVICE = mock(ExecutorService.class);
-
-    private final HttpRequestParamsSupplier supplierMock = mock(HttpRequestParamsSupplier.class);
+    private final EdcHttpClient httpClient = mock(EdcHttpClient.class);
+    private final Monitor monitor = mock(Monitor.class);
+    private final ExecutorService executorService = mock(ExecutorService.class);
+    private final HttpRequestParamsProvider provider = mock(HttpRequestParamsProvider.class);
 
     private HttpDataSinkFactory factory;
 
-    private static DataFlowRequest createRequest(DataAddress destination) {
-        return DataFlowRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
-                .destinationDataAddress(destination)
-                .build();
-    }
-
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSinkFactory(HTTP_CLIENT, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), supplierMock);
+        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), provider);
     }
 
     @Test
@@ -79,14 +71,14 @@ class HttpDataSinkFactoryTest {
     }
 
     @Test
-    void verifyValidationFailsIfSupplierThrows() {
+    void verifyValidationFailsIfProviderThrows() {
         var errorMsg = "Test error message";
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);
-
-        when(supplierMock.apply(request)).thenThrow(new EdcException(errorMsg));
+        when(provider.provideSinkParams(request)).thenThrow(new EdcException(errorMsg));
 
         var result = factory.validate(request);
+
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).hasSize(1);
         assertThat(result.getFailureMessages().get(0)).contains(errorMsg);
@@ -101,8 +93,7 @@ class HttpDataSinkFactoryTest {
                 .method(HttpMethod.POST.name())
                 .contentType("application/json")
                 .build();
-
-        when(supplierMock.apply(request)).thenReturn(params);
+        when(provider.provideSinkParams(request)).thenReturn(params);
 
         assertThat(factory.validate(request).succeeded()).isTrue();
         var sink = factory.createSink(request);
@@ -110,10 +101,10 @@ class HttpDataSinkFactoryTest {
 
         var expected = HttpDataSink.Builder.newInstance()
                 .params(params)
-                .httpClient(HTTP_CLIENT)
-                .monitor(MONITOR)
+                .httpClient(httpClient)
+                .monitor(monitor)
                 .requestId(request.getId())
-                .executorService(EXECUTOR_SERVICE)
+                .executorService(executorService)
                 .build();
 
         // validate the generated data sink field by field using reflection
@@ -137,14 +128,22 @@ class HttpDataSinkFactoryTest {
                 .method(method)
                 .contentType("application/json")
                 .build();
-        when(supplierMock.apply(request)).thenReturn(params);
-        when(HTTP_CLIENT.execute(ArgumentMatchers.isA(Request.class))).thenReturn(createHttpResponse().build());
+        when(provider.provideSinkParams(request)).thenReturn(params);
+        when(httpClient.execute(ArgumentMatchers.isA(Request.class))).thenReturn(createHttpResponse().build());
 
         var future = factory.createSink(request)
                 .transfer(new InputStreamDataSource("test", new ByteArrayInputStream("test".getBytes())));
 
         assertThat(future).succeedsWithin(10, TimeUnit.SECONDS)
                 .satisfies(result -> assertThat(result.succeeded()).isTrue());
+    }
 
+    private DataFlowRequest createRequest(DataAddress destination) {
+        return DataFlowRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
+                .destinationDataAddress(destination)
+                .build();
     }
 }

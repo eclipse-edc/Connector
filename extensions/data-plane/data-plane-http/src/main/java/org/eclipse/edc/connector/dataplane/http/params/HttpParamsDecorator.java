@@ -12,12 +12,19 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.pipeline;
+package org.eclipse.edc.connector.dataplane.http.params;
 
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
+/**
+ * Define how to decorate the {@link HttpRequestParams} builder.
+ */
 @FunctionalInterface
-// TODO: document
 public interface HttpParamsDecorator {
-    HttpRequestParams.Builder decorate(DataFlowRequest dataFlowRequest, HttpRequestParams.Builder builder);
+
+    /**
+     * Decorate params with information coming from the request and the data address. Return the param object.
+     */
+    HttpRequestParams.Builder decorate(DataFlowRequest request, HttpDataAddress address, HttpRequestParams.Builder params);
 }

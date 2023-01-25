@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
 import org.eclipse.edc.spi.http.EdcHttpClient;
