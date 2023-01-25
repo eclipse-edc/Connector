@@ -41,7 +41,7 @@ public abstract class AbstractOauth2DataAddressValidationTest {
     public static final class DataAddressProvider implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             var addressWithPrivateKeyName = HttpDataAddress.Builder.newInstance()
                     .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
                     .property(Oauth2DataAddressSchema.PRIVATE_KEY_NAME, "aPrivateKeyName")
@@ -50,17 +50,17 @@ public abstract class AbstractOauth2DataAddressValidationTest {
 
             var addressWithSharedSecret = HttpDataAddress.Builder.newInstance()
                     .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
-                    .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                    .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "aSecret")
                     .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                     .build();
 
             var missingTokenUrl = HttpDataAddress.Builder.newInstance()
                     .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
-                    .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                    .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "aSecret")
                     .build();
 
             var missingClientId = HttpDataAddress.Builder.newInstance()
-                    .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                    .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "secret-key")
                     .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                     .build();
 
@@ -71,10 +71,10 @@ public abstract class AbstractOauth2DataAddressValidationTest {
 
             return Stream.of(
                     Arguments.of("OK WITH PRIVATE KEY NAME", addressWithPrivateKeyName, true),
-                    Arguments.of("OK WITH SHARED SECRET", addressWithSharedSecret, true),
+                    Arguments.of("OK WITH SHARED SECRET KEY", addressWithSharedSecret, true),
                     Arguments.of("KO NO TOKEN URL", missingTokenUrl, false),
                     Arguments.of("KO NO CLIENT ID", missingClientId, false),
-                    Arguments.of("KO NO PRIVATE KEY NAME OR SHARED SECRET", missingPrivateKeyOrSharedSecret, false)
+                    Arguments.of("KO NO PRIVATE KEY NAME OR SHARED SECRET KEY", missingPrivateKeyOrSharedSecret, false)
             );
         }
     }

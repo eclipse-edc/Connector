@@ -37,7 +37,7 @@ import static java.lang.String.format;
 public class Oauth2TokenController {
 
     private static final String EXPECTED_CLIENT_ID = "clientId";
-    private static final String EXPECTED_CLIENT_SECRET = "clientSecret";
+    private static final String EXPECTED_CLIENT_SECRET = "supersecret";
     private final Monitor monitor;
 
     public Oauth2TokenController(Monitor monitor) {

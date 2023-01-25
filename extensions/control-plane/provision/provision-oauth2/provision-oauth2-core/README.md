@@ -49,5 +49,6 @@ This type of client credential is used when the `HttpData` address DOES not cont
 The mandatory for working with type of client credentials are:
 
 - `oauth2:clientId`: the client id
-- `oauth2:clientSecret`: shared secret for authenticating to the Oauth2 server
+- `oauth2:clientSecret`: (deprecated) shared secret for authenticating to the Oauth2 server
+- `oauth2:clientSecretKey`: the key with which the shared secret for authenticating to the Oauth2 server is stored into the `Vault`
 

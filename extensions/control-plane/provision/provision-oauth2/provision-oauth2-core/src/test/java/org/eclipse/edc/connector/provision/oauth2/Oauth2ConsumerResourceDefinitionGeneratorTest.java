@@ -36,7 +36,7 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest extends AbstractOauth2DataAd
     void returnDefinitionIfTypeIsHttpDataAndOauth2ParametersArePresent() {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
-                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "aSecretKey")
                 .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                 .build();
         var dataRequest = DataRequest.Builder.newInstance()
@@ -49,7 +49,7 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest extends AbstractOauth2DataAd
         assertThat(definition).isNotNull().asInstanceOf(type(Oauth2ResourceDefinition.class))
                 .satisfies(d -> {
                     assertThat(d.getClientId()).isEqualTo("aClientId");
-                    assertThat(d.getClientSecret()).isEqualTo("aSecret");
+                    assertThat(d.getClientSecretKey()).isEqualTo("aSecretKey");
                     assertThat(d.getTokenUrl()).isEqualTo("aTokenUrl");
                 });
     }
@@ -63,7 +63,7 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest extends AbstractOauth2DataAd
     void generate_noPolicyAsParameter() {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
-                .property(Oauth2DataAddressSchema.CLIENT_SECRET, "aSecret")
+                .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "aSecret")
                 .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                 .build();
         var dataRequest = DataRequest.Builder.newInstance()
