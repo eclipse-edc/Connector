@@ -103,7 +103,7 @@ public class AwsSecretsManagerVault implements Vault {
     }
 
     /**
-     * One-to-many mapping from all strings into set of strings that only contains valid AWS Secrets Manager key names.
+     * Many-to-one mapping from all strings into set of strings that only contains valid AWS Secrets Manager key names.
      * The implementation replaces all illegal characters with '-' and attaches the hash code of the original string to
      * minimize the likelihood of key collisions.
      *
