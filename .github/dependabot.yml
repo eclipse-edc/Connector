@@ -19,3 +19,5 @@ updates:
     labels:
       - "dependencies"
       - "java"
+    ignore:
+      - dependency-name: "edc-versions"
