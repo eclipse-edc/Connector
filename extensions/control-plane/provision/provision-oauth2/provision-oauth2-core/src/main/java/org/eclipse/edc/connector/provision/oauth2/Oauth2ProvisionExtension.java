@@ -20,6 +20,7 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -44,6 +45,9 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
     @Inject
     private Oauth2Client client;
 
+    @Inject
+    private Vault vault;
+
     @Override
     public String name() {
         return NAME;
@@ -57,7 +61,8 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
         resourceManifestGenerator.registerGenerator(new Oauth2ProviderResourceDefinitionGenerator());
         resourceManifestGenerator.registerGenerator(new Oauth2ConsumerResourceDefinitionGenerator());
 
-        provisionManager.register(new Oauth2Provisioner(client, privateKeyResolver, clock));
+        var requestFactory = new Oauth2CredentialsRequestFactory(privateKeyResolver, clock, vault, context.getMonitor());
+        provisionManager.register(new Oauth2Provisioner(client, requestFactory));
     }
 
 }

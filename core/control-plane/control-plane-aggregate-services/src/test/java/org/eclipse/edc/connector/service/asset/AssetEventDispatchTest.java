@@ -49,7 +49,7 @@ public class AssetEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) throws InterruptedException {
+    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
 
         doAnswer(i -> null).when(eventSubscriber).on(isA(AssetCreated.class));
         doAnswer(i -> null).when(eventSubscriber).on(isA(AssetDeleted.class));

@@ -63,7 +63,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
 
         var sourceParamsSupplier = new HttpSourceRequestParamsSupplier(vault, context.getTypeManager());
-        var sourceFactory = new HttpDataSourceFactory(httpClient, sourceParamsSupplier);
+        var sourceFactory = new HttpDataSourceFactory(httpClient, sourceParamsSupplier, monitor);
         pipelineService.registerFactory(sourceFactory);
 
         var sinkParamsSupplier = new HttpSinkRequestParamsSupplier(vault, context.getTypeManager());

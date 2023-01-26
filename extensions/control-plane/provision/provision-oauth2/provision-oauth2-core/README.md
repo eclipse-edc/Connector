@@ -29,14 +29,17 @@ The extension works for all the `HttpData` addresses that contain the "oauth2" p
 It supports [both types of client credential](https://connect2id.com/products/server/docs/guides/oauth-client-authentication#credential-types):
 shared secret and private-key based.
 
+### Common properties
+
+- `oauth2:tokenUrl`: the url where the token will be requested
+- `oauth2:scope`: (optional) the requested scope
+
 ### Private-key based client credential
 
 This type of client credential is used when the `HttpData` address contains the `oauth2:privateKeyName` property. This type of client
 credential is considered as more secured as described [here](https://connect2id.com/products/server/docs/guides/oauth-client-authentication#private-key-auth-is-more-secure).
 The mandatory for working with type of client credentials are:
 
-- `oauth2:clientId`: the client id
-- `oauth2:tokenUrl`: the url where the token will be requested
 - `oauth2:privateKeyName`: the name of the private key used to sign the JWT sent to the Oauth2 server
   `oauth2:validity`: the validity of the JWT token sent to the Oauth2 server (in seconds)
 
@@ -46,6 +49,6 @@ This type of client credential is used when the `HttpData` address DOES not cont
 The mandatory for working with type of client credentials are:
 
 - `oauth2:clientId`: the client id
-- `oauth2:tokenUrl`: the url where the token will be requested
-- `oauth2:clientSecret`: shared secret for authenticating to the Oauth2 server
+- `oauth2:clientSecret`: (deprecated) shared secret for authenticating to the Oauth2 server
+- `oauth2:clientSecretKey`: the key with which the shared secret for authenticating to the Oauth2 server is stored into the `Vault`
 

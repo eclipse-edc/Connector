@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
+import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
@@ -58,7 +60,6 @@ public class HttpRequestParams {
      */
     public Request toRequest(@Nullable Supplier<InputStream> bodySupplier) {
         var requestBody = createRequestBody(bodySupplier);
-
         var requestBuilder = new Request.Builder()
                 .url(toUrl())
                 .method(method, requestBody);
@@ -66,13 +67,13 @@ public class HttpRequestParams {
         return requestBuilder.build();
     }
 
+    @Nullable
     private RequestBody createRequestBody(@Nullable Supplier<InputStream> bodySupplier) {
         if (bodySupplier == null || contentType == null) {
             return null;
         }
-
-        return nonChunkedTransfer ?
-                new NonChunkedTransferRequestBody(bodySupplier, contentType) : new ChunkedTransferRequestBody(bodySupplier, contentType);
+        return nonChunkedTransfer ? new NonChunkedTransferRequestBody(bodySupplier, contentType) :
+                new ChunkedTransferRequestBody(bodySupplier, contentType);
     }
 
 
@@ -81,16 +82,19 @@ public class HttpRequestParams {
      *
      * @return The URL.
      */
-    private String toUrl() {
-        var url = baseUrl;
-        if (path != null && !path.isBlank()) {
-            url += "/" + path;
+    private HttpUrl toUrl() {
+        var parsed = HttpUrl.parse(baseUrl);
+        Objects.requireNonNull(parsed, "Failed to parse baseUrl: " + baseUrl);
+        var builder = parsed.newBuilder();
+        if (!StringUtils.isNullOrBlank(path)) {
+            builder.addPathSegments(path);
         }
-        if (queryParams != null && !queryParams.isBlank()) {
-            url += "?" + queryParams;
+        if (!StringUtils.isNullOrBlank(queryParams)) {
+            builder.query(queryParams);
         }
-        return url;
+        return builder.build();
     }
+
 
     public static class Builder {
         private final HttpRequestParams params;

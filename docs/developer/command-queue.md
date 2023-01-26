@@ -76,4 +76,4 @@ violate the serializability principle.
 
 ## Further reading
 
-A complete sample with additional explanation can be found in the [samples](https://github.com/eclipse-edc/Samples/blob/main/04.2-modify-transferprocess/README.md).
+A complete sample with additional explanation can be found in the [samples](https://github.com/eclipse-edc/Samples/blob/main/transfer/transfer-03-modify-transferprocess/README.md).

@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.dataplane.http.pipeline;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class HttpDataSource implements DataSource {
     private String name;
     private HttpRequestParams params;
     private String requestId;
+    private Monitor monitor;
     private EdcHttpClient httpClient;
 
     @Override
@@ -39,7 +41,9 @@ public class HttpDataSource implements DataSource {
     }
 
     private HttpPart getPart() {
-        try (var response = httpClient.execute(params.toRequest())) {
+        var request = params.toRequest();
+        monitor.debug(() -> "HttpDataSource sends request: " + request.toString());
+        try (var response = httpClient.execute(request)) {
             var body = response.body();
             var stringBody = body != null ? body.string() : null;
             if (stringBody == null) {
@@ -53,6 +57,7 @@ public class HttpDataSource implements DataSource {
         } catch (IOException e) {
             throw new EdcException(e);
         }
+        
     }
 
     private HttpDataSource() {
@@ -85,9 +90,15 @@ public class HttpDataSource implements DataSource {
             return this;
         }
 
+        public Builder monitor(Monitor monitor) {
+            dataSource.monitor = monitor;
+            return this;
+        }
+
         public HttpDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.httpClient, "httpClient");
+            Objects.requireNonNull(dataSource.monitor, "monitor");
             return dataSource;
         }
 

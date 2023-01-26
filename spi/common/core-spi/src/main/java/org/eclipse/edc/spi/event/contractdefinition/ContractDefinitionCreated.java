@@ -15,19 +15,22 @@
 
 package org.eclipse.edc.spi.event.contractdefinition;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * Describe a new ContractDefinition creation, after this has emitted, a ContractDefinition with a certain id will be available.
  */
-public class ContractDefinitionCreated extends Event<ContractDefinitionCreated.Payload> {
+public class ContractDefinitionCreated extends ContractDefinitionEvent<ContractDefinitionCreated.Payload> {
 
     private ContractDefinitionCreated() {
     }
 
-    public static class Builder extends Event.Builder<ContractDefinitionCreated, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a ContractDefinition Creation Event
+     *
+     */
+    public static class Payload extends ContractDefinitionEvent.Payload {
+    }
+
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionCreated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,22 +39,6 @@ public class ContractDefinitionCreated extends Event<ContractDefinitionCreated.P
         private Builder() {
             super(new ContractDefinitionCreated(), new Payload());
         }
-
-        public Builder contractDefinitionId(String contractDefinitionId) {
-            event.payload.contractDefinitionId = contractDefinitionId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.contractDefinitionId);
-        }
     }
 
-    /**
-     * This class contains all event specific attributes of a ContractDefinition Creation Event
-     *
-     */
-    public static class Payload extends ContractDefinitionEventPayload {
-    }
 }

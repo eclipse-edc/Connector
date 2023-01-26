@@ -15,19 +15,23 @@
 
 package org.eclipse.edc.spi.event.contractnegotiation;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * This event is raised when the ContractNegotiation has been confirmed.
  */
-public class ContractNegotiationConfirmed extends Event<ContractNegotiationConfirmed.Payload> {
+public class ContractNegotiationConfirmed extends ContractNegotiationEvent<ContractNegotiationConfirmed.Payload> {
 
     private ContractNegotiationConfirmed() {
     }
 
-    public static class Builder extends Event.Builder<ContractNegotiationConfirmed, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a ContractNegotiation Confirmed Event
+     *
+     */
+    public static class Payload extends ContractNegotiationEvent.Payload {
+
+    }
+
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationConfirmed, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,22 +40,5 @@ public class ContractNegotiationConfirmed extends Event<ContractNegotiationConfi
         private Builder() {
             super(new ContractNegotiationConfirmed(), new Payload());
         }
-
-        public Builder contractNegotiationId(String contractNegotiationId) {
-            event.payload.contractNegotiationId = contractNegotiationId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.contractNegotiationId);
-        }
-    }
-
-    /**
-     * This class contains all event specific attributes of a ContractNegotiation Confirmed Event
-     *
-     */
-    public static class Payload extends ContractNegotiationEventPayload {
     }
 }

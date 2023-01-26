@@ -20,13 +20,13 @@ package org.eclipse.edc.connector.dataplane.http.pipeline;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,23 +37,15 @@ import static org.mockito.Mockito.when;
 class HttpDataSourceFactoryTest {
 
     private static final EdcHttpClient HTTP_CLIENT = mock(EdcHttpClient.class);
+    private static final Monitor MONITOR = mock(Monitor.class);
 
     private final HttpRequestParamsSupplier supplierMock = mock(HttpRequestParamsSupplier.class);
 
     private HttpDataSourceFactory factory;
 
-    private static DataFlowRequest createRequest(DataAddress source) {
-        return DataFlowRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(source)
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("Test type").build())
-                .build();
-    }
-
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSourceFactory(HTTP_CLIENT, supplierMock);
+        factory = new HttpDataSourceFactory(HTTP_CLIENT, supplierMock, MONITOR);
     }
 
     @Test
@@ -98,16 +90,18 @@ class HttpDataSourceFactoryTest {
                 .name(address.getName())
                 .requestId(request.getId())
                 .httpClient(HTTP_CLIENT)
+                .monitor(MONITOR)
                 .build();
 
-        // validate the generated data source field by field using reflection
-        Arrays.stream(HttpDataSource.class.getDeclaredFields()).forEach(f -> {
-            f.setAccessible(true);
-            try {
-                assertThat(f.get(source)).isEqualTo(f.get(expected));
-            } catch (IllegalAccessException e) {
-                throw new AssertionError("Comparison failed for field: " + f.getName());
-            }
-        });
+        assertThat(source).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    private static DataFlowRequest createRequest(DataAddress source) {
+        return DataFlowRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(source)
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("Test type").build())
+                .build();
     }
 }

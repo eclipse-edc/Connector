@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 import okio.BufferedSink;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,23 +23,18 @@ import java.util.function.Supplier;
 
 /**
  * Streams content into an OK HTTP buffered sink in chunks.
- *
+ * <p>
  * Due to OkHttp implementation an extra header will be created (no-overridable) Transfer-Encoding with value chunked
  *
  * @see <a href="https://github.com/square/okhttp/blob/master/docs/features/calls.md">OkHttp Dcoumentation</a>
  */
-public class ChunkedTransferRequestBody extends RequestBody {
+public class ChunkedTransferRequestBody extends AbstractTransferRequestBody {
+
     private final Supplier<InputStream> bodySupplier;
-    private final String contentType;
 
-    public ChunkedTransferRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
-        this.bodySupplier = contentSupplier;
-        this.contentType = contentType;
-    }
-
-    @Override
-    public MediaType contentType() {
-        return MediaType.parse(contentType);
+    public ChunkedTransferRequestBody(Supplier<InputStream> bodySupplier, String contentType) {
+        super(contentType);
+        this.bodySupplier = bodySupplier;
     }
 
     @Override

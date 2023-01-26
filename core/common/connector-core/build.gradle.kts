@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":core:common:util"))
 
     implementation(libs.dnsOverHttps)
-    implementation(libs.bouncyCastle.bcpkix)
+    implementation(libs.bouncyCastle.bcpkixJdk18on)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)

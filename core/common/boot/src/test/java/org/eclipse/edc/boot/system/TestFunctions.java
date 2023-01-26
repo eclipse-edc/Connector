@@ -21,6 +21,7 @@ import org.eclipse.edc.boot.system.testextensions.ProviderDefaultServicesExtensi
 import org.eclipse.edc.boot.system.testextensions.ProviderExtension;
 import org.eclipse.edc.boot.system.testextensions.RequiredDependentExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
 
 import java.util.ArrayList;
@@ -34,8 +35,8 @@ public class TestFunctions {
         return l;
     }
 
-    public static List<InjectionContainer<ServiceExtension>> createInjectionContainers(List<ServiceExtension> extensions) {
-        var dg = new DependencyGraph();
+    public static List<InjectionContainer<ServiceExtension>> createInjectionContainers(List<ServiceExtension> extensions, ServiceExtensionContext context) {
+        var dg = new DependencyGraph(context);
         return dg.of(extensions);
 
     }

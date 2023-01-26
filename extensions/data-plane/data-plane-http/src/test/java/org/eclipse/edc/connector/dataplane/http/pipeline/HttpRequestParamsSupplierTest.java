@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Map;
@@ -39,18 +38,20 @@ import static io.netty.handler.codec.http.HttpHeaders.Values.APPLICATION_X_WWW_F
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HttpRequestParamsSupplierTest {
 
-    private final Vault vault = Mockito.mock(Vault.class);
-    private final TypeManager typeManager = new TypeManager();
+    private static final TypeManager TYPE_MANAGER = new TypeManager();
+
+    private final Vault vault = mock(Vault.class);
     private TestHttpRequestParamsSupplier supplier;
 
     @BeforeEach
     public void setUp() {
-        supplier = new TestHttpRequestParamsSupplier(vault, typeManager);
+        supplier = new TestHttpRequestParamsSupplier(vault, TYPE_MANAGER);
     }
 
     @Test
@@ -201,7 +202,7 @@ class HttpRequestParamsSupplierTest {
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
         assertThat(HttpTestFixtures.formatRequestBodyAsString(body)).isEqualTo(supplier.body);
         assertThat(httpRequest.method()).isEqualTo(supplier.method);
-        assertThat(httpRequest.body().contentLength()).isEqualTo(-1L);
+        assertThat(body.contentLength()).isEqualTo(-1L);
     }
 
     @Test
@@ -211,7 +212,7 @@ class HttpRequestParamsSupplierTest {
                 .build();
         var request = createRequest(dataAddress);
 
-        var supplier = new TestHttpRequestParamsSupplier(vault, true, typeManager);
+        var supplier = new TestHttpRequestParamsSupplier(vault, true, TYPE_MANAGER);
         var httpRequest = supplier.apply(request).toRequest();
 
         assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
@@ -220,11 +221,11 @@ class HttpRequestParamsSupplierTest {
         assertThat(body.contentType()).isEqualTo(MediaType.get(supplier.contentType));
         assertThat(HttpTestFixtures.formatRequestBodyAsString(body)).isEqualTo(supplier.body);
         assertThat(httpRequest.method()).isEqualTo(supplier.method);
-        assertThat(httpRequest.body().contentLength()).isEqualTo(supplier.body.getBytes().length);
+        assertThat(body.contentLength()).isEqualTo(supplier.body.getBytes().length);
     }
 
     private String asJson(Map<String, String> map) {
-        return typeManager.writeValueAsString(map);
+        return TYPE_MANAGER.writeValueAsString(map);
     }
 
     private DataFlowRequest createRequest(DataAddress source) {

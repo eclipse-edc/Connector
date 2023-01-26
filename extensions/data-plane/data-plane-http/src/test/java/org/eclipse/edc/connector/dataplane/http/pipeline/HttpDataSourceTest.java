@@ -21,6 +21,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,6 +101,7 @@ class HttpDataSourceTest {
         return HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
                 .name("test-name")
+                .monitor(mock(Monitor.class))
                 .requestId(requestId);
     }
 

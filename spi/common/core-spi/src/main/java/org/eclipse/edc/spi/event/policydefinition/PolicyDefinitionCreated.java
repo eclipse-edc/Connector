@@ -15,19 +15,22 @@
 
 package org.eclipse.edc.spi.event.policydefinition;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * Describe a new PolicyDefinition creation, after this has emitted, a PolicyDefinition with a certain id will be available.
  */
-public class PolicyDefinitionCreated extends Event<PolicyDefinitionCreated.Payload> {
+public class PolicyDefinitionCreated extends PolicyDefinitionEvent<PolicyDefinitionCreated.Payload> {
 
     private PolicyDefinitionCreated() {
     }
 
-    public static class Builder extends Event.Builder<PolicyDefinitionCreated, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of a PolicyDefinition Creation Event
+     *
+     */
+    public static class Payload extends PolicyDefinitionEvent.Payload {
+    }
+
+    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionCreated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,22 +39,6 @@ public class PolicyDefinitionCreated extends Event<PolicyDefinitionCreated.Paylo
         private Builder() {
             super(new PolicyDefinitionCreated(), new Payload());
         }
-
-        public Builder policyDefinitionId(String policyDefinitionId) {
-            event.payload.policyDefinitionId = policyDefinitionId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.policyDefinitionId);
-        }
     }
 
-    /**
-     * This class contains all event specific attributes of a PolicyDefinition Creation Event
-     *
-     */
-    public static class Payload extends PolicyDefinitionEventPayload {
-    }
 }

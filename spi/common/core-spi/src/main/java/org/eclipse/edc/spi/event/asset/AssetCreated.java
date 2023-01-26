@@ -15,19 +15,23 @@
 
 package org.eclipse.edc.spi.event.asset;
 
-import org.eclipse.edc.spi.event.Event;
-
-import java.util.Objects;
-
 /**
  * Describe a new Asset creation, after this has emitted, an Asset with a certain id will be available.
  */
-public class AssetCreated extends Event<AssetCreated.Payload> {
+public class AssetCreated extends AssetEvent<AssetCreated.Payload> {
 
     private AssetCreated() {
     }
 
-    public static class Builder extends Event.Builder<AssetCreated, Payload, Builder> {
+    /**
+     * This class contains all event specific attributes of an Asset Creation Event
+     *
+     */
+    public static class Payload extends AssetEvent.Payload {
+
+    }
+
+    public static class Builder extends AssetEvent.Builder<AssetCreated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,23 +40,6 @@ public class AssetCreated extends Event<AssetCreated.Payload> {
         private Builder() {
             super(new AssetCreated(), new Payload());
         }
-
-        public Builder assetId(String assetId) {
-            event.payload.assetId = assetId;
-            return this;
-        }
-
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.getAssetId());
-        }
-    }
-
-    /**
-     * This class contains all event specific attributes of a Asset Creation Event
-     *
-     */
-    public static class Payload extends AssetEventPayload {
 
     }
 

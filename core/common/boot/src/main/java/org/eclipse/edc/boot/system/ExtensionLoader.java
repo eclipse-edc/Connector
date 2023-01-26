@@ -114,9 +114,9 @@ public class ExtensionLoader {
     /**
      * Loads and orders the service extensions.
      */
-    public List<InjectionContainer<ServiceExtension>> loadServiceExtensions() {
+    public List<InjectionContainer<ServiceExtension>> loadServiceExtensions(ServiceExtensionContext context) {
         List<ServiceExtension> serviceExtensions = loadExtensions(ServiceExtension.class, true);
-        return new DependencyGraph().of(serviceExtensions);
+        return new DependencyGraph(context).of(serviceExtensions);
     }
 
     /**

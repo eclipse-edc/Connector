@@ -86,6 +86,7 @@ class DataSourceToDataSinkTests {
                 .name("test.json")
                 .requestId("1")
                 .httpClient(sourceClient)
+                .monitor(monitor)
                 .build();
 
         var sinkClient = testHttpClient(interceptor);
@@ -130,6 +131,7 @@ class DataSourceToDataSinkTests {
                 .name("test.json")
                 .requestId("1")
                 .httpClient(sourceClient)
+                .monitor(monitor)
                 .build();
 
         var sinkClient = mock(EdcHttpClient.class);
@@ -173,6 +175,7 @@ class DataSourceToDataSinkTests {
                 .name("test.json")
                 .requestId("1")
                 .httpClient(sourceClient)
+                .monitor(monitor)
                 .build();
 
         // sink endpoint raises an exception
