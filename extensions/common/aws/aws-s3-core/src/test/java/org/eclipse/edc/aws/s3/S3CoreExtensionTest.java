@@ -26,8 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(EdcExtension.class)
 public class S3CoreExtensionTest {
@@ -69,15 +68,15 @@ public class S3CoreExtensionTest {
 
         // EDC configurations have higher precedence than AWS SDK settings
         var credentials = s3.createCredentialsProvider(edc.getContext()).resolveCredentials();
-        assertEquals(EDC_AWS_ACCESS_KEY_ID, credentials.accessKeyId());
-        assertEquals(EDC_AWS_SECRET_ACCESS_KEY, credentials.secretAccessKey());
+        assertThat(credentials.accessKeyId()).isEqualTo(EDC_AWS_ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(EDC_AWS_SECRET_ACCESS_KEY);
     }
 
     @Test
     void testCredentialsFromAwsSdk(EdcExtension edc) {
         var credentials = s3.createCredentialsProvider(edc.getContext()).resolveCredentials();
-        assertEquals(AWS_ACCESS_KEY_ID, credentials.accessKeyId());
-        assertEquals(AWS_SECRET_ACCESS_KEY, credentials.secretAccessKey());
+        assertThat(credentials.accessKeyId()).isEqualTo(AWS_ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(AWS_SECRET_ACCESS_KEY);
     }
 
     @Test
@@ -86,13 +85,11 @@ public class S3CoreExtensionTest {
         var client1 = provider.s3Client("us-east-1");
         var client2 = provider.s3Client("us-west-1");
         var client3 = provider.s3Client("us-west-1");
-        assertTrue(client1 != client2);
-        assertTrue(client2 == client3);
+        assertThat(client3).isSameAs(client2).isNotSameAs(client1);
 
         var asyncClient1 = provider.s3AsyncClient("us-east-1");
         var asyncClient2 = provider.s3AsyncClient("us-west-1");
         var asyncClient3 = provider.s3AsyncClient("us-west-1");
-        assertTrue(asyncClient1 != asyncClient2);
-        assertTrue(asyncClient2 == asyncClient3);
+        assertThat(client3).isSameAs(client2).isNotSameAs(client1);
     }
 }
