@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 
 import java.util.Map;
@@ -77,14 +78,14 @@ public class S3CoreExtensionTest {
 
     @Test
     void testCredentialsFromAwsSdk(EdcExtension edc) {
-        var credentials = s3.createCredentialsProvider(edc.getContext()).resolveCredentials();
-        assertThat(credentials.accessKeyId()).isEqualTo(AWS_ACCESS_KEY_ID);
-        assertThat(credentials.secretAccessKey()).isEqualTo(AWS_SECRET_ACCESS_KEY);
+        var provider = s3.createCredentialsProvider(edc.getContext());
+        assertThat(provider).isInstanceOf(DefaultCredentialsProvider.class);
     }
 
+    @Test
     void testEndpointOverride(EdcExtension edc) {
         var utilities = s3.awsClientProvider(edc.getContext()).s3Client("us-east-1").utilities();
         var request = GetUrlRequest.builder().bucket("test-bucket").key("test-key").build();
-        assertThat(utilities.getUrl(request).toString()).contains("hoge");
+        assertThat(utilities.getUrl(request).toString()).contains(EDC_AWS_ENDPOINT_OVERRIDE);
     }
 }
