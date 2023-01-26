@@ -1,0 +1,13 @@
+{
+    "accessPolicyId": "use-eu",
+    "contractPolicyId": "use-eu",
+    "criteria": [
+        {
+            "operandLeft": "asset:prop:id",
+            "operandRight": "test-document",
+            "operator": "string"
+        }
+    ],
+    "id": "1",
+    "validity": 31536000
+}

@@ -30,11 +30,12 @@ ENV EDC_KEYSTORE=$EDC_KEYSTORE
 ENV EDC_KEYSTORE_PASSWORD=$EDC_KEYSTORE_PASSWORD
 
 EXPOSE 8181
+EXPOSE 8182
 EXPOSE 8282
 
 ENTRYPOINT java \
     -Djava.security.edg=file:/dev/.urandom \
-    -Dedc.ids.id="urn:connector:edc-connector-24" \
+    -Dedc.ids.id="urn:connector:provider" \
     -Dedc.ids.title="Eclipse Dataspace Connector" \
     -Dedc.ids.description="Eclipse Dataspace Connector with IDS extensions" \
     -Dedc.ids.maintainer="https://example.maintainer.com" \

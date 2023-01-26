@@ -1,0 +1,31 @@
+{
+    "id": "use-eu",
+    "policy": {
+        "permissions": [
+            {
+                "edctype": "dataspaceconnector:permission",
+                "uid": null,
+                "target": null,
+                "action": {
+                    "type": "USE",
+                    "includedIn": null,
+                    "constraint": null
+                },
+                "assignee": null,
+                "assigner": null,
+                "constraints": [],
+                "duties": []
+            }
+        ],
+        "prohibitions": [],
+        "obligations": [],
+        "extensibleProperties": {},
+        "inheritsFrom": null,
+        "assigner": null,
+        "assignee": null,
+        "target": null,
+        "@type": {
+            "@policytype": "set"
+        }
+    }
+}

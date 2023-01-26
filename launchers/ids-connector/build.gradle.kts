@@ -31,6 +31,17 @@ dependencies {
     implementation(project(":extensions:common:iam:oauth2:oauth2-daps"))
 
     implementation(project(":extensions:control-plane:api:management-api"))
+/*New*/
+    implementation(project(":extensions:common:auth:auth-tokenbased"))
+    
+    implementation(project(":extensions:control-plane:transfer:transfer-data-plane"))
+    
+    implementation(project(":extensions:common:api:api-observability"))
+    
+    implementation(project(":extensions:data-plane:data-plane-http"))
+    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
+    implementation(project(":core:data-plane:data-plane-core"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

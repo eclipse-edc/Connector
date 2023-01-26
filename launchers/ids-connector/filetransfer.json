@@ -1,0 +1,19 @@
+{
+  "edctype": "dataspaceconnector:datarequest",
+  "protocol": "ids-multipart",
+  "assetId": "test-document",
+  "contractId": "1:5fcde15b-3561-48d2-8d46-f946c962c361",
+  "dataDestination": {
+    "properties": {
+      "type": "HttpData",
+      "baseUrl": "http://143.93.245.183/upload.php"
+    }
+  },
+  "transferType": {
+    "contentType": "text/plain",
+    "isFinite": true
+  },
+  "managedResources": false,
+  "connectorAddress": "http://143.93.245.184:8282/api/v1/ids/data",
+  "connectorId": "consumer"
+}

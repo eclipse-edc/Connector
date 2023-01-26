@@ -1,0 +1,16 @@
+{
+  "asset": {
+    "id": "test-document",
+    "properties": {
+        "ids:byteSize": null,
+        "asset:prop:id": "test-document",
+        "ids:fileName": null
+      }
+  },
+  "dataAddress": {
+    "properties": {
+      "type": "HttpData",
+      "baseUrl": "http://143.93.245.184/data/my-data.txt"
+    }
+  }
+}
