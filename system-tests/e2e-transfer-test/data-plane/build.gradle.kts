@@ -22,3 +22,7 @@ dependencies {
     implementation(project(":extensions:data-plane:data-plane-api"))
     implementation(project(":extensions:common:vault:vault-filesystem"))
 }
+
+edcBuild {
+    publish.set(false)
+}

@@ -29,10 +29,4 @@ dependencies {
     testFixturesApi(libs.aws.s3)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

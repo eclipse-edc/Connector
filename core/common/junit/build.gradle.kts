@@ -32,10 +32,4 @@ dependencies {
     implementation("org.junit-pioneer:junit-pioneer:1.9.1")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

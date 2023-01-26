@@ -21,10 +21,4 @@ dependencies {
     implementation(project(":extensions:control-plane:provision:provision-oauth2:provision-oauth2-core"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

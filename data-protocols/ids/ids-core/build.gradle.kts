@@ -28,10 +28,4 @@ dependencies {
     implementation(project(":data-protocols:ids:ids-jsonld-serdes"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

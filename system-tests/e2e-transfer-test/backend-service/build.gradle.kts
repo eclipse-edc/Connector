@@ -24,3 +24,7 @@ dependencies {
     implementation(libs.nimbus.jwt)
     implementation(libs.jakarta.rsApi)
 }
+
+edcBuild {
+    publish.set(false)
+}

@@ -32,10 +32,4 @@ dependencies {
     testImplementation(libs.mockserver.client)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

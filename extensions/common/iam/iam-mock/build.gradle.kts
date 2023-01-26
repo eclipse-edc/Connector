@@ -21,10 +21,4 @@ dependencies {
     implementation("com.auth0:java-jwt:4.2.2")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

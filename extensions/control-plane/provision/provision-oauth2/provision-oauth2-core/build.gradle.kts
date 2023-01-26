@@ -34,10 +34,4 @@ dependencies {
     testImplementation(libs.mockserver.netty)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

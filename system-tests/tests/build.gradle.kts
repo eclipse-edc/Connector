@@ -57,3 +57,7 @@ tasks.getByName<Test>("test") {
         showStandardStreams = true
     }
 }
+
+edcBuild {
+    publish.set(false)
+}

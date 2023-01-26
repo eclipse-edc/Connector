@@ -27,10 +27,4 @@ dependencies {
     implementation(project(":extensions:control-plane:store:sql:transfer-process-store-sql"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+
