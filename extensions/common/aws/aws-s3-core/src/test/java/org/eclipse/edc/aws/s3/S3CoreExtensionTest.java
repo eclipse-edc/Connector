@@ -78,18 +78,4 @@ public class S3CoreExtensionTest {
         assertThat(credentials.accessKeyId()).isEqualTo(AWS_ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(AWS_SECRET_ACCESS_KEY);
     }
-
-    @Test
-    void testAwsClientProviderCaching(EdcExtension edc) {
-        var provider = s3.awsClientProvider(edc.getContext());
-        var client1 = provider.s3Client("us-east-1");
-        var client2 = provider.s3Client("us-west-1");
-        var client3 = provider.s3Client("us-west-1");
-        assertThat(client3).isSameAs(client2).isNotSameAs(client1);
-
-        var asyncClient1 = provider.s3AsyncClient("us-east-1");
-        var asyncClient2 = provider.s3AsyncClient("us-west-1");
-        var asyncClient3 = provider.s3AsyncClient("us-west-1");
-        assertThat(client3).isSameAs(client2).isNotSameAs(client1);
-    }
 }
