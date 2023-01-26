@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 
 import java.util.Map;
 import java.util.Properties;
@@ -34,6 +35,7 @@ public class S3CoreExtensionTest {
     private static final String VAULT_KEY_SECRET_ACCESS_KEY = "key of secret access key";
     private static final String EDC_AWS_ACCESS_KEY_ID = "access key id in vault";
     private static final String EDC_AWS_SECRET_ACCESS_KEY = "secret access key in vault";
+    private static final String EDC_AWS_ENDPOINT_OVERRIDE = "http://localhost:9000";
     private static final String AWS_ACCESS_KEY_ID = "access key id via AWS SDK settings";
     private static final String AWS_SECRET_ACCESS_KEY = "secret access key via AWS SDK settings";
 
@@ -50,7 +52,8 @@ public class S3CoreExtensionTest {
 
         edc.setConfiguration(Map.of(
                 S3CoreExtension.AWS_ACCESS_KEY, VAULT_KEY_ACCESS_KEY_ID,
-                S3CoreExtension.AWS_SECRET_KEY, VAULT_KEY_SECRET_ACCESS_KEY));
+                S3CoreExtension.AWS_SECRET_KEY, VAULT_KEY_SECRET_ACCESS_KEY,
+                S3CoreExtension.AWS_ENDPOINT_OVERRIDE, EDC_AWS_ENDPOINT_OVERRIDE));
         edc.registerServiceMock(Vault.class, new MockVault());
         s3 = new S3CoreExtension();
         edc.registerSystemExtension(ServiceExtension.class, s3);
@@ -77,5 +80,11 @@ public class S3CoreExtensionTest {
         var credentials = s3.createCredentialsProvider(edc.getContext()).resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo(AWS_ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(AWS_SECRET_ACCESS_KEY);
+    }
+
+    void testEndpointOverride(EdcExtension edc) {
+        var utilities = s3.awsClientProvider(edc.getContext()).s3Client("us-east-1").utilities();
+        var request = GetUrlRequest.builder().bucket("test-bucket").key("test-key").build();
+        assertThat(utilities.getUrl(request).toString()).contains("hoge");
     }
 }
