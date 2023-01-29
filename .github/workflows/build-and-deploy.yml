@@ -1,9 +1,10 @@
-name: CI/CD Test
+name: CI
 
 on:
   push:
-    branches:
-      - master
+    branches: [ "Provider" ]
+  pull_request:
+    branches: [ "Provider" ]
 
 jobs:
   build:
@@ -15,11 +16,14 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t edc-ids-connector .
+        docker build -t edc-ids-connector -f launchers/ids-connector/Dockerfile .
 
     - name: Login to Docker Hub
       run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
     - name: Push image to Docker Hub
       run: docker push edc-ids-connector
+      
+    - name: Run Docker image
+      run: docker run -p 8181:8181 -p 8182:8182 -p 8282:8282     --env-file ./launchers/ids-connector/ids-connector.env     -v '/home/labadmin/Provider/launchers/ids-connector/config.properties:/config/config.properties'     -v '/home/labadmin/Provider/launchers/ids-connector/provider.p12:/config/provider.p12'     edc-ids-connector
 
