@@ -41,7 +41,7 @@ public class BaseCommonHttpParamsDecorator implements HttpParamsDecorator {
     public HttpRequestParams.Builder decorate(DataFlowRequest request, HttpDataAddress address, HttpRequestParams.Builder params) {
         var requestId = request.getId();
         var baseUrl = Optional.ofNullable(address.getBaseUrl())
-                .orElseThrow(() -> new EdcException("Missing mandatory base url for request: " + requestId));
+                .orElseThrow(() -> new EdcException(format("DataFlowRequest %s: 'baseUrl' property is missing in HttpDataAddress", requestId)));
 
         Optional.ofNullable(address.getAuthKey())
                 .ifPresent(authKey -> params.header(authKey, extractAuthCode(requestId, address)));
@@ -50,7 +50,6 @@ public class BaseCommonHttpParamsDecorator implements HttpParamsDecorator {
                 .baseUrl(baseUrl)
                 .headers(address.getAdditionalHeaders());
     }
-
 
     /**
      * Extract auth token for accessing data source API.
@@ -72,17 +71,17 @@ public class BaseCommonHttpParamsDecorator implements HttpParamsDecorator {
 
         var secretName = address.getSecretName();
         if (secretName == null) {
-            throw new EdcException(format("Missing mandatory secret name for request: %s", requestId));
+            throw new EdcException(format("DataFlowRequest %s: 'secretName' property is missing in HttpDataAddress", requestId));
         }
 
         var value = vault.resolveSecret(secretName);
 
         return Optional.ofNullable(value)
-                .map(it -> getTokenFromJson(it).orElse(it))
-                .orElseThrow(() -> new EdcException(format("No secret found in vault with name %s for request: %s", secretName, requestId)));
+                .map(it -> getTokenFromJson(it, requestId).orElse(it))
+                .orElseThrow(() -> new EdcException(format("DataFlowRequest %s: no secret found in vault with name %s", requestId, secretName)));
     }
 
-    private Optional<String> getTokenFromJson(String value) {
+    private Optional<String> getTokenFromJson(String value, String requestId) {
         Map<?, ?> map;
         try {
             map = typeManager.readValue(value, Map.class);
@@ -92,7 +91,7 @@ public class BaseCommonHttpParamsDecorator implements HttpParamsDecorator {
 
         var token = map.get("token");
         if (token == null) {
-            throw new EdcException("Field 'token' not found in the secret serialized as json");
+            throw new EdcException(format("DataFlowRequest %s: Field 'token' not found in the secret serialized as json: %s", requestId, value));
         } else {
             return Optional.of(token.toString());
         }

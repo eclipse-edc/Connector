@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
@@ -54,7 +55,7 @@ public class BaseSourceHttpParamsDecorator implements HttpParamsDecorator {
     private @NotNull String extractMethod(HttpDataAddress address, DataFlowRequest request) {
         if (Boolean.parseBoolean(address.getProxyMethod())) {
             return Optional.ofNullable(request.getProperties().get(METHOD))
-                    .orElseThrow(() -> new EdcException("Missing http method for request: " + request.getId()));
+                    .orElseThrow(() -> new EdcException(format("DataFlowRequest %s: 'method' property is missing", request.getId())));
         }
         return Optional.ofNullable(address.getMethod()).orElse(DEFAULT_METHOD);
     }

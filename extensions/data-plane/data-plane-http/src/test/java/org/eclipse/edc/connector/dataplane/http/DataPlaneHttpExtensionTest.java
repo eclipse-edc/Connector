@@ -83,9 +83,9 @@ public class DataPlaneHttpExtensionTest {
     }
 
     @Test
-    void transferSourceToDestinationAddHeaders(PipelineService pipeline, HttpRequestParamsProvider decoratorRegistry) {
-        decoratorRegistry.registerSourceDecorator((request, address, builder) -> builder.header("customSourceHeader", "customValue"));
-        decoratorRegistry.registerSinkDecorator((request, address, builder) -> builder.header("customSinkHeader", "customValue"));
+    void transferSourceToDestinationAddHeaders(PipelineService pipeline, HttpRequestParamsProvider paramsProvider) {
+        paramsProvider.registerSourceDecorator((request, address, builder) -> builder.header("customSourceHeader", "customValue"));
+        paramsProvider.registerSinkDecorator((request, address, builder) -> builder.header("customSinkHeader", "customValue"));
         var source = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://localhost:" + SOURCE_PORT)
                 .build();
