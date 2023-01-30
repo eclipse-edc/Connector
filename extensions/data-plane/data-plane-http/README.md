@@ -33,7 +33,8 @@ The setting parameters of this extension are listed below:
 
 #### `HttpRequestParamsProvider`
 This service could be used to register HTTP params decorators (implementors of `HttpParamsDecorator`), that will be 
-invoked before the HTTP request creation, both on `source` and on `sink` sides.
+invoked before the HTTP request creation, both on `source` and on `sink` sides. This can be useful, to enhance the request
+adding some headers with for example some data flow related info like "transferId" or "contractId".
 
 To register a decorator, you can inject the `HttpRequestParamsProvider` and use one of the register methods:
 - `registerSourceDecorator`: register the decorator that will be used for every source request
