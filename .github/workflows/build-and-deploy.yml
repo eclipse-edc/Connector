@@ -20,5 +20,5 @@ jobs:
       
     - name: Run Docker image
       run: | 
-        docker run -p 8181:8181 -p 8182:8182 -p 8282:8282  --env-file ./launchers/ids-connector/ids-connector.env     -v '/launchers/ids-connector/config.properties:/config/config.properties'     -v '/launchers/ids-connector/provider.p12:/config/provider.p12'     edc-ids-connector
+        docker run -p 8181:8181 -p 8182:8182 -p 8282:8282  --env-file ./launchers/ids-connector/ids-connector.env     -v '/DataSpaceConnector/launchers/ids-connector/config.properties'     -v '/DataSpaceConnector/launchers/ids-connector/provider.p12'     edc-ids-connector
 
