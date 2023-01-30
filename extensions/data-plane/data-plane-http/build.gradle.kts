@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
 }

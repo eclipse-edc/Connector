@@ -9,10 +9,11 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities - improvements
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.pipeline;
+package org.eclipse.edc.connector.dataplane.http.params;
 
 import io.netty.handler.codec.http.HttpMethod;
 import org.junit.jupiter.api.Test;
@@ -24,11 +25,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
+import static io.netty.handler.codec.http.HttpMethod.POST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures.formatRequestBodyAsString;
 
-class HttpRequestParamsTests {
+class HttpRequestParamsTest {
     private static final String SCHEME = "http";
     private static final String HOST = "some.base.url";
     private static final String BASE_URL = String.format("%s://%s", SCHEME, HOST);
@@ -102,7 +104,7 @@ class HttpRequestParamsTests {
         var contentType = "application/octet-stream";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)
-                .method(HttpMethod.POST.name())
+                .method(POST.name())
                 .body(body)
                 .build();
 
@@ -119,7 +121,7 @@ class HttpRequestParamsTests {
         var contentType = "text/plain";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)
-                .method(HttpMethod.POST.name())
+                .method(POST.name())
                 .contentType(contentType)
                 .body(body)
                 .build();
@@ -139,7 +141,7 @@ class HttpRequestParamsTests {
         var contentType = "application/json";
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)
-                .method(HttpMethod.POST.name())
+                .method(POST.name())
                 .contentType(contentType)
                 .build();
 
@@ -184,11 +186,41 @@ class HttpRequestParamsTests {
     void verifyExceptionIsRaisedIfContentTypeIsNull() {
         var builder = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)
-                .method(HttpMethod.POST.name())
+                .method(POST.name())
                 .contentType(null)
                 .body("Test Body");
 
         assertThatNullPointerException().isThrownBy(builder::build);
+    }
+
+    @Test
+    void verifyChunkedRequest() throws IOException {
+        var params = HttpRequestParams.Builder.newInstance()
+                .baseUrl(BASE_URL)
+                .method(POST.name())
+                .nonChunkedTransfer(false)
+                .build();
+
+        var request = params.toRequest(() -> new ByteArrayInputStream("a body".getBytes()));
+
+        var body = request.body();
+        assertThat(body).isNotNull();
+        assertThat(body.contentLength()).isEqualTo(-1);
+    }
+
+    @Test
+    void verifyNotChunkedRequest() throws IOException {
+        var params = HttpRequestParams.Builder.newInstance()
+                .baseUrl(BASE_URL)
+                .method(POST.name())
+                .nonChunkedTransfer(true)
+                .build();
+
+        var request = params.toRequest(() -> new ByteArrayInputStream("a body".getBytes()));
+
+        var body = request.body();
+        assertThat(body).isNotNull();
+        assertThat(body.contentLength()).isEqualTo(6);
     }
 
     private void assertBaseUrl(URL url) {

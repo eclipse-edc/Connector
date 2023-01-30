@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -36,18 +37,18 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     private final ExecutorService executorService;
     private final int partitionSize;
     private final Monitor monitor;
-    private final HttpRequestParamsSupplier supplier;
+    private final HttpRequestParamsProvider requestParamsProvider;
 
     public HttpDataSinkFactory(EdcHttpClient httpClient,
                                ExecutorService executorService,
                                int partitionSize,
                                Monitor monitor,
-                               HttpRequestParamsSupplier supplier) {
+                               HttpRequestParamsProvider requestParamsProvider) {
         this.httpClient = httpClient;
         this.executorService = executorService;
         this.partitionSize = partitionSize;
         this.monitor = monitor;
-        this.supplier = supplier;
+        this.requestParamsProvider = requestParamsProvider;
     }
 
     @Override
@@ -68,7 +69,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     @Override
     public DataSink createSink(DataFlowRequest request) {
         return HttpDataSink.Builder.newInstance()
-                .params(supplier.apply(request))
+                .params(requestParamsProvider.provideSinkParams(request))
                 .requestId(request.getId())
                 .partitionSize(partitionSize)
                 .httpClient(httpClient)

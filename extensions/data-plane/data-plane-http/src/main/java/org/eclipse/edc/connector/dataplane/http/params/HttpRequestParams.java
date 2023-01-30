@@ -12,11 +12,14 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.pipeline;
+package org.eclipse.edc.connector.dataplane.http.params;
 
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.connector.dataplane.http.pipeline.ChunkedTransferRequestBody;
+import org.eclipse.edc.connector.dataplane.http.pipeline.NonChunkedTransferRequestBody;
+import org.eclipse.edc.connector.dataplane.http.pipeline.StringRequestBodySupplier;
 import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +70,38 @@ public class HttpRequestParams {
         return requestBuilder.build();
     }
 
+    public String getMethod() {
+        return method;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getQueryParams() {
+        return queryParams;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public boolean isNonChunkedTransfer() {
+        return nonChunkedTransfer;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
     @Nullable
     private RequestBody createRequestBody(@Nullable Supplier<InputStream> bodySupplier) {
         if (bodySupplier == null || contentType == null) {
@@ -101,6 +136,10 @@ public class HttpRequestParams {
 
         public static HttpRequestParams.Builder newInstance() {
             return new HttpRequestParams.Builder();
+        }
+
+        private Builder() {
+            params = new HttpRequestParams();
         }
 
         public HttpRequestParams.Builder baseUrl(String baseUrl) {
@@ -155,10 +194,6 @@ public class HttpRequestParams {
             Objects.requireNonNull(params.contentType, "contentType");
             params.headers.forEach((s, s2) -> Objects.requireNonNull(s2, "value for header: " + s));
             return params;
-        }
-
-        private Builder() {
-            params = new HttpRequestParams();
         }
     }
 }

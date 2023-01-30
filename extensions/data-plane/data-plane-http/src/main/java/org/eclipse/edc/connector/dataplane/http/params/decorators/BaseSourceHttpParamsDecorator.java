@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Amadeus
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,16 +8,15 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.pipeline;
+package org.eclipse.edc.connector.dataplane.http.params.decorators;
 
+import org.eclipse.edc.connector.dataplane.http.params.HttpParamsDecorator;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.edc.util.string.StringUtils;
@@ -28,65 +27,57 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
-/**
- * Source implementation of the {@link HttpRequestParamsSupplier} which proxies (or filter, depending
- * on the data source address configuration) the parameters from the incoming request.
- */
-public class HttpSourceRequestParamsSupplier extends HttpRequestParamsSupplier {
+public class BaseSourceHttpParamsDecorator implements HttpParamsDecorator {
 
     private static final String DEFAULT_METHOD = "GET";
 
-    public HttpSourceRequestParamsSupplier(Vault vault, TypeManager typeManager) {
-        super(vault, typeManager);
+    @Override
+    public HttpRequestParams.Builder decorate(DataFlowRequest request, HttpDataAddress address, HttpRequestParams.Builder params) {
+        params.method(extractMethod(address, request));
+        params.path(extractPath(address, request));
+        params.queryParams(extractQueryParams(address, request));
+        Optional.ofNullable(extractContentType(address, request))
+                .ifPresent(ct -> {
+                    params.contentType(ct);
+                    params.body(extractBody(address, request));
+                });
+        params.nonChunkedTransfer(false);
+        return params;
     }
 
-    @Override
-    protected boolean extractNonChunkedTransfer(HttpDataAddress address) {
-        return false;
-    }
-
-    @Override
-    protected @NotNull DataAddress selectAddress(DataFlowRequest request) {
-        return request.getSourceDataAddress();
-    }
-
-    @Override
-    protected @NotNull String extractMethod(HttpDataAddress address, DataFlowRequest request) {
+    private @NotNull String extractMethod(HttpDataAddress address, DataFlowRequest request) {
         if (Boolean.parseBoolean(address.getProxyMethod())) {
             return Optional.ofNullable(request.getProperties().get(METHOD))
-                    .orElseThrow(() -> new EdcException("Missing http method for request: " + request.getId()));
+                    .orElseThrow(() -> new EdcException(format("DataFlowRequest %s: 'method' property is missing", request.getId())));
         }
-        return DEFAULT_METHOD;
+        return Optional.ofNullable(address.getMethod()).orElse(DEFAULT_METHOD);
     }
 
-    @Override
-    protected @Nullable String extractPath(HttpDataAddress address, DataFlowRequest request) {
-        return Boolean.parseBoolean(address.getProxyPath()) ? request.getProperties().get(PATH) : null;
+    private @Nullable String extractPath(HttpDataAddress address, DataFlowRequest request) {
+        return Boolean.parseBoolean(address.getProxyPath()) ? request.getProperties().get(PATH) : address.getPath();
     }
 
-    @Override
-    protected @Nullable String extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
+    private @Nullable String extractQueryParams(HttpDataAddress address, DataFlowRequest request) {
         var queryParams = Stream.of(address.getQueryParams(), getRequestQueryParams(address, request))
                 .filter(s -> !StringUtils.isNullOrBlank(s))
                 .collect(Collectors.joining("&"));
         return !queryParams.isEmpty() ? queryParams : null;
     }
 
-    @Override
     @Nullable
-    protected String extractContentType(HttpDataAddress address, DataFlowRequest request) {
-        return Boolean.parseBoolean(address.getProxyBody()) ? request.getProperties().get(MEDIA_TYPE) : null;
+    private String extractContentType(HttpDataAddress address, DataFlowRequest request) {
+        return Boolean.parseBoolean(address.getProxyBody()) ? request.getProperties().get(MEDIA_TYPE) : address.getContentType();
     }
 
-    @Override
     @Nullable
-    protected String extractBody(HttpDataAddress address, DataFlowRequest request) {
+    private String extractBody(HttpDataAddress address, DataFlowRequest request) {
         return Boolean.parseBoolean(address.getProxyBody()) ? request.getProperties().get(BODY) : null;
     }
 
