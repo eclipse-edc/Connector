@@ -30,7 +30,7 @@ dependencies {
 
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.1")
     testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.36.1")
-    testImplementation("net.javacrumbs.json-unit:json-unit:2.36.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit:2.36.1")
 
     testImplementation(project(":core:common:junit"))
 
