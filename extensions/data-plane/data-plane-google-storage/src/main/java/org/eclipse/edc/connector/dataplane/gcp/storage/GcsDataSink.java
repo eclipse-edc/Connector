@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.util.List;
