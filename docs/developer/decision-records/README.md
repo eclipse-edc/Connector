@@ -47,3 +47,4 @@
 - [2022-11-28 Release Management](2022-11-28-release-management/)
 - [2022-12-05 EDC Http Client](2022-12-05-edc-http-client/)
 - [2022-12-07 Transaction Synchronization](2022-12-07-transaction-synchronization/)
+- [2023-01-26 Release Process](2023-01-26-release-process/)
