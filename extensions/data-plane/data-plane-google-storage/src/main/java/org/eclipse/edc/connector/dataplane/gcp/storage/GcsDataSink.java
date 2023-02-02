@@ -64,6 +64,20 @@ public class GcsDataSink extends ParallelSink {
         return StatusResult.success();
     }
 
+    @Override
+    protected StatusResult<Void> complete() {
+        var destinationBlobInfo = BlobInfo.newBuilder(BlobId.of(bucketName, bucketName+".complete")).build();
+        byte[] completeData = { };
+        InputStream completeDataStream = new ByteArrayInputStream(completeData);
+        try (var writer = storageClient.writer(destinationBlobInfo)) {
+            ByteStreams.copy(completeDataStream, Channels.newOutputStream(writer));
+        } catch (Exception e) {
+            monitor.severe("Error writing completion data to the bucket", e);
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "An error");
+        }
+        return super.complete();
+    }
+
     public static class Builder extends ParallelSink.Builder<Builder, GcsDataSink> {
 
         private Builder() {

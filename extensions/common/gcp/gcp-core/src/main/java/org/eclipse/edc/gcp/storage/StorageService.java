@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.gcp.storage;
 
+import com.google.api.gax.paging.Page;
+
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import org.eclipse.edc.gcp.common.GcpServiceAccount;
 import org.eclipse.edc.gcp.common.GcsBucket;
@@ -66,4 +69,11 @@ public interface StorageService {
      * @return true if the bucket is empty and false if not
      */
     boolean isEmpty(String bucketName);
+
+    /**
+     * Returns the list of Blobs in the bucket
+     * @param bucketName The name of the bucket
+     * @return the list of Blob items stored in the bucket
+     */
+    Page<Blob> list(String bucketName);
 }
