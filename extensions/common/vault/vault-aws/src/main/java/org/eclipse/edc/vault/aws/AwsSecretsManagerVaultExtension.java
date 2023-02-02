@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Amazon Web Services
+ *  Copyright (c) 2023 - 2023 Amazon Web Services
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -30,6 +30,12 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import static org.eclipse.edc.util.configuration.ConfigurationFunctions.propOrEnv;
 import static org.eclipse.edc.util.string.StringUtils.isNullOrEmpty;
 
+/**
+ * This extension registers an implementation of the Vault interface for AWS Secrets Manager.
+ * It also registers a VaultPrivateKeyResolver and VaultCertificateResolver, which store and retrieve certificates
+ * using the AWS Secretes Manager Vault implementation.
+ * The extension requires the "edc.vault.aws.region" parameter to be set to the AWS region in which secrets should be stored.
+ */
 @Provides({ Vault.class, PrivateKeyResolver.class, CertificateResolver.class })
 @Extension(value = org.eclipse.edc.vault.aws.AwsSecretsManagerVaultExtension.NAME)
 public class AwsSecretsManagerVaultExtension implements ServiceExtension {

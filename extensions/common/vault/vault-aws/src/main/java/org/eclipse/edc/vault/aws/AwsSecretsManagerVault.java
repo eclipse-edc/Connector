@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Amazon Web Services
+ *  Copyright (c) 2022 - 2023 Amazon Web Services
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -104,7 +104,7 @@ public class AwsSecretsManagerVault implements Vault {
 
     /**
      * Many-to-one mapping from all strings into set of strings that only contains valid AWS Secrets Manager key names.
-     * The implementation replaces all illegal characters with '-' and attaches the hash code of the original string to
+     * The implementation replaces all illegal characters with '_' and attaches the hash code of the original string to
      * minimize the likelihood of key collisions.
      *
      * @param originalKey any key
@@ -115,10 +115,10 @@ public class AwsSecretsManagerVault implements Vault {
         if (originalKey.length() > 500) {
             key = originalKey.substring(0, 500);
         }
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         boolean replacedIllegalCharacters = false;
         for (int i = 0; i < key.length(); i++) {
-            Character c = key.charAt(i);
+            var c = key.charAt(i);
             if (!Character.isLetterOrDigit(c) && c != '/' && c != '_' && c != '+' && c != '.' && c != '@' && c != '-') {
                 replacedIllegalCharacters = true;
                 sb.append('-');
@@ -126,7 +126,7 @@ public class AwsSecretsManagerVault implements Vault {
                 sb.append(c);
             }
         }
-        String newKey = sb.append('_').append(originalKey.hashCode()).toString();
+        var newKey = sb.append('_').append(originalKey.hashCode()).toString();
         if (replacedIllegalCharacters) {
             monitor.warning(String.format("AWS Secret Manager vault reduced length or replaced illegal characters " +
                     "in original key name: %s. New name is %s", originalKey, newKey));
