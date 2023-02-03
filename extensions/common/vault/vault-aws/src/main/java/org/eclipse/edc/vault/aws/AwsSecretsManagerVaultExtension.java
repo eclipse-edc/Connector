@@ -17,6 +17,7 @@ package org.eclipse.edc.vault.aws;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -54,7 +55,8 @@ public class AwsSecretsManagerVaultExtension implements ServiceExtension {
         var vaultRegion = getMandatorySetting(context, VAULT_AWS_REGION);
 
         var smClient = buildSmClient(vaultRegion);
-        var vault = new AwsSecretsManagerVault(smClient, context.getMonitor());
+        var vault = new AwsSecretsManagerVault(smClient, context.getMonitor(),
+                new AwsSecretsManagerVaultDefaultSanitationStrategy(context.getMonitor()));
 
         context.registerService(Vault.class, vault);
         context.registerService(PrivateKeyResolver.class, new VaultPrivateKeyResolver(vault));
@@ -72,7 +74,7 @@ public class AwsSecretsManagerVaultExtension implements ServiceExtension {
         if (isNullOrEmpty(value)) {
             value = propOrEnv(setting, null);
             if (isNullOrEmpty(value)) {
-                throw new AwsSecretsManagerVaultException(String.format("'%s' must be supplied but was null", setting));
+                throw new EdcException(String.format("'%s' must be supplied but was null", setting));
             }
         }
         return value;

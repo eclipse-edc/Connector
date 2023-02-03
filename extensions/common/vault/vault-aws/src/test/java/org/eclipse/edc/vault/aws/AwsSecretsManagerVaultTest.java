@@ -17,61 +17,36 @@ package org.eclipse.edc.vault.aws;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 class AwsSecretsManagerVaultTest {
 
-    private final Monitor monitor = Mockito.mock(Monitor.class);
-    private final SecretsManagerClient secretClient = Mockito.mock(SecretsManagerClient.class);
-
-    private final AwsSecretsManagerVault vault = new AwsSecretsManagerVault(secretClient, monitor);
-
-    @Test
-    void resolveSecret_sanitizeKeyNameReplacesInvalidCharacters() {
-        for (var validCharacter : List.of('_', '+', '-', '@', '/', '.')) {
-            var validKey = "valid" + validCharacter + "key";
-            assertThat(vault.sanitizeKey(validKey)).isEqualTo(validKey + '_' + validKey.hashCode());
-        }
-        var key2 = "invalid#key";
-        var sanitized = vault.sanitizeKey(key2);
-        assertThat(sanitized).isEqualTo("invalid-key" + "_" + key2.hashCode());
-    }
-
-    @Test
-    void resolveSecret_sanitizeKeyNameLimitsKeySize() {
-        var key = "-".repeat(10000);
-        var sanitized = vault.sanitizeKey(key);
-        assertThat(sanitized)
-                .isEqualTo("-".repeat(500) + "_" + key.hashCode());
-        assertThat(sanitized.length()).isEqualTo(512);
-    }
-
-    @Test
-    void resolveSecret_sanitizeKeyNameLimitsKeySize2() {
-        var key = "-".repeat(500);
-        var sanitized = vault.sanitizeKey(key);
-        assertThat(sanitized)
-                .isEqualTo("-".repeat(500) + "_" + key.hashCode());
-        assertThat(sanitized.length()).isLessThanOrEqualTo(512);
-    }
-
+    private final Monitor monitor = mock(Monitor.class);
+    private final SecretsManagerClient secretClient = mock(SecretsManagerClient.class);
+    private final AwsSecretsManagerVaultSanitationStrategy sanitizer =
+            new AwsSecretsManagerVaultDefaultSanitationStrategy(monitor);
+    private final AwsSecretsManagerVault vault = new AwsSecretsManagerVault(secretClient, monitor,
+            sanitizer);
 
     @Test
     void storeSecret_shouldSanitizeKey() {
         var key = "invalid#key";
         var value = "value";
+
         vault.storeSecret(key, value);
-        Mockito.verify(secretClient).createSecret(CreateSecretRequest.builder().name(vault.sanitizeKey(key))
+
+        verify(secretClient).createSecret(CreateSecretRequest.builder().name(sanitizer.sanitizeKey(key))
                 .secretString(value).build());
     }
 
@@ -79,49 +54,57 @@ class AwsSecretsManagerVaultTest {
     void storeSecret_shouldNotOverwriteSecrets() {
         var key = "valid-key";
         var value = "value";
+
         vault.storeSecret(key, value);
-        Mockito.verify(secretClient).createSecret(CreateSecretRequest.builder().name(vault.sanitizeKey(key))
+
+        verify(secretClient).createSecret(CreateSecretRequest.builder().name(sanitizer.sanitizeKey(key))
                 .secretString(value).build());
     }
 
     @Test
     void resolveSecret_shouldSanitizeKey() {
         var key = "valid-key";
+
         vault.resolveSecret(key);
-        Mockito.verify(secretClient).getSecretValue(GetSecretValueRequest.builder().secretId(vault.sanitizeKey(key))
+
+        verify(secretClient).getSecretValue(GetSecretValueRequest.builder().secretId(sanitizer.sanitizeKey(key))
                 .build());
     }
 
     @Test
     void deleteSecret_shouldSanitizeKey() {
         var key = "valid-key";
+
         vault.deleteSecret(key);
-        Mockito.verify(secretClient).deleteSecret(DeleteSecretRequest.builder().secretId(vault.sanitizeKey(key))
+
+        verify(secretClient).deleteSecret(DeleteSecretRequest.builder().secretId(sanitizer.sanitizeKey(key))
                 .forceDeleteWithoutRecovery(true)
                 .build());
     }
 
     @Test
     void resolveSecret_shouldNotLogSevereIfSecretNotFound() {
-        Mockito.when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(vault.sanitizeKey("key"))
+        when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(sanitizer.sanitizeKey("key"))
                 .build()))
                 .thenThrow(ResourceNotFoundException.builder().build());
 
         var result = vault.resolveSecret("key");
 
         assertThat(result).isNull();
-        Mockito.verify(monitor, times(2))
+        verify(monitor, times(2))
                 .debug(ArgumentMatchers.anyString(), ArgumentMatchers.any());
     }
 
     @Test
     void resolveSecret_shouldReturnNullAndLogErrorOnGenericException() {
-        Mockito.when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(vault.sanitizeKey("key"))
+        when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(sanitizer.sanitizeKey("key"))
                         .build()))
                 .thenThrow(new RuntimeException("test"));
+
         var result = vault.resolveSecret("key");
+
         assertThat(result).isNull();
-        Mockito.verify(monitor).debug(ArgumentMatchers.anyString());
-        Mockito.verify(monitor).severe(ArgumentMatchers.anyString(), ArgumentMatchers.isA(RuntimeException.class));
+        verify(monitor).debug(ArgumentMatchers.anyString());
+        verify(monitor).severe(ArgumentMatchers.anyString(), ArgumentMatchers.isA(RuntimeException.class));
     }
 }

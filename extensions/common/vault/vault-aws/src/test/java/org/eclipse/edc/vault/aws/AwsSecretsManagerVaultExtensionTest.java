@@ -14,31 +14,34 @@
 
 package org.eclipse.edc.vault.aws;
 
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AwsSecretsManagerVaultExtensionTest {
 
-    private final Monitor monitor = Mockito.mock(Monitor.class);
+    private final Monitor monitor = mock(Monitor.class);
     private final AwsSecretsManagerVaultExtension extension = new AwsSecretsManagerVaultExtension();
 
     @Test
     void configOptionRegionNotProvided_shouldThrowException() {
-        ServiceExtensionContext invalidContext = Mockito.mock(ServiceExtensionContext.class);
-        Mockito.when(invalidContext.getMonitor()).thenReturn(monitor);
-        Assertions.assertThrows(AwsSecretsManagerVaultException.class, () -> extension.initialize(invalidContext));
+        ServiceExtensionContext invalidContext = mock(ServiceExtensionContext.class);
+        when(invalidContext.getMonitor()).thenReturn(monitor);
+
+        Assertions.assertThrows(EdcException.class, () -> extension.initialize(invalidContext));
     }
 
     @Test
     void configOptionRegionProvided_shouldNotThrowException() {
-        ServiceExtensionContext validContext = Mockito.mock(ServiceExtensionContext.class);
+        ServiceExtensionContext validContext = mock(ServiceExtensionContext.class);
         when(validContext.getSetting("edc.vault.aws.region", null)).thenReturn("eu-west-1");
-        Mockito.when(validContext.getMonitor()).thenReturn(monitor);
+        when(validContext.getMonitor()).thenReturn(monitor);
+
         extension.initialize(validContext);
     }
 
