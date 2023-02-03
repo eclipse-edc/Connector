@@ -18,17 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    implementation("software.amazon.awssdk:secretsmanager:2.19.3")
+    api(libs.aws.secretsmanager)
     implementation(project(":core:common:util"))
     testImplementation(libs.mockito.inline)
-}
-
-
-publishing {
-    publications {
-        create<MavenPublication>("vault-aws") {
-            artifactId = "vault-aws"
-            from(components["java"])
-        }
-    }
 }
