@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.gcp.storage;
 
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
@@ -96,6 +97,18 @@ public class GcsDataSource implements DataSource {
         @Override
         public String name() {
             return blobName;
+        }
+
+        @Override
+        public long size() {
+            BlobId blobId = BlobId.of(bucketName, blobName);
+            Blob blob = storageClient.get(blobId);
+            if (blob != null) {
+                return blob.getSize();
+            }
+
+            // TODO handle error
+            return 0;
         }
 
         @Override

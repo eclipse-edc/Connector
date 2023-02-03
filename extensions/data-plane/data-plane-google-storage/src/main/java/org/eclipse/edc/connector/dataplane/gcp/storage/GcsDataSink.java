@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.util.List;
@@ -60,6 +62,20 @@ public class GcsDataSink extends ParallelSink {
             }
         }
         return StatusResult.success();
+    }
+
+    @Override
+    protected StatusResult<Void> complete() {
+        var destinationBlobInfo = BlobInfo.newBuilder(BlobId.of(bucketName, bucketName+".complete")).build();
+        byte[] completeData = { };
+        InputStream completeDataStream = new ByteArrayInputStream(completeData);
+        try (var writer = storageClient.writer(destinationBlobInfo)) {
+            ByteStreams.copy(completeDataStream, Channels.newOutputStream(writer));
+        } catch (Exception e) {
+            monitor.severe("Error writing completion data to the bucket", e);
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "An error");
+        }
+        return super.complete();
     }
 
     public static class Builder extends ParallelSink.Builder<Builder, GcsDataSink> {

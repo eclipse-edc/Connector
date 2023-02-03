@@ -14,7 +14,10 @@
 
 package org.eclipse.edc.gcp.storage;
 
+import com.google.api.gax.paging.Page;
+
 import com.google.cloud.Binding;
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BucketInfo;
 import com.google.cloud.storage.Storage;
 import org.eclipse.edc.gcp.common.GcpException;
@@ -87,8 +90,13 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public boolean isEmpty(String bucket) {
-        var blobs = storageClient.list(bucket, Storage.BlobListOption.pageSize(1)).getValues();
+    public boolean isEmpty(String bucketName) {
+        var blobs = storageClient.list(bucketName, Storage.BlobListOption.pageSize(1)).getValues();
         return !blobs.iterator().hasNext();
+    }
+
+    @Override
+    public Page<Blob> list(String bucketName) {
+        return storageClient.list(bucketName);
     }
 }
