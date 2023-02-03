@@ -31,6 +31,7 @@ public class AwsSecretsManagerVaultDefaultSanitationStrategy implements AwsSecre
      * @param originalKey any key
      * @return Valid AWS Secrets Manager key
      */
+    @Override
     public String sanitizeKey(String originalKey) {
         var key = originalKey;
         if (originalKey.length() > 500) {
