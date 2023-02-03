@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
 
@@ -48,6 +49,9 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -55,7 +59,6 @@ public class Oauth2ProvisionExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var typeManager = context.getTypeManager();
         typeManager.registerTypes(Oauth2ResourceDefinition.class, Oauth2ProvisionedResource.class);
 
         resourceManifestGenerator.registerGenerator(new Oauth2ProviderResourceDefinitionGenerator());

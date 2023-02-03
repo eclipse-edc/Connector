@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.security.PrivateKey;
 import java.time.Clock;
@@ -100,6 +101,9 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     @Inject
     private CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -110,14 +114,14 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
         var keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
         var identityProviderKeyResolverConfiguration = new IdentityProviderKeyResolverConfiguration(jwksUrl, keyRefreshInterval);
-        providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), httpClient, context.getTypeManager(), identityProviderKeyResolverConfiguration);
+        providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), httpClient, typeManager, identityProviderKeyResolverConfiguration);
 
         var configuration = createConfig(context);
 
         var certificate = Optional.ofNullable(configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias()))
                 .orElseThrow(() -> new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias()));
         var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
-        jwtDecoratorRegistry.register(new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), context.getClock(), configuration.getTokenExpiration()));
+        jwtDecoratorRegistry.register(new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), clock, configuration.getTokenExpiration()));
         jwtDecoratorRegistry.register(new X509CertificateDecorator(certificate));
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 

@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.core;
 
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -34,21 +35,21 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@ExtendWith(TypeManagerDependencyInjectionExtension.class)
+@ExtendWith(DependencyInjectionExtension.class)
 class CoreServicesExtensionTest {
+    private final TypeManager typeManager = mock(TypeManager.class);
     private CoreServicesExtension extension;
     private ServiceExtensionContext context;
-    private TypeManager typeManager;
     private PrivateKeyResolver privateKeyResolverMock;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(Executors.newSingleThreadExecutor()));
+        context.registerService(TypeManager.class, typeManager);
 
         privateKeyResolverMock = mock(PrivateKeyResolver.class);
         context.registerService(PrivateKeyResolver.class, privateKeyResolverMock);
 
-        typeManager = context.getTypeManager(); //is already a spy!
         context.registerService(ExecutorInstrumentation.class, mock(ExecutorInstrumentation.class));
 
         this.context = context;

@@ -58,6 +58,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
 
@@ -117,6 +118,12 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private PolicyEngine policyEngine;
 
+    @Inject
+    private TypeManager typeManager;
+
+    @Inject
+    private Telemetry telemetry;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -127,10 +134,6 @@ public class TransferCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-
-        var telemetry = context.getTelemetry();
-
-        var typeManager = context.getTypeManager();
 
         registerTypes(typeManager);
 
@@ -164,7 +167,6 @@ public class TransferCoreExtension implements ServiceExtension {
 
         var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, 7);
         var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, 100L);
-        Clock clock = context.getClock();
         var sendRetryManager = new EntitySendRetryManager(monitor, () -> new ExponentialWaitStrategy(retryBaseDelay), clock, retryLimit);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()

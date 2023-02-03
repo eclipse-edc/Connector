@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import java.time.Clock;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -47,6 +48,9 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
     @Inject
     private PrivateKeyResolver privateKeyResolver;
 
+    @Inject
+    private Clock clock;
+
     @Override
     public String name() {
         return NAME;
@@ -64,6 +68,6 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
         var privateKey = privateKeyResolver.resolvePrivateKey(connectorName, PrivateKeyWrapper.class);
         Objects.requireNonNull(privateKey, "Couldn't resolve private key for " + connectorName);
 
-        return new DecentralizedIdentityService(resolverRegistry, credentialsVerifier, context.getMonitor(), privateKey, didUrl, context.getClock());
+        return new DecentralizedIdentityService(resolverRegistry, credentialsVerifier, context.getMonitor(), privateKey, didUrl, clock);
     }
 }

@@ -27,7 +27,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +55,7 @@ class DataPlaneSelectorApiExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+        context.registerService(TypeManager.class, new TypeManager());
         context.registerService(WebService.class, webService);
         context.registerService(ManagementApiConfiguration.class, managementApiConfiguration);
         context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(mock(DataPlaneSelector.class),
@@ -86,7 +86,7 @@ class DataPlaneSelectorApiExtensionTest {
 
     @NotNull
     private DefaultServiceExtensionContext contextWithConfig(Config config) {
-        var context = new DefaultServiceExtensionContext(new TypeManager(), monitor, mock(Telemetry.class), List.of(() -> config));
+        var context = new DefaultServiceExtensionContext(monitor, List.of(() -> config));
         context.initialize();
         return context;
     }

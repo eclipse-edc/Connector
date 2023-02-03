@@ -36,7 +36,7 @@ class ReflectiveObjectFactoryTest {
 
     @BeforeEach
     void setUp() {
-        var mockedInjector = new InjectorImpl();
+        var mockedInjector = new InjectorImpl(t -> null);
         var mockedContext = mock(ServiceExtensionContext.class);
         when(mockedContext.hasService(eq(SomeService.class))).thenReturn(true);
         when(mockedContext.getService(eq(SomeService.class), anyBoolean())).thenReturn(new SomeService());

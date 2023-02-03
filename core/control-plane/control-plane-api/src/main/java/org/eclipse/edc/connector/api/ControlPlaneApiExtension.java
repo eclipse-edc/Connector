@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
@@ -84,6 +85,9 @@ public class ControlPlaneApiExtension implements ServiceExtension {
     @Inject
     private ControlApiConfiguration controlApiConfiguration;
 
+    @Inject
+    private TypeManager typeManager;
+
     private WebServiceConfiguration webServiceConfiguration;
 
     @Override
@@ -102,7 +106,7 @@ public class ControlPlaneApiExtension implements ServiceExtension {
             webServiceConfiguration = controlApiConfiguration;
         }
 
-        context.getTypeManager().registerTypes(TransferProcessFailStateDto.class);
+        typeManager.registerTypes(TransferProcessFailStateDto.class);
 
         webService.registerResource(webServiceConfiguration.getContextAlias(), new TransferProcessControlApiController(transferProcessService));
     }

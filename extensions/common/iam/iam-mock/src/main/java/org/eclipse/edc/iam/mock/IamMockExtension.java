@@ -15,10 +15,12 @@
 package org.eclipse.edc.iam.mock;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 /**
  * An IAM provider mock used for testing.
@@ -29,6 +31,9 @@ public class IamMockExtension implements ServiceExtension {
 
     public static final String NAME = "Mock IAM";
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -37,6 +42,6 @@ public class IamMockExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var region = context.getSetting("edc.mock.region", "eu");
-        context.registerService(IdentityService.class, new MockIdentityService(context.getTypeManager(), region));
+        context.registerService(IdentityService.class, new MockIdentityService(typeManager, region));
     }
 }

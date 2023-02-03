@@ -64,7 +64,7 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
         var store = new CosmosContractDefinitionStore(cosmosDbApi, typeManager, retryPolicy, configuration.getPartitionKey(), monitor);
         context.registerService(ContractDefinitionStore.class, store);
 
-        context.getTypeManager().registerTypes(ContractDefinitionDocument.class);
+        typeManager.registerTypes(ContractDefinitionDocument.class);
 
         context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 

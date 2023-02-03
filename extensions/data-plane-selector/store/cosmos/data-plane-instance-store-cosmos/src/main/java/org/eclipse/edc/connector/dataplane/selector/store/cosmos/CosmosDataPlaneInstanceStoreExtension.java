@@ -65,6 +65,6 @@ public class CosmosDataPlaneInstanceStoreExtension implements ServiceExtension {
         var store = new CosmosDataPlaneInstanceStore(cosmosDbApi, typeManager, retryPolicy, configuration.getPartitionKey());
         context.registerService(CosmosDataPlaneInstanceStore.class, store);
 
-        context.getTypeManager().registerTypes(DataPlaneInstanceDocument.class);
+        typeManager.registerTypes(DataPlaneInstanceDocument.class);
     }
 }

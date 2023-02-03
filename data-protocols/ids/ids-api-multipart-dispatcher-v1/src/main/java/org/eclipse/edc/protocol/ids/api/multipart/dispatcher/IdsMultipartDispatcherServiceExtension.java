@@ -35,6 +35,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import static org.eclipse.edc.protocol.ids.util.ConnectorIdUtil.resolveConnectorId;
 
@@ -63,6 +64,9 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     @Inject
     private Vault vault;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -73,8 +77,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         var connectorId = resolveConnectorId(context);
         var idsWebhookAddress = idsApiConfiguration.getIdsWebhookAddress();
 
-        var objectMapper = context.getTypeManager().getMapper("ids");
-        var typeManager = context.getTypeManager();
+        var objectMapper = typeManager.getMapper("ids");
 
         var senderContext = new SenderDelegateContext(connectorId, objectMapper, transformerRegistry, idsWebhookAddress);
 

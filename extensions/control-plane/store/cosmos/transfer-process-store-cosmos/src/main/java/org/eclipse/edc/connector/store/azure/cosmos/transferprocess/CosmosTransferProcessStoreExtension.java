@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
 
@@ -52,6 +53,9 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -67,9 +71,9 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         TransferProcessStoreCosmosConfig configuration = new TransferProcessStoreCosmosConfig(context);
         var client = clientProvider.createClient(vault, configuration);
         var cosmosDbApi = new CosmosDbApiImpl(configuration, client);
-        context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(cosmosDbApi, context.getTypeManager(), configuration.getPartitionKey(), connectorId, retryPolicy, clock));
+        context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(cosmosDbApi, typeManager, configuration.getPartitionKey(), connectorId, retryPolicy, clock));
 
-        context.getTypeManager().registerTypes(TransferProcessDocument.class);
+        typeManager.registerTypes(TransferProcessDocument.class);
 
         healthService.addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 

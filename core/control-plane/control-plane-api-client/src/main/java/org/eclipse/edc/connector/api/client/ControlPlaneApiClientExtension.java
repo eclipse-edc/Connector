@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 
 /**
@@ -38,11 +39,14 @@ public class ControlPlaneApiClientExtension implements ServiceExtension {
     @Inject
     private EdcHttpClient httpClient;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Provider
     public TransferProcessApiClient transferProcessApiClient(ServiceExtensionContext context) {
-        context.getTypeManager().registerTypes(TransferProcessFailRequest.class);
+        typeManager.registerTypes(TransferProcessFailRequest.class);
 
-        return new TransferProcessHttpClient(httpClient, context.getTypeManager().getMapper(), context.getMonitor());
+        return new TransferProcessHttpClient(httpClient, typeManager.getMapper(), context.getMonitor());
     }
 
 }

@@ -43,6 +43,7 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.security.PrivateKey;
 import java.time.Duration;
@@ -74,6 +75,9 @@ public class CoreServicesExtension implements ServiceExtension {
     @Inject
     private EventExecutorServiceContainer eventExecutorServiceContainer;
 
+    @Inject
+    private TypeManager typeManager;
+
     private HealthCheckServiceImpl healthCheckService;
     private RuleBindingRegistry ruleBindingRegistry;
 
@@ -91,7 +95,6 @@ public class CoreServicesExtension implements ServiceExtension {
         healthCheckService = new HealthCheckServiceImpl(config, executorInstrumentation);
         ruleBindingRegistry = new RuleBindingRegistryImpl();
 
-        var typeManager = context.getTypeManager();
         PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
     }
 

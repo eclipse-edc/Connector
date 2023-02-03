@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 @Extension(value = HttpDynamicEndpointDataReferenceReceiverExtension.NAME)
 public class HttpDynamicEndpointDataReferenceReceiverExtension implements ServiceExtension {
@@ -54,6 +55,8 @@ public class HttpDynamicEndpointDataReferenceReceiverExtension implements Servic
     @Inject
     private TransferProcessObservable transferProcessObservable;
 
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public String name() {
@@ -68,7 +71,7 @@ public class HttpDynamicEndpointDataReferenceReceiverExtension implements Servic
 
         var receiver = HttpDynamicEndpointDataReferenceReceiver.Builder.newInstance()
                 .httpClient(httpClient)
-                .typeManager(context.getTypeManager())
+                .typeManager(typeManager)
                 .retryPolicy(retryPolicy)
                 .fallbackEndpoint(fallbackEndpoint)
                 .authHeader(authKey, authCode)

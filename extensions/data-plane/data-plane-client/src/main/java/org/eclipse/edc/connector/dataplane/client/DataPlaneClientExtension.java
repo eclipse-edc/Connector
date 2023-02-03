@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.Objects;
 
@@ -48,6 +49,9 @@ public class DataPlaneClientExtension implements ServiceExtension {
     @Inject(required = false)
     private EdcHttpClient httpClient;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -64,7 +68,7 @@ public class DataPlaneClientExtension implements ServiceExtension {
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
         Objects.requireNonNull(httpClient, "To use remote Data Plane client, an EdcHttpClient instance must be registered");
         var selectionStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
-        return new RemoteDataPlaneClient(httpClient, dataPlaneSelectorClient, selectionStrategy, context.getTypeManager().getMapper());
+        return new RemoteDataPlaneClient(httpClient, dataPlaneSelectorClient, selectionStrategy, typeManager.getMapper());
     }
 }
 

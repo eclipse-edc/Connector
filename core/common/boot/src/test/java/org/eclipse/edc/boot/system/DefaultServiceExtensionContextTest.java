@@ -20,8 +20,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,10 +40,8 @@ class DefaultServiceExtensionContextTest {
 
     @BeforeEach
     void setUp() {
-        TypeManager typeManager = new TypeManager();
-        Monitor monitor = mock(Monitor.class);
-        Telemetry telemetry = new Telemetry();
-        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, List.of(configuration));
+        var monitor = mock(Monitor.class);
+        context = new DefaultServiceExtensionContext(monitor, List.of(configuration));
     }
 
     @Test
