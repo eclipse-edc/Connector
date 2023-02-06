@@ -1,29 +1,17 @@
 # Data-Plane Http OAuth2
 
-TODO: TO BE REVISITED!
-
 This extension can be used when there's a data endpoint that requires OAuth2 authentication through the
 [*client credentials flow*](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow)
-It can be used both on **source** and **sink** side of the data transfer:
-
-- **source**: when the source data address contains the `oauth2` related properties, extension
-  will request a token and store it in the vault, then the `data-plane-http` extension will get the token
-  to authenticate the data request call.
-- **sink**: when the destination data address contains the `oauth2` related properties, the provisioner of the
-  participant that will store the data will request a token and store it in the vault, then the
-  `data-plane-http` extension will get the token to authenticate the data request call.
+It applies on both on **source** and **sink** side of the data transfer, when the data address containes the `oauth2`
+related properties, the extension will request a token and add it as a `Bearer` in the `Authorization` header.
 
 Please note that this extension doesn't currently support neither expiration nor refresh tokens, as they are not
 mandatory specifications that are up to the OAuth2 server implementation used.
 
-## How it works
-
-....
-
 ## How to use it
 
 The extension works for all the `HttpData` addresses that contain the "oauth2" properties (defined in
-[Oauth2DataAddressSchema](src/main/java/org/eclipse/edc/connector/provision/oauth2/Oauth2DataAddressSchema.java)).
+[Oauth2DataAddressSchema](../../../spi/common/oauth2-spi/src/main/java/org/eclipse/edc/iam/oauth2/spi/Oauth2DataAddressSchema.java)).
 It supports [both types of client credential](https://connect2id.com/products/server/docs/guides/oauth-client-authentication#credential-types):
 shared secret and private-key based.
 

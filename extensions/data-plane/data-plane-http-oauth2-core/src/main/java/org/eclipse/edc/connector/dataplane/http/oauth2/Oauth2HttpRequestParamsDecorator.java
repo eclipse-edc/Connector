@@ -22,6 +22,9 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
+/**
+ * Requests the OAuth2 token if configured in the DataAddress
+ */
 public class Oauth2HttpRequestParamsDecorator implements HttpParamsDecorator {
 
     private final Oauth2CredentialsRequestFactory requestFactory;
