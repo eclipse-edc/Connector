@@ -73,7 +73,6 @@ public class ArtifactRequestHandler implements Handler {
 
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
-        var claimToken = multipartRequest.getClaimToken();
         var message = (ArtifactRequestMessage) multipartRequest.getHeader();
 
         // Validate request artifact ID
@@ -146,6 +145,8 @@ public class ArtifactRequestHandler implements Handler {
         // NB: DO NOT use the asset id provided by the client as that can open aan attack vector where a client references an artifact that
         //     is different from the one specified by the contract
 
+        var claimToken = multipartRequest.getClaimToken();
+
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(message.getId().toString())
                 .protocol(MessageProtocol.IDS_MULTIPART)
@@ -155,6 +156,7 @@ public class ArtifactRequestHandler implements Handler {
                 .contractId(contractAgreement.getId())
                 .properties(props)
                 .connectorAddress(idsWebhookAddress)
+                .claimToken(claimToken)
                 .build();
 
         // Initiate a transfer process for the request

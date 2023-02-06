@@ -63,20 +63,6 @@ class ArtifactRequestHandlerTest {
     private IdsId connectorId;
     private ContractNegotiationStore contractNegotiationStore;
 
-    private static URI createUri(IdsType type, String value) {
-        return URI.create("urn:" + type.getValue() + ":" + value);
-    }
-
-    private static ContractAgreement createContractAgreement(String contractId, String assetId) {
-        return ContractAgreement.Builder.newInstance()
-                .id(contractId)
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .assetId(assetId)
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
-
     @BeforeEach
     public void setUp() {
         transferProcessService = mock(TransferProcessService.class);
@@ -95,7 +81,7 @@ class ArtifactRequestHandlerTest {
         var contractId = UUID.randomUUID().toString();
         var destination = DataAddress.Builder.newInstance().keyName(UUID.randomUUID().toString()).type("test").build();
         var agreement = createContractAgreement(contractId, assetId);
-        var claimToken = ClaimToken.Builder.newInstance().build();
+        var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
         var multipartRequest = createMultipartRequest(destination, artifactRequestId, assetId, contractId, claimToken);
         var header = (ArtifactRequestMessage) multipartRequest.getHeader();
 
@@ -113,6 +99,7 @@ class ArtifactRequestHandlerTest {
         assertThat(drCapture.getValue().getAssetId()).isEqualTo(agreement.getAssetId());
         assertThat(drCapture.getValue().getContractId()).isEqualTo(agreement.getId());
         assertThat(drCapture.getValue().getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
+        assertThat(drCapture.getValue().getClaimToken()).usingRecursiveComparison().isEqualTo(claimToken);
         assertThat(drCapture.getValue().getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
     }
 
@@ -158,6 +145,20 @@ class ArtifactRequestHandlerTest {
                 .payload(new ObjectMapper().writeValueAsString(payload))
                 .claimToken(claimToken)
                 .build();
+    }
+
+    private ContractAgreement createContractAgreement(String contractId, String assetId) {
+        return ContractAgreement.Builder.newInstance()
+                .id(contractId)
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .assetId(assetId)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
+    private URI createUri(IdsType type, String value) {
+        return URI.create("urn:" + type.getValue() + ":" + value);
     }
 
     private ObjectMapper getCustomizedObjectMapper() {
