@@ -86,6 +86,7 @@ public class HttpDataSink extends ParallelSink {
             return this;
         }
 
+        @Override
         protected void validate() {
             Objects.requireNonNull(sink.requestFactory, "requestFactory");
         }

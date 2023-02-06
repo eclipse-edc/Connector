@@ -30,7 +30,9 @@ import java.util.function.Supplier;
 
 import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
 
-// TODO: document
+/**
+ * Permits to create a {@link Request} from a {@link HttpRequestParams}
+ */
 public class HttpRequestFactory {
 
     /**
