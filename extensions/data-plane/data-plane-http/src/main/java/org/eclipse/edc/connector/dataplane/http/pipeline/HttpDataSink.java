@@ -15,7 +15,8 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -34,11 +35,12 @@ public class HttpDataSink extends ParallelSink {
 
     private HttpRequestParams params;
     private EdcHttpClient httpClient;
+    private HttpRequestFactory requestFactory;
 
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
-            var request = params.toRequest(part::openStream);
+            var request = requestFactory.toRequest(params, part::openStream);
             try (var response = httpClient.execute(request)) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s",
@@ -64,6 +66,10 @@ public class HttpDataSink extends ParallelSink {
             return new Builder();
         }
 
+        private Builder() {
+            super(new HttpDataSink());
+        }
+
         public Builder params(HttpRequestParams params) {
             sink.params = params;
             return this;
@@ -74,11 +80,12 @@ public class HttpDataSink extends ParallelSink {
             return this;
         }
 
-        protected void validate() {
+        public Builder requestFactory(HttpRequestFactory requestFactory) {
+            sink.requestFactory = requestFactory;
+            return this;
         }
 
-        private Builder() {
-            super(new HttpDataSink());
+        protected void validate() {
         }
     }
 }

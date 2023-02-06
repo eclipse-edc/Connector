@@ -15,7 +15,8 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -35,11 +36,13 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     private final EdcHttpClient httpClient;
     private final HttpRequestParamsProvider requestParamsProvider;
     private final Monitor monitor;
+    private final HttpRequestFactory requestFactory;
 
-    public HttpDataSourceFactory(EdcHttpClient httpClient, HttpRequestParamsProvider requestParamsProvider, Monitor monitor) {
+    public HttpDataSourceFactory(EdcHttpClient httpClient, HttpRequestParamsProvider requestParamsProvider, Monitor monitor, HttpRequestFactory requestFactory) {
         this.httpClient = httpClient;
         this.requestParamsProvider = requestParamsProvider;
         this.monitor = monitor;
+        this.requestFactory = requestFactory;
     }
 
     @Override
@@ -68,6 +71,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .requestId(request.getId())
                 .name(dataAddress.getName())
                 .params(requestParamsProvider.provideSourceParams(request))
+                .requestFactory(requestFactory)
                 .build();
     }
 }

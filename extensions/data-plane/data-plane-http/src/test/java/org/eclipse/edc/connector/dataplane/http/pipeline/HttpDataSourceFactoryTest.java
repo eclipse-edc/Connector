@@ -18,8 +18,9 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -42,12 +43,13 @@ class HttpDataSourceFactoryTest {
     private final EdcHttpClient httpClient = mock(EdcHttpClient.class);
     private final Monitor monitor = mock(Monitor.class);
     private final HttpRequestParamsProvider provider = mock(HttpRequestParamsProvider.class);
+    private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
 
     private HttpDataSourceFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSourceFactory(httpClient, provider, monitor);
+        factory = new HttpDataSourceFactory(httpClient, provider, monitor, requestFactory);
     }
 
     @Test

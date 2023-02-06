@@ -12,22 +12,11 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.params;
+package org.eclipse.edc.connector.dataplane.http.spi;
 
-import okhttp3.HttpUrl;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import org.eclipse.edc.connector.dataplane.http.pipeline.ChunkedTransferRequestBody;
-import org.eclipse.edc.connector.dataplane.http.pipeline.NonChunkedTransferRequestBody;
-import org.eclipse.edc.connector.dataplane.http.pipeline.StringRequestBodySupplier;
-import org.eclipse.edc.util.string.StringUtils;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 public class HttpRequestParams {
 
@@ -42,33 +31,6 @@ public class HttpRequestParams {
     private String body;
     private boolean nonChunkedTransfer = DEFAULT_NON_CHUNKED_TRANSFER;
     private final Map<String, String> headers = new HashMap<>();
-
-    /**
-     * Creates HTTP request from the current set of parameters.
-     *
-     * @return HTTP request.
-     */
-    public Request toRequest() {
-        if (body == null) {
-            return toRequest(null);
-        }
-        return toRequest(new StringRequestBodySupplier(body));
-    }
-
-    /**
-     * Creates HTTP request from the current set of parameters and the provided request body.
-     *
-     * @param bodySupplier the request body supplier.
-     * @return HTTP request.
-     */
-    public Request toRequest(@Nullable Supplier<InputStream> bodySupplier) {
-        var requestBody = createRequestBody(bodySupplier);
-        var requestBuilder = new Request.Builder()
-                .url(toUrl())
-                .method(method, requestBody);
-        headers.forEach(requestBuilder::addHeader);
-        return requestBuilder.build();
-    }
 
     public String getMethod() {
         return method;
@@ -101,35 +63,6 @@ public class HttpRequestParams {
     public Map<String, String> getHeaders() {
         return headers;
     }
-
-    @Nullable
-    private RequestBody createRequestBody(@Nullable Supplier<InputStream> bodySupplier) {
-        if (bodySupplier == null || contentType == null) {
-            return null;
-        }
-        return nonChunkedTransfer ? new NonChunkedTransferRequestBody(bodySupplier, contentType) :
-                new ChunkedTransferRequestBody(bodySupplier, contentType);
-    }
-
-
-    /**
-     * Creates a URL from the base url, path and query parameters provided in input.
-     *
-     * @return The URL.
-     */
-    private HttpUrl toUrl() {
-        var parsed = HttpUrl.parse(baseUrl);
-        Objects.requireNonNull(parsed, "Failed to parse baseUrl: " + baseUrl);
-        var builder = parsed.newBuilder();
-        if (!StringUtils.isNullOrBlank(path)) {
-            builder.addPathSegments(path);
-        }
-        if (!StringUtils.isNullOrBlank(queryParams)) {
-            builder.query(queryParams);
-        }
-        return builder.build();
-    }
-
 
     public static class Builder {
         private final HttpRequestParams params;

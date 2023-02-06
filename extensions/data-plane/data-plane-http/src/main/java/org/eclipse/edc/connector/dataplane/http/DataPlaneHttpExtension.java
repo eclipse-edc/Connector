@@ -15,7 +15,8 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProviderImpl;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory;
@@ -71,10 +72,12 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
         context.registerService(HttpRequestParamsProvider.class, paramsProvider);
 
-        var sourceFactory = new HttpDataSourceFactory(httpClient, paramsProvider, monitor);
+        var httpRequestFactory = new HttpRequestFactory();
+
+        var sourceFactory = new HttpDataSourceFactory(httpClient, paramsProvider, monitor, httpRequestFactory);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, paramsProvider);
+        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, paramsProvider, httpRequestFactory);
         pipelineService.registerFactory(sinkFactory);
     }
 

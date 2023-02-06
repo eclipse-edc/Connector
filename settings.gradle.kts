@@ -202,8 +202,8 @@ include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
 include(":spi:control-plane:control-plane-api-client-spi")
 
-
 include(":spi:data-plane:data-plane-spi")
+include(":spi:data-plane:data-plane-http-spi")
 
 include(":spi:data-plane-selector:data-plane-selector-spi")
 

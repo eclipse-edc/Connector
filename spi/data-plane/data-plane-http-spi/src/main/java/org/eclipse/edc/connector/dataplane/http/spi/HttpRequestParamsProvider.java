@@ -12,8 +12,10 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.params;
+package org.eclipse.edc.connector.dataplane.http.spi;
 
+import org.eclipse.edc.connector.dataplane.http.spi.HttpParamsDecorator;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 /**

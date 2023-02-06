@@ -17,8 +17,9 @@ package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.Request;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.edc.spi.EdcException;
@@ -53,12 +54,13 @@ class HttpDataSinkFactoryTest {
     private final Monitor monitor = mock(Monitor.class);
     private final ExecutorService executorService = mock(ExecutorService.class);
     private final HttpRequestParamsProvider provider = mock(HttpRequestParamsProvider.class);
+    private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
 
     private HttpDataSinkFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), provider);
+        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), provider, requestFactory);
     }
 
     @Test
