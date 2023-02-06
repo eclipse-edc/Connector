@@ -21,14 +21,16 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.concurrent.ExecutorService;
@@ -48,25 +50,9 @@ class DataSourceToDataSinkTests {
     private static final String NULL_ENDPOINT = "https://example.com/sink";
     private static final String CONTENT_TYPE = "application/json";
 
-    private ExecutorService executor;
-    private Monitor monitor;
-
-    /**
-     * Provides most common http error status codes.
-     *
-     * @return Http Error codes as {@link Stream} of {@link Arguments}.
-     */
-    private static Stream<Arguments> provideCommonErrorCodes() {
-        return Stream.of(
-                Arguments.of("MOVED_PERMANENTLY_301", 301),
-                Arguments.of("FOUND_302", 302),
-                Arguments.of("BAD_REQUEST_400", 400),
-                Arguments.of("UNAUTHORIZED_401", 401),
-                Arguments.of("NOT_FOUND_404", 404),
-                Arguments.of("INTERNAL_SERVER_ERROR_500", 500),
-                Arguments.of("BAD_GATEWAY_502", 502)
-        );
-    }
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private final Monitor monitor = mock(Monitor.class);
+    private final HttpRequestFactory requestFactory = new HttpRequestFactory();
 
     /**
      * Verifies a sink is able to pull data from the source without exceptions if both endpoints are functioning.
@@ -88,6 +74,7 @@ class DataSourceToDataSinkTests {
                 .requestId("1")
                 .httpClient(sourceClient)
                 .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         var sinkClient = testHttpClient(interceptor);
@@ -102,6 +89,7 @@ class DataSourceToDataSinkTests {
                 .httpClient(sinkClient)
                 .executorService(executor)
                 .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         assertThat(dataSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
@@ -114,7 +102,7 @@ class DataSourceToDataSinkTests {
      * Verifies an exception thrown by the source endpoint is handled correctly.
      */
     @ParameterizedTest(name = "{index} {0}")
-    @MethodSource("provideCommonErrorCodes")
+    @ArgumentsSource(ProvideCommonErrorCodes.class)
     void verifyFailedTransferBecauseOfClient(String name, int errorCode) throws Exception {
 
         // simulate source error
@@ -133,6 +121,7 @@ class DataSourceToDataSinkTests {
                 .requestId("1")
                 .httpClient(sourceClient)
                 .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         var sinkClient = mock(EdcHttpClient.class);
@@ -147,6 +136,7 @@ class DataSourceToDataSinkTests {
                 .httpClient(sinkClient)
                 .executorService(executor)
                 .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         assertThat(dataSink.transfer(dataSource).get().failed()).isTrue();
@@ -158,7 +148,7 @@ class DataSourceToDataSinkTests {
      * Verifies an exception thrown by the sink endpoint is handled correctly.
      */
     @ParameterizedTest(name = "{index} {0}")
-    @MethodSource("provideCommonErrorCodes")
+    @ArgumentsSource(ProvideCommonErrorCodes.class)
     void verifyFailedTransferBecauseOfProvider(String name, int errorCode) throws Exception {
 
         // source completes normally
@@ -177,6 +167,7 @@ class DataSourceToDataSinkTests {
                 .requestId("1")
                 .httpClient(sourceClient)
                 .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         // sink endpoint raises an exception
@@ -197,18 +188,13 @@ class DataSourceToDataSinkTests {
                 .httpClient(sinkClient)
                 .executorService(executor)
                 .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         assertThat(dataSink.transfer(dataSource).get().failed()).isTrue();
 
         verify(sourceInterceptor).intercept(isA(Interceptor.Chain.class));
         verify(sinkInterceptor).intercept(isA(Interceptor.Chain.class));
-    }
-
-    @BeforeEach
-    void setUp() {
-        executor = Executors.newFixedThreadPool(2);
-        monitor = mock(Monitor.class);
     }
 
     private Response createResponse(int code, Request request) {
@@ -223,5 +209,20 @@ class DataSourceToDataSinkTests {
 
     private Request getRequest(InvocationOnMock invocation) {
         return invocation.getArgument(0, Interceptor.Chain.class).request();
+    }
+
+    public static class ProvideCommonErrorCodes implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of("MOVED_PERMANENTLY_301", 301),
+                    Arguments.of("FOUND_302", 302),
+                    Arguments.of("BAD_REQUEST_400", 400),
+                    Arguments.of("UNAUTHORIZED_401", 401),
+                    Arguments.of("NOT_FOUND_404", 404),
+                    Arguments.of("INTERNAL_SERVER_ERROR_500", 500),
+                    Arguments.of("BAD_GATEWAY_502", 502)
+            );
+        }
     }
 }

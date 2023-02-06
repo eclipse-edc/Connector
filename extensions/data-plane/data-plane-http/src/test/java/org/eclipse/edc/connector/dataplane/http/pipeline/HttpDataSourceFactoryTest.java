@@ -95,6 +95,7 @@ class HttpDataSourceFactoryTest {
                 .requestId(request.getId())
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         assertThat(source).usingRecursiveComparison().isEqualTo(expected);

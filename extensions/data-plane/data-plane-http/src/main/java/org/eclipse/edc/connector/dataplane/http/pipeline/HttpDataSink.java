@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
@@ -86,6 +87,7 @@ public class HttpDataSink extends ParallelSink {
         }
 
         protected void validate() {
+            Objects.requireNonNull(sink.requestFactory, "requestFactory");
         }
     }
 }
