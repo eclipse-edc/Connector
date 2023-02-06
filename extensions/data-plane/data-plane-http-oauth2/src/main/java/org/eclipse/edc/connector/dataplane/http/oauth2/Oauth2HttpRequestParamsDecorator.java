@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.http.oauth2;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpParamsDecorator;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -32,10 +33,9 @@ class Oauth2HttpRequestParamsDecorator implements HttpParamsDecorator {
 
     @Override
     public HttpRequestParams.Builder decorate(DataFlowRequest request, HttpDataAddress address, HttpRequestParams.Builder params) {
-        var oauth2Request = requestFactory.create(address);
-
-        var token = client.requestToken(oauth2Request.getContent());
-
-        return params.header("Authorization", "Bearer " + token.getContent().getToken());
+        return requestFactory.create(address)
+                .compose(client::requestToken)
+                .map(tokenRepresentation -> params.header("Authorization", "Bearer " + tokenRepresentation.getToken()))
+                .orElseThrow(failure -> new EdcException("Cannot authenticate through OAuth2: " + failure.getFailureDetail()));
     }
 }

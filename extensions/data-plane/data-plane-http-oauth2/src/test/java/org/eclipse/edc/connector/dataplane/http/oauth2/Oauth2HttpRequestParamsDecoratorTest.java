@@ -18,20 +18,18 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -54,6 +52,31 @@ class Oauth2HttpRequestParamsDecoratorTest {
 
         assertThat(result.getHeaders()).asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
                 .containsEntry("Authorization", "Bearer token-test");
+    }
+
+    @Test
+    void shouldThrowExceptionIfCannotBuildRequest() {
+        var decorator = new Oauth2HttpRequestParamsDecorator(requestFactory, client);
+        var dataFlowRequest = dummyDataFlowRequest();
+        var httpAddress = HttpDataAddress.Builder.newInstance().build();
+        when(requestFactory.create(any())).thenReturn(Result.failure("cannot build request"));
+        var paramsBuilder = HttpRequestParams.Builder.newInstance().baseUrl("http://any").method("GET");
+
+        assertThatThrownBy(() -> decorator.decorate(dataFlowRequest, httpAddress, paramsBuilder))
+                .isInstanceOf(EdcException.class);
+    }
+
+    @Test
+    void shouldThrowExceptionIfCannotGetToken() {
+        var decorator = new Oauth2HttpRequestParamsDecorator(requestFactory, client);
+        var dataFlowRequest = dummyDataFlowRequest();
+        var httpAddress = HttpDataAddress.Builder.newInstance().build();
+        when(requestFactory.create(any())).thenReturn(Result.success(createRequest()));
+        when(client.requestToken(any())).thenReturn(Result.failure("Cannot get token"));
+        var paramsBuilder = HttpRequestParams.Builder.newInstance().baseUrl("http://any").method("GET");
+
+        assertThatThrownBy(() -> decorator.decorate(dataFlowRequest, httpAddress, paramsBuilder))
+                .isInstanceOf(EdcException.class);
     }
 
     private DataFlowRequest dummyDataFlowRequest() {
