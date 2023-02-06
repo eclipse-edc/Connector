@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,7 @@ public class TestFunctions {
                 .contractId("some-contract")
                 .managedResources(false)
                 .assetId(Asset.Builder.newInstance().id("asset-id").build().getId())
+                .claimToken(ClaimToken.Builder.newInstance().claim("claim", "value").build())
                 .processId("test-process-id");
     }
 

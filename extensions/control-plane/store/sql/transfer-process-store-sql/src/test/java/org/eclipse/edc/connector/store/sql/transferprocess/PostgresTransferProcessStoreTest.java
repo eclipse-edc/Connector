@@ -36,7 +36,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
@@ -59,8 +58,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     private SqlTransferProcessStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
-
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
         var typeManager = new TypeManager();
         typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
@@ -73,7 +71,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getTransferProcessTableName() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getDataRequestTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getLeaseTableName() + " CASCADE");
@@ -95,7 +93,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         assertThatThrownBy(() -> store.findAll(query)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed");
     }
-
 
     @Test
     void find_queryByResourceManifest_propNotExist() {
@@ -122,7 +119,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
         assertThat(store.findAll(query2)).isEmpty();
     }
-
 
     @Test
     void find_queryByProvisionedResourceSet_propNotExist() {
@@ -155,7 +151,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         assertThat(store.findAll(query2)).isEmpty();
     }
 
-
     @Test
     void find_queryByLease() {
         store.save(createTransferProcess("testprocess1"));
@@ -166,7 +161,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
         assertThatThrownBy(() -> store.findAll(query)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
-
     }
 
     @Test

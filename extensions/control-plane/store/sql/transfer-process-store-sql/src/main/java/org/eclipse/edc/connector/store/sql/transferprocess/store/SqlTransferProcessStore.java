@@ -23,7 +23,9 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.SqlQueryExecutor;
@@ -86,7 +88,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     @Override
     public @Nullable TransferProcess find(String id) {
         return transactionContext.execute(() -> {
-            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
+            var q = QuerySpec.Builder.newInstance().filter(new Criterion("id", "=", id)).build();
             return single(findAll(q).collect(toList()));
         });
     }
@@ -158,68 +160,16 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         });
     }
 
-    public DataRequest mapDataRequest(ResultSet resultSet) throws SQLException {
-        return DataRequest.Builder.newInstance()
-                .id(resultSet.getString("edc_data_request_id"))
-                .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .protocol(resultSet.getString(statements.getProtocolColumn()))
-                .dataDestination(fromJson(resultSet.getString(statements.getDataDestinationColumn()), DataAddress.class))
-                .connectorId(resultSet.getString(statements.getConnectorIdColumn()))
-                .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
-                .contractId(resultSet.getString(statements.getContractIdColumn()))
-                .managedResources(resultSet.getBoolean(statements.getManagedResourcesColumn()))
-                .transferType(fromJson(resultSet.getString(statements.getTransferTypeColumn()), TransferType.class))
-                .processId(resultSet.getString(statements.getProcessIdColumn()))
-                .properties(fromJson(resultSet.getString(statements.getDataRequestPropertiesColumn()), getTypeRef()))
-                .build();
-    }
-
     private @Nullable TransferProcess findByIdInternal(Connection conn, String id) {
         return transactionContext.execute(() -> {
-            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
-            return single(executeQuery(conn, q).collect(toList()));
+            var query = QuerySpec.Builder.newInstance().filter(new Criterion("id", "=", id)).build();
+            return single(executeQuery(conn, query).collect(toList()));
         });
     }
 
     private Stream<TransferProcess> executeQuery(Connection connection, QuerySpec querySpec) {
         var statement = statements.createQuery(querySpec);
         return SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
-    }
-
-    private void update(Connection conn, TransferProcess process, String existingDataRequestId) {
-        var updateStmt = statements.getUpdateTransferProcessTemplate();
-        SqlQueryExecutor.executeQuery(conn, updateStmt, process.getState(),
-                process.getStateCount(),
-                process.getStateTimestamp(),
-                toJson(process.getTraceContext()),
-                process.getErrorDetail(),
-                toJson(process.getResourceManifest()),
-                toJson(process.getProvisionedResourceSet()),
-                toJson(process.getContentDataAddress()),
-                toJson(process.getDeprovisionedResources()),
-                process.getUpdatedAt(),
-                process.getId());
-
-        var newDr = process.getDataRequest();
-        updateDataRequest(conn, newDr, existingDataRequestId);
-    }
-
-    private void updateDataRequest(Connection conn, DataRequest dataRequest, String existingDataRequestId) {
-        var updateDrStmt = statements.getUpdateDataRequestTemplate();
-
-        SqlQueryExecutor.executeQuery(conn, updateDrStmt,
-                dataRequest.getId(),
-                dataRequest.getProcessId(),
-                dataRequest.getConnectorAddress(),
-                dataRequest.getProtocol(),
-                dataRequest.getConnectorId(),
-                dataRequest.getAssetId(),
-                dataRequest.getContractId(),
-                toJson(dataRequest.getDataDestination()),
-                dataRequest.isManagedResources(),
-                toJson(dataRequest.getProperties()),
-                toJson(dataRequest.getTransferType()),
-                existingDataRequestId);
     }
 
     /**
@@ -229,17 +179,12 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     @Nullable
     private <T> T single(List<T> list) {
         if (list.size() > 1) {
-            throw new IllegalStateException(getMultiplicityError(1, list.size()));
+            throw new IllegalStateException(format("Expected to find %d items, but found %d", 1, list.size()));
         }
         return list.isEmpty() ? null : list.get(0);
     }
 
-    private String getMultiplicityError(int expectedSize, int actualSize) {
-        return format("Expected to find %d items, but found %d", expectedSize, actualSize);
-    }
-
     private void insert(Connection conn, TransferProcess process) {
-        // insert TransferProcess
         var insertTpStatement = statements.getInsertStatement();
         SqlQueryExecutor.executeQuery(conn, insertTpStatement, process.getId(),
                 process.getState(),
@@ -263,21 +208,59 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         }
     }
 
-    private void insertDataRequest(String processId, DataRequest dr, Connection conn) {
+    private void update(Connection conn, TransferProcess process, String existingDataRequestId) {
+        var updateStmt = statements.getUpdateTransferProcessTemplate();
+        SqlQueryExecutor.executeQuery(conn, updateStmt, process.getState(),
+                process.getStateCount(),
+                process.getStateTimestamp(),
+                toJson(process.getTraceContext()),
+                process.getErrorDetail(),
+                toJson(process.getResourceManifest()),
+                toJson(process.getProvisionedResourceSet()),
+                toJson(process.getContentDataAddress()),
+                toJson(process.getDeprovisionedResources()),
+                process.getUpdatedAt(),
+                process.getId());
+
+        var newDr = process.getDataRequest();
+        updateDataRequest(conn, newDr, existingDataRequestId);
+    }
+
+    private void insertDataRequest(String processId, DataRequest dataRequest, Connection connection) {
         var insertDrStmt = statements.getInsertDataRequestTemplate();
-        SqlQueryExecutor.executeQuery(conn, insertDrStmt,
-                dr.getId(),
-                dr.getProcessId(),
-                dr.getConnectorAddress(),
-                dr.getConnectorId(),
-                dr.getAssetId(),
-                dr.getContractId(),
-                toJson(dr.getDataDestination()),
-                toJson(dr.getProperties()),
-                toJson(dr.getTransferType()),
+        SqlQueryExecutor.executeQuery(connection, insertDrStmt,
+                dataRequest.getId(),
+                dataRequest.getProcessId(),
+                dataRequest.getConnectorAddress(),
+                dataRequest.getConnectorId(),
+                dataRequest.getAssetId(),
+                dataRequest.getContractId(),
+                toJson(dataRequest.getDataDestination()),
+                toJson(dataRequest.getProperties()),
+                toJson(dataRequest.getTransferType()),
                 processId,
-                dr.getProtocol(),
-                dr.isManagedResources());
+                dataRequest.getProtocol(),
+                dataRequest.isManagedResources(),
+                toJson(dataRequest.getClaimToken()));
+    }
+
+    private void updateDataRequest(Connection conn, DataRequest dataRequest, String existingDataRequestId) {
+        var updateDrStmt = statements.getUpdateDataRequestTemplate();
+
+        SqlQueryExecutor.executeQuery(conn, updateDrStmt,
+                dataRequest.getId(),
+                dataRequest.getProcessId(),
+                dataRequest.getConnectorAddress(),
+                dataRequest.getProtocol(),
+                dataRequest.getConnectorId(),
+                dataRequest.getAssetId(),
+                dataRequest.getContractId(),
+                toJson(dataRequest.getDataDestination()),
+                dataRequest.isManagedResources(),
+                toJson(dataRequest.getProperties()),
+                toJson(dataRequest.getTransferType()),
+                toJson(dataRequest.getClaimToken()),
+                existingDataRequestId);
     }
 
     private TransferProcess mapTransferProcess(ResultSet resultSet) throws SQLException {
@@ -298,6 +281,23 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), new TypeReference<>() {
                 }))
                 .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
+                .build();
+    }
+
+    private DataRequest mapDataRequest(ResultSet resultSet) throws SQLException {
+        return DataRequest.Builder.newInstance()
+                .id(resultSet.getString("edc_data_request_id"))
+                .assetId(resultSet.getString(statements.getAssetIdColumn()))
+                .protocol(resultSet.getString(statements.getProtocolColumn()))
+                .dataDestination(fromJson(resultSet.getString(statements.getDataDestinationColumn()), DataAddress.class))
+                .connectorId(resultSet.getString(statements.getConnectorIdColumn()))
+                .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
+                .contractId(resultSet.getString(statements.getContractIdColumn()))
+                .managedResources(resultSet.getBoolean(statements.getManagedResourcesColumn()))
+                .transferType(fromJson(resultSet.getString(statements.getTransferTypeColumn()), TransferType.class))
+                .processId(resultSet.getString(statements.getProcessIdColumn()))
+                .properties(fromJson(resultSet.getString(statements.getDataRequestPropertiesColumn()), getTypeRef()))
+                .claimToken(fromJson(resultSet.getString(statements.getClaimTokenColumn()), ClaimToken.class))
                 .build();
     }
 

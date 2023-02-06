@@ -174,6 +174,11 @@ public class QuerySpec {
             return this;
         }
 
+        public Builder filter(Criterion criterion) {
+            querySpec.filterExpression.add(criterion);
+            return this;
+        }
+
         @Deprecated
         public Builder filter(String filterExpression) {
 

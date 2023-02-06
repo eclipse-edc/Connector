@@ -154,6 +154,10 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "deprovisioned_resources";
     }
 
+    default String getClaimTokenColumn() {
+        return "claim_token";
+    }
+
     default String getFormatAsJsonOperator() {
         return BaseSqlDialect.getJsonCastOperator();
     }

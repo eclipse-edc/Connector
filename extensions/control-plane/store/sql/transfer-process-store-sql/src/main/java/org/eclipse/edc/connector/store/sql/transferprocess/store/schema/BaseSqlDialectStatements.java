@@ -90,18 +90,19 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 getTransferProcessTableName(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
                 getTraceContextColumn(), getFormatAsJsonOperator(), getErrorDetailColumn(),
                 getResourceManifestColumn(), getFormatAsJsonOperator(), getProvisionedResourcesetColumn(), getFormatAsJsonOperator(),
-                getContentDataAddressColumn(), getFormatAsJsonOperator(), getDeprovisionedResourcesColumn(), getFormatAsJsonOperator(), getUpdatedAtColumn(), getIdColumn());
+                getContentDataAddressColumn(), getFormatAsJsonOperator(), getDeprovisionedResourcesColumn(), getFormatAsJsonOperator(),
+                getUpdatedAtColumn(), getIdColumn());
     }
 
     @Override
     public String getInsertDataRequestTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?%s, ?%s, ?%s, ?, ?, ?);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?%s, ?%s, ?%s, ?, ?, ?, ?%s);",
                 getDataRequestTable(), getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getConnectorIdColumn(),
-                getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(),
-                getDataRequestPropertiesColumn(),
+                getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(), getDataRequestPropertiesColumn(),
                 getTransferTypeColumn(), getTransferProcessIdFkColumn(), getProtocolColumn(), getManagedResourcesColumn(),
-                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
+                getClaimTokenColumn(),
+                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
     }
 
     @Override
@@ -112,10 +113,13 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getUpdateDataRequestTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s WHERE %s=?",
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s, %s=?%s WHERE %s=?",
                 getDataRequestTable(),
-                getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getProtocolColumn(), getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(),
-                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestPropertiesColumn(), getFormatAsJsonOperator(), getTransferTypeColumn(), getFormatAsJsonOperator(),
+                getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getProtocolColumn(),
+                getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(),
+                getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestPropertiesColumn(),
+                getFormatAsJsonOperator(), getTransferTypeColumn(), getFormatAsJsonOperator(),
+                getClaimTokenColumn(), getFormatAsJsonOperator(),
                 getDataRequestIdColumn());
     }
 

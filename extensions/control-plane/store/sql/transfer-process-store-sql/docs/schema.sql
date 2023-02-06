@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS edc_data_request
     managed_resources   BOOLEAN DEFAULT TRUE,
     properties          JSON,
     transfer_type       JSON,
+    claim_token         JSON,
     transfer_process_id VARCHAR NOT NULL
         CONSTRAINT data_request_transfer_process_id_fk
             REFERENCES edc_transfer_process

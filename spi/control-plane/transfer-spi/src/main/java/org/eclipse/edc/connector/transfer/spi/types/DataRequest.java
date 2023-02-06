@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.Polymorphic;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -39,10 +40,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     private String assetId;
     private String contractId;
     private DataAddress dataDestination;
-
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
     private TransferType transferType;
+    private ClaimToken claimToken;
 
     private DataRequest() {
         transferType = new TransferType();
@@ -139,6 +140,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return transferType;
     }
 
+    public ClaimToken getClaimToken() {
+        return claimToken;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;
@@ -212,21 +217,21 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public DataRequest build() {
-            if (request.dataDestination == null && request.getDestinationType() == null) {
-                throw new IllegalArgumentException("A data destination or type must be specified");
-            }
-            return request;
-        }
-
         public Builder transferType(TransferType transferType) {
             request.transferType = transferType;
             return this;
         }
 
-        private Builder dataAddress(DataAddress dataAddress) {
-            request.dataDestination = dataAddress;
+        public Builder claimToken(ClaimToken claimToken) {
+            request.claimToken = claimToken;
             return this;
+        }
+
+        public DataRequest build() {
+            if (request.dataDestination == null && request.getDestinationType() == null) {
+                throw new IllegalArgumentException("A data destination or type must be specified");
+            }
+            return request;
         }
 
     }
