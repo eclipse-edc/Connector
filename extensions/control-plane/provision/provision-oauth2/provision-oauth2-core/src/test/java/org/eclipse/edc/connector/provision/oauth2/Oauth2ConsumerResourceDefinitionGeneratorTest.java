@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.provision.oauth2;
 
 import org.eclipse.edc.connector.transfer.spi.provision.ConsumerResourceDefinitionGenerator;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;

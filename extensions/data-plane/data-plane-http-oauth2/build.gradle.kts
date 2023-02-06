@@ -20,5 +20,3 @@ dependencies {
     implementation(project(":extensions:common:iam:oauth2:oauth2-client"))
     implementation(project(":extensions:data-plane:data-plane-http-oauth2-core"))
 }
-
-

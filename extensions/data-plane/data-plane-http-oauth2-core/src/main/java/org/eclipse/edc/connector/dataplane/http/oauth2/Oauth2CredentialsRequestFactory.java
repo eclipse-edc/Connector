@@ -31,13 +31,13 @@ import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.SCOPE;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.VALIDITY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.SCOPE;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.VALIDITY;
 
 /**
  * Factory class that provides methods to build {@link Oauth2CredentialsRequest} instances
@@ -87,7 +87,7 @@ public class Oauth2CredentialsRequestFactory {
                 .map(a -> a.getProperty(CLIENT_SECRET_KEY))
                 .map(vault::resolveSecret)
                 .orElseGet(() -> {
-                    monitor.warning("provision-oauth2: storing the client_secret into the DataAddress " +
+                    monitor.warning("data-plane-http-oauth2: storing the client_secret into the DataAddress " +
                             "oauth2:clientSecret property has been deprecated, please store it in the Vault and use the " +
                             "oauth2:clientSecretKey property to reference it");
                     return dataAddress.getProperty(CLIENT_SECRET);

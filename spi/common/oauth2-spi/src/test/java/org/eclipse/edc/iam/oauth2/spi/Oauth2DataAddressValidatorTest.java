@@ -12,9 +12,8 @@
  *
  */
 
-package org.eclipse.edc.connector.provision.oauth2;
+package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -27,17 +26,17 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class AbstractOauth2DataAddressValidationTest {
+class Oauth2DataAddressValidatorTest {
+
+    private final Oauth2DataAddressValidator validator = new Oauth2DataAddressValidator();
 
     @ParameterizedTest(name = "{index} {0}")
     @ArgumentsSource(DataAddressProvider.class)
     public void validate(String name, DataAddress address, boolean expected) {
-        var isValid = test(address);
+        var isValid = validator.test(address);
 
         assertThat(isValid).isEqualTo(expected);
     }
-
-    protected abstract boolean test(DataAddress address);
 
     public static final class DataAddressProvider implements ArgumentsProvider {
 

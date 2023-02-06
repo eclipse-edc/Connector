@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.http.oauth2;
 
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
@@ -30,8 +29,13 @@ import java.util.UUID;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.map;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class Oauth2HttpRequestParamsDecoratorTest {
@@ -39,26 +43,26 @@ class Oauth2HttpRequestParamsDecoratorTest {
     private final Oauth2CredentialsRequestFactory requestFactory = mock(Oauth2CredentialsRequestFactory.class);
     private final Oauth2Client client = mock(Oauth2Client.class);
 
+    private final Oauth2HttpRequestParamsDecorator decorator = new Oauth2HttpRequestParamsDecorator(requestFactory, client);
+
     @Test
     void requestOauth2TokenAndSetItOnRequest() {
-        var decorator = new Oauth2HttpRequestParamsDecorator(requestFactory, client);
         var dataFlowRequest = dummyDataFlowRequest();
-        var httpAddress = HttpDataAddress.Builder.newInstance().build();
+        var httpAddress = httpDataAddressWithOauth2Properties();
         when(requestFactory.create(any())).thenReturn(Result.success(createRequest()));
         when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token-test").build()));
         var paramsBuilder = HttpRequestParams.Builder.newInstance().baseUrl("http://any").method("GET");
 
         var result = decorator.decorate(dataFlowRequest, httpAddress, paramsBuilder).build();
 
-        assertThat(result.getHeaders()).asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+        assertThat(result.getHeaders()).asInstanceOf(map(String.class, String.class))
                 .containsEntry("Authorization", "Bearer token-test");
     }
 
     @Test
     void shouldThrowExceptionIfCannotBuildRequest() {
-        var decorator = new Oauth2HttpRequestParamsDecorator(requestFactory, client);
         var dataFlowRequest = dummyDataFlowRequest();
-        var httpAddress = HttpDataAddress.Builder.newInstance().build();
+        var httpAddress = httpDataAddressWithOauth2Properties();
         when(requestFactory.create(any())).thenReturn(Result.failure("cannot build request"));
         var paramsBuilder = HttpRequestParams.Builder.newInstance().baseUrl("http://any").method("GET");
 
@@ -68,15 +72,34 @@ class Oauth2HttpRequestParamsDecoratorTest {
 
     @Test
     void shouldThrowExceptionIfCannotGetToken() {
-        var decorator = new Oauth2HttpRequestParamsDecorator(requestFactory, client);
         var dataFlowRequest = dummyDataFlowRequest();
-        var httpAddress = HttpDataAddress.Builder.newInstance().build();
+        var httpAddress = httpDataAddressWithOauth2Properties();
         when(requestFactory.create(any())).thenReturn(Result.success(createRequest()));
         when(client.requestToken(any())).thenReturn(Result.failure("Cannot get token"));
         var paramsBuilder = HttpRequestParams.Builder.newInstance().baseUrl("http://any").method("GET");
 
         assertThatThrownBy(() -> decorator.decorate(dataFlowRequest, httpAddress, paramsBuilder))
                 .isInstanceOf(EdcException.class);
+    }
+
+    @Test
+    void shouldDoNothingIfNoOauthPropertiesContained() {
+        var dataFlowRequest = dummyDataFlowRequest();
+        var httpAddress = HttpDataAddress.Builder.newInstance().build();
+        var paramsBuilder = HttpRequestParams.Builder.newInstance().baseUrl("http://any").method("GET");
+
+        var result = decorator.decorate(dataFlowRequest, httpAddress, paramsBuilder).build();
+
+        assertThat(result.getHeaders()).asInstanceOf(map(String.class, String.class)).isEmpty();
+        verifyNoInteractions(requestFactory, client);
+    }
+
+    private HttpDataAddress httpDataAddressWithOauth2Properties() {
+        return HttpDataAddress.Builder.newInstance()
+                .property(TOKEN_URL, "any")
+                .property(CLIENT_ID, "any")
+                .property(CLIENT_SECRET_KEY, "any")
+                .build();
     }
 
     private DataFlowRequest dummyDataFlowRequest() {

@@ -201,7 +201,6 @@ public abstract class AbstractEndToEndTransfer {
                 "name", "transfer-test",
                 "baseUrl", PROVIDER.backendService() + "/api/provider/oauth2data",
                 "type", "HttpData",
-                "authKey", "Authorization",
                 "proxyQueryParams", "true",
                 "oauth2:clientId", "clientId",
                 "oauth2:clientSecretKey", "provision-oauth-secret",

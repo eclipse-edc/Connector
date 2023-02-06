@@ -29,7 +29,6 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import org.mockito.Mockito;
 
 import static org.eclipse.edc.util.types.Cast.cast;
-import static org.mockito.Mockito.mock;
 
 /**
  * A JUnit extension for running an embedded EDC dependency injection container as part of a test fixture. This

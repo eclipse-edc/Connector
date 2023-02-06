@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.provision.oauth2;
 
+import org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;

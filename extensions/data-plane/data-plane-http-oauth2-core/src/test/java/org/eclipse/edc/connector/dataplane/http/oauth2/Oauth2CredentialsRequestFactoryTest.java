@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
 package org.eclipse.edc.connector.dataplane.http.oauth2;
 
 import com.nimbusds.jose.JOSEException;
@@ -26,13 +40,13 @@ import java.util.UUID;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.SCOPE;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
-import static org.eclipse.edc.connector.dataplane.http.oauth2.Oauth2DataAddressSchema.VALIDITY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.SCOPE;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.VALIDITY;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
