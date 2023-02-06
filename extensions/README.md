@@ -16,7 +16,7 @@
         - [Event Grid](common/azure/azure-eventgrid/)
         - [Resource Manager](common/azure/azure-resource-manager/)
         - [Test](common/azure/azure-test/)
-  - GCP
+    - GCP
         - [GCP Core](common/gcp/gcp-core/)
     - Configuration
         - [Filesystem](common/configuration/configuration-filesystem/)
