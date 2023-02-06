@@ -15,7 +15,10 @@
 package org.eclipse.edc.vault.aws;
 
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentMatchers;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
@@ -24,71 +27,78 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueReques
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.TestInstance.Lifecycle;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
+@TestInstance(Lifecycle.PER_CLASS)
 class AwsSecretsManagerVaultTest {
 
     private final Monitor monitor = mock(Monitor.class);
     private final SecretsManagerClient secretClient = mock(SecretsManagerClient.class);
-    private final AwsSecretsManagerVaultSanitationStrategy sanitizer =
-            new AwsSecretsManagerVaultDefaultSanitationStrategy(monitor);
+    private final AwsSecretsManagerVaultSanitationStrategy sanitizer = mock(AwsSecretsManagerVaultSanitationStrategy.class);
     private final AwsSecretsManagerVault vault = new AwsSecretsManagerVault(secretClient, monitor,
             sanitizer);
+    private static final String KEY = "valid-key";
+    private static final String SANITIZED_KEY = "valid-key-sanitized";
+
+    @BeforeAll
+    void setup() {
+        when(sanitizer.sanitizeKey(KEY)).thenReturn(SANITIZED_KEY);
+    }
+
+    @BeforeEach
+    void resetMocks() {
+        reset(monitor, secretClient);
+    }
 
     @Test
     void storeSecret_shouldSanitizeKey() {
-        var key = "invalid#key";
         var value = "value";
 
-        vault.storeSecret(key, value);
+        vault.storeSecret(KEY, value);
 
-        verify(secretClient).createSecret(CreateSecretRequest.builder().name(sanitizer.sanitizeKey(key))
+        verify(secretClient).createSecret(CreateSecretRequest.builder().name(SANITIZED_KEY)
                 .secretString(value).build());
     }
 
     @Test
     void storeSecret_shouldNotOverwriteSecrets() {
-        var key = "valid-key";
         var value = "value";
 
-        vault.storeSecret(key, value);
+        vault.storeSecret(KEY, value);
 
-        verify(secretClient).createSecret(CreateSecretRequest.builder().name(sanitizer.sanitizeKey(key))
+        verify(secretClient).createSecret(CreateSecretRequest.builder().name(SANITIZED_KEY)
                 .secretString(value).build());
     }
 
     @Test
     void resolveSecret_shouldSanitizeKey() {
-        var key = "valid-key";
+        vault.resolveSecret(KEY);
 
-        vault.resolveSecret(key);
-
-        verify(secretClient).getSecretValue(GetSecretValueRequest.builder().secretId(sanitizer.sanitizeKey(key))
+        verify(secretClient).getSecretValue(GetSecretValueRequest.builder().secretId(SANITIZED_KEY)
                 .build());
     }
 
     @Test
     void deleteSecret_shouldSanitizeKey() {
-        var key = "valid-key";
+        vault.deleteSecret(KEY);
 
-        vault.deleteSecret(key);
-
-        verify(secretClient).deleteSecret(DeleteSecretRequest.builder().secretId(sanitizer.sanitizeKey(key))
+        verify(secretClient).deleteSecret(DeleteSecretRequest.builder().secretId(SANITIZED_KEY)
                 .forceDeleteWithoutRecovery(true)
                 .build());
     }
 
     @Test
     void resolveSecret_shouldNotLogSevereIfSecretNotFound() {
-        when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(sanitizer.sanitizeKey("key"))
+        when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(SANITIZED_KEY)
                 .build()))
                 .thenThrow(ResourceNotFoundException.builder().build());
 
-        var result = vault.resolveSecret("key");
+        var result = vault.resolveSecret(KEY);
 
         assertThat(result).isNull();
         verify(monitor, times(2))
@@ -97,11 +107,11 @@ class AwsSecretsManagerVaultTest {
 
     @Test
     void resolveSecret_shouldReturnNullAndLogErrorOnGenericException() {
-        when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(sanitizer.sanitizeKey("key"))
+        when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(SANITIZED_KEY)
                         .build()))
                 .thenThrow(new RuntimeException("test"));
 
-        var result = vault.resolveSecret("key");
+        var result = vault.resolveSecret(KEY);
 
         assertThat(result).isNull();
         verify(monitor).debug(ArgumentMatchers.anyString());

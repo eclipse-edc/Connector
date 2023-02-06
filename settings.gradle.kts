@@ -41,9 +41,6 @@ dependencyResolutionManagement {
             from("org.eclipse.edc:edc-versions:0.0.1-SNAPSHOT")
             // this is not part of the published EDC Version Catalog, so we'll just "amend" it
             library("dnsOverHttps", "com.squareup.okhttp3", "okhttp-dnsoverhttps").versionRef("okhttp")
-            // Version ref from version catalog is not recognized for aws. Reasons are not clear.
-            // TODO: Remove this once secrets manager is part of the EDC version catalog.
-            library("aws.secretsmanager", "software.amazon.awssdk", "secretsmanager").version("2.19.26")
         }
     }
 }
