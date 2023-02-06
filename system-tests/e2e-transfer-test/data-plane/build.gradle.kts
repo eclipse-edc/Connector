@@ -19,6 +19,7 @@ plugins {
 dependencies {
     implementation(project(":core:data-plane:data-plane-core"))
     implementation(project(":extensions:data-plane:data-plane-http"))
+    implementation(project(":extensions:data-plane:data-plane-http-oauth2"))
     implementation(project(":extensions:data-plane:data-plane-api"))
     implementation(project(":extensions:common:vault:vault-filesystem"))
 }
