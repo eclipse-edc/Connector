@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(libs.aws.secretsmanager)
+    implementation(libs.aws.secretsmanager)
     implementation(project(":core:common:util"))
     testImplementation(libs.mockito.inline)
 }
