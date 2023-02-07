@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Amadeus
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,14 +8,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
 package org.eclipse.edc.connector.dataplane.http.params;
 
 import io.netty.handler.codec.http.HttpMethod;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -30,10 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures.formatRequestBodyAsString;
 
-class HttpRequestParamsTest {
+class HttpRequestFactoryTest {
+
     private static final String SCHEME = "http";
     private static final String HOST = "some.base.url";
     private static final String BASE_URL = String.format("%s://%s", SCHEME, HOST);
+
+    private final HttpRequestFactory paramsToRequest = new HttpRequestFactory();
 
     @ParameterizedTest
     @NullAndEmptySource
@@ -44,7 +47,7 @@ class HttpRequestParamsTest {
                 .path(p)
                 .build();
 
-        var request = params.toRequest();
+        var request = paramsToRequest.toRequest(params);
 
         assertBaseUrl(request.url().url());
     }
@@ -58,7 +61,7 @@ class HttpRequestParamsTest {
                 .queryParams(qp)
                 .build();
 
-        var request = params.toRequest();
+        var request = paramsToRequest.toRequest(params);
 
         assertBaseUrl(request.url().url());
     }
@@ -72,7 +75,7 @@ class HttpRequestParamsTest {
                 .headers(headers)
                 .build();
 
-        var request = params.toRequest();
+        var request = paramsToRequest.toRequest(params);
 
         assertThat(request.headers()).isNotNull();
         headers.forEach((s, s2) -> assertThat(request.header(s)).isNotNull().isEqualTo(s2));
@@ -89,7 +92,7 @@ class HttpRequestParamsTest {
                 .queryParams(queryParams)
                 .build();
 
-        var httpRequest = params.toRequest();
+        var httpRequest = paramsToRequest.toRequest(params);
 
         var url = httpRequest.url().url();
         assertBaseUrl(url);
@@ -108,7 +111,7 @@ class HttpRequestParamsTest {
                 .body(body)
                 .build();
 
-        var request = params.toRequest();
+        var request = paramsToRequest.toRequest(params);
 
         var requestBody = request.body();
         assertThat(requestBody).isNotNull();
@@ -126,7 +129,7 @@ class HttpRequestParamsTest {
                 .body(body)
                 .build();
 
-        var request = params.toRequest();
+        var request = paramsToRequest.toRequest(params);
 
         var requestBody = request.body();
         assertThat(requestBody).isNotNull();
@@ -145,7 +148,7 @@ class HttpRequestParamsTest {
                 .contentType(contentType)
                 .build();
 
-        var request = params.toRequest(() -> new ByteArrayInputStream(body.getBytes()));
+        var request = paramsToRequest.toRequest(params, () -> new ByteArrayInputStream(body.getBytes()));
 
         var requestBody = request.body();
         assertThat(requestBody).isNotNull();
@@ -162,7 +165,7 @@ class HttpRequestParamsTest {
                 .contentType(contentType)
                 .build();
 
-        var request = params.toRequest();
+        var request = paramsToRequest.toRequest(params);
 
         var requestBody = request.body();
         assertThat(requestBody).isNull();
@@ -201,7 +204,7 @@ class HttpRequestParamsTest {
                 .nonChunkedTransfer(false)
                 .build();
 
-        var request = params.toRequest(() -> new ByteArrayInputStream("a body".getBytes()));
+        var request = paramsToRequest.toRequest(params, () -> new ByteArrayInputStream("a body".getBytes()));
 
         var body = request.body();
         assertThat(body).isNotNull();
@@ -216,7 +219,7 @@ class HttpRequestParamsTest {
                 .nonChunkedTransfer(true)
                 .build();
 
-        var request = params.toRequest(() -> new ByteArrayInputStream("a body".getBytes()));
+        var request = paramsToRequest.toRequest(params, () -> new ByteArrayInputStream("a body".getBytes()));
 
         var body = request.body();
         assertThat(body).isNotNull();

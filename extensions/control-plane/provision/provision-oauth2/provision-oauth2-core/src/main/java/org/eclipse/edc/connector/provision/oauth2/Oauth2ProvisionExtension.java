@@ -27,9 +27,15 @@ import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
 
+/**
+ * This extension has been deprecated in favor of "data-plane-http-oauth2"
+ *
+ * @deprecated please use 'data-plane-http-oauth2' instead
+ */
+@Deprecated(since = "milestone9")
 @Extension(value = Oauth2ProvisionExtension.NAME)
 public class Oauth2ProvisionExtension implements ServiceExtension {
-    static final String NAME = "Oauth2 Provision";
+    static final String NAME = "Oauth2 Provision (DEPRECATED: please use 'data-plane-http-oauth2' instead)";
 
     @Inject
     private ResourceManifestGenerator resourceManifestGenerator;

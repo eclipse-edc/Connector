@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.provision.oauth2;
+package org.eclipse.edc.iam.oauth2.spi;
 
 public interface Oauth2DataAddressSchema {
     String CLIENT_ID = "oauth2:clientId";

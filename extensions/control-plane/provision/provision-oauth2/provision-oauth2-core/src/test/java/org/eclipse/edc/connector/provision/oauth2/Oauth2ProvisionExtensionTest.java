@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
+import org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;

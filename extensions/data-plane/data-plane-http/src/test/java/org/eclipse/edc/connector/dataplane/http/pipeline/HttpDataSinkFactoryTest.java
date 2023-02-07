@@ -16,9 +16,11 @@
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 import io.netty.handler.codec.http.HttpMethod;
+import okhttp3.HttpUrl;
 import okhttp3.Request;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.edc.spi.EdcException;
@@ -36,6 +38,7 @@ import org.mockito.ArgumentMatchers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures.createHttpResponse;
 import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,12 +57,13 @@ class HttpDataSinkFactoryTest {
     private final Monitor monitor = mock(Monitor.class);
     private final ExecutorService executorService = mock(ExecutorService.class);
     private final HttpRequestParamsProvider provider = mock(HttpRequestParamsProvider.class);
+    private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
 
     private HttpDataSinkFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), provider);
+        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), provider, requestFactory);
     }
 
     @Test
@@ -106,6 +111,7 @@ class HttpDataSinkFactoryTest {
                 .monitor(monitor)
                 .requestId(request.getId())
                 .executorService(executorService)
+                .requestFactory(requestFactory)
                 .build();
 
         // validate the generated data sink field by field using reflection
@@ -130,6 +136,7 @@ class HttpDataSinkFactoryTest {
                 .contentType("application/json")
                 .build();
         when(provider.provideSinkParams(request)).thenReturn(params);
+        when(requestFactory.toRequest(any(), any())).thenReturn(createHttpRequest());
         when(httpClient.execute(ArgumentMatchers.isA(Request.class))).thenReturn(createHttpResponse().build());
 
         var future = factory.createSink(request)
@@ -145,6 +152,13 @@ class HttpDataSinkFactoryTest {
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
                 .destinationDataAddress(destination)
+                .build();
+    }
+
+    private Request createHttpRequest() {
+        return new Request.Builder()
+                .url(Objects.requireNonNull(HttpUrl.parse("http://any")))
+                .get()
                 .build();
     }
 }

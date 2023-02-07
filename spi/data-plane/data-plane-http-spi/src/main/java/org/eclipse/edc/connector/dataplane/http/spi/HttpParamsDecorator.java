@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.http.params;
+package org.eclipse.edc.connector.dataplane.http.spi;
 
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;

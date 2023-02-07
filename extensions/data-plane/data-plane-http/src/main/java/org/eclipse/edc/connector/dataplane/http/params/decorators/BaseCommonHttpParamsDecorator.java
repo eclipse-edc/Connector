@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.http.params.decorators;
 
-import org.eclipse.edc.connector.dataplane.http.params.HttpParamsDecorator;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpParamsDecorator;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;

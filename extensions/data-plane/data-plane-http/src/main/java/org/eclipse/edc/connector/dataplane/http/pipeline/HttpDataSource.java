@@ -15,7 +15,8 @@
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -35,6 +36,7 @@ public class HttpDataSource implements DataSource {
     private String requestId;
     private Monitor monitor;
     private EdcHttpClient httpClient;
+    private HttpRequestFactory requestFactory;
 
     @Override
     public Stream<Part> openPartStream() {
@@ -42,7 +44,7 @@ public class HttpDataSource implements DataSource {
     }
 
     private HttpPart getPart() {
-        var request = params.toRequest();
+        var request = requestFactory.toRequest(params);
         monitor.debug(() -> "HttpDataSource sends request: " + request.toString());
         try (var response = httpClient.execute(request)) {
             var body = response.body();
@@ -71,6 +73,10 @@ public class HttpDataSource implements DataSource {
             return new Builder();
         }
 
+        private Builder() {
+            dataSource = new HttpDataSource();
+        }
+
         public Builder params(HttpRequestParams params) {
             dataSource.params = params;
             return this;
@@ -96,15 +102,17 @@ public class HttpDataSource implements DataSource {
             return this;
         }
 
+        public Builder requestFactory(HttpRequestFactory requestFactory) {
+            dataSource.requestFactory = requestFactory;
+            return this;
+        }
+
         public HttpDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.httpClient, "httpClient");
             Objects.requireNonNull(dataSource.monitor, "monitor");
+            Objects.requireNonNull(dataSource.requestFactory, "requestFactory");
             return dataSource;
-        }
-
-        private Builder() {
-            dataSource = new HttpDataSource();
         }
     }
 

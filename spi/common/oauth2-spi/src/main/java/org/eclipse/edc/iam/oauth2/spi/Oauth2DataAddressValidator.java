@@ -12,17 +12,17 @@
  *
  */
 
-package org.eclipse.edc.connector.provision.oauth2;
+package org.eclipse.edc.iam.oauth2.spi;
 
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.function.Predicate;
 
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
 
 /**
  * Validates {@link DataAddress}, returns true if the Address has the fields needed for the OAuth2 provisioning
