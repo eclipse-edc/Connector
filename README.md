@@ -29,12 +29,12 @@
   </a>
 </div>
 <div align="center">
-  <a href="https://ci.eclipse.org/edc/job/EDC-Snapshot">
-    <img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.eclipse.org%2Fedc%2Fjob%2FEDC-Snapshot%2F&label=snapshot-build&style=flat-square"
+  <a href="https://ci.eclipse.org/edc/job/Build-Component">
+    <img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.eclipse.org%2Fedc%2Fjob%2FPublish-Component%2F&label=snapshot-build&style=flat-square"
     alt="License" />
   </a>
-  <a href="https://ci.eclipse.org/edc/job/EDC-Nightly-Snapshot">
-    <img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.eclipse.org%2Fedc%2Fjob%2FPlayground%2Fjob%2FAutomaticBuilds%2Fjob%2FBuild-Components-Nightly%2F&label=nightly-build&style=flat-square"
+  <a href="https://ci.eclipse.org/edc/job/Build-Components-Nightly">
+    <img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.eclipse.org%2Fedc%2Fjob%2FPublish-Components-Nightly%2F&label=nightly-build&style=flat-square"
     alt="License" />
   </a>
 </div>
