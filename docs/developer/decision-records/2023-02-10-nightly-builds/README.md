@@ -27,6 +27,3 @@ MavenCentral with ~300 artifacts on a daily basis, which would offer little valu
 
 The build plugin needs to be adapted to publish to OSSRH Releases by default. Further, we need to implement a separate,
 additional task that allows publishing to MavenCentral, which is invoked from a (new) Jenkins job.
-
-Our GitHub Action [release-edc.yml](../../../../.github/workflows/release-edc.yml) will then also have to invoke that
-new Jenkins job to publish to MavenCentral. 
