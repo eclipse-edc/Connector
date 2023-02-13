@@ -65,8 +65,11 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
         var key = UUID.randomUUID().toString();
         putStringOnBucket(sourceBucketName, key, body);
 
-        var sinkFactory = new S3DataSinkFactory(clientProvider, Executors.newSingleThreadExecutor(), mock(Monitor.class), mock(Vault.class), new TypeManager());
-        var sourceFactory = new S3DataSourceFactory(clientProvider);
+        var vault = mock(Vault.class);
+        var typeManager = new TypeManager();
+
+        var sinkFactory = new S3DataSinkFactory(clientProvider, Executors.newSingleThreadExecutor(), mock(Monitor.class), vault, typeManager);
+        var sourceFactory = new S3DataSourceFactory(clientProvider, vault, typeManager);
         var sourceAddress = DataAddress.Builder.newInstance()
                 .type(S3BucketSchema.TYPE)
                 .keyName(key)

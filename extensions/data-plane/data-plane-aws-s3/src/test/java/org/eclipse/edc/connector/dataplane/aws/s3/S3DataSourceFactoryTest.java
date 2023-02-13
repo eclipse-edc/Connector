@@ -15,8 +15,11 @@
 package org.eclipse.edc.connector.dataplane.aws.s3;
 
 import org.eclipse.edc.aws.s3.AwsClientProvider;
+import org.eclipse.edc.aws.s3.AwsSecretToken;
 import org.eclipse.edc.aws.s3.S3BucketSchema;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -37,13 +40,19 @@ import static org.eclipse.edc.connector.dataplane.aws.s3.TestFunctions.VALID_REG
 import static org.eclipse.edc.connector.dataplane.aws.s3.TestFunctions.VALID_SECRET_ACCESS_KEY;
 import static org.eclipse.edc.connector.dataplane.aws.s3.TestFunctions.s3DataAddressWithCredentials;
 import static org.eclipse.edc.connector.dataplane.aws.s3.TestFunctions.s3DataAddressWithoutCredentials;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class S3DataSourceFactoryTest {
 
     private final AwsClientProvider clientProvider = mock(AwsClientProvider.class);
-    private final S3DataSourceFactory factory = new S3DataSourceFactory(clientProvider);
+    private final TypeManager typeManager = new TypeManager();
+    private final Vault vault = mock(Vault.class);
+
+    private final S3DataSourceFactory factory = new S3DataSourceFactory(clientProvider, vault, typeManager);
 
     @Test
     void canHandle_returnsTrueWhenExpectedType() {
@@ -123,15 +132,17 @@ class S3DataSourceFactoryTest {
         assertThatThrownBy(() -> factory.createSource(request)).isInstanceOf(EdcException.class);
     }
 
-    private static class InvalidInputs implements ArgumentsProvider {
+    @Test
+    void createSource_shouldGetTheSecretTokenFromTheVault() {
+        var source = TestFunctions.s3DataAddressWithCredentials();
+        var temporaryKey = new AwsSecretToken("temporaryId", "temporarySecret");
+        when(vault.resolveSecret(source.getKeyName())).thenReturn(typeManager.writeValueAsString(temporaryKey));
+        var request = createRequest(source);
 
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    Arguments.of(VALID_BUCKET_NAME, " ", VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY),
-                    Arguments.of(" ", VALID_REGION, VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY)
-            );
-        }
+        var s3Source = factory.createSource(request);
+
+        assertThat(s3Source).isNotNull().isInstanceOf(S3DataSource.class);
+        verify(clientProvider).s3Client(eq(TestFunctions.VALID_REGION), isA(AwsSecretToken.class));
     }
 
     private DataFlowRequest createRequest(DataAddress source) {
@@ -141,5 +152,16 @@ class S3DataSourceFactoryTest {
                 .sourceDataAddress(source)
                 .destinationDataAddress(DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE).build())
                 .build();
+    }
+
+    private static class InvalidInputs implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(VALID_BUCKET_NAME, " ", VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY),
+                    Arguments.of(" ", VALID_REGION, VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY)
+            );
+        }
     }
 }
