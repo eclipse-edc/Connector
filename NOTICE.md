@@ -58,12 +58,6 @@ Atomikos Transactions Core
 * Maven Artifact: com.atomikos/transactions/5.0.8
 * License: Apache-2.0
 
-java jwt
-* Project: https://github.com/auth0/java-jwt
-* Source: scm:git@github.com:auth0/java-jwt.git
-* Maven Artifact: com.auth0/java-jwt/3.13.0
-* License: MIT
-
 Microsoft Azure SDK for App Platform Management
 * Project: https://github.com/Azure/azure-sdk-for-java
 * Source: scm:git:git@github.com:Azure/azure-sdk-for-java.git
