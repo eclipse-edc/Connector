@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    implementation("com.auth0:java-jwt:4.3.0")
 }
 
 
