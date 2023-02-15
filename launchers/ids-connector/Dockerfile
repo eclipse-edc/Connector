@@ -41,3 +41,4 @@ ENTRYPOINT java \
     -Dedc.ids.maintainer="https://example.maintainer.com" \
     -Dedc.ids.curator="https://example.maintainer.com" \
     -jar dataspace-connector.jar
+

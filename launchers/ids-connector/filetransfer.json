@@ -2,7 +2,7 @@
   "edctype": "dataspaceconnector:datarequest",
   "protocol": "ids-multipart",
   "assetId": "test-document",
-  "contractId": "1:5fcde15b-3561-48d2-8d46-f946c962c361",
+  "contractId": "1:ac6b19ab-9581-49d8-a43e-6862d9581b86",
   "dataDestination": {
     "properties": {
       "type": "HttpData",
