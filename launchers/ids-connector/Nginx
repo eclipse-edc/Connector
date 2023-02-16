@@ -1,0 +1,8 @@
+FROM nginx:latest
+
+RUN mkdir -p /usr/share/nginx/html/data
+
+COPY launchers/ids-connector/default /etc/nginx/conf.d/default.conf
+COPY launchers/ids-connector/my-data.txt /usr/share/nginx/html/data
+
+CMD ["nginx", "-g", "daemon off;"]
