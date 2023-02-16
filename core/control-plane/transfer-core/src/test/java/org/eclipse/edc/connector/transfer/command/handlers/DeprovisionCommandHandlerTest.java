@@ -49,11 +49,12 @@ class DeprovisionCommandHandlerTest {
         var originalDate = tp.getUpdatedAt();
 
         when(storeMock.find(anyString())).thenReturn(tp);
-        handler.handle(cmd);
+        var result = handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.DEPROVISIONING.code());
         assertThat(tp.getErrorDetail()).isNull();
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
+        assertThat(result.succeeded()).isTrue();
     }
 
     @Test

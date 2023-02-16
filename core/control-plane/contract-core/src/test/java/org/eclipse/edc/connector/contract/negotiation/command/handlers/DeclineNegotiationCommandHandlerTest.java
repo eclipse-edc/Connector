@@ -46,25 +46,18 @@ class DeclineNegotiationCommandHandlerTest {
     @Test
     void handle_negotiationExists_declineNegotiation() {
         var negotiationId = "test";
-        var negotiation = ContractNegotiation.Builder.newInstance()
-                .id(negotiationId)
-                .counterPartyId("counter-party")
-                .counterPartyAddress("https://counter-party")
-                .protocol("test-protocol")
-                .state(ContractNegotiationStates.REQUESTED.code())
-                .clock(future)
-                .updatedAt(now.millis())
-                .build();
+        var negotiation = ContractNegotiation.Builder.newInstance().id(negotiationId).counterPartyId("counter-party").counterPartyAddress("https://counter-party").protocol("test-protocol").state(ContractNegotiationStates.REQUESTED.code()).clock(future).updatedAt(now.millis()).build();
         var originalTime = negotiation.getUpdatedAt();
         var command = new DeclineNegotiationCommand(negotiationId);
 
         when(store.find(negotiationId)).thenReturn(negotiation);
 
-        commandHandler.handle(command);
+        var result = commandHandler.handle(command);
 
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
         assertThat(negotiation.getErrorDetail()).isNotBlank();
         assertThat(negotiation.getUpdatedAt()).isGreaterThan(originalTime);
+        assertThat(result.succeeded()).isTrue();
     }
 
     @Test
@@ -74,9 +67,7 @@ class DeclineNegotiationCommandHandlerTest {
 
         when(store.find(negotiationId)).thenReturn(null);
 
-        assertThatThrownBy(() -> commandHandler.handle(command))
-                .isInstanceOf(EdcException.class)
-                .hasMessage(format("Could not find ContractNegotiation with ID [%s]", negotiationId));
+        assertThatThrownBy(() -> commandHandler.handle(command)).isInstanceOf(EdcException.class).hasMessage(format("Could not find ContractNegotiation with ID [%s]", negotiationId));
     }
 
     @Test

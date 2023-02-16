@@ -56,13 +56,16 @@ class FailTransferCommandHandlerTest {
                 .updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
+        System.out.println("first " + tp.getState());
 
         when(store.find(anyString())).thenReturn(tp);
-        handler.handle(cmd);
+        var result = handler.handle(cmd);
+        System.out.println("the result " + tp.getState());
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.ERROR.code());
         assertThat(tp.getErrorDetail()).isEqualTo("error");
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
+        assertThat(result.succeeded()).isTrue();
 
         verify(store).find(anyString());
         verify(store).save(tp);
@@ -70,8 +73,30 @@ class FailTransferCommandHandlerTest {
         verify(listener).failed(tp);
     }
 
+    @Test
+    void handle_failed() {
+        var cmd = new FailTransferCommand("test-id", "error");
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.ERROR.code())
+                .updatedAt(124123) //some invalid time
+                .type(TransferProcess.Type.CONSUMER).build();
+        var originalDate = tp.getUpdatedAt();
+
+        when(store.find(anyString())).thenReturn(tp);
+        var result = handler.handle(cmd);
+
+        assertThat(result.getFailureDetail()).contains("The TransferProcess could not be modified");
+        assertThat(result.succeeded()).isFalse();
+        assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.ERROR.code());
+
+        verify(store).find(anyString());
+        verifyNoMoreInteractions(store);
+        verifyNoInteractions(listener);
+
+    }
+
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR", "CANCELLED"})
     void handle_illegalState(TransferProcessStates targetState) {
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();

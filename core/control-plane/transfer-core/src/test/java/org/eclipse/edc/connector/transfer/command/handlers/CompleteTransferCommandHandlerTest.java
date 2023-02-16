@@ -52,17 +52,17 @@ class CompleteTransferCommandHandlerTest {
     @Test
     void handle() {
         var cmd = new CompleteTransferCommand("test-id");
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code())
-                .updatedAt(124123) //some invalid time
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code()).updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
 
         when(store.find(anyString())).thenReturn(tp);
-        handler.handle(cmd);
+        var result = handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.COMPLETED.code());
         assertThat(tp.getErrorDetail()).isNull();
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
+        assertThat(result.succeeded()).isTrue();
 
         verify(store).find(anyString());
         verify(store).save(tp);
@@ -70,11 +70,29 @@ class CompleteTransferCommandHandlerTest {
         verify(listener).completed(tp);
     }
 
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR", "CANCELLED" })
-    void handle_illegalState(TransferProcessStates targetState) {
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
+    @Test
+    void handle_failed() {
+        var cmd = new CompleteTransferCommand("test-id");
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.REQUESTED.code()).updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
+        var originalDate = tp.getUpdatedAt();
+
+        when(store.find(anyString())).thenReturn(tp);
+        var result = handler.handle(cmd);
+
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.REQUESTED.code());
+        assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
+        assertThat(result.succeeded()).isFalse();
+
+        verify(store).find(anyString());
+        verifyNoMoreInteractions(store);
+        verifyNoInteractions(listener);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR", "CANCELLED"})
+    void handle_illegalState(TransferProcessStates targetState) {
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code()).type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
         var cmd = new CompleteTransferCommand("test-id");
 

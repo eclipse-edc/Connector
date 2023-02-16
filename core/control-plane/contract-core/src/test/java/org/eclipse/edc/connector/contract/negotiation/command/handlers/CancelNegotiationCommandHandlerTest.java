@@ -55,11 +55,12 @@ class CancelNegotiationCommandHandlerTest {
 
         when(store.find(negotiationId)).thenReturn(negotiation);
 
-        commandHandler.handle(command);
+        var result = commandHandler.handle(command);
 
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
         assertThat(negotiation.getErrorDetail()).isEqualTo("Cancelled");
         assertThat(negotiation.getUpdatedAt()).isNotEqualTo(originalTime);
+        assertThat(result.succeeded()).isTrue();
     }
 
     @Test

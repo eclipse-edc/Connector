@@ -58,11 +58,12 @@ class CancelTransferCommandHandlerTest {
         var originalDate = tp.getUpdatedAt();
 
         when(store.find(anyString())).thenReturn(tp);
-        handler.handle(cmd);
+        var result = handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
         assertThat(tp.getErrorDetail()).isNull();
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
+        assertThat(result.succeeded()).isTrue();
 
         verify(store).find(anyString());
         verify(store).save(tp);
@@ -70,8 +71,30 @@ class CancelTransferCommandHandlerTest {
         verify(listener).cancelled(tp);
     }
 
+    @Test
+    void handle_failed() {
+        var cmd = new CancelTransferCommand("test-id");
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.CANCELLED.code())
+                .updatedAt(124123) //some invalid time
+                .type(TransferProcess.Type.CONSUMER).build();
+        var originalDate = tp.getUpdatedAt();
+
+        when(store.find(anyString())).thenReturn(tp);
+        var result = handler.handle(cmd);
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureDetail()).contains("The TransferProcess could not be modified");
+        assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
+
+        verify(store).find(anyString());
+        verifyNoMoreInteractions(store);
+        verifyNoInteractions(listener);
+
+    }
+
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR", "CANCELLED"})
     void handle_illegalState(TransferProcessStates targetState) {
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();
