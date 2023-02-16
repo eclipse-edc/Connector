@@ -1,6 +1,6 @@
-# IDS-Next Endpoints and Services Architecture
+# IDS Dataspace Protocol Endpoints and Services Architecture
 
-IDS-next requires all protocol message types to be serialized as JSON-LD. The IDS REST binding specifications further define how those serialized message types are bound to
+IDS Dataspace Protocol requires all protocol message types to be serialized as JSON-LD. The IDS REST binding specifications further define how those serialized message types are bound to
 endpoints over HTTPS. Controller endpoints will be added to the EDC that support marshalling and unmarshalling JSON-LD messages as specified
 in [JSON-LD Processing Architecture document](./json-ld-processing-architecture.md)
 
@@ -39,14 +39,14 @@ var compacted = mapper.convertValue(compacted,Map.class);
 
 ## Migrating to DCAT and ODRL Types: Catalog, Dataset, and Policy
 
-The IDS-next specifications overhaul the infomodel that underpins IDS by basing it directly on the [DCAT](https://www.w3.org/TR/vocab-dcat-3/)
+The IDS Dataspace Protocol specifications overhaul the infomodel that underpins IDS by basing it directly on the [DCAT](https://www.w3.org/TR/vocab-dcat-3/)
 and [ODRL](https://w3c.github.io/poe/model/) specifications. One of the most significant changes is that assets (or datasets in DCAT terms) contain offers, which are ODRL policies.
 Moreover, datasets are contained in a catalog. This relationship corresponds to the core design of the EDC and should resolve the complexity mandated by the current IDS infomodel
 where contract offers contain assets.
 
 ### The Catalog Type
 
-The existing `org.eclipse.edc.catalog.spi.Catalog` type will need to be migrated to the new DCAT-based model defined by IDS-Next. This section outlines three key aspects of the
+The existing `org.eclipse.edc.catalog.spi.Catalog` type will need to be migrated to the new DCAT-based model defined by IDS Dataspace Protocol. This section outlines three key aspects of the
 required refactoring: dataset projections; distribution projections; and support for open/extensible types.
 
 #### Dataset Projections
@@ -415,7 +415,7 @@ TODO Can be transformed here but DataManagement API will need to be updated
 ## Remote Message Dispatching
 
 The remote message dispatching infrastructure (`RemoteMessageDispatcher`) will need to be updated to support REST-based catalog requests, transfer requests, and contract
-negotiation requests. The protocol identifier will be "ids-next" until a specification version is officially assigned. This can be done in parallel to the existing IDS multipart
+negotiation requests. The protocol identifier will be "IDS Dataspace Protocol" until a specification version is officially assigned. This can be done in parallel to the existing IDS multipart
 dispatchers.
 
 

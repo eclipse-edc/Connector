@@ -1,4 +1,4 @@
-# IDS-Next Contract Negotiation Architecture
+# IDS Dataspace Protocol Contract Negotiation Architecture
 
 The EDC will be upgraded to implement and be fully compliant to the __IDS Next Contract Negotiation Protocol__. This document details the architectural approach that will be taken
 to support that protocol.

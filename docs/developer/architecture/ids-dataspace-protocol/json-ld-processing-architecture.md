@@ -1,6 +1,6 @@
 # JSON-LD Processing Architecture
 
-IDS-next requires all protocol message types to be serialized as JSON-LD. The IDS REST binding specifications further define how those serialized message types are bound to
+IDS Dataspace Protocol requires all protocol message types to be serialized as JSON-LD. The IDS REST binding specifications further define how those serialized message types are bound to
 endpoints over HTTPS. Controller endpoints will be added to the EDC that support marshalling and unmarshalling JSON-LD messages. These controllers will operate on native JSON
 structures (since JSON-LD is valid JSON) as opposed to typed Java representations. This will allow the EDC to remove its dependency on the IDS InfoModel Java Library and to provide
 full support for JSON-LD message exchanges.

@@ -1,4 +1,4 @@
-# IDS-Next Transfer Process Architecture
+# IDS Dataspace Protocol Transfer Process Architecture
 
 The EDC will be upgraded to implement and be fully compliant to the __IDS Next Transfer Process Protocol__. This document details the architectural approach that will be taken
 to support that protocol.

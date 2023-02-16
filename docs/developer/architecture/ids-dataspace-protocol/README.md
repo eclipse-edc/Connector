@@ -1,4 +1,4 @@
-# IDS-Next Architecture
+# IDS Dataspace Protocol Architecture
 
 The EDC will be upgraded to implement and be fully compliant to the __IDS Next__ protocol specifications. These include:
 
@@ -31,18 +31,18 @@ The goals of IDS Next support are:
 
 IDS Next is built on [JSON-LD](https://www.w3.org/TR/json-ld11/), [DCAT](https://www.w3.org/TR/vocab-dcat-3/) and [ODRL](https://w3c.github.io/poe/model/). The core EDC
 architecture will remain largely unchanged. The most significant change will be the modification and addition of contract negotiation and transfer process states. As development on
-IDS-Next proceeds, we will attempt to retrofit state machine changes to the existing IDS extensions. The goal here is not to offer parallel support for the old protocol but to
-ensure that existing tests continue to function during development until the changeover to IDS-next is made.
+IDS Dataspace Protocol proceeds, we will attempt to retrofit state machine changes to the existing IDS extensions. The goal here is not to offer parallel support for the old protocol but to
+ensure that existing tests continue to function during development until the changeover to IDS Dataspace Protocol is made.
 
-Support for IDS-Next will be done in the following steps:
+Support for IDS Dataspace Protocol will be done in the following steps:
 
 1. Core JSON-LD support will be added as detailed in the [JSON-LD Processing Architecture](./json-ld-processing-architecture.md).
-2. IDS-Next endpoint and service extensions will be added in parallel to the existing IDS extensions. This work is described in
+2. IDS Dataspace Protocol endpoint and service extensions will be added in parallel to the existing IDS extensions. This work is described in
    the [IDS Endpoints and Services Architecture](./ids-endpoints-services-architecture.md).
-3. The contract negotiation manager state machine will be updated to accommodate the IDS-Next protocols as described in
+3. The contract negotiation manager state machine will be updated to accommodate the IDS Dataspace Protocol protocols as described in
    the [Contract Negotiation Architecture](./contract-negotiation-architecture.md). If possible, the new state transitions should be retrofitted back to the existing IDS
    extensions. Since the existing contract managers do not implement all state transitions, retrofitting the new states back to the existing IDS protocol should be possible.
-4. The transfer process state machine will be updated to accommodate the IDS-Next protocols as described in [the Transfer Process Architecture](./transfer-process-architecture.md).
+4. The transfer process state machine will be updated to accommodate the IDS Dataspace Protocol protocols as described in [the Transfer Process Architecture](./transfer-process-architecture.md).
    Since all new states are nearly 1:1 with existing EDC states, retrofitting to the old IDS protocol should be possible.
 5. When 1-4 are stabilized, the old IDS modules and supporting services will be removed.
 6. An ensuing release will update the Management API
