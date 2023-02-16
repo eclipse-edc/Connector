@@ -24,7 +24,7 @@ The goals of IDS Next support are:
 1. To be compliant with the IDS Next Protocol Specifications listed above. This will involve passing all mandatory tests of the to-be-released IDS Test Compatibility Kit (IDS-TCK).
 2. Based on specification compliance, the EDC aims to be interoperable with other IDS implementations that are also IDS Next specification compliant.
 3. The EDC __will not__ support any IDS versions prior to the IDS Next Specifications.
-4. Following the approach taken with IDS Next, The core EDC project __will not__ implement specific usage policies. It is expected that usage policy implementations will be
+4. Following the approach taken with IDS Next, the core EDC project __will not__ implement specific usage policies. It is expected that usage policy implementations will be
    provided by other projects and dataspaces.
 
 # Impact and Approach

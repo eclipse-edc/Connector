@@ -81,7 +81,7 @@ public interface StateTransitionFunction {
 }
 ```
 
-Note this is does not follow immutability principles but has the advantage of simplicity and the ability to enforce proper state transitions in the `ContractNegotiation` instance.
+Note this does not follow immutability principles but has the advantage of simplicity and the ability to enforce proper state transitions in the `ContractNegotiation` instance.
 The `Result<Boolean>` response indicates if the `ContractNegotiation` has been updated (true) or not (false), or if processing failed. This can be used to avoid
 re-persisting `ContractNegotiation` instances if they have not changed.
 

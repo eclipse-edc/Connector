@@ -51,7 +51,7 @@ required refactoring: dataset projections; distribution projections; and support
 
 #### Dataset Projections
 
-Instead of `ContractOffer` instances, A `Catalog` will contain `DataSet`instances that correspond to an EDC `Asset` and a collection of policies that derive from
+Instead of `ContractOffer` instances, A `Catalog` will contain `DataSet` instances that correspond to an EDC `Asset` and a collection of policies that derive from
 matching `ContractDefinition`s. A replacement for the `ContractOfferResolver` will be needed that matches all `ContractDefinition`s for a `ParticipantAgent` and derives a
 collection of `Dataset`s that contain `Asset` properties and ODRL Offers corresponding to the usage policies of all matching `ContractDefinition`s for the asset. This can be
 represented as:
@@ -69,9 +69,9 @@ CD 2  --selects--> [A1, A3]
 
 the resulting Catalog containing Datasets is:
 
-DS 1 -> A1 [O:CD1,O:CD2]  
-DS 2 -> A2 [O:CD1]  
-DS 3 -> A3 [O:CD2]  
+DS 1 -> A1 [O:CD1, O:CD2] 
+DS 2 -> A2 [O:CD1]
+DS 3 -> A3 [O:CD2]
 ```
 
 #### Distribution Projections
@@ -147,7 +147,7 @@ public class FromCatalogTransformer extends AbstractJsonLdTransformer<Catalog, J
 }
 ```
 
-The `catalong-ids` extension can register the transformer as follows:
+The `catalog-ids` extension can register the transformer as follows:
 
 ```
 // registry is injected on the extension instance
