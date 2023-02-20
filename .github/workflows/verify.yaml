@@ -312,57 +312,58 @@ jobs:
     outputs:
       has-azure: ${{ steps.has-azure.outputs.defined }}
 
-  Azure-Cloud-Integration-Test:
-    needs: [ Check-Cloud-Environments ]
-    if: needs.Check-Cloud-Environments.outputs.has-azure == 'true'
-    environment: Azure-dev
-    runs-on: ubuntu-latest
-
-    # Grant permissions to obtain federated identity credentials
-    # see https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: 'Az CLI login'
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: "Fetch Terraform outputs"
-        run: printf "$RUNTIME_SETTINGS" > resources/azure/testing/runtime_settings.properties
-        env:
-          RUNTIME_SETTINGS: ${{ secrets.RUNTIME_SETTINGS }}
-
-      - name: Data Plane Azure Data Factory Test
-        uses: ./.github/actions/run-tests
-        env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        with:
-          command: |
-            ./gradlew -p extensions/data-plane/data-plane-azure-data-factory test -DincludeTags="AzureDataFactoryIntegrationTest"
-            ./gradlew -p system-tests/azure-data-factory-tests test -DincludeTags="AzureDataFactoryIntegrationTest"
-
-      - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: Gatling reports
-          path: '**/build/reports/gatling/**'
+#  TODO: this test has been commented out because it was flaky. Further investigation needed. ref: https://github.com/eclipse-edc/Connector/issues/2403
+#  Azure-Cloud-Integration-Test:
+#    needs: [ Check-Cloud-Environments ]
+#    if: needs.Check-Cloud-Environments.outputs.has-azure == 'true'
+#    environment: Azure-dev
+#    runs-on: ubuntu-latest
+#
+#    # Grant permissions to obtain federated identity credentials
+#    # see https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
+#    permissions:
+#      id-token: write
+#      contents: read
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: ./.github/actions/setup-build
+#
+#      - name: 'Az CLI login'
+#        uses: azure/login@v1
+#        with:
+#          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+#          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+#          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+#
+#      - name: "Fetch Terraform outputs"
+#        run: printf "$RUNTIME_SETTINGS" > resources/azure/testing/runtime_settings.properties
+#        env:
+#          RUNTIME_SETTINGS: ${{ secrets.RUNTIME_SETTINGS }}
+#
+#      - name: Data Plane Azure Data Factory Test
+#        uses: ./.github/actions/run-tests
+#        env:
+#          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+#          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+#          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+#        with:
+#          command: |
+#            ./gradlew -p extensions/data-plane/data-plane-azure-data-factory test -DincludeTags="AzureDataFactoryIntegrationTest"
+#            ./gradlew -p system-tests/azure-data-factory-tests test -DincludeTags="AzureDataFactoryIntegrationTest"
+#
+#      - name: "Publish Gatling report"
+#        uses: actions/upload-artifact@v3
+#        if: always()
+#        with:
+#          name: Gatling reports
+#          path: '**/build/reports/gatling/**'
 
   Upload-Test-Report:
     needs:
       - API-Tests
       - Aws-Integration-Tests
-      - Azure-Cloud-Integration-Test
+#      - Azure-Cloud-Integration-Test
       - Azure-CosmosDB-Integration-Tests
       - Azure-Storage-Integration-Tests
       - Component-Tests
