@@ -36,9 +36,11 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -112,20 +114,9 @@ class ContractOfferResolverImplIntegrationTest {
         verify(policyStore).findById("contract");
     }
 
-    private static Stream<Arguments> ranges() {
-        return Stream.of(
-                Arguments.of(0, 12),
-                Arguments.of(8, 14),
-                Arguments.of(0, 999),
-                Arguments.of(4, 888),
-                Arguments.of(3, 20),
-                Arguments.of(23, 25)
-        );
-    }
-
     @ParameterizedTest
-    @MethodSource("ranges")
-    void shouldReturnOfferSubsetAcrossMultipleContractDefinitions(int from, int to) {
+    @ArgumentsSource(RangeProvider.class)
+    void should_return_offers_subset_when_across_multiple_contract_definitions(int from, int to) {
 
         var assets1 = range(0, 10).mapToObj(i -> createAsset("asset-" + i).build()).collect(Collectors.toList());
         var assets2 = range(10, 20).mapToObj(i -> createAsset("asset-" + i).build()).collect(Collectors.toList());
@@ -219,4 +210,17 @@ class ContractOfferResolverImplIntegrationTest {
         return Asset.Builder.newInstance().id(id).name("test asset " + id);
     }
 
+    static class RangeProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(0, 12),
+                    Arguments.of(8, 14),
+                    Arguments.of(0, 999),
+                    Arguments.of(4, 888),
+                    Arguments.of(3, 20),
+                    Arguments.of(23, 25)
+            );
+        }
+    }
 }
