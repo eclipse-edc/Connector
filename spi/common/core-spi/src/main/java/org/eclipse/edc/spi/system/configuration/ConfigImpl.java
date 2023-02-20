@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -50,11 +49,8 @@ public class ConfigImpl implements Config {
     protected ConfigImpl(String rootPath, Map<String, String> entries) {
         Objects.requireNonNull(rootPath, "rootPath");
 
-        // convert upper snake case to Java Property format: SOME_KEY=value will become some.key=value
-        this.entries = entries.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey().toLowerCase().replace("_", "."),
-                        Map.Entry::getValue, (o, o2) -> o2));
-        this.rootPath = rootPath.toLowerCase().replace("_", ".");
+        this.entries = entries;
+        this.rootPath = rootPath;
     }
 
     @Override
