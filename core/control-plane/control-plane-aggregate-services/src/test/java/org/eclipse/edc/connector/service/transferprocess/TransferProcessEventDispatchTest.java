@@ -38,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.awaitility.Awaitility.await;

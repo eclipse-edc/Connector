@@ -402,6 +402,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         @Override
         public TransferProcess build() {
+            super.build();
+
             if (entity.resourceManifest != null) {
                 entity.resourceManifest.setTransferProcessId(entity.id);
             }
@@ -417,7 +419,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             if (entity.state == 0) {
                 entity.transitionTo(INITIAL.code());
             }
-            return super.build();
+
+            return entity;
         }
 
     }

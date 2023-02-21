@@ -119,7 +119,7 @@ public class TransferProcessHttpClientIntegrationTest {
     private TransferProcess createTransferProcess(String id) {
         return TransferProcess.Builder.newInstance()
                 .id(id)
-                .state(TransferProcessStates.IN_PROGRESS.code())
+                .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("file")
