@@ -54,7 +54,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STREAMING;
 
 /**
  * Represents a data transfer process.
@@ -73,7 +72,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#REQUESTING} -&gt;
  * {@link TransferProcessStates#REQUESTED} -&gt;
  * {@link TransferProcessStates#STARTED} -&gt;
- * {@link TransferProcessStates#STREAMING} -&gt;
  * {@link TransferProcessStates#COMPLETED} -&gt;
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
@@ -89,7 +87,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#PROVISIONING} -&gt;
  * {@link TransferProcessStates#PROVISIONED} -&gt;
  * {@link TransferProcessStates#STARTED} -&gt;
- * {@link TransferProcessStates#STREAMING} -&gt;
  * {@link TransferProcessStates#COMPLETED} -&gt;
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
@@ -240,20 +237,18 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionStarted() {
-        var dataRequest = getDataRequest();
-        var status = dataRequest.getTransferType().isFinite() ? STARTED : STREAMING;
         if (type == Type.CONSUMER) {
             // the consumer must first transition to the request/ack states before start
-            transition(status, REQUESTED, status);
+            transition(STARTED, REQUESTED, STARTED);
         } else {
             // the provider transitions from provisioned to in progress directly
-            transition(status, REQUESTED, PROVISIONED, status);
+            transition(STARTED, REQUESTED, PROVISIONED, STARTED);
         }
     }
 
     public void transitionCompleted() {
         // consumers are in REQUESTED state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
-        transition(COMPLETED, COMPLETED, STARTED, REQUESTED, STREAMING);
+        transition(COMPLETED, COMPLETED, STARTED, REQUESTED);
     }
 
     public void transitionDeprovisioning() {

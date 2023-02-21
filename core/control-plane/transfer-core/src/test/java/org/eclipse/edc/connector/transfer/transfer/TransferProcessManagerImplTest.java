@@ -79,13 +79,12 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STREAMING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -504,7 +503,7 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void requested_shouldTransitionToStartedIfTransferIsFinite() {
+    void requested_shouldTransitionToStarted() {
         var process = createTransferProcess(REQUESTED);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -513,20 +512,6 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
-        });
-    }
-
-    @Test
-    void requested_shouldTransitionToStreamingIfTransferIsNonFinite() {
-        var nonFinite = TransferType.Builder.transferType().isFinite(false).build();
-        var process = createTransferProcess(REQUESTED, nonFinite, true);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STREAMING.code()));
         });
     }
 
