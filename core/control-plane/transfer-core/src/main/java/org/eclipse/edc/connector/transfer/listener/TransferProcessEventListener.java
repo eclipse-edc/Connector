@@ -21,12 +21,12 @@ import org.eclipse.edc.spi.event.transferprocess.TransferProcessCancelled;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioningRequested;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessEnded;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessFailed;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioningRequested;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
+import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 
 import java.time.Clock;
 
@@ -113,8 +113,8 @@ public class TransferProcessEventListener implements TransferProcessListener {
     }
 
     @Override
-    public void ended(TransferProcess process) {
-        var event = TransferProcessEnded.Builder.newInstance()
+    public void terminated(TransferProcess process) {
+        var event = TransferProcessTerminated.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .at(clock.millis())
                 .build();

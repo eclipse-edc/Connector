@@ -464,16 +464,16 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process DEPROVISIONED transfer<p> Set it to ENDED.
+     * Process DEPROVISIONED transfer<p> Set it to TERMINATED.
      *
      * @param process the DEPROVISIONED transfer fetched
      * @return if the transfer has been processed or not
      */
     @WithSpan
     private boolean processDeprovisioned(TransferProcess process) {
-        process.transitionEnded();
-        updateTransferProcess(process, l -> l.preEnded(process));
-        observable.invokeForEach(l -> l.ended(process));
+        process.transitionTerminated();
+        updateTransferProcess(process, l -> l.preTerminated(process));
+        observable.invokeForEach(l -> l.terminated(process));
         return true;
     }
 

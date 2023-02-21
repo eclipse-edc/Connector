@@ -84,12 +84,6 @@ class TransferProcessTest {
     void verifyConsumerTransitions() {
         var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
 
-        // test illegal transition
-        assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
-
-        // test illegal transition
-        assertThrows(IllegalStateException.class, process::transitionProvisioned);
-
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         process.transitionProvisioned();
 
@@ -97,14 +91,14 @@ class TransferProcessTest {
         process.transitionRequested();
 
         // test illegal transition
-        assertThrows(IllegalStateException.class, process::transitionEnded);
+        assertThrows(IllegalStateException.class, process::transitionTerminated);
 
         process.transitionStarted();
         process.transitionCompleted();
 
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
-        process.transitionEnded();
+        process.transitionTerminated();
     }
 
     @Test
@@ -120,7 +114,7 @@ class TransferProcessTest {
 
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
-        process.transitionEnded();
+        process.transitionTerminated();
     }
 
     @Test
@@ -214,7 +208,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED", "ERROR" }, mode = EnumSource.Mode.EXCLUDE)
     void verifyCancel_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -227,7 +221,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.INCLUDE)
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED", "ERROR" }, mode = EnumSource.Mode.INCLUDE)
     void verifyCancel_invalidStates(TransferProcessStates state) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

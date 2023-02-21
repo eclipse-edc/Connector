@@ -76,7 +76,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
@@ -85,6 +84,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -778,7 +778,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == ENDED.code()));
+            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).ended(process);
         });
     }

@@ -25,11 +25,11 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCancelled;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessEnded;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessFailed;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
+import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,7 +95,7 @@ public class TransferProcessEventDispatchTest {
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessDeprovisioned.class));
-            verify(eventSubscriber).on(isA(TransferProcessEnded.class));
+            verify(eventSubscriber).on(isA(TransferProcessTerminated.class));
         });
     }
 

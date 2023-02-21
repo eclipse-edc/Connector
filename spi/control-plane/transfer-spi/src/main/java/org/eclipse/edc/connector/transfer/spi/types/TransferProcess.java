@@ -45,7 +45,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
@@ -54,6 +53,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 
 /**
  * Represents a data transfer process.
@@ -75,7 +75,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#COMPLETED} -&gt;
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
- * {@link TransferProcessStates#ENDED} -&gt;
+ * {@link TransferProcessStates#TERMINATED} -&gt;
  * {@link TransferProcessStates#CANCELLED} -&gt; optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
  * <p>
@@ -90,7 +90,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#COMPLETED} -&gt;
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
- * {@link TransferProcessStates#ENDED} -&gt;
+ * {@link TransferProcessStates#TERMINATED} -&gt;
  * {@link TransferProcessStates#CANCELLED} -&gt; optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
  * <p>
@@ -264,7 +264,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionCancelled() {
-        var forbiddenStates = List.of(ENDED, COMPLETED, ERROR);
+        var forbiddenStates = List.of(TERMINATED, COMPLETED, ERROR);
 
         var allowedStates = Arrays.stream(TransferProcessStates.values())
                 .filter(it -> !forbiddenStates.contains(it))
@@ -273,8 +273,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(CANCELLED, allowedStates);
     }
 
-    public void transitionEnded() {
-        transition(ENDED, DEPROVISIONED);
+    public void transitionTerminated() {
+        transition(TERMINATED, DEPROVISIONED);
     }
 
     public void transitionError(@Nullable String errorDetail) {

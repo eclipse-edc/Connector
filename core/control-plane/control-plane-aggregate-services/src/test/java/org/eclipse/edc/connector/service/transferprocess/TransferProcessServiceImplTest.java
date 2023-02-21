@@ -133,7 +133,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "ERROR", "ENDED" })
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "ERROR", "TERMINATED" })
     void cancel(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -149,7 +149,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "ERROR", "ENDED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "ERROR", "TERMINATED" })
     void cancel_whenNonCancellable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -242,7 +242,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "ENDED", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "TERMINATED", "CANCELLED" })
     void deprovision(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -258,7 +258,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "ENDED", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "TERMINATED", "CANCELLED" })
     void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);

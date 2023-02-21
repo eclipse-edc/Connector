@@ -163,7 +163,7 @@ class TransferProcessControlApiControllerIntegrationTest {
     private TransferProcess.Builder createTransferProcessBuilder() {
         return TransferProcess.Builder.newInstance()
                 .id("tp-id")
-                .state(TransferProcessStates.IN_PROGRESS.code())
+                .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("file")

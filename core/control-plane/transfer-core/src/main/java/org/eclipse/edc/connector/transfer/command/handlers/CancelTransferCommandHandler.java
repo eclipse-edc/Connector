@@ -44,7 +44,7 @@ public class CancelTransferCommandHandler extends SingleTransferProcessCommandHa
         if (state == TransferProcessStates.COMPLETED.code() ||
                 state == TransferProcessStates.ERROR.code() ||
                 state == TransferProcessStates.CANCELLED.code() ||
-                state == TransferProcessStates.ENDED.code()) {
+                state == TransferProcessStates.TERMINATED.code()) {
             return false;
         }
         process.transitionCancelled();

@@ -15,28 +15,28 @@
 package org.eclipse.edc.spi.event.transferprocess;
 
 /**
- * This event is raised when the TransferProcess has been ended.
+ * This event is raised when the TransferProcess has been terminated.
  */
-public class TransferProcessEnded extends TransferProcessEvent<TransferProcessEnded.Payload> {
+public class TransferProcessTerminated extends TransferProcessEvent<TransferProcessTerminated.Payload> {
 
-    private TransferProcessEnded() {
+    private TransferProcessTerminated() {
     }
 
     /**
-     * This class contains all event specific attributes of a TransferProcess Ended Event
+     * This class contains all event specific attributes of a TransferProcess Terminated Event
      *
      */
     public static class Payload extends TransferProcessEvent.Payload {
     }
 
-    public static class Builder extends TransferProcessEvent.Builder<TransferProcessEnded, Payload, Builder> {
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessTerminated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new TransferProcessEnded(), new Payload());
+            super(new TransferProcessTerminated(), new Payload());
         }
     }
 

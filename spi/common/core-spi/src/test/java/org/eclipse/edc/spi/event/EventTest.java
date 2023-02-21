@@ -31,11 +31,11 @@ import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCancelled;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessEnded;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessFailed;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
+import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -88,7 +88,7 @@ class EventTest {
                     TransferProcessCancelled.Builder.newInstance().transferProcessId("id"),
                     TransferProcessCompleted.Builder.newInstance().transferProcessId("id"),
                     TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id"),
-                    TransferProcessEnded.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id"),
                     TransferProcessFailed.Builder.newInstance().transferProcessId("id"),
                     TransferProcessInitiated.Builder.newInstance().transferProcessId("id"),
                     TransferProcessProvisioned.Builder.newInstance().transferProcessId("id"),
