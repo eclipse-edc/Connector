@@ -62,7 +62,7 @@ class AzureStorageDataSinkFactoryTest {
 
     @Test
     void validate_whenRequestValid_succeeds() {
-        assertThat(factory.validate(request.destinationDataAddress(dataAddress
+        assertThat(factory.validateRequest(request.destinationDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .keyName(keyName)
@@ -73,7 +73,7 @@ class AzureStorageDataSinkFactoryTest {
 
     @Test
     void validate_whenMissingAccountName_fails() {
-        assertThat(factory.validate(request.destinationDataAddress(dataAddress
+        assertThat(factory.validateRequest(request.destinationDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .keyName(keyName)
                                 .build())
@@ -83,9 +83,19 @@ class AzureStorageDataSinkFactoryTest {
 
     @Test
     void validate_whenMissingContainerName_fails() {
-        assertThat(factory.validate(request.destinationDataAddress(dataAddress
+        assertThat(factory.validateRequest(request.destinationDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .keyName(keyName)
+                                .build())
+                        .build())
+                .failed()).isTrue();
+    }
+
+    @Test
+    void validate_whenMissingKeyName_fails() {
+        assertThat(factory.validateRequest(request.destinationDataAddress(dataAddress
+                                .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
+                                .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .build())
                         .build())
                 .failed()).isTrue();

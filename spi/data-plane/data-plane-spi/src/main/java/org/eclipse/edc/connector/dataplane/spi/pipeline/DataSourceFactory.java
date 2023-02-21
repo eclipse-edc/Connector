@@ -35,12 +35,22 @@ public interface DataSourceFactory {
 
     /**
      * Returns true if the request is valid.
+     *
+     * @deprecated use {@link #validateRequest(DataFlowRequest)} instead.
      */
+    @Deprecated(since = "milestone9")
     @NotNull Result<Boolean> validate(DataFlowRequest request);
 
     /**
      * Creates a source to access data to be sent.
      */
     DataSource createSource(DataFlowRequest request);
+
+    /**
+     * Returns a Result object of the validation result.
+     */
+    default @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+        return validate(request).mapTo();
+    }
 
 }

@@ -87,6 +87,11 @@ public class EndToEndTest {
         }
 
         @Override
+        public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+            return Result.success();
+        }
+
+        @Override
         public DataSink createSink(DataFlowRequest request) {
             return sink;
         }

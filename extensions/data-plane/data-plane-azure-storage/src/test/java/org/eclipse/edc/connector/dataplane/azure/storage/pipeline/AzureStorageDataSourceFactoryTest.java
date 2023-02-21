@@ -57,7 +57,7 @@ class AzureStorageDataSourceFactoryTest {
 
     @Test
     void validate_whenRequestValid_succeeds() {
-        assertThat(factory.validate(request.sourceDataAddress(dataAddress
+        assertThat(factory.validateRequest(request.sourceDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
@@ -69,7 +69,7 @@ class AzureStorageDataSourceFactoryTest {
 
     @Test
     void validate_whenMissingAccountName_fails() {
-        assertThat(factory.validate(request.sourceDataAddress(dataAddress
+        assertThat(factory.validateRequest(request.sourceDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
                                 .build())
@@ -79,7 +79,7 @@ class AzureStorageDataSourceFactoryTest {
 
     @Test
     void validate_whenMissingContainerName_fails() {
-        assertThat(factory.validate(request.sourceDataAddress(dataAddress
+        assertThat(factory.validateRequest(request.sourceDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
                                 .build())
@@ -89,7 +89,7 @@ class AzureStorageDataSourceFactoryTest {
 
     @Test
     void validate_whenMissingBlobName_fails() {
-        assertThat(factory.validate(request.sourceDataAddress(dataAddress
+        assertThat(factory.validateRequest(request.sourceDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .build())

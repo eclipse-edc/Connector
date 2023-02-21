@@ -58,6 +58,11 @@ public class AzureStorageDataSourceFactory implements DataSourceFactory {
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+        return validateRequest(request).mapTo();
+    }
+
+    @Override
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var dataAddress = request.getSourceDataAddress();
         var properties = new HashMap<>(dataAddress.getProperties());
         try {
@@ -71,12 +76,12 @@ public class AzureStorageDataSourceFactory implements DataSourceFactory {
         } catch (IllegalArgumentException e) {
             return Result.failure(e.getMessage());
         }
-        return VALID;
+        return VALID.mapTo();
     }
 
     @Override
     public DataSource createSource(DataFlowRequest request) {
-        Result<Boolean> validate = validate(request);
+        Result<Void> validate = validateRequest(request);
         if (validate.failed()) {
             throw new EdcException(validate.getFailure().getMessages().toString());
         }

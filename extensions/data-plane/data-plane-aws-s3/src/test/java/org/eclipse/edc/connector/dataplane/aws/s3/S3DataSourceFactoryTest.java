@@ -77,7 +77,7 @@ class S3DataSourceFactoryTest {
         var source = s3DataAddressWithCredentials();
         var request = createRequest(source);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -95,7 +95,7 @@ class S3DataSourceFactoryTest {
 
         var request = createRequest(source);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.failed()).isTrue();
     }
