@@ -55,14 +55,10 @@ include(":core:common:state-machine")
 include(":core:common:util")
 include(":core:common:junit")
 
-
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:control-plane-aggregate-services")
 include(":core:control-plane:transfer-core")
-include(":core:control-plane:control-plane-api")
-include(":core:control-plane:control-plane-api-client")
-
 
 include(":core:data-plane:data-plane-util")
 include(":core:data-plane:data-plane-core")
@@ -127,6 +123,8 @@ include(":extensions:common:vault:vault-hashicorp")
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
 
+include(":extensions:control-plane:api:control-plane-api")
+include(":extensions:control-plane:api:control-plane-api-client")
 include(":extensions:control-plane:api:management-api")
 include(":extensions:control-plane:api:management-api:asset-api")
 include(":extensions:control-plane:api:management-api:catalog-api")
