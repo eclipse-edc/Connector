@@ -771,7 +771,7 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void deprovisioned_shouldTransitionToEnded() {
+    void deprovisioned_shouldTransitionToTerminated() {
         var process = createTransferProcess(DEPROVISIONED);
         when(transferProcessStore.nextForState(eq(DEPROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
@@ -779,7 +779,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
-            verify(listener).ended(process);
+            verify(listener).terminated(process);
         });
     }
 

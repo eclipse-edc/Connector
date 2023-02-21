@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -49,6 +48,7 @@ import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunc
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -135,12 +135,13 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_noneInDesiredState() {
-        var state = STARTED;
         IntStream.range(0, 3)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
+                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, STARTED))
                 .forEach(getTransferProcessStore()::save);
 
-        assertThat(getTransferProcessStore().nextForState(TransferProcessStates.CANCELLED.code(), 10)).isEmpty();
+        var nextForState = getTransferProcessStore().nextForState(TERMINATED.code(), 10);
+
+        assertThat(nextForState).isEmpty();
     }
 
     @Test

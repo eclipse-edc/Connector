@@ -40,7 +40,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.CANCELLED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
@@ -76,7 +75,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
  * {@link TransferProcessStates#TERMINATED} -&gt;
- * {@link TransferProcessStates#CANCELLED} -&gt; optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
  * <p>
  * <p>
@@ -91,7 +89,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
  * {@link TransferProcessStates#TERMINATED} -&gt;
- * {@link TransferProcessStates#CANCELLED} -&gt; optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
  * <p>
  */
@@ -270,7 +267,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .filter(it -> !forbiddenStates.contains(it))
                 .toArray(TransferProcessStates[]::new);
 
-        transition(CANCELLED, allowedStates);
+        transition(TERMINATED, allowedStates);
     }
 
     public void transitionTerminated() {

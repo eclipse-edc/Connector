@@ -214,6 +214,15 @@ public interface TransferProcessListener {
     }
 
     /**
+     * Called after a {@link TransferProcess} was terminated.
+     *
+     * @param process the transfer process that has been terminated.
+     */
+    default void terminated(TransferProcess process) {
+
+    }
+
+    /**
      * Called after a {@link TransferProcess} was ended.
      *
      * @param process the transfer process that has been ended.
@@ -225,21 +234,14 @@ public interface TransferProcessListener {
     }
 
     /**
-     * Called after a {@link TransferProcess} was terminated.
-     *
-     * @param process the transfer process that has been terminated.
-     */
-    default void terminated(TransferProcess process) {
-
-    }
-
-    /**
      * Called after a {@link TransferProcess} was cancelled.
      *
      * @param process the transfer process that has been cancelled.
+     * @deprecated please use terminated instead
      */
+    @Deprecated(since = "milestone9")
     default void cancelled(TransferProcess process) {
-
+        terminated(process);
     }
 
     /**

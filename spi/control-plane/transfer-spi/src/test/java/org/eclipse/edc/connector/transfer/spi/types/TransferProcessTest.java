@@ -30,6 +30,7 @@ import java.util.UUID;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -217,7 +218,7 @@ class TransferProcessTest {
 
         transferProcess.transitionCancelled();
 
-        assertThat(transferProcess.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
+        assertThat(transferProcess.getState()).isEqualTo(TERMINATED.code());
     }
 
     @ParameterizedTest

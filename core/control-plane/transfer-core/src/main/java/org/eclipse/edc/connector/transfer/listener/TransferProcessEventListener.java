@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.transfer.listener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessCancelled;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioningRequested;
@@ -115,16 +114,6 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void terminated(TransferProcess process) {
         var event = TransferProcessTerminated.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .at(clock.millis())
-                .build();
-
-        eventRouter.publish(event);
-    }
-
-    @Override
-    public void cancelled(TransferProcess process) {
-        var event = TransferProcessCancelled.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .at(clock.millis())
                 .build();

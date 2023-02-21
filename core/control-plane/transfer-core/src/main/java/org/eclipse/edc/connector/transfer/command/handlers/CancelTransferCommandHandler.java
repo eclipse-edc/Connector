@@ -43,7 +43,6 @@ public class CancelTransferCommandHandler extends SingleTransferProcessCommandHa
         var state = process.getState();
         if (state == TransferProcessStates.COMPLETED.code() ||
                 state == TransferProcessStates.ERROR.code() ||
-                state == TransferProcessStates.CANCELLED.code() ||
                 state == TransferProcessStates.TERMINATED.code()) {
             return false;
         }
@@ -53,6 +52,6 @@ public class CancelTransferCommandHandler extends SingleTransferProcessCommandHa
 
     @Override
     protected void postAction(TransferProcess process) {
-        observable.invokeForEach(l -> l.cancelled(process));
+        observable.invokeForEach(l -> l.terminated(process));
     }
 }
