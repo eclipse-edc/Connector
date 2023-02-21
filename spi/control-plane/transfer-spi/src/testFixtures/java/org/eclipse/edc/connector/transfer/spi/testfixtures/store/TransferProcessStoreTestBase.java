@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.transfer.spi.testfixtures.store;
 
-import org.assertj.core.api.Assertions;
 import org.awaitility.Awaitility;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
@@ -48,6 +47,8 @@ import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunc
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createTransferProcessBuilder;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.initialTransferProcess;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.IN_PROGRESS;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -70,31 +71,31 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().save(t);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        Assertions.assertThat(all).containsExactly(t);
-        Assertions.assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
-        Assertions.assertThat(all).allSatisfy(tr -> Assertions.assertThat(tr.getCreatedAt()).isNotEqualTo(0L));
+        assertThat(all).containsExactly(t);
+        assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
+        assertThat(all).allSatisfy(tr -> assertThat(tr.getCreatedAt()).isNotEqualTo(0L));
     }
 
     @Test
     void create_withSameIdExists_shouldReplace() {
-        var t = TestFunctions.createTransferProcess("id1", TransferProcessStates.UNSAVED);
+        var t = TestFunctions.createTransferProcess("id1", INITIAL);
         getTransferProcessStore().save(t);
 
-        var t2 = TestFunctions.createTransferProcess("id1", TransferProcessStates.PROVISIONING);
+        var t2 = TestFunctions.createTransferProcess("id1", PROVISIONING);
         getTransferProcessStore().save(t2);
 
-        Assertions.assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
     }
 
     @Test
     void nextForState() {
-        var state = TransferProcessStates.IN_PROGRESS;
+        var state = IN_PROGRESS;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::save)
                 .collect(Collectors.toList());
 
-        Assertions.assertThat(getTransferProcessStore().nextForState(state.code(), 5))
+        assertThat(getTransferProcessStore().nextForState(state.code(), 5))
                 .hasSize(5)
                 .extracting(TransferProcess::getId)
                 .isSubsetOf(all.stream().map(TransferProcess::getId).collect(Collectors.toList()))
@@ -103,7 +104,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_shouldOnlyReturnFreeItems() {
-        var state = TransferProcessStates.IN_PROGRESS;
+        var state = IN_PROGRESS;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::save)
@@ -113,7 +114,7 @@ public abstract class TransferProcessStoreTestBase {
         var leasedTp = all.stream().skip(5).peek(tp -> lockEntity(tp.getId(), CONNECTOR_NAME)).collect(Collectors.toList());
 
         // should not contain leased TPs
-        Assertions.assertThat(getTransferProcessStore().nextForState(state.code(), 10))
+        assertThat(getTransferProcessStore().nextForState(state.code(), 10))
                 .hasSize(5)
                 .isSubsetOf(all)
                 .doesNotContainAnyElementsOf(leasedTp);
@@ -121,41 +122,41 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_noFreeItem_shouldReturnEmpty() {
-        var state = TransferProcessStates.IN_PROGRESS;
+        var state = IN_PROGRESS;
         IntStream.range(0, 3)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::save);
 
         // first time works
-        Assertions.assertThat(getTransferProcessStore().nextForState(state.code(), 10)).hasSize(3);
+        assertThat(getTransferProcessStore().nextForState(state.code(), 10)).hasSize(3);
         // second time returns empty list
-        Assertions.assertThat(getTransferProcessStore().nextForState(state.code(), 10)).isEmpty();
+        assertThat(getTransferProcessStore().nextForState(state.code(), 10)).isEmpty();
     }
 
     @Test
     void nextForState_noneInDesiredState() {
-        var state = TransferProcessStates.IN_PROGRESS;
+        var state = IN_PROGRESS;
         IntStream.range(0, 3)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::save);
 
-        Assertions.assertThat(getTransferProcessStore().nextForState(TransferProcessStates.CANCELLED.code(), 10)).isEmpty();
+        assertThat(getTransferProcessStore().nextForState(TransferProcessStates.CANCELLED.code(), 10)).isEmpty();
     }
 
     @Test
     void nextForState_batchSizeLimits() {
-        var state = TransferProcessStates.IN_PROGRESS;
+        var state = IN_PROGRESS;
         IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::save);
 
         // first time works
-        Assertions.assertThat(getTransferProcessStore().nextForState(state.code(), 3)).hasSize(3);
+        assertThat(getTransferProcessStore().nextForState(state.code(), 3)).hasSize(3);
     }
 
     @Test
     void nextForState_verifyTemporalOrdering() {
-        var state = TransferProcessStates.IN_PROGRESS;
+        var state = IN_PROGRESS;
         IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess(String.valueOf(i), state))
                 .peek(t -> {
@@ -168,7 +169,7 @@ public abstract class TransferProcessStoreTestBase {
                 })
                 .forEach(getTransferProcessStore()::save);
 
-        Assertions.assertThat(getTransferProcessStore().nextForState(state.code(), 20))
+        assertThat(getTransferProcessStore().nextForState(state.code(), 20))
                 .extracting(TransferProcess::getId)
                 .map(Integer::parseInt)
                 .isSortedAccordingTo(Integer::compareTo);
@@ -176,7 +177,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_verifyMostRecentlyUpdatedIsLast() throws InterruptedException {
-        var state = TransferProcessStates.IN_PROGRESS;
+        var state = IN_PROGRESS;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::save)
@@ -188,31 +189,31 @@ public abstract class TransferProcessStoreTestBase {
         fourth.updateStateTimestamp();
         getTransferProcessStore().save(fourth);
 
-        var next = getTransferProcessStore().nextForState(TransferProcessStates.IN_PROGRESS.code(), 20);
-        Assertions.assertThat(next.indexOf(fourth)).isEqualTo(9);
+        var next = getTransferProcessStore().nextForState(IN_PROGRESS.code(), 20);
+        assertThat(next.indexOf(fourth)).isEqualTo(9);
     }
 
     @Test
     @DisplayName("Verifies that calling nextForState locks the TP for any subsequent calls")
     void nextForState_locksEntity() {
-        var t = TestFunctions.createTransferProcess("id1", TransferProcessStates.UNSAVED);
+        var t = TestFunctions.createTransferProcess("id1", INITIAL);
         getTransferProcessStore().save(t);
 
-        getTransferProcessStore().nextForState(TransferProcessStates.UNSAVED.code(), 100);
+        getTransferProcessStore().nextForState(INITIAL.code(), 100);
 
         assertThat(isLockedBy(t.getId(), CONNECTOR_NAME)).isTrue();
     }
 
     @Test
     void nextForState_expiredLease() {
-        var t = TestFunctions.createTransferProcess("id1", TransferProcessStates.UNSAVED);
+        var t = TestFunctions.createTransferProcess("id1", INITIAL);
         getTransferProcessStore().save(t);
 
         lockEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
         Awaitility.await().atLeast(Duration.ofMillis(100))
                 .atMost(Duration.ofMillis(500))
-                .until(() -> getTransferProcessStore().nextForState(TransferProcessStates.UNSAVED.code(), 10), Matchers.hasSize(1));
+                .until(() -> getTransferProcessStore().nextForState(INITIAL.code(), 10), Matchers.hasSize(1));
     }
 
     @Test
@@ -222,12 +223,12 @@ public abstract class TransferProcessStoreTestBase {
 
         var res = getTransferProcessStore().find("id1");
 
-        Assertions.assertThat(res).usingRecursiveComparison().isEqualTo(t);
+        assertThat(res).usingRecursiveComparison().isEqualTo(t);
     }
 
     @Test
     void find_notExist() {
-        Assertions.assertThat(getTransferProcessStore().find("not-exist")).isNull();
+        assertThat(getTransferProcessStore().find("not-exist")).isNull();
     }
 
     @Test
@@ -240,40 +241,40 @@ public abstract class TransferProcessStoreTestBase {
 
         getTransferProcessStore().save(t);
 
-        Assertions.assertThat(getTransferProcessStore().processIdForDataRequestId(dr.getId())).isEqualTo("transfer-id1");
+        assertThat(getTransferProcessStore().processIdForDataRequestId(dr.getId())).isEqualTo("transfer-id1");
     }
 
     @Test
     void processIdForTransferId_notExist() {
-        Assertions.assertThat(getTransferProcessStore().processIdForDataRequestId("not-exist")).isNull();
+        assertThat(getTransferProcessStore().processIdForDataRequestId("not-exist")).isNull();
     }
 
     @Test
     void update_shouldPersistDataRequest() {
-        var t1 = TestFunctions.createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
+        var t1 = TestFunctions.createTransferProcess("id1", IN_PROGRESS);
         getTransferProcessStore().save(t1);
 
         t1.getDataRequest().getProperties().put("newKey", "newValue");
         getTransferProcessStore().save(t1);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        Assertions.assertThat(all)
+        assertThat(all)
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(t1);
 
-        Assertions.assertThat(all.get(0).getDataRequest().getProperties()).containsEntry("newKey", "newValue");
+        assertThat(all.get(0).getDataRequest().getProperties()).containsEntry("newKey", "newValue");
     }
 
     @Test
     void update_exists_shouldUpdate() {
-        var t1 = TestFunctions.createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
+        var t1 = TestFunctions.createTransferProcess("id1", IN_PROGRESS);
         getTransferProcessStore().save(t1);
 
         t1.transitionCompleted(); //modify
         getTransferProcessStore().save(t1);
 
-        Assertions.assertThat(getTransferProcessStore().findAll(QuerySpec.none()))
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none()))
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(t1);
@@ -281,13 +282,13 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_notExist_shouldCreate() {
-        var t1 = TestFunctions.createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
+        var t1 = TestFunctions.createTransferProcess("id1", IN_PROGRESS);
 
         t1.transitionCompleted(); //modify
         getTransferProcessStore().save(t1);
 
         var result = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        Assertions.assertThat(result)
+        assertThat(result)
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(t1);
@@ -301,26 +302,24 @@ public abstract class TransferProcessStoreTestBase {
         // acquire lease
         lockEntity(t1.getId(), CONNECTOR_NAME);
 
-        t1.transitionInitial(); //modify
+        t1.transitionProvisioning(ResourceManifest.Builder.newInstance().build()); //modify
         getTransferProcessStore().save(t1);
 
         // lease should be broken
-        Assertions.assertThat(getTransferProcessStore().nextForState(TransferProcessStates.INITIAL.code(), 10)).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
+        assertThat(getTransferProcessStore().nextForState(PROVISIONING.code(), 10)).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
     }
 
     @Test
     void update_leasedByOther_shouldThrowException() {
-
         var tpId = "id1";
         var t1 = TestFunctions.createTransferProcess(tpId);
         getTransferProcessStore().save(t1);
         lockEntity(tpId, "someone");
 
-        t1.transitionInitial(); //modify
+        t1.transitionProvisioning(ResourceManifest.Builder.newInstance().build()); //modify
 
         // leased by someone else -> throw exception
         assertThatThrownBy(() -> getTransferProcessStore().save(t1)).isInstanceOf(IllegalStateException.class);
-
     }
 
     @Test
@@ -329,7 +328,7 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().save(t1);
 
         getTransferProcessStore().delete("id1");
-        Assertions.assertThat(getTransferProcessStore().findAll(QuerySpec.none())).isEmpty();
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).isEmpty();
     }
 
     @Test
@@ -365,7 +364,7 @@ public abstract class TransferProcessStoreTestBase {
                 .peek(getTransferProcessStore()::save)
                 .collect(Collectors.toList());
 
-        Assertions.assertThat(getTransferProcessStore().findAll(QuerySpec.none())).containsExactlyInAnyOrderElementsOf(all);
+        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).containsExactlyInAnyOrderElementsOf(all);
     }
 
     @Test
@@ -375,7 +374,7 @@ public abstract class TransferProcessStoreTestBase {
                 .forEach(getTransferProcessStore()::save);
 
         var qs = QuerySpec.Builder.newInstance().limit(5).offset(3).build();
-        Assertions.assertThat(getTransferProcessStore().findAll(qs)).hasSize(5)
+        assertThat(getTransferProcessStore().findAll(qs)).hasSize(5)
                 .extracting(TransferProcess::getId)
                 .map(Integer::parseInt)
                 .allMatch(id -> id >= 3 && id < 8);
@@ -389,7 +388,7 @@ public abstract class TransferProcessStoreTestBase {
                 .forEach(getTransferProcessStore()::save);
 
         var qs = QuerySpec.Builder.newInstance().limit(20).offset(3).build();
-        Assertions.assertThat(getTransferProcessStore().findAll(qs))
+        assertThat(getTransferProcessStore().findAll(qs))
                 .hasSize(7)
                 .extracting(TransferProcess::getId)
                 .map(Integer::parseInt)
@@ -404,13 +403,13 @@ public abstract class TransferProcessStoreTestBase {
                 .forEach(getTransferProcessStore()::save);
 
         var qs = QuerySpec.Builder.newInstance().limit(10).offset(12).build();
-        Assertions.assertThat(getTransferProcessStore().findAll(qs)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(qs)).isEmpty();
 
     }
 
     @Test
     void update_dataRequestWithNewId_replacesOld() {
-        var bldr = TestFunctions.createTransferProcessBuilder("id1").state(TransferProcessStates.IN_PROGRESS.code());
+        var bldr = TestFunctions.createTransferProcessBuilder("id1").state(IN_PROGRESS.code());
         var t1 = bldr.build();
         getTransferProcessStore().save(t1);
 
@@ -426,14 +425,14 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().save(t2);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        Assertions.assertThat(all)
+        assertThat(all)
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(t2);
 
 
         var drs = all.stream().map(TransferProcess::getDataRequest).collect(Collectors.toList());
-        Assertions.assertThat(drs).hasSize(1)
+        assertThat(drs).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(t2.getDataRequest());
     }
@@ -453,7 +452,7 @@ public abstract class TransferProcessStoreTestBase {
                 .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "value")))
                 .build();
 
-        Assertions.assertThat(getTransferProcessStore().findAll(query))
+        assertThat(getTransferProcessStore().findAll(query))
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(tp);
 
@@ -474,7 +473,7 @@ public abstract class TransferProcessStoreTestBase {
                 .filter(List.of(new Criterion("contentDataAddress.properties.notexist", "=", "value")))
                 .build();
 
-        Assertions.assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
 
     }
 
@@ -493,7 +492,7 @@ public abstract class TransferProcessStoreTestBase {
                 .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "notexist")))
                 .build();
 
-        Assertions.assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
     }
 
     @Test
@@ -511,7 +510,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var result = getTransferProcessStore().findAll(query);
 
-        Assertions.assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
     }
 
     @Test
@@ -529,7 +528,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var result = getTransferProcessStore().findAll(query);
 
-        Assertions.assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
     }
 
     @Test
@@ -549,7 +548,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var result = getTransferProcessStore().findAll(query);
 
-        Assertions.assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
     }
 
     @Test
@@ -565,7 +564,7 @@ public abstract class TransferProcessStoreTestBase {
                 .filter(List.of(new Criterion("dataRequest.id", "=", "notexist")))
                 .build();
 
-        Assertions.assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
     }
 
     @Test
@@ -584,7 +583,7 @@ public abstract class TransferProcessStoreTestBase {
                 .build();
 
         var result = getTransferProcessStore().findAll(query);
-        Assertions.assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
     }
 
     @Test
@@ -602,7 +601,7 @@ public abstract class TransferProcessStoreTestBase {
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("resourceManifest.definitions.id", "=", "someval")))
                 .build();
-        Assertions.assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
     }
 
     @Test
@@ -627,7 +626,7 @@ public abstract class TransferProcessStoreTestBase {
                 .build();
 
         var result = getTransferProcessStore().findAll(query);
-        Assertions.assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
     }
 
     @Test
@@ -653,7 +652,7 @@ public abstract class TransferProcessStoreTestBase {
                 .filter(List.of(new Criterion("provisionedResourceSet.resources.id", "=", "someval")))
                 .build();
 
-        Assertions.assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
     }
 
     @Test
@@ -688,7 +687,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
 
-        Assertions.assertThat(result).hasSize(1)
+        assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(process1);
     }
@@ -728,7 +727,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
 
-        Assertions.assertThat(result).hasSize(1)
+        assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(process1);
     }
@@ -765,7 +764,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
 
-        Assertions.assertThat(result).hasSize(2)
+        assertThat(result).hasSize(2)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactlyInAnyOrder(process1, process2);
     }
@@ -791,7 +790,7 @@ public abstract class TransferProcessStoreTestBase {
                 .filter("deprovisionedResources.foobar=barbaz")
                 .build();
 
-        Assertions.assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
     }
 
     @Test
@@ -819,14 +818,13 @@ public abstract class TransferProcessStoreTestBase {
 
         var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
 
-        Assertions.assertThat(result).isEmpty();
+        assertThat(result).isEmpty();
     }
 
     @Test
     void verifyCreateUpdateDelete() {
-        String id = UUID.randomUUID().toString();
-        TransferProcess transferProcess = createTransferProcess(id, createDataRequestBuilder().id("clientid").build());
-        transferProcess.transitionInitial();
+        var id = UUID.randomUUID().toString();
+        var transferProcess = createTransferProcess(id, createDataRequestBuilder().id("clientid").build());
         getTransferProcessStore().save(transferProcess);
 
         TransferProcess found = getTransferProcessStore().find(id);
@@ -844,7 +842,7 @@ public abstract class TransferProcessStoreTestBase {
 
         found = getTransferProcessStore().find(id);
         assertNotNull(found);
-        assertEquals(TransferProcessStates.PROVISIONING.code(), found.getState());
+        assertEquals(PROVISIONING.code(), found.getState());
 
         getTransferProcessStore().delete(id);
         assertNull(getTransferProcessStore().find(id));
@@ -865,13 +863,13 @@ public abstract class TransferProcessStoreTestBase {
         transferProcess1.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         getTransferProcessStore().save(transferProcess1);
 
-        Assertions.assertThat(getTransferProcessStore().nextForState(INITIAL.code(), 1)).isEmpty();
+        assertThat(getTransferProcessStore().nextForState(INITIAL.code(), 1)).isEmpty();
 
-        var found = getTransferProcessStore().nextForState(TransferProcessStates.PROVISIONING.code(), 1);
-        Assertions.assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess2));
+        var found = getTransferProcessStore().nextForState(PROVISIONING.code(), 1);
+        assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess2));
 
-        found = getTransferProcessStore().nextForState(TransferProcessStates.PROVISIONING.code(), 3);
-        Assertions.assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess1));
+        found = getTransferProcessStore().nextForState(PROVISIONING.code(), 3);
+        assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess1));
     }
 
     @Test
@@ -880,28 +878,26 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().save(initialTransferProcess);
 
         var firstQueryResult = getTransferProcessStore().nextForState(INITIAL.code(), 1);
-        Assertions.assertThat(firstQueryResult).hasSize(1);
+        assertThat(firstQueryResult).hasSize(1);
 
         var secondQueryResult = getTransferProcessStore().nextForState(INITIAL.code(), 1);
-        Assertions.assertThat(secondQueryResult).hasSize(0);
+        assertThat(secondQueryResult).hasSize(0);
 
         var retrieved = firstQueryResult.get(0);
         getTransferProcessStore().save(retrieved);
 
         var thirdQueryResult = getTransferProcessStore().nextForState(INITIAL.code(), 1);
-        Assertions.assertThat(thirdQueryResult).hasSize(1);
+        assertThat(thirdQueryResult).hasSize(1);
     }
 
     @Test
     void verifyMutlipleRequets() {
         String id1 = UUID.randomUUID().toString();
         TransferProcess transferProcess1 = createTransferProcess(id1, createDataRequestBuilder().id("clientid1").build());
-        transferProcess1.transitionInitial();
         getTransferProcessStore().save(transferProcess1);
 
         String id2 = UUID.randomUUID().toString();
         TransferProcess transferProcess2 = createTransferProcess(id2, createDataRequestBuilder().id("clientid2").build());
-        transferProcess2.transitionInitial();
         getTransferProcessStore().save(transferProcess2);
 
 
@@ -918,22 +914,19 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void verifyOrderingByTimestamp() {
         for (int i = 0; i < 100; i++) {
-            TransferProcess process = createTransferProcess("test-process-" + i);
-            process.transitionInitial();
+            var process = createTransferProcess("test-process-" + i);
             getTransferProcessStore().save(process);
         }
 
-        List<TransferProcess> processes = getTransferProcessStore().nextForState(INITIAL.code(), 50);
+        var processes = getTransferProcessStore().nextForState(INITIAL.code(), 50);
 
-        assertThat(processes).hasSize(50);
-        assertThat(processes).allMatch(p -> p.getStateTimestamp() > 0);
+        assertThat(processes).hasSize(50).allMatch(p -> p.getStateTimestamp() > 0);
     }
 
     @Test
     void verifyNextForState_avoidsStarvation() throws InterruptedException {
         for (int i = 0; i < 10; i++) {
-            TransferProcess process = createTransferProcess("test-process-" + i);
-            process.transitionInitial();
+            var process = createTransferProcess("test-process-" + i);
             getTransferProcessStore().save(process);
         }
 
@@ -944,13 +937,13 @@ public abstract class TransferProcessStoreTestBase {
             getTransferProcessStore().save(tp);
         });
         var list2 = getTransferProcessStore().nextForState(INITIAL.code(), 5);
-        Assertions.assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
+        assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
     @Test
     void findAll_verifyFiltering() {
         IntStream.range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
-        Assertions.assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(TransferProcess::getId).containsOnly("test-neg-3");
+        assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(TransferProcess::getId).containsOnly("test-neg-3");
     }
 
     @Test
@@ -964,8 +957,8 @@ public abstract class TransferProcessStoreTestBase {
     void findAll_verifySorting() {
         IntStream.range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
 
-        Assertions.assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
-        Assertions.assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
+        assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     @Test
@@ -975,7 +968,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
-        Assertions.assertThat(getTransferProcessStore().findAll(query).collect(Collectors.toList())).isEmpty();
+        assertThat(getTransferProcessStore().findAll(query).collect(Collectors.toList())).isEmpty();
     }
 
     protected abstract boolean supportsCollectionQuery();

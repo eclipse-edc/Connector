@@ -267,9 +267,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .properties(dataRequest.getProperties())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
-        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
-            process.transitionInitial();
-        }
+
         observable.invokeForEach(l -> l.preCreated(process));
         transferProcessStore.save(process);
         observable.invokeForEach(l -> l.initiated(process));

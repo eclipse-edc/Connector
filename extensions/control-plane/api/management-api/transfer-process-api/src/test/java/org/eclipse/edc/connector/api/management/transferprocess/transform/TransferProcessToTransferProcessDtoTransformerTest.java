@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.UNSAVED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -80,7 +80,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
     @Test
     void transform_whenMinimalData() {
         when(data.context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
-        data.dto.state(UNSAVED.name());
+        data.dto.state(INITIAL.name());
 
         data.dataDestination = DataAddress.Builder.newInstance().type(data.dataDestinationType);
         data.dataRequest = DataRequest.Builder.newInstance()

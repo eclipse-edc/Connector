@@ -86,7 +86,6 @@ class TransferProcessTest {
 
         // test illegal transition
         assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
-        process.transitionInitial();
 
         // test illegal transition
         assertThrows(IllegalStateException.class, process::transitionProvisioned);
@@ -111,8 +110,6 @@ class TransferProcessTest {
     @Test
     void verifyProviderTransitions() {
         var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
-
-        process.transitionInitial();
 
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         process.transitionProvisioned();

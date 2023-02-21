@@ -55,7 +55,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STREAMING;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.UNSAVED;
 
 /**
  * Represents a data transfer process.
@@ -139,10 +138,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public void setContentDataAddress(DataAddress dataAddress) {
         contentDataAddress = dataAddress;
-    }
-
-    public void transitionInitial() {
-        transition(INITIAL, UNSAVED);
     }
 
     public void transitionProvisioning(ResourceManifest manifest) {

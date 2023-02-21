@@ -38,6 +38,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
+import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -55,9 +56,9 @@ import java.util.stream.IntStream;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.comparable;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.UNSAVED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -105,30 +106,31 @@ class TransferProcessManagerImplIntegrationTest {
 
     @Test
     @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
-    void verifyProvision_shouldNotStarve() throws InterruptedException {
+    void verifyProvision_shouldNotStarve() {
         var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
-        when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> {
-            return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any", "1")).build()));
-        });
+        when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> completedFuture(List.of(
+                ProvisionResponse.Builder.newInstance()
+                        .resource(new TestProvisionedDataDestinationResource("any", "1"))
+                        .build()
+        )));
 
         var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         var processes = IntStream.range(0, numProcesses)
                 .mapToObj(i -> provisionedResourceSet())
-                .map(resourceSet -> createUnsavedTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
-                .peek(TransferProcess::transitionInitial)
+                .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
                 .peek(store::save)
                 .collect(Collectors.toList());
 
         transferProcessManager.start();
-
 
         await().untilAsserted(() -> {
             assertThat(processes).describedAs("All transfer processes state should be greater than INITIAL")
                     .allSatisfy(process -> {
                         var id = process.getId();
                         var storedProcess = store.find(id);
-                        assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
-                        assertThat(storedProcess.getState()).isGreaterThan(INITIAL.code());
+                        assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore")
+                                .isNotNull().extracting(StatefulEntity::getState).asInstanceOf(comparable(Integer.class))
+                                .isGreaterThan(INITIAL.code());
                     });
             verify(provisionManager, times(numProcesses)).provision(any(), any());
         });
@@ -141,7 +143,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .build();
     }
 
-    private TransferProcess.Builder createUnsavedTransferProcess() {
+    private TransferProcess.Builder createInitialTransferProcess() {
         String processId = UUID.randomUUID().toString();
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(processId)
@@ -155,7 +157,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(TransferProcess.Type.CONSUMER)
                 .id("test-process-" + processId)
-                .state(UNSAVED.code())
+                .state(INITIAL.code())
                 .dataRequest(dataRequest);
     }
 }

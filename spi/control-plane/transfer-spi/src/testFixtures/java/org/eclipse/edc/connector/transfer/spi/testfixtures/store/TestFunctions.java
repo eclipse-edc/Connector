@@ -76,7 +76,7 @@ public class TestFunctions {
 
     public static TransferProcess createTransferProcess(String processId) {
         return createTransferProcessBuilder(processId)
-                .state(TransferProcessStates.UNSAVED.code())
+                .state(TransferProcessStates.INITIAL.code())
                 .build();
     }
 
@@ -84,7 +84,7 @@ public class TestFunctions {
         return TransferProcess.Builder.newInstance()
                 .id(processId)
                 .createdAt(Clock.systemUTC().millis())
-                .state(TransferProcessStates.UNSAVED.code())
+                .state(TransferProcessStates.INITIAL.code())
                 .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(createDataRequest())
                 .contentDataAddress(createDataAddressBuilder("any").build())
@@ -103,9 +103,7 @@ public class TestFunctions {
 
     @NotNull
     public static TransferProcess initialTransferProcess(String processId, String dataRequestId) {
-        var process = createTransferProcess(processId, createDataRequestBuilder().id(dataRequestId).build());
-        process.transitionInitial();
-        return process;
+        return createTransferProcess(processId, createDataRequestBuilder().id(dataRequestId).build());
     }
 
     @JsonTypeName("dataspaceconnector:testresourcedef")
