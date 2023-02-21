@@ -29,7 +29,7 @@ public class TestFunctions {
     public static TransferProcess createTransferProcess(String id, Map<String, String> properties) {
         return TransferProcess.Builder.newInstance()
                 .id(id)
-                .state(TransferProcessStates.IN_PROGRESS.code())
+                .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.CONSUMER)
                 .contentDataAddress(HttpDataAddress.Builder.newInstance()
                         .baseUrl("http://localhost:8080/test")

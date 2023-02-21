@@ -74,11 +74,11 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -144,7 +144,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processTransfersInState(REQUESTED, this::processRequested))
-                .processor(processTransfersInState(IN_PROGRESS, this::processInProgress))
+                .processor(processTransfersInState(STARTED, this::processStarted))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning))
                 .processor(processTransfersInState(DEPROVISIONED, this::processDeprovisioned))
                 .processor(onCommands(this::processCommand))
@@ -263,7 +263,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .id(id)
                 .dataRequest(dataRequest)
                 .type(type)
-                .createdAt(clock.millis())
+                .clock(clock)
                 .properties(dataRequest.getProperties())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
@@ -380,8 +380,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process REQUESTED transfer<p> If is managed or there are provisioned resources set IN_PROGRESS or STREAMING, do
-     * nothing otherwise
+     * Process REQUESTED transfer<p> If is managed or there are provisioned resources set {@link TransferProcess#transitionStarted()},
+     * do nothing otherwise
      *
      * @param process the REQUESTED transfer fetched
      * @return if the transfer has been processed or not
@@ -389,8 +389,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processRequested(TransferProcess process) {
         if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-            process.transitionInProgressOrStreaming();
-            updateTransferProcess(process, l -> l.preInProgress(process));
+            process.transitionStarted();
+            updateTransferProcess(process, l -> l.preStarted(process));
             return true;
         } else {
             monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED);
@@ -399,14 +399,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process IN PROGRESS transfer<p> if is completed or there's no checker and it's not managed, set to COMPLETE,
+     * Process STARTED transfer<p> if is completed or there's no checker and it's not managed, set to COMPLETE,
      * nothing otherwise.
      *
-     * @param process the IN PROGRESS transfer fetched
+     * @param process the STARTED transfer fetched
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processInProgress(TransferProcess process) {
+    private boolean processStarted(TransferProcess process) {
         if (process.getType() != CONSUMER) {
             return false;
         }
@@ -427,8 +427,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 transitionToCompleted(process);
                 return true;
             } else {
-                // Process is not finished yet, so it stays in the IN_PROGRESS state
-                monitor.debug(format("Transfer process %s not COMPLETED yet. The process will not advance to the COMPLETED state.", process.getId()));
+                monitor.debug(format("Transfer process %s not COMPLETED yet. The process will stay in STARTED.", process.getId()));
                 breakLease(process);
                 return false;
             }
@@ -647,8 +646,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
 
         if (response.succeeded()) {
-            process.transitionInProgressOrStreaming();
-            updateTransferProcess(process, l -> l.preInProgress(process));
+            process.transitionStarted();
+            updateTransferProcess(process, l -> l.preStarted(process));
         } else {
             if (response.fatalError()) {
                 var message = format("TransferProcessManager: Fatal error initiating data transfer: %s. Error details: %s", process.getId(), response.getFailureDetail());

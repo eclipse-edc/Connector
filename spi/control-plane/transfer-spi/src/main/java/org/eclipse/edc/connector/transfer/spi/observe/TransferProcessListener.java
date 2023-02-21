@@ -74,11 +74,23 @@ public interface TransferProcessListener {
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#IN_PROGRESS IN_PROGRESS}, but before the change is persisted.
+     * {@link TransferProcessStates#STARTED STARTED}, but before the change is persisted.
+     *
+     * @param process the transfer process whose state has changed.
+     * @deprecated please use preStarted instead
+     */
+    @Deprecated(since = "milestone9")
+    default void preInProgress(TransferProcess process) {
+        preStarted(process);
+    }
+
+    /**
+     * Called after a {@link TransferProcess} has moved to state
+     * {@link TransferProcessStates#STARTED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void preInProgress(TransferProcess process) {
+    default void preStarted(TransferProcess process) {
     }
 
     /**

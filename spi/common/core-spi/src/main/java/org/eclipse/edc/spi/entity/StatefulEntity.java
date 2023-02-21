@@ -110,7 +110,6 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
             super(entity);
         }
 
-
         public B state(int value) {
             entity.state = value;
             return self();
@@ -135,7 +134,6 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
             entity.traceContext = traceContext;
             return self();
         }
-
 
         protected T build() {
             super.build();

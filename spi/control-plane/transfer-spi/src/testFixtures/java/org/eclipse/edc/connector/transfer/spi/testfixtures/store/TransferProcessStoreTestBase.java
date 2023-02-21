@@ -47,8 +47,8 @@ import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunc
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createTransferProcessBuilder;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.initialTransferProcess;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -89,7 +89,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState() {
-        var state = IN_PROGRESS;
+        var state = STARTED;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::save)
@@ -104,7 +104,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_shouldOnlyReturnFreeItems() {
-        var state = IN_PROGRESS;
+        var state = STARTED;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::save)
@@ -122,7 +122,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_noFreeItem_shouldReturnEmpty() {
-        var state = IN_PROGRESS;
+        var state = STARTED;
         IntStream.range(0, 3)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::save);
@@ -135,7 +135,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_noneInDesiredState() {
-        var state = IN_PROGRESS;
+        var state = STARTED;
         IntStream.range(0, 3)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::save);
@@ -145,7 +145,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_batchSizeLimits() {
-        var state = IN_PROGRESS;
+        var state = STARTED;
         IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::save);
@@ -156,7 +156,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_verifyTemporalOrdering() {
-        var state = IN_PROGRESS;
+        var state = STARTED;
         IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess(String.valueOf(i), state))
                 .peek(t -> {
@@ -177,7 +177,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextForState_verifyMostRecentlyUpdatedIsLast() throws InterruptedException {
-        var state = IN_PROGRESS;
+        var state = STARTED;
         var all = IntStream.range(0, 10)
                 .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::save)
@@ -189,7 +189,7 @@ public abstract class TransferProcessStoreTestBase {
         fourth.updateStateTimestamp();
         getTransferProcessStore().save(fourth);
 
-        var next = getTransferProcessStore().nextForState(IN_PROGRESS.code(), 20);
+        var next = getTransferProcessStore().nextForState(STARTED.code(), 20);
         assertThat(next.indexOf(fourth)).isEqualTo(9);
     }
 
@@ -251,7 +251,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_shouldPersistDataRequest() {
-        var t1 = TestFunctions.createTransferProcess("id1", IN_PROGRESS);
+        var t1 = TestFunctions.createTransferProcess("id1", STARTED);
         getTransferProcessStore().save(t1);
 
         t1.getDataRequest().getProperties().put("newKey", "newValue");
@@ -268,7 +268,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_exists_shouldUpdate() {
-        var t1 = TestFunctions.createTransferProcess("id1", IN_PROGRESS);
+        var t1 = TestFunctions.createTransferProcess("id1", STARTED);
         getTransferProcessStore().save(t1);
 
         t1.transitionCompleted(); //modify
@@ -282,7 +282,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_notExist_shouldCreate() {
-        var t1 = TestFunctions.createTransferProcess("id1", IN_PROGRESS);
+        var t1 = TestFunctions.createTransferProcess("id1", STARTED);
 
         t1.transitionCompleted(); //modify
         getTransferProcessStore().save(t1);
@@ -409,7 +409,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_dataRequestWithNewId_replacesOld() {
-        var bldr = TestFunctions.createTransferProcessBuilder("id1").state(IN_PROGRESS.code());
+        var bldr = TestFunctions.createTransferProcessBuilder("id1").state(STARTED.code());
         var t1 = bldr.build();
         getTransferProcessStore().save(t1);
 

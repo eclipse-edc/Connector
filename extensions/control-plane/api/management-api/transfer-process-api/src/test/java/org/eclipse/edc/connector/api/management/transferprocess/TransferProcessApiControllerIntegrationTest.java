@@ -38,7 +38,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.IN_PROGRESS;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.emptyString;
@@ -176,7 +176,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void cancel(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, IN_PROGRESS.code()));
+        store.save(createTransferProcess(PROCESS_ID, STARTED.code()));
 
         baseRequest()
                 .contentType(JSON)

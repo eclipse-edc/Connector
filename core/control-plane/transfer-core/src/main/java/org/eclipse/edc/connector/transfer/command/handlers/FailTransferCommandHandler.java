@@ -21,6 +21,8 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+
 /**
  * Fails a transfer process and sends it to the {@link TransferProcessStates#ERROR} state.
  */
@@ -40,7 +42,7 @@ public class FailTransferCommandHandler extends SingleTransferProcessCommandHand
 
     @Override
     protected boolean modify(TransferProcess process, FailTransferCommand command) {
-        if (process.getState() == TransferProcessStates.IN_PROGRESS.code()) {
+        if (process.getState() == STARTED.code()) {
             process.transitionError(command.getErrorMessage());
             return true;
         }

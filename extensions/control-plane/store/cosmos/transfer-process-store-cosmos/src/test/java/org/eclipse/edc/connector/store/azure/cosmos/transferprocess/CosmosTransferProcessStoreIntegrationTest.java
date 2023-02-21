@@ -62,7 +62,7 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.store.azure.cosmos.transferprocess.TestHelper.createTransferProcess;
 import static org.eclipse.edc.connector.store.azure.cosmos.transferprocess.TestHelper.createTransferProcessDocument;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.IN_PROGRESS;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 
 @AzureCosmosDbIntegrationTest
 class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTestBase {
@@ -266,7 +266,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         store.save(tp2);
         store.save(tp3);
 
-        List<TransferProcess> processes = store.nextForState(IN_PROGRESS.code(), 5);
+        List<TransferProcess> processes = store.nextForState(STARTED.code(), 5);
 
         assertThat(processes).isEmpty();
     }
@@ -285,11 +285,11 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     @Test
     @DisplayName("Verifies that calling nextForState locks the TP for any subsequent calls")
     void nextForState_locksEntity() {
-        var tp = createTransferProcess("test-id", IN_PROGRESS);
+        var tp = createTransferProcess("test-id", STARTED);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
         container.upsertItem(doc);
-        var result = store.nextForState(IN_PROGRESS.code(), 5);
+        var result = store.nextForState(STARTED.code(), 5);
         assertThat(result).hasSize(1).containsExactly(tp);
 
         //make sure the lease is acquired
@@ -301,7 +301,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         assertThat(leasedDoc.getLease().getLeasedAt()).isGreaterThan(0);
 
         //make sure a subsequent call does not return the TP
-        assertThat(store.nextForState(IN_PROGRESS.code(), 5)).isEmpty();
+        assertThat(store.nextForState(STARTED.code(), 5)).isEmpty();
 
         //make sure that findById still returns the entity
         assertThat(store.find(tp.getId())).isEqualTo(tp);
@@ -310,13 +310,13 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     @Test
     @DisplayName("Verify that the lease on a TP is cleared by an update")
     void nextForState_verifyUpdateClearsLease() {
-        var tp = createTransferProcess("test-id", IN_PROGRESS);
+        var tp = createTransferProcess("test-id", STARTED);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
         var initialTimestamp = tp.getStateTimestamp();
 
         container.upsertItem(doc);
-        var result = store.nextForState(IN_PROGRESS.code(), 5);
+        var result = store.nextForState(STARTED.code(), 5);
         assertThat(result).hasSize(1);
 
         //make sure the lease is acquired
@@ -337,11 +337,11 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     @Test
     @DisplayName("Verify that a leased entity can not be deleted")
     void nextForState_verifyDelete() {
-        var tp = createTransferProcess("test-id", IN_PROGRESS);
+        var tp = createTransferProcess("test-id", STARTED);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
         container.upsertItem(doc);
-        var result = store.nextForState(IN_PROGRESS.code(), 5);
+        var result = store.nextForState(STARTED.code(), 5);
         assertThat(result).hasSize(1);
 
         //make sure the lease is acquired

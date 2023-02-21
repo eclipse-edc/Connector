@@ -99,7 +99,7 @@ class TransferProcessTest {
         // test illegal transition
         assertThrows(IllegalStateException.class, process::transitionEnded);
 
-        process.transitionInProgress();
+        process.transitionStarted();
         process.transitionCompleted();
 
         process.transitionDeprovisioning();
@@ -115,7 +115,7 @@ class TransferProcessTest {
         process.transitionProvisioned();
 
         // no request or ack on provider
-        process.transitionInProgress();
+        process.transitionStarted();
         process.transitionCompleted();
 
         process.transitionDeprovisioning();

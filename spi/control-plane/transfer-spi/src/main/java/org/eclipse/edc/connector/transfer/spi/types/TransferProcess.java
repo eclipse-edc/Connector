@@ -48,12 +48,12 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STREAMING;
 
 /**
@@ -72,7 +72,8 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#PROVISIONED} -&gt;
  * {@link TransferProcessStates#REQUESTING} -&gt;
  * {@link TransferProcessStates#REQUESTED} -&gt;
- * {@link TransferProcessStates#IN_PROGRESS} | {@link TransferProcessStates#STREAMING} -&gt;
+ * {@link TransferProcessStates#STARTED} -&gt;
+ * {@link TransferProcessStates#STREAMING} -&gt;
  * {@link TransferProcessStates#COMPLETED} -&gt;
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
@@ -87,7 +88,8 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  * {@link TransferProcessStates#INITIAL} -&gt;
  * {@link TransferProcessStates#PROVISIONING} -&gt;
  * {@link TransferProcessStates#PROVISIONED} -&gt;
- * {@link TransferProcessStates#IN_PROGRESS} | {@link TransferProcessStates#STREAMING} -&gt;
+ * {@link TransferProcessStates#STARTED} -&gt;
+ * {@link TransferProcessStates#STREAMING} -&gt;
  * {@link TransferProcessStates#COMPLETED} -&gt;
  * {@link TransferProcessStates#DEPROVISIONING} -&gt;
  * {@link TransferProcessStates#DEPROVISIONED} -&gt;
@@ -107,7 +109,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private ProvisionedResourceSet provisionedResourceSet;
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, String> properties = new HashMap<>();
-
 
     private TransferProcess() {
     }
@@ -238,38 +239,21 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     }
 
-    public void transitionInProgressOrStreaming() {
+    public void transitionStarted() {
         var dataRequest = getDataRequest();
-        if (dataRequest.getTransferType().isFinite()) {
-            transitionInProgress();
-        } else {
-            transitionStreaming();
-        }
-    }
-
-    public void transitionInProgress() {
+        var status = dataRequest.getTransferType().isFinite() ? STARTED : STREAMING;
         if (type == Type.CONSUMER) {
-            // the consumer must first transition to the request/ack states before in progress
-            transition(IN_PROGRESS, REQUESTED, IN_PROGRESS);
+            // the consumer must first transition to the request/ack states before start
+            transition(status, REQUESTED, status);
         } else {
             // the provider transitions from provisioned to in progress directly
-            transition(IN_PROGRESS, REQUESTED, PROVISIONED, IN_PROGRESS);
-        }
-    }
-
-    public void transitionStreaming() {
-        if (type == Type.CONSUMER) {
-            // the consumer must first transition to the request/ack states before in progress
-            transition(STREAMING, REQUESTED, STREAMING);
-        } else {
-            // the provider transitions from provisioned to in progress directly
-            transition(STREAMING, PROVISIONED, STREAMING);
+            transition(status, REQUESTED, PROVISIONED, status);
         }
     }
 
     public void transitionCompleted() {
         // consumers are in REQUESTED state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
-        transition(COMPLETED, COMPLETED, IN_PROGRESS, REQUESTED, STREAMING);
+        transition(COMPLETED, COMPLETED, STARTED, REQUESTED, STREAMING);
     }
 
     public void transitionDeprovisioning() {
@@ -428,6 +412,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
             if (entity.dataRequest != null) {
                 entity.dataRequest.associateWithProcessId(entity.id);
+            }
+
+            if (entity.state == 0) {
+                entity.transitionTo(INITIAL.code());
             }
             return super.build();
         }

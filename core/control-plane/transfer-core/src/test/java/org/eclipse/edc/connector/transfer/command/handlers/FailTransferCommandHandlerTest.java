@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,7 +53,7 @@ class FailTransferCommandHandlerTest {
     @Test
     void handle() {
         var cmd = new FailTransferCommand("test-id", "error");
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code())
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(STARTED.code())
                 .updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
