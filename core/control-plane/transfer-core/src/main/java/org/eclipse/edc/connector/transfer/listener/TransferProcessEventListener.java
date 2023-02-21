@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioningRequested;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
+import org.eclipse.edc.spi.event.transferprocess.TransferProcessStarted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 
 import java.time.Clock;
@@ -74,6 +75,16 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void requested(TransferProcess process) {
         var event = TransferProcessRequested.Builder.newInstance()
+                .transferProcessId(process.getId())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void started(TransferProcess process) {
+        var event = TransferProcessStarted.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .at(clock.millis())
                 .build();

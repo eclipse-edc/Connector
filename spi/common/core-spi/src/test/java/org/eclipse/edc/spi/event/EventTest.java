@@ -86,7 +86,7 @@ class EventTest {
                     PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id"),
                     TransferProcessCompleted.Builder.newInstance().transferProcessId("id"),
                     TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id"),
-                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id").reason("any reason"),
                     TransferProcessFailed.Builder.newInstance().transferProcessId("id"),
                     TransferProcessInitiated.Builder.newInstance().transferProcessId("id"),
                     TransferProcessProvisioned.Builder.newInstance().transferProcessId("id"),

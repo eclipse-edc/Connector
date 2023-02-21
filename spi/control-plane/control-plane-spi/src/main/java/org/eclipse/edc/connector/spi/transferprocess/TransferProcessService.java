@@ -59,16 +59,40 @@ public interface TransferProcessService {
     String getState(String transferProcessId);
 
     /**
+     * Notifies the TransferProcess that it has been STARTED by the counter part.
+     * Only callable on CONSUMER TransferProcess
+     *
+     * @param dataRequestId the dataRequestId
+     * @return a succeeded result if the operation was successful, a failed one otherwise
+     */
+    ServiceResult<TransferProcess> started(String dataRequestId);
+
+    /**
      * Asynchronously requests cancellation of the transfer process.
      * <p>
      * The return result status only reflects the successful submission of the command.
      *
      * @param transferProcessId id of the transferProcess
      * @return a result that is successful if the transfer process was found and is in a state that can be canceled
+     * @deprecated use {@link #terminate} instead
+     */
+    @Deprecated(since = "milestone9")
+    @NotNull
+    default ServiceResult<TransferProcess> cancel(String transferProcessId) {
+        return terminate(transferProcessId, "transfer cancelled");
+    }
+
+    /**
+     * Asynchronously requests termination of the transfer process.
+     * <p>
+     * The return result status only reflects the successful submission of the command.
+     *
+     * @param transferProcessId id of the transferProcess
+     * @param reason reason for the termination
+     * @return a result that is successful if the transfer process was found and is in a state that can be terminated
      */
     @NotNull
-    ServiceResult<TransferProcess> cancel(String transferProcessId);
-
+    ServiceResult<TransferProcess> terminate(String transferProcessId, String reason);
 
     /**
      * Asynchronously requests completion of the transfer process.

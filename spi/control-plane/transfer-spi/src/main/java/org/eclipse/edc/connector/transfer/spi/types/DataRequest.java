@@ -224,10 +224,5 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        private Builder dataAddress(DataAddress dataAddress) {
-            request.dataDestination = dataAddress;
-            return this;
-        }
-
     }
 }

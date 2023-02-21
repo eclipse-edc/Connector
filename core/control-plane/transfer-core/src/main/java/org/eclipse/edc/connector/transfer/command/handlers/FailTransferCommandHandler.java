@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.transfer.command.handlers;
 
-import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
@@ -28,11 +27,8 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
  */
 public class FailTransferCommandHandler extends SingleTransferProcessCommandHandler<FailTransferCommand> {
 
-    private final TransferProcessObservable observable;
-
-    public FailTransferCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
+    public FailTransferCommandHandler(TransferProcessStore store) {
         super(store);
-        this.observable = observable;
     }
 
     @Override
@@ -43,7 +39,7 @@ public class FailTransferCommandHandler extends SingleTransferProcessCommandHand
     @Override
     protected boolean modify(TransferProcess process, FailTransferCommand command) {
         if (process.getState() == STARTED.code()) {
-            process.transitionTerminated(command.getErrorMessage());
+            process.transitionTerminating(command.getErrorMessage());
             return true;
         }
         return false;
@@ -52,6 +48,5 @@ public class FailTransferCommandHandler extends SingleTransferProcessCommandHand
 
     @Override
     protected void postAction(TransferProcess process) {
-        observable.invokeForEach(l -> l.terminated(process));
     }
 }

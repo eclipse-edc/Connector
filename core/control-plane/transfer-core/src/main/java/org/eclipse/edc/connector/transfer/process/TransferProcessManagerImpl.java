@@ -42,6 +42,7 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
@@ -58,6 +59,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -70,6 +72,7 @@ import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_B
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
@@ -77,7 +80,9 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -127,15 +132,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private TransferProcessManagerImpl() {
     }
 
-    @NotNull
-    private static Result<Void> toFatalError(StatusResult<?> result) {
-        if (result.fatalError()) {
-            return Result.failure(result.getFailureMessages());
-        } else {
-            return Result.success();
-        }
-    }
-
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
@@ -143,7 +139,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processTransfersInState(REQUESTED, this::processRequested))
+                .processor(processTransfersInState(STARTING, this::processStarting))
                 .processor(processTransfersInState(STARTED, this::processStarted))
+                .processor(processTransfersInState(COMPLETING, this::processCompleting))
+                .processor(processTransfersInState(TERMINATING, this::processTerminating))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning))
                 .processor(onCommands(this::processCommand))
                 .build();
@@ -178,6 +177,19 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @Override
     public void enqueueCommand(TransferProcessCommand command) {
         commandQueue.enqueue(command);
+    }
+
+    @Override
+    public StatusResult<Void> started(String processId) {
+        return Optional.of(processId)
+                .map(transferProcessStore::find)
+                .map(process -> {
+                    process.transitionStarted();
+                    updateTransferProcess(process, l -> {});
+                    observable.invokeForEach(l -> l.started(process));
+                    return StatusResult.success();
+                })
+                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, format("TransferProcess with id %s cannot be found", processId)));
     }
 
     @Override
@@ -231,7 +243,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var validationResult = responses.stream()
                 .filter(AbstractResult::failed)
-                .map(TransferProcessManagerImpl::toFatalError)
+                .map(this::toFatalError)
                 .filter(AbstractResult::failed)
                 .reduce(Result::merge)
                 .orElse(Result.success());
@@ -292,7 +304,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             if (manifestResult.failed()) {
                 monitor.severe(format("Transitioning transfer process %s to TERMINATED state. Resource manifest cannot be modified to fulfil policy: %s",
                         process.getId(), manifestResult.getFailureMessages()));
-                process.transitionTerminated(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
+                process.transitionTerminating(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
                 updateTransferProcess(process, l -> l.preError(process));
                 return true;
             }
@@ -344,7 +356,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process PROVISIONED transfer<p> If CONSUMER, set it to REQUESTING, if PROVIDER initiate data transfer
+     * Process PROVISIONED transfer<p> If CONSUMER, set it to REQUESTING, if PROVIDER set to STARTING
      *
      * @param process the PROVISIONED transfer fetched
      * @return if the transfer has been processed or not
@@ -355,7 +367,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             process.transitionRequesting();
             updateTransferProcess(process, l -> l.preRequesting(process));
         } else {
-            return processProviderRequest(process);
+            process.transitionStarting();
+            updateTransferProcess(process, l -> {});
         }
         return true;
     }
@@ -378,20 +391,41 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process REQUESTED transfer<p> If is managed or there are provisioned resources set {@link TransferProcess#transitionStarted()},
+     * Process REQUESTED transfer<p> If is managed or there are provisioned resources set {@link TransferProcess#transitionStarting()},
      * do nothing otherwise
      *
      * @param process the REQUESTED transfer fetched
      * @return if the transfer has been processed or not
+     * @deprecated this method and the related processor could be removed when Dataspace Protocol takes over
      */
     @WithSpan
+    @Deprecated(since = "milestone9")
     private boolean processRequested(TransferProcess process) {
-        if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-            process.transitionStarted();
-            updateTransferProcess(process, l -> l.preStarted(process));
+        var dataRequest = process.getDataRequest();
+        if (!"ids-multipart".equals(dataRequest.getProtocol())) {
+            return false;
+        }
+        if (!dataRequest.isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
+            transitToStarted(process);
             return true;
         } else {
             monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED);
+            return false;
+        }
+    }
+
+    /**
+     * Process STARTING transfer<p> If PROVIDER, starts data transfer and send message to consumer, should never be CONSUMER
+     *
+     * @param process the STARTING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processStarting(TransferProcess process) {
+        if (PROVIDER == process.getType()) {
+            return startDataTransfer(process);
+        } else {
+            // should never happen: a consumer transfer cannot be STARTING
             return false;
         }
     }
@@ -416,13 +450,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 return false;
             } else {
                 //no checker, transition the process to the COMPLETED state automatically
-                transitionToCompleted(process);
+                transitionToCompleting(process);
             }
             return true;
         } else {
             List<ProvisionedResource> resources = process.getDataRequest().isManagedResources() ? process.getProvisionedResourceSet().getResources() : emptyList();
             if (checker.isComplete(process, resources)) {
-                transitionToCompleted(process);
+                transitionToCompleting(process);
                 return true;
             } else {
                 monitor.debug(format("Transfer process %s not COMPLETED yet. The process will stay in STARTED.", process.getId()));
@@ -430,6 +464,37 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 return false;
             }
         }
+    }
+
+    /**
+     * Process COMPLETING transfer<p> Send COMPLETED message to counter-part
+     *
+     * @param process the COMPLETING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processCompleting(TransferProcess process) {
+        // TODO: must send COMPLETED message to counter-part before status update
+        process.transitionCompleted();
+        updateTransferProcess(process, l -> l.preCompleted(process));
+        observable.invokeForEach(l -> l.completed(process));
+        return true;
+    }
+
+    /**
+     * Process TERMINATING transfer<p> Send TERMINATED message to counter-part
+     *
+     * @param process the TERMINATING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processTerminating(TransferProcess process) {
+        // TODO: must send TERMINATED message to counter-part before status update
+        // TODO: unless it is CONSUMER and not REQUESTED yet (because provider won't already know about the TP)
+        process.transitionTerminated();
+        updateTransferProcess(process, l -> l.preTerminated(process));
+        observable.invokeForEach(l -> l.terminated(process));
+        return true;
     }
 
     /**
@@ -577,10 +642,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @WithSpan
-    private void transitionToCompleted(TransferProcess process) {
-        process.transitionCompleted();
-        updateTransferProcess(process, l -> l.preCompleted(process));
-        observable.invokeForEach(l -> l.completed(process));
+    private void transitionToCompleting(TransferProcess process) {
+        process.transitionCompleting();
+        updateTransferProcess(process, l -> { });
     }
 
     private void transitionToError(String id, Throwable throwable, String message) {
@@ -595,9 +659,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void transitionToError(TransferProcess process, String message, Throwable... errors) {
         monitor.severe(message, errors);
-        process.transitionTerminated(message);
-        updateTransferProcess(process, l -> l.preTerminated(process));
-        observable.invokeForEach(l -> l.terminated(process));
+        process.transitionTerminating(message);
+        updateTransferProcess(process, l -> { });
     }
 
     private void transitionToDeprovisioningError(String processId, Throwable throwable) {
@@ -617,28 +680,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
 
-    private boolean processProviderRequest(TransferProcess process) {
+    private boolean startDataTransfer(TransferProcess process) {
         if (sendRetryManager.shouldDelay(process)) {
             breakLease(process);
             return false;
         }
 
-        initiateDataTransfer(process);
-        return true;
-    }
-
-    private boolean processConsumerRequest(TransferProcess process, DataRequest dataRequest) {
-
-        if (sendRetryManager.shouldDelay(process)) {
-            breakLease(process);
-            return false;
-        }
-
-        sendConsumerRequest(process, dataRequest);
-        return true;
-    }
-
-    private void initiateDataTransfer(TransferProcess process) {
         var dataRequest = process.getDataRequest();
         var contentAddress = process.getContentDataAddress();
 
@@ -647,8 +694,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
 
         if (response.succeeded()) {
-            process.transitionStarted();
-            updateTransferProcess(process, l -> l.preStarted(process));
+            transitToStarted(process);
         } else {
             if (response.fatalError()) {
                 var message = format("TransferProcessManager: Fatal error initiating data transfer: %s. Error details: %s", process.getId(), response.getFailureDetail());
@@ -665,10 +711,21 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                         process.getId(),
                         TransferProcessStates.from(process.getState()),
                         response.getFailureDetail()));
-                process.transitionProvisioned();
-                updateTransferProcess(process, l -> l.preProvisioned(process));
+                process.transitionStarting();
+                updateTransferProcess(process, l -> {});
             }
         }
+        return true;
+    }
+
+    private boolean processConsumerRequest(TransferProcess process, DataRequest dataRequest) {
+        if (sendRetryManager.shouldDelay(process)) {
+            breakLease(process);
+            return false;
+        }
+
+        sendConsumerRequest(process, dataRequest);
+        return true;
     }
 
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
@@ -687,6 +744,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         transferProcess.transitionRequested();
         updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
         observable.invokeForEach(l -> l.requested(transferProcess));
+    }
+
+    private void transitToStarted(TransferProcess process) {
+        process.transitionStarted();
+        updateTransferProcess(process, l -> l.preStarted(process));
+        observable.invokeForEach(l -> l.started(process));
     }
 
     private void sendCustomerRequestFailure(TransferProcess transferProcess, Throwable e) {
@@ -716,6 +779,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void breakLease(TransferProcess process) {
         transferProcessStore.save(process);
+    }
+
+    @NotNull
+    private Result<Void> toFatalError(StatusResult<?> result) {
+        if (result.fatalError()) {
+            return Result.failure(result.getFailureMessages());
+        } else {
+            return Result.success();
+        }
     }
 
     public static class Builder {
