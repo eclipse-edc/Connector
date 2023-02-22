@@ -285,6 +285,49 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         assertThat(index.deleteById("not-exists")).isNull();
     }
 
+    @Test
+    void updateAsset_whenNotExists_returnsNull() {
+        var id = UUID.randomUUID().toString();
+        var asset = createAsset("test-asset", id);
+        var result = index.updateAsset(id, asset);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void updateAsset_whenExists_returnsUpdatedAsset() {
+        var id = UUID.randomUUID().toString();
+        var asset = createAsset("test-asset", id);
+        var dataAddress = createDataAddress(asset);
+
+        index.accept(asset, dataAddress);
+
+        var newAsset = createAsset("new-name", id);
+        var result = index.updateAsset(id, newAsset);
+        assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(newAsset);
+    }
+
+    @Test
+    void updateDataAddress_whenNotExists_returnsNull() {
+        var id = UUID.randomUUID().toString();
+        var address = createDataAddress(createAsset("test-asset", id));
+        var result = index.updateDataAddress(id, address);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void updateDataAddress_whenExists_returnsUpdatedDataAddress() {
+        var id = UUID.randomUUID().toString();
+        var asset = createAsset("test-asset", id);
+        var dataAddress = createDataAddress(asset);
+
+        index.accept(asset, dataAddress);
+
+        dataAddress.getProperties().put("new", "value");
+        var result = index.updateDataAddress(id, dataAddress);
+        assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(dataAddress);
+        assertThat(result.getProperties().get("new")).isEqualTo("value");
+    }
+
     @Override
     protected Collection<String> getSupportedOperators() {
         return List.of("=", "in");

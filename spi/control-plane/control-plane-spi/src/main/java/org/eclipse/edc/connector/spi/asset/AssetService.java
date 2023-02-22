@@ -42,7 +42,7 @@ public interface AssetService {
     /**
      * Create an asset with its related data address
      *
-     * @param asset the asset
+     * @param asset       the asset
      * @param dataAddress the address of the asset
      * @return successful result if the asset is created correctly, failure otherwise
      */
@@ -55,4 +55,22 @@ public interface AssetService {
      * @return successful result if the asset is deleted correctly, failure otherwise
      */
     ServiceResult<Asset> delete(String assetId);
+
+    /**
+     * Updates an asset
+     *
+     * @param assetId The ID of the asset to update.
+     * @param asset   The content of the Asset. Note that {@link Asset#getId()} will be ignored, rather the separately supplied ID is used
+     * @return successful if updated, a failure otherwise.
+     */
+    ServiceResult<Void> update(String assetId, Asset asset);
+
+    /**
+     * Updates an asset
+     *
+     * @param assetId     The ID of the asset to update.
+     * @param dataAddress The content of the DataAddress.
+     * @return successful if updated, a failure otherwise.
+     */
+    ServiceResult<Void> update(String assetId, DataAddress dataAddress);
 }

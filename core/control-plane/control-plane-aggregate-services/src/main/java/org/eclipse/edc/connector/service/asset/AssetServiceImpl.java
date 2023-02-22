@@ -109,4 +109,32 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.success(deleted);
         });
     }
+
+    @Override
+    public ServiceResult<Void> update(String assetId, Asset asset) {
+        return transactionContext.execute(() -> {
+            if (findById(assetId) == null) {
+                return ServiceResult.notFound(format("Asset %s cannot be updated because it does not exist", assetId));
+            }
+            var updatedAsset = index.updateAsset(assetId, asset);
+            observable.invokeForEach(l -> l.updated(updatedAsset));
+
+            return ServiceResult.success(null);
+        });
+    }
+
+    @Override
+    public ServiceResult<Void> update(String assetId, DataAddress dataAddress) {
+        return transactionContext.execute(() -> {
+            var asset = findById(assetId);
+            if (asset == null) {
+                return ServiceResult.notFound(format("DataAddress for Asset ID= %s cannot be updated because it does not exist", assetId));
+            }
+
+            index.updateDataAddress(assetId, dataAddress);
+            observable.invokeForEach(l -> l.updated(asset));
+
+            return ServiceResult.success(null);
+        });
+    }
 }
