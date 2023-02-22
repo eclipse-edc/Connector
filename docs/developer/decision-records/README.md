@@ -49,4 +49,5 @@
 - [2022-12-07 Transaction Synchronization](2022-12-07-transaction-synchronization/)
 - [2023-01-26 Release Process](2023-01-26-release-process/)
 - [2023-02-10 Nightly Builds](2023-02-10-nightly-builds/)
+- [2023-02-22 Contract Definition Validation](2023-02-22-contract-definition-validation/)
 - [2023-02-22 Update Entities](2023-02-22-update-entities/)
