@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessFailed;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
@@ -137,6 +136,6 @@ public class TransferProcessEventDispatchTest {
 
         service.initiateTransfer(dataRequest);
 
-        await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessFailed.class)));
+        await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessTerminated.class)));
     }
 }

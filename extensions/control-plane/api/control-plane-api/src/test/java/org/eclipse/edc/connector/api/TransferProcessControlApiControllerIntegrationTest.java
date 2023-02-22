@@ -33,7 +33,8 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
 
@@ -92,7 +93,7 @@ class TransferProcessControlApiControllerIntegrationTest {
         await().untilAsserted(() -> {
             var transferProcess = store.find("tp-id");
             assertThat(transferProcess).isNotNull().satisfies((process) -> {
-                assertThat(process.getState()).isEqualTo(ERROR.code());
+                assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
             });
         });
@@ -143,7 +144,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callCompleteTransferProcessHook_invalidState(TransferProcessStore store) {
-        store.save(createTransferProcessBuilder().state(ERROR.code()).build());
+        store.save(createTransferProcessBuilder().state(INITIAL.code()).build());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
                 .errorMessage("error")

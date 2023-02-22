@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -29,12 +30,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TransferProcessToTransferProcessDtoTransformerTest {
 
+    private final TransformerContext context = mock(TransformerContext.class);
     private final TransferProcessTransformerTestData data = new TransferProcessTransformerTestData();
     private final TransferProcessToTransferProcessDtoTransformer transformer = new TransferProcessToTransferProcessDtoTransformer();
 
@@ -50,45 +53,46 @@ class TransferProcessToTransferProcessDtoTransformerTest {
 
     @Test
     void transform() {
-        when(data.context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
+        when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
 
-        var result = transformer.transform(data.entity.build(), data.context);
+        var result = transformer.transform(data.entity.build(), context);
 
         assertThat(result)
                 .usingRecursiveComparison()
                 .isEqualTo(data.dto.build());
-        verify(data.context, never()).reportProblem(any());
+        verify(context, never()).reportProblem(any());
     }
 
     @Test
     void transform_whenInvalidState() {
-        when(data.context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
+        when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
 
         data.entity.state(invalidStateCode());
         data.dto.state(null);
 
-        when(data.context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
+        when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
 
-        var result = transformer.transform(data.entity.build(), data.context);
+        var result = transformer.transform(data.entity.build(), context);
 
         assertThat(result)
                 .usingRecursiveComparison()
                 .isEqualTo(data.dto.build());
-        verify(data.context).reportProblem("Invalid value for TransferProcess.state");
+        verify(context).reportProblem("Invalid value for TransferProcess.state");
     }
 
     @Test
     void transform_whenMinimalData() {
-        when(data.context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
+        when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
         data.dto.state(INITIAL.name());
 
         data.dataDestination = DataAddress.Builder.newInstance().type(data.dataDestinationType);
         data.dataRequest = DataRequest.Builder.newInstance()
                 .dataDestination(data.dataDestination.build())
                 .build();
-        data.entity = TransferProcess.Builder.newInstance()
+        var entity = TransferProcess.Builder.newInstance()
                 .id(data.id)
                 .type(data.type)
+                .state(INITIAL.code())
                 .stateTimestamp(data.stateTimestamp)
                 .createdAt(data.createdTimestamp)
                 .dataRequest(data.dataRequest);
@@ -97,12 +101,13 @@ class TransferProcessToTransferProcessDtoTransformerTest {
                         DataAddressInformationDto.Builder.newInstance()
                                 .properties(Map.of("type", data.dataDestinationType))
                                 .build())
+                .state("INITIAL")
                 .stateTimestamp(data.stateTimestamp)
                 .errorDetail(null);
 
-        when(data.context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
+        when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
 
-        var result = transformer.transform(data.entity.build(), data.context);
+        var result = transformer.transform(entity.build(), context);
 
         assertThat(result)
                 .usingRecursiveComparison()

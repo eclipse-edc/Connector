@@ -72,13 +72,13 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -190,8 +190,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
+        if (transferProcess.getState() == TERMINATED.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in TERMINATED state, so provisioning could not be completed", transferProcess.getId()));
             return;
         }
 
@@ -205,7 +205,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .orElse(Result.success());
 
         if (validationResult.failed()) {
-            var message = format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
+            var message = format("Transitioning transfer process %s to TERMINATED state due to fatal provisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
             transitionToError(transferProcess, message);
             return;
         }
@@ -226,8 +226,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
+        if (transferProcess.getState() == TERMINATED.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in TERMINATED state, so deprovisioning could not be processed", transferProcess.getId()));
             return;
         }
 
@@ -294,7 +294,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             if (manifestResult.failed()) {
                 monitor.severe(format("Transitioning transfer process %s to ERROR state. Resource manifest cannot be modified to fulfil policy: %s",
                         process.getId(), manifestResult.getFailureMessages()));
-                process.transitionError(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
+                process.transitionTerminated(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
                 updateTransferProcess(process, l -> l.preError(process));
                 return true;
             }
@@ -611,9 +611,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void transitionToError(TransferProcess process, String message, Throwable... errors) {
         monitor.severe(message, errors);
-        process.transitionError(message);
-        updateTransferProcess(process, l -> l.preError(process));
-        observable.invokeForEach(l -> l.failed(process));
+        process.transitionTerminated(message);
+        updateTransferProcess(process, l -> l.preTerminated(process));
+        observable.invokeForEach(l -> l.terminated(process));
     }
 
     private boolean processProviderRequest(TransferProcess process) {

@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -94,7 +94,7 @@ public class TransferProcessHttpClientIntegrationTest {
         await().untilAsserted(() -> {
             var transferProcess = store.find("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
-                assertThat(process.getState()).isEqualTo(ERROR.code());
+                assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
             });
         });
@@ -110,7 +110,7 @@ public class TransferProcessHttpClientIntegrationTest {
         await().untilAsserted(() -> {
             var transferProcess = store.find("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
-                assertThat(process.getState()).isEqualTo(ERROR.code());
+                assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
             });
         });

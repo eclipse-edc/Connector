@@ -216,7 +216,7 @@ class TransferProcessTest {
                 .state(state.code())
                 .build();
 
-        transferProcess.transitionCancelled();
+        transferProcess.transitionTerminated();
 
         assertThat(transferProcess.getState()).isEqualTo(TERMINATED.code());
     }
@@ -229,7 +229,7 @@ class TransferProcessTest {
                 .state(state.code())
                 .build();
 
-        assertThatThrownBy(process::transitionCancelled).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(process::transitionTerminated).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -306,7 +306,6 @@ class TransferProcessTest {
 
         assertThat(process.deprovisionComplete()).isTrue();
     }
-
 
     @Test
     void verifyDeprovisionNotComplete() {

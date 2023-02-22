@@ -38,8 +38,7 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
 
     protected StatefulEntity() {
     }
-
-
+    
     public int getState() {
         return state;
     }

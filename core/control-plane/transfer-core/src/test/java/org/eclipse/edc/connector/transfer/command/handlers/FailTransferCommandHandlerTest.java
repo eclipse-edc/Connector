@@ -61,14 +61,14 @@ class FailTransferCommandHandlerTest {
         when(store.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
-        assertThat(tp.getState()).isEqualTo(TransferProcessStates.ERROR.code());
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.TERMINATED.code());
         assertThat(tp.getErrorDetail()).isEqualTo("error");
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
         verify(store).find(anyString());
         verify(store).save(tp);
         verifyNoMoreInteractions(store);
-        verify(listener).failed(tp);
+        verify(listener).terminated(tp);
     }
 
     @ParameterizedTest

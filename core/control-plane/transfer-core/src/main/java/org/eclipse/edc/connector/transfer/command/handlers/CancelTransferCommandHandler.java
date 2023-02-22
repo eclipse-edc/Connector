@@ -22,7 +22,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
 
 /**
- * Cancels a transfer process and sends it to the {@link TransferProcessStates#ERROR} state.
+ * Cancels a transfer process and puts it in the {@link TransferProcessStates#TERMINATED} state.
  */
 public class CancelTransferCommandHandler extends SingleTransferProcessCommandHandler<CancelTransferCommand> {
 
@@ -43,10 +43,11 @@ public class CancelTransferCommandHandler extends SingleTransferProcessCommandHa
         var state = process.getState();
         if (state == TransferProcessStates.COMPLETED.code() ||
                 state == TransferProcessStates.ERROR.code() ||
+                state == TransferProcessStates.CANCELLED.code() ||
                 state == TransferProcessStates.TERMINATED.code()) {
             return false;
         }
-        process.transitionCancelled();
+        process.transitionTerminated();
         return true;
     }
 

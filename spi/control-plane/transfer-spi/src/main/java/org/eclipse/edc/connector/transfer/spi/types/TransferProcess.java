@@ -44,6 +44,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
@@ -260,8 +261,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(DEPROVISIONED, DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED);
     }
 
-    public void transitionCancelled() {
-        var forbiddenStates = List.of(TERMINATED, COMPLETED, ERROR);
+    public void transitionTerminated() {
+        var forbiddenStates = List.of(TERMINATED, COMPLETED, ERROR, ENDED);
 
         var allowedStates = Arrays.stream(TransferProcessStates.values())
                 .filter(it -> !forbiddenStates.contains(it))
@@ -270,16 +271,9 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(TERMINATED, allowedStates);
     }
 
-    public void transitionTerminated() {
-        transition(TERMINATED, DEPROVISIONED);
-    }
-
-    public void transitionError(@Nullable String errorDetail) {
+    public void transitionTerminated(@Nullable String errorDetail) {
         this.errorDetail = errorDetail;
-        state = ERROR.code();
-        stateCount = 1;
-        updateStateTimestamp();
-        setModified();
+        transitionTerminated();
     }
 
     @Override
