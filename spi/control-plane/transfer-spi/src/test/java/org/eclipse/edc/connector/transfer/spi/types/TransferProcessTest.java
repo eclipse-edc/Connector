@@ -34,7 +34,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -90,9 +89,6 @@ class TransferProcessTest {
 
         process.transitionRequesting();
         process.transitionRequested();
-
-        // test illegal transition
-        assertThrows(IllegalStateException.class, process::transitionTerminated);
 
         process.transitionStarted();
         process.transitionCompleted();
@@ -209,7 +205,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED", "ERROR" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED", "ERROR", "ENDED", "CANCELLED" }, mode = EnumSource.Mode.EXCLUDE)
     void verifyCancel_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
