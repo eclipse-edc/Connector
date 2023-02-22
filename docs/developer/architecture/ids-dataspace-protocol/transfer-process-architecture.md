@@ -1,19 +1,19 @@
-# IDS Dataspace Protocol Transfer Process Architecture
+# The Dataspace Protocol Transfer Process Architecture
 
-The EDC will be upgraded to implement and be fully compliant to the __IDS Next Transfer Process Protocol__. This document details the architectural approach that will be taken
+The EDC will be upgraded to implement and be fully compliant to the __Dataspace Protocol Transfer Process Protocol__. This document details the architectural approach that will be taken
 to support that protocol.
 
 ## Backward Compatibility and Migration Support
 
-It is __NOT__ a goal of the EDC project to provide backward compatibility to the previous IDS implementation. At a declared milestone, once the IDS next implementation has reached
+It is __NOT__ a goal of the EDC project to provide backward compatibility to the previous IDS implementation. At a declared milestone, once the Dataspace Protocol implementation has reached
 a sufficient maturity level, the EDC project will switch to the new protocols and remove the old protocol implementation. Users will be responsible for migrating existing EDC
 installations as no automated migration facilities will be provided.
 
 ## Goals
 
-The goals of IDS Next support are:
+The goals of the Dataspace Protocol support are:
 
-1. To be compliant with the IDS Next Transfer Process Protocol. This will involve passing all mandatory tests of the to-be-released IDS Test Compatibility Kit (IDS-TCK).
+1. To be compliant with the Dataspace Protocol Transfer Process Protocol. This will involve passing all mandatory tests of the to-be-released IDS Test Compatibility Kit (IDS-TCK).
 
 ## The State Machine
 

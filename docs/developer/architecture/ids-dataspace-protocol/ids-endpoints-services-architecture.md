@@ -1,6 +1,6 @@
-# IDS Dataspace Protocol Endpoints and Services Architecture
+# Dataspace Protocol Endpoints and Services Architecture
 
-IDS Dataspace Protocol requires all protocol message types to be serialized as JSON-LD. The IDS REST binding specifications further define how those serialized message types are bound to
+The Dataspace Protocol requires all protocol message types to be serialized as JSON-LD. The IDS REST binding specifications further define how those serialized message types are bound to
 endpoints over HTTPS. Controller endpoints will be added to the EDC that support marshalling and unmarshalling JSON-LD messages as specified
 in [JSON-LD Processing Architecture document](./json-ld-processing-architecture.md)
 
@@ -39,7 +39,7 @@ var compacted = mapper.convertValue(compacted,Map.class);
 
 ## Migrating to DCAT and ODRL Types: Catalog, Dataset, and Policy
 
-The IDS Dataspace Protocol specifications overhaul the infomodel that underpins IDS by basing it directly on the [DCAT](https://www.w3.org/TR/vocab-dcat-3/)
+The Dataspace Protocol specifications overhaul the infomodel that underpins IDS by basing it directly on the [DCAT](https://www.w3.org/TR/vocab-dcat-3/)
 and [ODRL](https://w3c.github.io/poe/model/) specifications. One of the most significant changes is that assets (or datasets in DCAT terms) contain offers, which are ODRL policies.
 Moreover, datasets are contained in a catalog. This relationship corresponds to the core design of the EDC and should resolve the complexity mandated by the current IDS infomodel
 where contract offers contain assets.
