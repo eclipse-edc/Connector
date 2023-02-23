@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.store.sql.assetindex;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -42,7 +41,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@PostgresqlDbIntegrationTest
+//@PostgresqlDbIntegrationTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresAssetIndexTest extends AssetIndexTestBase {
 

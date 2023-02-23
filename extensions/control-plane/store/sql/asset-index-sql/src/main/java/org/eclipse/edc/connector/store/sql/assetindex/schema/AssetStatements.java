@@ -51,7 +51,7 @@ public interface AssetStatements {
     /**
      * The data address table properties column.
      */
-    default String getDataAddressColumnProperties() {
+    default String getDataAddressPropertiesColumn() {
         return "properties";
     }
 
@@ -136,6 +136,12 @@ public interface AssetStatements {
     String getDeleteAssetByIdTemplate();
 
     /**
+     * UPDATE statement for data addresses
+     */
+    String getUpdateDataAddressTemplate();
+
+
+    /**
      * The COUNT variable used in SELECT COUNT queries.
      */
     String getCountVariableName();
@@ -170,4 +176,5 @@ public interface AssetStatements {
      * Select single asset by ID
      */
     String getSelectAssetByIdTemplate();
+
 }

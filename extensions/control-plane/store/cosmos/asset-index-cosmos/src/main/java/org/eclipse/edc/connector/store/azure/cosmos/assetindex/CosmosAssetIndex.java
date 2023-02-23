@@ -127,6 +127,16 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
+    public Asset updateAsset(String assetId, Asset asset) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DataAddress updateDataAddress(String assetId, DataAddress dataAddress) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DataAddress resolveForAsset(String assetId) {
         return queryByIdInternal(assetId).map(AssetDocument::getDataAddress).orElse(null);
     }
