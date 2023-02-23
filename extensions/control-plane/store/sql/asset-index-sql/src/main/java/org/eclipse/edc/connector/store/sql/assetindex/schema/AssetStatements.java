@@ -140,6 +140,10 @@ public interface AssetStatements {
      */
     String getUpdateDataAddressTemplate();
 
+    /**
+     * DELETE statement for properties of an Asset. Useful for delete-insert (=update) operations
+     */
+    String getDeletePropertyByIdTemplate();
 
     /**
      * The COUNT variable used in SELECT COUNT queries.
@@ -176,5 +180,6 @@ public interface AssetStatements {
      * Select single asset by ID
      */
     String getSelectAssetByIdTemplate();
+
 
 }

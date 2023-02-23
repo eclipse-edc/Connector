@@ -191,7 +191,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (existsById(assetId, connection)) {
-                    executeQuery(connection, "DELETE FROM " + assetStatements.getAssetPropertyTable() + " WHERE " + assetStatements.getPropertyAssetIdFkColumn() + "='" + assetId + "'");
+                    executeQuery(connection, assetStatements.getDeletePropertyByIdTemplate(), assetId);
                     for (var property : asset.getProperties().entrySet()) {
                         executeQuery(connection, assetStatements.getInsertPropertyTemplate(),
                                 assetId,

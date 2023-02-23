@@ -94,6 +94,11 @@ public class BaseSqlDialectStatements implements AssetStatements {
     }
 
     @Override
+    public String getDeletePropertyByIdTemplate() {
+        return format("DELETE FROM %s WHERE %s = ?", getAssetPropertyTable(), getPropertyAssetIdFkColumn());
+    }
+
+    @Override
     public String getCountVariableName() {
         return "COUNT";
     }
