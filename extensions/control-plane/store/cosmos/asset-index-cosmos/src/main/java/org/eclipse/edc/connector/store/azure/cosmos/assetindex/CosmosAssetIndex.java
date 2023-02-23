@@ -128,12 +128,26 @@ public class CosmosAssetIndex implements AssetIndex {
 
     @Override
     public Asset updateAsset(String assetId, Asset asset) {
-        throw new UnsupportedOperationException();
+        // cannot simply invoke assetDb.saveItem, because for that we'd need the DataAddress, which we don't have here
+        var result = queryByIdInternal(assetId);
+
+        return result.map(assetDocument -> {
+            var updated = new AssetDocument(asset, assetDocument.getPartitionKey(), assetDocument.getDataAddress());
+            assetDb.saveItem(updated);
+            return asset;
+        }).orElse(null);
     }
 
     @Override
     public DataAddress updateDataAddress(String assetId, DataAddress dataAddress) {
-        throw new UnsupportedOperationException();
+        // cannot simply invoke assetDb.saveItem, because for that we'd need the Asset, which we don't have here
+        var result = queryByIdInternal(assetId);
+
+        return result.map(assetDocument -> {
+            var updated = new AssetDocument(assetDocument.getWrappedAsset(), assetDocument.getPartitionKey(), dataAddress);
+            assetDb.saveItem(updated);
+            return dataAddress;
+        }).orElse(null);
     }
 
     @Override
