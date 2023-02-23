@@ -144,8 +144,6 @@ paths:
       responses:
         "200":
           description: Asset was updated successfully
-        "201":
-          description: "Asset was create anew, because it didn't exist before"
         "400":
           content:
             application/json:
@@ -155,6 +153,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
+        "404":
+          description: "Asset could not be updated, because it does not exist. Asset\
+            \ need to be created together with DataAddresses."
       tags:
       - Asset
   /assets/{assetId}/dataaddress:
