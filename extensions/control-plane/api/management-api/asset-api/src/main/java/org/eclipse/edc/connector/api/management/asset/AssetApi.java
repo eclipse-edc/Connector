@@ -91,7 +91,7 @@ public interface AssetApi {
             })
     void removeAsset(String id);
 
-    @Operation(description = "Updates an asset with the given ID if it exists, creates a new one otherwise. " +
+    @Operation(description = "Updates an asset with the given ID if it exists. If the asset is not found, no further action is taken. " +
             "DANGER ZONE: Note that updating assets can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was updated successfully"),
@@ -101,7 +101,7 @@ public interface AssetApi {
             })
     void updateAsset(String assetId, @Valid AssetUpdateDto asset);
 
-    @Operation(description = "Updates a DataAddress for an asset with the given ID. ",
+    @Operation(description = "Updates a DataAddress for an asset with the given ID. If the asset is not found, no further action is taken",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was updated successfully"),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",

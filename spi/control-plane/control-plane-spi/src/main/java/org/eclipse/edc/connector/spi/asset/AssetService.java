@@ -57,7 +57,7 @@ public interface AssetService {
     ServiceResult<Asset> delete(String assetId);
 
     /**
-     * Updates an asset
+     * Updates an asset. If the asset does not yet exist, {@link ServiceResult#notFound(String)} will be returned.
      *
      * @param assetId The ID of the asset to update.
      * @param asset   The content of the Asset. Note that {@link Asset#getId()} will be ignored, rather the separately supplied ID is used
@@ -66,7 +66,7 @@ public interface AssetService {
     ServiceResult<Void> update(String assetId, Asset asset);
 
     /**
-     * Updates an asset
+     * Updates a {@link DataAddress}. If the associated asset does not yet exist, {@link ServiceResult#notFound(String)} will be returned;
      *
      * @param assetId     The ID of the asset to update.
      * @param dataAddress The content of the DataAddress.
