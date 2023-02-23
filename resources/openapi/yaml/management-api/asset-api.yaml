@@ -124,10 +124,10 @@ paths:
       - Asset
   /assets/{assetId}:
     put:
-      description: "Updates an asset with the given ID if it exists, creates a new\
-        \ one otherwise. DANGER ZONE: Note that updating assets can have unexpected\
-        \ results, especially for contract offers that have been sent out or ongoing\
-        \ or contract negotiations."
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or ongoing or contract negotiations."
       operationId: updateAsset
       parameters:
       - in: path
@@ -160,7 +160,8 @@ paths:
       - Asset
   /assets/{assetId}/dataaddress:
     put:
-      description: 'Updates a DataAddress for an asset with the given ID. '
+      description: "Updates a DataAddress for an asset with the given ID. If the asset\
+        \ is not found, no further action is taken"
       operationId: updateDataAddress
       parameters:
       - in: path
