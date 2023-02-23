@@ -28,6 +28,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -47,7 +48,6 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
@@ -303,6 +303,76 @@ public class AssetApiControllerIntegrationTest {
                 .get("/assets/not-existent-id/address")
                 .then()
                 .statusCode(404);
+    }
+
+    @Test
+    void updateAsset_whenExists(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        asset.getProperties().put("anotherKey", "anotherVal");
+
+        baseRequest()
+                .body(asset)
+                .contentType(JSON)
+                .put("/assets/assetId")
+                .then()
+                .statusCode(204);
+
+        // verify by looking at the asset index
+        var found = assetIndex.findById("assetId");
+        assertThat(found).isNotNull();
+        assertThat(found.getProperties()).containsEntry("anotherKey", "anotherVal");
+    }
+
+    @Test
+    void updateAsset_whenNotExists(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+
+        baseRequest()
+                .body(asset)
+                .contentType(JSON)
+                .put("/assets/assetId")
+                .then()
+                .statusCode(404);
+
+        assertThat(assetIndex.findById("assetId")).isNull();
+    }
+
+    @Test
+    void updateDataAddress_whenAssetExists(AssetIndex assetIndex, DataAddressResolver resolver) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        dataAddress.getProperties().put("anotherKey", "anotherVal");
+
+        baseRequest()
+                .body(dataAddress)
+                .contentType(JSON)
+                .put("/assets/assetId/dataaddress")
+                .then()
+                .statusCode(204);
+
+        // verify by looking at the asset index
+        var found = resolver.resolveForAsset("assetId");
+        assertThat(found).isNotNull();
+        assertThat(found.getProperties()).containsEntry("anotherKey", "anotherVal");
+    }
+
+    @Test
+    void updateDataAddress_whenNotExists(DataAddressResolver resolver) {
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+
+        baseRequest()
+                .body(dataAddress)
+                .contentType(JSON)
+                .put("/assets/assetId/dataaddress")
+                .then()
+                .statusCode(404);
+
+        assertThat(resolver.resolveForAsset("assetId")).isNull();
     }
 
     private ContractNegotiation createContractNegotiation(Asset asset) {
