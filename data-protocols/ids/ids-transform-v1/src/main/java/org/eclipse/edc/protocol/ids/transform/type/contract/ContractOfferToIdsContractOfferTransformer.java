@@ -92,7 +92,7 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
 
         if (Objects.isNull(object.getContractStart())) {
             try {
-                builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar.from(ZonedDateTime.ofInstant(  Instant.ofEpochMilli(object.getContractStart()), ZoneId.systemDefault() ) ))));
+                builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(object.getContractStart()), ZoneId.systemDefault())))));
             } catch (DatatypeConfigurationException e) {
                 context.reportProblem("cannot convert contract start time to XMLGregorian");
             }
@@ -100,7 +100,7 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
 
         if (Objects.isNull(object.getContractEnd())) {
             try {
-                builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(((GregorianCalendar.from(ZonedDateTime.ofInstant(  Instant.ofEpochMilli(object.getContractEnd()), ZoneId.systemDefault() ))))));
+                builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(((GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(object.getContractEnd()), ZoneId.systemDefault()))))));
             } catch (DatatypeConfigurationException e) {
                 context.reportProblem("cannot convert contract end time to XMLGregorian");
             }
