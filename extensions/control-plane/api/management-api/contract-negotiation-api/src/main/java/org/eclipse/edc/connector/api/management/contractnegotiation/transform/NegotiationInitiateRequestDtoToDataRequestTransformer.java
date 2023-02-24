@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.time.Clock;
-import java.time.ZonedDateTime;
 
 public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractOfferRequest> {
 
@@ -57,7 +56,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .provider(URI.create("urn:connector:provider"))
                 .policy(object.getOffer().getPolicy())
                 .contractStart(now)
-                .contractEnd(Math.addExact(now,object.getOffer().getValidity()))
+                .contractEnd(Math.addExact(now, object.getOffer().getValidity()))
                 .build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
