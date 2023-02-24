@@ -18,8 +18,9 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -220,9 +221,49 @@ class ContractDefinitionApiControllerIntegrationTest {
                 .statusCode(404);
     }
 
-    private ContractDefinitionRequestDto createDto(String definitionId) {
-        return ContractDefinitionRequestDto.Builder.newInstance()
+    @Test
+    void updateContractDefinition_whenExists(ContractDefinitionStore store) {
+
+        store.accept(createContractDefinition("definitionId"));
+
+        var dto = updateDto();
+
+        baseRequest()
+                .body(dto)
+                .contentType(JSON)
+                .put("/contractdefinitions/definitionId")
+                .then()
+                .statusCode(204);
+
+        assertThat(store.findAll(QuerySpec.max())).hasSize(1);
+    }
+
+    @Test
+    void updateContractDefinition_whenNotExists(ContractDefinitionStore store) {
+
+        var dto = updateDto();
+
+        baseRequest()
+                .body(dto)
+                .contentType(JSON)
+                .put("/contractdefinitions/definitionId")
+                .then()
+                .statusCode(404);
+
+        assertThat(store.findAll(QuerySpec.max())).hasSize(0);
+    }
+
+    private ContractDefinitionCreateDto createDto(String definitionId) {
+        return ContractDefinitionCreateDto.Builder.newInstance()
                 .id(definitionId)
+                .contractPolicyId(UUID.randomUUID().toString())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
+                .build();
+    }
+
+    private ContractDefinitionUpdateDto updateDto() {
+        return ContractDefinitionUpdateDto.Builder.newInstance()
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))

@@ -42,4 +42,12 @@ public interface ContractDefinitionListener {
 
     }
 
+    /**
+     * Called after a {@link ContractDefinition} was updated.
+     *
+     * @param contractDefinition the contractDefinition that has been updated.
+     */
+    default void updated(ContractDefinition contractDefinition) {
+
+    }
 }

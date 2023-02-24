@@ -51,6 +51,16 @@ public interface ContractDefinitionService {
     ServiceResult<ContractDefinition> create(ContractDefinition contractDefinition);
 
     /**
+     * Update a contract definition. If a definition with the input id doesn't exist, returns
+     * NOT_FOUND failure.
+     *
+     * @param contractDefinition the contract definition
+     * @return successful result if the contract definition is updated correctly, failure otherwise
+     */
+    ServiceResult<Void> update(ContractDefinition contractDefinition);
+
+
+    /**
      * Delete a contract definition. If the definition is already referenced by a contract agreement, returns CONFLICT
      * failure. If the definition does not exist, returns NOT_FOUND failure.
      *
