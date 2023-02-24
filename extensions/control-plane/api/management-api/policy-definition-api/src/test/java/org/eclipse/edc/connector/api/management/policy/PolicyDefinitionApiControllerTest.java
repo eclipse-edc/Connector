@@ -19,6 +19,7 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.policy.model.Policy;
@@ -37,10 +38,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -241,5 +239,37 @@ class PolicyDefinitionApiControllerTest {
     void deletePolicy_conflicts() {
         when(service.deleteById("id")).thenReturn(ServiceResult.conflict("Conflicting"));
         assertThatThrownBy(() -> controller.deletePolicy("id")).isInstanceOf(ObjectConflictException.class);
+    }
+
+
+    @Test
+    void updatePolicy_ifPolicyExists() {
+        var dto = PolicyDefinitionUpdateDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+        var policyDefinition = TestFunctions.createPolicy("id");
+        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+        when(service.update(anyString(), any())).thenReturn(ServiceResult.success(null));
+        when(service.findById(anyString())).thenReturn(policyDefinition);
+
+        controller.updatePolicy("test-policy-id", dto);
+        verify(service).update(isA(String.class), isA(PolicyDefinition.class));
+    }
+
+    @Test
+    void updatePolicy_transformationFails() {
+        var dto = PolicyDefinitionUpdateDto.Builder.newInstance().build();
+        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateDto.class), eq(PolicyDefinition.class))).thenReturn(Result.failure("failure"));
+
+        assertThatThrownBy(() -> controller.updatePolicy("test-policy-id", dto)).isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void updatePolicy_ifPolicyNotExists() {
+        var dto = PolicyDefinitionUpdateDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+        var policyDefinition = TestFunctions.createPolicy("id");
+        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+        when(service.update(anyString(), any())).thenReturn(ServiceResult.success(null));
+
+        controller.updatePolicy("test-policy-id", dto);
+        verify(service).update(isA(String.class), isA(PolicyDefinition.class));
     }
 }

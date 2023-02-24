@@ -18,6 +18,7 @@ import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionRequestDtoToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionToPolicyDefinitionResponseDtoTransformer;
+import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionUpdateDtoToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -51,6 +52,7 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         transformerRegistry.register(new PolicyDefinitionRequestDtoToPolicyDefinitionTransformer());
         transformerRegistry.register(new PolicyDefinitionToPolicyDefinitionResponseDtoTransformer());
+        transformerRegistry.register(new PolicyDefinitionUpdateDtoToPolicyDefinitionTransformer());
 
         var monitor = context.getMonitor();
 
