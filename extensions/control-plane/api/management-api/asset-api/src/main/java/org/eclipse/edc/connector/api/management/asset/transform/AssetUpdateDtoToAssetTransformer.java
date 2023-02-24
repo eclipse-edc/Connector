@@ -15,16 +15,16 @@
 package org.eclipse.edc.connector.api.management.asset.transform;
 
 import org.eclipse.edc.api.transformer.DtoTransformer;
-import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AssetUpdateDtoToAssetTransformer implements DtoTransformer<AssetUpdateDto, Asset> {
+public class AssetUpdateDtoToAssetTransformer implements DtoTransformer<AssetUpdateRequestDto, Asset> {
     @Override
-    public Class<AssetUpdateDto> getInputType() {
-        return AssetUpdateDto.class;
+    public Class<AssetUpdateRequestDto> getInputType() {
+        return AssetUpdateRequestDto.class;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class AssetUpdateDtoToAssetTransformer implements DtoTransformer<AssetUpd
     }
 
     @Override
-    public @Nullable Asset transform(@NotNull AssetUpdateDto object, @NotNull TransformerContext context) {
+    public @Nullable Asset transform(@NotNull AssetUpdateRequestDto object, @NotNull TransformerContext context) {
         return Asset.Builder.newInstance()
                 .properties(object.getProperties())
                 .build();

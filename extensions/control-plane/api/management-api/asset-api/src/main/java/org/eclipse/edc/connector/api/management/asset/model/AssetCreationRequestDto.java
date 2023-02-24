@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2020 - 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -19,18 +19,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
 
 import java.util.Map;
+import java.util.Optional;
 
-@JsonDeserialize(builder = AssetUpdateDto.Builder.class)
-public class AssetUpdateDto {
+@JsonDeserialize(builder = AssetCreationRequestDto.Builder.class)
+public class AssetCreationRequestDto extends AssetRequestDto {
 
+    private String id;
 
-    @NotNull(message = "properties cannot be null")
-    private Map<String, Object> properties;
-
-    private AssetUpdateDto() {
+    private AssetCreationRequestDto() {
     }
 
     @JsonIgnore
@@ -39,17 +37,28 @@ public class AssetUpdateDto {
         return properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
     }
 
+    @JsonIgnore
+    @AssertTrue(message = "id must be either null or not blank")
+    public boolean isIdValid() {
+        return Optional.of(this)
+                .map(it -> it.id)
+                .map(it -> !id.isBlank())
+                .orElse(true);
+    }
+
     public Map<String, Object> getProperties() {
         return properties;
     }
 
-    @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
+    public String getId() {
+        return id;
+    }
 
-        private final AssetUpdateDto dto;
+    @JsonPOJOBuilder(withPrefix = "")
+    public static final class Builder extends AssetRequestDto.Builder<AssetCreationRequestDto, Builder> {
 
         private Builder() {
-            this.dto = new AssetUpdateDto();
+            super(new AssetCreationRequestDto());
         }
 
         @JsonCreator
@@ -57,12 +66,18 @@ public class AssetUpdateDto {
             return new Builder();
         }
 
-        public Builder properties(Map<String, Object> properties) {
-            dto.properties = properties;
+        public Builder id(String id) {
+            dto.id = id;
             return this;
         }
 
-        public AssetUpdateDto build() {
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        @Override
+        public AssetCreationRequestDto build() {
             return dto;
         }
     }

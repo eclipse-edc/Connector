@@ -32,7 +32,7 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -134,7 +134,7 @@ public class AssetApiController implements AssetApi {
     @PUT
     @Path("{assetId}")
     @Override
-    public void updateAsset(@PathParam("assetId") String assetId, @Valid AssetUpdateDto asset) {
+    public void updateAsset(@PathParam("assetId") String assetId, @Valid AssetUpdateRequestDto asset) {
         var assetResult = transformerRegistry.transform(asset, Asset.class);
         if (assetResult.failed()) {
             throw new InvalidRequestException(assetResult.getFailureMessages());

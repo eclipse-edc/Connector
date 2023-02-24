@@ -26,7 +26,7 @@ import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
@@ -99,7 +99,7 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
-    void updateAsset(String assetId, @Valid AssetUpdateDto asset);
+    void updateAsset(String assetId, @Valid AssetUpdateRequestDto asset);
 
     @Operation(description = "Updates a DataAddress for an asset with the given ID. If the asset is not found, no further action is taken",
             responses = {

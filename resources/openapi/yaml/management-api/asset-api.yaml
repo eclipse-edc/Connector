@@ -140,7 +140,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetUpdateDto'
+              $ref: '#/components/schemas/AssetUpdateRequestDto'
       responses:
         "200":
           description: Asset was updated successfully
@@ -339,18 +339,7 @@ components:
         type:
           type: string
           example: null
-    AssetEntryDto:
-      type: object
-      example: null
-      properties:
-        asset:
-          $ref: '#/components/schemas/AssetRequestDto'
-        dataAddress:
-          $ref: '#/components/schemas/DataAddressDto'
-      required:
-      - asset
-      - dataAddress
-    AssetRequestDto:
+    AssetCreationRequestDto:
       type: object
       example: null
       properties:
@@ -365,6 +354,17 @@ components:
           example: null
       required:
       - properties
+    AssetEntryDto:
+      type: object
+      example: null
+      properties:
+        asset:
+          $ref: '#/components/schemas/AssetCreationRequestDto'
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressDto'
+      required:
+      - asset
+      - dataAddress
     AssetResponseDto:
       type: object
       example: null
@@ -382,7 +382,7 @@ components:
             type: object
             example: null
           example: null
-    AssetUpdateDto:
+    AssetUpdateRequestDto:
       type: object
       example: null
       properties:
