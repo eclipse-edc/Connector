@@ -31,7 +31,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.time.temporal.ChronoUnit;
+
 
 import static java.lang.String.format;
 
@@ -90,7 +90,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
         }
 
-        var offerValidity =Math.subtractExact(offer.getContractEnd(), offer.getContractStart() )/1000;
+        var offerValidity = Math.subtractExact(offer.getContractEnd(), offer.getContractStart()) /1000;
         if (offerValidity != contractDefinition.getValidity()) {
             return Result.failure(format("Offer validity %ss does not match contract definition validity %ss", offerValidity, contractDefinition.getValidity()));
         }

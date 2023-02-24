@@ -34,7 +34,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -133,7 +132,6 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
         var contractEndTime = Long.MAX_VALUE;
         try {
-            //contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
             contractEndTime = Math.addExact(clock.millis(),definition.getValidity());
         } catch (ArithmeticException exception) {
             monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
