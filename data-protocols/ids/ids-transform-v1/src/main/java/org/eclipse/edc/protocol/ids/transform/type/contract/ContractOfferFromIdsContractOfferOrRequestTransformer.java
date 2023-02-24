@@ -102,11 +102,11 @@ public class ContractOfferFromIdsContractOfferOrRequestTransformer implements Id
         contractOfferBuilder.id(idsId.getValue());
 
         if (contract.getContractEnd() != null) {
-            contractOfferBuilder.contractEnd(contract.getContractEnd().toGregorianCalendar().toZonedDateTime());
+            contractOfferBuilder.contractEnd(contract.getContractEnd().toGregorianCalendar().toInstant().toEpochMilli());
         }
 
         if (contract.getContractStart() != null) {
-            contractOfferBuilder.contractStart(contract.getContractStart().toGregorianCalendar().toZonedDateTime());
+            contractOfferBuilder.contractStart(contract.getContractStart().toGregorianCalendar().toInstant().toEpochMilli());
         }
 
         return contractOfferBuilder.build();

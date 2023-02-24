@@ -102,8 +102,9 @@ class ContractValidationServiceImplTest {
         var validatedOffer = result.getContent();
         assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         assertThat(validatedOffer.getAsset()).isEqualTo(asset);
-        assertThat(validatedOffer.getContractStart().toInstant()).isEqualTo(clock.instant());
-        assertThat(validatedOffer.getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
+        assertThat(validatedOffer.getContractStart()).isEqualTo(clock.millis());
+        //assertThat(Instant.ofEpochMilli(validatedOffer.getContractEnd())).isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
+        assertThat(validatedOffer.getContractEnd()).isEqualTo(Math.addExact(clock.millis(),contractDefinition.getValidity()));
         assertThat(validatedOffer.getConsumer()).isEqualTo(offer.getConsumer());
         assertThat(validatedOffer.getProvider()).isEqualTo(offer.getProvider());
         verify(agentService).createFor(isA(ClaimToken.class));
@@ -298,8 +299,8 @@ class ContractValidationServiceImplTest {
                 .policy(policy)
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
-                .contractStart(now)
-                .contractEnd(now.plusSeconds(validity))
+                .contractStart(now.toInstant().toEpochMilli())
+                .contractEnd(now.plusSeconds(validity).toInstant().toEpochMilli())
                 .build();
     }
 

@@ -33,8 +33,8 @@ class ContractOfferTest {
     void verifyPolicyNotNull() {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .asset(Asset.Builder.newInstance().id("test-assetId").build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().plusMonths(1).toInstant().toEpochMilli())
                 .build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Policy must not be null");
@@ -44,8 +44,8 @@ class ContractOfferTest {
     void verifyAssetNotNull() {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .policy(Policy.Builder.newInstance().build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().plusMonths(1).toInstant().toEpochMilli())
                 .build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Asset must not be null");
@@ -56,7 +56,7 @@ class ContractOfferTest {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .asset(Asset.Builder.newInstance().id("test-assetId").build())
                 .policy(Policy.Builder.newInstance().build())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .contractEnd(ZonedDateTime.now().plusMonths(1).toInstant().toEpochMilli())
                 .build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Contract start must not be null");
@@ -67,7 +67,7 @@ class ContractOfferTest {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .asset(Asset.Builder.newInstance().id("test-assetId").build())
                 .policy(Policy.Builder.newInstance().build())
-                .contractStart(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
                 .build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Contract end must not be null");

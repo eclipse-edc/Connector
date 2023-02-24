@@ -102,8 +102,8 @@ class ContractOfferResolverImplTest {
         assertThat(offers)
                 .hasSize(2)
                 .allSatisfy(contractOffer -> {
-                    assertThat(contractOffer.getContractEnd().toInstant())
-                            .isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
+                    assertThat(contractOffer.getContractEnd())
+                            .isEqualTo(Math.addExact(clock.millis(), contractDefinition.getValidity()));
                     assertThat(contractOffer.getProvider()).isEqualTo(URI.create("urn:connector:edc-provider"));
                     assertThat(contractOffer.getConsumer()).isEqualTo(URI.create("urn:connector:edc-consumer"));
                 });
@@ -304,7 +304,7 @@ class ContractOfferResolverImplTest {
 
         assertThat(offers)
                 .hasSize(1)
-                .allSatisfy(contractOffer -> assertThat(contractOffer.getContractEnd()).isEqualTo(Instant.ofEpochMilli(Long.MAX_VALUE).atZone(ZoneOffset.UTC)));
+                .allSatisfy(contractOffer -> assertThat(contractOffer.getContractEnd()).isEqualTo(Long.MAX_VALUE));
 
     }
 

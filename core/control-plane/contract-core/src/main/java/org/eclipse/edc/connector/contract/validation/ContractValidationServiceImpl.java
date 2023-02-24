@@ -90,7 +90,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
         }
 
-        var offerValidity = ChronoUnit.SECONDS.between(offer.getContractStart(), offer.getContractEnd());
+        var offerValidity =Math.subtractExact(offer.getContractEnd(), offer.getContractStart() )/1000;
         if (offerValidity != contractDefinition.getValidity()) {
             return Result.failure(format("Offer validity %ss does not match contract definition validity %ss", offerValidity, contractDefinition.getValidity()));
         }
@@ -111,7 +111,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                 .provider(offer.getProvider())
                 .policy(contractPolicyDef.getPolicy())
                 .contractStart(offer.getContractStart())
-                .contractEnd(offer.getContractStart().plusSeconds(contractDefinition.getValidity()))
+                .contractEnd(Math.addExact(offer.getContractStart(), contractDefinition.getValidity()))
                 .build();
 
         return Result.success(validatedOffer);

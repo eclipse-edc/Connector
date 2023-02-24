@@ -78,8 +78,8 @@ class CatalogToIdsResourceCatalogTransformerTest {
                 .id(id)
                 .asset(asset)
                 .policy(Policy.Builder.newInstance().build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().toInstant().toEpochMilli())
                 .build();
     }
 }

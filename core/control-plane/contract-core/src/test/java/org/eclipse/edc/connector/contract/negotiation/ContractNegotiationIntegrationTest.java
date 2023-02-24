@@ -318,8 +318,8 @@ class ContractNegotiationIntegrationTest {
     private ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId("1"))
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().plusMonths(1).toInstant().toEpochMilli())
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
                 .asset(Asset.Builder.newInstance().build())

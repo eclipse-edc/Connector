@@ -124,16 +124,17 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
                 .id(ContractId.createContractId(definition.getId()))
                 .policy(policy.withTarget(asset.getId()))
                 .asset(asset)
-                .contractStart(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
                 .contractEnd(contractEndTime);
     }
 
     @NotNull
-    private ZonedDateTime calculateContractEnd(ContractDefinition definition) {
+    private long calculateContractEnd(ContractDefinition definition) {
 
-        var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(clock.getZone());
+        var contractEndTime = Long.MAX_VALUE;
         try {
-            contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
+            //contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
+            contractEndTime = Math.addExact(clock.millis(),definition.getValidity());
         } catch (ArithmeticException exception) {
             monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
                     "Changing contractEndTime to Maximum value possible in the ContractOffer");
