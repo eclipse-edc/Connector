@@ -63,7 +63,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/ContractDefinitionRequestDto'
+              $ref: '#/components/schemas/ContractDefinitionCreateDto'
       responses:
         "200":
           content:
@@ -253,7 +253,7 @@ components:
         type:
           type: string
           example: null
-    ContractDefinitionRequestDto:
+    ContractDefinitionCreateDto:
       type: object
       example: null
       properties:
