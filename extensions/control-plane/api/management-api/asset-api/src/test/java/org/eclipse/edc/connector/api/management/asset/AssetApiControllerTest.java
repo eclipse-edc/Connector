@@ -298,7 +298,7 @@ public class AssetApiControllerTest {
                 .build();
         var asset = Asset.Builder.newInstance().property("key1", "value1").build();
         when(transformerRegistry.transform(isA(AssetUpdateDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
-        when(service.update(any(), any(Asset.class))).thenReturn(ServiceResult.success(null));
+        when(service.update(any(), any(Asset.class))).thenReturn(ServiceResult.success());
 
         var assetId = "test-asset-1";
         controller.updateAsset(assetId, assetEntry);
@@ -338,7 +338,7 @@ public class AssetApiControllerTest {
                 .build();
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").property("key1", "value1").build();
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(dataAddress));
-        when(service.update(any(), any(DataAddress.class))).thenReturn(ServiceResult.success(null));
+        when(service.update(any(), any(DataAddress.class))).thenReturn(ServiceResult.success());
 
         var assetId = "test-dataAddress-1";
         controller.updateDataAddress(assetId, dataAddressDto);

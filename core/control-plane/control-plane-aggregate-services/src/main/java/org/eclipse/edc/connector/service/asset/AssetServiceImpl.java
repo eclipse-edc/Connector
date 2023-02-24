@@ -119,7 +119,7 @@ public class AssetServiceImpl implements AssetService {
             var updatedAsset = index.updateAsset(assetId, asset);
             observable.invokeForEach(l -> l.updated(updatedAsset));
 
-            return ServiceResult.success(null);
+            return ServiceResult.success();
         });
     }
 
@@ -134,7 +134,7 @@ public class AssetServiceImpl implements AssetService {
             index.updateDataAddress(assetId, dataAddress);
             observable.invokeForEach(l -> l.updated(asset));
 
-            return ServiceResult.success(null);
+            return ServiceResult.success();
         });
     }
 }
