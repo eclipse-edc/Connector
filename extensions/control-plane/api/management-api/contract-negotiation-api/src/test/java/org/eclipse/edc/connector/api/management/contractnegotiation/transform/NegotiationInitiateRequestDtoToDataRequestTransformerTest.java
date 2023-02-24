@@ -57,8 +57,8 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         assertThat(request.getProtocol()).isEqualTo("protocol");
         assertThat(request.getType()).isEqualTo(INITIAL);
         assertThat(request.getContractOffer().getId()).isEqualTo("offerId");
-        assertThat(request.getContractOffer().getContractStart().toInstant()).isEqualTo(clock.instant());
-        assertThat(request.getContractOffer().getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(dto.getOffer().getValidity()));
+        assertThat(request.getContractOffer().getContractStart()).isEqualTo(clock.millis());
+        assertThat(request.getContractOffer().getContractEnd()).isEqualTo(Math.addExact(clock.millis(), dto.getOffer().getValidity()));
         assertThat(request.getContractOffer().getPolicy()).isNotNull();
     }
 }

@@ -48,7 +48,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
     @Override
     public @Nullable ContractOfferRequest transform(@NotNull NegotiationInitiateRequestDto object, @NotNull TransformerContext context) {
         // TODO: ContractOfferRequest should contain only the contractOfferId and the contract offer should be retrieved from the catalog. Ref #985
-        var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
+        var now = clock.millis();
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(object.getOffer().getOfferId())
                 .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
@@ -56,8 +56,8 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .consumer(URI.create("urn:connector:consumer"))
                 .provider(URI.create("urn:connector:provider"))
                 .policy(object.getOffer().getPolicy())
-                .contractStart(now.toInstant().toEpochMilli())
-                .contractEnd(now.plusSeconds(object.getOffer().getValidity()).toInstant().toEpochMilli())
+                .contractStart(now)
+                .contractEnd(Math.addExact(now,object.getOffer().getValidity()))
                 .build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
