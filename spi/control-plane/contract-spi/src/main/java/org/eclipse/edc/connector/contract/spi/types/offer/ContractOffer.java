@@ -62,11 +62,11 @@ public class ContractOffer {
     /**
      * Timestamp defining the start date when the contract becomes effective
      */
-    private ZonedDateTime contractStart;
+    private long contractStart;
     /**
      * Timestamp defining the end date when the contract becomes terminated
      */
-    private ZonedDateTime contractEnd;
+    private long contractEnd;
 
 
     @NotNull
@@ -95,12 +95,12 @@ public class ContractOffer {
     }
 
     @NotNull
-    public ZonedDateTime getContractStart() {
+    public long getContractStart() {
         return contractStart;
     }
 
     @NotNull
-    public ZonedDateTime getContractEnd() {
+    public long getContractEnd() {
         return contractEnd;
     }
 
@@ -177,12 +177,12 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder contractStart(ZonedDateTime date) {
+        public Builder contractStart(long date) {
             contractOffer.contractStart = date;
             return this;
         }
 
-        public Builder contractEnd(ZonedDateTime date) {
+        public Builder contractEnd(long date) {
             contractOffer.contractEnd = date;
             return this;
         }
@@ -196,8 +196,12 @@ public class ContractOffer {
             Objects.requireNonNull(contractOffer.id);
             Objects.requireNonNull(contractOffer.asset, "Asset must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
-            Objects.requireNonNull(contractOffer.contractStart, "Contract start must not be null");
-            Objects.requireNonNull(contractOffer.contractEnd, "Contract end must not be null");
+            if (contractOffer.contractStart == 0) {
+                throw new NullPointerException("Contract start must not be null");
+            }
+            if (contractOffer.contractEnd == 0) {
+                throw new NullPointerException("Contract end must not be null");
+            }
             return contractOffer;
         }
     }

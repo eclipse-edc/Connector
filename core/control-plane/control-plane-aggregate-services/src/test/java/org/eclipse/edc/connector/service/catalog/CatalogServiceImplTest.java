@@ -50,8 +50,8 @@ class CatalogServiceImplTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().toInstant().toEpochMilli())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         when(dispatcher.send(any(), any())).thenReturn(completedFuture(catalog))

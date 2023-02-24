@@ -310,7 +310,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var agreement = ContractAgreement.Builder.newInstance()
                 .id(ContractId.createContractId(definitionId))
                 .contractStartDate(clock.instant().getEpochSecond())
-                .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
+                .contractEndDate(lastOffer.getContractEnd())
                 .contractSigningDate(clock.instant().getEpochSecond())
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))
                 .consumerAgentId(String.valueOf(lastOffer.getConsumer()))

@@ -27,6 +27,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Objects;
@@ -87,17 +90,17 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
         builder._consumer_(object.getConsumer());
         builder._provider_(object.getProvider());
 
-        if (object.getContractStart() != null) {
+        if (Objects.isNull(object.getContractStart())) {
             try {
-                builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar.from(object.getContractStart()))));
+                builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar.from(ZonedDateTime.ofInstant(  Instant.ofEpochMilli(object.getContractStart()), ZoneId.systemDefault() ) ))));
             } catch (DatatypeConfigurationException e) {
                 context.reportProblem("cannot convert contract start time to XMLGregorian");
             }
         }
 
-        if (object.getContractEnd() != null) {
+        if (Objects.isNull(object.getContractEnd())) {
             try {
-                builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(((GregorianCalendar.from(object.getContractEnd())))));
+                builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(((GregorianCalendar.from(ZonedDateTime.ofInstant(  Instant.ofEpochMilli(object.getContractEnd()), ZoneId.systemDefault() ))))));
             } catch (DatatypeConfigurationException e) {
                 context.reportProblem("cannot convert contract end time to XMLGregorian");
             }

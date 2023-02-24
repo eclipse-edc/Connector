@@ -380,13 +380,15 @@ class ProviderContractNegotiationManagerImplTest {
                 .policy(Policy.Builder.newInstance().build());
     }
 
+    @Test
     private ContractOffer contractOffer() {
+
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId("1"))
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().toInstant().toEpochMilli())
                 .build();
     }
 

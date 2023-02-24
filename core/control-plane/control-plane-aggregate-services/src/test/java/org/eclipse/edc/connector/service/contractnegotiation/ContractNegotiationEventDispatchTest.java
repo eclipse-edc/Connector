@@ -135,8 +135,8 @@ class ContractNegotiationEventDispatchTest {
                 .policy(policy)
                 .consumer(URI.create("http://any"))
                 .provider(URI.create("http://any"))
-                .contractStart(now)
-                .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))
+                .contractStart(now.toInstant().toEpochMilli())
+                .contractEnd(now.plusSeconds(CONTRACT_VALIDITY).toInstant().toEpochMilli())
                 .build();
 
         return ContractOfferRequest.Builder.newInstance()

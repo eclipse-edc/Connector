@@ -267,8 +267,8 @@ class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().plusMonths(1).toInstant().toEpochMilli())
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
@@ -529,8 +529,8 @@ class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().plusMonths(1).toInstant().toEpochMilli())
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 

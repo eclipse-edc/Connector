@@ -188,8 +188,8 @@ class DescriptionRequestHandlerTest {
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .contractStart(ZonedDateTime.now().toInstant().toEpochMilli())
+                .contractEnd(ZonedDateTime.now().plusMonths(1).toInstant().toEpochMilli())
                 .build();
         var request = MultipartRequest.Builder.newInstance()
                 .header(descriptionRequestMessage(URI.create("urn:resource:" + assetId)))

@@ -56,8 +56,8 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .consumer(URI.create("urn:connector:consumer"))
                 .provider(URI.create("urn:connector:provider"))
                 .policy(object.getOffer().getPolicy())
-                .contractStart(now)
-                .contractEnd(now.plusSeconds(object.getOffer().getValidity()))
+                .contractStart(now.toInstant().toEpochMilli())
+                .contractEnd(now.plusSeconds(object.getOffer().getValidity()).toInstant().toEpochMilli())
                 .build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
