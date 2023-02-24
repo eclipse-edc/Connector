@@ -132,7 +132,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
         var contractEndTime = Long.MAX_VALUE;
         try {
-            contractEndTime = Math.addExact(clock.millis(),definition.getValidity());
+            contractEndTime = Math.addExact(clock.millis(), definition.getValidity());
         } catch (ArithmeticException exception) {
             monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
                     "Changing contractEndTime to Maximum value possible in the ContractOffer");
