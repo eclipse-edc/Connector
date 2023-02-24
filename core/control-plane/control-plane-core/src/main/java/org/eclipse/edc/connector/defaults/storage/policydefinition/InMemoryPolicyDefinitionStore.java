@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -62,6 +63,20 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
     public void save(PolicyDefinition policy) {
         try {
             lockManager.writeLock(() -> policiesById.put(policy.getUid(), policy));
+        } catch (Exception e) {
+            throw new EdcPersistenceException("Saving policy failed", e);
+        }
+    }
+
+    @Override
+    public PolicyDefinition update(String policyId, PolicyDefinition policy) {
+        try {
+            Objects.requireNonNull(policyId, "policyId");
+            Objects.requireNonNull(policy, "policy");
+            if (policiesById.containsKey(policyId)) {
+                lockManager.writeLock(() -> policiesById.put(policyId, policy));
+            }
+            return policiesById.get(policyId);
         } catch (Exception e) {
             throw new EdcPersistenceException("Saving policy failed", e);
         }

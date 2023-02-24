@@ -170,6 +170,48 @@ paths:
             \ by a contract definition"
       tags:
       - Policy
+  /policydefinitions/{policyId}:
+    put:
+      description: "Updates a policy definition with the given ID if it exists. If\
+        \ a policy definition is not found, no further action is taken\
+        \ DANGER ZONE: Note that updating policy definitions can have unexpected results,\
+        \ do this at your own risk!"
+      operationId: updatePolicy
+      parameters:
+      - in: path
+        name: policyId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
+      responses:
+        "200":
+          description: Policy definition was updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An policy definition with the given ID does not exist
+      tags:
+      - Policy
     get:
       description: Gets a policy definition with the given ID
       operationId: getPolicy
@@ -381,6 +423,14 @@ components:
         id:
           type: string
           example: null
+        policy:
+          $ref: '#/components/schemas/Policy'
+      required:
+      - policy
+    PolicyDefinitionUpdateDto:
+      type: object
+      example: null
+      properties:
         policy:
           $ref: '#/components/schemas/Policy'
       required:

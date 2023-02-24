@@ -19,7 +19,10 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservable;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -34,19 +37,17 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class PolicyDefinitionServiceImplTest {
 
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractDefinitionStore contractDefinitionStore = mock(ContractDefinitionStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
+    private final PolicyDefinitionObservable observable = mock(PolicyDefinitionObservable.class);
+    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable);
 
-    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, mock(PolicyDefinitionObservable.class));
 
     @Test
     void findById_shouldRelyOnPolicyStore() {
@@ -180,6 +181,39 @@ class PolicyDefinitionServiceImplTest {
                 qs.getFilterExpression().get(0).getOperandLeft().equals("contractPolicyId")));
     }
 
+    @Test
+    void updatePolicy_ifPolicyNotExists() {
+        var policy = createPolicy("policyId");
+        var updated = policyServiceImpl.update(policy.getUid(), policy);
+        assertThat(updated.succeeded()).isTrue();
+        assertThat(updated.getContent()).isEqualTo(policy);
+    }
+    @Test
+    void updatePolicy_shouldUpdateWhenExists() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+        when(policyStore.findById(anyString())).thenReturn(policy);
+
+        var updated = policyServiceImpl.update(policyId, policy);
+
+        assertThat(updated.succeeded()).isTrue();
+        verify(policyStore).save(eq(policy));
+        verify(observable).invokeForEach(any());
+    }
+
+    @Test
+    void updatePolicy_shouldReturnNotFound_whenNotExists() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+        when(policyStore.findById(anyString())).thenReturn(null);
+
+        var updated = policyServiceImpl.update(policyId, policy);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        verify(policyStore, never()).save(eq(policy));
+        verify(observable, never()).invokeForEach(any());
+    }
 
     @NotNull
     private Predicate<PolicyDefinition> hasId(String policyId) {
