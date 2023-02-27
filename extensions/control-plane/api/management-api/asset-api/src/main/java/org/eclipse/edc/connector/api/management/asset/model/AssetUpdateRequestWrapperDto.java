@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.asset.model;
 
-public class AssetUpdateRequestWrapperDto extends AssetRequestDto {
+public class AssetUpdateRequestWrapperDto {
 
     private AssetUpdateRequestDto requestDto;
     private String assetId;
