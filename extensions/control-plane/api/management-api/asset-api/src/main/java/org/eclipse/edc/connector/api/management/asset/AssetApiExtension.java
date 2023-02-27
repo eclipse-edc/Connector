@@ -19,7 +19,7 @@ package org.eclipse.edc.connector.api.management.asset;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetRequestDtoToAssetTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetToAssetResponseDtoTransformer;
-import org.eclipse.edc.connector.api.management.asset.transform.AssetUpdateDtoToAssetTransformer;
+import org.eclipse.edc.connector.api.management.asset.transform.AssetUpdateRequestWrapperDtoToAssetTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.DataAddressDtoToDataAddressTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.DataAddressToDataAddressDtoTransformer;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
@@ -61,7 +61,7 @@ public class AssetApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         transformerRegistry.register(new AssetRequestDtoToAssetTransformer());
-        transformerRegistry.register(new AssetUpdateDtoToAssetTransformer());
+        transformerRegistry.register(new AssetUpdateRequestWrapperDtoToAssetTransformer());
         transformerRegistry.register(new AssetToAssetResponseDtoTransformer());
         transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
         transformerRegistry.register(new DataAddressToDataAddressDtoTransformer());

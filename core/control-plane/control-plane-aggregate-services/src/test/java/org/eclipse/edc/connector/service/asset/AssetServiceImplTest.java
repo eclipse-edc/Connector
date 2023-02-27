@@ -232,6 +232,20 @@ class AssetServiceImplTest {
     }
 
     @Test
+    void updateAsset_shouldReturnBadRequest_whenAssetIdWrong() {
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        when(index.findById(assetId)).thenReturn(asset);
+
+        var updated = service.update("another-id", asset);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(index);
+        verifyNoInteractions(observable);
+    }
+
+    @Test
     void updateAsset_shouldReturnNotFound_whenNotExists() {
         var assetId = "assetId";
         var asset = createAsset(assetId);

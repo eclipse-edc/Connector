@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -112,6 +113,9 @@ public class AssetServiceImpl implements AssetService {
 
     @Override
     public ServiceResult<Void> update(String assetId, Asset asset) {
+        if (!Objects.equals(assetId, asset.getId())) {
+            return ServiceResult.badRequest("Asset.getId() must match assetId");
+        }
         return transactionContext.execute(() -> {
             if (findById(assetId) == null) {
                 return ServiceResult.notFound(format("Asset %s cannot be updated because it does not exist", assetId));
