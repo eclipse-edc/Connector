@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionDeleted;
+import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionUpdated;
 
 import java.time.Clock;
 
@@ -47,6 +48,16 @@ public class ContractDefinitionEventListener implements ContractDefinitionListen
     @Override
     public void deleted(ContractDefinition contractDefinition) {
         var event = ContractDefinitionDeleted.Builder.newInstance()
+                .contractDefinitionId(contractDefinition.getId())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void updated(ContractDefinition contractDefinition) {
+        var event = ContractDefinitionUpdated.Builder.newInstance()
                 .contractDefinitionId(contractDefinition.getId())
                 .at(clock.millis())
                 .build();

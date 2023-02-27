@@ -35,11 +35,14 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -150,6 +153,32 @@ class ContractDefinitionServiceImplTest {
         assertThat(deleted.succeeded()).isTrue();
         assertThat(deleted.getContent()).matches(hasId(definition.getId()));
         verify(listener).deleted(any());
+    }
+
+
+    @Test
+    void update_shouldUpdate_whenExists() {
+        var definition = createContractDefinition();
+        when(store.findById(definition.getId())).thenReturn(definition);
+
+        var updated = service.update(definition);
+
+        assertThat(updated.succeeded()).isTrue();
+        verify(store).update(eq(definition));
+        verify(listener).updated(any());
+    }
+
+    @Test
+    void update_shouldReturnNotFound_whenNotExists() {
+        var definition = createContractDefinition();
+        when(store.findById(definition.getId())).thenReturn(null);
+
+        var updated = service.update(definition);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        verify(store, never()).update(eq(definition));
+        verify(listener, never()).updated(any());
     }
 
     @NotNull

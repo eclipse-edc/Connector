@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ContractDefinitionRequestDtoValidationTest {
+class ContractDefinitionCreateDtoValidationTest {
 
     private Validator validator;
 
@@ -45,7 +45,7 @@ class ContractDefinitionRequestDtoValidationTest {
     @ParameterizedTest
     @ArgumentsSource(ValidArgsProvider.class)
     void validate_valid(String id, String accessPolicyId, String contractPolicyId, List<CriterionDto> criteria) {
-        var dto = ContractDefinitionRequestDto.Builder.newInstance()
+        var dto = ContractDefinitionCreateDto.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
@@ -60,7 +60,7 @@ class ContractDefinitionRequestDtoValidationTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidArgsProvider.class)
     void validate_invalid(String id, String accessPolicyId, String contractPolicyId, List<CriterionDto> criteria) {
-        var dto = ContractDefinitionRequestDto.Builder.newInstance()
+        var dto = ContractDefinitionCreateDto.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
