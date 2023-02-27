@@ -690,7 +690,7 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void deprovisioning_shouldTransitionToTerminatedOnFatalDeprovisionError() {
+    void deprovisioning_shouldTransitionToDeprovisionedWithErrorOnFatalDeprovisionError() {
         var manifest = ResourceManifest.Builder.newInstance()
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
@@ -715,8 +715,8 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
-            verify(listener).terminated(process);
+            verify(transferProcessStore).save(argThat(p -> p.getState() == DEPROVISIONED.code() && p.getErrorDetail() != null));
+            verify(listener).deprovisioned(process);
         });
     }
 
@@ -751,7 +751,7 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void deprovisioning_shouldTransitionToTerminatedOnDeprovisionException() {
+    void deprovisioning_shouldTransitionToDeprovisionedWithErrorOnDeprovisionFailure() {
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
@@ -764,21 +764,8 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
-            verify(listener).terminated(process);
-        });
-    }
-
-    @Test
-    void deprovisioned_shouldTransitionToTerminated() {
-        var process = createTransferProcess(DEPROVISIONED);
-        when(transferProcessStore.nextForState(eq(DEPROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
-            verify(listener).terminated(process);
+            verify(transferProcessStore).save(argThat(p -> p.getState() == DEPROVISIONED.code() && p.getErrorDetail() != null));
+            verify(listener).deprovisioned(process);
         });
     }
 

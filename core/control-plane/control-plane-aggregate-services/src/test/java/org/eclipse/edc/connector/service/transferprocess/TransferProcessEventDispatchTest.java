@@ -93,7 +93,6 @@ public class TransferProcessEventDispatchTest {
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessDeprovisioned.class));
-            verify(eventSubscriber).on(isA(TransferProcessTerminated.class));
         });
     }
 

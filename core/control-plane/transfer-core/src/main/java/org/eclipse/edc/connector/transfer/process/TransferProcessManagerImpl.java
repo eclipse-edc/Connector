@@ -70,7 +70,6 @@ import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_B
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
@@ -146,7 +145,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .processor(processTransfersInState(REQUESTED, this::processRequested))
                 .processor(processTransfersInState(STARTED, this::processStarted))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning))
-                .processor(processTransfersInState(DEPROVISIONED, this::processDeprovisioned))
                 .processor(onCommands(this::processCommand))
                 .build();
         stateMachineManager.start();
@@ -239,8 +237,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .orElse(Result.success());
 
         if (validationResult.failed()) {
-            var message = format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
-            transitionToError(transferProcess, message);
+            var message = format("Transitioning transfer process %s failed to deprovision. Errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
+            transitionToDeprovisioningError(transferProcess, message);
             return;
         }
 
@@ -456,24 +454,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                     if (throwable == null) {
                         handleDeprovisionResult(process.getId(), responses);
                     } else {
-                        transitionToError(process.getId(), throwable, "Error during deprovisioning");
+                        transitionToDeprovisioningError(process.getId(), throwable);
                     }
                 });
 
-        return true;
-    }
-
-    /**
-     * Process DEPROVISIONED transfer<p> Set it to TERMINATED.
-     *
-     * @param process the DEPROVISIONED transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private boolean processDeprovisioned(TransferProcess process) {
-        process.transitionTerminated();
-        updateTransferProcess(process, l -> l.preTerminated(process));
-        observable.invokeForEach(l -> l.terminated(process));
         return true;
     }
 
@@ -614,6 +598,23 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         process.transitionTerminated(message);
         updateTransferProcess(process, l -> l.preTerminated(process));
         observable.invokeForEach(l -> l.terminated(process));
+    }
+
+    private void transitionToDeprovisioningError(String processId, Throwable throwable) {
+        var transferProcess = transferProcessStore.find(processId);
+        if (transferProcess == null) {
+            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", processId));
+            return;
+        }
+
+        transitionToDeprovisioningError(transferProcess, throwable.getMessage());
+    }
+
+    private void transitionToDeprovisioningError(TransferProcess transferProcess, String message) {
+        monitor.severe(message);
+        transferProcess.transitionDeprovisioned(message);
+        updateTransferProcess(transferProcess, l -> l.preDeprovisioned(transferProcess));
+        observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
 
     private boolean processProviderRequest(TransferProcess process) {

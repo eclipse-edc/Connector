@@ -250,11 +250,16 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionDeprovisioning() {
-        transition(DEPROVISIONING, COMPLETED, DEPROVISIONING);
+        transition(DEPROVISIONING, COMPLETED, TERMINATED, DEPROVISIONING);
     }
 
     public void transitionDeprovisioningRequested() {
         transition(DEPROVISIONING_REQUESTED, DEPROVISIONING);
+    }
+
+    public void transitionDeprovisioned(String errorDetail) {
+        this.errorDetail = errorDetail;
+        transitionDeprovisioned();
     }
 
     public void transitionDeprovisioned() {
@@ -320,10 +325,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
-        if (end.code() < state) {
-            return; //we cannot transition "back"
-        }
-
         if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }
