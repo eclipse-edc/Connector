@@ -35,7 +35,7 @@ public class PolicyDefinitionUpdateDtoValidationTest {
     }
 
     @Test
-    void verifyValidation_assetDto_missingPolicy() {
+    void verifyValidation_policyDefinitionDto_missingPolicy() {
         var policy = PolicyDefinitionUpdateDto.Builder.newInstance()
                 .policy(null)
                 .build();

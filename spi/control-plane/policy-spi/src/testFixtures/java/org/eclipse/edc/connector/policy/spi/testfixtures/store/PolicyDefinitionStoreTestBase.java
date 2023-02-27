@@ -93,7 +93,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
 
     @Test
-    @DisplayName("Update Asset that does not yet exist")
+    @DisplayName("Update Policy that does not yet exist")
     void update_policyDoesNotExist() {
         var id = getRandomId();
         var policy = getPolicy(id, "target");
@@ -103,7 +103,7 @@ public abstract class PolicyDefinitionStoreTestBase {
     }
 
     @Test
-    @DisplayName("Update an Asset that exists, adding a property")
+    @DisplayName("Update an Policy that exists, adding a property")
     void update_policyExists() {
         var id = getRandomId();
         var policy = getPolicy(id, "target");
