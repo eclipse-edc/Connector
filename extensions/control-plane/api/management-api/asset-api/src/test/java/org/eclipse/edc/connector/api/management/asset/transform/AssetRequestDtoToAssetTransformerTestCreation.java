@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.asset.transform;
 
-import org.eclipse.edc.connector.api.management.asset.model.AssetRequestDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-class AssetRequestDtoToAssetTransformerTest {
+class AssetRequestDtoToAssetTransformerTestCreation {
 
     private final AssetRequestDtoToAssetTransformer transformer = new AssetRequestDtoToAssetTransformer();
 
@@ -37,7 +37,7 @@ class AssetRequestDtoToAssetTransformerTest {
     @Test
     void transform_id() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetRequestDto.Builder.newInstance().id("assetId").properties(Map.of("key", "value")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().id("assetId").properties(Map.of("key", "value")).build();
 
         var asset = transformer.transform(assetDto, context);
 
@@ -49,7 +49,7 @@ class AssetRequestDtoToAssetTransformerTest {
     @Test
     void transform_nullId() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetRequestDto.Builder.newInstance().properties(Map.of("key", "value")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Map.of("key", "value")).build();
 
         var asset = transformer.transform(assetDto, context);
 
@@ -61,7 +61,7 @@ class AssetRequestDtoToAssetTransformerTest {
     @Test
     void transform_idFromProperties() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "key", "value")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "key", "value")).build();
 
         var asset = transformer.transform(assetDto, context);
 

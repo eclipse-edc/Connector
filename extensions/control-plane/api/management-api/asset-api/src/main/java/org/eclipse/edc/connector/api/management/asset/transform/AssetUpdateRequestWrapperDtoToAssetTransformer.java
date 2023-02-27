@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -15,17 +15,16 @@
 package org.eclipse.edc.connector.api.management.asset.transform;
 
 import org.eclipse.edc.api.transformer.DtoTransformer;
-import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetCreationRequestDto, Asset> {
-
+public class AssetUpdateRequestWrapperDtoToAssetTransformer implements DtoTransformer<AssetUpdateRequestWrapperDto, Asset> {
     @Override
-    public Class<AssetCreationRequestDto> getInputType() {
-        return AssetCreationRequestDto.class;
+    public Class<AssetUpdateRequestWrapperDto> getInputType() {
+        return AssetUpdateRequestWrapperDto.class;
     }
 
     @Override
@@ -34,10 +33,10 @@ public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetCr
     }
 
     @Override
-    public @Nullable Asset transform(@NotNull AssetCreationRequestDto object, @NotNull TransformerContext context) {
+    public @Nullable Asset transform(@NotNull AssetUpdateRequestWrapperDto object, @NotNull TransformerContext context) {
         return Asset.Builder.newInstance()
-                .id(object.getId())
-                .properties(object.getProperties())
+                .properties(object.getRequestDto().getProperties())
+                .id(object.getAssetId())
                 .build();
     }
 }

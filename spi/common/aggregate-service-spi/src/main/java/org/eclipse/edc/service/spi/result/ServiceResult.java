@@ -48,6 +48,10 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
         return new ServiceResult<>(null, new ServiceFailure(messages, BAD_REQUEST));
     }
 
+    public static <T> ServiceResult<T> success() {
+        return ServiceResult.success(null);
+    }
+
     public ServiceFailure.Reason reason() {
         return getFailure().getReason();
     }
