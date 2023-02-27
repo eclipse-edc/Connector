@@ -37,7 +37,7 @@ public class PolicyDefinitionRequestDtoValidationTest {
     }
 
     @Test
-    void verifyValidation_assetDto_missingId() {
+    void verifyValidation_policyDefinitionDto_missingId() {
         PolicyDefinition policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var policy = PolicyDefinitionRequestDto.Builder.newInstance()
                 .policy(policyDefinition.getPolicy())
@@ -49,7 +49,7 @@ public class PolicyDefinitionRequestDtoValidationTest {
     }
 
     @Test
-    void verifyValidation_assetDto_missingPolicy() {
+    void verifyValidation_policyDefinitionDto_missingPolicy() {
         var policy = PolicyDefinitionRequestDto.Builder.newInstance()
                 .id("id")
                 .policy(null)
