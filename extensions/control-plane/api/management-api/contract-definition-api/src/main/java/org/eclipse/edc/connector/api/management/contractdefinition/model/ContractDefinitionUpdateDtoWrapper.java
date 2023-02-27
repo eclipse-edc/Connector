@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition.model;
 
+
 import java.util.Objects;
 
 public class ContractDefinitionUpdateDtoWrapper {
-
 
     private ContractDefinitionUpdateDto contractDefinition;
     private String id;

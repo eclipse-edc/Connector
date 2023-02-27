@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.junit.jupiter.api.BeforeEach;
@@ -224,7 +225,8 @@ class ContractDefinitionApiControllerIntegrationTest {
     @Test
     void updateContractDefinition_whenExists(ContractDefinitionStore store) {
 
-        store.accept(createContractDefinition("definitionId"));
+        var cd = createContractDefinition("definitionId");
+        store.accept(cd);
 
         var dto = updateDto();
 
@@ -235,7 +237,24 @@ class ContractDefinitionApiControllerIntegrationTest {
                 .then()
                 .statusCode(204);
 
-        assertThat(store.findAll(QuerySpec.max())).hasSize(1);
+
+        assertThat(store.findAll(QuerySpec.max()))
+                .hasSize(1)
+                .allSatisfy((contractDefinition) -> {
+                    var assetSelector = AssetSelectorExpression.Builder.newInstance()
+                            .criteria(List.of(new Criterion("updatedLeft", "=", "updatedRight")))
+                            .build();
+                    
+                    var contractDefinitionUpdated = ContractDefinition.Builder.newInstance()
+                            .id("definitionId")
+                            .accessPolicyId(dto.getAccessPolicyId())
+                            .contractPolicyId(dto.getContractPolicyId())
+                            .selectorExpression(assetSelector)
+                            .validity(dto.getValidity())
+                            .createdAt(contractDefinition.getCreatedAt())
+                            .build();
+                    assertThat(contractDefinition).usingRecursiveComparison().isEqualTo(contractDefinitionUpdated);
+                });
     }
 
     @Test
@@ -249,6 +268,7 @@ class ContractDefinitionApiControllerIntegrationTest {
                 .put("/contractdefinitions/definitionId")
                 .then()
                 .statusCode(404);
+
 
         assertThat(store.findAll(QuerySpec.max())).hasSize(0);
     }
@@ -266,9 +286,10 @@ class ContractDefinitionApiControllerIntegrationTest {
         return ContractDefinitionUpdateDto.Builder.newInstance()
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
-                .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
+                .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("updatedLeft").operator("=").operandRight("updatedRight").build()))
                 .build();
     }
+
 
     private ContractDefinition createContractDefinition(String id) {
         return ContractDefinition.Builder.newInstance()
