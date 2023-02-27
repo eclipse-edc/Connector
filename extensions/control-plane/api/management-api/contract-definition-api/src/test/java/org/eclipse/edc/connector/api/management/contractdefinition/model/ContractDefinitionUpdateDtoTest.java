@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.edc.connector.api.management.contractdefinition.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
