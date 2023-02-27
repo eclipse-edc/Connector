@@ -78,7 +78,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
             }
             return policiesById.get(policyId);
         } catch (Exception e) {
-            throw new EdcPersistenceException("Saving policy failed", e);
+            throw new EdcPersistenceException("Updating policy failed", e);
         }
     }
 
