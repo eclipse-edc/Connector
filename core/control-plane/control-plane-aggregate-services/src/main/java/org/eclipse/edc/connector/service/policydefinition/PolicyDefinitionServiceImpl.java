@@ -131,7 +131,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
         return transactionContext.execute(() -> {
             if (policyStore.findById(policyId) == null) {
-                return ServiceResult.notFound(format("PolicyDefinition %s cannot be updated because it does not exists", policyDefinition.getUid()));
+                return ServiceResult.notFound(format("PolicyDefinition %s cannot be updated because it does not exists", policyId));
             } else {
                 PolicyDefinition updatedPolicyDefinition = PolicyDefinition.Builder.newInstance()
                         .policy(policyDefinition.getPolicy())
