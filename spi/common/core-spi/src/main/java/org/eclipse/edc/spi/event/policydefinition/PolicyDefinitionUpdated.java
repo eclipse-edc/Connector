@@ -15,7 +15,7 @@
 package org.eclipse.edc.spi.event.policydefinition;
 
 /**
- * Describe a PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.
+ * Describe a PolicyDefinition update, after this has emitted, a PolicyDefinition with a certain id will be available/updated.
  */
 public class PolicyDefinitionUpdated extends PolicyDefinitionEvent<PolicyDefinitionUpdated.Payload> {
 
@@ -23,7 +23,7 @@ public class PolicyDefinitionUpdated extends PolicyDefinitionEvent<PolicyDefinit
     }
 
     /**
-     * This class contains all event specific attributes of a PolicyDefinition Deletion Event
+     * This class contains all event specific attributes of a PolicyDefinition Update Event
      *
      */
     public static class Payload extends PolicyDefinitionEvent.Payload {

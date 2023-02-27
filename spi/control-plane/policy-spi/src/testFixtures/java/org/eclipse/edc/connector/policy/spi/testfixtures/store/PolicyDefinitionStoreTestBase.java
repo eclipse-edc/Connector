@@ -90,6 +90,38 @@ public abstract class PolicyDefinitionStoreTestBase {
                 .extracting(PolicyDefinition::getCreatedAt).isEqualTo(policy2.getCreatedAt());
     }
 
+
+
+    @Test
+    @DisplayName("Update Asset that does not yet exist")
+    void update_policyDoesNotExist() {
+        var id = getRandomId();
+        var policy = getPolicy(id, "target");
+
+        var updated = getPolicyDefinitionStore().update(id, policy);
+        assertThat(updated).isNull();
+    }
+
+    @Test
+    @DisplayName("Update an Asset that exists, adding a property")
+    void update_policyExists() {
+        var id = getRandomId();
+        var policy = getPolicy(id, "target");
+
+        getPolicyDefinitionStore().save(policy);
+
+        var newPolicy = createPolicy(id, "target2");
+        var result = getPolicyDefinitionStore().update(id, newPolicy);
+
+        var spec = QuerySpec.Builder.newInstance().build();
+        var policyFromDb = getPolicyDefinitionStore().findAll(spec);
+
+        Assertions.assertThat(policyFromDb).hasSize(1).first();
+        assertThat(result).isNotNull();
+        assertThat(result.getPolicy().getTarget()).isEqualTo("target2");
+        assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(newPolicy);
+    }
+
     @Test
     @DisplayName("Find policy by ID that exists")
     void findById_whenPresent() {
@@ -534,4 +566,15 @@ public abstract class PolicyDefinitionStoreTestBase {
     private String getRandomId() {
         return UUID.randomUUID().toString();
     }
+
+
+    private static PolicyDefinition getPolicy(String id, String target) {
+        return PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .target(target)
+                        .build())
+                .id(id)
+                .build();
+    }
+
 }
