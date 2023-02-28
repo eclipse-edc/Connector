@@ -23,7 +23,7 @@ import org.eclipse.edc.policy.model.Policy;
 import java.util.Objects;
 
 @JsonDeserialize(builder = PolicyDefinitionRequestDto.Builder.class)
-public class PolicyDefinitionRequestDto extends PolicyDefinitionDto{
+public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
 
     private String id;
     @NotNull
@@ -58,7 +58,7 @@ public class PolicyDefinitionRequestDto extends PolicyDefinitionDto{
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends PolicyDefinitionDto.Builder<PolicyDefinitionRequestDto, PolicyDefinitionRequestDto.Builder>{
+    public static final class Builder extends PolicyDefinitionDto.Builder<PolicyDefinitionRequestDto, PolicyDefinitionRequestDto.Builder> {
 
         private Builder() {
             super(new PolicyDefinitionRequestDto());
@@ -83,6 +83,7 @@ public class PolicyDefinitionRequestDto extends PolicyDefinitionDto{
         public PolicyDefinitionRequestDto.Builder self() {
             return this;
         }
+
         public PolicyDefinitionRequestDto build() {
             return dto;
         }
