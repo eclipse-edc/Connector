@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.api.management.policy.transform;
 
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -22,9 +23,9 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-class PolicyDefinitionUpdateDtoToPolicyDefinitionTransformerTest {
+class PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformerTest {
 
-    private final PolicyDefinitionUpdateDtoToPolicyDefinitionTransformer transformer = new PolicyDefinitionUpdateDtoToPolicyDefinitionTransformer();
+    private final PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer transformer = new PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer();
 
     @Test
     void inputOutputType() {
@@ -35,14 +36,15 @@ class PolicyDefinitionUpdateDtoToPolicyDefinitionTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
-        var policyDefinitionDto = PolicyDefinitionUpdateDto.Builder.newInstance()
-                .policy(Policy.Builder.newInstance().build())
+        var policyDefinitionDto = PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
+                .updateRequest(PolicyDefinitionUpdateDto.Builder.newInstance()
+                        .policy(Policy.Builder.newInstance().build()).build())
                 .build();
 
         var policyDefinition = transformer.transform(policyDefinitionDto, context);
 
         assertThat(policyDefinition).isNotNull();
-        assertThat(policyDefinition.getPolicy()).isEqualTo(policyDefinitionDto.getPolicy());
+        assertThat(policyDefinition.getPolicy()).isEqualTo(policyDefinitionDto.getUpdateDto().getPolicy());
         assertThat(policyDefinition.getCreatedAt()).isNotEqualTo(0L); //should be set automatically
     }
 

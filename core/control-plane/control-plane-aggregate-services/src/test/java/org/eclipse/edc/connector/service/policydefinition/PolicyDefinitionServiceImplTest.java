@@ -33,6 +33,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class PolicyDefinitionServiceImplTest {
 
@@ -216,6 +218,20 @@ class PolicyDefinitionServiceImplTest {
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
         verify(policyStore, never()).save(eq(policy));
         verify(observable, never()).invokeForEach(any());
+    }
+
+    @Test
+    void updatePolicy_shouldReturnBadRequest_whenPolicyIdWrong() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+        when(policyStore.findById(anyString())).thenReturn(policy);
+
+        var updated = policyServiceImpl.update("another-id", policy);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(policyStore);
+        verifyNoInteractions(observable);
     }
 
     @NotNull
