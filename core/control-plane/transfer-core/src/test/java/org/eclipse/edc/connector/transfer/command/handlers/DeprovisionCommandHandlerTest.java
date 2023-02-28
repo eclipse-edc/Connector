@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -67,13 +68,12 @@ class DeprovisionCommandHandlerTest {
     @Test
     void handle_transitionNotAllowed() {
         var cmd = new DeprovisionRequest("test-id");
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code())
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(STARTED.code())
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
 
-
         when(storeMock.find(anyString())).thenReturn(tp);
-        assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(IllegalStateException.class).hasMessage("Cannot transition from state IN_PROGRESS to DEPROVISIONING");
+        assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(IllegalStateException.class).hasMessage("Cannot transition from state STARTED to DEPROVISIONING");
         assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
     }
 

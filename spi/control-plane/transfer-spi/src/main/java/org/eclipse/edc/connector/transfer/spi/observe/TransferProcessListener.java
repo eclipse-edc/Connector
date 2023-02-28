@@ -74,11 +74,23 @@ public interface TransferProcessListener {
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#IN_PROGRESS IN_PROGRESS}, but before the change is persisted.
+     * {@link TransferProcessStates#STARTED STARTED}, but before the change is persisted.
+     *
+     * @param process the transfer process whose state has changed.
+     * @deprecated please use preStarted instead
+     */
+    @Deprecated(since = "milestone9")
+    default void preInProgress(TransferProcess process) {
+        preStarted(process);
+    }
+
+    /**
+     * Called after a {@link TransferProcess} has moved to state
+     * {@link TransferProcessStates#STARTED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void preInProgress(TransferProcess process) {
+    default void preStarted(TransferProcess process) {
     }
 
     /**
@@ -110,20 +122,35 @@ public interface TransferProcessListener {
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#ENDED ENDED}, but before the change is persisted.
+     * {@link TransferProcessStates#TERMINATED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void preEnded(TransferProcess process) {
+    default void preTerminated(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#ERROR ERROR}, but before the change is persisted.
+     * {@link TransferProcessStates#TERMINATED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated please use preTerminated instead
      */
+    @Deprecated(since = "milestone9")
+    default void preEnded(TransferProcess process) {
+        preTerminated(process);
+    }
+
+    /**
+     * Called after a {@link TransferProcess} has moved to state
+     * {@link TransferProcessStates#TERMINATED}, but before the change is persisted.
+     *
+     * @param process the transfer process whose state has changed.
+     * @deprecated please use preTerminated instead
+     */
+    @Deprecated(since = "milestone9")
     default void preError(TransferProcess process) {
+        preTerminated(process);
     }
 
     /**
@@ -190,21 +217,34 @@ public interface TransferProcessListener {
     }
 
     /**
+     * Called after a {@link TransferProcess} was terminated.
+     *
+     * @param process the transfer process that has been terminated.
+     */
+    default void terminated(TransferProcess process) {
+
+    }
+
+    /**
      * Called after a {@link TransferProcess} was ended.
      *
      * @param process the transfer process that has been ended.
+     * @deprecated please use terminated instead
      */
+    @Deprecated(since = "milestone9")
     default void ended(TransferProcess process) {
-
+        terminated(process);
     }
 
     /**
      * Called after a {@link TransferProcess} was cancelled.
      *
      * @param process the transfer process that has been cancelled.
+     * @deprecated please use terminated instead
      */
+    @Deprecated(since = "milestone9")
     default void cancelled(TransferProcess process) {
-
+        terminated(process);
     }
 
     /**

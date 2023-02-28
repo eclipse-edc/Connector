@@ -21,6 +21,8 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
 
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+
 /**
  * Completes a transfer process and sends it to the {@link TransferProcessStates#COMPLETED} state.
  */
@@ -40,7 +42,7 @@ public class CompleteTransferCommandHandler extends SingleTransferProcessCommand
 
     @Override
     protected boolean modify(TransferProcess process, CompleteTransferCommand command) {
-        if (process.getState() == TransferProcessStates.IN_PROGRESS.code()) {
+        if (process.getState() == STARTED.code()) {
             process.transitionCompleted();
             return true;
         }

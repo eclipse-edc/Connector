@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,7 +53,7 @@ class FailTransferCommandHandlerTest {
     @Test
     void handle() {
         var cmd = new FailTransferCommand("test-id", "error");
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code())
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(STARTED.code())
                 .updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
@@ -60,18 +61,18 @@ class FailTransferCommandHandlerTest {
         when(store.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
-        assertThat(tp.getState()).isEqualTo(TransferProcessStates.ERROR.code());
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.TERMINATED.code());
         assertThat(tp.getErrorDetail()).isEqualTo("error");
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
         verify(store).find(anyString());
         verify(store).save(tp);
         verifyNoMoreInteractions(store);
-        verify(listener).failed(tp);
+        verify(listener).terminated(tp);
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED" })
     void handle_illegalState(TransferProcessStates targetState) {
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();

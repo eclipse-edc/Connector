@@ -182,7 +182,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         // Attempt the transition only to verify that the transition is allowed.
         // The updated transfer process is not persisted at this point, and is discarded.
         try {
-            transferProcess.transitionCancelled();
+            transferProcess.transitionTerminated();
         } catch (IllegalStateException e) {
             return ServiceResult.conflict(format("TransferProcess %s cannot be canceled as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
         }
@@ -226,7 +226,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
             // Attempt the transition only to verify that the transition is allowed.
             // The updated transfer process is not persisted at this point, and is discarded.
             try {
-                transferProcess.transitionError(failReason);
+                transferProcess.transitionTerminated(failReason);
             } catch (IllegalStateException e) {
                 return ServiceResult.conflict(format("Cannot fail TransferProcess %s as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
             }

@@ -30,11 +30,13 @@ import java.util.UUID;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 
 
 class TransferProcessTest {
@@ -84,46 +86,34 @@ class TransferProcessTest {
     void verifyConsumerTransitions() {
         var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
 
-        // test illegal transition
-        assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
-        process.transitionInitial();
-
-        // test illegal transition
-        assertThrows(IllegalStateException.class, process::transitionProvisioned);
-
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         process.transitionProvisioned();
 
         process.transitionRequesting();
         process.transitionRequested();
 
-        // test illegal transition
-        assertThrows(IllegalStateException.class, process::transitionEnded);
-
-        process.transitionInProgress();
+        process.transitionStarted();
         process.transitionCompleted();
 
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
-        process.transitionEnded();
+        process.transitionTerminated();
     }
 
     @Test
     void verifyProviderTransitions() {
         var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
 
-        process.transitionInitial();
-
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         process.transitionProvisioned();
 
         // no request or ack on provider
-        process.transitionInProgress();
+        process.transitionStarted();
         process.transitionCompleted();
 
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
-        process.transitionEnded();
+        process.transitionTerminated();
     }
 
     @Test
@@ -217,27 +207,27 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "TERMINATED" })
     void verifyCancel_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .state(state.code())
                 .build();
 
-        transferProcess.transitionCancelled();
+        transferProcess.transitionTerminated();
 
-        assertThat(transferProcess.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
+        assertThat(transferProcess.getState()).isEqualTo(TERMINATED.code());
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.INCLUDE)
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED" })
     void verifyCancel_invalidStates(TransferProcessStates state) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .state(state.code())
                 .build();
 
-        assertThatThrownBy(process::transitionCancelled).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(process::transitionTerminated).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -314,7 +304,6 @@ class TransferProcessTest {
 
         assertThat(process.deprovisionComplete()).isTrue();
     }
-
 
     @Test
     void verifyDeprovisionNotComplete() {

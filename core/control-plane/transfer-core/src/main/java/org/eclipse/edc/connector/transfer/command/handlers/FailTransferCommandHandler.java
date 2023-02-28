@@ -21,8 +21,10 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+
 /**
- * Fails a transfer process and sends it to the {@link TransferProcessStates#ERROR} state.
+ * Fails a transfer process and sends it to the {@link TransferProcessStates#TERMINATED} state.
  */
 public class FailTransferCommandHandler extends SingleTransferProcessCommandHandler<FailTransferCommand> {
 
@@ -40,8 +42,8 @@ public class FailTransferCommandHandler extends SingleTransferProcessCommandHand
 
     @Override
     protected boolean modify(TransferProcess process, FailTransferCommand command) {
-        if (process.getState() == TransferProcessStates.IN_PROGRESS.code()) {
-            process.transitionError(command.getErrorMessage());
+        if (process.getState() == STARTED.code()) {
+            process.transitionTerminated(command.getErrorMessage());
             return true;
         }
         return false;
@@ -50,6 +52,6 @@ public class FailTransferCommandHandler extends SingleTransferProcessCommandHand
 
     @Override
     protected void postAction(TransferProcess process) {
-        observable.invokeForEach(l -> l.failed(process));
+        observable.invokeForEach(l -> l.terminated(process));
     }
 }

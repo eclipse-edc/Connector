@@ -32,9 +32,9 @@ else
 if "" then
     --> [consumer] REQUESTING
     --> REQUESTED
-    --> IN PROGRESS | STREAMING
+    --> STARTED
 else
-    --> [provider] IN PROGRESS | STREAMING
+    --> [provider] STARTED
 --> COMPLETED
 --> DEPROVISIONING
 if "async deprovisioning" then
@@ -42,7 +42,7 @@ if "async deprovisioning" then
     --> DEPROVISIONED
 else
     --> DEPROVISIONED
---> ENDED
+--> TERMINATED
 --> (*)
 
 @enduml

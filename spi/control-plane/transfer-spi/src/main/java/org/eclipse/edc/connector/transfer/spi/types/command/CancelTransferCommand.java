@@ -16,7 +16,7 @@
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
 /**
- * Cancels a transfer process by sending it to the ERROR state
+ * Cancels a transfer process by sending it to the TERMINATED state
  */
 public class CancelTransferCommand extends SingleTransferProcessCommand {
 
