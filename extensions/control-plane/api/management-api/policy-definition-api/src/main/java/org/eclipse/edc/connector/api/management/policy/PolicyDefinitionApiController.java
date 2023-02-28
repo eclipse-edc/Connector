@@ -114,8 +114,8 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @PUT
     @Path("{policyId}")
     @Override
-    public void updatePolicy(@PathParam("policyId") String policyId, PolicyDefinitionUpdateDto updateDto) {
-        var transformResult = transformerRegistry.transform(updateDto, PolicyDefinition.class);
+    public void updatePolicy(@PathParam("policyId") String policyId, PolicyDefinitionUpdateDto updatedPolicyDefinition) {
+        var transformResult = transformerRegistry.transform(updatedPolicyDefinition, PolicyDefinition.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
         }
