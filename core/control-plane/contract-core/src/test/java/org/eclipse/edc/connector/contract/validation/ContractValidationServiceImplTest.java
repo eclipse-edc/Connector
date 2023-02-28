@@ -60,6 +60,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class ContractValidationServiceImplTest {
 
     private final Instant now = Instant.now();
@@ -72,6 +73,14 @@ class ContractValidationServiceImplTest {
     private final PolicyEngine policyEngine = mock(PolicyEngine.class);
     private final PolicyEquality policyEquality = mock(PolicyEquality.class);
     private ContractValidationServiceImpl validationService;
+
+    private static ContractAgreement.Builder createContractAgreement() {
+        return ContractAgreement.Builder.newInstance().id("1")
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .policy(Policy.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString());
+    }
 
     @BeforeEach
     void setUp() {
@@ -104,7 +113,7 @@ class ContractValidationServiceImplTest {
         assertThat(validatedOffer.getAsset()).isEqualTo(asset);
         assertThat(validatedOffer.getContractStart()).isEqualTo(clock.millis());
         //assertThat(Instant.ofEpochMilli(validatedOffer.getContractEnd())).isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
-        assertThat(validatedOffer.getContractEnd()).isEqualTo(Math.addExact(clock.millis(),contractDefinition.getValidity()));
+        assertThat(validatedOffer.getContractEnd()).isEqualTo(Math.addExact(clock.millis(), contractDefinition.getValidity()));
         assertThat(validatedOffer.getConsumer()).isEqualTo(offer.getConsumer());
         assertThat(validatedOffer.getProvider()).isEqualTo(offer.getProvider());
         verify(agentService).createFor(isA(ClaimToken.class));
@@ -307,14 +316,6 @@ class ContractValidationServiceImplTest {
     @NotNull
     private ContractOffer createContractOffer() {
         return createContractOffer(Asset.Builder.newInstance().build(), Policy.Builder.newInstance().build(), TimeUnit.DAYS.toSeconds(1));
-    }
-
-    private static ContractAgreement.Builder createContractAgreement() {
-        return ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString());
     }
 
     private ContractDefinition createContractDefinition() {
