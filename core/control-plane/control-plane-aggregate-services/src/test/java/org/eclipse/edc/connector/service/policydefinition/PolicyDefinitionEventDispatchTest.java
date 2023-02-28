@@ -66,15 +66,15 @@ public class PolicyDefinitionEventDispatchTest {
             verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
         });
 
+        service.update(policyDefinition.getUid(), policyDefinition);
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(PolicyDefinitionUpdated.class));
+        });
+
         service.deleteById(policyDefinition.getUid());
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
 
-        });
-
-        service.update(policyDefinition.getUid(), policyDefinition);
-        await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(PolicyDefinitionUpdated.class));
         });
     }
 }

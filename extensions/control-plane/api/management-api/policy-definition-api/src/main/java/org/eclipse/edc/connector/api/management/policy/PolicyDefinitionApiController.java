@@ -32,6 +32,7 @@ import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.policy.model.Policy;
@@ -115,7 +116,11 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Path("{policyId}")
     @Override
     public void updatePolicy(@PathParam("policyId") String policyId, PolicyDefinitionUpdateDto updatedPolicyDefinition) {
-        var transformResult = transformerRegistry.transform(updatedPolicyDefinition, PolicyDefinition.class);
+        PolicyDefinitionUpdateWrapperDto wrapper = PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
+                .policyId(policyId)
+                .updateRequest(updatedPolicyDefinition)
+                .build();
+        var transformResult = transformerRegistry.transform(wrapper, PolicyDefinition.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
         }

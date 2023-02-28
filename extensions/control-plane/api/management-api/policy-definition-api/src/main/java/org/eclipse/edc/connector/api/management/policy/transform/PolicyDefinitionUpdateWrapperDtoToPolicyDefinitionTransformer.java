@@ -15,17 +15,17 @@
 package org.eclipse.edc.connector.api.management.policy.transform;
 
 import org.eclipse.edc.api.transformer.DtoTransformer;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PolicyDefinitionUpdateDtoToPolicyDefinitionTransformer implements DtoTransformer<PolicyDefinitionUpdateDto, PolicyDefinition> {
+public class PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer implements DtoTransformer<PolicyDefinitionUpdateWrapperDto, PolicyDefinition> {
 
     @Override
-    public Class<PolicyDefinitionUpdateDto> getInputType() {
-        return PolicyDefinitionUpdateDto.class;
+    public Class<PolicyDefinitionUpdateWrapperDto> getInputType() {
+        return PolicyDefinitionUpdateWrapperDto.class;
     }
 
     @Override
@@ -34,9 +34,10 @@ public class PolicyDefinitionUpdateDtoToPolicyDefinitionTransformer implements D
     }
 
     @Override
-    public @Nullable PolicyDefinition transform(@NotNull PolicyDefinitionUpdateDto object, @NotNull TransformerContext context) {
+    public @Nullable PolicyDefinition transform(@NotNull PolicyDefinitionUpdateWrapperDto object, @NotNull TransformerContext context) {
         return PolicyDefinition.Builder.newInstance()
-                .policy(object.getPolicy())
+                .policy(object.getUpdateDto().getPolicy())
+                .id(object.getPolicyId())
                 .build();
     }
 }
