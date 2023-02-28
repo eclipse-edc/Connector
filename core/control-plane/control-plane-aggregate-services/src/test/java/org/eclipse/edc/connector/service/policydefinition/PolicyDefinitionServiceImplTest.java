@@ -188,8 +188,8 @@ class PolicyDefinitionServiceImplTest {
     void updatePolicy_ifPolicyNotExists() {
         var policy = createPolicy("policyId");
         var updated = policyServiceImpl.update(policy.getUid(), policy);
-        assertThat(updated.succeeded()).isTrue();
-        assertThat(updated.getContent()).isEqualTo(policy);
+        assertThat(updated.succeeded()).isFalse();
+        assertThat(updated.getContent()).isNull();
     }
     @Test
     void updatePolicy_shouldUpdateWhenExists() {
@@ -200,7 +200,7 @@ class PolicyDefinitionServiceImplTest {
         var updated = policyServiceImpl.update(policyId, policy);
 
         assertThat(updated.succeeded()).isTrue();
-        verify(policyStore).save(eq(policy));
+        verify(policyStore).update(eq(policyId), eq(policy));
         verify(observable).invokeForEach(any());
     }
 

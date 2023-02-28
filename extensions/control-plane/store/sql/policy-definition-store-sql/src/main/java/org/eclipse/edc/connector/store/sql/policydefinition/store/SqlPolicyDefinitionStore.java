@@ -95,7 +95,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         Objects.requireNonNull(policy);
         transactionContext.execute(() -> {
             if (findById(policy.getUid()) != null) {
-                update(policy);
+                update(policy, policy.getUid());
             } else {
                 insert(policy);
             }
@@ -103,11 +103,11 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     }
 
     @Override
-    public PolicyDefinition update(String policyId, PolicyDefinition policy) {
-        Objects.requireNonNull(policy);
+    public PolicyDefinition update(String policyId, PolicyDefinition policyDefinition) {
+        Objects.requireNonNull(policyDefinition);
         return transactionContext.execute(() -> {
-            update(policy);
-            return policy;
+            update(policyDefinition, policyId);
+            return policyDefinition;
         });
     }
 
@@ -150,11 +150,10 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         });
     }
 
-    private void update(PolicyDefinition def) {
+    private void update(PolicyDefinition def, String policyId) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var policy = def.getPolicy();
-                var id = def.getUid();
                 executeQuery(connection, statements.getUpdateTemplate(),
                         toJson(policy.getPermissions(), permissionListType),
                         toJson(policy.getProhibitions(), prohibitionListType),
@@ -165,7 +164,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                         policy.getAssignee(),
                         policy.getTarget(),
                         toJson(policy.getType(), policyType),
-                        id);
+                        policyId);
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
