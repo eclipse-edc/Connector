@@ -125,6 +125,25 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
         });
     }
 
+
+    @Override
+    public @NotNull ServiceResult<Void> update(String policyId, PolicyDefinition policyDefinition) {
+
+        return transactionContext.execute(() -> {
+            if (policyStore.findById(policyId) == null) {
+                return ServiceResult.notFound(format("PolicyDefinition %s cannot be updated because it does not exists", policyId));
+            } else {
+                PolicyDefinition updatedPolicyDefinition = PolicyDefinition.Builder.newInstance()
+                        .policy(policyDefinition.getPolicy())
+                        .id(policyId)
+                        .build(); // to make sure policyDefinition does not have a random ID
+                policyStore.update(policyId, updatedPolicyDefinition);
+                observable.invokeForEach(l -> l.updated(updatedPolicyDefinition));
+                return ServiceResult.success(null);
+            }
+        });
+    }
+
     private Map<Class<?>, List<Class<?>>> getSubtypeMap() {
         return Map.of(
                 Constraint.class, List.of(MultiplicityConstraint.class, AtomicConstraint.class),

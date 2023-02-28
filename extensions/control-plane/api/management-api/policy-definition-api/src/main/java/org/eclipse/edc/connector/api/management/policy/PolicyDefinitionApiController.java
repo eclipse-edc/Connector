@@ -21,6 +21,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -30,6 +31,7 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.policy.model.Policy;
@@ -107,6 +109,19 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
                 .createdAt(resultContent.getCreatedAt())
                 .build();
 
+    }
+
+    @PUT
+    @Path("{policyId}")
+    @Override
+    public void updatePolicy(@PathParam("policyId") String policyId, PolicyDefinitionUpdateDto updatedPolicyDefinition) {
+        var transformResult = transformerRegistry.transform(updatedPolicyDefinition, PolicyDefinition.class);
+        if (transformResult.failed()) {
+            throw new InvalidRequestException(transformResult.getFailureMessages());
+        }
+
+        policyDefinitionService.update(policyId, transformResult.getContent()).orElseThrow(exceptionMapper(PolicyDefinition.class, policyId));
+        monitor.debug(format("Policy definition updated %s", policyId));
     }
 
     @DELETE

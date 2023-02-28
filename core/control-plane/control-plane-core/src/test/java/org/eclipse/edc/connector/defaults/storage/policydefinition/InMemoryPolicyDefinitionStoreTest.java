@@ -88,6 +88,32 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
         assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query)).isInstanceOfAny(EdcPersistenceException.class);
     }
 
+    @Test
+    void update_whenPolicyNotExists() {
+        var policy = createPolicy("test-id");
+        var result = getPolicyDefinitionStore().update("test-id", policy);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void update_whenPolicyExists() {
+        var policy = createPolicy("test-id");
+        getPolicyDefinitionStore().save(policy);
+
+        policy.getPolicy().getExtensibleProperties().put("anotherKey", "anotherVal");
+
+        var result = getPolicyDefinitionStore().update("test-id", policy);
+        assertThat(result.getPolicy().getExtensibleProperties()).containsEntry("anotherKey", "anotherVal");
+    }
+
+    @Test
+    void update_throwsException() {
+        var policy = createPolicy("test-id");
+        getPolicyDefinitionStore().save(policy);
+
+        doThrow(new RuntimeException()).when(manager).writeLock(any());
+        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.update("test-id", createPolicyDef()));
+    }
 
     @Override
     protected PolicyDefinitionStore getPolicyDefinitionStore() {

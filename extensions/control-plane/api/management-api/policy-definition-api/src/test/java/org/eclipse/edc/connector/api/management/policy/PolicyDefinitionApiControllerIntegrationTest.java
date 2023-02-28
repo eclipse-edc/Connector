@@ -173,6 +173,39 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     }
 
     @Test
+    void put_whenPolicyExists(PolicyDefinitionStore policyStore) {
+        var policy = createPolicy("policyDefId");
+        policyStore.save(policy);
+
+        policy.getPolicy().getExtensibleProperties().put("anotherKey", "anotherVal");
+
+        baseRequest()
+                .body(policy)
+                .contentType(JSON)
+                .put("/policydefinitions/policyDefId")
+                .then()
+                .statusCode(204);
+
+        var found = policyStore.findById("policyDefId");
+        assertThat(found).isNotNull();
+        assertThat(found.getPolicy().getExtensibleProperties()).containsEntry("anotherKey", "anotherVal");
+    }
+
+    @Test
+    void put_whenPolicyNotExists(PolicyDefinitionStore policyStore) {
+        var policy = createPolicy("policyId");
+
+        baseRequest()
+                .body(policy)
+                .contentType(JSON)
+                .put("/policydefinitions/policyId")
+                .then()
+                .statusCode(404);
+
+        assertThat(policyStore.findById("policyId")).isNull();
+    }
+
+    @Test
     void postPolicyId_alreadyExists(PolicyDefinitionStore policyStore) {
         policyStore.save(createPolicy("id"));
 

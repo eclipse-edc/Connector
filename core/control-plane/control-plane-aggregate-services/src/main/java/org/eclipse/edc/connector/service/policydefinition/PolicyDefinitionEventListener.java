@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionListener;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
+import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionUpdated;
 
 import java.time.Clock;
 
@@ -47,6 +48,16 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     @Override
     public void deleted(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionDeleted.Builder.newInstance()
+                .policyDefinitionId(policyDefinition.getUid())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void updated(PolicyDefinition policyDefinition) {
+        var event = PolicyDefinitionUpdated.Builder.newInstance()
                 .policyDefinitionId(policyDefinition.getUid())
                 .at(clock.millis())
                 .build();
