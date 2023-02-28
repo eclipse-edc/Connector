@@ -170,48 +170,6 @@ paths:
             \ by a contract definition"
       tags:
       - Policy
-  /policydefinitions/{policyId}:
-    put:
-      description: "Updates a policy definition with the given ID if it exists. If\
-        \ a policy definition is not found, no further action is taken\
-        \ DANGER ZONE: Note that updating policy definitions can have unexpected results,\
-        \ do this at your own risk!"
-      operationId: updatePolicy
-      parameters:
-      - in: path
-        name: policyId
-        required: true
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
-      responses:
-        "200":
-          description: Policy definition was updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: "Request was malformed, e.g. id was null"
-        "404":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: An policy definition with the given ID does not exist
-      tags:
-      - Policy
     get:
       description: Gets a policy definition with the given ID
       operationId: getPolicy
@@ -247,6 +205,49 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: An  policy definition with the given ID does not exist
+      tags:
+      - Policy
+  /policydefinitions/{policyId}:
+    put:
+      description: "Updates an existing Policy, If the Policy is not found, no further\
+        \ action is taken"
+      operationId: updatePolicy
+      parameters:
+      - in: path
+        name: policyId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+          description: policy definition was updated successfully. Returns the Policy
+            Definition Id and updated timestamp
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+          description: "policy definition could not be updated, because it does not\
+            \ exists"
       tags:
       - Policy
 components:
@@ -333,6 +334,16 @@ components:
         uid:
           type: string
           example: null
+    EntityTag:
+      type: object
+      example: null
+      properties:
+        value:
+          type: string
+          example: null
+        weak:
+          type: boolean
+          example: null
     IdResponseDto:
       type: object
       example: null
@@ -343,6 +354,129 @@ components:
           example: null
         id:
           type: string
+          example: null
+    Link:
+      type: object
+      example: null
+      properties:
+        params:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
+          example: null
+        rel:
+          type: string
+          example: null
+        rels:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+        title:
+          type: string
+          example: null
+        type:
+          type: string
+          example: null
+        uri:
+          type: string
+          format: uri
+          example: null
+        uriBuilder:
+          $ref: '#/components/schemas/UriBuilder'
+    MediaType:
+      type: object
+      example: null
+      properties:
+        parameters:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
+          example: null
+        subtype:
+          type: string
+          example: null
+        type:
+          type: string
+          example: null
+        wildcardSubtype:
+          type: boolean
+          example: null
+        wildcardType:
+          type: boolean
+          example: null
+    MultivaluedMapStringObject:
+      type: object
+      additionalProperties:
+        type: array
+        example: null
+        items:
+          type: object
+          example: null
+      example: null
+      properties:
+        empty:
+          type: boolean
+          example: null
+    MultivaluedMapStringString:
+      type: object
+      additionalProperties:
+        type: array
+        example: null
+        items:
+          type: string
+          example: null
+      example: null
+      properties:
+        empty:
+          type: boolean
+          example: null
+    NewCookie:
+      type: object
+      example: null
+      properties:
+        comment:
+          type: string
+          example: null
+        domain:
+          type: string
+          example: null
+        expiry:
+          type: string
+          format: date-time
+          example: null
+        httpOnly:
+          type: boolean
+          example: null
+        maxAge:
+          type: integer
+          format: int32
+          example: null
+        name:
+          type: string
+          example: null
+        path:
+          type: string
+          example: null
+        sameSite:
+          type: string
+          enum:
+          - NONE
+          - LAX
+          - STRICT
+          example: null
+        secure:
+          type: boolean
+          example: null
+        value:
+          type: string
+          example: null
+        version:
+          type: integer
+          format: int32
           example: null
     Permission:
       type: object
@@ -427,14 +561,6 @@ components:
           $ref: '#/components/schemas/Policy'
       required:
       - policy
-    PolicyDefinitionUpdateDto:
-      type: object
-      example: null
-      properties:
-        policy:
-          $ref: '#/components/schemas/Policy'
-      required:
-      - policy
     PolicyDefinitionResponseDto:
       type: object
       example: null
@@ -446,6 +572,14 @@ components:
         id:
           type: string
           example: null
+        policy:
+          $ref: '#/components/schemas/Policy'
+      required:
+      - policy
+    PolicyDefinitionUpdateDto:
+      type: object
+      example: null
+      properties:
         policy:
           $ref: '#/components/schemas/Policy'
       required:
@@ -502,3 +636,178 @@ components:
           - ASC
           - DESC
           example: null
+    Response:
+      type: object
+      example: null
+      properties:
+        allowedMethods:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          uniqueItems: true
+        closed:
+          type: boolean
+          example: null
+        cookies:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/NewCookie'
+          example: null
+        date:
+          type: string
+          format: date-time
+          example: null
+        entity:
+          type: object
+          example: null
+        entityTag:
+          $ref: '#/components/schemas/EntityTag'
+        headers:
+          type: object
+          additionalProperties:
+            type: array
+            example: null
+            items:
+              type: object
+              example: null
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+        language:
+          type: object
+          example: null
+          properties:
+            country:
+              type: string
+              example: null
+            displayCountry:
+              type: string
+              example: null
+            displayLanguage:
+              type: string
+              example: null
+            displayName:
+              type: string
+              example: null
+            displayScript:
+              type: string
+              example: null
+            displayVariant:
+              type: string
+              example: null
+            extensionKeys:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+              uniqueItems: true
+            iso3Country:
+              type: string
+              example: null
+            iso3Language:
+              type: string
+              example: null
+            language:
+              type: string
+              example: null
+            script:
+              type: string
+              example: null
+            unicodeLocaleAttributes:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+              uniqueItems: true
+            unicodeLocaleKeys:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+              uniqueItems: true
+            variant:
+              type: string
+              example: null
+        lastModified:
+          type: string
+          format: date-time
+          example: null
+        length:
+          type: integer
+          format: int32
+          example: null
+        links:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Link'
+          uniqueItems: true
+        location:
+          type: string
+          format: uri
+          example: null
+        mediaType:
+          $ref: '#/components/schemas/MediaType'
+        metadata:
+          type: object
+          additionalProperties:
+            type: array
+            example: null
+            items:
+              type: object
+              example: null
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+        status:
+          type: integer
+          format: int32
+          example: null
+        statusInfo:
+          $ref: '#/components/schemas/StatusType'
+        stringHeaders:
+          type: object
+          additionalProperties:
+            type: array
+            example: null
+            items:
+              type: string
+              example: null
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+    StatusType:
+      type: object
+      example: null
+      properties:
+        family:
+          type: string
+          enum:
+          - INFORMATIONAL
+          - SUCCESSFUL
+          - REDIRECTION
+          - CLIENT_ERROR
+          - SERVER_ERROR
+          - OTHER
+          example: null
+        reasonPhrase:
+          type: string
+          example: null
+        statusCode:
+          type: integer
+          format: int32
+          example: null
+    UriBuilder:
+      type: object
+      example: null
