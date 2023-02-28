@@ -94,12 +94,11 @@ public interface PolicyDefinitionApi {
 
     @Operation(description = "Updates an existing Policy, If the Policy is not found, no further action is taken",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "policy definition was updated successfully. Returns the Policy Definition Id and updated timestamp",
-                            content = @Content(schema = @Schema(implementation = Response.class))),
+                    @ApiResponse(responseCode = "200", description = "policy definition was updated successfully. Returns the Policy Definition Id and updated timestamp"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "policy definition could not be updated, because it does not exists",
-                            content = @Content(schema = @Schema(implementation = Response.class)))
+                            content = @Content(schema = @Schema(implementation = ApiErrorDetail.class)))
             }
     )
     void updatePolicy(String policyId, PolicyDefinitionUpdateDto policy);
