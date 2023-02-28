@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 T-Systems International GmbH
+ *  Copyright (c) 2023 T-Systems International GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -45,6 +45,7 @@ public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto {
             return new Builder();
         }
 
+        @Override
         public PolicyDefinitionUpdateDto.Builder policy(Policy policy) {
             dto.policy = policy;
             return this;
@@ -55,6 +56,7 @@ public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto {
             return this;
         }
 
+        @Override
         public PolicyDefinitionUpdateDto build() {
             return dto;
         }

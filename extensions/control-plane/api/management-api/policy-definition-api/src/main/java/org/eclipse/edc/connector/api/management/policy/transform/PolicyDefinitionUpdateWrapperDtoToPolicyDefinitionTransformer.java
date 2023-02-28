@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 T-Systems International GmbH
+ *  Copyright (c) 2023 T-Systems International GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
