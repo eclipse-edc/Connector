@@ -74,10 +74,10 @@ class TransferProcessToTransferProcessDtoTransformerTest {
 
         var result = transformer.transform(data.entity.build(), context);
 
+        verify(context).reportProblem("Invalid value for TransferProcess.state");
         assertThat(result)
                 .usingRecursiveComparison()
                 .isEqualTo(data.dto.build());
-        verify(context).reportProblem("Invalid value for TransferProcess.state");
     }
 
     @Test
@@ -115,7 +115,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
     }
 
     private int invalidStateCode() {
-        var stateCode = 0;
+        var stateCode = 1;
         while (TransferProcessStates.from(stateCode) != null) {
             stateCode++;
         }

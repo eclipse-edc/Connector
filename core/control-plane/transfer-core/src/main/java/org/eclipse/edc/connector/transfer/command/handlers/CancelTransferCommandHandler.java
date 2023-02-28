@@ -42,8 +42,6 @@ public class CancelTransferCommandHandler extends SingleTransferProcessCommandHa
     protected boolean modify(TransferProcess process, CancelTransferCommand command) {
         var state = process.getState();
         if (state == TransferProcessStates.COMPLETED.code() ||
-                state == TransferProcessStates.ERROR.code() ||
-                state == TransferProcessStates.CANCELLED.code() ||
                 state == TransferProcessStates.TERMINATED.code()) {
             return false;
         }

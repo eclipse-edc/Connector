@@ -133,7 +133,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "TERMINATED", "ERROR", "ENDED" })
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "TERMINATED" })
     void cancel(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -149,7 +149,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED", "ERROR" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED" })
     void cancel_whenNonCancellable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -258,7 +258,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "TERMINATED", "ENDED", "CANCELLED", "UNSAVED", "IN_PROGRESS" })
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "TERMINATED" })
     void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);

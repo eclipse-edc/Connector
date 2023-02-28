@@ -44,8 +44,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ENDED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.ERROR;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
@@ -267,7 +265,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionTerminated() {
-        var forbiddenStates = List.of(TERMINATED, COMPLETED, ERROR, ENDED);
+        var forbiddenStates = List.of(TERMINATED, COMPLETED);
 
         var allowedStates = Arrays.stream(TransferProcessStates.values())
                 .filter(it -> !forbiddenStates.contains(it))

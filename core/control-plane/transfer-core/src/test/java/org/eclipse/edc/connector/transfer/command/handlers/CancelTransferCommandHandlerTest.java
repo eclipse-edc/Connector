@@ -73,7 +73,7 @@ class CancelTransferCommandHandlerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED", "ERROR" })
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED" })
     void handle_illegalState(TransferProcessStates targetState) {
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();

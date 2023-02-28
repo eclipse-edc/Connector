@@ -290,7 +290,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (process.getType() == CONSUMER) {
             var manifestResult = manifestGenerator.generateConsumerResourceManifest(dataRequest, policy);
             if (manifestResult.failed()) {
-                monitor.severe(format("Transitioning transfer process %s to ERROR state. Resource manifest cannot be modified to fulfil policy: %s",
+                monitor.severe(format("Transitioning transfer process %s to TERMINATED state. Resource manifest cannot be modified to fulfil policy: %s",
                         process.getId(), manifestResult.getFailureMessages()));
                 process.transitionTerminated(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
                 updateTransferProcess(process, l -> l.preError(process));
@@ -314,7 +314,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process PROVISIONING transfer<p> Launch provision process. On completion, set to PROVISIONED if succeeded, ERROR
+     * Process PROVISIONING transfer<p> Launch provision process. On completion, set to PROVISIONED if succeeded, TERMINATED
      * otherwise
      * <p>
      * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a
@@ -434,7 +434,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     /**
      * Process DEPROVISIONING transfer<p> Launch deprovision process. On completion, set to DEPROVISIONED if succeeded,
-     * ERROR otherwise
+     * DEPROVISIONED otherwise
      *
      * @param process the DEPROVISIONING transfer fetched
      * @return if the transfer has been processed or not
@@ -654,7 +654,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 var message = format("TransferProcessManager: Fatal error initiating data transfer: %s. Error details: %s", process.getId(), response.getFailureDetail());
                 transitionToError(process, message);
             } else if (sendRetryManager.retriesExhausted(process)) {
-                var message = format("TransferProcessManager: attempt #%d failed to initiate data transfer. Retry limit exceeded, TransferProcess %s moves to ERROR state. Cause: %s",
+                var message = format("TransferProcessManager: attempt #%d failed to initiate data transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATED state. Cause: %s",
                         process.getStateCount(),
                         process.getId(),
                         response.getFailureDetail());
@@ -691,7 +691,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void sendCustomerRequestFailure(TransferProcess transferProcess, Throwable e) {
         if (sendRetryManager.retriesExhausted(transferProcess)) {
-            var message = format("TransferProcessManager: attempt #%d failed to send transfer. Retry limit exceeded, TransferProcess %s moves to ERROR state. Cause: %s",
+            var message = format("TransferProcessManager: attempt #%d failed to send transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATED state. Cause: %s",
                     transferProcess.getStateCount(),
                     transferProcess.getId(),
                     e.getMessage());

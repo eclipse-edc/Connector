@@ -32,13 +32,7 @@ public enum TransferProcessStates {
     TERMINATED(850),
     DEPROVISIONING(900),
     DEPROVISIONING_REQUESTED(950),
-    DEPROVISIONED(1000),
-    @Deprecated(since = "milestone9") ERROR(-1),
-    @Deprecated(since = "milestone9") UNSAVED(0),
-    @Deprecated(since = "milestone9") IN_PROGRESS(600),
-    @Deprecated(since = "milestone9") STREAMING(700),
-    @Deprecated(since = "milestone9") ENDED(1100),
-    @Deprecated(since = "milestone9") CANCELLED(1200);
+    DEPROVISIONED(1000);
 
     private final int code;
 

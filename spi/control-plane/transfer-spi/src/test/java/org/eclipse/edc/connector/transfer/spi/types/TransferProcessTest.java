@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 
 
 class TransferProcessTest {
@@ -205,7 +207,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED", "ERROR", "ENDED", "CANCELLED" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "TERMINATED" })
     void verifyCancel_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -218,7 +220,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED", "ERROR" }, mode = EnumSource.Mode.INCLUDE)
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED" })
     void verifyCancel_invalidStates(TransferProcessStates state) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
