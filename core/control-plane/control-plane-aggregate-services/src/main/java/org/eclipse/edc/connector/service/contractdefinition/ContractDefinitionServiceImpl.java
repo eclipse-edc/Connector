@@ -69,6 +69,19 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     }
 
     @Override
+    public ServiceResult<Void> update(ContractDefinition contractDefinition) {
+        return transactionContext.execute(() -> {
+            if (findById(contractDefinition.getId()) != null) {
+                store.update(contractDefinition);
+                observable.invokeForEach(l -> l.updated(contractDefinition));
+                return ServiceResult.success(null);
+            } else {
+                return ServiceResult.notFound(format("ContractDefinition %s does not exist", contractDefinition.getId()));
+            }
+        });
+    }
+
+    @Override
     public ServiceResult<ContractDefinition> delete(String contractDefinitionId) {
         return transactionContext.execute(() -> {
             // TODO: should be checked if a contract agreement based on this definition exists. Currently not implementable because it's not possibile to filter agreements by definition id

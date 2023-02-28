@@ -45,7 +45,9 @@ import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -213,6 +215,77 @@ class AssetServiceImplTest {
         var deleted = service.delete("test-asset");
         verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 &&
                 argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
+    }
+
+
+    @Test
+    void updateAsset_shouldUpdateWhenExists() {
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        when(index.findById(assetId)).thenReturn(asset);
+
+        var updated = service.update(assetId, asset);
+
+        assertThat(updated.succeeded()).isTrue();
+        verify(index).updateAsset(eq(assetId), eq(asset));
+        verify(observable).invokeForEach(any());
+    }
+
+    @Test
+    void updateAsset_shouldReturnBadRequest_whenAssetIdWrong() {
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        when(index.findById(assetId)).thenReturn(asset);
+
+        var updated = service.update("another-id", asset);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(index);
+        verifyNoInteractions(observable);
+    }
+
+    @Test
+    void updateAsset_shouldReturnNotFound_whenNotExists() {
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        when(index.findById(assetId)).thenReturn(null);
+
+        var updated = service.update(assetId, asset);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        verify(index, never()).updateAsset(eq(assetId), eq(asset));
+        verify(observable, never()).invokeForEach(any());
+    }
+
+    @Test
+    void updateDataAddress_shouldUpdateWhenExists() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
+        when(index.findById(assetId)).thenReturn(asset);
+
+        var updated = service.update(assetId, dataAddress);
+
+        assertThat(updated.succeeded()).isTrue();
+        verify(index).updateDataAddress(eq(assetId), eq(dataAddress));
+        verify(observable).invokeForEach(any());
+    }
+
+    @Test
+    void updateDataAddress_shouldReturnNotFound_whenNotExists() {
+        var assetId = "assetId";
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
+        when(index.findById(assetId)).thenReturn(null);
+
+        var updated = service.update(assetId, dataAddress);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        verify(index, never()).updateDataAddress(eq(assetId), eq(dataAddress));
+        verify(observable, never()).invokeForEach(any());
     }
 
     @NotNull

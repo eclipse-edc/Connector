@@ -94,4 +94,23 @@ public interface AssetIndex extends DataAddressResolver {
      * @return the number of assets (potentially 0)
      */
     long countAssets(List<Criterion> criteria);
+
+    /**
+     * Updates an asset with the content from the given {@link Asset}. If the asset is not found, no further database interaction takes place.
+     *
+     * @param assetId the database of the Asset to update
+     * @param asset   The Asset containing the new values. ID will be ignored.
+     * @return the updated Asset, or null if the asset does not exist
+     */
+    Asset updateAsset(String assetId, Asset asset);
+
+    /**
+     * Updates a {@link DataAddress} that is associated with the {@link Asset} that is identified by the {@code assetId} argument.
+     * If the asset is not found, no further database interaction takes place.
+     *
+     * @param assetId     the database of the Asset to update
+     * @param dataAddress The DataAddress containing the new values.
+     * @return the updated DataAddress
+     */
+    DataAddress updateDataAddress(String assetId, DataAddress dataAddress);
 }

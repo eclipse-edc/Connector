@@ -24,8 +24,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
@@ -76,7 +77,7 @@ public interface ContractDefinitionApi {
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createContractDefinition(@Valid ContractDefinitionRequestDto dto);
+    IdResponseDto createContractDefinition(@Valid ContractDefinitionCreateDto dto);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
@@ -88,4 +89,14 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
     void deleteContractDefinition(String id);
+
+    @Operation(description = "Updated a contract definition with the given ID",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Contract definition was updated successfully"),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract definition with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            })
+    void updateContractDefinition(String contractDefinitionId, @Valid ContractDefinitionUpdateDto contractDefinition);
 }

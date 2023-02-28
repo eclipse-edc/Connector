@@ -19,6 +19,7 @@ import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionRequestDtoToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionToContractDefinitionResponseDtoTransformer;
+import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -51,6 +52,8 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
         transformerRegistry.register(new ContractDefinitionToContractDefinitionResponseDtoTransformer());
         transformerRegistry.register(new ContractDefinitionRequestDtoToContractDefinitionTransformer());
+        transformerRegistry.register(new ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer());
+
 
         var monitor = context.getMonitor();
 

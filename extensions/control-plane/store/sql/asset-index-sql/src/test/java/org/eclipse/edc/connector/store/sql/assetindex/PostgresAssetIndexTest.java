@@ -34,7 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -52,7 +51,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
 
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension setupExtension) throws IOException, SQLException {
+    void setUp(PostgresqlStoreSetupExtension setupExtension) throws IOException {
         var typeManager = new TypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
@@ -63,7 +62,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension setupExtension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension setupExtension) {
         setupExtension.runQuery("DROP TABLE " + sqlStatements.getAssetTable() + " CASCADE");
         setupExtension.runQuery("DROP TABLE " + sqlStatements.getDataAddressTable() + " CASCADE");
         setupExtension.runQuery("DROP TABLE " + sqlStatements.getAssetPropertyTable() + " CASCADE");

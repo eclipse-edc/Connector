@@ -18,8 +18,8 @@ package org.eclipse.edc.connector.api.management.asset;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
@@ -28,6 +28,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -47,7 +48,6 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
@@ -190,7 +190,7 @@ public class AssetApiControllerIntegrationTest {
 
     @Test
     void postAsset_supportOldIdAsPropertyApi(AssetIndex assetIndex) {
-        var assetDto = AssetRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "Asset-1", "An Asset")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "Asset-1", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Map.of("type", "type", "asset-1", "/localhost")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
 
@@ -207,7 +207,7 @@ public class AssetApiControllerIntegrationTest {
 
     @Test
     void postAsset_invalidBody_nullDataAddress(AssetIndex assetIndex) {
-        var assetDto = AssetRequestDto.Builder.newInstance().id("assetId").properties(Map.of("Asset-1", "An Asset")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().id("assetId").properties(Map.of("Asset-1", "An Asset")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(null).build();
 
         baseRequest()
@@ -305,6 +305,76 @@ public class AssetApiControllerIntegrationTest {
                 .statusCode(404);
     }
 
+    @Test
+    void updateAsset_whenExists(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        asset.getProperties().put("anotherKey", "anotherVal");
+
+        baseRequest()
+                .body(asset)
+                .contentType(JSON)
+                .put("/assets/assetId")
+                .then()
+                .statusCode(204);
+
+        // verify by looking at the asset index
+        var found = assetIndex.findById("assetId");
+        assertThat(found).isNotNull();
+        assertThat(found.getProperties()).containsEntry("anotherKey", "anotherVal");
+    }
+
+    @Test
+    void updateAsset_whenNotExists(AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+
+        baseRequest()
+                .body(asset)
+                .contentType(JSON)
+                .put("/assets/assetId")
+                .then()
+                .statusCode(404);
+
+        assertThat(assetIndex.findById("assetId")).isNull();
+    }
+
+    @Test
+    void updateDataAddress_whenAssetExists(AssetIndex assetIndex, DataAddressResolver resolver) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetIndex.accept(asset, dataAddress);
+
+        dataAddress.getProperties().put("anotherKey", "anotherVal");
+
+        baseRequest()
+                .body(dataAddress)
+                .contentType(JSON)
+                .put("/assets/assetId/dataaddress")
+                .then()
+                .statusCode(204);
+
+        // verify by looking at the asset index
+        var found = resolver.resolveForAsset("assetId");
+        assertThat(found).isNotNull();
+        assertThat(found.getProperties()).containsEntry("anotherKey", "anotherVal");
+    }
+
+    @Test
+    void updateDataAddress_whenNotExists(DataAddressResolver resolver) {
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+
+        baseRequest()
+                .body(dataAddress)
+                .contentType(JSON)
+                .put("/assets/assetId/dataaddress")
+                .then()
+                .statusCode(404);
+
+        assertThat(resolver.resolveForAsset("assetId")).isNull();
+    }
+
     private ContractNegotiation createContractNegotiation(Asset asset) {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -334,13 +404,13 @@ public class AssetApiControllerIntegrationTest {
     }
 
     private AssetEntryDto createAssetEntryDto(String id) {
-        var assetDto = AssetRequestDto.Builder.newInstance().id(id).properties(Map.of("Asset-1", "An Asset")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().id(id).properties(Map.of("Asset-1", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Map.of("type", "type", "asset-1", "/localhost")).build();
         return AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
     }
 
     private AssetEntryDto createAssetEntryDto_emptyAttributes() {
-        var assetDto = AssetRequestDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
         return AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
     }

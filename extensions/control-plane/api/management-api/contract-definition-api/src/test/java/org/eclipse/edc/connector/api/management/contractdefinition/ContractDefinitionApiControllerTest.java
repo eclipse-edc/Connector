@@ -17,8 +17,10 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDtoWrapper;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -171,9 +173,9 @@ class ContractDefinitionApiControllerTest {
 
     @Test
     void createContractDefinition_success() {
-        var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
+        var dto = ContractDefinitionCreateDto.Builder.newInstance().build();
         var contractDefinition = createContractDefinition(UUID.randomUUID().toString());
-        when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
+        when(transformerRegistry.transform(isA(ContractDefinitionCreateDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(contractDefinition));
 
         var contractDefinitionId = controller.createContractDefinition(dto);
@@ -184,16 +186,16 @@ class ContractDefinitionApiControllerTest {
         assertThat(contractDefinitionId.getCreatedAt()).isNotEqualTo(0L);
 
         verify(service).create(contractDefinition);
-        verify(transformerRegistry).transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class));
+        verify(transformerRegistry).transform(isA(ContractDefinitionCreateDto.class), eq(ContractDefinition.class));
     }
 
     @Test
     void createContractDefinition_returnExpectedId() {
         var definedContractDefinitionId = UUID.randomUUID().toString();
-        var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
+        var dto = ContractDefinitionCreateDto.Builder.newInstance().build();
         var contractDefinition = createContractDefinition(definedContractDefinitionId);
 
-        when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
+        when(transformerRegistry.transform(isA(ContractDefinitionCreateDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(contractDefinition));
 
         var contractDefinitionId = controller.createContractDefinition(dto);
@@ -203,8 +205,8 @@ class ContractDefinitionApiControllerTest {
 
     @Test
     void createContractDefinition_alreadyExists() {
-        var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(createContractDefinition(UUID.randomUUID().toString())));
+        var dto = ContractDefinitionCreateDto.Builder.newInstance().build();
+        when(transformerRegistry.transform(isA(ContractDefinitionCreateDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(createContractDefinition(UUID.randomUUID().toString())));
         when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
 
         assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(ObjectConflictException.class);
@@ -212,8 +214,8 @@ class ContractDefinitionApiControllerTest {
 
     @Test
     void createContractDefinition_transformationFails() {
-        var dto = ContractDefinitionRequestDto.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.failure("failure"));
+        var dto = ContractDefinitionCreateDto.Builder.newInstance().build();
+        when(transformerRegistry.transform(isA(ContractDefinitionCreateDto.class), eq(ContractDefinition.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(InvalidRequestException.class);
     }
@@ -240,6 +242,41 @@ class ContractDefinitionApiControllerTest {
         when(service.delete("definitionId")).thenReturn(ServiceResult.conflict("conflict"));
 
         assertThatThrownBy(() -> controller.deleteContractDefinition("definitionId")).isInstanceOf(ObjectConflictException.class);
+    }
+
+    @Test
+    void update_whenExists() {
+        var dto = ContractDefinitionUpdateDto.Builder.newInstance().build();
+        var contractDefinition = createContractDefinition(UUID.randomUUID().toString());
+        when(transformerRegistry.transform(isA(ContractDefinitionUpdateDtoWrapper.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
+        when(service.update(eq(contractDefinition))).thenReturn(ServiceResult.success(null));
+
+        controller.updateContractDefinition(contractDefinition.getId(), dto);
+
+
+        verify(service).update(contractDefinition);
+        verify(transformerRegistry).transform(isA(ContractDefinitionUpdateDtoWrapper.class), eq(ContractDefinition.class));
+    }
+
+
+    @Test
+    void update_whenNotExists_shouldThrowException() {
+        var dto = ContractDefinitionUpdateDto.Builder.newInstance().build();
+        var contractDefinition = createContractDefinition(UUID.randomUUID().toString());
+        when(transformerRegistry.transform(isA(ContractDefinitionUpdateDtoWrapper.class), eq(ContractDefinition.class))).thenReturn(Result.success(contractDefinition));
+        when(service.update(eq(contractDefinition))).thenReturn(ServiceResult.notFound("not found"));
+
+        assertThatThrownBy(() -> controller.updateContractDefinition(contractDefinition.getId(), dto)).isInstanceOf(ObjectNotFoundException.class);
+
+    }
+
+    @Test
+    void update_whenTransformationFails_shouldThrowException() {
+        var dto = ContractDefinitionUpdateDto.Builder.newInstance().build();
+        var contractDefinition = createContractDefinition(UUID.randomUUID().toString());
+        when(transformerRegistry.transform(isA(ContractDefinitionUpdateDtoWrapper.class), eq(ContractDefinition.class))).thenReturn(Result.failure("failure"));
+
+        assertThatThrownBy(() -> controller.updateContractDefinition(contractDefinition.getId(), dto)).isInstanceOf(InvalidRequestException.class);
     }
 
     private ContractDefinition createContractDefinition(String id) {

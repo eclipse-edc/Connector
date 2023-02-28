@@ -41,4 +41,13 @@ public interface AssetListener {
 
     }
 
+    /**
+     * Called after a {@link Asset} was updated
+     *
+     * @param asset The new (already updated) asset.
+     */
+    default void updated(Asset asset) {
+
+    }
+
 }

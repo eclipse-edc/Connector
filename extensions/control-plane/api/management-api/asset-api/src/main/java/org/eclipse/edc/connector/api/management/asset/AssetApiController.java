@@ -22,6 +22,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -31,6 +32,8 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -127,6 +130,31 @@ public class AssetApiController implements AssetApi {
         monitor.debug(format("Attempting to delete Asset with id %s", id));
         service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
         monitor.debug(format("Asset deleted %s", id));
+    }
+
+    @PUT
+    @Path("{assetId}")
+    @Override
+    public void updateAsset(@PathParam("assetId") String assetId, @Valid AssetUpdateRequestDto asset) {
+        var wrapper = AssetUpdateRequestWrapperDto.Builder.newInstance().updateRequest(asset).assetId(assetId).build();
+        var assetResult = transformerRegistry.transform(wrapper, Asset.class);
+        if (assetResult.failed()) {
+            throw new InvalidRequestException(assetResult.getFailureMessages());
+        }
+        service.update(assetId, assetResult.getContent())
+                .orElseThrow(exceptionMapper(Asset.class, assetId));
+    }
+
+    @PUT
+    @Path("{assetId}/dataaddress")
+    @Override
+    public void updateDataAddress(@PathParam("assetId") String assetId, DataAddressDto dataAddress) {
+        var dataAddressResult = transformerRegistry.transform(dataAddress, DataAddress.class);
+        if (dataAddressResult.failed()) {
+            throw new InvalidRequestException(dataAddressResult.getFailureMessages());
+        }
+        service.update(assetId, dataAddressResult.getContent())
+                .orElseThrow(exceptionMapper(DataAddress.class, assetId));
     }
 
 
