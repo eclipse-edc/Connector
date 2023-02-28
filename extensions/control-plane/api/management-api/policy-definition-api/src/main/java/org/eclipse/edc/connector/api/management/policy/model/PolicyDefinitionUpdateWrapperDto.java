@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.policy.model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(builder = PolicyDefinitionUpdateWrapperDto.Builder.class)
-public class PolicyDefinitionUpdateWrapperDto extends PolicyDefinitionDto {
+public class PolicyDefinitionUpdateWrapperDto {
 
     private PolicyDefinitionUpdateDto policyDefinitionUpdateDto;
     private String policyId;
