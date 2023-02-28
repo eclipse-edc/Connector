@@ -20,6 +20,7 @@ import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.policy.model.Policy;
@@ -246,7 +247,7 @@ class PolicyDefinitionApiControllerTest {
     void updatePolicy_ifPolicyExists() {
         var dto = PolicyDefinitionUpdateDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var policyDefinition = TestFunctions.createPolicy("id");
-        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateWrapperDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(anyString(), any())).thenReturn(ServiceResult.success(null));
         when(service.findById(anyString())).thenReturn(policyDefinition);
 
@@ -257,7 +258,7 @@ class PolicyDefinitionApiControllerTest {
     @Test
     void updatePolicy_transformationFails() {
         var dto = PolicyDefinitionUpdateDto.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateDto.class), eq(PolicyDefinition.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateWrapperDto.class), eq(PolicyDefinition.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.updatePolicy("test-policy-id", dto)).isInstanceOf(InvalidRequestException.class);
     }
@@ -266,7 +267,7 @@ class PolicyDefinitionApiControllerTest {
     void updatePolicy_ifPolicyNotExists() {
         var dto = PolicyDefinitionUpdateDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var policyDefinition = TestFunctions.createPolicy("id");
-        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+        when(transformerRegistry.transform(isA(PolicyDefinitionUpdateWrapperDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(anyString(), any())).thenReturn(ServiceResult.success(null));
 
         controller.updatePolicy("test-policy-id", dto);
