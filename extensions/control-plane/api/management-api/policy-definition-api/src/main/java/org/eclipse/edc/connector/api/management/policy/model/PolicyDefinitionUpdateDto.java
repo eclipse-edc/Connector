@@ -21,7 +21,7 @@ import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.policy.model.Policy;
 
 @JsonDeserialize(builder = PolicyDefinitionUpdateDto.Builder.class)
-public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto{
+public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto {
 
     @NotNull
     private Policy policy;
@@ -34,7 +34,7 @@ public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto{
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends PolicyDefinitionDto.Builder<PolicyDefinitionUpdateDto, Builder>{
+    public static final class Builder extends PolicyDefinitionDto.Builder<PolicyDefinitionUpdateDto, Builder> {
 
         private Builder() {
             super(new PolicyDefinitionUpdateDto());
@@ -49,6 +49,7 @@ public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto{
             dto.policy = policy;
             return this;
         }
+
         @Override
         public Builder self() {
             return this;

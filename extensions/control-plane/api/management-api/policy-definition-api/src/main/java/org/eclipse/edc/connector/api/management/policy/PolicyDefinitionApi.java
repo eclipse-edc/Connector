@@ -100,7 +100,7 @@ public interface PolicyDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "policy definition could not be updated, because it does not exists",
                             content = @Content(schema = @Schema(implementation = Response.class)))
-                     }
+            }
     )
     void updatePolicy(String policyId, PolicyDefinitionUpdateDto policy);
 }
