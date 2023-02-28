@@ -89,15 +89,6 @@ public class InMemoryAssetIndex implements AssetIndex {
         }
     }
 
-    private Stream<Asset> filterBy(List<Criterion> criteria) {
-        var predicate = criteria.stream()
-                .map(predicateFactory::convert)
-                .reduce(x -> true, Predicate::and);
-
-        return cache.values().stream()
-                .filter(predicate);
-    }
-
     @Override
     public Asset findById(String assetId) {
         lock.readLock().lock();
@@ -137,6 +128,35 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
+    public Asset updateAsset(String assetId, Asset asset) {
+        lock.writeLock().lock();
+        try {
+            String id = asset.getId();
+            Objects.requireNonNull(asset, "asset");
+            Objects.requireNonNull(id, "assetId");
+            if (cache.containsKey(assetId)) {
+                cache.put(id, asset);
+                return asset;
+            }
+            return null;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public DataAddress updateDataAddress(String assetId, DataAddress dataAddress) {
+        lock.writeLock().lock();
+        try {
+            Objects.requireNonNull(dataAddress, "dataAddress");
+            Objects.requireNonNull(assetId, "asset.getId()");
+            return dataAddresses.put(assetId, dataAddress);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId, "assetId");
         lock.readLock().lock();
@@ -153,6 +173,15 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     public Map<String, DataAddress> getDataAddresses() {
         return Collections.unmodifiableMap(dataAddresses);
+    }
+
+    private Stream<Asset> filterBy(List<Criterion> criteria) {
+        var predicate = criteria.stream()
+                .map(predicateFactory::convert)
+                .reduce(x -> true, Predicate::and);
+
+        return cache.values().stream()
+                .filter(predicate);
     }
 
     private @Nullable Comparable asComparable(Object property) {

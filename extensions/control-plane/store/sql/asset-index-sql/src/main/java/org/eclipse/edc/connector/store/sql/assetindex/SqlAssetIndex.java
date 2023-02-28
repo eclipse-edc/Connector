@@ -187,6 +187,46 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
+    public Asset updateAsset(String assetId, Asset asset) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                if (existsById(assetId, connection)) {
+                    executeQuery(connection, assetStatements.getDeletePropertyByIdTemplate(), assetId);
+                    for (var property : asset.getProperties().entrySet()) {
+                        executeQuery(connection, assetStatements.getInsertPropertyTemplate(),
+                                assetId,
+                                property.getKey(),
+                                toJson(property.getValue()),
+                                property.getValue().getClass().getName());
+                    }
+                    return asset;
+                }
+                return null;
+
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public DataAddress updateDataAddress(String assetId, DataAddress dataAddress) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                if (existsById(assetId, connection)) {
+                    var updateTemplate = assetStatements.getUpdateDataAddressTemplate();
+                    executeQuery(connection, updateTemplate, toJson(dataAddress.getProperties()), assetId);
+                    return dataAddress;
+                }
+                return null;
+
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId);
 
@@ -243,7 +283,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
 
     private DataAddress mapDataAddress(ResultSet resultSet) throws SQLException, JsonProcessingException {
         return DataAddress.Builder.newInstance()
-                .properties(fromJson(resultSet.getString(assetStatements.getDataAddressColumnProperties()), new TypeReference<>() {
+                .properties(fromJson(resultSet.getString(assetStatements.getDataAddressPropertiesColumn()), new TypeReference<>() {
                 }))
                 .build();
     }

@@ -347,6 +347,164 @@ public abstract class AssetIndexTestBase {
         assertThat(dataAddressFound).usingRecursiveComparison().isEqualTo(dataAddress);
     }
 
+    @Test
+    @DisplayName("Update Asset that does not yet exist")
+    void updateAsset_doesNotExist() {
+        var id = "id1";
+        var assetExpected = getAsset(id);
+        var assetIndex = getAssetIndex();
+
+        var updated = assetIndex.updateAsset(id, assetExpected);
+        assertThat(updated).isNull();
+    }
+
+    @Test
+    @DisplayName("Update an Asset that exists, adding a property")
+    void updateAsset_exists_addsProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, getDataAddress());
+
+        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+
+        var updatedAsset = asset;
+        updatedAsset.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateAsset(id, updatedAsset);
+
+        assertThat(updated).isNotNull();
+
+        var assetFound = getAssetIndex().findById("id1");
+
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(updatedAsset);
+    }
+
+    @Test
+    @DisplayName("Update an Asset that exists, removing a property")
+    void updateAsset_exists_removesProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        asset.getProperties().put("newKey", "newValue");
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, getDataAddress());
+
+        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+
+        var updatedAsset = asset;
+        updatedAsset.getProperties().remove("newKey");
+        var updated = assetIndex.updateAsset(id, updatedAsset);
+
+        assertThat(updated).isNotNull();
+
+        var assetFound = getAssetIndex().findById("id1");
+
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(updatedAsset);
+        assertThat(assetFound.getProperties().keySet()).doesNotContain("newKey");
+    }
+
+    @Test
+    @DisplayName("Update an Asset that exists, replacing a property")
+    void updateAsset_exists_replacingProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        asset.getProperties().put("newKey", "originalValue");
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, getDataAddress());
+
+        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+
+        var updatedAsset = asset;
+        updatedAsset.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateAsset(id, updatedAsset);
+
+        assertThat(updated).isNotNull();
+
+        var assetFound = getAssetIndex().findById("id1");
+
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(updatedAsset);
+        assertThat(assetFound.getProperties()).containsEntry("newKey", "newValue");
+    }
+
+    @Test
+    @DisplayName("Update DataAddress where the Asset does not yet exist")
+    void updateDataAddress_doesNotExist() {
+        var id = "id1";
+        var assetExpected = getDataAddress();
+        var assetIndex = getAssetIndex();
+
+        var updated = assetIndex.updateDataAddress(id, assetExpected);
+        assertThat(updated).isNull();
+    }
+
+    @Test
+    @DisplayName("Update a DataAddress that exists, adding a new property")
+    void updateDataAddress_exists_addsProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        var dataAddress = getDataAddress();
+        assetIndex.accept(asset, dataAddress);
+
+        var updatedDataAddress = getDataAddress();
+        updatedDataAddress.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
+
+        assertThat(updated).isNotNull();
+
+        var addressFound = getAssetIndex().resolveForAsset("id1");
+
+        assertThat(addressFound).isNotNull();
+        assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
+    }
+
+    @Test
+    @DisplayName("Update a DataAddress that exists, removing a property")
+    void updateDataAddress_exists_removesProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        var dataAddress = getDataAddress();
+        dataAddress.getProperties().put("newKey", "newValue");
+        assetIndex.accept(asset, dataAddress);
+
+        var updatedDataAddress = dataAddress;
+        updatedDataAddress.getProperties().remove("newKey");
+        var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
+
+        assertThat(updated).isNotNull();
+
+        var addressFound = getAssetIndex().resolveForAsset("id1");
+
+        assertThat(addressFound).isNotNull();
+        assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
+        assertThat(addressFound.getProperties()).doesNotContainKeys("newKey");
+    }
+
+    @Test
+    @DisplayName("Update a DataAddress that exists, replacing a property")
+    void updateDataAddress_exists_replacesProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        var dataAddress = getDataAddress();
+        dataAddress.getProperties().put("newKey", "originalValue");
+        assetIndex.accept(asset, dataAddress);
+
+        var updatedDataAddress = dataAddress;
+        updatedDataAddress.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
+
+        assertThat(updated).isNotNull();
+
+        var addressFound = getAssetIndex().resolveForAsset("id1");
+
+        assertThat(addressFound).isNotNull();
+        assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
+        assertThat(addressFound.getProperties()).containsEntry("newKey", "newValue");
+    }
 
     /**
      * Returns an array of all operators supported by a particular AssetIndex. If no limitations or constraints exist

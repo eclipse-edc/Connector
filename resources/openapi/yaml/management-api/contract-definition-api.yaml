@@ -63,7 +63,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/ContractDefinitionRequestDto'
+              $ref: '#/components/schemas/ContractDefinitionCreateDto'
       responses:
         "200":
           content:
@@ -120,6 +120,45 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
           description: Request was malformed
+      tags:
+      - Contract Definition
+  /contractdefinitions/{contractDefinitionId}:
+    put:
+      description: Updated a contract definition with the given ID
+      operationId: updateContractDefinition
+      parameters:
+      - in: path
+        name: contractDefinitionId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ContractDefinitionUpdateDto'
+      responses:
+        "204":
+          description: Contract definition was updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: A contract definition with the given ID does not exist
       tags:
       - Contract Definition
   /contractdefinitions/{id}:
@@ -214,7 +253,7 @@ components:
         type:
           type: string
           example: null
-    ContractDefinitionRequestDto:
+    ContractDefinitionCreateDto:
       type: object
       example: null
       properties:
@@ -266,6 +305,29 @@ components:
           type: integer
           format: int64
           example: null
+    ContractDefinitionUpdateDto:
+      type: object
+      example: null
+      properties:
+        accessPolicyId:
+          type: string
+          example: null
+        contractPolicyId:
+          type: string
+          example: null
+        criteria:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CriterionDto'
+        validity:
+          type: integer
+          format: int64
+          example: null
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
     CriterionDto:
       type: object
       example: null

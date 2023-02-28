@@ -26,7 +26,7 @@ public class AssetIndexCosmosConfig extends AbstractCosmosConfig {
     private static final String COSMOS_DBNAME_SETTING = "edc.assetindex.cosmos.database-name";
     @Setting
     private static final String COSMOS_PREFERRED_REGION_SETTING = "edc.assetindex.cosmos.preferred-region";
-    @Setting
+    @Setting(value = "string", type = "something", required = true)
     private static final String COSMOS_CONTAINER_NAME_SETTING = "edc.assetindex.cosmos.container-name";
 
     /**

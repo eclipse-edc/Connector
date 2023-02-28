@@ -20,9 +20,11 @@ package org.eclipse.edc.connector.api.management.asset;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
+import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -38,10 +40,12 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -68,11 +72,11 @@ public class AssetApiControllerTest {
     @Test
     void createAsset() {
         var assetEntry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetRequestDto.Builder.newInstance().build())
+                .asset(AssetCreationRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
         var asset = Asset.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(transformerRegistry.transform(isA(AssetCreationRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
 
@@ -92,12 +96,12 @@ public class AssetApiControllerTest {
     void createAsset_returnExpectedId() {
         var assetId = UUID.randomUUID().toString();
         var assetEntry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetRequestDto.Builder.newInstance().build())
+                .asset(AssetCreationRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
 
         var asset = Asset.Builder.newInstance().id(assetId).build();
-        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(transformerRegistry.transform(isA(AssetCreationRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
 
@@ -109,11 +113,11 @@ public class AssetApiControllerTest {
     @Test
     void createAsset_alreadyExists() {
         var assetEntry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetRequestDto.Builder.newInstance().build())
+                .asset(AssetCreationRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
         var asset = Asset.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(transformerRegistry.transform(isA(AssetCreationRequestDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         when(service.create(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
 
@@ -123,10 +127,10 @@ public class AssetApiControllerTest {
     @Test
     void createAsset_transformFails() {
         var assetEntry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetRequestDto.Builder.newInstance().build())
+                .asset(AssetCreationRequestDto.Builder.newInstance().build())
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
-        when(transformerRegistry.transform(isA(AssetRequestDto.class), eq(Asset.class))).thenReturn(Result.failure("failed"));
+        when(transformerRegistry.transform(isA(AssetCreationRequestDto.class), eq(Asset.class))).thenReturn(Result.failure("failed"));
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.failure("failed"));
         when(service.create(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
 
@@ -288,4 +292,83 @@ public class AssetApiControllerTest {
         verify(transformerRegistry).transform(isA(DataAddress.class), eq(DataAddressDto.class));
     }
 
+    @Test
+    void update_whenExists() {
+        var assetEntry = AssetUpdateRequestDto.Builder.newInstance()
+                .properties(Map.of("key1", "value1"))
+                .build();
+        var asset = Asset.Builder.newInstance().property("key1", "value1").build();
+        when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(service.update(any(), any(Asset.class))).thenReturn(ServiceResult.success());
+
+        var assetId = "test-asset-1";
+        controller.updateAsset(assetId, assetEntry);
+        verify(service).update(eq(assetId), eq(asset));
+        assertThatNoException();
+    }
+
+    @Test
+    void update_whenNotExists_shouldThrowException() {
+        var assetEntry = AssetUpdateRequestDto.Builder.newInstance()
+                .properties(Map.of("key1", "value1"))
+                .build();
+        var asset = Asset.Builder.newInstance().property("key1", "value1").build();
+        when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
+        when(service.update(any(), any(Asset.class))).thenReturn(ServiceResult.notFound("not found"));
+
+        var assetId = "test-asset-1";
+        assertThatThrownBy(() -> controller.updateAsset(assetId, assetEntry)).isInstanceOf(ObjectNotFoundException.class);
+    }
+
+    @Test
+    void update_whenTransformationFails_shouldThrowException() {
+        var assetEntry = AssetUpdateRequestDto.Builder.newInstance()
+                .properties(Map.of("key1", "value1"))
+                .build();
+        when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class))).thenReturn(Result.failure("test"));
+
+        var assetId = "test-asset-1";
+        assertThatThrownBy(() -> controller.updateAsset(assetId, assetEntry))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void updateDataAddress_whenExists() {
+        var dataAddressDto = DataAddressDto.Builder.newInstance()
+                .properties(Map.of("key1", "value1"))
+                .build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").property("key1", "value1").build();
+        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(dataAddress));
+        when(service.update(any(), any(DataAddress.class))).thenReturn(ServiceResult.success());
+
+        var assetId = "test-dataAddress-1";
+        controller.updateDataAddress(assetId, dataAddressDto);
+        verify(service).update(eq(assetId), eq(dataAddress));
+        assertThatNoException();
+    }
+
+    @Test
+    void updateDataAddress_whenTransformationFails_shouldThrowException() {
+        var dataAddressDto = DataAddressDto.Builder.newInstance()
+                .properties(Map.of("key1", "value1"))
+                .build();
+        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.failure("test"));
+
+        var assetId = "test-dataAddress-1";
+        assertThatThrownBy(() -> controller.updateDataAddress(assetId, dataAddressDto))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void updateDataAddress_whenNotExists_shouldThrowException() {
+        var dataAddressDto = DataAddressDto.Builder.newInstance()
+                .properties(Map.of("key1", "value1"))
+                .build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").property("key1", "value1").build();
+        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(dataAddress));
+        when(service.update(any(), any(DataAddress.class))).thenReturn(ServiceResult.notFound("not found"));
+
+        var assetId = "test-asset-1";
+        assertThatThrownBy(() -> controller.updateDataAddress(assetId, dataAddressDto)).isInstanceOf(ObjectNotFoundException.class);
+    }
 }
