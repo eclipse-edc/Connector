@@ -130,7 +130,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     @Override
     public @NotNull ServiceResult<Void> update(String policyId, PolicyDefinition policyDefinition) {
         if (!Objects.equals(policyId, policyDefinition.getUid())) {
-            return ServiceResult.badRequest("Asset.getId() must match assetId");
+            return ServiceResult.badRequest("PolicyDefinition.getUid() must match policyId");
         }
         return transactionContext.execute(() -> {
             if (policyStore.findById(policyId) == null) {
