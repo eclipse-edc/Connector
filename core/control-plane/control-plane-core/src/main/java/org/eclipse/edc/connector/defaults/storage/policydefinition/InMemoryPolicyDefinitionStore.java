@@ -75,8 +75,9 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
             Objects.requireNonNull(policy, "policy");
             if (policiesById.containsKey(policyId)) {
                 lockManager.writeLock(() -> policiesById.put(policyId, policy));
+                return policy;
             }
-            return policiesById.get(policyId);
+            return null;
         } catch (Exception e) {
             throw new EdcPersistenceException("Updating policy failed", e);
         }

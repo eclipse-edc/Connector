@@ -133,12 +133,8 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
             if (policyStore.findById(policyId) == null) {
                 return ServiceResult.notFound(format("PolicyDefinition %s cannot be updated because it does not exists", policyId));
             } else {
-                PolicyDefinition updatedPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                        .policy(policyDefinition.getPolicy())
-                        .id(policyId)
-                        .build(); // to make sure policyDefinition does not have a random ID
-                policyStore.update(policyId, updatedPolicyDefinition);
-                observable.invokeForEach(l -> l.updated(updatedPolicyDefinition));
+                var updatedPolicy = policyStore.update(policyId, policyDefinition);
+                observable.invokeForEach(l -> l.updated(updatedPolicy));
                 return ServiceResult.success(null);
             }
         });
