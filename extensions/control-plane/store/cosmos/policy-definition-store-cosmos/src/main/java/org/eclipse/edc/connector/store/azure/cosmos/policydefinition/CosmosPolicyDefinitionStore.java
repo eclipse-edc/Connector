@@ -83,7 +83,7 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
         Objects.requireNonNull(policyId, "policyId");
         Objects.requireNonNull(policy, "policy");
 
-        PolicyDefinition policyDefinition = findById(policyId);
+        var policyDefinition = findById(policyId);
         var result = Optional.of(convertToDocument(policyDefinition));
 
         return result.map(policyDocument -> {

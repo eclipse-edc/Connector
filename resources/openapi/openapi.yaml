@@ -1466,8 +1466,8 @@ paths:
     put:
       tags:
       - Policy
-      description: "Updates an existing Policy, If the Policy is not found, no further\
-        \ action is taken"
+      description: "Updates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
       operationId: updatePolicy
       parameters:
       - name: policyId
