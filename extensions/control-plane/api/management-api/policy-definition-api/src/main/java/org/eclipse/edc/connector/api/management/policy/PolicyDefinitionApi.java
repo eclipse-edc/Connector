@@ -91,7 +91,7 @@ public interface PolicyDefinitionApi {
     )
     void deletePolicy(String id);
 
-    @Operation(description = "Updates an existing Policy, If the Policy is not found, no further action is taken",
+    @Operation(description = "Updates an existing Policy, If the Policy is not found, an error is reported",
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was updated successfully. Returns the Policy Definition Id and updated timestamp"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",

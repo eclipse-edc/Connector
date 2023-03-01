@@ -60,7 +60,7 @@ public interface PolicyDefinitionStore {
      *
      * @param policyId ID of the Policy to be updated
      * @param policy to be updated.
-     * @throws EdcPersistenceException if something goes wrong.
+     * @throws EdcPersistenceException if any exception occurs during Query Execution e.g., SQLException.
      */
     PolicyDefinition update(String policyId, PolicyDefinition policy);
 

@@ -116,7 +116,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Path("{policyId}")
     @Override
     public void updatePolicy(@PathParam("policyId") String policyId, PolicyDefinitionUpdateDto updatedPolicyDefinition) {
-        PolicyDefinitionUpdateWrapperDto wrapper = PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
+        var wrapper = PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
                 .policyId(policyId)
                 .updateRequest(updatedPolicyDefinition)
                 .build();
