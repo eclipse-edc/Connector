@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.api.management.policy.model;
 
-import org.eclipse.edc.policy.model.Policy;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.policy.model.Policy;
 
 
 public abstract class PolicyDefinitionDto {
