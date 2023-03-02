@@ -159,6 +159,7 @@ paths:
       - Transfer Process
   /transferprocess/{id}/cancel:
     post:
+      deprecated: true
       description: "Requests aborting the transfer process. Due to the asynchronous\
         \ nature of transfers, a successful response only indicates that the request\
         \ was successfully received. Clients must poll the /{id}/state endpoint to\
@@ -277,6 +278,61 @@ paths:
           description: An  transfer process with the given ID does not exist
       tags:
       - Transfer Process
+  /transferprocess/{id}/terminate:
+    post:
+      description: "Requests the termination of a transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. Clients must poll the /{id}/state endpoint to\
+        \ track the state."
+      operationId: terminateTransferProcess
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminateTransferDto'
+      responses:
+        "200":
+          description: Request to cancel the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: A contract negotiation with the given ID does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Could not terminate transfer process, because it is already\
+            \ completed or terminated."
+      tags:
+      - Transfer Process
 components:
   schemas:
     ApiErrorDetail:
@@ -387,6 +443,15 @@ components:
           - ASC
           - DESC
           example: null
+    TerminateTransferDto:
+      type: object
+      example: null
+      properties:
+        reason:
+          type: string
+          example: null
+      required:
+      - reason
     TransferProcessDto:
       type: object
       example: null
