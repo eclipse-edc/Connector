@@ -95,7 +95,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         Objects.requireNonNull(policy);
         transactionContext.execute(() -> {
             if (findById(policy.getUid()) != null) {
-                update(policy, policy.getUid());
+                update(policy);
             } else {
                 insert(policy);
             }
@@ -104,10 +104,9 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
 
     @Override
     public PolicyDefinition update(String policyId, PolicyDefinition policyDefinition) {
-        Objects.requireNonNull(policyDefinition);
         if (findById(policyId) != null) {
             return transactionContext.execute(() -> {
-                update(policyDefinition, policyId);
+                update(policyDefinition);
                 return policyDefinition;
             });
         }
@@ -153,10 +152,11 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         });
     }
 
-    private void update(PolicyDefinition def, String policyId) {
+    private void update(PolicyDefinition def) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var policy = def.getPolicy();
+                var id = def.getUid();
                 executeQuery(connection, statements.getUpdateTemplate(),
                         toJson(policy.getPermissions(), permissionListType),
                         toJson(policy.getProhibitions(), prohibitionListType),
@@ -167,7 +167,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                         policy.getAssignee(),
                         policy.getTarget(),
                         toJson(policy.getType(), policyType),
-                        policyId);
+                        id);
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }

@@ -28,8 +28,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
@@ -80,17 +78,11 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
 
     @Override
     public PolicyDefinition update(String policyId, PolicyDefinition policy) {
-        Objects.requireNonNull(policyId, "policyId");
-        Objects.requireNonNull(policy, "policy");
-
-        var policyDefinition = findById(policyId);
-        var result = Optional.of(convertToDocument(policyDefinition));
-
-        return result.map(policyDocument -> {
-            var updated = new PolicyDocument(policy, policyDocument.getPartitionKey());
-            with(retryPolicy).run(() -> cosmosDbApi.saveItem((updated)));
+        if(findById(policyId) != null){
+            with(retryPolicy).run(() -> cosmosDbApi.saveItem((convertToDocument(policy))));
             return policy;
-        }).orElse(null);
+        }
+        return null;
     }
 
     @Override
