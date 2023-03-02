@@ -100,5 +100,5 @@ public interface PolicyDefinitionApi {
                             content = @Content(schema = @Schema(implementation = ApiErrorDetail.class)))
             }
     )
-    void updatePolicy(String policyId, PolicyDefinitionUpdateDto policy);
+    void updatePolicy(String policyId, @Valid PolicyDefinitionUpdateDto policy);
 }

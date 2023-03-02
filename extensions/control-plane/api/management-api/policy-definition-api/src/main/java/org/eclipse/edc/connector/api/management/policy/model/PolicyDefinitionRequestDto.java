@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.policy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.policy.model.Policy;
 
 import java.util.Objects;
@@ -26,8 +25,6 @@ import java.util.Objects;
 public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
 
     private String id;
-    @NotNull
-    private Policy policy;
 
     private PolicyDefinitionRequestDto() {
     }
@@ -74,18 +71,9 @@ public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
             return this;
         }
 
-        public Builder policy(Policy policy) {
-            dto.policy = policy;
-            return this;
-        }
-
         @Override
         public PolicyDefinitionRequestDto.Builder self() {
             return this;
-        }
-
-        public PolicyDefinitionRequestDto build() {
-            return dto;
         }
     }
 }

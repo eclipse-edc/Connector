@@ -15,9 +15,12 @@
 package org.eclipse.edc.connector.api.management.policy.model;
 
 import org.eclipse.edc.policy.model.Policy;
+import jakarta.validation.constraints.NotNull;
+
 
 public abstract class PolicyDefinitionDto {
 
+    @NotNull
     protected Policy policy;
 
     protected abstract static class Builder<A extends PolicyDefinitionDto, B extends Builder<A, B>> {

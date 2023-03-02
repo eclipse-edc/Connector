@@ -115,7 +115,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @PUT
     @Path("{policyId}")
     @Override
-    public void updatePolicy(@PathParam("policyId") String policyId, PolicyDefinitionUpdateDto updatedPolicyDefinition) {
+    public void updatePolicy(@PathParam("policyId") String policyId, @Valid PolicyDefinitionUpdateDto updatedPolicyDefinition) {
         var wrapper = PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
                 .policyId(policyId)
                 .updateRequest(updatedPolicyDefinition)
@@ -125,8 +125,8 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
             throw new InvalidRequestException(transformResult.getFailureMessages());
         }
 
-        policyDefinitionService.update(policyId, transformResult.getContent()).orElseThrow(exceptionMapper(PolicyDefinition.class, policyId));
-        monitor.debug(format("Policy definition updated %s", policyId));
+        policyDefinitionService.update(policyId, transformResult.getContent())
+                .orElseThrow(exceptionMapper(PolicyDefinition.class, policyId));
     }
 
     @DELETE
