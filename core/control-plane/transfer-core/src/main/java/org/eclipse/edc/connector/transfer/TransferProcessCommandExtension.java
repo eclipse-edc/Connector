@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.transfer.command.handlers.CompleteTransferComma
 import org.eclipse.edc.connector.transfer.command.handlers.DeprovisionRequestHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.FailTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.TerminateTransferCommandHandler;
-import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -36,9 +35,6 @@ public class TransferProcessCommandExtension implements ServiceExtension {
     @Inject
     private TransferProcessStore store;
 
-    @Inject
-    private TransferProcessObservable observable;
-
     @Override
     public void initialize(ServiceExtensionContext context) {
         var registry = context.getService(CommandHandlerRegistry.class);
@@ -46,7 +42,7 @@ public class TransferProcessCommandExtension implements ServiceExtension {
         registry.register(new CancelTransferCommandHandler(store));
         registry.register(new TerminateTransferCommandHandler(store));
         registry.register(new DeprovisionRequestHandler(store));
-        registry.register(new CompleteTransferCommandHandler(store, observable));
+        registry.register(new CompleteTransferCommandHandler(store));
         registry.register(new FailTransferCommandHandler(store));
     }
 
