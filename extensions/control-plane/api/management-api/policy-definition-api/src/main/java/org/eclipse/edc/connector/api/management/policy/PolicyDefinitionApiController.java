@@ -94,7 +94,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     @POST
     @Override
-    public IdResponseDto createPolicy(PolicyDefinitionRequestDto requestDto) {
+    public IdResponseDto createPolicy(@Valid PolicyDefinitionRequestDto requestDto) {
         var transformResult = transformerRegistry.transform(requestDto, PolicyDefinition.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
