@@ -33,7 +33,6 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
-import org.eclipse.edc.connector.transfer.spi.types.command.FailTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
@@ -115,11 +114,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     @Override
     public @NotNull ServiceResult<TransferProcess> complete(String transferProcessId) {
         return apply(transferProcessId, this::completeImpl);
-    }
-
-    @Override
-    public @NotNull ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail) {
-        return apply(transferProcessId, failImpl(errorDetail));
     }
 
     @Override
@@ -222,18 +216,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         } catch (IllegalStateException e) {
             return ServiceResult.conflict(format("TransferProcess %s cannot be started as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
         }
-    }
-
-    private Function<TransferProcess, ServiceResult<TransferProcess>> failImpl(String failReason) {
-        return (transferProcess) -> {
-            if (transferProcess.canBeTerminated()) {
-                manager.enqueueCommand(new FailTransferCommand(transferProcess.getId(), failReason));
-                return ServiceResult.success(transferProcess);
-            } else {
-                return ServiceResult.conflict(format("Cannot fail TransferProcess %s as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
-            }
-        };
-
     }
 
     private Function<TransferProcess, ServiceResult<TransferProcess>> completeDeprovisionImpl(DeprovisionedResource resource) {

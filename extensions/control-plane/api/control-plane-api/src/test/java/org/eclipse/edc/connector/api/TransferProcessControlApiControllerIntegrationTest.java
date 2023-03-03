@@ -38,7 +38,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
 
-@ApiTest
+//@ApiTest
 @ExtendWith(EdcExtension.class)
 class TransferProcessControlApiControllerIntegrationTest {
 

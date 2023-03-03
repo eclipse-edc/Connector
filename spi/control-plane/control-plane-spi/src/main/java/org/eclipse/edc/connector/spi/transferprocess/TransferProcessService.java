@@ -113,9 +113,13 @@ public interface TransferProcessService {
      * @param transferProcessId id of the transferProcess
      * @param errorDetail the reason of the failure
      * @return a result that is successful if the transfer process was found and is in a state that can be failed
+     * @deprecated please use {@link #terminate(String, String)}
      */
     @NotNull
-    ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail);
+    @Deprecated(since = "milestone9")
+    default ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail) {
+        return terminate(transferProcessId, errorDetail);
+    }
 
     /**
      * Asynchronously requests deprovisioning of the transfer process.
