@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
@@ -53,7 +54,7 @@ public interface TransferProcessApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
             deprecated = true
     )
-    @Deprecated
+    @Deprecated(since = "milestone8")
     List<TransferProcessDto> getAllTransferProcesses(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an transfer process with the given ID",
@@ -81,18 +82,6 @@ public interface TransferProcessApi {
     )
     TransferState getTransferProcessState(String id);
 
-    @Operation(description = "Requests aborting the transfer process. Due to the asynchronous nature of transfers, a successful " +
-            "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to cancel the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            })
-    void cancelTransferProcess(String id);
-
     @Operation(description = "Requests the deprovisioning of resources associated with a transfer process. Due to the asynchronous nature of transfers, a successful " +
             "response only indicates that the request was successfully received. This may take a long time, so clients must poll the /{id}/state endpoint to track the state.",
             responses = {
@@ -104,6 +93,33 @@ public interface TransferProcessApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
     void deprovisionTransferProcess(String id);
+
+    @Operation(description = "Requests the termination of a transfer process. Due to the asynchronous nature of transfers, a successful " +
+            "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Request to cancel the transfer process was successfully received",
+                            links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "409", description = "Could not terminate transfer process, because it is already completed or terminated.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            })
+    void terminateTransferProcess(String id, TerminateTransferDto terminateTransfer);
+
+    @Operation(description = "Requests aborting the transfer process. Due to the asynchronous nature of transfers, a successful " +
+            "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Request to cancel the transfer process was successfully received",
+                            links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            })
+    @Deprecated(since = "milestone9")
+    void cancelTransferProcess(String id);
 
     @Operation(description = "Initiates a data transfer with the given parameters. Please note that successfully invoking this endpoint " +
             "only means that the transfer was initiated. Clients must poll the /{id}/state endpoint to track the state",

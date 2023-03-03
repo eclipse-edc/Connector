@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Initial implementation
  *
  */
 
@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,22 +38,27 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class CancelTransferCommandHandlerTest {
+class TerminateTransferCommandHandlerTest {
 
     private final TransferProcessStore store = mock(TransferProcessStore.class);
     private final TransferProcessObservable observable = new TransferProcessObservableImpl();
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
-    private CancelTransferCommandHandler handler;
+    private TerminateTransferCommandHandler handler;
 
     @BeforeEach
     void setUp() {
         observable.registerListener(listener);
-        handler = new CancelTransferCommandHandler(store);
+        handler = new TerminateTransferCommandHandler(store);
+    }
+
+    @Test
+    void verifyCorrectType() {
+        assertThat(handler.getType()).isEqualTo(TerminateTransferCommand.class);
     }
 
     @Test
     void handle() {
-        var cmd = new CancelTransferCommand("test-id");
+        var cmd = new TerminateTransferCommand("test-id", "a reason");
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(STARTED.code())
                 .updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
@@ -63,7 +68,7 @@ class CancelTransferCommandHandlerTest {
         handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TERMINATING.code());
-        assertThat(tp.getErrorDetail()).isEqualTo("transfer cancelled");
+        assertThat(tp.getErrorDetail()).isEqualTo("a reason");
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
         verify(store).find(anyString());
@@ -77,7 +82,7 @@ class CancelTransferCommandHandlerTest {
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
-        var cmd = new CancelTransferCommand("test-id");
+        var cmd = new TerminateTransferCommand("test-id", "a reason");
 
         when(store.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
@@ -91,15 +96,10 @@ class CancelTransferCommandHandlerTest {
 
     @Test
     void handle_notFound() {
-        var cmd = new CancelTransferCommand("test-id");
+        var cmd = new TerminateTransferCommand("test-id", "a reason");
 
         when(store.find(anyString())).thenReturn(null);
         assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(EdcException.class).hasMessageStartingWith("Could not find TransferProcess with ID [test-id]");
         verifyNoInteractions(listener);
-    }
-
-    @Test
-    void verifyCorrectType() {
-        assertThat(handler.getType()).isEqualTo(CancelTransferCommand.class);
     }
 }

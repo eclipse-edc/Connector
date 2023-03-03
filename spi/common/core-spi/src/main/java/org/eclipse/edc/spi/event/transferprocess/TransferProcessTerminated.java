@@ -19,7 +19,13 @@ package org.eclipse.edc.spi.event.transferprocess;
  */
 public class TransferProcessTerminated extends TransferProcessEvent<TransferProcessTerminated.Payload> {
 
+    private String reason;
+
     private TransferProcessTerminated() {
+    }
+
+    public String getReason() {
+        return reason;
     }
 
     /**
@@ -33,6 +39,11 @@ public class TransferProcessTerminated extends TransferProcessEvent<TransferProc
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder reason(String reason) {
+            event.reason = reason;
+            return this;
         }
 
         private Builder() {

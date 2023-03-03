@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.transferprocess;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
+import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
@@ -210,7 +211,7 @@ class TransferProcessApiControllerTest {
     void cancelTransfer() {
         var transferProcess = transferProcess();
 
-        when(service.cancel(transferProcess.getId())).thenReturn(ServiceResult.success(transferProcess));
+        when(service.terminate(eq(transferProcess.getId()), any())).thenReturn(ServiceResult.success(transferProcess));
 
         controller.cancelTransferProcess(transferProcess.getId());
     }
@@ -219,7 +220,7 @@ class TransferProcessApiControllerTest {
     void cancelTransfer_conflict() {
         var transferProcess = transferProcess();
 
-        when(service.cancel(transferProcess.getId())).thenReturn(ServiceResult.conflict("conflict"));
+        when(service.terminate(eq(transferProcess.getId()), any())).thenReturn(ServiceResult.conflict("conflict"));
 
         assertThatThrownBy(() -> controller.cancelTransferProcess(transferProcess.getId())).isInstanceOf(ObjectConflictException.class);
     }
@@ -228,16 +229,43 @@ class TransferProcessApiControllerTest {
     void cancelTransfer_NotFound() {
         var transferProcess = transferProcess();
 
-        when(service.cancel(transferProcess.getId())).thenReturn(ServiceResult.notFound("not found"));
+        when(service.terminate(eq(transferProcess.getId()), any())).thenReturn(ServiceResult.notFound("not found"));
 
         assertThatThrownBy(() -> controller.cancelTransferProcess(transferProcess.getId())).isInstanceOf(ObjectNotFoundException.class);
     }
 
     @Test
+    void terminateTransfer() {
+        var transferProcess = transferProcess();
+
+        when(service.terminate(eq(transferProcess.getId()), any())).thenReturn(ServiceResult.success(transferProcess));
+
+        controller.terminateTransferProcess(transferProcess.getId(), TerminateTransferDto.Builder.newInstance().build());
+    }
+
+    @Test
+    void terminateTransfer_conflict() {
+        var transferProcess = transferProcess();
+
+        when(service.terminate(eq(transferProcess.getId()), any())).thenReturn(ServiceResult.conflict("conflict"));
+
+        assertThatThrownBy(() -> controller.terminateTransferProcess(transferProcess.getId(), TerminateTransferDto.Builder.newInstance().build())).isInstanceOf(ObjectConflictException.class);
+    }
+
+    @Test
+    void terminateTransfer_NotFound() {
+        var transferProcess = transferProcess();
+
+        when(service.terminate(eq(transferProcess.getId()), any())).thenReturn(ServiceResult.notFound("not found"));
+
+        assertThatThrownBy(() -> controller.terminateTransferProcess(transferProcess.getId(), TerminateTransferDto.Builder.newInstance().build())).isInstanceOf(ObjectNotFoundException.class);
+    }
+
+    @Test
     void initiateTransfer() {
         var transferReq = transferRequestDto();
-        String processId = "processId";
-        DataRequest request = dataRequest(transferReq);
+        var processId = "processId";
+        var request = dataRequest(transferReq);
         when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.success(request));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(processId));
 

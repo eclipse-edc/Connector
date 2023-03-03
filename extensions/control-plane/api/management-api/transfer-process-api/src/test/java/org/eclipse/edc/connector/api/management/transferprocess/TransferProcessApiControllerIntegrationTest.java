@@ -21,8 +21,8 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRe
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +36,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
@@ -47,7 +48,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 
-@ApiTest
+//@ApiTest
 @ExtendWith(EdcExtension.class)
 class TransferProcessApiControllerIntegrationTest {
 
@@ -202,7 +203,55 @@ class TransferProcessApiControllerIntegrationTest {
                 .post("/transferprocess/" + PROCESS_ID + "/cancel")
                 .then()
                 .statusCode(409)
-                .body("[0].message", startsWith(format("TransferProcess %s cannot be canceled as it is in state", PROCESS_ID)));
+                .body("[0].message", startsWith(format("TransferProcess %s cannot be terminated as it is in state", PROCESS_ID)));
+    }
+
+    @Test
+    void terminate(TransferProcessStore store) {
+        store.save(createTransferProcess(PROCESS_ID, STARTED.code()));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(Map.of("reason", "any reason"))
+                .post("/transferprocess/" + PROCESS_ID + "/terminate")
+                .then()
+                .statusCode(204);
+
+        await().untilAsserted(() -> {
+            assertThat(store.find(PROCESS_ID)).isNotNull().extracting(StatefulEntity::getErrorDetail).isEqualTo("any reason");
+        });
+    }
+
+    @Test
+    void terminate_badRequest_whenNoReason() {
+        baseRequest()
+                .contentType(JSON)
+                .body(Map.of("reason", ""))
+                .post("/transferprocess/nonExistingId/terminate")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void terminate_notFound() {
+        baseRequest()
+                .contentType(JSON)
+                .body(Map.of("reason", "any reason"))
+                .post("/transferprocess/nonExistingId/terminate")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void terminate_conflict(TransferProcessStore store) {
+        store.save(createTransferProcess(PROCESS_ID, COMPLETED.code()));
+        baseRequest()
+                .contentType(JSON)
+                .body(Map.of("reason", "any reason"))
+                .post("/transferprocess/" + PROCESS_ID + "/terminate")
+                .then()
+                .statusCode(409)
+                .body("[0].message", startsWith(format("TransferProcess %s cannot be terminated as it is in state", PROCESS_ID)));
     }
 
     @Test

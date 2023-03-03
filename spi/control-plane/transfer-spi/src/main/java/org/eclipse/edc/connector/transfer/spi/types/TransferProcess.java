@@ -34,13 +34,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
@@ -51,7 +55,11 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 
 /**
  * Represents a data transfer process.
@@ -95,7 +103,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 @JsonDeserialize(builder = TransferProcess.Builder.class)
 public class TransferProcess extends StatefulEntity<TransferProcess> {
 
-    private Type type = Type.CONSUMER;
+    private Type type = CONSUMER;
     private DataRequest dataRequest;
     private DataAddress contentDataAddress;
     private ResourceManifest resourceManifest;
@@ -232,19 +240,29 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     }
 
-    public void transitionStarted() {
-        if (type == Type.CONSUMER) {
-            // the consumer must first transition to the request/ack states before start
-            transition(STARTED, REQUESTED, STARTED);
-        } else {
-            // the provider transitions from provisioned to in progress directly
-            transition(STARTED, REQUESTED, PROVISIONED, STARTED);
+    public void transitionStarting() {
+        if (type == CONSUMER) {
+            throw new IllegalStateException("Consumer processes have no STARTING state");
         }
+
+        transition(STARTING, PROVISIONED, STARTING);
+    }
+
+    public void transitionStarted() {
+        if (type == CONSUMER) {
+            transition(STARTED, STARTED, REQUESTED);
+        } else {
+            transition(STARTED, STARTED, STARTING);
+        }
+    }
+
+    public void transitionCompleting() {
+        transition(COMPLETING, COMPLETING, STARTED);
     }
 
     public void transitionCompleted() {
         // consumers are in REQUESTED state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
-        transition(COMPLETED, COMPLETED, STARTED, REQUESTED);
+        transition(COMPLETED, COMPLETED, COMPLETING, STARTED);
     }
 
     public void transitionDeprovisioning() {
@@ -264,19 +282,41 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(DEPROVISIONED, DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED);
     }
 
-    public void transitionTerminated() {
-        var forbiddenStates = List.of(TERMINATED, COMPLETED);
+    public boolean canBeTerminated() {
+        return Stream.of(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED, STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDED, TERMINATING)
+                .map(TransferProcessStates::code).anyMatch(code -> code == state);
+    }
 
-        var allowedStates = Arrays.stream(TransferProcessStates.values())
-                .filter(it -> !forbiddenStates.contains(it))
-                .toArray(TransferProcessStates[]::new);
-
-        transition(TERMINATED, allowedStates);
+    public void transitionTerminating(@Nullable String errorDetail) {
+        this.errorDetail = errorDetail;
+        transition(TERMINATING, state -> canBeTerminated());
     }
 
     public void transitionTerminated(@Nullable String errorDetail) {
         this.errorDetail = errorDetail;
-        transitionTerminated();
+        transition(TERMINATED, state -> canBeTerminated());
+    }
+
+    public void transitionTerminated() {
+        transition(TERMINATED, TERMINATING);
+    }
+
+    private void transition(TransferProcessStates end, TransferProcessStates... starts) {
+        transition(end, (state) -> Arrays.stream(starts).anyMatch(s -> s == state));
+    }
+
+    /**
+     * Transition to a given end state if the passed predicate test correctly. Increases the
+     * state count if transitioned to the same state and updates the state timestamp.
+     *
+     * @param end          The desired state.
+     * @param canTransitTo Tells if the negotiation can transit to that state.
+     */
+    private void transition(TransferProcessStates end, Predicate<TransferProcessStates> canTransitTo) {
+        if (!canTransitTo.test(TransferProcessStates.from(state))) {
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
+        }
+        transitionTo(end.code());
     }
 
     @Override
@@ -320,13 +360,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 ", state=" + TransferProcessStates.from(state) +
                 ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
                 '}';
-    }
-
-    private void transition(TransferProcessStates end, TransferProcessStates... starts) {
-        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
-            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
-        }
-        transitionTo(end.code());
     }
 
     public enum Type {

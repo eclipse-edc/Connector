@@ -190,11 +190,29 @@ public interface TransferProcessListener {
     }
 
     /**
+     * Called after a {@link TransferProcess} was started.
+     *
+     * @param process the transfer process that has been started.
+     */
+    default void started(TransferProcess process) {
+
+    }
+
+    /**
      * Called after a {@link TransferProcess} was completed.
      *
      * @param process the transfer process that has been completed.
      */
     default void completed(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was terminated.
+     *
+     * @param process the transfer process that has been terminated.
+     */
+    default void terminated(TransferProcess process) {
 
     }
 
@@ -213,15 +231,6 @@ public interface TransferProcessListener {
      * @param process the transfer process that has been deprovisioned.
      */
     default void deprovisioned(TransferProcess process) {
-
-    }
-
-    /**
-     * Called after a {@link TransferProcess} was terminated.
-     *
-     * @param process the transfer process that has been terminated.
-     */
-    default void terminated(TransferProcess process) {
 
     }
 

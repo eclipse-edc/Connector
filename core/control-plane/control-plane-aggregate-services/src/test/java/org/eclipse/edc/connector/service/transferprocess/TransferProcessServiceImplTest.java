@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
 import org.eclipse.edc.policy.model.Policy;
@@ -47,11 +46,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -129,45 +131,6 @@ class TransferProcessServiceImplTest {
     @Test
     void getState_whenNotFound() {
         assertThat(service.getState(id)).isNull();
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "TERMINATED" })
-    void cancel(TransferProcessStates state) {
-        var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
-
-        var result = service.cancel(id);
-
-        assertThat(result.succeeded()).isTrue();
-        verify(manager).enqueueCommand(commandCaptor.capture());
-        assertThat(commandCaptor.getValue()).isInstanceOf(CancelTransferCommand.class);
-        assertThat(commandCaptor.getValue().getTransferProcessId())
-                .isEqualTo(id);
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED" })
-    void cancel_whenNonCancellable(TransferProcessStates state) {
-        var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
-
-        var result = service.cancel(id);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + process.getId() + " cannot be canceled as it is in state " + state);
-        verifyNoInteractions(manager);
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    @Test
-    void cancel_whenNotFound() {
-        var result = service.cancel(id);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -269,6 +232,30 @@ class TransferProcessServiceImplTest {
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + process.getId() + " cannot be deprovisioned as it is in state " + state);
         verifyNoInteractions(manager);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void started_shouldCallManager() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+
+        var result = service.started("dataRequestId");
+
+        assertThat(result).matches(ServiceResult::succeeded);
+        verify(manager).started("processId");
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void started_shouldFailIfProcessNotFound() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(null);
+
+        var result = service.started("dataRequestId");
+
+        assertThat(result).matches(ServiceResult::failed);
+        verify(manager, never()).started(any());
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test

@@ -27,6 +27,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
+import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
@@ -99,21 +100,30 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     @POST
-    @Path("/{id}/cancel")
-    @Override
-    public void cancelTransferProcess(@PathParam("id") String id) {
-        monitor.debug("Cancelling TransferProcess with ID " + id);
-        var transferProcess = service.cancel(id).orElseThrow(exceptionMapper(TransferProcess.class, id));
-        monitor.debug(format("Transfer process canceled %s", transferProcess.getId()));
-    }
-
-    @POST
     @Path("/{id}/deprovision")
     @Override
     public void deprovisionTransferProcess(@PathParam("id") String id) {
         monitor.debug(format("Attempting to deprovision TransferProcess with id %s", id));
         var transferProcess = service.deprovision(id).orElseThrow(exceptionMapper(TransferProcess.class, id));
         monitor.debug(format("Transfer process deprovisioned %s", transferProcess.getId()));
+    }
+
+    @POST
+    @Path("/{id}/terminate")
+    @Override
+    public void terminateTransferProcess(@PathParam("id") String id, TerminateTransferDto terminateTransfer) {
+        monitor.debug("Terminating TransferProcess with ID " + id);
+        var transferProcess = service.terminate(id, terminateTransfer.getReason()).orElseThrow(exceptionMapper(TransferProcess.class, id));
+        monitor.debug(format("Termination requested for TransferProcess with ID %s", transferProcess.getId()));
+    }
+
+    @POST
+    @Path("/{id}/cancel")
+    @Override
+    public void cancelTransferProcess(@PathParam("id") String id) {
+        monitor.debug("Cancelling TransferProcess with ID " + id);
+        var transferProcess = service.terminate(id, "transfer process canceled").orElseThrow(exceptionMapper(TransferProcess.class, id));
+        monitor.debug(format("Transfer process canceled %s", transferProcess.getId()));
     }
 
     @POST
