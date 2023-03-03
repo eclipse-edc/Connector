@@ -56,6 +56,15 @@ public interface PolicyDefinitionStore {
     void save(PolicyDefinition policy);
 
     /**
+     * Updates the policy.
+     *
+     * @param policyId ID of the Policy to be updated
+     * @param policy to be updated.
+     * @throws EdcPersistenceException if any exception occurs during Query Execution e.g., SQLException.
+     */
+    PolicyDefinition update(String policyId, PolicyDefinition policy);
+
+    /**
      * Deletes a policy for the given id.
      *
      * @param policyId id of the policy to be removed.

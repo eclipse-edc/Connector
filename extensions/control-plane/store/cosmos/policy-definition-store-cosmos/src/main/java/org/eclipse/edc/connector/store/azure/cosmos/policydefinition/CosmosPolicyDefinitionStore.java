@@ -77,6 +77,15 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
     }
 
     @Override
+    public PolicyDefinition update(String policyId, PolicyDefinition policy) {
+        if (findById(policyId) != null) {
+            with(retryPolicy).run(() -> cosmosDbApi.saveItem((convertToDocument(policy))));
+            return policy;
+        }
+        return null;
+    }
+
+    @Override
     public @Nullable PolicyDefinition deleteById(String policyId) {
         try {
             var deletedItem = cosmosDbApi.deleteItem(policyId);

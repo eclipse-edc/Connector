@@ -103,6 +103,17 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     }
 
     @Override
+    public PolicyDefinition update(String policyId, PolicyDefinition policyDefinition) {
+        if (findById(policyId) != null) {
+            return transactionContext.execute(() -> {
+                update(policyDefinition);
+                return policyDefinition;
+            });
+        }
+        return null;
+    }
+
+    @Override
     public @Nullable PolicyDefinition deleteById(String policyId) {
         Objects.requireNonNull(policyId);
         return transactionContext.execute(() -> {

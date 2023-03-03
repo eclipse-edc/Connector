@@ -33,11 +33,16 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class PolicyDefinitionServiceImplTest {
@@ -45,8 +50,9 @@ class PolicyDefinitionServiceImplTest {
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractDefinitionStore contractDefinitionStore = mock(ContractDefinitionStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
+    private final PolicyDefinitionObservable observable = mock(PolicyDefinitionObservable.class);
+    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, observable);
 
-    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, mock(PolicyDefinitionObservable.class));
 
     @Test
     void findById_shouldRelyOnPolicyStore() {
@@ -180,6 +186,54 @@ class PolicyDefinitionServiceImplTest {
                 qs.getFilterExpression().get(0).getOperandLeft().equals("contractPolicyId")));
     }
 
+    @Test
+    void updatePolicy_ifPolicyNotExists() {
+        var policy = createPolicy("policyId");
+        var updated = policyServiceImpl.update(policy.getUid(), policy);
+        assertThat(updated.succeeded()).isFalse();
+        assertThat(updated.getContent()).isNull();
+    }
+
+    @Test
+    void updatePolicy_shouldUpdateWhenExists() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+        when(policyStore.findById(anyString())).thenReturn(policy);
+
+        var updated = policyServiceImpl.update(policyId, policy);
+
+        assertThat(updated.succeeded()).isTrue();
+        verify(policyStore).update(eq(policyId), eq(policy));
+        verify(observable).invokeForEach(any());
+    }
+
+    @Test
+    void updatePolicy_shouldReturnNotFound_whenNotExists() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+        when(policyStore.findById(anyString())).thenReturn(null);
+
+        var updated = policyServiceImpl.update(policyId, policy);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        verify(policyStore, never()).save(eq(policy));
+        verify(observable, never()).invokeForEach(any());
+    }
+
+    @Test
+    void updatePolicy_shouldReturnBadRequest_whenPolicyIdWrong() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+        when(policyStore.findById(anyString())).thenReturn(policy);
+
+        var updated = policyServiceImpl.update("another-id", policy);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(policyStore);
+        verifyNoInteractions(observable);
+    }
 
     @NotNull
     private Predicate<PolicyDefinition> hasId(String policyId) {

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -121,6 +122,23 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
                 return ServiceResult.success(policyDefinition);
             } else {
                 return ServiceResult.conflict(format("PolicyDefinition %s cannot be created because it already exists", policyDefinition.getUid()));
+            }
+        });
+    }
+
+
+    @Override
+    public @NotNull ServiceResult<Void> update(String policyId, PolicyDefinition policyDefinition) {
+        if (!Objects.equals(policyId, policyDefinition.getUid())) {
+            return ServiceResult.badRequest("PolicyDefinition.getUid() must match policyId");
+        }
+        return transactionContext.execute(() -> {
+            if (policyStore.findById(policyId) == null) {
+                return ServiceResult.notFound(format("PolicyDefinition %s cannot be updated because it does not exists", policyId));
+            } else {
+                var updatedPolicy = policyStore.update(policyId, policyDefinition);
+                observable.invokeForEach(l -> l.updated(updatedPolicy));
+                return ServiceResult.success(null);
             }
         });
     }
