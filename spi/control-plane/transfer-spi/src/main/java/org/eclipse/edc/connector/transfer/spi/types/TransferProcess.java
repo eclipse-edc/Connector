@@ -247,9 +247,13 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(STARTING, PROVISIONED, STARTING);
     }
 
+    public boolean canBeStartedConsumer() {
+        return currentStateIsOneOf(STARTED, REQUESTED);
+    }
+
     public void transitionStarted() {
         if (type == CONSUMER) {
-            transition(STARTED, STARTED, REQUESTED);
+            transition(STARTED, state -> canBeStartedConsumer());
         } else {
             transition(STARTED, STARTED, STARTING);
         }

@@ -92,7 +92,7 @@ public class TransferProcessEventDispatchTest {
             verify(eventSubscriber).on(isA(TransferProcessRequested.class));
         });
 
-        service.started("dataRequestId");
+        service.notifyStarted("dataRequestId");
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessStarted.class));

@@ -40,10 +40,4 @@ public interface TransferProcessManager {
      */
     void enqueueCommand(TransferProcessCommand command);
 
-    /**
-     * Notifies that the process has been started on PROVIDER side.
-     * Can only be called for CONSUMER TransferProcess
-     */
-    StatusResult<Void> started(String processId);
-
 }

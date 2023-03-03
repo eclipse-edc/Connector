@@ -33,6 +33,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
@@ -98,7 +99,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public ServiceResult<TransferProcess> started(String dataRequestId) {
+    public ServiceResult<TransferProcess> notifyStarted(String dataRequestId) {
         return transactionContext.execute(() -> Optional.of(dataRequestId)
                         .map(transferProcessStore::processIdForDataRequestId)
                         .map(id -> apply(id, this::startedImpl))
@@ -210,10 +211,10 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     private ServiceResult<TransferProcess> startedImpl(TransferProcess transferProcess) {
-        try {
-            manager.started(transferProcess.getId());
+        if (transferProcess.canBeStartedConsumer()) {
+            manager.enqueueCommand(new NotifyStartedTransferCommand(transferProcess.getId()));
             return ServiceResult.success(transferProcess);
-        } catch (IllegalStateException e) {
+        } else {
             return ServiceResult.conflict(format("TransferProcess %s cannot be started as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
         }
     }

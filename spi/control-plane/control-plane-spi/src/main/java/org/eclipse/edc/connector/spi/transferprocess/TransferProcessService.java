@@ -59,13 +59,13 @@ public interface TransferProcessService {
     String getState(String transferProcessId);
 
     /**
-     * Notifies the TransferProcess that it has been STARTED by the counter part.
+     * Notifies the TransferProcess that it has been STARTED by the counter-part.
      * Only callable on CONSUMER TransferProcess
      *
      * @param dataRequestId the dataRequestId
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<TransferProcess> started(String dataRequestId);
+    ServiceResult<TransferProcess> notifyStarted(String dataRequestId);
 
     /**
      * Asynchronously requests cancellation of the transfer process.
