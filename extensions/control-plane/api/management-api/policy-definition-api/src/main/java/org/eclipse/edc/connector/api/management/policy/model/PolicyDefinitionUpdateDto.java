@@ -45,5 +45,10 @@ public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto {
         public Builder self() {
             return this;
         }
+
+        @Override
+        public PolicyDefinitionUpdateDto build() {
+            return dto;
+        }
     }
 }

@@ -75,5 +75,10 @@ public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
         public PolicyDefinitionRequestDto.Builder self() {
             return this;
         }
+
+        @Override
+        public PolicyDefinitionRequestDto build() {
+            return dto;
+        }
     }
 }

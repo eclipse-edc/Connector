@@ -74,7 +74,7 @@ public interface PolicyDefinitionApi {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createPolicy(PolicyDefinitionRequestDto policy);
+    IdResponseDto createPolicy(@Valid PolicyDefinitionRequestDto policy);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
             "by a contract definition, in which case an error is returned. " +
