@@ -100,12 +100,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public ServiceResult<TransferProcess> started(String dataRequestId) {
-        return transactionContext.execute(() -> {
-            return Optional.of(dataRequestId)
-                            .map(transferProcessStore::processIdForDataRequestId)
-                            .map(id -> apply(id, transferProcess -> startedImpl(transferProcess)))
-                            .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", dataRequestId)));
-        });
+        return transactionContext.execute(() -> Optional.of(dataRequestId)
+                        .map(transferProcessStore::processIdForDataRequestId)
+                        .map(id -> apply(id, this::startedImpl))
+                        .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", dataRequestId)))
+        );
     }
 
     @Override
@@ -189,7 +188,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     private ServiceResult<TransferProcess> terminateImpl(TransferProcess transferProcess, String reason) {
-
         if (transferProcess.canBeTerminated()) {
             manager.enqueueCommand(new TerminateTransferCommand(transferProcess.getId(), reason));
 
@@ -200,31 +198,21 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     private ServiceResult<TransferProcess> deprovisionImpl(TransferProcess transferProcess) {
-        // Attempt the transition only to verify that the transition is allowed.
-        // The updated transfer process is not persisted at this point, and is discarded.
-        try {
-            transferProcess.transitionDeprovisioning();
-        } catch (IllegalStateException e) {
+        if (transferProcess.canBeDeprovisioned()) {
+            manager.enqueueCommand(new DeprovisionRequest(transferProcess.getId()));
+            return ServiceResult.success(transferProcess);
+        } else {
             return ServiceResult.conflict(format("TransferProcess %s cannot be deprovisioned as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
         }
-
-        manager.enqueueCommand(new DeprovisionRequest(transferProcess.getId()));
-
-        return ServiceResult.success(transferProcess);
     }
 
     private ServiceResult<TransferProcess> completeImpl(TransferProcess transferProcess) {
-        // Attempt the transition only to verify that the transition is allowed.
-        // The updated transfer process is not persisted at this point, and is discarded.
-        try {
-            transferProcess.transitionCompleted();
-        } catch (IllegalStateException e) {
+        if (transferProcess.canBeCompleted()) {
+            manager.enqueueCommand(new CompleteTransferCommand(transferProcess.getId()));
+            return ServiceResult.success(transferProcess);
+        } else {
             return ServiceResult.conflict(format("TransferProcess %s cannot be completed as it is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
         }
-
-        manager.enqueueCommand(new CompleteTransferCommand(transferProcess.getId()));
-
-        return ServiceResult.success(transferProcess);
     }
 
     private ServiceResult<TransferProcess> startedImpl(TransferProcess transferProcess) {

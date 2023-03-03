@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
@@ -256,17 +255,24 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         }
     }
 
+    public boolean canBeCompleted() {
+        return currentStateIsOneOf(COMPLETING, STARTED);
+    }
+
     public void transitionCompleting() {
-        transition(COMPLETING, COMPLETING, STARTED);
+        transition(COMPLETING, state -> canBeCompleted());
     }
 
     public void transitionCompleted() {
-        // consumers are in REQUESTED state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
         transition(COMPLETED, COMPLETED, COMPLETING, STARTED);
     }
 
+    public boolean canBeDeprovisioned() {
+        return currentStateIsOneOf(COMPLETED, TERMINATED, DEPROVISIONING);
+    }
+
     public void transitionDeprovisioning() {
-        transition(DEPROVISIONING, COMPLETED, TERMINATED, DEPROVISIONING);
+        transition(DEPROVISIONING, state -> canBeDeprovisioned());
     }
 
     public void transitionDeprovisioningRequested() {
@@ -283,8 +289,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public boolean canBeTerminated() {
-        return Stream.of(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED, STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDED, TERMINATING)
-                .map(TransferProcessStates::code).anyMatch(code -> code == state);
+        return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED, STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDED, TERMINATING);
     }
 
     public void transitionTerminating(@Nullable String errorDetail) {
@@ -292,13 +297,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(TERMINATING, state -> canBeTerminated());
     }
 
-    public void transitionTerminated(@Nullable String errorDetail) {
-        this.errorDetail = errorDetail;
-        transition(TERMINATED, state -> canBeTerminated());
-    }
-
     public void transitionTerminated() {
         transition(TERMINATED, TERMINATING);
+    }
+
+    public boolean currentStateIsOneOf(TransferProcessStates... states) {
+        return Arrays.stream(states).map(TransferProcessStates::code).anyMatch(code -> code == state);
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
