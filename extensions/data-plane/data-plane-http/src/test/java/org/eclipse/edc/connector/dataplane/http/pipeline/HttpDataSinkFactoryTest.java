@@ -37,7 +37,6 @@ import org.mockito.ArgumentMatchers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -55,7 +54,7 @@ class HttpDataSinkFactoryTest {
 
     private final EdcHttpClient httpClient = mock(EdcHttpClient.class);
     private final Monitor monitor = mock(Monitor.class);
-    private final ExecutorService executorService = mock(ExecutorService.class);
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final HttpRequestParamsProvider provider = mock(HttpRequestParamsProvider.class);
     private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
 
@@ -63,7 +62,7 @@ class HttpDataSinkFactoryTest {
 
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), provider, requestFactory);
+        factory = new HttpDataSinkFactory(httpClient, executorService, 5, monitor, provider, requestFactory);
     }
 
     @Test
@@ -115,18 +114,11 @@ class HttpDataSinkFactoryTest {
                 .build();
 
         // validate the generated data sink field by field using reflection
-        Arrays.stream(HttpDataSink.class.getDeclaredFields()).forEach(f -> {
-            f.setAccessible(true);
-            try {
-                assertThat(f.get(sink)).isEqualTo(f.get(expected));
-            } catch (IllegalAccessException e) {
-                throw new AssertionError("Comparison failed for field: " + f.getName());
-            }
-        });
+        assertThat(sink).usingRecursiveComparison().isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "POST", "POST", "PUT" })
+    @ValueSource(strings = { "POST", "GET", "PUT" })
     void verifyCreateMethodDestination(String method) throws IOException {
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);
@@ -139,8 +131,9 @@ class HttpDataSinkFactoryTest {
         when(requestFactory.toRequest(any(), any())).thenReturn(createHttpRequest());
         when(httpClient.execute(ArgumentMatchers.isA(Request.class))).thenReturn(createHttpResponse().build());
 
-        var future = factory.createSink(request)
-                .transfer(new InputStreamDataSource("test", new ByteArrayInputStream("test".getBytes())));
+        var sink = factory.createSink(request);
+
+        var future = sink.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("test".getBytes())));
 
         assertThat(future).succeedsWithin(10, TimeUnit.SECONDS)
                 .satisfies(result -> assertThat(result.succeeded()).isTrue());

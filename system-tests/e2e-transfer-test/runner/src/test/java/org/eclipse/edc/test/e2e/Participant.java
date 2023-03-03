@@ -249,8 +249,8 @@ public class Participant {
         var body = Map.of(
                 "id", UUID.randomUUID().toString(),
                 "url", dataPlaneControl + "/transfer",
-                "allowedSourceTypes", List.of("HttpData", "HttpProvision"),
-                "allowedDestTypes", List.of("HttpData", "HttpProvision", "HttpProxy"),
+                "allowedSourceTypes", List.of("HttpData", "HttpProvision", "Kafka"),
+                "allowedDestTypes", List.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"),
                 "properties", Map.of("publicApiUrl", dataPlanePublic.toString())
         );
 

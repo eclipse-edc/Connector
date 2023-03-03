@@ -180,7 +180,7 @@ include(":extensions:data-plane:data-plane-google-storage")
 include(":extensions:data-plane:data-plane-integration-tests")
 include(":extensions:data-plane:store:sql:data-plane-store-sql")
 include(":extensions:data-plane:store:cosmos:data-plane-store-cosmos")
-
+include(":extensions:data-plane:data-plane-kafka")
 
 include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
