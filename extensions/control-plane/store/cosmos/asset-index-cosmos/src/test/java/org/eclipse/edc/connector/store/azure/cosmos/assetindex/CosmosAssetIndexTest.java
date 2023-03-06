@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -260,10 +262,11 @@ class CosmosAssetIndexTest {
     }
 
     @Test
-    void deleteById_whenMissing_returnsNull() {
+    void deleteById_whenMissing_returnsNotFound() {
         var id = "not-exists";
         when(api.deleteItem(id)).thenThrow(new NotFoundException());
-        assertThat(assetIndex.deleteById(id)).isNull();
+        assertThat(assetIndex.deleteById(id)).isNotNull()
+                .extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
     }
 
     @NotNull

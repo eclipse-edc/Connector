@@ -108,7 +108,9 @@ public class CosmosAssetIndex implements AssetIndex {
         try {
             assetDb.createItem(assetDocument);
         } catch (ConflictException ex) {
-            return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, item.getAsset().getId()));
+            var id = item.getAsset().getId();
+            monitor.debug(() -> String.format("Asset with id %s not found", id));
+            return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, id));
         }
         return StoreResult.success();
     }
@@ -119,7 +121,7 @@ public class CosmosAssetIndex implements AssetIndex {
             var deletedItem = assetDb.deleteItem(assetId);
             // todo: the CosmosDbApi should not throw an exception when the item isn't found
             return StoreResult.success(convertObject(deletedItem).getWrappedAsset());
-        } catch (NotFoundException notFoundException) {
+        } catch (NotFoundException nfe) {
             monitor.debug(() -> String.format("Asset with id %s not found", assetId));
             return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
         }
@@ -137,13 +139,14 @@ public class CosmosAssetIndex implements AssetIndex {
 
     @Override
     public StoreResult<Asset> updateAsset(Asset asset) {
-        // cannot simply invoke assetDb.saveItem, because for that we'd need the DataAddress, which we don't have here
+        // cannot simply invoke assetDb.updateItem, because for that we'd need the DataAddress, which we don't have here
         var assetId = asset.getId();
         var result = queryByIdInternal(assetId);
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(asset, assetDocument.getPartitionKey(), assetDocument.getDataAddress());
-
+            
+            // the following statement could theoretically still raise a NotFoundException, but at that point we'll let it bubble up the stack
             assetDb.updateItem(updated);
             return StoreResult.success(asset);
         }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND, assetId)));
@@ -156,6 +159,8 @@ public class CosmosAssetIndex implements AssetIndex {
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(assetDocument.getWrappedAsset(), assetDocument.getPartitionKey(), dataAddress);
+
+            // the following statement could theoretically still raise a NotFoundException, but at that point we'll let it bubble up the stack
             assetDb.updateItem(updated);
             return StoreResult.success(dataAddress);
         }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND, assetId)));
