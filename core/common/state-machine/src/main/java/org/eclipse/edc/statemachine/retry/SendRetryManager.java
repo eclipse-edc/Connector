@@ -41,4 +41,5 @@ public interface SendRetryManager {
      * @param <T> stateful entity type
      */
     <T extends StatefulEntity<T>> boolean retriesExhausted(T entity);
+
 }

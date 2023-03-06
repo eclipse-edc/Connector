@@ -26,6 +26,7 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -68,11 +70,14 @@ public class TransferProcessHttpClientIntegrationTest {
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
+        var registry = mock(RemoteMessageDispatcherRegistry.class);
+        when(registry.send(any(), any(), any())).thenReturn(completedFuture("any"));
+        extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
     }
 
     @Test
     void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
-        when(service.transfer(any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success()));
+        when(service.transfer(any())).thenReturn(completedFuture(StatusResult.success()));
         var id = "tp-id";
         store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
@@ -86,7 +91,7 @@ public class TransferProcessHttpClientIntegrationTest {
 
     @Test
     void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
-        when(service.transfer(any())).thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error")));
+        when(service.transfer(any())).thenReturn(completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error")));
         var id = "tp-id";
         store.save(createTransferProcess(id));
         manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
@@ -123,6 +128,8 @@ public class TransferProcessHttpClientIntegrationTest {
                 .type(TransferProcess.Type.PROVIDER)
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("file")
+                        .protocol("any")
+                        .connectorAddress("http://an/address")
                         .build())
                 .build();
     }

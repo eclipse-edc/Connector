@@ -38,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -81,6 +80,7 @@ public class TransferProcessEventDispatchTest {
                 .destinationType("any")
                 .protocol("test")
                 .managedResources(false)
+                .connectorAddress("http://an/address")
                 .build();
 
         var initiateResult = service.initiateTransfer(dataRequest);
@@ -96,6 +96,11 @@ public class TransferProcessEventDispatchTest {
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessStarted.class));
+        });
+
+        service.complete(initiateResult.getContent());
+
+        await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessCompleted.class));
         });
 
@@ -119,6 +124,7 @@ public class TransferProcessEventDispatchTest {
                 .destinationType("any")
                 .protocol("test")
                 .managedResources(true)
+                .connectorAddress("http://an/address")
                 .build();
 
         var initiateResult = service.initiateTransfer(dataRequest);

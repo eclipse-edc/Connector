@@ -43,6 +43,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -497,6 +498,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
         when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class), any())).thenReturn(completedFuture("any"));
 
@@ -514,6 +516,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
         when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class), any())).thenReturn(failedFuture(new EdcException("error in sending the message")));
 
@@ -699,19 +702,51 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void terminating_shouldTransitionToTerminated() {
-        var process = createTransferProcess(TERMINATING);
+    void terminating_shouldTransitionToTerminated_whenMessageSentCorrectly() {
+        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
+        when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class), any())).thenReturn(completedFuture("any"));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class), any());
+            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
+            verify(listener).terminated(process);
+        });
+    }
+
+    @Test
+    void terminating_shouldNotTransitionToTerminated_whenSendingMessageFailed() {
+        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
+        when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class), any())).thenReturn(failedFuture(new EdcException("an error")));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class), any());
+            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATING.code()));
+        });
+    }
+
+    @Test
+    void terminating_shouldTransitionToTerminatedWithoutSendingMessage_whenConsumerAndIsNotRequestedYet() {
+        var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).state(REQUESTING.code()).build();
         when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
 
         manager.start();
 
         await().untilAsserted(() -> {
+            verifyNoInteractions(dispatcherRegistry);
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
     }
-
+    
     @Test
     void deprovisioning_shouldTransitionToDeprovisioned() {
         var manifest = ResourceManifest.Builder.newInstance()
