@@ -69,7 +69,7 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
 
     public static <T> ServiceResult<T> fromFailure(StoreResult<?> storeResult) {
         if (storeResult.succeeded()) {
-            throw new IllegalArgumentException("Can only use fromFailure() when the argument is a failed result. Please use ServiceResult.from() to also convert success results!");
+            throw new IllegalArgumentException("Can only use this method when the argument is a failed result!");
         }
         switch (storeResult.reason()) {
             case NOT_FOUND:
