@@ -57,7 +57,20 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
         if (storeResult.succeeded()) {
             return success(storeResult.getContent());
         }
+        switch (storeResult.reason()) {
+            case NOT_FOUND:
+                return notFound(storeResult.getFailureDetail());
+            case ALREADY_EXISTS:
+                return conflict(storeResult.getFailureDetail());
+            default:
+                return badRequest(storeResult.getFailureDetail());
+        }
+    }
 
+    public static <T> ServiceResult<T> fromFailure(StoreResult<?> storeResult) {
+        if (storeResult.succeeded()) {
+            throw new IllegalArgumentException("Can only use this method when the argument is a failed result!");
+        }
         switch (storeResult.reason()) {
             case NOT_FOUND:
                 return notFound(storeResult.getFailureDetail());

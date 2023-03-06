@@ -84,7 +84,7 @@ public class CosmosDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     private void insertOrUpdate(DataPlaneInstance instance) {
         var document = new DataPlaneInstanceDocument(instance, partitionKey);
-        with(retryPolicy).run(() -> cosmosDbApi.saveItem(document));
+        with(retryPolicy).run(() -> cosmosDbApi.createItem(document));
     }
 
     private DataPlaneInstance convert(Object object) {

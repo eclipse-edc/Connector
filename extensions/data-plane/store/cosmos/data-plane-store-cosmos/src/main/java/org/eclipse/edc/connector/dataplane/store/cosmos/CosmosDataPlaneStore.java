@@ -71,7 +71,7 @@ public class CosmosDataPlaneStore implements DataPlaneStore {
     }
 
     private void save(DataFlowRequestDocument doc) {
-        with(retryPolicy).run(() -> cosmosDbApi.saveItem(doc));
+        with(retryPolicy).run(() -> cosmosDbApi.createItem(doc));
     }
 
     private DataFlowRequestDocument findByIdInternal(String processorId) {

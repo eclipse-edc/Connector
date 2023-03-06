@@ -121,7 +121,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         try {
             leaseContext.acquireLease(process.getId());
-            failsafeExecutor.run(() -> cosmosDbApi.saveItem(new TransferProcessDocument(process, partitionKey)));
+            failsafeExecutor.run(() -> cosmosDbApi.createItem(new TransferProcessDocument(process, partitionKey)));
             leaseContext.breakLease(process.getId());
         } catch (BadRequestException ex) {
             throw new EdcException(ex);

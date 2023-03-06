@@ -24,9 +24,11 @@ import java.util.stream.Stream;
 
 public interface CosmosDbApi extends ReadinessProvider {
 
-    void saveItem(CosmosDocument<?> item);
+    void createItem(CosmosDocument<?> item);
 
-    void saveItems(Collection<CosmosDocument<?>> definitions);
+    void createItems(Collection<CosmosDocument<?>> definitions);
+
+    void updateItem(CosmosDocument<?> item);
 
     Object deleteItem(String id);
 
