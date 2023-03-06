@@ -119,7 +119,7 @@ public class AssetServiceImpl implements AssetService {
             if (findById(assetId) == null) {
                 return ServiceResult.notFound(format("Asset %s cannot be updated because it does not exist", assetId));
             }
-            var updatedAsset = index.updateAsset(assetId, asset);
+            var updatedAsset = index.updateAsset(asset);
             updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));
 
             return ServiceResult.success();

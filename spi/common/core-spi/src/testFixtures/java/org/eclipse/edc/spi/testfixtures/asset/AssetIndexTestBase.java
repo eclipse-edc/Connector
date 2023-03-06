@@ -356,7 +356,7 @@ public abstract class AssetIndexTestBase {
         var assetExpected = getAsset(id);
         var assetIndex = getAssetIndex();
 
-        var updated = assetIndex.updateAsset(id, assetExpected);
+        var updated = assetIndex.updateAsset(assetExpected);
         assertThat(updated).isNotNull().extracting(StoreResult::succeeded).isEqualTo(false);
     }
 
@@ -372,7 +372,7 @@ public abstract class AssetIndexTestBase {
 
         var updatedAsset = asset;
         updatedAsset.getProperties().put("newKey", "newValue");
-        var updated = assetIndex.updateAsset(id, updatedAsset);
+        var updated = assetIndex.updateAsset(updatedAsset);
 
         assertThat(updated).isNotNull();
 
@@ -395,7 +395,7 @@ public abstract class AssetIndexTestBase {
 
         var updatedAsset = asset;
         updatedAsset.getProperties().remove("newKey");
-        var updated = assetIndex.updateAsset(id, updatedAsset);
+        var updated = assetIndex.updateAsset(updatedAsset);
 
         assertThat(updated).isNotNull();
 
@@ -419,7 +419,7 @@ public abstract class AssetIndexTestBase {
 
         var updatedAsset = asset;
         updatedAsset.getProperties().put("newKey", "newValue");
-        var updated = assetIndex.updateAsset(id, updatedAsset);
+        var updated = assetIndex.updateAsset(updatedAsset);
 
         assertThat(updated).isNotNull();
 

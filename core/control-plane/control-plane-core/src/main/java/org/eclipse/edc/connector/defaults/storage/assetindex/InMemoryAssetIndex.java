@@ -133,17 +133,17 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Asset> updateAsset(String assetId, Asset asset) {
+    public StoreResult<Asset> updateAsset(Asset asset) {
         lock.writeLock().lock();
         try {
             String id = asset.getId();
             Objects.requireNonNull(asset, "asset");
             Objects.requireNonNull(id, "assetId");
-            if (cache.containsKey(assetId)) {
+            if (cache.containsKey(id)) {
                 cache.put(id, asset);
                 return StoreResult.success(asset);
             }
-            return StoreResult.notFound(assetId);
+            return StoreResult.notFound(id);
         } finally {
             lock.writeLock().unlock();
         }

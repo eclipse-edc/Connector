@@ -228,7 +228,7 @@ class AssetServiceImplTest {
         var updated = service.update(assetId, asset);
 
         assertThat(updated.succeeded()).isTrue();
-        verify(index).updateAsset(eq(assetId), eq(asset));
+        verify(index).updateAsset(eq(asset));
         verify(observable).invokeForEach(any());
     }
 
@@ -256,7 +256,7 @@ class AssetServiceImplTest {
 
         assertThat(updated.failed()).isTrue();
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
-        verify(index, never()).updateAsset(eq(assetId), eq(asset));
+        verify(index, never()).updateAsset(eq(asset));
         verify(observable, never()).invokeForEach(any());
     }
 

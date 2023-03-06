@@ -99,11 +99,10 @@ public interface AssetIndex extends DataAddressResolver {
     /**
      * Updates an asset with the content from the given {@link Asset}. If the asset is not found, no further database interaction takes place.
      *
-     * @param assetId the database of the Asset to update
-     * @param asset   The Asset containing the new values. ID will be ignored.
+     * @param asset The Asset containing the new values. ID will be ignored.
      * @return the updated Asset, or null if the asset does not exist
      */
-    StoreResult<Asset> updateAsset(String assetId, Asset asset);
+    StoreResult<Asset> updateAsset(Asset asset);
 
     /**
      * Updates a {@link DataAddress} that is associated with the {@link Asset} that is identified by the {@code assetId} argument.

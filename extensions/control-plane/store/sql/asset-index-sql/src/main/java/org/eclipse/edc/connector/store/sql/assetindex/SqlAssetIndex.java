@@ -188,9 +188,10 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Asset> updateAsset(String assetId, Asset asset) {
+    public StoreResult<Asset> updateAsset(Asset asset) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
+                var assetId = asset.getId();
                 if (existsById(assetId, connection)) {
                     executeQuery(connection, assetStatements.getDeletePropertyByIdTemplate(), assetId);
                     for (var property : asset.getProperties().entrySet()) {

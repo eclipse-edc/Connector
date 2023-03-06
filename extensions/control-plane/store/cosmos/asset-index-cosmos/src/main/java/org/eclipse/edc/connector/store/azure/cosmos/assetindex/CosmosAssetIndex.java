@@ -130,8 +130,9 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Asset> updateAsset(String assetId, Asset asset) {
+    public StoreResult<Asset> updateAsset(Asset asset) {
         // cannot simply invoke assetDb.saveItem, because for that we'd need the DataAddress, which we don't have here
+        var assetId = asset.getId();
         var result = queryByIdInternal(assetId);
 
         return result.map(assetDocument -> {

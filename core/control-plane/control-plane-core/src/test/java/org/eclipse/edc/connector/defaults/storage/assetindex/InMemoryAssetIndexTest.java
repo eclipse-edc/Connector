@@ -292,7 +292,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void updateAsset_whenNotExists_returnsFailure() {
         var id = UUID.randomUUID().toString();
         var asset = createAsset("test-asset", id);
-        var result = index.updateAsset(id, asset);
+        var result = index.updateAsset(asset);
         assertThat(result.succeeded()).isFalse();
     }
 
@@ -305,7 +305,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         index.accept(asset, dataAddress);
 
         var newAsset = createAsset("new-name", id);
-        var result = index.updateAsset(id, newAsset);
+        var result = index.updateAsset(newAsset);
         assertThat(result).isNotNull().extracting(StoreResult::getContent).usingRecursiveComparison().isEqualTo(newAsset);
     }
 
