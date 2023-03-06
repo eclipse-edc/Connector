@@ -15,6 +15,7 @@
 package org.eclipse.edc.service.spi.result;
 
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.List;
 
@@ -50,6 +51,21 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
 
     public static <T> ServiceResult<T> success() {
         return ServiceResult.success(null);
+    }
+
+    public static <T> ServiceResult<T> from(StoreResult<T> storeResult) {
+        if (storeResult.succeeded()) {
+            return success(storeResult.getContent());
+        }
+
+        switch (storeResult.reason()) {
+            case NOT_FOUND:
+                return notFound(storeResult.getFailureDetail());
+            case ALREADY_EXISTS:
+                return conflict(storeResult.getFailureDetail());
+            default:
+                return badRequest(storeResult.getFailureDetail());
+        }
     }
 
     public ServiceFailure.Reason reason() {
