@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.ids.api.multipart.dispatcher;
 
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.edc.protocol.ids.spi.types.MessageProtocol;
@@ -58,6 +59,11 @@ public class IdsMultipartRemoteMessageDispatcher implements RemoteMessageDispatc
     @Override
     public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message) {
         Objects.requireNonNull(message, "Message was null");
+
+        if (message instanceof TransferStartMessage) { // these messages are not supposed to be sent on ids-multipart.
+            return CompletableFuture.completedFuture(null);
+        }
+
         var delegate = (MultipartSenderDelegate<M, T>) delegates.get(message.getClass());
         if (delegate == null) {
             throw new EdcException("Message sender not found for message type: " + message.getClass().getName());

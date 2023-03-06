@@ -41,6 +41,7 @@ import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -63,6 +64,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
@@ -496,13 +498,30 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
+        when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class), any())).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            // TODO: verify message sent
+            verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class), any());
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+        });
+    }
+
+    @Test
+    void starting_shouldStartDataTransferAndNotTransitToStarted_whenMessageSendFailed() {
+        var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
+        when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class), any())).thenReturn(failedFuture(new EdcException("error in sending the message")));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class), any());
+            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTING.code()));
         });
     }
 
@@ -856,6 +875,7 @@ class TransferProcessManagerImplTest {
                 .processId(processId)
                 .transferType(type)
                 .protocol("ids-protocol")
+                .connectorAddress("http://an/address")
                 .managedResources(managed)
                 .build();
 

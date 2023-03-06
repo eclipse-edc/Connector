@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.CommandProcessor;
 import org.eclipse.edc.spi.command.CommandQueue;
@@ -201,7 +202,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         if (validationResult.failed()) {
             var message = format("Transitioning transfer process %s to TERMINATED state due to fatal provisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
-            transitionToError(transferProcess, message);
+            transitionToTerminating(transferProcess, message);
             return;
         }
 
@@ -298,7 +299,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             var assetId = process.getDataRequest().getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);
             if (dataAddress == null) {
-                transitionToError(process, "Asset not found: " + assetId);
+                transitionToTerminating(process, "Asset not found: " + assetId);
             }
             // default the content address to the asset address; this may be overridden during provisioning
             process.setContentDataAddress(dataAddress);
@@ -333,7 +334,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                     if (throwable == null) {
                         handleProvisionResult(process.getId(), responses);
                     } else {
-                        transitionToError(process.getId(), throwable, "Error during provisioning");
+                        transitionToTerminating(process.getId(), throwable, "Error during provisioning");
                     }
                 });
 
@@ -407,12 +408,58 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processStarting(TransferProcess process) {
-        if (PROVIDER == process.getType()) {
-            return startDataTransfer(process);
-        } else {
+        if (CONSUMER == process.getType()) {
             // should never happen: a consumer transfer cannot be STARTING
             return false;
         }
+
+        if (sendRetryManager.shouldDelay(process)) {
+            breakLease(process);
+            return false;
+        }
+
+        var dataRequest = process.getDataRequest();
+        var contentAddress = process.getContentDataAddress();
+
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
+        var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
+
+        if (response.succeeded()) {
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol(dataRequest.getProtocol())
+                    .connectorAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? IDTS
+                    .build();
+
+            dispatcherRegistry.send(Object.class, message, process::getId)
+                    .whenComplete((result, throwable) -> {
+                        if (throwable == null) {
+                            transitToStarted(process);
+                        } else {
+                            handlingSendingStartedFailure(process, throwable);
+                        }
+                    });
+
+        } else {
+            if (response.fatalError()) {
+                var message = format("TransferProcessManager: Fatal error initiating data transfer: %s. Error details: %s", process.getId(), response.getFailureDetail());
+                transitionToTerminating(process, message);
+            } else if (sendRetryManager.retriesExhausted(process)) {
+                var message = format("TransferProcessManager: attempt #%d failed to initiate data transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATED state. Cause: %s",
+                        process.getStateCount(),
+                        process.getId(),
+                        response.getFailureDetail());
+                transitionToTerminating(process, message);
+            } else {
+                monitor.debug(format("TransferProcessManager: attempt #%d failed to initiate data transfer. TransferProcess %s stays in state %s. Cause: %s",
+                        process.getStateCount(),
+                        process.getId(),
+                        TransferProcessStates.from(process.getState()),
+                        response.getFailureDetail()));
+                process.transitionStarting();
+                updateTransferProcess(process, l -> {});
+            }
+        }
+        return true;
     }
 
     /**
@@ -632,17 +679,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         updateTransferProcess(process, l -> { });
     }
 
-    private void transitionToError(String id, Throwable throwable, String message) {
+    private void transitionToTerminating(String id, Throwable throwable, String message) {
         var transferProcess = transferProcessStore.find(id);
         if (transferProcess == null) {
             monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", id));
             return;
         }
 
-        transitionToError(transferProcess, message, throwable);
+        transitionToTerminating(transferProcess, message, throwable);
     }
 
-    private void transitionToError(TransferProcess process, String message, Throwable... errors) {
+    private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
         monitor.severe(message, errors);
         process.transitionTerminating(message);
         updateTransferProcess(process, l -> { });
@@ -665,44 +712,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
 
-    private boolean startDataTransfer(TransferProcess process) {
-        if (sendRetryManager.shouldDelay(process)) {
-            breakLease(process);
-            return false;
-        }
-
-        var dataRequest = process.getDataRequest();
-        var contentAddress = process.getContentDataAddress();
-
-        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
-
-        var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
-
-        if (response.succeeded()) {
-            transitToStarted(process);
-        } else {
-            if (response.fatalError()) {
-                var message = format("TransferProcessManager: Fatal error initiating data transfer: %s. Error details: %s", process.getId(), response.getFailureDetail());
-                transitionToError(process, message);
-            } else if (sendRetryManager.retriesExhausted(process)) {
-                var message = format("TransferProcessManager: attempt #%d failed to initiate data transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATED state. Cause: %s",
-                        process.getStateCount(),
-                        process.getId(),
-                        response.getFailureDetail());
-                transitionToError(process, message);
-            } else {
-                monitor.debug(format("TransferProcessManager: attempt #%d failed to initiate data transfer. TransferProcess %s stays in state %s. Cause: %s",
-                        process.getStateCount(),
-                        process.getId(),
-                        TransferProcessStates.from(process.getState()),
-                        response.getFailureDetail()));
-                process.transitionStarting();
-                updateTransferProcess(process, l -> {});
-            }
-        }
-        return true;
-    }
-
     private boolean processConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         if (sendRetryManager.shouldDelay(process)) {
             breakLease(process);
@@ -718,14 +727,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         dispatcherRegistry.send(Object.class, dataRequest)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
-                        sendConsumerRequestSuccess(process);
+                        transitToRequested(process);
                     } else {
-                        sendCustomerRequestFailure(process, throwable);
+                        handlingSendingRequestedFailure(process, throwable);
                     }
                 });
     }
 
-    private void sendConsumerRequestSuccess(TransferProcess transferProcess) {
+    private void transitToRequested(TransferProcess transferProcess) {
         transferProcess.transitionRequested();
         updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
         observable.invokeForEach(l -> l.requested(transferProcess));
@@ -737,22 +746,42 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         observable.invokeForEach(l -> l.started(process));
     }
 
-    private void sendCustomerRequestFailure(TransferProcess transferProcess, Throwable e) {
+    // TODO: these two methods could be refactored as done in ContractNegotiationManager
+    private void handlingSendingRequestedFailure(TransferProcess transferProcess, Throwable e) {
         if (sendRetryManager.retriesExhausted(transferProcess)) {
-            var message = format("TransferProcessManager: attempt #%d failed to send transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATED state. Cause: %s",
+            var message = format("TransferProcessManager: attempt #%d failed to send request transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATING state. Cause: %s",
                     transferProcess.getStateCount(),
                     transferProcess.getId(),
                     e.getMessage());
             monitor.severe(message, e);
-            transitionToError(transferProcess.getId(), e, message);
+            transitionToTerminating(transferProcess.getId(), e, message);
             return;
         }
-        monitor.debug(format("TransferProcessManager: attempt #%d failed to send transfer. TransferProcess %s stays in state %s.",
+        monitor.debug(format("TransferProcessManager: attempt #%d failed to send request transfer. TransferProcess %s stays in state %s.",
                 transferProcess.getStateCount(),
                 transferProcess.getId(),
                 TransferProcessStates.from(transferProcess.getState())), e);
         // update state count and timestamp
         transferProcess.transitionRequesting();
+        transferProcessStore.save(transferProcess);
+    }
+
+    private void handlingSendingStartedFailure(TransferProcess transferProcess, Throwable e) {
+        if (sendRetryManager.retriesExhausted(transferProcess)) {
+            var message = format("TransferProcessManager: attempt #%d failed to send start transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATING state. Cause: %s",
+                    transferProcess.getStateCount(),
+                    transferProcess.getId(),
+                    e.getMessage());
+            monitor.severe(message, e);
+            transitionToTerminating(transferProcess.getId(), e, message);
+            return;
+        }
+        monitor.debug(format("TransferProcessManager: attempt #%d failed to send start transfer. TransferProcess %s stays in state %s.",
+                transferProcess.getStateCount(),
+                transferProcess.getId(),
+                TransferProcessStates.from(transferProcess.getState())), e);
+        // update state count and timestamp
+        transferProcess.transitionStarting();
         transferProcessStore.save(transferProcess);
     }
 
