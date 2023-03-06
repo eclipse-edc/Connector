@@ -108,19 +108,19 @@ class CosmosContractDefinitionStoreTest {
     @Test
     void save() {
         var captor = ArgumentCaptor.forClass(CosmosDocument.class);
-        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generateDefinition();
 
         store.save(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
-        verify(cosmosDbApiMock).saveItem(captor.capture());
+        verify(cosmosDbApiMock).createItem(captor.capture());
     }
 
     @Test
     void save_verifyWriteThrough() {
         var captor = ArgumentCaptor.forClass(CosmosDocument.class);
-        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         when(cosmosDbApiMock.queryItems(any(SqlQuerySpec.class))).thenReturn(IntStream.range(0, 1).mapToObj((i) -> captor.getValue()));
         // cosmosDbApiQueryMock.queryAllItems() should never be called
         var definition = generateDefinition();
@@ -131,19 +131,19 @@ class CosmosContractDefinitionStoreTest {
 
         assertThat(all).isNotEmpty().containsExactlyInAnyOrder((ContractDefinition) captor.getValue().getWrappedInstance());
         verify(cosmosDbApiMock).queryItems(any(SqlQuerySpec.class));
-        verify(cosmosDbApiMock).saveItem(captor.capture());
+        verify(cosmosDbApiMock).createItem(captor.capture());
     }
 
     @Test
     void update() {
         var captor = ArgumentCaptor.forClass(CosmosDocument.class);
-        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generateDefinition();
 
         store.update(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
-        verify(cosmosDbApiMock).saveItem(captor.capture());
+        verify(cosmosDbApiMock).createItem(captor.capture());
     }
 
     @Test

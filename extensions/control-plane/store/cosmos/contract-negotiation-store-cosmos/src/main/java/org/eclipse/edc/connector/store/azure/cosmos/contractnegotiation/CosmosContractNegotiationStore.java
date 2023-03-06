@@ -104,7 +104,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     public void save(ContractNegotiation negotiation) {
         try {
             leaseContext.acquireLease(negotiation.getId());
-            with(retryPolicy).run(() -> cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation, partitionKey)));
+            with(retryPolicy).run(() -> cosmosDbApi.createItem(new ContractNegotiationDocument(negotiation, partitionKey)));
             leaseContext.breakLease(negotiation.getId());
         } catch (BadRequestException ex) {
             throw new IllegalStateException(ex);

@@ -84,19 +84,19 @@ class CosmosPolicyDefinitionStoreTest {
     @Test
     void save() {
         var captor = ArgumentCaptor.forClass(CosmosDocument.class);
-        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generatePolicy();
 
         store.save(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
-        verify(cosmosDbApiMock).saveItem(captor.capture());
+        verify(cosmosDbApiMock).createItem(captor.capture());
     }
 
     @Test
     void save_verifyWriteThrough() {
         var captor = ArgumentCaptor.forClass(PolicyDocument.class);
-        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generatePolicy();
 
         when(cosmosDbApiMock.queryItems(any(SqlQuerySpec.class))).thenReturn(IntStream.range(0, 1).mapToObj((i) -> captor.getValue()));
@@ -107,19 +107,19 @@ class CosmosPolicyDefinitionStoreTest {
 
         assertThat(all).isNotEmpty().containsExactlyInAnyOrder(captor.getValue().getWrappedInstance());
         verify(cosmosDbApiMock).queryItems(any(SqlQuerySpec.class));
-        verify(cosmosDbApiMock).saveItem(captor.capture());
+        verify(cosmosDbApiMock).createItem(captor.capture());
     }
 
     @Test
     void update() {
         var captor = ArgumentCaptor.forClass(CosmosDocument.class);
-        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generatePolicy();
 
         store.save(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
-        verify(cosmosDbApiMock).saveItem(captor.capture());
+        verify(cosmosDbApiMock).createItem(captor.capture());
     }
 
     @Test

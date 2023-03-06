@@ -73,19 +73,15 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void saveItem(CosmosDocument<?> item) {
-        try {
-            // we don't need to supply a partition key, it will be extracted from the CosmosDocument
-            CosmosItemResponse<Object> response = container.upsertItem(item, itemRequestOptions);
-            handleResponse(response, "Failed to create item");
-        } catch (CosmosException e) {
-            throw new EdcException(e);
-        }
+    public void createItem(CosmosDocument<?> item) {
+        // we don't need to supply a partition key, it will be extracted from the CosmosDocument
+        var response = container.createItem(item, itemRequestOptions);
+        handleResponse(response, "Failed to create item");
     }
 
     @Override
-    public void saveItems(Collection<CosmosDocument<?>> definitions) {
-        definitions.forEach(this::saveItem);
+    public void createItems(Collection<CosmosDocument<?>> definitions) {
+        definitions.forEach(this::createItem);
     }
 
     @Override
@@ -202,6 +198,12 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
             scripts.createStoredProcedure(props);
         }
+    }
+
+    @Override
+    public void updateItem(CosmosDocument<?> item) {
+        var response = container.replaceItem(item, item.getId(), new PartitionKey(item.getPartitionKey()), itemRequestOptions);
+        handleResponse(response, "Failed to update item");
     }
 
     @Override

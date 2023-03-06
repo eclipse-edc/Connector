@@ -102,7 +102,7 @@ public class CosmosAssetIndex implements AssetIndex {
     @Override
     public void accept(AssetEntry item) {
         var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
-        assetDb.saveItem(assetDocument);
+        assetDb.createItem(assetDocument);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class CosmosAssetIndex implements AssetIndex {
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(asset, assetDocument.getPartitionKey(), assetDocument.getDataAddress());
-            assetDb.saveItem(updated);
+            assetDb.createItem(updated);
             return asset;
         }).orElse(null);
     }
@@ -145,7 +145,7 @@ public class CosmosAssetIndex implements AssetIndex {
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(assetDocument.getWrappedAsset(), assetDocument.getPartitionKey(), dataAddress);
-            assetDb.saveItem(updated);
+            assetDb.createItem(updated);
             return dataAddress;
         }).orElse(null);
     }

@@ -75,12 +75,12 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public void save(Collection<ContractDefinition> definitions) {
-        with(retryPolicy).run(() -> cosmosDbApi.saveItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList())));
+        with(retryPolicy).run(() -> cosmosDbApi.createItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList())));
     }
 
     @Override
     public void save(ContractDefinition definition) {
-        with(retryPolicy).run(() -> cosmosDbApi.saveItem(convertToDocument(definition)));
+        with(retryPolicy).run(() -> cosmosDbApi.createItem(convertToDocument(definition)));
     }
 
     @Override
