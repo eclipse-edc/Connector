@@ -78,9 +78,12 @@ public class AssetServiceImpl implements AssetService {
 
         return transactionContext.execute(() -> {
             if (findById(asset.getId()) == null) {
-                index.accept(asset, dataAddress);
-                observable.invokeForEach(l -> l.created(asset));
-                return ServiceResult.success(asset);
+                var createResult = index.accept(asset, dataAddress);
+                if (createResult.succeeded()) {
+                    observable.invokeForEach(l -> l.created(asset));
+                    return ServiceResult.success(asset);
+                }
+                return ServiceResult.fromFailure(createResult);
             } else {
                 return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
             }
@@ -102,12 +105,8 @@ public class AssetServiceImpl implements AssetService {
             }
 
             var deleted = index.deleteById(assetId);
-            if (deleted == null) {
-                return ServiceResult.notFound(format("Asset %s does not exist", assetId));
-            }
-
-            observable.invokeForEach(l -> l.deleted(deleted));
-            return ServiceResult.success(deleted);
+            deleted.onSuccess(a -> observable.invokeForEach(l -> l.deleted(a)));
+            return ServiceResult.from(deleted);
         });
     }
 
@@ -121,7 +120,7 @@ public class AssetServiceImpl implements AssetService {
                 return ServiceResult.notFound(format("Asset %s cannot be updated because it does not exist", assetId));
             }
             var updatedAsset = index.updateAsset(assetId, asset);
-            observable.invokeForEach(l -> l.updated(updatedAsset));
+            updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));
 
             return ServiceResult.success();
         });

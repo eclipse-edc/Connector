@@ -18,6 +18,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
@@ -72,11 +73,11 @@ public interface AssetIndex extends DataAddressResolver {
     @Nullable
     Asset findById(String assetId);
 
-    default void accept(Asset asset, DataAddress dataAddress) {
-        accept(new AssetEntry(asset, dataAddress));
+    default StoreResult<Void> accept(Asset asset, DataAddress dataAddress) {
+        return accept(new AssetEntry(asset, dataAddress));
     }
 
-    void accept(AssetEntry item);
+    StoreResult<Void> accept(AssetEntry item);
 
     /**
      * Deletes an asset.
@@ -85,7 +86,7 @@ public interface AssetIndex extends DataAddressResolver {
      * @return Deleted Asset or null if asset did not exist.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    Asset deleteById(String assetId);
+    StoreResult<Asset> deleteById(String assetId);
 
     /**
      * Counts all assets that are selected by the given criteria
@@ -102,7 +103,7 @@ public interface AssetIndex extends DataAddressResolver {
      * @param asset   The Asset containing the new values. ID will be ignored.
      * @return the updated Asset, or null if the asset does not exist
      */
-    Asset updateAsset(String assetId, Asset asset);
+    StoreResult<Asset> updateAsset(String assetId, Asset asset);
 
     /**
      * Updates a {@link DataAddress} that is associated with the {@link Asset} that is identified by the {@code assetId} argument.
@@ -112,5 +113,5 @@ public interface AssetIndex extends DataAddressResolver {
      * @param dataAddress The DataAddress containing the new values.
      * @return the updated DataAddress
      */
-    DataAddress updateDataAddress(String assetId, DataAddress dataAddress);
+    StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress);
 }

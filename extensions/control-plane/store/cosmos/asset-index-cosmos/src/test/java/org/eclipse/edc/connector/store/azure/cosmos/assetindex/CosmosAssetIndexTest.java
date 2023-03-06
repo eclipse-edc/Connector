@@ -254,7 +254,8 @@ class CosmosAssetIndexTest {
         when(api.deleteItem(TEST_ID)).thenReturn(document);
 
         var deletedAsset = assetIndex.deleteById(TEST_ID);
-        assertThat(deletedAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
+        assertThat(deletedAsset.succeeded()).isTrue();
+        assertThat(deletedAsset.getContent().getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
         verify(api).deleteItem(TEST_ID);
     }
 

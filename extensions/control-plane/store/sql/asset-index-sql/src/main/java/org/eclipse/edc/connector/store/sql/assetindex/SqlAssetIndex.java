@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
@@ -120,7 +121,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public void accept(AssetEntry item) {
+    public StoreResult<Void> accept(AssetEntry item) {
         Objects.requireNonNull(item);
         var asset = item.getAsset();
         var dataAddress = item.getDataAddress();
@@ -129,10 +130,10 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         Objects.requireNonNull(dataAddress);
 
         var assetId = asset.getId();
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (existsById(assetId, connection)) {
-                    deleteById(assetId);
+                    return StoreResult.alreadyExists(item.getAsset().getId());
                 }
 
                 executeQuery(connection, assetStatements.getInsertAssetTemplate(), assetId, asset.getCreatedAt());
@@ -146,7 +147,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                             toJson(property.getValue()),
                             property.getValue().getClass().getName());
                 }
-
+                return StoreResult.success();
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);
             }
@@ -154,19 +155,19 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public Asset deleteById(String assetId) {
+    public StoreResult<Asset> deleteById(String assetId) {
         Objects.requireNonNull(assetId);
 
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var asset = findById(assetId);
                 if (asset == null) {
-                    return null;
+                    return StoreResult.notFound(assetId);
                 }
 
                 executeQuery(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
 
-                return asset;
+                return StoreResult.success(asset);
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -187,7 +188,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public Asset updateAsset(String assetId, Asset asset) {
+    public StoreResult<Asset> updateAsset(String assetId, Asset asset) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (existsById(assetId, connection)) {
@@ -199,9 +200,9 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                                 toJson(property.getValue()),
                                 property.getValue().getClass().getName());
                     }
-                    return asset;
+                    return StoreResult.success(asset);
                 }
-                return null;
+                return StoreResult.notFound(assetId);
 
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);
@@ -210,15 +211,15 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public DataAddress updateDataAddress(String assetId, DataAddress dataAddress) {
+    public StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (existsById(assetId, connection)) {
                     var updateTemplate = assetStatements.getUpdateDataAddressTemplate();
                     executeQuery(connection, updateTemplate, toJson(dataAddress.getProperties()), assetId);
-                    return dataAddress;
+                    return StoreResult.success(dataAddress);
                 }
-                return null;
+                return StoreResult.notFound(assetId);
 
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);

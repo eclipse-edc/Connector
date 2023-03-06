@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
@@ -37,6 +38,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchException;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
  * This is the minimum test specification that all {@link AssetIndex} implementations must support. All
@@ -128,7 +130,7 @@ public abstract class AssetIndexTestBase {
     void deleteAsset_doesNotExist() {
         var assetDeleted = getAssetIndex().deleteById("id1");
 
-        assertThat(assetDeleted).isNull();
+        assertThat(assetDeleted).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
     }
 
     @Test
@@ -139,8 +141,8 @@ public abstract class AssetIndexTestBase {
 
         var assetDeleted = getAssetIndex().deleteById("id1");
 
-        assertThat(assetDeleted).isNotNull();
-        assertThat(assetDeleted).usingRecursiveComparison().isEqualTo(asset);
+        assertThat(assetDeleted).isNotNull().extracting(StoreResult::succeeded).isEqualTo(true);
+        assertThat(assetDeleted.getContent()).usingRecursiveComparison().isEqualTo(asset);
 
         assertThat(getAssetIndex().queryAssets(QuerySpec.none())).isEmpty();
     }
@@ -355,7 +357,7 @@ public abstract class AssetIndexTestBase {
         var assetIndex = getAssetIndex();
 
         var updated = assetIndex.updateAsset(id, assetExpected);
-        assertThat(updated).isNull();
+        assertThat(updated).isNotNull().extracting(StoreResult::succeeded).isEqualTo(false);
     }
 
     @Test
@@ -436,7 +438,7 @@ public abstract class AssetIndexTestBase {
         var assetIndex = getAssetIndex();
 
         var updated = assetIndex.updateDataAddress(id, assetExpected);
-        assertThat(updated).isNull();
+        assertThat(updated).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
     }
 
     @Test

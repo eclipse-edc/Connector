@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -46,6 +47,7 @@ import java.util.stream.IntStream;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.Mockito.mock;
 
 @AzureCosmosDbIntegrationTest
@@ -350,14 +352,18 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
         Asset asset = createAsset(UUID.randomUUID().toString(), "test", "foobar");
         container.createItem(new AssetDocument(asset, TEST_PARTITION_KEY, dataAddress));
 
-        Asset deletedAsset = assetIndex.deleteById(asset.getId());
-        assertThat(deletedAsset.getProperties()).isEqualTo(asset.getProperties());
+        var deleteResult = assetIndex.deleteById(asset.getId());
+        assertThat(deleteResult.succeeded()).isTrue();
+        assertThat(deleteResult.getContent().getProperties()).isEqualTo(asset.getProperties());
         assertThat(assetIndex.findById(asset.getId())).isNull();
     }
 
     @Test
     void deleteById_whenMissing_returnsNull() {
-        assertThat(assetIndex.deleteById("not-exists")).isNull();
+        assertThat(assetIndex.deleteById("not-exists"))
+                .isNotNull()
+                .extracting(StoreResult::reason)
+                .isEqualTo(NOT_FOUND);
     }
 
     @Override

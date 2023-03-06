@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -34,6 +35,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 class InMemoryAssetIndexTest extends AssetIndexTestBase {
     private InMemoryAssetIndex index;
@@ -269,12 +271,13 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     }
 
     @Test
-    void deleteById_whenPresent_deletes() {
+    void deleteById_whenExists_deletes() {
         var asset = createAsset("foobar");
         index.accept(asset, createDataAddress(asset));
         var deletedAsset = index.deleteById(asset.getId());
 
-        assertThat(deletedAsset).isEqualTo(asset);
+        assertThat(deletedAsset.succeeded()).isTrue();
+        assertThat(deletedAsset.getContent()).isEqualTo(asset);
         var assetSelector = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, asset.getName()).build();
         var assets = index.queryAssets(assetSelector);
         assertThat(assets).isEmpty();
@@ -282,15 +285,15 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
 
     @Test
     void deleteById_whenMissing_returnsNull() {
-        assertThat(index.deleteById("not-exists")).isNull();
+        assertThat(index.deleteById("not-exists")).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
     }
 
     @Test
-    void updateAsset_whenNotExists_returnsNull() {
+    void updateAsset_whenNotExists_returnsFailure() {
         var id = UUID.randomUUID().toString();
         var asset = createAsset("test-asset", id);
         var result = index.updateAsset(id, asset);
-        assertThat(result).isNull();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -303,15 +306,15 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
 
         var newAsset = createAsset("new-name", id);
         var result = index.updateAsset(id, newAsset);
-        assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(newAsset);
+        assertThat(result).isNotNull().extracting(StoreResult::getContent).usingRecursiveComparison().isEqualTo(newAsset);
     }
 
     @Test
-    void updateDataAddress_whenNotExists_returnsNull() {
+    void updateDataAddress_whenNotExists_returnsFailure() {
         var id = UUID.randomUUID().toString();
         var address = createDataAddress(createAsset("test-asset", id));
         var result = index.updateDataAddress(id, address);
-        assertThat(result).isNull();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -324,8 +327,9 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
 
         dataAddress.getProperties().put("new", "value");
         var result = index.updateDataAddress(id, dataAddress);
-        assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(dataAddress);
-        assertThat(result.getProperties().get("new")).isEqualTo("value");
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).isNotNull().usingRecursiveComparison().isEqualTo(dataAddress);
+        assertThat(result.getContent().getProperties().get("new")).isEqualTo("value");
     }
 
     @Override

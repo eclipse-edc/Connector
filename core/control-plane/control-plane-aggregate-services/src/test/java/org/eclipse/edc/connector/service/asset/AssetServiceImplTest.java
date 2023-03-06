@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.observe.asset.AssetObservable;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -164,7 +165,7 @@ class AssetServiceImplTest {
     @Test
     void delete_shouldDeleteAssetIfItsNotReferencedByAnyNegotiation() {
         when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
-        when(index.deleteById("assetId")).thenReturn(createAsset("assetId"));
+        when(index.deleteById("assetId")).thenReturn(StoreResult.success(createAsset("assetId")));
 
         var deleted = service.delete("assetId");
 
@@ -175,7 +176,7 @@ class AssetServiceImplTest {
     @Test
     void delete_shouldNotDeleteIfAssetIsAlreadyPartOfAnAgreement() {
         var asset = createAsset("assetId");
-        when(index.deleteById("assetId")).thenReturn(asset);
+        when(index.deleteById("assetId")).thenReturn(StoreResult.success(asset));
         var contractNegotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .counterPartyId(UUID.randomUUID().toString())

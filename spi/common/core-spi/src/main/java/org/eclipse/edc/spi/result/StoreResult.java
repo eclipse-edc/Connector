@@ -16,6 +16,7 @@ package org.eclipse.edc.spi.result;
 
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
@@ -26,6 +27,9 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  */
 public class StoreResult<T> extends AbstractResult<T, StoreFailure> {
 
+    private static final String ASSET_NOT_FOUND = "Asset/DataAddress with ID %s not found";
+    private static final String ASSET_EXISTS = "Asset with ID %s already exists";
+
     protected StoreResult(T content, StoreFailure failure) {
         super(content, failure);
     }
@@ -34,12 +38,12 @@ public class StoreResult<T> extends AbstractResult<T, StoreFailure> {
         return new StoreResult<>(content, null);
     }
 
-    public static <T> StoreResult<T> alreadyExists(String message) {
-        return new StoreResult<>(null, new StoreFailure(List.of(message), ALREADY_EXISTS));
+    public static <T> StoreResult<T> alreadyExists(String assetId) {
+        return new StoreResult<>(null, new StoreFailure(List.of(format(ASSET_EXISTS, assetId)), ALREADY_EXISTS));
     }
 
-    public static <T> StoreResult<T> notFound(String message) {
-        return new StoreResult<>(null, new StoreFailure(List.of(message), NOT_FOUND));
+    public static <T> StoreResult<T> notFound(String assetId) {
+        return new StoreResult<>(null, new StoreFailure(List.of(format(ASSET_NOT_FOUND, assetId)), NOT_FOUND));
     }
 
 

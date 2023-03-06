@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -100,19 +101,21 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public void accept(AssetEntry item) {
+    public StoreResult<Void> accept(AssetEntry item) {
         var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
         assetDb.createItem(assetDocument);
+        return null;
     }
 
     @Override
-    public Asset deleteById(String assetId) {
+    public StoreResult<Asset> deleteById(String assetId) {
         try {
             var deletedItem = assetDb.deleteItem(assetId);
-            return convertObject(deletedItem).getWrappedAsset();
+            // todo: the CosmosDbApi should not throw an exception when the item isn't found
+            return StoreResult.success(convertObject(deletedItem).getWrappedAsset());
         } catch (NotFoundException notFoundException) {
             monitor.debug(() -> String.format("Asset with id %s not found", assetId));
-            return null;
+            return StoreResult.notFound(assetId);
         }
     }
 
@@ -127,27 +130,27 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public Asset updateAsset(String assetId, Asset asset) {
+    public StoreResult<Asset> updateAsset(String assetId, Asset asset) {
         // cannot simply invoke assetDb.saveItem, because for that we'd need the DataAddress, which we don't have here
         var result = queryByIdInternal(assetId);
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(asset, assetDocument.getPartitionKey(), assetDocument.getDataAddress());
             assetDb.createItem(updated);
-            return asset;
-        }).orElse(null);
+            return StoreResult.success(asset);
+        }).orElse(StoreResult.notFound(assetId));
     }
 
     @Override
-    public DataAddress updateDataAddress(String assetId, DataAddress dataAddress) {
+    public StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress) {
         // cannot simply invoke assetDb.saveItem, because for that we'd need the Asset, which we don't have here
         var result = queryByIdInternal(assetId);
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(assetDocument.getWrappedAsset(), assetDocument.getPartitionKey(), dataAddress);
             assetDb.createItem(updated);
-            return dataAddress;
-        }).orElse(null);
+            return StoreResult.success(dataAddress);
+        }).orElse(StoreResult.notFound(assetId));
     }
 
     @Override
