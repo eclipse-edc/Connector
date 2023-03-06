@@ -76,6 +76,18 @@ include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-token-validation")
 include(":data-protocols:ids:ids-transform-v1")
 
+include(":data-protocols:dsp:dsp-catalog")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-api")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-dispatcher")
+include(":data-protocols:dsp:dsp-control-plane")
+include(":data-protocols:dsp:dsp-control-plane:dsp-control-plane-api")
+include(":data-protocols:dsp:dsp-control-plane:dsp-control-plane-dispatcher")
+include(":data-protocols:dsp:dsp-api-configuration")
+include(":data-protocols:dsp:dsp-core")
+include(":data-protocols:dsp:dsp-spi:dsp-catalog-spi")
+include(":data-protocols:dsp:dsp-spi:dsp-control-plane-spi")
+include(":data-protocols:dsp:dsp-spi:dsp-core-spi")
+
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
 include(":extensions:common:api:api-observability")
