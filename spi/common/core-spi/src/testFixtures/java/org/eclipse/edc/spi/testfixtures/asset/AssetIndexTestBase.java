@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -32,12 +33,15 @@ import java.time.Clock;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchException;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
@@ -508,6 +512,89 @@ public abstract class AssetIndexTestBase {
         assertThat(addressFound.getProperties()).containsEntry("newKey", "newValue");
     }
 
+    @Test
+    void accept() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        var assetIndex = getAssetIndex();
+        var result = assetIndex.accept(asset, dataAddress);
+        assertThat(result.succeeded()).isTrue();
+
+        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset);
+        assertThat(assetIndex.resolveForAsset(asset.getId())).usingRecursiveComparison().isEqualTo(dataAddress);
+    }
+
+    @Test
+    void accept_exists() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, dataAddress);
+
+        DataAddress dataAddress1 = createDataAddress(asset);
+        var result = assetIndex.accept(asset, dataAddress1);
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.reason()).isEqualTo(ALREADY_EXISTS);
+        //assert that this replaces the previous data address
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset);
+
+    }
+
+    @Test
+    void acceptAll() {
+        var asset1 = createAsset("asset1", "id1");
+        var asset2 = createAsset("asset2", "id2");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset2);
+
+        var assetIndex = getAssetIndex();
+        var results = Stream.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2)).map(assetIndex::accept);
+
+        assertThat(results).allSatisfy(sr -> assertThat(sr.succeeded()).isTrue());
+        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(2)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactlyInAnyOrder(asset1, asset2);
+    }
+
+    @Test
+    void acceptMany_oneExists_shouldReturnFailure() {
+        var asset1 = createAsset("asset1", "id1");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset1);
+
+        var results = List.of(new AssetEntry(asset1, address1), new AssetEntry(asset1, address2))
+                .stream().map(entry -> getAssetIndex().accept(entry));
+
+        assertThat(results).extracting(StoreResult::succeeded).contains(true, false);
+        // only one address/asset combo should exist
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset1);
+
+    }
+
+    @NotNull
+    protected Asset createAsset(String name) {
+        return createAsset(name, UUID.randomUUID().toString());
+    }
+
+    @NotNull
+    protected Asset createAsset(String name, String id) {
+        return createAsset(name, id, "contentType");
+    }
+
+    @NotNull
+    protected Asset createAsset(String name, String id, String contentType) {
+        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType(contentType).build();
+    }
+
     /**
      * Returns an array of all operators supported by a particular AssetIndex. If no limitations or constraints exist
      * (i.e. the AssetIndex supports all operators), then an empty list can be returned. Note that the operators MUST be
@@ -521,6 +608,13 @@ public abstract class AssetIndexTestBase {
      * Returns the SuT i.e. the fully constructed instance of the {@link AssetIndex}
      */
     protected abstract AssetIndex getAssetIndex();
+
+    protected DataAddress createDataAddress(Asset asset) {
+        return DataAddress.Builder.newInstance()
+                .keyName("test-keyname")
+                .type(asset.getContentType())
+                .build();
+    }
 
     private Asset getAsset(String id) {
         return Asset.Builder.newInstance()

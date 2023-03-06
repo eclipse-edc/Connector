@@ -37,6 +37,10 @@ import java.util.stream.Stream;
 @ExtensionPoint
 public interface AssetIndex extends DataAddressResolver {
 
+    String ASSET_EXISTS_TEMPLATE = "Asset with ID %s already exists";
+    String ASSET_NOT_FOUND = "Asset with ID %s not found";
+    String DATAADDRESS_NOT_FOUND = "DataAddress with ID %s not found";
+
     /**
      * Returns all {@link Asset} objects that are selected by a certain expression
      *

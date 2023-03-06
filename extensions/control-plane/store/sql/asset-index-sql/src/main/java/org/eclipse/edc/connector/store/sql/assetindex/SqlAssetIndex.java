@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
@@ -133,7 +134,8 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (existsById(assetId, connection)) {
-                    return StoreResult.alreadyExists(item.getAsset().getId());
+                    var msg = format(ASSET_EXISTS_TEMPLATE, assetId);
+                    return StoreResult.alreadyExists(msg);
                 }
 
                 executeQuery(connection, assetStatements.getInsertAssetTemplate(), assetId, asset.getCreatedAt());
@@ -162,7 +164,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
             try (var connection = getConnection()) {
                 var asset = findById(assetId);
                 if (asset == null) {
-                    return StoreResult.notFound(assetId);
+                    return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
                 }
 
                 executeQuery(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
@@ -203,7 +205,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     }
                     return StoreResult.success(asset);
                 }
-                return StoreResult.notFound(assetId);
+                return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
 
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);
@@ -220,7 +222,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     executeQuery(connection, updateTemplate, toJson(dataAddress.getProperties()), assetId);
                     return StoreResult.success(dataAddress);
                 }
-                return StoreResult.notFound(assetId);
+                return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
 
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);

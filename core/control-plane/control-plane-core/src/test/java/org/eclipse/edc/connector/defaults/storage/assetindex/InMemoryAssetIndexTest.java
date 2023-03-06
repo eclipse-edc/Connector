@@ -21,9 +21,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -342,26 +340,5 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         return index;
     }
 
-    @NotNull
-    private Asset createAsset(String name) {
-        return createAsset(name, UUID.randomUUID().toString());
-    }
 
-    @NotNull
-    private Asset createAsset(String name, String id) {
-        return createAsset(name, id, "contentType");
-    }
-
-    @NotNull
-    private Asset createAsset(String name, String id, String contentType) {
-        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType(contentType).build();
-    }
-
-    @NotNull
-    private DataAddress createDataAddress(Asset asset) {
-        return DataAddress.Builder.newInstance()
-                .keyName("test-keyname")
-                .type(asset.getContentType())
-                .build();
-    }
 }

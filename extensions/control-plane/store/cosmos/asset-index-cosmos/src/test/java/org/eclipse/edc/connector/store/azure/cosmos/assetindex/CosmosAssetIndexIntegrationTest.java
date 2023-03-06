@@ -100,9 +100,9 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void queryAssets_selectAll() {
-        Asset asset1 = createAsset("123", "hello", "world");
+        Asset asset1 = createAssetWithProperty("123", "hello", "world");
 
-        Asset asset2 = createAsset("456", "foo", "bar");
+        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -116,9 +116,9 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void queryAssets_filterOnProperty() {
-        Asset asset1 = createAsset("123", "test", "world");
+        Asset asset1 = createAssetWithProperty("123", "test", "world");
 
-        Asset asset2 = createAsset("456", "test", "bar");
+        Asset asset2 = createAssetWithProperty("456", "test", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -135,9 +135,9 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void queryAssets_filterOnPropertyContainingIllegalArgs() {
-        Asset asset1 = createAsset("123", "test:value", "world");
+        Asset asset1 = createAssetWithProperty("123", "test:value", "world");
 
-        Asset asset2 = createAsset("456", "test:value", "bar");
+        Asset asset2 = createAssetWithProperty("456", "test:value", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -154,9 +154,9 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findById() {
-        Asset asset1 = createAsset("123", "test", "world");
+        Asset asset1 = createAssetWithProperty("123", "test", "world");
 
-        Asset asset2 = createAsset("456", "test", "bar");
+        Asset asset2 = createAssetWithProperty("456", "test", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -169,9 +169,9 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void queryAssets_operatorIn() {
-        Asset asset1 = createAsset("123", "hello", "world");
+        Asset asset1 = createAssetWithProperty("123", "hello", "world");
 
-        Asset asset2 = createAsset("456", "foo", "bar");
+        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -189,9 +189,9 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void queryAssets_operatorIn_notList_throwsException() {
-        Asset asset1 = createAsset("123", "hello", "world");
+        Asset asset1 = createAssetWithProperty("123", "hello", "world");
 
-        Asset asset2 = createAsset("456", "foo", "bar");
+        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -209,9 +209,9 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void queryAssets_operatorIn_syntaxError_throwsException() {
-        Asset asset1 = createAsset("123", "hello", "world");
+        Asset asset1 = createAssetWithProperty("123", "hello", "world");
 
-        Asset asset2 = createAsset("456", "foo", "bar");
+        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -241,7 +241,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_noQuerySpec() {
-        Asset asset1 = createAsset("123", "test", "world");
+        Asset asset1 = createAssetWithProperty("123", "test", "world");
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
 
         var all = assetIndex.queryAssets(QuerySpec.none());
@@ -251,7 +251,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_withPaging() {
-        IntStream.range(0, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+        IntStream.range(0, 10).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
                 .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
 
         var limitQuery = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
@@ -262,7 +262,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_withPaging_sortedDesc() {
-        IntStream.range(0, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+        IntStream.range(0, 10).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
                 .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
 
         var limitQuery = QuerySpec.Builder.newInstance()
@@ -277,7 +277,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_withPaging_sortedAsc() {
-        IntStream.range(0, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+        IntStream.range(0, 10).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
                 .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
 
         var limitQuery = QuerySpec.Builder.newInstance()
@@ -292,7 +292,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_withFiltering() {
-        IntStream.range(0, 5).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+        IntStream.range(0, 5).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
                 .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
 
         var filterQuery = QuerySpec.Builder.newInstance()
@@ -306,7 +306,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_withInvalidFilter_throwsException() {
-        IntStream.range(0, 5).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+        IntStream.range(0, 5).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
                 .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
 
         var filterQuery = QuerySpec.Builder.newInstance()
@@ -319,7 +319,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_withFilteringOperatorIn_limitExceedsResultSize() {
-        IntStream.range(0, 5).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+        IntStream.range(0, 5).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
                 .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
 
         var filterQuery = QuerySpec.Builder.newInstance()
@@ -334,7 +334,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void findAll_withSorting() {
-        IntStream.range(5, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+        IntStream.range(5, 10).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
                 .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
 
         var sortQuery = QuerySpec.Builder.newInstance()
@@ -349,7 +349,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
     @Test
     void deleteById_whenPresent_deletes() {
-        Asset asset = createAsset(UUID.randomUUID().toString(), "test", "foobar");
+        Asset asset = createAssetWithProperty(UUID.randomUUID().toString(), "test", "foobar");
         container.createItem(new AssetDocument(asset, TEST_PARTITION_KEY, dataAddress));
 
         var deleteResult = assetIndex.deleteById(asset.getId());
@@ -371,7 +371,7 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
         return assetIndex;
     }
 
-    private Asset createAsset(String id, String somePropertyKey, String somePropertyValue) {
+    private Asset createAssetWithProperty(String id, String somePropertyKey, String somePropertyValue) {
         return Asset.Builder.newInstance()
                 .id(id)
                 .property(somePropertyKey, somePropertyValue)

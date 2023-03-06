@@ -34,7 +34,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -49,8 +48,10 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class AssetServiceImplTest {
@@ -124,15 +125,16 @@ class AssetServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var assetId = "assetId";
         var asset = createAsset(assetId);
-        when(index.findById(assetId)).thenReturn(null);
         var addressType = "addressType";
         var dataAddress = DataAddress.Builder.newInstance().type(addressType).build();
+        when(index.accept(asset, dataAddress)).thenReturn(StoreResult.success());
 
         var inserted = service.create(asset, dataAddress);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(assetId));
         verify(index).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
+        verifyNoMoreInteractions(index);
         verify(observable).invokeForEach(any());
     }
 
@@ -140,12 +142,13 @@ class AssetServiceImplTest {
     void createAsset_shouldNotCreateAssetIfItAlreadyExists() {
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var asset = createAsset("assetId");
-        when(index.findById("assetId")).thenReturn(asset);
         var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
+        when(index.accept(asset, dataAddress)).thenReturn(StoreResult.alreadyExists("test"));
 
         var inserted = service.create(asset, dataAddress);
 
         assertThat(inserted.succeeded()).isFalse();
+        assertThat(inserted.reason()).isEqualTo(CONFLICT);
     }
 
     @Test
@@ -197,12 +200,12 @@ class AssetServiceImplTest {
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
         verify(contractNegotiationStore).queryNegotiations(any());
-        Mockito.verifyNoMoreInteractions(contractNegotiationStore);
+        verifyNoMoreInteractions(contractNegotiationStore);
     }
 
     @Test
     void delete_shouldFailIfAssetDoesNotExist() {
-        when(index.deleteById("assetId")).thenReturn(null);
+        when(index.deleteById("assetId")).thenReturn(StoreResult.notFound("test"));
 
         var deleted = service.delete("assetId");
 
@@ -213,7 +216,10 @@ class AssetServiceImplTest {
     @Test
     @DisplayName("Verifies that the query matches the internal data model")
     void delete_verifyCorrectQuery() {
+        when(index.deleteById(any())).thenReturn(StoreResult.success());
+
         var deleted = service.delete("test-asset");
+        assertThat(deleted.succeeded()).isTrue();
         verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 &&
                 argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
     }
@@ -223,40 +229,28 @@ class AssetServiceImplTest {
     void updateAsset_shouldUpdateWhenExists() {
         var assetId = "assetId";
         var asset = createAsset(assetId);
-        when(index.findById(assetId)).thenReturn(asset);
+        when(index.updateAsset(asset)).thenReturn(StoreResult.success(asset));
 
-        var updated = service.update(assetId, asset);
+        var updated = service.update(asset);
 
         assertThat(updated.succeeded()).isTrue();
         verify(index).updateAsset(eq(asset));
+        verifyNoMoreInteractions(index);
         verify(observable).invokeForEach(any());
-    }
-
-    @Test
-    void updateAsset_shouldReturnBadRequest_whenAssetIdWrong() {
-        var assetId = "assetId";
-        var asset = createAsset(assetId);
-        when(index.findById(assetId)).thenReturn(asset);
-
-        var updated = service.update("another-id", asset);
-
-        assertThat(updated.failed()).isTrue();
-        assertThat(updated.reason()).isEqualTo(BAD_REQUEST);
-        verifyNoInteractions(index);
-        verifyNoInteractions(observable);
     }
 
     @Test
     void updateAsset_shouldReturnNotFound_whenNotExists() {
         var assetId = "assetId";
         var asset = createAsset(assetId);
-        when(index.findById(assetId)).thenReturn(null);
+        when(index.updateAsset(eq(asset))).thenReturn(StoreResult.notFound("test"));
 
-        var updated = service.update(assetId, asset);
+        var updated = service.update(asset);
 
         assertThat(updated.failed()).isTrue();
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
-        verify(index, never()).updateAsset(eq(asset));
+        verify(index, times(1)).updateAsset(asset);
+        verifyNoMoreInteractions(index);
         verify(observable, never()).invokeForEach(any());
     }
 
@@ -266,7 +260,7 @@ class AssetServiceImplTest {
         var assetId = "assetId";
         var asset = createAsset(assetId);
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
-        when(index.findById(assetId)).thenReturn(asset);
+        when(index.updateDataAddress(assetId, dataAddress)).thenReturn(StoreResult.success(dataAddress));
 
         var updated = service.update(assetId, dataAddress);
 
@@ -279,13 +273,14 @@ class AssetServiceImplTest {
     void updateDataAddress_shouldReturnNotFound_whenNotExists() {
         var assetId = "assetId";
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
-        when(index.findById(assetId)).thenReturn(null);
+        when(index.updateDataAddress(assetId, dataAddress)).thenReturn(StoreResult.notFound("test"));
 
         var updated = service.update(assetId, dataAddress);
 
         assertThat(updated.failed()).isTrue();
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
-        verify(index, never()).updateDataAddress(eq(assetId), eq(dataAddress));
+        verify(index).updateDataAddress(eq(assetId), eq(dataAddress));
+        verifyNoMoreInteractions(index);
         verify(observable, never()).invokeForEach(any());
     }
 

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.assetindex;
 
+import com.azure.cosmos.implementation.ConflictException;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlQuerySpec;
 import dev.failsafe.RetryPolicy;
@@ -38,6 +39,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
+import static java.lang.String.format;
 
 public class CosmosAssetIndex implements AssetIndex {
 
@@ -103,8 +105,12 @@ public class CosmosAssetIndex implements AssetIndex {
     @Override
     public StoreResult<Void> accept(AssetEntry item) {
         var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
-        assetDb.createItem(assetDocument);
-        return null;
+        try {
+            assetDb.createItem(assetDocument);
+        } catch (ConflictException ex) {
+            return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, item.getAsset().getId()));
+        }
+        return StoreResult.success();
     }
 
     @Override
@@ -115,7 +121,7 @@ public class CosmosAssetIndex implements AssetIndex {
             return StoreResult.success(convertObject(deletedItem).getWrappedAsset());
         } catch (NotFoundException notFoundException) {
             monitor.debug(() -> String.format("Asset with id %s not found", assetId));
-            return StoreResult.notFound(assetId);
+            return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
         }
     }
 
@@ -137,9 +143,10 @@ public class CosmosAssetIndex implements AssetIndex {
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(asset, assetDocument.getPartitionKey(), assetDocument.getDataAddress());
-            assetDb.createItem(updated);
+
+            assetDb.updateItem(updated);
             return StoreResult.success(asset);
-        }).orElse(StoreResult.notFound(assetId));
+        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND, assetId)));
     }
 
     @Override
@@ -149,9 +156,9 @@ public class CosmosAssetIndex implements AssetIndex {
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(assetDocument.getWrappedAsset(), assetDocument.getPartitionKey(), dataAddress);
-            assetDb.createItem(updated);
+            assetDb.updateItem(updated);
             return StoreResult.success(dataAddress);
-        }).orElse(StoreResult.notFound(assetId));
+        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND, assetId)));
     }
 
     @Override

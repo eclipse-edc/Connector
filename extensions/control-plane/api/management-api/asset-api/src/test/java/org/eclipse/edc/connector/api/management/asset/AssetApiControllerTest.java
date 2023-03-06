@@ -299,11 +299,11 @@ public class AssetApiControllerTest {
                 .build();
         var asset = Asset.Builder.newInstance().property("key1", "value1").build();
         when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
-        when(service.update(any(), any(Asset.class))).thenReturn(ServiceResult.success());
+        when(service.update(any(Asset.class))).thenReturn(ServiceResult.success());
 
         var assetId = "test-asset-1";
         controller.updateAsset(assetId, assetEntry);
-        verify(service).update(eq(assetId), eq(asset));
+        verify(service).update(eq(asset));
         assertThatNoException();
     }
 
@@ -314,7 +314,7 @@ public class AssetApiControllerTest {
                 .build();
         var asset = Asset.Builder.newInstance().property("key1", "value1").build();
         when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class))).thenReturn(Result.success(asset));
-        when(service.update(any(), any(Asset.class))).thenReturn(ServiceResult.notFound("not found"));
+        when(service.update(any(Asset.class))).thenReturn(ServiceResult.notFound("not found"));
 
         var assetId = "test-asset-1";
         assertThatThrownBy(() -> controller.updateAsset(assetId, assetEntry)).isInstanceOf(ObjectNotFoundException.class);

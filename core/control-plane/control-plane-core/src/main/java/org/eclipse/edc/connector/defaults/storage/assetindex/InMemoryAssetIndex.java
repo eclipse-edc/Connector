@@ -108,6 +108,10 @@ public class InMemoryAssetIndex implements AssetIndex {
     public StoreResult<Void> accept(AssetEntry item) {
         lock.writeLock().lock();
         try {
+            var id = item.getAsset().getId();
+            if (cache.containsKey(id)) {
+                return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, id));
+            }
             add(item.getAsset(), item.getDataAddress());
         } finally {
             lock.writeLock().unlock();
@@ -121,7 +125,7 @@ public class InMemoryAssetIndex implements AssetIndex {
         try {
             return Optional.ofNullable(delete(assetId))
                     .map(StoreResult::success)
-                    .orElse(StoreResult.notFound(assetId));
+                    .orElse(StoreResult.notFound(format(ASSET_NOT_FOUND, assetId)));
         } finally {
             lock.writeLock().unlock();
         }
@@ -143,7 +147,7 @@ public class InMemoryAssetIndex implements AssetIndex {
                 cache.put(id, asset);
                 return StoreResult.success(asset);
             }
-            return StoreResult.notFound(id);
+            return StoreResult.notFound(format(ASSET_NOT_FOUND, id));
         } finally {
             lock.writeLock().unlock();
         }
@@ -159,7 +163,7 @@ public class InMemoryAssetIndex implements AssetIndex {
                 dataAddresses.put(assetId, dataAddress);
                 return StoreResult.success(dataAddress);
             }
-            return StoreResult.notFound(assetId);
+            return StoreResult.notFound(format(DATAADDRESS_NOT_FOUND, assetId));
         } finally {
             lock.writeLock().unlock();
         }
