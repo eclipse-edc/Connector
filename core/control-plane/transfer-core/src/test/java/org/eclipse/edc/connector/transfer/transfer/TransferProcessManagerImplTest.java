@@ -41,6 +41,7 @@ import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
@@ -64,7 +65,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
@@ -668,16 +668,33 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void completing_shouldTransitionToCompleted() {
+    void completing_shouldTransitionToCompleted_whenSendingMessageSucceed() {
         var process = createTransferProcess(COMPLETING);
         when(transferProcessStore.nextForState(eq(COMPLETING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
+        when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class), any())).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
+            verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class), any());
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == COMPLETED.code()));
             verify(listener).completed(process);
+        });
+    }
+
+    @Test
+    void completing_shouldNotTransitionToCompleted_whenSendingMessageFailed() {
+        var process = createTransferProcess(COMPLETING);
+        when(transferProcessStore.nextForState(eq(COMPLETING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
+        when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class), any())).thenReturn(failedFuture(new EdcException("an error")));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class), any());
+            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
 

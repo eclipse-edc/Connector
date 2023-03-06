@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.CommandProcessor;
@@ -433,6 +434,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             dispatcherRegistry.send(Object.class, message, process::getId)
                     .whenComplete((result, throwable) -> {
                         if (throwable == null) {
+                            // TODO: should read process again from the store
                             transitToStarted(process);
                         } else {
                             handlingSendingStartedFailure(process, throwable);
@@ -475,6 +477,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return false;
         }
 
+        if (sendRetryManager.shouldDelay(process)) {
+            breakLease(process);
+            return false;
+        }
+
         var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
         if (checker == null) {
             if (process.getDataRequest().isManagedResources()) {
@@ -506,10 +513,24 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processCompleting(TransferProcess process) {
-        // TODO: must send COMPLETED message to counter-part before status update
-        process.transitionCompleted();
-        updateTransferProcess(process, l -> l.preCompleted(process));
-        observable.invokeForEach(l -> l.completed(process));
+        var dataRequest = process.getDataRequest();
+        var message = TransferCompletionMessage.Builder.newInstance()
+                .protocol(dataRequest.getProtocol())
+                .connectorAddress(dataRequest.getConnectorAddress())
+                .build();
+
+        dispatcherRegistry.send(Object.class, message, process::getId)
+                        .whenComplete((result, throwable) -> {
+                            if (throwable == null) {
+                                // TODO: should read process again from store
+                                process.transitionCompleted();
+                                updateTransferProcess(process, l -> l.preCompleted(process));
+                                observable.invokeForEach(l -> l.completed(process));
+                            } else {
+                                handlingSendingCompletedFailure(process, throwable);
+                            }
+                        });
+
         return true;
     }
 
@@ -782,6 +803,25 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 TransferProcessStates.from(transferProcess.getState())), e);
         // update state count and timestamp
         transferProcess.transitionStarting();
+        transferProcessStore.save(transferProcess);
+    }
+
+    private void handlingSendingCompletedFailure(TransferProcess transferProcess, Throwable e) {
+        if (sendRetryManager.retriesExhausted(transferProcess)) {
+            var message = format("TransferProcessManager: attempt #%d failed to send complete transfer. Retry limit exceeded, TransferProcess %s moves to TERMINATING state. Cause: %s",
+                    transferProcess.getStateCount(),
+                    transferProcess.getId(),
+                    e.getMessage());
+            monitor.severe(message, e);
+            transitionToTerminating(transferProcess.getId(), e, message);
+            return;
+        }
+        monitor.debug(format("TransferProcessManager: attempt #%d failed to send complete transfer. TransferProcess %s stays in state %s.",
+                transferProcess.getStateCount(),
+                transferProcess.getId(),
+                TransferProcessStates.from(transferProcess.getState())), e);
+        // update state count and timestamp
+        transferProcess.transitionCompleting();
         transferProcessStore.save(transferProcess);
     }
 
