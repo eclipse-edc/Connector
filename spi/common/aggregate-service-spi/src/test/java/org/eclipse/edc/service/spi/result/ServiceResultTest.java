@@ -18,6 +18,7 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 
@@ -34,5 +35,10 @@ class ServiceResultTest {
         assertThat(f2.succeeded()).isFalse();
 
         assertThat(ServiceResult.from(StoreResult.success("test-message"))).extracting(ServiceResult::succeeded).isEqualTo(true);
+    }
+
+    @Test
+    void fromFailure_withSuccessResult() {
+        assertThatThrownBy(() -> ServiceResult.fromFailure(StoreResult.success())).isInstanceOf(IllegalArgumentException.class);
     }
 }
