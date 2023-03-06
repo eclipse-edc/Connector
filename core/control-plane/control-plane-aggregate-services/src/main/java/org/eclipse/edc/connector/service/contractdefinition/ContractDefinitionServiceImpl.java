@@ -58,12 +58,12 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     @Override
     public ServiceResult<ContractDefinition> create(ContractDefinition contractDefinition) {
         return transactionContext.execute(() -> {
-            if (findById(contractDefinition.getId()) == null) {
-                store.accept(contractDefinition);
+            var saveResult = store.save(contractDefinition);
+            if (saveResult.succeeded()) {
                 observable.invokeForEach(l -> l.created(contractDefinition));
                 return ServiceResult.success(contractDefinition);
             } else {
-                return ServiceResult.conflict(format("ContractDefinition %s cannot be created because it already exist", contractDefinition.getId()));
+                return ServiceResult.fromFailure(saveResult);
             }
         });
     }
@@ -71,29 +71,21 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     @Override
     public ServiceResult<Void> update(ContractDefinition contractDefinition) {
         return transactionContext.execute(() -> {
-            if (findById(contractDefinition.getId()) != null) {
-                store.update(contractDefinition);
-                observable.invokeForEach(l -> l.updated(contractDefinition));
-                return ServiceResult.success(null);
-            } else {
-                return ServiceResult.notFound(format("ContractDefinition %s does not exist", contractDefinition.getId()));
-            }
+            var updateResult = store.update(contractDefinition);
+            var serviceResult = ServiceResult.from(updateResult);
+            serviceResult.onSuccess(a -> observable.invokeForEach(l -> l.updated(contractDefinition)));
+            return serviceResult;
         });
     }
 
     @Override
     public ServiceResult<ContractDefinition> delete(String contractDefinitionId) {
         return transactionContext.execute(() -> {
-            // TODO: should be checked if a contract agreement based on this definition exists. Currently not implementable because it's not possibile to filter agreements by definition id
+            var deleteResult = store.deleteById(contractDefinitionId);
+            var serviceResult = ServiceResult.from(deleteResult);
 
-            var deleted = store.deleteById(contractDefinitionId);
-            if (deleted == null) {
-                return ServiceResult.notFound(format("ContractDefinition %s does not exist", contractDefinitionId));
-            } else {
-                observable.invokeForEach(l -> l.deleted(deleted));
-                return ServiceResult.success(deleted);
-            }
-
+            serviceResult.onSuccess(deleted -> observable.invokeForEach(l -> l.deleted(deleted)));
+            return serviceResult;
         });
     }
 }

@@ -19,9 +19,9 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -29,6 +29,10 @@ import java.util.stream.Stream;
  */
 @ExtensionPoint
 public interface ContractDefinitionStore {
+
+
+    String CONTRACT_DEFINITION_EXISTS = "Contract Definition with ID %s already exists";
+    String CONTRACT_DEFINITION_NOT_FOUND = "Contract Definition with ID %s not found";
 
     /**
      * Returns all the definitions in the store that are covered by a given {@link QuerySpec}.
@@ -44,24 +48,19 @@ public interface ContractDefinitionStore {
      * Returns the definition with the given id, if it exists.
      *
      * @param definitionId the id.
-     * @return the definition with with the given id, or null.
+     * @return the definition with the given id, or null.
      */
     ContractDefinition findById(String definitionId);
 
     /**
-     * Persists the definitions.
-     */
-    void save(Collection<ContractDefinition> definitions);
-
-    /**
      * Persists the definition.
      */
-    void save(ContractDefinition definition);
+    StoreResult<Void> save(ContractDefinition definition);
 
     /**
      * Updates the definitions.
      */
-    void update(ContractDefinition definition);
+    StoreResult<Void> update(ContractDefinition definition);
 
     /**
      * Deletes the definition with the given id.
@@ -70,7 +69,7 @@ public interface ContractDefinitionStore {
      * @return The {@link ContractDefinition} if one was found, or null otherwise.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    ContractDefinition deleteById(String id);
+    StoreResult<ContractDefinition> deleteById(String id);
 
     /**
      * Signals the store should reload its internal cache if updates were made. If the implementation does not implement
@@ -79,7 +78,4 @@ public interface ContractDefinitionStore {
     default void reload() {
     }
 
-    default void accept(ContractDefinition item) {
-        save(item);
-    }
 }

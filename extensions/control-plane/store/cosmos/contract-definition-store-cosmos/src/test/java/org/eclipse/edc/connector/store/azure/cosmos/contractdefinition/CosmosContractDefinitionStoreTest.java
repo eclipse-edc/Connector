@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.contractdefinition;
 
+import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlQuerySpec;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
@@ -39,9 +40,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDefinition;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDocument;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -136,21 +139,27 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void update() {
+        var doc = generateDocument(TEST_PART_KEY);
         var captor = ArgumentCaptor.forClass(CosmosDocument.class);
-        doNothing().when(cosmosDbApiMock).createItem(captor.capture());
+        doNothing().when(cosmosDbApiMock).updateItem(captor.capture());
         var definition = generateDefinition();
+        when(cosmosDbApiMock.queryItemById(definition.getId())).thenReturn(doc);
 
         store.update(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
-        verify(cosmosDbApiMock).createItem(captor.capture());
+        verify(cosmosDbApiMock).updateItem(captor.capture());
     }
 
     @Test
     void deleteById_whenMissing_returnsNull() {
+
+        when(cosmosDbApiMock.deleteItem("some-id")).thenThrow(new NotFoundException("not found"));
+
         var contractDefinition = store.deleteById("some-id");
-        assertThat(contractDefinition).isNull();
-        verify(cosmosDbApiMock).deleteItem(notNull());
+        assertThat(contractDefinition.failed()).isTrue();
+        assertThat(contractDefinition.reason()).isEqualTo(NOT_FOUND);
+        verify(cosmosDbApiMock, atLeast(1)).deleteItem(notNull());
     }
 
     @Test
@@ -160,7 +169,9 @@ class CosmosContractDefinitionStoreTest {
         when(cosmosDbApiMock.deleteItem(document.getId())).thenReturn(document);
 
         var deletedDefinition = store.deleteById(document.getId());
-        assertThat(deletedDefinition).isEqualTo(contractDefinition);
+
+        assertThat(deletedDefinition.succeeded()).isTrue();
+        assertThat(deletedDefinition.getContent()).isEqualTo(contractDefinition);
     }
 
     @Test
