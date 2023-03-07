@@ -15,18 +15,11 @@
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
 /**
- * Terminates a transfer process by sending it to the TERMINATED state
+ * Notifies that a Transfer has been started on the counter-party side
  */
-public class TerminateTransferCommand extends SingleTransferProcessCommand {
+public class NotifyStartedTransferCommand extends SingleTransferProcessCommand {
 
-    private final String reason;
-
-    public TerminateTransferCommand(String transferProcessId, String reason) {
+    public NotifyStartedTransferCommand(String transferProcessId) {
         super(transferProcessId);
-        this.reason = reason;
-    }
-
-    public String getReason() {
-        return reason;
     }
 }

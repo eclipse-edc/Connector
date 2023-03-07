@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.transfer;
 import org.eclipse.edc.connector.transfer.command.handlers.CancelTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.CompleteTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.DeprovisionRequestHandler;
-import org.eclipse.edc.connector.transfer.command.handlers.FailTransferCommandHandler;
+import org.eclipse.edc.connector.transfer.command.handlers.NotifyStartedTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.TerminateTransferCommandHandler;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -46,8 +46,8 @@ public class TransferProcessCommandExtension implements ServiceExtension {
         registry.register(new CancelTransferCommandHandler(store));
         registry.register(new TerminateTransferCommandHandler(store));
         registry.register(new DeprovisionRequestHandler(store));
-        registry.register(new CompleteTransferCommandHandler(store, observable));
-        registry.register(new FailTransferCommandHandler(store));
+        registry.register(new CompleteTransferCommandHandler(store));
+        registry.register(new NotifyStartedTransferCommandHandler(store, observable));
     }
 
 }

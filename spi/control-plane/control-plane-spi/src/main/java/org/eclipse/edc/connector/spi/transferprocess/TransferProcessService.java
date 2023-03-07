@@ -59,13 +59,13 @@ public interface TransferProcessService {
     String getState(String transferProcessId);
 
     /**
-     * Notifies the TransferProcess that it has been STARTED by the counter part.
+     * Notifies the TransferProcess that it has been STARTED by the counter-part.
      * Only callable on CONSUMER TransferProcess
      *
      * @param dataRequestId the dataRequestId
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<TransferProcess> started(String dataRequestId);
+    ServiceResult<TransferProcess> notifyStarted(String dataRequestId);
 
     /**
      * Asynchronously requests cancellation of the transfer process.
@@ -113,9 +113,13 @@ public interface TransferProcessService {
      * @param transferProcessId id of the transferProcess
      * @param errorDetail the reason of the failure
      * @return a result that is successful if the transfer process was found and is in a state that can be failed
+     * @deprecated please use {@link #terminate(String, String)}
      */
     @NotNull
-    ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail);
+    @Deprecated(since = "milestone9")
+    default ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail) {
+        return terminate(transferProcessId, errorDetail);
+    }
 
     /**
      * Asynchronously requests deprovisioning of the transfer process.

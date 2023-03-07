@@ -69,7 +69,6 @@ import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
@@ -564,28 +563,6 @@ class TransferProcessManagerImplTest {
             verifyNoInteractions(dataFlowManager);
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == STARTING.code()));
         });
-    }
-
-    @Test
-    void started_callback_shouldPutTransferProcessInStartedState() {
-        when(transferProcessStore.find("processId")).thenReturn(createTransferProcessBuilder(REQUESTED).type(CONSUMER).build());
-
-        var result = manager.started("processId");
-
-        assertThat(result).matches(StatusResult::succeeded);
-        verify(transferProcessStore).save(argThat(t -> t.getState() == STARTED.code()));
-        verify(listener).started(any());
-    }
-
-    @Test
-    void started_callback_shouldFailIfTransferProcessIsNotFound() {
-        when(transferProcessStore.find("processId")).thenReturn(null);
-
-        var result = manager.started("processId");
-
-        assertThat(result).matches(StatusResult::failed);
-        verify(transferProcessStore, never()).save(any());
-        verify(listener, never()).started(any());
     }
 
     @Test

@@ -42,7 +42,6 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
@@ -59,7 +58,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -177,19 +175,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @Override
     public void enqueueCommand(TransferProcessCommand command) {
         commandQueue.enqueue(command);
-    }
-
-    @Override
-    public StatusResult<Void> started(String processId) {
-        return Optional.of(processId)
-                .map(transferProcessStore::find)
-                .map(process -> {
-                    process.transitionStarted();
-                    updateTransferProcess(process, l -> {});
-                    observable.invokeForEach(l -> l.started(process));
-                    return StatusResult.success();
-                })
-                .orElse(StatusResult.failure(ResponseStatus.FATAL_ERROR, format("TransferProcess with id %s cannot be found", processId)));
     }
 
     @Override
