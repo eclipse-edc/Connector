@@ -109,8 +109,9 @@ public class CosmosAssetIndex implements AssetIndex {
             assetDb.createItem(assetDocument);
         } catch (ConflictException ex) {
             var id = item.getAsset().getId();
-            monitor.debug(() -> String.format("Asset with id %s not found", id));
-            return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, id));
+            var msg = format(ASSET_EXISTS_TEMPLATE, id);
+            monitor.debug(() -> msg);
+            return StoreResult.alreadyExists(msg);
         }
         return StoreResult.success();
     }
@@ -122,8 +123,9 @@ public class CosmosAssetIndex implements AssetIndex {
             // todo: the CosmosDbApi should not throw an exception when the item isn't found
             return StoreResult.success(convertObject(deletedItem).getWrappedAsset());
         } catch (NotFoundException nfe) {
-            monitor.debug(() -> String.format("Asset with id %s not found", assetId));
-            return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
+            var msg = format(ASSET_NOT_FOUND_TEMPLATE, assetId);
+            monitor.debug(() -> msg);
+            return StoreResult.notFound(msg);
         }
     }
 
