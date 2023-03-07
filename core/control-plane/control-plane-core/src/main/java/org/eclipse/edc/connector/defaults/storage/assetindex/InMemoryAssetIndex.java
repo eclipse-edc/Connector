@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
@@ -103,20 +105,27 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public void accept(AssetEntry item) {
+    public StoreResult<Void> accept(AssetEntry item) {
         lock.writeLock().lock();
         try {
+            var id = item.getAsset().getId();
+            if (cache.containsKey(id)) {
+                return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, id));
+            }
             add(item.getAsset(), item.getDataAddress());
         } finally {
             lock.writeLock().unlock();
         }
+        return StoreResult.success();
     }
 
     @Override
-    public Asset deleteById(String assetId) {
+    public StoreResult<Asset> deleteById(String assetId) {
         lock.writeLock().lock();
         try {
-            return delete(assetId);
+            return Optional.ofNullable(delete(assetId))
+                    .map(StoreResult::success)
+                    .orElse(StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId)));
         } finally {
             lock.writeLock().unlock();
         }
@@ -128,29 +137,33 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public Asset updateAsset(String assetId, Asset asset) {
+    public StoreResult<Asset> updateAsset(Asset asset) {
         lock.writeLock().lock();
         try {
             String id = asset.getId();
             Objects.requireNonNull(asset, "asset");
             Objects.requireNonNull(id, "assetId");
-            if (cache.containsKey(assetId)) {
+            if (cache.containsKey(id)) {
                 cache.put(id, asset);
-                return asset;
+                return StoreResult.success(asset);
             }
-            return null;
+            return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, id));
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public DataAddress updateDataAddress(String assetId, DataAddress dataAddress) {
+    public StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress) {
         lock.writeLock().lock();
         try {
             Objects.requireNonNull(dataAddress, "dataAddress");
             Objects.requireNonNull(assetId, "asset.getId()");
-            return dataAddresses.put(assetId, dataAddress);
+            if (dataAddresses.containsKey(assetId)) {
+                dataAddresses.put(assetId, dataAddress);
+                return StoreResult.success(dataAddress);
+            }
+            return StoreResult.notFound(format(DATAADDRESS_NOT_FOUND_TEMPLATE, assetId));
         } finally {
             lock.writeLock().unlock();
         }

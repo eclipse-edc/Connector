@@ -28,7 +28,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -77,13 +76,12 @@ public class AssetServiceImpl implements AssetService {
         }
 
         return transactionContext.execute(() -> {
-            if (findById(asset.getId()) == null) {
-                index.accept(asset, dataAddress);
+            var createResult = index.accept(asset, dataAddress);
+            if (createResult.succeeded()) {
                 observable.invokeForEach(l -> l.created(asset));
                 return ServiceResult.success(asset);
-            } else {
-                return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
             }
+            return ServiceResult.fromFailure(createResult);
         });
     }
 
@@ -102,43 +100,26 @@ public class AssetServiceImpl implements AssetService {
             }
 
             var deleted = index.deleteById(assetId);
-            if (deleted == null) {
-                return ServiceResult.notFound(format("Asset %s does not exist", assetId));
-            }
-
-            observable.invokeForEach(l -> l.deleted(deleted));
-            return ServiceResult.success(deleted);
+            deleted.onSuccess(a -> observable.invokeForEach(l -> l.deleted(a)));
+            return ServiceResult.from(deleted);
         });
     }
 
     @Override
-    public ServiceResult<Void> update(String assetId, Asset asset) {
-        if (!Objects.equals(assetId, asset.getId())) {
-            return ServiceResult.badRequest("Asset.getId() must match assetId");
-        }
+    public ServiceResult<Asset> update(Asset asset) {
         return transactionContext.execute(() -> {
-            if (findById(assetId) == null) {
-                return ServiceResult.notFound(format("Asset %s cannot be updated because it does not exist", assetId));
-            }
-            var updatedAsset = index.updateAsset(assetId, asset);
-            observable.invokeForEach(l -> l.updated(updatedAsset));
-
-            return ServiceResult.success();
+            var updatedAsset = index.updateAsset(asset);
+            updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));
+            return ServiceResult.from(updatedAsset);
         });
     }
 
     @Override
-    public ServiceResult<Void> update(String assetId, DataAddress dataAddress) {
+    public ServiceResult<DataAddress> update(String assetId, DataAddress dataAddress) {
         return transactionContext.execute(() -> {
-            var asset = findById(assetId);
-            if (asset == null) {
-                return ServiceResult.notFound(format("DataAddress for Asset ID= %s cannot be updated because it does not exist", assetId));
-            }
-
-            index.updateDataAddress(assetId, dataAddress);
-            observable.invokeForEach(l -> l.updated(asset));
-
-            return ServiceResult.success();
+            var result = index.updateDataAddress(assetId, dataAddress);
+            result.onSuccess(da -> observable.invokeForEach(l -> l.updated(findById(assetId))));
+            return ServiceResult.from(result);
         });
     }
 }

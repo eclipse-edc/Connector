@@ -141,7 +141,7 @@ public class AssetApiController implements AssetApi {
         if (assetResult.failed()) {
             throw new InvalidRequestException(assetResult.getFailureMessages());
         }
-        service.update(assetId, assetResult.getContent())
+        service.update(assetResult.getContent())
                 .orElseThrow(exceptionMapper(Asset.class, assetId));
     }
 
