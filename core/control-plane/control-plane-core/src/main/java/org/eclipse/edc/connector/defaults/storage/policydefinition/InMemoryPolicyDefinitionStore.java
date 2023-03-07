@@ -90,7 +90,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
                     policiesById.put(policyId, policy);
                     return StoreResult.success(policy);
                 }
-                return StoreResult.notFound(format(POLICY_NOT_FOUND, policy));
+                return StoreResult.notFound(format(POLICY_NOT_FOUND, policyId));
             });
 
         } catch (Exception e) {
