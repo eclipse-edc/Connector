@@ -15,21 +15,21 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 public class DspApiConfiguration {
-    
-    private String contextAlias;
-    private String dspWebhookAddress;
-    
+
+    private final String contextAlias;
+    private final String dspWebhookAddress;
+
     public DspApiConfiguration(String contextAlias, String dspWebhookAddress) {
         this.contextAlias = contextAlias;
         this.dspWebhookAddress = dspWebhookAddress;
     }
-    
+
     public String getContextAlias() {
         return contextAlias;
     }
-    
+
     public String getDspWebhookAddress() {
         return dspWebhookAddress;
     }
-    
+
 }
