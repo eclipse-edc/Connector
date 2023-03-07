@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.contract.spi.offer.store;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
@@ -53,21 +52,29 @@ public interface ContractDefinitionStore {
     ContractDefinition findById(String definitionId);
 
     /**
-     * Persists the definition.
+     * Stores the contract definition if a contract definition with the same ID doesn't already exists.
+     *
+     * @param definition {@link ContractDefinition} to store.
+     * @return {@link StoreResult#success()} if the contract definition was stored, {@link StoreResult#alreadyExists(String)} if a contract
+     *         definition with the same ID already exists.
      */
     StoreResult<Void> save(ContractDefinition definition);
 
     /**
-     * Updates the definitions.
+     * Update the contract definition if a contract definition with the same ID exists.
+     *
+     * @param definition {@link ContractDefinition} to update.
+     * @return {@link StoreResult#success()} if the contract definition was updates, {@link StoreResult#notFound(String)} if a contract
+     *         definition identified by the ID was not found.
      */
     StoreResult<Void> update(ContractDefinition definition);
 
     /**
-     * Deletes the definition with the given id.
+     * Deletes the contract definition with the given id.
      *
      * @param id A String that represents the {@link ContractDefinition} ID, in most cases this will be a UUID.
-     * @return The {@link ContractDefinition} if one was found, or null otherwise.
-     * @throws EdcPersistenceException if something goes wrong.
+     * @return @link {@link StoreResult#success()}} if the contract definition was deleted, {@link StoreResult#notFound(String)} if the contract definition
+     *         was not found in the store.
      */
     StoreResult<ContractDefinition> deleteById(String id);
 
