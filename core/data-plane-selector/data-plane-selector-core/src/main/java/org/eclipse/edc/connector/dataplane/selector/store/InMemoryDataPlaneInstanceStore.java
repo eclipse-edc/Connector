@@ -16,48 +16,50 @@ package org.eclipse.edc.connector.dataplane.selector.store;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.util.concurrency.LockManager;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+
+import static java.lang.String.format;
 
 /**
  * Default (=in-memory) implementation for the {@link DataPlaneInstanceStore}. All r/w access is secured with a {@link LockManager}.
  */
 public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
-    private final LockManager lockManager;
-    private final List<DataPlaneInstance> list;
+    private final Map<String, DataPlaneInstance> instances = new ConcurrentHashMap<>();
 
     public InMemoryDataPlaneInstanceStore() {
-        lockManager = new LockManager(new ReentrantReadWriteLock(true));
-        list = new ArrayList<>();
     }
 
     @Override
-    public void save(DataPlaneInstance instance) {
-        lockManager.writeLock(() -> {
-            list.removeIf(i -> Objects.equals(i.getId(), instance.getId()));
-            return list.add(instance);
-        });
+    public StoreResult<Void> create(DataPlaneInstance instance) {
+        var prev = instances.putIfAbsent(instance.getId(), instance);
+        return Optional.ofNullable(prev)
+                .map(a -> StoreResult.<Void>alreadyExists(format(DATA_PLANE_INSTANCE_EXISTS, instance.getId())))
+                .orElse(StoreResult.success());
+
     }
 
     @Override
-    public void saveAll(Collection<DataPlaneInstance> instances) {
-        lockManager.writeLock(() -> list.addAll(instances));
+    public StoreResult<Void> update(DataPlaneInstance instance) {
+        var prev = instances.replace(instance.getId(), instance);
+        return Optional.ofNullable(prev)
+                .map(a -> StoreResult.<Void>success())
+                .orElse(StoreResult.notFound(format(DATA_PLANE_INSTANCE_NOT_FOUND, instance.getId())));
     }
 
     @Override
     public DataPlaneInstance findById(String id) {
-        return lockManager.readLock(() -> list.stream().filter(dpi -> Objects.equals(dpi.getId(), id)).findFirst().orElse(null));
+        return instances.get(id);
     }
 
     @Override
     public Stream<DataPlaneInstance> getAll() {
-        return lockManager.readLock(list::stream);
+        return instances.values().stream();
     }
 }

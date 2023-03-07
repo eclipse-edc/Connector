@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
@@ -84,7 +85,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
 
         store = new InMemoryDataPlaneInstanceStore();
         var selector = new DataPlaneSelectorImpl(store);
-        var service = new DataPlaneSelectorServiceImpl(selector, store, selectionStrategyRegistry);
+        var service = new DataPlaneSelectorServiceImpl(selector, store, selectionStrategyRegistry, new NoopTransactionContext());
         var controller = new DataplaneSelectorApiController(service);
 
         jetty = new JettyService(config, monitor);
@@ -106,7 +107,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
     @Test
     void getAll() throws IOException {
         var list = List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"));
-        store.saveAll(list);
+        saveInstances(list);
 
         var response = get(basePath());
 
@@ -142,7 +143,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
         var dpi1 = createInstance("test-id1");
         var dpi2 = createInstance("test-id2");
         var dpi3 = createInstance("test-id3");
-        store.saveAll(List.of(dpi1, dpi2, dpi3));
+        saveInstances(List.of(dpi1, dpi2, dpi3));
 
 
         var newDpi = createInstanceBuilder("test-id2")
@@ -167,7 +168,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .build();
-        store.saveAll(List.of(dpi, dpi2));
+        saveInstances(List.of(dpi, dpi2));
 
         var src = DataAddress.Builder.newInstance().type("test-src1").build();
         var dest = DataAddress.Builder.newInstance().type("test-dst1").build();
@@ -192,7 +193,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .build();
-        store.saveAll(List.of(dpi, dpi2));
+        saveInstances(List.of(dpi, dpi2));
 
         var src = DataAddress.Builder.newInstance().type("notexist-src").build();
         var dest = DataAddress.Builder.newInstance().type("test-dst1").build();
@@ -216,7 +217,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
                 .allowedSourceType("test-src2")
                 .allowedDestType("test-dst2")
                 .build();
-        store.saveAll(List.of(dpi, dpi2));
+        saveInstances(List.of(dpi, dpi2));
 
         var src = DataAddress.Builder.newInstance().type("test-src1").build();
         var dest = DataAddress.Builder.newInstance().type("test-dst1").build();
@@ -240,7 +241,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
                 .allowedSourceType("test-src1")
                 .allowedDestType("test-dst1")
                 .build();
-        store.saveAll(List.of(dpi, dpi2));
+        saveInstances(List.of(dpi, dpi2));
 
         var myCustomStrategy = new SelectionStrategy() {
             @Override
@@ -286,5 +287,12 @@ class DataplaneSelectorApiControllerIntegrationTest {
     @NotNull
     private Response delete(String url) throws IOException {
         return client.execute(new Request.Builder().delete().url(url).build());
+    }
+
+    private void saveInstances(List<DataPlaneInstance> instances) {
+
+        for (var instance : instances) {
+            store.create(instance);
+        }
     }
 }

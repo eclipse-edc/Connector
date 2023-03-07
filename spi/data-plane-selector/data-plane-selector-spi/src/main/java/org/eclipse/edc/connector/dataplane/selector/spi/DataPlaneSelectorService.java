@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.spi;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Collection;
@@ -35,5 +36,6 @@ public interface DataPlaneSelectorService {
 
     Collection<String> getAllStrategies();
 
-    void addInstance(DataPlaneInstance instance);
+    ServiceResult<Void> addInstance(DataPlaneInstance instance);
+
 }
