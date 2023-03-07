@@ -56,6 +56,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDefinition;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDocument;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.Mockito.mock;
 
 @AzureCosmosDbIntegrationTest
@@ -165,7 +167,24 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
         //modify a single field
         defToAdd.getSelectorExpression().getCriteria().add(new Criterion("anotherkey", "isGreaterThan", "anotherValue"));
 
-        store.save(defToAdd);
+        var saveResult = store.save(defToAdd);
+
+        assertThat(saveResult.failed()).isTrue();
+        assertThat(saveResult.reason()).isEqualTo(ALREADY_EXISTS);
+
+    }
+
+    @Test
+    void update_exists_shouldUpdate() {
+        var doc1 = generateDocument(TEST_PARTITION_KEY);
+        container.createItem(doc1);
+
+        var defToAdd = doc1.getWrappedInstance();
+
+        //modify a single field
+        defToAdd.getSelectorExpression().getCriteria().add(new Criterion("anotherkey", "isGreaterThan", "anotherValue"));
+
+        store.update(defToAdd);
         var actual = container.readAllItems(new PartitionKey(doc1.getPartitionKey()), Object.class);
         assertThat(actual).hasSize(1);
         var first = convert(actual.stream().findFirst().get());
@@ -183,7 +202,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
         var def2 = generateDefinition();
         var def3 = generateDefinition();
 
-        store.save(List.of(def1, def2, def3));
+        saveContractDefinitions(List.of(def1, def2, def3));
 
         var allItems = container.readAllItems(new PartitionKey(TEST_PARTITION_KEY), Object.class);
         assertThat(allItems).hasSize(3);
@@ -223,15 +242,14 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
     }
 
     @Test
-    void update_notExists() {
+    void update_notExists_shouldFail() {
         var document = generateDocument(TEST_PARTITION_KEY);
         var definition = document.getWrappedInstance();
         //modify the object - should insert
-        store.update(definition);
+        var updateResult = store.update(definition);
 
-        var updatedDefinition = convert(container.readItem(document.getId(), new PartitionKey(document.getPartitionKey()), Object.class).getItem());
-        assertThat(updatedDefinition.getId()).isEqualTo(definition.getId());
-        assertThat(updatedDefinition.getSelectorExpression().getCriteria()).hasSize(1);
+        assertThat(updateResult.failed()).isTrue();
+        assertThat(updateResult.reason()).isEqualTo(NOT_FOUND);
     }
 
     @Test
@@ -241,7 +259,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
 
         var contractDefinition = convert(document);
         var deletedContractDefinition = store.deleteById(document.getId());
-        assertThat(deletedContractDefinition).isEqualTo(contractDefinition);
+        assertThat(deletedContractDefinition.getContent()).isEqualTo(contractDefinition);
 
         assertThat(container.readAllItems(new PartitionKey(document.getPartitionKey()), Object.class)).isEmpty();
     }
@@ -350,7 +368,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         var def5 = definitionsExpected.get(5);
         def5.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
 

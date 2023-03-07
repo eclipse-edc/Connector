@@ -43,6 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinition;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class ContractDefinitionStoreTestBase {
 
@@ -68,14 +70,17 @@ public abstract class ContractDefinitionStoreTestBase {
     }
 
     @Test
-    @DisplayName("Save a single Contract Definition that already exists")
-    void saveOne_alreadyExist_shouldUpdate() {
+    @DisplayName("Shouldn't save a single Contract Definition that already exists")
+    void saveOne_alreadyExist_shouldNotUpdate() {
         getContractDefinitionStore().save(createContractDefinition("id", "policy", "contract"));
-        getContractDefinitionStore().save(createContractDefinition("id", "updatedAccess", "updatedContract"));
+        var saveResult = getContractDefinitionStore().save(createContractDefinition("id", "updatedAccess", "updatedContract"));
+
+        assertThat(saveResult.failed()).isTrue();
+        assertThat(saveResult.reason()).isEqualTo(ALREADY_EXISTS);
 
         var result = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        assertThat(result).hasSize(1).containsExactly(createContractDefinition("id", "updatedAccess", "updatedContract"));
+        assertThat(result).hasSize(1).containsExactly(createContractDefinition("id", "policy", "contract"));
     }
 
     @Test
@@ -95,7 +100,7 @@ public abstract class ContractDefinitionStoreTestBase {
     @DisplayName("Save multiple Contract Definitions with no preexisting Definitions")
     void saveMany_noneExist() {
         var definitionsCreated = createContractDefinitions(10);
-        getContractDefinitionStore().save(definitionsCreated);
+        saveContractDefinitions(definitionsCreated);
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
@@ -105,8 +110,8 @@ public abstract class ContractDefinitionStoreTestBase {
     @Test
     @DisplayName("Save multiple Contract Definitions with some preexisting Definitions")
     void saveMany_someExist() {
-        getContractDefinitionStore().save(createContractDefinitions(3));
-        getContractDefinitionStore().save(createContractDefinitions(10));
+        saveContractDefinitions(createContractDefinitions(3));
+        saveContractDefinitions(createContractDefinitions(10));
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
@@ -117,8 +122,8 @@ public abstract class ContractDefinitionStoreTestBase {
     @DisplayName("Save multiple Contract Definitions with all preexisting Definitions")
     void saveMany_allExist() {
         var definitionsCreated = createContractDefinitions(10);
-        getContractDefinitionStore().save(definitionsCreated);
-        getContractDefinitionStore().save(definitionsCreated);
+        saveContractDefinitions(definitionsCreated);
+        saveContractDefinitions(definitionsCreated);
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
@@ -127,14 +132,17 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     @DisplayName("Update a non-existing Contract Definition")
-    void updateOne_doesNotExist_shouldCreate() {
+    void updateOne_doesNotExist_shouldNotCreate() {
         var definition = createContractDefinition("id", "policy1", "contract1");
 
-        getContractDefinitionStore().update(definition);
+        var result = getContractDefinitionStore().update(definition);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.reason()).isEqualTo(NOT_FOUND);
 
         var existing = getContractDefinitionStore().findAll(QuerySpec.max());
 
-        assertThat(existing).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(definition);
+        assertThat(existing).hasSize(0);
     }
 
     @Test
@@ -154,11 +162,12 @@ public abstract class ContractDefinitionStoreTestBase {
         });
     }
 
+
     @Test
     @DisplayName("Find all contract definitions")
     void findAll() {
         var definitionsExpected = createContractDefinitions(10);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
 
@@ -183,7 +192,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var limit = 20;
 
         var definitionsExpected = createContractDefinitions(50);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .limit(limit)
@@ -200,7 +209,7 @@ public abstract class ContractDefinitionStoreTestBase {
     void findAll_queryByAccessPolicyId_withEquals() {
 
         var definitionsExpected = createContractDefinitions(20);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter("accessPolicyId = policy4")
@@ -218,7 +227,7 @@ public abstract class ContractDefinitionStoreTestBase {
     void findAll_queryByAccessPolicyId_withIn() {
 
         var definitionsExpected = createContractDefinitions(20);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("accessPolicyId", "in", List.of("policy4", "policy5", "policy6"))))
@@ -237,7 +246,7 @@ public abstract class ContractDefinitionStoreTestBase {
     void findAll_queryByNonexistentdValue() {
 
         var definitionsExpected = createContractDefinitions(20);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractPolicyId", "=", "somevalue")))
@@ -250,7 +259,7 @@ public abstract class ContractDefinitionStoreTestBase {
     void findAll_invalidOperator() {
 
         var definitionsExpected = createContractDefinitions(20);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("accessPolicyId", "sqrt", "foobar"))) //sqrt is invalid
@@ -282,14 +291,17 @@ public abstract class ContractDefinitionStoreTestBase {
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
 
         var deleted = getContractDefinitionStore().deleteById("test-id1");
-        assertThat(deleted).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
+
+        assertThat(deleted.succeeded()).isTrue();
+        assertThat(deleted.getContent()).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).isEmpty();
     }
 
     @Test
     void delete_whenNotExist() {
         var deleted = getContractDefinitionStore().deleteById("test-id1");
-        assertThat(deleted).isNull();
+        assertThat(deleted.failed()).isTrue();
+        assertThat(deleted.reason()).isEqualTo(NOT_FOUND);
     }
 
     @Test
@@ -300,23 +312,19 @@ public abstract class ContractDefinitionStoreTestBase {
         getContractDefinitionStore().save(definition1);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
 
-        getContractDefinitionStore().save(List.of(definition2));
+        getContractDefinitionStore().save(definition2);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
 
         var deletedDefinition = getContractDefinitionStore().deleteById(definition1.getId());
-        assertThat(deletedDefinition).isEqualTo(definition1);
+        assertThat(deletedDefinition.succeeded()).isTrue();
+        assertThat(deletedDefinition.getContent()).isEqualTo(definition1);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).doesNotContain(definition1);
-    }
-
-    @Test
-    void deleteById_whenContractDefinitionMissing_returnsNull() {
-        assertThat(getContractDefinitionStore().deleteById("not-exists")).isNull();
     }
 
     @Test
     void findAll_defaultQuerySpec() {
         var all = IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).peek(getContractDefinitionStore()::save).collect(Collectors.toList());
-        assertThat(getContractDefinitionStore().findAll(QuerySpec.none())).containsExactlyInAnyOrder(all.toArray(new ContractDefinition[] {}));
+        assertThat(getContractDefinitionStore().findAll(QuerySpec.none())).containsExactlyInAnyOrder(all.toArray(new ContractDefinition[]{}));
     }
 
     @Test
@@ -359,7 +367,7 @@ public abstract class ContractDefinitionStoreTestBase {
         // add a selector expression to the last 5 elements
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(format("selectorExpression.criteria.operandLeft = %s", Asset.PROPERTY_ID))
@@ -378,7 +386,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var definitionsExpected = createContractDefinitions(20);
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter("selectorExpression.criteria.operandRight = foobar-asset")
@@ -397,7 +405,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var definitionsExpected = createContractDefinitions(20);
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(
@@ -417,7 +425,7 @@ public abstract class ContractDefinitionStoreTestBase {
     void find_queryMultiple() {
         var definitionsExpected = createContractDefinitions(20);
         definitionsExpected.forEach(d -> d.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("selectorExpression.criteria.operandRight", "=", "test-asset"),
@@ -434,7 +442,7 @@ public abstract class ContractDefinitionStoreTestBase {
     @Test
     void find_queryMultiple_noMatch() {
         var definitionsExpected = createContractDefinitions(20);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("selectorExpression.criteria.operandRigh", "=", "test-asset"),
@@ -451,7 +459,7 @@ public abstract class ContractDefinitionStoreTestBase {
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         var def5 = definitionsExpected.get(5);
         def5.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
 
@@ -470,7 +478,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var definitionsExpected = createContractDefinitions(20);
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter("selectorExpression.criteria[0].operandRight = foobar-asset")
@@ -489,7 +497,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var definitionsExpected = createContractDefinitions(20);
         definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
         definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter("selectorExpression.criteria[1].operandRight = foobar-asset")
@@ -519,4 +527,9 @@ public abstract class ContractDefinitionStoreTestBase {
     protected abstract boolean supportsSortOrder();
 
 
+    protected void saveContractDefinitions(List<ContractDefinition> definitions) {
+        for (var cd : definitions) {
+            getContractDefinitionStore().save(cd);
+        }
+    }
 }

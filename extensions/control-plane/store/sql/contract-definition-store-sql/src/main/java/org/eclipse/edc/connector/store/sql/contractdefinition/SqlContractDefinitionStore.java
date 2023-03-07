@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.store.sql.contractdefinition.schema.ContractDef
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -33,8 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -77,18 +76,17 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
         });
     }
 
-    @Override
-    public void save(Collection<ContractDefinition> definitions) {
-        Objects.requireNonNull(definitions);
 
-        transactionContext.execute(() -> {
+    @Override
+    public StoreResult<Void> save(ContractDefinition definition) {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                for (var definition : definitions) {
-                    if (existsById(connection, definition.getId())) {
-                        updateInternal(connection, definition);
-                    } else {
-                        insertInternal(connection, definition);
-                    }
+                if (existsById(connection, definition.getId())) {
+                    return StoreResult.alreadyExists(format(CONTRACT_DEFINITION_EXISTS, definition.getId()));
+                } else {
+                    insertInternal(connection, definition);
+                    return StoreResult.success();
+
                 }
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
@@ -97,25 +95,34 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     }
 
     @Override
-    public void save(ContractDefinition definition) {
-        save(Collections.singletonList(definition));
+    public StoreResult<Void> update(ContractDefinition definition) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                if (existsById(connection, definition.getId())) {
+                    updateInternal(connection, definition);
+                    return StoreResult.success();
+                } else {
+                    return StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, definition.getId()));
+                }
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        });
     }
 
     @Override
-    public void update(ContractDefinition definition) {
-        save(definition); //upsert
-    }
-
-    @Override
-    public ContractDefinition deleteById(String id) {
+    public StoreResult<ContractDefinition> deleteById(String id) {
         Objects.requireNonNull(id);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var entity = findById(connection, id);
                 if (entity != null) {
                     executeQuery(connection, statements.getDeleteByIdTemplate(), id);
+                    return StoreResult.success(entity);
+                } else {
+                    return StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, id));
                 }
-                return entity;
+
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -148,21 +155,15 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
     private void updateInternal(Connection connection, ContractDefinition definition) {
         Objects.requireNonNull(definition);
-        transactionContext.execute(() -> {
-            if (!existsById(connection, definition.getId())) {
-                throw new EdcPersistenceException(format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
-            }
+        executeQuery(connection, statements.getUpdateTemplate(),
+                definition.getId(),
+                definition.getAccessPolicyId(),
+                definition.getContractPolicyId(),
+                toJson(definition.getSelectorExpression()),
+                definition.getValidity(),
+                definition.getCreatedAt(),
+                definition.getId());
 
-            executeQuery(connection, statements.getUpdateTemplate(),
-                    definition.getId(),
-                    definition.getAccessPolicyId(),
-                    definition.getContractPolicyId(),
-                    toJson(definition.getSelectorExpression()),
-                    definition.getValidity(),
-                    definition.getCreatedAt(),
-                    definition.getId());
-
-        });
     }
 
 

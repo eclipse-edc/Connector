@@ -20,12 +20,15 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.defaults.storage.ReflectionBasedQueryResolver;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+
+import static java.lang.String.format;
 
 /**
  * The default store implementation used when no extension is configured in a runtime. {@link ContractDefinition}s are
@@ -48,23 +51,29 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
 
 
     @Override
-    public void save(Collection<ContractDefinition> definitions) {
-        definitions.forEach(d -> cache.put(d.getId(), d));
+    public StoreResult<Void> save(ContractDefinition definition) {
+        var prev = cache.putIfAbsent(definition.getId(), definition);
+        return Optional.ofNullable(prev)
+                .map(a -> StoreResult.<Void>alreadyExists(format(CONTRACT_DEFINITION_EXISTS, definition.getId())))
+                .orElse(StoreResult.success());
+
     }
 
     @Override
-    public void save(ContractDefinition definition) {
-        cache.put(definition.getId(), definition);
+    public StoreResult<Void> update(ContractDefinition definition) {
+        var prev = cache.replace(definition.getId(), definition);
+        return Optional.ofNullable(prev)
+                .map(a -> StoreResult.<Void>success())
+                .orElse(StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, definition.getId())));
+
     }
 
     @Override
-    public void update(ContractDefinition definition) {
-        save(definition);
-    }
-
-    @Override
-    public ContractDefinition deleteById(String id) {
-        return cache.remove(id);
+    public StoreResult<ContractDefinition> deleteById(String id) {
+        var prev = cache.remove(id);
+        return Optional.ofNullable(prev)
+                .map(StoreResult::success)
+                .orElse(StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, id)));
     }
 
     @Override
