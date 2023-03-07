@@ -252,11 +252,11 @@ class PolicyDefinitionApiControllerTest {
         var dto = PolicyDefinitionUpdateDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var policyDefinition = TestFunctions.createPolicy("id");
         when(transformerRegistry.transform(isA(PolicyDefinitionUpdateWrapperDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
-        when(service.update(anyString(), any())).thenReturn(ServiceResult.success(null));
+        when(service.update(any())).thenReturn(ServiceResult.success(null));
         when(service.findById(anyString())).thenReturn(policyDefinition);
 
         controller.updatePolicy("test-policy-id", dto);
-        verify(service).update(isA(String.class), isA(PolicyDefinition.class));
+        verify(service).update(isA(PolicyDefinition.class));
     }
 
     @Test
@@ -272,9 +272,9 @@ class PolicyDefinitionApiControllerTest {
         var dto = PolicyDefinitionUpdateDto.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var policyDefinition = TestFunctions.createPolicy("id");
         when(transformerRegistry.transform(isA(PolicyDefinitionUpdateWrapperDto.class), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
-        when(service.update(anyString(), any())).thenReturn(ServiceResult.success(null));
+        when(service.update(any())).thenReturn(ServiceResult.success(null));
 
         controller.updatePolicy("test-policy-id", dto);
-        verify(service).update(isA(String.class), isA(PolicyDefinition.class));
+        verify(service).update(isA(PolicyDefinition.class));
     }
 }

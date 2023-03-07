@@ -19,10 +19,13 @@ import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -41,6 +44,8 @@ import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.cr
 import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createPolicyBuilder;
 import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createProhibitionBuilder;
 import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createQuery;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 
 public abstract class PolicyDefinitionStoreTestBase {
@@ -50,6 +55,15 @@ public abstract class PolicyDefinitionStoreTestBase {
         System.setProperty("policydefinitionstore.supports.collectionIndexQuery", String.valueOf(supportCollectionIndexQuery()));
         System.setProperty("policydefinitionstore.supports.sortorder", String.valueOf(supportSortOrder()));
 
+    }
+
+    private static PolicyDefinition getPolicy(String id, String target) {
+        return PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .target(target)
+                        .build())
+                .id(id)
+                .build();
     }
 
     @Test
@@ -81,16 +95,19 @@ public abstract class PolicyDefinitionStoreTestBase {
                 .build();
         var spec = QuerySpec.Builder.newInstance().build();
 
-        getPolicyDefinitionStore().save(policy1);
-        getPolicyDefinitionStore().save(policy2);
-        var policyFromDb = getPolicyDefinitionStore().findAll(spec);
+        var store = getPolicyDefinitionStore();
+        store.save(policy1);
+
+        var result = store.save(policy2);
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.reason()).isEqualTo(ALREADY_EXISTS);
+
+        var policyFromDb = store.findAll(spec);
 
         Assertions.assertThat(policyFromDb).hasSize(1).first()
-                .satisfies(policy -> Assertions.assertThat(policy.getPolicy().getTarget()).isEqualTo("Target2"))
-                .extracting(PolicyDefinition::getCreatedAt).isEqualTo(policy2.getCreatedAt());
+                .satisfies(policy -> Assertions.assertThat(policy.getPolicy().getTarget()).isEqualTo("Target1"))
+                .extracting(PolicyDefinition::getCreatedAt).isEqualTo(policy1.getCreatedAt());
     }
-
-
 
     @Test
     @DisplayName("Update Policy that does not yet exist")
@@ -98,8 +115,9 @@ public abstract class PolicyDefinitionStoreTestBase {
         var id = getRandomId();
         var policy = getPolicy(id, "target");
 
-        var updated = getPolicyDefinitionStore().update(id, policy);
-        assertThat(updated).isNull();
+        var updated = getPolicyDefinitionStore().update(policy);
+        assertThat(updated).isNotNull().extracting(StoreResult::succeeded).isEqualTo(false);
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
     }
 
     @Test
@@ -108,19 +126,104 @@ public abstract class PolicyDefinitionStoreTestBase {
         var id = getRandomId();
         var policy = getPolicy(id, "target");
 
-        getPolicyDefinitionStore().save(policy);
+        var store = getPolicyDefinitionStore();
+        store.save(policy);
 
         var newPolicy = createPolicy(id, "target2");
-        var result = getPolicyDefinitionStore().update(id, newPolicy);
+        var result = store.update(newPolicy);
+
+        assertThat(result.succeeded()).isTrue();
 
         var spec = QuerySpec.Builder.newInstance().build();
-        var policyFromDb = getPolicyDefinitionStore().findAll(spec);
+        var policyFromDb = store.findAll(spec);
 
-        Assertions.assertThat(policyFromDb).hasSize(1).first();
-        assertThat(result).isNotNull();
-        assertThat(result.getPolicy().getTarget()).isEqualTo("target2");
-        assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(newPolicy);
+        assertThat(policyFromDb).hasSize(1).first();
+        assertThat(result.getContent().getPolicy().getTarget()).isEqualTo("target2");
+        assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(newPolicy);
     }
+
+    @Test
+    void update_whenPolicyNotExists() {
+        var policy = createPolicy("test-id");
+        var updated = createPolicy("another-id");
+        var result = getPolicyDefinitionStore().update(updated);
+        assertThat(result).extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void update_whenPolicyExists_updatingPolicyFields() {
+        var policy = createPolicy("test-id");
+        var store = getPolicyDefinitionStore();
+        store.save(policy);
+
+        var action = Action.Builder.newInstance().type("UPDATED_USE").build();
+        var updatedPermission = Permission.Builder.newInstance().action(action).build();
+        var updatedDuty = Duty.Builder.newInstance().action(action).build();
+        var updatedProhibition = Prohibition.Builder.newInstance().action(action).build();
+
+        policy.getPolicy().getPermissions().add(updatedPermission);
+        policy.getPolicy().getProhibitions().add(updatedProhibition);
+        policy.getPolicy().getObligations().add(updatedDuty);
+        policy.getPolicy().getExtensibleProperties().put("updatedKey", "updatedValue");
+
+        var result = store.update(policy);
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).isEqualTo(policy);
+
+        var updatedPolicy = result.getContent().getPolicy();
+        assertThat(updatedPolicy.getExtensibleProperties()).containsEntry("updatedKey", "updatedValue");
+        assertThat(updatedPolicy.getPermissions().get(1)).isEqualTo(updatedPermission);
+        assertThat(updatedPolicy.getProhibitions().get(1)).isEqualTo(updatedProhibition);
+        assertThat(updatedPolicy.getObligations().get(1)).isEqualTo(updatedDuty);
+    }
+
+    @Test
+    void update_whenPolicyExists_removingPolicyFields() {
+        var policy = createPolicy("test-id");
+        getPolicyDefinitionStore().save(policy);
+
+        var updatedPolicy = createPolicyDef("test-id", "updatedTarget");
+        var result = getPolicyDefinitionStore().update(updatedPolicy);
+
+        assertThat(result.succeeded()).isTrue();
+
+        var content = result.getContent().getPolicy();
+        assertThat(result.getContent()).isEqualTo(updatedPolicy);
+        assertThat(content.getTarget()).isEqualTo("updatedTarget");
+        assertThat(content.getPermissions().size()).isEqualTo(0);
+        assertThat(content.getProhibitions().size()).isEqualTo(0);
+        assertThat(content.getObligations().size()).isEqualTo(0);
+    }
+
+    @Test
+    void update_whenPolicyExists_replacingAllFields() {
+        var policyId = "test-id";
+        var policy = createPolicy(policyId);
+        var store = getPolicyDefinitionStore();
+        store.save(policy);
+
+        var updatedPermission = createPermissionBuilder("updated-id").build();
+        var updatedProhibition = createProhibitionBuilder("updated-id").build();
+        var updatedDuty = createDutyBuilder("updated-id").build();
+        var updatedPolicy = Policy.Builder.newInstance()
+                .target("updatedTarget")
+                .permission(updatedPermission)
+                .prohibition(updatedProhibition)
+                .duty(updatedDuty)
+                .extensibleProperty("updatedKey", "updatedValue")
+                .build();
+
+        var result = store.update(PolicyDefinition.Builder.newInstance().id(policyId).policy(updatedPolicy).build());
+        assertThat(result.succeeded()).isTrue();
+        var content = result.getContent().getPolicy();
+        assertThat(content).isEqualTo(updatedPolicy);
+
+        assertThat(content.getExtensibleProperties()).containsEntry("updatedKey", "updatedValue");
+        assertThat(content.getPermissions().get(0)).isEqualTo(updatedPermission);
+        assertThat(content.getProhibitions().get(0)).isEqualTo(updatedProhibition);
+        assertThat(content.getObligations().get(0)).isEqualTo(updatedDuty);
+    }
+
 
     @Test
     @DisplayName("Find policy by ID that exists")
@@ -196,18 +299,22 @@ public abstract class PolicyDefinitionStoreTestBase {
     @DisplayName("Delete existing policy")
     void deleteById_whenExists() {
         var policy = createPolicy(getRandomId());
+        var store = getPolicyDefinitionStore();
+        store.save(policy);
 
-        getPolicyDefinitionStore().save(policy);
-        Assertions.assertThat(getPolicyDefinitionStore().findById(policy.getUid())).usingRecursiveComparison().isEqualTo(policy);
-
-        Assertions.assertThat(getPolicyDefinitionStore().deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
-        Assertions.assertThat(getPolicyDefinitionStore().findById(policy.getUid())).isNull();
+        var result = store.deleteById(policy.getUid());
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(policy);
+        assertThat(store.findById(policy.getUid())).isNull();
     }
 
     @Test
     @DisplayName("Delete a non existing policy")
     void deleteById_whenNonexistent() {
-        Assertions.assertThat(getPolicyDefinitionStore().deleteById("nonexistent")).isNull();
+        assertThat(getPolicyDefinitionStore().deleteById("nonexistent"))
+                .isNotNull()
+                .extracting(StoreResult::reason)
+                .isEqualTo(NOT_FOUND);
     }
 
     @Test
@@ -531,8 +638,10 @@ public abstract class PolicyDefinitionStoreTestBase {
     void verify_readWriteFindAll() {
         // add an object
         var policy = createPolicy(getRandomId());
-        getPolicyDefinitionStore().save(policy);
-        Assertions.assertThat(getPolicyDefinitionStore().findAll(QuerySpec.none())).usingRecursiveFieldByFieldElementComparator().containsExactly(policy);
+        var store = getPolicyDefinitionStore();
+
+        store.save(policy);
+        Assertions.assertThat(store.findAll(QuerySpec.none())).usingRecursiveFieldByFieldElementComparator().containsExactly(policy);
 
         // modify the object
         var modifiedPolicy = PolicyDefinition.Builder.newInstance()
@@ -548,10 +657,10 @@ public abstract class PolicyDefinitionStoreTestBase {
                 .id(policy.getUid())
                 .build();
 
-        getPolicyDefinitionStore().save(modifiedPolicy);
+        store.update(modifiedPolicy);
 
         // re-read
-        var all = getPolicyDefinitionStore().findAll(QuerySpec.Builder.newInstance().filter("policy.permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
+        var all = store.findAll(QuerySpec.Builder.newInstance().filter("policy.permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
         Assertions.assertThat(all).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(modifiedPolicy);
     }
 
@@ -567,14 +676,14 @@ public abstract class PolicyDefinitionStoreTestBase {
         return UUID.randomUUID().toString();
     }
 
-
-    private static PolicyDefinition getPolicy(String id, String target) {
+    private PolicyDefinition createPolicyDef(String id) {
         return PolicyDefinition.Builder.newInstance()
-                .policy(Policy.Builder.newInstance()
-                        .target(target)
-                        .build())
                 .id(id)
+                .policy(Policy.Builder.newInstance().build())
                 .build();
     }
 
+    private PolicyDefinition createPolicyDef(String id, String target) {
+        return PolicyDefinition.Builder.newInstance().id(id).policy(Policy.Builder.newInstance().target(target).build()).build();
+    }
 }
