@@ -14,5 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane.service;
 
-public class ContractNegotiationService {
+import org.eclipse.edc.protocol.dsp.spi.controlplane.service.ContractNegotiationService;
+
+public class ContractNegotiationServiceImpl implements ContractNegotiationService {
 }

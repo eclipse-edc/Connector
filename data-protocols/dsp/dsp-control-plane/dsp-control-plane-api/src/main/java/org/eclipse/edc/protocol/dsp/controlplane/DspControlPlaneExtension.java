@@ -14,5 +14,40 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane;
 
-public class DspControlPlaneExtension {
+import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
+import org.eclipse.edc.protocol.dsp.controlplane.controller.ContractNegotiationController;
+import org.eclipse.edc.protocol.dsp.controlplane.controller.TransferProcessController;
+import org.eclipse.edc.protocol.dsp.spi.controlplane.service.ContractNegotiationService;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.web.spi.WebService;
+
+@Extension(value = DspControlPlaneExtension.NAME)
+public class DspControlPlaneExtension implements ServiceExtension {
+
+    public static final String NAME = "Dataspace Protocol: Control Plane Extension";
+
+    @Inject
+    private DspApiConfiguration config;
+
+    @Inject
+    private Monitor monitor;
+
+    @Inject
+    private WebService webService;
+
+    @Inject
+    private ContractNegotiationService contractNegotiationService;
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var transferProcessController = new TransferProcessController();
+        var contractNegotiationController = new ContractNegotiationController(monitor, contractNegotiationService);
+
+        webService.registerResource(config.getContextAlias(), transferProcessController);
+        webService.registerResource(config.getContextAlias(), contractNegotiationController);
+    }
 }
