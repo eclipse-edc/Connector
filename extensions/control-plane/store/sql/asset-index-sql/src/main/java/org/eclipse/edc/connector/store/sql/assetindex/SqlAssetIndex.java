@@ -164,7 +164,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
             try (var connection = getConnection()) {
                 var asset = findById(assetId);
                 if (asset == null) {
-                    return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
+                    return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
                 }
 
                 executeQuery(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
@@ -205,7 +205,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     }
                     return StoreResult.success(asset);
                 }
-                return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
+                return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
 
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);
@@ -222,7 +222,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     executeQuery(connection, updateTemplate, toJson(dataAddress.getProperties()), assetId);
                     return StoreResult.success(dataAddress);
                 }
-                return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
+                return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
 
             } catch (Exception e) {
                 throw new EdcPersistenceException(e);

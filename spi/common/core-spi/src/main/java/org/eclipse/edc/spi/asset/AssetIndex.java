@@ -22,7 +22,6 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -38,8 +37,8 @@ import java.util.stream.Stream;
 public interface AssetIndex extends DataAddressResolver {
 
     String ASSET_EXISTS_TEMPLATE = "Asset with ID %s already exists";
-    String ASSET_NOT_FOUND = "Asset with ID %s not found";
-    String DATAADDRESS_NOT_FOUND = "DataAddress with ID %s not found";
+    String ASSET_NOT_FOUND_TEMPLATE = "Asset with ID %s not found";
+    String DATAADDRESS_NOT_FOUND_TEMPLATE = "DataAddress with ID %s not found";
 
     /**
      * Returns all {@link Asset} objects that are selected by a certain expression
@@ -74,9 +73,16 @@ public interface AssetIndex extends DataAddressResolver {
      * @return The {@link Asset} if one was found, or null otherwise.
      * @throws NullPointerException If {@code assetId} was null or empty.
      */
-    @Nullable
     Asset findById(String assetId);
 
+    /**
+     * Stores an {@link Asset} and a {@link DataAddress} in the asset index, if no asset with the same ID already exists.
+     * Implementors must ensure that bothe objects are stored in a transactional way, and the DataAddress must always be resolvable for an Asset.
+     *
+     * @param asset       The {@link Asset} to store
+     * @param dataAddress The {@link DataAddress} to store
+     * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
+     */
     default StoreResult<Void> accept(Asset asset, DataAddress dataAddress) {
         return accept(new AssetEntry(asset, dataAddress));
     }
@@ -84,10 +90,10 @@ public interface AssetIndex extends DataAddressResolver {
     StoreResult<Void> accept(AssetEntry item);
 
     /**
-     * Deletes an asset.
+     * Deletes an asset if it exists.
      *
      * @param assetId Id of the asset to be deleted.
-     * @return Deleted Asset or null if asset did not exist.
+     * @return {@link StoreResult#success(Object)} if the object was deleted, {@link StoreResult#notFound(String)} when an object with that ID was not found.
      * @throws EdcPersistenceException if something goes wrong.
      */
     StoreResult<Asset> deleteById(String assetId);
@@ -95,7 +101,7 @@ public interface AssetIndex extends DataAddressResolver {
     /**
      * Counts all assets that are selected by the given criteria
      *
-     * @param criteria the criterion list
+     * @param criteria the criterion lista
      * @return the number of assets (potentially 0)
      */
     long countAssets(List<Criterion> criteria);
@@ -104,7 +110,7 @@ public interface AssetIndex extends DataAddressResolver {
      * Updates an asset with the content from the given {@link Asset}. If the asset is not found, no further database interaction takes place.
      *
      * @param asset The Asset containing the new values. ID will be ignored.
-     * @return the updated Asset, or null if the asset does not exist
+     * @return {@link StoreResult#success(Object)} if the object was updated, {@link StoreResult#notFound(String)} when an object with that ID was not found.
      */
     StoreResult<Asset> updateAsset(Asset asset);
 
@@ -114,7 +120,7 @@ public interface AssetIndex extends DataAddressResolver {
      *
      * @param assetId     the database of the Asset to update
      * @param dataAddress The DataAddress containing the new values.
-     * @return the updated DataAddress
+     * @return {@link StoreResult#success(Object)} if the object was updated, {@link StoreResult#notFound(String)} when an object with that ID was not found.
      */
     StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress);
 }

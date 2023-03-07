@@ -123,7 +123,7 @@ public class CosmosAssetIndex implements AssetIndex {
             return StoreResult.success(convertObject(deletedItem).getWrappedAsset());
         } catch (NotFoundException nfe) {
             monitor.debug(() -> String.format("Asset with id %s not found", assetId));
-            return StoreResult.notFound(format(ASSET_NOT_FOUND, assetId));
+            return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
         }
     }
 
@@ -145,11 +145,11 @@ public class CosmosAssetIndex implements AssetIndex {
 
         return result.map(assetDocument -> {
             var updated = new AssetDocument(asset, assetDocument.getPartitionKey(), assetDocument.getDataAddress());
-            
+
             // the following statement could theoretically still raise a NotFoundException, but at that point we'll let it bubble up the stack
             assetDb.updateItem(updated);
             return StoreResult.success(asset);
-        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND, assetId)));
+        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId)));
     }
 
     @Override
@@ -163,7 +163,7 @@ public class CosmosAssetIndex implements AssetIndex {
             // the following statement could theoretically still raise a NotFoundException, but at that point we'll let it bubble up the stack
             assetDb.updateItem(updated);
             return StoreResult.success(dataAddress);
-        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND, assetId)));
+        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId)));
     }
 
     @Override
