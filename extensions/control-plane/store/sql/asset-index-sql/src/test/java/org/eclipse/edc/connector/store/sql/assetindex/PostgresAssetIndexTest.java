@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -70,6 +71,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
 
 
     @Test
+    @DisplayName("Verify an asset query based on an Asset property")
     void query_byAssetProperty() {
         List<Asset> allAssets = createAssets(5);
         var query = QuerySpec.Builder.newInstance().filter("test-key = test-value1").build();
@@ -79,6 +81,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verify an asset query based on an Asset property, when the left operand does not exist")
     void query_byAssetProperty_leftOperandNotExist() {
         createAssets(5);
         var query = QuerySpec.Builder.newInstance().filter("notexist-key = test-value1").build();
@@ -87,11 +90,13 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verify that the correct Postgres JSON operator is used")
     void verifyCorrectJsonOperator() {
         assertThat(sqlStatements.getFormatAsJsonOperator()).isEqualTo("::json");
     }
 
     @Test
+    @DisplayName("Verify an asset query based on an Asset property, where the property value is actually a complex object")
     void query_assetPropertyAsObject() {
         var asset = TestFunctions.createAsset("id1");
         asset.getProperties().put("testobj", new TestObject("test123", 42, false));
@@ -106,6 +111,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verify an asset query based on an Asset property, where the right operand does not exist")
     void query_byAssetProperty_rightOperandNotExist() {
         createAssets(5);
         var query = QuerySpec.Builder.newInstance().filter("test-key = notexist").build();
@@ -114,6 +120,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verify an asset query where the operator is invalid (=not supported)")
     void queryAgreements_withQuerySpec_invalidOperator() {
         var asset = TestFunctions.createAssetBuilder("id1").property("testproperty", "testvalue").build();
         sqlAssetIndex.accept(asset, TestFunctions.createDataAddress("test-type"));

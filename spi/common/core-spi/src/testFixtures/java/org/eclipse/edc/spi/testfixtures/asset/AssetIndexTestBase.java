@@ -76,8 +76,80 @@ public abstract class AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verify that an asset can be stored")
+    void accept() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        var assetIndex = getAssetIndex();
+        var result = assetIndex.accept(asset, dataAddress);
+        assertThat(result.succeeded()).isTrue();
+
+        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset);
+        assertThat(assetIndex.resolveForAsset(asset.getId())).usingRecursiveComparison().isEqualTo(dataAddress);
+    }
+
+    @Test
+    @DisplayName("Verify that storing an asset fails if it already exists")
+    void accept_exists() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, dataAddress);
+
+        DataAddress dataAddress1 = createDataAddress(asset);
+        var result = assetIndex.accept(asset, dataAddress1);
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.reason()).isEqualTo(ALREADY_EXISTS);
+        //assert that this replaces the previous data address
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset);
+
+    }
+
+    @Test
+    @DisplayName("Verify that multiple assets can be stored")
+    void acceptAll() {
+        var asset1 = createAsset("asset1", "id1");
+        var asset2 = createAsset("asset2", "id2");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset2);
+
+        var assetIndex = getAssetIndex();
+        var results = Stream.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2)).map(assetIndex::accept);
+
+        assertThat(results).allSatisfy(sr -> assertThat(sr.succeeded()).isTrue());
+        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(2)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactlyInAnyOrder(asset1, asset2);
+    }
+
+    @Test
+    @DisplayName("Verify that the correct results are returned for a series of assets, when one fails")
+    void acceptMany_oneExists_shouldReturnFailure() {
+        var asset1 = createAsset("asset1", "id1");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset1);
+
+        var results = List.of(new AssetEntry(asset1, address1), new AssetEntry(asset1, address2))
+                .stream().map(entry -> getAssetIndex().accept(entry));
+
+        assertThat(results).extracting(StoreResult::succeeded).contains(true, false);
+        // only one address/asset combo should exist
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset1);
+
+    }
+
+    @Test
     @DisplayName("Verify that the object was stored with the correct timestamp")
-    void store_verifyTimestamp() {
+    void accept_verifyTimestamp() {
         var asset = getAsset("test-asset");
         getAssetIndex().accept(asset, getDataAddress());
 
@@ -300,6 +372,7 @@ public abstract class AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verifies an asset query, that contains a filter expression")
     void queryAsset_withFilterExpression() {
         var qs = QuerySpec.Builder.newInstance().filter(List.of(
                 new Criterion("version", "=", "2.0"),
@@ -510,74 +583,6 @@ public abstract class AssetIndexTestBase {
         assertThat(addressFound).isNotNull();
         assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
         assertThat(addressFound.getProperties()).containsEntry("newKey", "newValue");
-    }
-
-    @Test
-    void accept() {
-        var asset = createAsset("test-asset", UUID.randomUUID().toString());
-        var dataAddress = createDataAddress(asset);
-        var assetIndex = getAssetIndex();
-        var result = assetIndex.accept(asset, dataAddress);
-        assertThat(result.succeeded()).isTrue();
-
-        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .contains(asset);
-        assertThat(assetIndex.resolveForAsset(asset.getId())).usingRecursiveComparison().isEqualTo(dataAddress);
-    }
-
-    @Test
-    void accept_exists() {
-        var asset = createAsset("test-asset", UUID.randomUUID().toString());
-        var dataAddress = createDataAddress(asset);
-        var assetIndex = getAssetIndex();
-        assetIndex.accept(asset, dataAddress);
-
-        DataAddress dataAddress1 = createDataAddress(asset);
-        var result = assetIndex.accept(asset, dataAddress1);
-
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.reason()).isEqualTo(ALREADY_EXISTS);
-        //assert that this replaces the previous data address
-        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .contains(asset);
-
-    }
-
-    @Test
-    void acceptAll() {
-        var asset1 = createAsset("asset1", "id1");
-        var asset2 = createAsset("asset2", "id2");
-
-        var address1 = createDataAddress(asset1);
-        var address2 = createDataAddress(asset2);
-
-        var assetIndex = getAssetIndex();
-        var results = Stream.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2)).map(assetIndex::accept);
-
-        assertThat(results).allSatisfy(sr -> assertThat(sr.succeeded()).isTrue());
-        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(2)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactlyInAnyOrder(asset1, asset2);
-    }
-
-    @Test
-    void acceptMany_oneExists_shouldReturnFailure() {
-        var asset1 = createAsset("asset1", "id1");
-
-        var address1 = createDataAddress(asset1);
-        var address2 = createDataAddress(asset1);
-
-        var results = List.of(new AssetEntry(asset1, address1), new AssetEntry(asset1, address2))
-                .stream().map(entry -> getAssetIndex().accept(entry));
-
-        assertThat(results).extracting(StoreResult::succeeded).contains(true, false);
-        // only one address/asset combo should exist
-        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .contains(asset1);
-
     }
 
     @NotNull
