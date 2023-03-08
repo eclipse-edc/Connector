@@ -73,7 +73,7 @@ public interface ContractDefinitionStore {
      * Deletes the contract definition with the given id.
      *
      * @param id A String that represents the {@link ContractDefinition} ID, in most cases this will be a UUID.
-     * @return @link {@link StoreResult#success()}} if the contract definition was deleted, {@link StoreResult#notFound(String)} if the contract definition
+     * @return {@link StoreResult#success()}} if the contract definition was deleted, {@link StoreResult#notFound(String)} if the contract definition
      *         was not found in the store.
      */
     StoreResult<ContractDefinition> deleteById(String id);
