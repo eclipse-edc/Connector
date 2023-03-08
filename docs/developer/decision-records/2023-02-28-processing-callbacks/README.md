@@ -30,7 +30,6 @@ A static endpoint will be registered using EDC configuration:
 
 ```
 edc.callback.endpoint1.uri=
-edc.callback.endpoint1.context=
 edc.callback.endpoint1.events=
 edc.callback.endpoint1.transactional=
 edc.callback.endpoint1.auth-key=
@@ -40,7 +39,6 @@ edc.callback.endpoint1.auth-code-id=
 The previous configuration will create a static endpoint registration for the id `endpoint1` with the following properties:
 
 - The `uri` is scheme-specific address used to dispatch a callback notification.
-- The `context` is: `contract-negotiation` or `transfer-process`
 - The optional `events` property is a collection of processing events corresponding to a state machine state. If absent, the default value is all events. The '*' character may be
   used as a wildcard to explicitly denote all events.
 - If the optional `transactional` property is true, callback dispatches will be conducted transactionally (on supported configurations) during the state machine transition. The
@@ -56,7 +54,6 @@ Static callback endpoints are referenced by their id when a client makes a reque
 Dynamic endpoints are registered as part of a client request and are therefore scoped to the latter. Dynamic endpoints have three properties:
 
 - `uri`
-- `context`
 - `events`
 - `transactional`
 
@@ -75,7 +72,7 @@ public interface CallbackRegistry {
 
   void register(CallbackAddress address);
   
-  List<CallbackAddress> resolve(String context, String state);
+  List<CallbackAddress> resolve(String state);
 
 }
 ```
@@ -92,8 +89,6 @@ This registry will be implemented in `control-plane-aggregate-services` as a sim
 public class CallbackAddress {
 
     private String uri;
-    
-    private String context;
     
     private Set<String> events;
 
