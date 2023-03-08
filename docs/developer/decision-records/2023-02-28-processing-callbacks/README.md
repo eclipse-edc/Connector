@@ -31,7 +31,7 @@ A static endpoint will be registered using EDC configuration:
 ```
 edc.callback.endpoint1.uri=
 edc.callback.endpoint1.context=
-edc.callback.endpoint1.states=
+edc.callback.endpoint1.events=
 edc.callback.endpoint1.transactional=
 edc.callback.endpoint1.auth-key=
 edc.callback.endpoint1.auth-code-id=
@@ -41,8 +41,8 @@ The previous configuration will create a static endpoint registration for the id
 
 - The `uri` is scheme-specific address used to dispatch a callback notification.
 - The `context` is: `contract-negotiation` or `transfer-process`
-- The optional `states` property is a collection of processing states corresponding to a state machine state. If absent, the default value is all states. The '*' character may be
-  used as a wildcard to explicitly denote all states.
+- The optional `events` property is a collection of processing events corresponding to a state machine state. If absent, the default value is all events. The '*' character may be
+  used as a wildcard to explicitly denote all events.
 - If the optional `transactional` property is true, callback dispatches will be conducted transactionally (on supported configurations) during the state machine transition. The
   default is false.
 - The optional `auth-key` property defines the transport specific header to use for sending an authentication value. If the `auth-code-id` value is set and this property is not
@@ -57,7 +57,7 @@ Dynamic endpoints are registered as part of a client request and are therefore s
 
 - `uri`
 - `context`
-- `states`
+- `events`
 - `transactional`
 
 Dynamic endpoints do not have explicit API keys. Security can be provided at the network layer or through a URI with an randomly-generated single-use path part.
@@ -95,7 +95,7 @@ public class CallbackAddress {
     
     private String context;
     
-    private Set<String> states;
+    private Set<String> events;
 
     private boolean transactional 
 
@@ -107,18 +107,18 @@ Provided dynamic callback addresses will be persisted alongside the request.
 
 ### State Machines
 
-During a state transition, a `ContractNegotiationListener` or `TransferProcessListener` will resolve `CallbackAddress` entries matching the state to be transitioned to by querying
+During a state transition, a `ContractNegotiationEventListener` or `TransferProcessEventListener` will resolve `CallbackAddress` entries matching the state to be transitioned to by querying
 the `CallbackRegistry` and current `TransferProcess`. If a resolved callback is marked as transactional, an invocation error will mark the current transaction as rollback-only;
 otherwise, invocation errors will be logged and the transaction will proceed. Invocations will use the standard EDC retry mechanism.
 
-> Note that the EventRouter cannot be used for dispatching as the `ContractNegotiation` and `TransferProcess` must be available during dispatch
+> Note that the event framework and EventRouter will be refactored to include contract negotiation and transfer process data as part of a pre-requisite Decision Record.   
 
 > Note that transactional callback endpoints must be idempotent. De-duplication can be performed by comparing the associated process id and state with previous invocations.
 
 #### Dispatching
 
 Dispatching to callback endpoints will be performed by registered `RemoteMessageDispatcher`s corresponding to the protocol part of the callback URI. These dispatchers will send
-DTOs representing the `ContractNegotiation` or `TransferProcess`.
+events representing the `ContractNegotiation` or `TransferProcess` data received by the event listener.
 
 ### DataFlowController
 
