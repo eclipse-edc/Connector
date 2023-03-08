@@ -58,6 +58,7 @@ import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
 import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,9 +98,11 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -121,7 +124,9 @@ class TransferProcessManagerImplTest {
     private final PolicyArchive policyArchive = mock(PolicyArchive.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
-    private final SendRetryManager sendRetryManager = mock(SendRetryManager.class);
+    private final Clock clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
+    private final int retryLimit = 2;
+    private final SendRetryManager sendRetryManager = spy(new EntitySendRetryManager(mock(Monitor.class), () -> mock(ExponentialWaitStrategy.class), clock, retryLimit));
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
     private TransferProcessManagerImpl manager;
@@ -141,7 +146,7 @@ class TransferProcessManagerImplTest {
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
-                .clock(Clock.fixed(Instant.ofEpochMilli(currentTime), UTC))
+                .clock(clock)
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(observable)
                 .transferProcessStore(transferProcessStore)
@@ -237,7 +242,6 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).find(process.getId());
             verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONED.code()));
             verify(listener).provisioned(process);
         });
@@ -297,15 +301,15 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void provisioning_shouldTransitionToTerminatingOnProvisionError() {
+    void provisioning_shouldTransitionToTerminating_whenProvisionErrorAndRetriesExhausted() {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
+        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         manager.start();
 
@@ -562,7 +566,7 @@ class TransferProcessManagerImplTest {
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
-        when(sendRetryManager.retriesExhausted(process)).thenReturn(true);
+        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         manager.start();
 
@@ -729,6 +733,22 @@ class TransferProcessManagerImplTest {
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class), any());
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATING.code()));
+        });
+    }
+
+    @Test
+    void terminating_shouldTransitToTerminated_whenSendingMessageFailedAndRetriesExhausted() {
+        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
+        when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class), any())).thenReturn(failedFuture(new EdcException("an error")));
+        doReturn(true).when(sendRetryManager).retriesExhausted(any());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class), any());
+            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
         });
     }
 

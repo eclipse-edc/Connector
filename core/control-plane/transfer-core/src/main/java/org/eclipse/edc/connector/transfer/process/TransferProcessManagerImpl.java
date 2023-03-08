@@ -39,7 +39,6 @@ import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessComma
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.CommandProcessor;
 import org.eclipse.edc.spi.command.CommandQueue;
@@ -62,10 +61,8 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -270,7 +267,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));
-        transferProcessStore.save(process);
+        updateTransferProcess(process);
         observable.invokeForEach(l -> l.initiated(process));
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
 
@@ -295,8 +292,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             if (manifestResult.failed()) {
                 monitor.severe(format("Transitioning transfer process %s to TERMINATED state. Resource manifest cannot be modified to fulfil policy: %s",
                         process.getId(), manifestResult.getFailureMessages()));
-                process.transitionTerminating(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
-                updateTransferProcess(process, l -> l.preError(process));
+                transitionToTerminating(process, format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
                 return true;
             }
             manifest = manifestResult.getContent();
@@ -305,6 +301,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             var dataAddress = addressResolver.resolveForAsset(assetId);
             if (dataAddress == null) {
                 transitionToTerminating(process, "Asset not found: " + assetId);
+                return true;
             }
             // default the content address to the asset address; this may be overridden during provisioning
             process.setContentDataAddress(dataAddress);
@@ -334,16 +331,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         var resources = process.getResourcesToProvision();
-        provisionManager.provision(resources, policy)
-                .whenComplete((responses, throwable) -> {
-                    if (throwable == null) {
-                        handleProvisionResult(process.getId(), responses);
-                    } else {
-                        transitionToTerminating(process.getId(), throwable, "Error during provisioning");
-                    }
-                });
 
-        return true;
+        return sendRetryManager.doAsyncProcess(process, "Provisioning", () -> provisionManager.provision(resources, policy))
+                        .entityRetrieve(transferProcessStore::find)
+                        .onSuccess((t, content) -> handleProvisionResult(t.getId(), content))
+                        .onFailure((t, throwable) -> transitToProvisioning(t))
+                        .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
+                        .onDelay(this::breakLease)
+                        .execute();
     }
 
     /**
@@ -355,11 +350,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processProvisioned(TransferProcess process) {
         if (CONSUMER == process.getType()) {
-            process.transitionRequesting();
-            updateTransferProcess(process, l -> l.preRequesting(process));
+            transitToRequesting(process);
         } else {
-            process.transitionStarting();
-            updateTransferProcess(process, l -> {});
+            transitToStarting(process);
         }
         return true;
     }
@@ -377,13 +370,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
 
         var dataRequest = process.getDataRequest();
-        return new TransferProcessSendRetryManager()
-                .onSuccess(this::transitToRequested)
-                .onFailure(TransferProcess::transitionRequesting)
-                .executeAsync(
-                    format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress()),
-                        process,
-                    () -> dispatcherRegistry.send(Object.class, dataRequest, process::getId));
+        var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, dataRequest, process::getId))
+                .entityRetrieve(id -> transferProcessStore.find(id))
+                .onSuccess((t, content) -> transitToRequested(t))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .onFailure((t, throwable) -> transitToRequesting(t))
+                .onDelay(this::breakLease)
+                .execute();
     }
 
     /**
@@ -428,62 +422,74 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
-        return new TransferProcessSendRetryManager()
-                .onSuccess(p -> {
-                    var message = TransferStartMessage.Builder.newInstance()
-                            .protocol(dataRequest.getProtocol())
-                            .connectorAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? it shouldn't for provider.
-                            .build();
+        var description = "Initiate data flow";
 
-                    return new TransferProcessSendRetryManager()
-                            .onSuccess(this::transitToStarted)
-                            .onFailure(TransferProcess::transitionStarting)
-                            .executeAsync(
-                                    format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress()),
-                                    process,
-                                    () -> dispatcherRegistry.send(Object.class, message, process::getId)
-                            );
-                })
-                .onFailure(TransferProcess::transitionStarting)
-                .executeSync("Initiate data flow", process, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy));
+        return sendRetryManager.doSyncProcess(process, description, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
+                .onSuccess((t, content) -> sendTransferStartMessage(t))
+                .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
+                .onFailure((t, failure) -> transitToStarting(t))
+                .onRetryExhausted((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
+                .onDelay(this::breakLease)
+                .execute();
+    }
+
+    @WithSpan
+    private void sendTransferStartMessage(TransferProcess process) {
+        var dataRequest = process.getDataRequest();
+        var message = TransferStartMessage.Builder.newInstance()
+                .protocol(dataRequest.getProtocol())
+                .connectorAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? it shouldn't be for provider.
+                .build();
+
+        var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+
+        sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message, process::getId))
+                .entityRetrieve(id -> transferProcessStore.find(id))
+                .onSuccess((t, content) -> transitToStarted(t))
+                .onFailure((t, throwable) -> transitToStarting(t))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .onDelay(this::breakLease)
+                .execute();
     }
 
     /**
      * Process STARTED transfer<p> if is completed or there's no checker and it's not managed, set to COMPLETE,
      * nothing otherwise.
      *
-     * @param process the STARTED transfer fetched
+     * @param transferProcess the STARTED transfer fetched
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processStarted(TransferProcess process) {
-        if (process.getType() != CONSUMER) {
+    private boolean processStarted(TransferProcess transferProcess) {
+        if (transferProcess.getType() != CONSUMER) {
             return false;
         }
 
-        if (sendRetryManager.shouldDelay(process)) {
-            breakLease(process);
-            return false;
-        }
+        return sendRetryManager.doSimpleProcess(transferProcess, () -> checkCompletion(transferProcess))
+                .onDelay(this::breakLease)
+                .execute();
+    }
 
-        var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
+    @NotNull
+    private Boolean checkCompletion(TransferProcess transferProcess) {
+        var checker = statusCheckerRegistry.resolve(transferProcess.getDataRequest().getDestinationType());
         if (checker == null) {
-            if (process.getDataRequest().isManagedResources()) {
-                monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
+            if (transferProcess.getDataRequest().isManagedResources()) {
+                monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
                 return false;
             } else {
                 //no checker, transition the process to the COMPLETED state automatically
-                transitionToCompleting(process);
+                transitionToCompleting(transferProcess);
             }
             return true;
         } else {
-            List<ProvisionedResource> resources = process.getDataRequest().isManagedResources() ? process.getProvisionedResourceSet().getResources() : emptyList();
-            if (checker.isComplete(process, resources)) {
-                transitionToCompleting(process);
+            List<ProvisionedResource> resources = transferProcess.getDataRequest().isManagedResources() ? transferProcess.getProvisionedResourceSet().getResources() : emptyList();
+            if (checker.isComplete(transferProcess, resources)) {
+                transitionToCompleting(transferProcess);
                 return true;
             } else {
-                monitor.debug(format("Transfer process %s not COMPLETED yet. The process will stay in STARTED.", process.getId()));
-                breakLease(process);
+                monitor.debug(format("Transfer process %s not COMPLETED yet. The process will stay in STARTED.", transferProcess.getId()));
+                breakLease(transferProcess);
                 return false;
             }
         }
@@ -503,14 +509,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .connectorAddress(dataRequest.getConnectorAddress())
                 .build();
 
-        return new TransferProcessSendRetryManager()
-                .onSuccess(this::transitToCompleted)
-                .onFailure(TransferProcess::transitionCompleting)
-                .executeAsync(
-                        format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress()),
-                        process,
-                        () -> dispatcherRegistry.send(Object.class, message, process::getId)
-                );
+        var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message, process::getId))
+                .entityRetrieve(id -> transferProcessStore.find(id))
+                .onSuccess((t, content) -> transitToCompleted(t))
+                .onFailure((t, throwable) -> transitionToCompleting(t))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .onDelay(this::breakLease)
+                .execute();
     }
 
     /**
@@ -523,7 +529,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processTerminating(TransferProcess process) {
         if (process.getType() == CONSUMER && process.getState() < REQUESTED.code()) {
-            return transitToTerminated(process);
+            transitToTerminated(process);
+            return true;
         }
 
         var dataRequest = process.getDataRequest();
@@ -532,14 +539,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .protocol(dataRequest.getProtocol())
                 .build();
 
-        return new TransferProcessSendRetryManager()
-                .onSuccess(this::transitToTerminated)
-                .onFailure(TransferProcess::transitionTerminating)
-                .executeAsync(
-                        format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress()),
-                        process,
-                        () -> dispatcherRegistry.send(Object.class, message, process::getId)
-                );
+        var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message, process::getId))
+                .entityRetrieve(id -> transferProcessStore.find(id))
+                .onSuccess((t, content) -> transitToTerminated(t))
+                .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .onRetryExhausted(this::transitToTerminated)
+                .onDelay(this::breakLease)
+                .execute();
     }
 
     /**
@@ -602,14 +609,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
-            transferProcessStore.save(transferProcess);
+            updateTransferProcess(transferProcess);
             observable.invokeForEach(l -> l.provisioned(transferProcess));
         } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
             transferProcess.transitionProvisioningRequested();
-            transferProcessStore.save(transferProcess);
+            updateTransferProcess(transferProcess);
             observable.invokeForEach(l -> l.provisioningRequested(transferProcess));
         } else {
-            transferProcessStore.save(transferProcess);
+            updateTransferProcess(transferProcess);
         }
     }
 
@@ -633,14 +640,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
-            transferProcessStore.save(transferProcess);
+            updateTransferProcess(transferProcess);
             observable.invokeForEach(l -> l.deprovisioned(transferProcess));
         } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
             transferProcess.transitionDeprovisioningRequested();
-            transferProcessStore.save(transferProcess);
+            updateTransferProcess(transferProcess);
             observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
-            transferProcessStore.save(transferProcess);
+            updateTransferProcess(transferProcess);
         }
     }
 
@@ -686,41 +693,59 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
     }
 
-    @WithSpan
+    private void transitToProvisioning(TransferProcess process) {
+        process.transitionProvisioning(process.getResourceManifest());
+        updateTransferProcess(process, l -> l.preProvisioning(process));
+    }
+
+    private void transitToRequesting(TransferProcess process) {
+        process.transitionRequesting();
+        updateTransferProcess(process, l -> l.preRequesting(process));
+    }
+
+    private void transitToRequested(TransferProcess transferProcess) {
+        transferProcess.transitionRequested();
+        updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
+        observable.invokeForEach(l -> l.requested(transferProcess));
+    }
+
+    private void transitToStarting(TransferProcess t) {
+        t.transitionStarting();
+        updateTransferProcess(t);
+    }
+
+    private void transitToStarted(TransferProcess process) {
+        process.transitionStarted();
+        updateTransferProcess(process, l -> l.preStarted(process));
+        observable.invokeForEach(l -> l.started(process));
+    }
+
     private void transitionToCompleting(TransferProcess process) {
         process.transitionCompleting();
         updateTransferProcess(process, l -> { });
     }
 
-    @WithSpan
-    private boolean transitToCompleted(TransferProcess p) {
+    private void transitToCompleted(TransferProcess p) {
         p.transitionCompleted();
         updateTransferProcess(p, l -> l.preCompleted(p));
         observable.invokeForEach(l -> l.completed(p));
-        return true;
-    }
-
-    private void transitionToTerminating(String id, Throwable throwable, String message) {
-        var transferProcess = transferProcessStore.find(id);
-        if (transferProcess == null) {
-            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", id));
-            return;
-        }
-
-        transitionToTerminating(transferProcess, message, throwable);
-    }
-
-    private boolean transitToTerminated(TransferProcess process) {
-        process.transitionTerminated();
-        updateTransferProcess(process, l -> l.preTerminated(process));
-        observable.invokeForEach(l -> l.terminated(process));
-        return true;
     }
 
     private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
         monitor.severe(message, errors);
         process.transitionTerminating(message);
-        updateTransferProcess(process, l -> { });
+        updateTransferProcess(process);
+    }
+
+    private void transitToTerminated(TransferProcess process, Throwable throwable) {
+        process.setErrorDetail(throwable.getMessage());
+        transitToTerminated(process);
+    }
+
+    private void transitToTerminated(TransferProcess process) {
+        process.transitionTerminated();
+        updateTransferProcess(process, l -> l.preTerminated(process));
+        observable.invokeForEach(l -> l.terminated(process));
     }
 
     private void transitionToDeprovisioningError(String processId, Throwable throwable) {
@@ -778,6 +803,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {
         observable.invokeForEach(observe);
+        updateTransferProcess(transferProcess);
+    }
+
+    private void updateTransferProcess(TransferProcess transferProcess) {
         transferProcessStore.save(transferProcess);
         monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
     }
@@ -926,111 +955,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;
-        }
-    }
-
-    /**
-     * Helper class that wraps the behavior needed to achieve retry mechanism within the state machine:
-     * - waits if needed
-     * - execute the action
-     * - if it works, execute the onSuccessHandler
-     * - if not, execute the onFailureHandler
-     */
-    private class TransferProcessSendRetryManager {
-        private Function<TransferProcess, Boolean> onSuccessHandler;
-        private Consumer<TransferProcess> onFailureHandler;
-
-        public TransferProcessSendRetryManager onSuccess(Function<TransferProcess, Boolean> onSuccessHandler) {
-            this.onSuccessHandler = onSuccessHandler;
-            return this;
-        }
-
-        /**
-         * onFailure handler, it should not save the TransferProcess as that's done by the RetryManager
-         */
-        public TransferProcessSendRetryManager onFailure(Consumer<TransferProcess> onFailureHandler) {
-            this.onFailureHandler = onFailureHandler;
-            return this;
-        }
-
-        public boolean executeAsync(String description, TransferProcess transferProcess, Supplier<CompletableFuture<?>> actionSupplier) {
-            Objects.requireNonNull(onSuccessHandler, "onSuccessHandler");
-            Objects.requireNonNull(onFailureHandler, "onFailureHandler");
-
-            if (sendRetryManager.shouldDelay(transferProcess)) {
-                breakLease(transferProcess);
-                return false;
-            }
-
-            monitor.debug(format("TransferProcessManager: ID %s. %s", transferProcess.getId(), description));
-            actionSupplier.get()
-                    .whenComplete((result, throwable) -> {
-                        var process = transferProcessStore.find(transferProcess.getId());
-                        if (process == null) {
-                            monitor.severe(format("TransferProcessManager: Process %s does not exist", transferProcess.getId()));
-                            return;
-                        }
-
-                        if (throwable == null) {
-                            onSuccessHandler.apply(process);
-                        } else {
-                            handleFailure(throwable, description, process);
-                        }
-                    });
-
-            return true;
-        }
-
-        public boolean executeSync(String description, TransferProcess transferProcess, Supplier<StatusResult<?>> actionSupplier) {
-            Objects.requireNonNull(onSuccessHandler, "onSuccessHandler");
-            Objects.requireNonNull(onFailureHandler, "onFailureHandler");
-
-            if (sendRetryManager.shouldDelay(transferProcess)) {
-                breakLease(transferProcess);
-                return false;
-            }
-
-            monitor.debug(format("TransferProcessManager: ID %s. %s", transferProcess.getId(), description));
-            var result = actionSupplier.get();
-            if (result.succeeded()) {
-                return onSuccessHandler.apply(transferProcess);
-            } else {
-                if (result.fatalError()) {
-                    var message = format("TransferProcessManager: ID %s. Fatal error while %s. Error details: %s", transferProcess.getId(), description, result.getFailureDetail());
-                    monitor.severe(message);
-                    transferProcess.transitionTerminating(message);
-                    transferProcessStore.save(transferProcess);
-                } else {
-                    handleFailure(new EdcException(result.getFailureDetail()), description, transferProcess);
-                }
-
-            }
-
-            return true;
-        }
-
-        private void handleFailure(Throwable throwable, String description, TransferProcess transferProcess) {
-            if (sendRetryManager.retriesExhausted(transferProcess)) {
-                var message = format("TransferProcessManager: ID %s. Attempt #%d failed to %s. Retry limit exceeded, TransferProcess transits to TERMINATED state. Cause: %s",
-                        transferProcess.getId(),
-                        transferProcess.getStateCount(),
-                        description,
-                        throwable.getMessage());
-                monitor.severe(message, throwable);
-                transferProcess.transitionTerminating(message);
-            } else {
-                var message = format("TransferProcessManager: ID %s. Attempt #%d failed to %s. TransferProcess stays in state %s. Cause: %s",
-                        transferProcess.getId(),
-                        transferProcess.getStateCount(),
-                        description,
-                        TransferProcessStates.from(transferProcess.getState()),
-                        throwable.getMessage());
-
-                monitor.debug(message, throwable);
-
-                onFailureHandler.accept(transferProcess);
-            }
-            transferProcessStore.save(transferProcess);
         }
     }
 

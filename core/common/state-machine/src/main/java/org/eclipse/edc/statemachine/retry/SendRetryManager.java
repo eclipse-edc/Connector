@@ -15,6 +15,10 @@
 package org.eclipse.edc.statemachine.retry;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.response.StatusResult;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
  * Service enabling a "long retry" mechanism when sending entities across applications.
@@ -42,4 +46,18 @@ public interface SendRetryManager {
      */
     <T extends StatefulEntity<T>> boolean retriesExhausted(T entity);
 
+    /**
+     * Initialize a simple process that needs to be retried if it does not succeed
+     */
+    <T extends StatefulEntity<T>> SimpleRetryProcess<T> doSimpleProcess(T entity, Supplier<Boolean> process);
+
+    /**
+     * Initialize a synchronous process that needs to be retried if it does not succeed
+     */
+    <T extends StatefulEntity<T>, C> StatusResultRetryProcess<T, C> doSyncProcess(T entity, String description, Supplier<StatusResult<C>> process);
+
+    /**
+     * Initialize an asynchronous process that needs to be retried if it does not succeed
+     */
+    <T extends StatefulEntity<T>, C> CompletableFutureRetryProcess<T, C> doAsyncProcess(T entity, String description, Supplier<CompletableFuture<C>> process);
 }
