@@ -39,8 +39,7 @@ edc.callback.endpoint1.auth-code-id=
 The previous configuration will create a static endpoint registration for the id `endpoint1` with the following properties:
 
 - The `uri` is scheme-specific address used to dispatch a callback notification.
-- The optional `events` property is a collection of processing events corresponding to a state machine state. If absent, the default value is all events. The '*' character may be
-  used as a wildcard to explicitly denote all events.
+- The optional `events` property is a collection of processing events corresponding to a state machine state.
 - If the optional `transactional` property is true, callback dispatches will be conducted transactionally (on supported configurations) during the state machine transition. The
   default is false.
 - The optional `auth-key` property defines the transport specific header to use for sending an authentication value. If the `auth-code-id` value is set and this property is not
@@ -58,6 +57,11 @@ Dynamic endpoints are registered as part of a client request and are therefore s
 - `transactional`
 
 Dynamic endpoints do not have explicit API keys. Security can be provided at the network layer or through a URI with an randomly-generated single-use path part.
+
+### Event Naming
+
+Event names will be constructed using a hierarchical period notation. For example, `contract.negotiation.initiated`. Abstract events can also be referenced. For
+example, `contract.negotiation` can be used to denote all contract negotiation subtypes. 
 
 ## New Services
 
@@ -102,11 +106,11 @@ Provided dynamic callback addresses will be persisted alongside the request.
 
 ### State Machines
 
-During a state transition, a `ContractNegotiationEventListener` or `TransferProcessEventListener` will resolve `CallbackAddress` entries matching the state to be transitioned to by querying
-the `CallbackRegistry` and current `TransferProcess`. If a resolved callback is marked as transactional, an invocation error will mark the current transaction as rollback-only;
-otherwise, invocation errors will be logged and the transaction will proceed. Invocations will use the standard EDC retry mechanism.
+During a state transition, a `ContractNegotiationEventListener` or `TransferProcessEventListener` will resolve `CallbackAddress` entries matching the state to be transitioned to by
+querying the `CallbackRegistry` and current `TransferProcess`. If a resolved callback is marked as transactional, an invocation error will mark the current transaction as
+rollback-only; otherwise, invocation errors will be logged and the transaction will proceed. Invocations will use the standard EDC retry mechanism.
 
-> Note that the event framework and EventRouter will be refactored to include contract negotiation and transfer process data as part of a pre-requisite Decision Record.   
+> Note that the event framework and EventRouter will be refactored to include contract negotiation and transfer process data as part of a pre-requisite Decision Record.
 
 > Note that transactional callback endpoints must be idempotent. De-duplication can be performed by comparing the associated process id and state with previous invocations.
 
