@@ -380,7 +380,7 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_shouldTransitionToRequested() {
         var process = createTransferProcess(REQUESTING);
-        when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 
@@ -395,7 +395,7 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_OnFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
         var process = createTransferProcess(REQUESTING);
-        when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(failedFuture(new EdcException("send failed")));
+        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(failedFuture(new EdcException("send failed")));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 
@@ -409,7 +409,7 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_onFailureAndRetriesExhausted_transitToTerminating() {
         var process = createTransferProcess(REQUESTING);
-        when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(failedFuture(new EdcException("send failed")));
+        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(failedFuture(new EdcException("send failed")));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
         when(sendRetryManager.retriesExhausted(process)).thenReturn(true);
@@ -425,7 +425,7 @@ class TransferProcessManagerImplTest {
     void requesting_whenShouldWait_updatesStateCount() {
         var process = createTransferProcess(REQUESTING);
         when(sendRetryManager.shouldDelay(process)).thenReturn(true);
-        when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 

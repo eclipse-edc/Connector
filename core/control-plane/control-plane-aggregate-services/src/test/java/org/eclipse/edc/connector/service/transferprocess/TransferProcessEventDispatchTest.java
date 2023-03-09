@@ -71,7 +71,7 @@ public class TransferProcessEventDispatchTest {
     void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         dispatcherRegistry.register(testDispatcher);
         eventRouter.register(eventSubscriber);
 
@@ -110,7 +110,7 @@ public class TransferProcessEventDispatchTest {
     void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         dispatcherRegistry.register(testDispatcher);
         eventRouter.register(eventSubscriber);
 
@@ -132,7 +132,7 @@ public class TransferProcessEventDispatchTest {
     void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("an error")));
+        when(testDispatcher.send(any(), any())).thenReturn(failedFuture(new RuntimeException("an error")));
         dispatcherRegistry.register(testDispatcher);
         eventRouter.register(eventSubscriber);
 

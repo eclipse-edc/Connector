@@ -18,7 +18,6 @@ import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.IdsMultipart
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.edc.protocol.ids.spi.types.MessageProtocol;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.message.MessageContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
@@ -53,12 +52,11 @@ public class IdsMultipartRemoteMessageDispatcher implements RemoteMessageDispatc
      * and passing it to the IdsMultipartSender.
      *
      * @param responseType the expected response type
-     * @param message the message
-     * @param context the message context
+     * @param message      the message
      * @return a future that can be used to retrieve the response when the operation has completed
      */
     @Override
-    public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message, MessageContext context) {
+    public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message) {
         Objects.requireNonNull(message, "Message was null");
         var delegate = (MultipartSenderDelegate<M, T>) delegates.get(message.getClass());
         if (delegate == null) {
