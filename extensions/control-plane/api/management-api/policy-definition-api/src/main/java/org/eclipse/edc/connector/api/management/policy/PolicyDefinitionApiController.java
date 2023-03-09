@@ -112,6 +112,15 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     }
 
+    @DELETE
+    @Path("{id}")
+    @Override
+    public void deletePolicy(@PathParam("id") String id) {
+        monitor.debug(format("Attempting to delete policy with id %s", id));
+        policyDefinitionService.deleteById(id).orElseThrow(exceptionMapper(PolicyDefinition.class, id));
+        monitor.debug(format("Policy deleted %s", id));
+    }
+
     @PUT
     @Path("{policyId}")
     @Override
@@ -125,17 +134,8 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
             throw new InvalidRequestException(transformResult.getFailureMessages());
         }
 
-        policyDefinitionService.update(policyId, transformResult.getContent())
+        policyDefinitionService.update(transformResult.getContent())
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, policyId));
-    }
-
-    @DELETE
-    @Path("{id}")
-    @Override
-    public void deletePolicy(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to delete policy with id %s", id));
-        policyDefinitionService.deleteById(id).orElseThrow(exceptionMapper(PolicyDefinition.class, id));
-        monitor.debug(format("Policy deleted %s", id));
     }
 
     private List<PolicyDefinitionResponseDto> queryPolicies(QuerySpecDto querySpecDto) {

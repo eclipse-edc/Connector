@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.policydefinition;
 
+import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlQuerySpec;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
@@ -24,6 +25,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.store.azure.cosmos.policydefinition.TestFunctions.generateDocument;
 import static org.eclipse.edc.connector.store.azure.cosmos.policydefinition.TestFunctions.generatePolicy;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.notNull;
@@ -124,8 +127,9 @@ class CosmosPolicyDefinitionStoreTest {
 
     @Test
     void deleteById_whenMissing_returnsNull() {
+        when(cosmosDbApiMock.deleteItem(any())).thenThrow(new NotFoundException());
         var contractDefinition = store.deleteById("some-id");
-        assertThat(contractDefinition).isNull();
+        assertThat(contractDefinition).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
         verify(cosmosDbApiMock).deleteItem(notNull());
     }
 
@@ -136,7 +140,8 @@ class CosmosPolicyDefinitionStoreTest {
         when(cosmosDbApiMock.deleteItem(document.getId())).thenReturn(document);
 
         var deletedDefinition = store.deleteById(document.getId());
-        assertThat(deletedDefinition).isEqualTo(contractDefinition);
+        assertThat(deletedDefinition.succeeded()).isTrue();
+        assertThat(deletedDefinition.getContent()).isEqualTo(contractDefinition);
     }
 
     @Test

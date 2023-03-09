@@ -241,18 +241,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void deletePolicy_ExistsInContractDefinitionNotExistsInPolicyStore(ContractDefinitionStore contractDefinitionStore) {
-        var policy = createPolicy("access");
-        contractDefinitionStore.save(createContractDefinition(policy.getUid()));
-        baseRequest()
-                .contentType(JSON)
-                .delete("/policydefinitions/access")
-                .then()
-                .statusCode(404);
-    }
-
-    @Test
-    void deletePolicy_alreadyReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyStore) {
+    void deletePolicy_whenReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyStore) {
         var policy = createPolicy("access");
         policyStore.save(policy);
         contractDefinitionStore.save(createContractDefinition(policy.getUid()));

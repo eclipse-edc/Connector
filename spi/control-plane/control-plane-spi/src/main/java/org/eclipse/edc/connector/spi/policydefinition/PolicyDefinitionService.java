@@ -68,11 +68,8 @@ public interface PolicyDefinitionService {
     /**
      * Updates a policy. If the policy does not yet exist, {@link ServiceResult#notFound(String)} will be returned.
      *
-     * @param policyId the ID of the policy to update
      * @param policy the contents of the policy.
-     *
      * @return successful if updated, a failure otherwise.
      */
-    @NotNull
-    ServiceResult<Void> update(String policyId, PolicyDefinition policy);
+    ServiceResult<PolicyDefinition> update(PolicyDefinition policy);
 }

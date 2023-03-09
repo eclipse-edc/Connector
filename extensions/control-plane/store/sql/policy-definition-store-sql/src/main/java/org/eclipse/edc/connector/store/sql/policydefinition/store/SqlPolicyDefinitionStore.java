@@ -28,10 +28,10 @@ import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
 
@@ -91,38 +92,42 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     }
 
     @Override
-    public void save(PolicyDefinition policy) {
+    public StoreResult<PolicyDefinition> save(PolicyDefinition policy) {
         Objects.requireNonNull(policy);
-        transactionContext.execute(() -> {
+        var policyId = policy.getUid();
+        return transactionContext.execute(() -> {
             if (findById(policy.getUid()) != null) {
-                update(policy);
+                return StoreResult.alreadyExists(format(POLICY_ALREADY_EXISTS, policyId));
             } else {
                 insert(policy);
+                return StoreResult.success(policy);
             }
         });
     }
 
     @Override
-    public PolicyDefinition update(String policyId, PolicyDefinition policyDefinition) {
+    public StoreResult<PolicyDefinition> update(PolicyDefinition policyDefinition) {
+        var policyId = policyDefinition.getUid();
         if (findById(policyId) != null) {
             return transactionContext.execute(() -> {
-                update(policyDefinition);
-                return policyDefinition;
+                updateInternal(policyDefinition);
+                return StoreResult.success(policyDefinition);
             });
         }
-        return null;
+        return StoreResult.notFound(format(POLICY_NOT_FOUND, policyId));
     }
 
     @Override
-    public @Nullable PolicyDefinition deleteById(String policyId) {
+    public StoreResult<PolicyDefinition> deleteById(String policyId) {
         Objects.requireNonNull(policyId);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var entity = findById(policyId);
                 if (entity != null) {
                     executeQuery(connection, statements.getDeleteTemplate(), policyId);
+                    return StoreResult.success(entity);
                 }
-                return entity;
+                return StoreResult.notFound(format(POLICY_NOT_FOUND, policyId));
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -152,7 +157,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         });
     }
 
-    private void update(PolicyDefinition def) {
+    private void updateInternal(PolicyDefinition def) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var policy = def.getPolicy();
