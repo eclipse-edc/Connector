@@ -215,7 +215,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         //TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, contractOfferRequest, () -> null)
+        dispatcherRegistry.send(Object.class, contractOfferRequest)
                 .whenComplete(onCounterOfferSent(negotiation.getId()));
         return false;
     }
@@ -243,7 +243,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         //TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, rejection, () -> null)
+        dispatcherRegistry.send(Object.class, rejection)
                 .whenComplete(onRejectionSent(negotiation.getId()));
 
         return false;
@@ -304,7 +304,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         //TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, request, () -> null)
+        dispatcherRegistry.send(Object.class, request)
                 .whenComplete(onAgreementSent(negotiation.getId(), agreement));
         return true;
     }

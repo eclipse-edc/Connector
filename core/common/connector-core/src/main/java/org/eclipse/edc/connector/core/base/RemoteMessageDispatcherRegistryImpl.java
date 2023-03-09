@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.core.base;
 
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.message.MessageContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -39,14 +38,14 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
     }
 
     @Override
-    public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
+    public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message) {
         Objects.requireNonNull(message, "Message was null");
         var protocol = message.getProtocol();
         var dispatcher = getDispatcher(protocol);
         if (dispatcher == null) {
             return failedFuture(new EdcException("No provider dispatcher registered for protocol: " + protocol));
         }
-        return dispatcher.send(responseType, message, context);
+        return dispatcher.send(responseType, message);
     }
 
     @Nullable

@@ -715,7 +715,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         monitor.debug(format("TransferProcessManager: Sending process %s request to %s", process.getId(), dataRequest.getConnectorAddress()));
-        dispatcherRegistry.send(Object.class, dataRequest, process::getId)
+        dispatcherRegistry.send(Object.class, dataRequest)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         sendConsumerRequestSuccess(process);
