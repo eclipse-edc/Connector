@@ -4,11 +4,11 @@
 
 This decision record covers the refactor and improvements of the Event Framework in two main aspects:
 
-- Simplify the definition and maintenance of even types.
+- Simplify the definition and maintenance of event types.
 - A new way of typed subscriptions based on event type.
 
-The `Event` and the `EventPayload` will be merged together in `Event` class representing the payload abstraction, while
-a new concrete class `EventEnvelope` will be introduced for holding and dispatching the previously mentioned events,
+The `Event` and the `EventPayload` will be merged together in the `Event` class representing the payload abstraction, while
+a new concrete class `EventEnvelope` will be introduced for holding and dispatching the previously mentioned `Event`,
 and it will contain all the event metadata like id, timestamp, etc..
 
 Additionally, we will introduce/refactor methods in the `EventRouter` and `EventSubscriber` for subscribing to events based on their kind.
@@ -23,7 +23,7 @@ metadata `Event` can be simplified, considering that events metadata rarely chan
 ## Approach
 
 The `Event` and the `EventPayload` classes will be merged together in an abstract class called `Event`, that all EDC
-events should implement. The `Event` will represent the abstraction over the event payload carried by a new concrete class called `EventEnvelope`.
+events should implement. The `Event` will represent the abstraction over the event payload carried by a new concrete class called `EventEnvelope` which will be generic over the `Event`.
 
 Here's how the envelope will look like:
 
@@ -40,7 +40,7 @@ public class EventEnvelope<E extends Event> {
 }
 ```
 
-When creating a new event in EDC then the only class to extend is `Event` and all current EDC events needs to be
+When creating a new event in EDC the only class to extend is `Event` and all current EDC events needs to be
 migrated to the new shape.
 
 For example the `AssetCreated` could be:
@@ -53,7 +53,7 @@ public class AssetCreated extends Event {
     // Builder
 ```
 
-The signature of the `EventRouter#publish` also need to change accordingly for taking in input the `EventEnvelope`:
+The signature of the `EventRouter#publish` also need to change for taking in input the `EventEnvelope`:
 
 ```java
 public interface EventRouter {
@@ -65,13 +65,13 @@ Here's an example on how publishing would look like on `AssetListenerImpl#create
 
 ```java
 public void created(Asset asset){
-        var event=EventEnvelope.Builder.newInstance()
+    var event=EventEnvelope.Builder.newInstance()
         .id("event-id")
         .at(Clock.systemUTC().millis())
         .payload(AssetCreatedNew.Builder.newInstance().id("id").build())
         .build();
-        eventRouter.publish(event);
-        }
+    eventRouter.publish(event);
+}
 ```
 
 For introducing the typed subscribers the interfaces for registering and handling events also needs to be changed.
@@ -86,19 +86,19 @@ public interface EventSubscriber<T> {
 
 And the `EventRouter#register/{async}` method will take in input:
 
-- the type of the event which the subscriber is interested in
+- the type of the event that the subscriber is interested in
 - the subscriber itself
 
 ```java
 public interface EventRouter {
-    <E extends NewEvent> void register(Class<E> eventKind, EventSubscriber<E> subscriber);
+    <E extends Event> void register(Class<E> eventKind, EventSubscriber<E> subscriber);
 }
 ```
 
 The default router `EventRouterImpl` and other implementors should take into account the events hierarchy
 when registering subscribers and dispatching events, considering that the base event class will be `Event`.
 
-For example if a subscriber is interested in all events, an `EventSubscriber` working on the `Event.class` type can be used.
+For example if a subscriber is interested in all events, an `EventSubscriber` dealing with the `Event.class` type can be used.
 
 The polymorphic subscribers should work also with custom hierarchy of events. If we consider the current `Asset` events
 we could model them in the following way:
