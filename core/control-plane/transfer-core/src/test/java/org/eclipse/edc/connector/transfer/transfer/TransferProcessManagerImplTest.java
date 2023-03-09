@@ -35,7 +35,6 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -442,9 +441,7 @@ class TransferProcessManagerImplTest {
     void requested_shouldDoNothing_dataspaceProtocol() {
         var dataRequest = createDataRequestBuilder().protocol("dataspace").build();
         var process = createTransferProcessBuilder(REQUESTED)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
-                        .resources(List.of(provisionedDataDestinationResource()))
-                        .build())
+                .provisionedResources(List.of(provisionedDataDestinationResource()))
                 .dataRequest(dataRequest).build();
         when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
@@ -459,9 +456,7 @@ class TransferProcessManagerImplTest {
         var dataRequest = createDataRequestBuilder().protocol("ids-multipart").build();
         var process = createTransferProcessBuilder(REQUESTED)
                 .type(CONSUMER)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
-                        .resources(List.of(provisionedDataDestinationResource()))
-                        .build())
+                .provisionedResources(List.of(provisionedDataDestinationResource()))
                 .dataRequest(dataRequest).build();
         when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
@@ -477,7 +472,7 @@ class TransferProcessManagerImplTest {
     void requested_shouldNotTransitionIfProvisionedResourcesAreEmpty_idsMultipartOnly() {
         var dataRequest = createDataRequestBuilder().protocol("ids-multipart").build();
         var process = createTransferProcessBuilder(REQUESTED)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
+                .provisionedResources(emptyList())
                 .dataRequest(dataRequest).build();
         when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
@@ -568,8 +563,8 @@ class TransferProcessManagerImplTest {
     @Test
     void started_shouldComplete_whenManagedResourcesAndCheckerCompleted() {
         var process = createTransferProcess(STARTED);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
 
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
@@ -585,8 +580,8 @@ class TransferProcessManagerImplTest {
     @Test
     void started_shouldComplete_whenNotManagedResourcesAndCheckerCompleted() {
         var process = createTransferProcess(STARTED, new TransferType(), false);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
 
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
@@ -602,8 +597,8 @@ class TransferProcessManagerImplTest {
     @Test
     void started_shouldBreakLeaseAndNotComplete_whenNotAllYetCompleted() {
         var process = createTransferProcess(STARTED);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
 
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> false);
@@ -618,8 +613,8 @@ class TransferProcessManagerImplTest {
     @Test
     void started_shouldNotComplete_whenNoCheckerForManaged() {
         var process = createTransferProcess(STARTED);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(transferProcessStore).save(process);
@@ -634,8 +629,8 @@ class TransferProcessManagerImplTest {
     @Test
     void started_shouldComplete_whenNoCheckerForNotManaged() {
         var process = createTransferProcess(STARTED, new TransferType(), false);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
+        process.addProvisionedResource(provisionedDataDestinationResource());
 
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
@@ -682,13 +677,9 @@ class TransferProcessManagerImplTest {
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
 
-        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TokenTestProvisionResource("test", PROVISIONED_RESOURCE_ID)))
-                .build();
-
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(manifest)
-                .provisionedResourceSet(resourceSet)
+                .provisionedResources(List.of(new TokenTestProvisionResource("test", PROVISIONED_RESOURCE_ID)))
                 .build();
 
         var deprovisionResult = StatusResult.success(DeprovisionedResource.Builder.newInstance()
@@ -718,13 +709,9 @@ class TransferProcessManagerImplTest {
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
 
-        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TokenTestProvisionResource("test", PROVISIONED_RESOURCE_ID)))
-                .build();
-
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(manifest)
-                .provisionedResourceSet(resourceSet)
+                .provisionedResources(List.of(new TokenTestProvisionResource("test", PROVISIONED_RESOURCE_ID)))
                 .build();
 
         var deprovisionedResponse = DeprovisionedResource.Builder.newInstance()
@@ -752,13 +739,9 @@ class TransferProcessManagerImplTest {
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
 
-        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
-                .build();
-
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(manifest)
-                .provisionedResourceSet(resourceSet)
+                .provisionedResources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
                 .build();
 
         var deprovisionResult = StatusResult.<DeprovisionedResource>failure(ResponseStatus.FATAL_ERROR, "test error");
@@ -783,13 +766,9 @@ class TransferProcessManagerImplTest {
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
 
-        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
-                .build();
-
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(manifest)
-                .provisionedResourceSet(resourceSet)
+                .provisionedResources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
                 .build();
 
         var deprovisionResult = StatusResult.<DeprovisionedResource>failure(ResponseStatus.ERROR_RETRY, "test error");
@@ -860,7 +839,6 @@ class TransferProcessManagerImplTest {
                 .build();
 
         return TransferProcess.Builder.newInstance()
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(CONSUMER)
                 .id("test-process-" + processId)
                 .state(inState.code())

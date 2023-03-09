@@ -390,7 +390,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (!"ids-multipart".equals(dataRequest.getProtocol())) {
             return false;
         }
-        if (!dataRequest.isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
+        if (!dataRequest.isManagedResources() || !process.getProvisionedResources().isEmpty()) {
             transitToStarted(process);
             return true;
         } else {
@@ -439,7 +439,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             }
             return true;
         } else {
-            List<ProvisionedResource> resources = process.getDataRequest().isManagedResources() ? process.getProvisionedResourceSet().getResources() : emptyList();
+            List<ProvisionedResource> resources = process.getDataRequest().isManagedResources() ? process.getProvisionedResources() : emptyList();
             if (checker.isComplete(process, resources)) {
                 transitionToCompleting(process);
                 return true;

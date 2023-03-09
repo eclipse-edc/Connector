@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.transfer.spi.testfixtures.store;
 import org.awaitility.Awaitility;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
-import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
@@ -613,11 +612,8 @@ public abstract class TransferProcessStoreTestBase {
                 .transferProcessId("testprocess1")
                 .id("pr-id")
                 .build();
-        var prs = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(resource))
-                .build();
         var tp = createTransferProcessBuilder("testprocess1")
-                .provisionedResourceSet(prs)
+                .provisionedResources(List.of(resource))
                 .build();
         getTransferProcessStore().save(tp);
         getTransferProcessStore().save(createTransferProcess("testprocess2"));
@@ -638,11 +634,8 @@ public abstract class TransferProcessStoreTestBase {
                 .transferProcessId("testprocess1")
                 .id("pr-id")
                 .build();
-        var prs = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(resource))
-                .build();
         var tp = createTransferProcessBuilder("testprocess1")
-                .provisionedResourceSet(prs)
+                .provisionedResources(List.of(resource))
                 .build();
         getTransferProcessStore().save(tp);
         getTransferProcessStore().save(createTransferProcess("testprocess2"));

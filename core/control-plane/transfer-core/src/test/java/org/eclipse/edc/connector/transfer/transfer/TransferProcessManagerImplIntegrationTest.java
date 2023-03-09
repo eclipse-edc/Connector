@@ -29,7 +29,6 @@ import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
-import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
@@ -116,8 +115,8 @@ class TransferProcessManagerImplIntegrationTest {
 
         var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         var processes = IntStream.range(0, numProcesses)
-                .mapToObj(i -> provisionedResourceSet())
-                .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
+                .mapToObj(i -> new TestProvisionedDataDestinationResource("test-resource", "1"))
+                .map(provisionedResources -> createInitialTransferProcess().resourceManifest(manifest).provisionedResources(List.of(provisionedResources)).build())
                 .peek(store::save)
                 .collect(Collectors.toList());
 
@@ -137,12 +136,6 @@ class TransferProcessManagerImplIntegrationTest {
 
     }
 
-    private ProvisionedResourceSet provisionedResourceSet() {
-        return ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource", "1")))
-                .build();
-    }
-
     private TransferProcess.Builder createInitialTransferProcess() {
         String processId = UUID.randomUUID().toString();
         var dataRequest = DataRequest.Builder.newInstance()
@@ -154,7 +147,6 @@ class TransferProcessManagerImplIntegrationTest {
                 .build();
 
         return TransferProcess.Builder.newInstance()
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(TransferProcess.Type.CONSUMER)
                 .id("test-process-" + processId)
                 .state(INITIAL.code())

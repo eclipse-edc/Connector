@@ -23,9 +23,12 @@ import java.util.List;
 
 /**
  * A collection of provisioned resources that support a data transfer.
+ *
+ * @deprecated a simple list of {@link ProvisionedResource} can be used instead.
  */
 @JsonTypeName("dataspaceconnector:provisionedresourceset")
 @JsonDeserialize(builder = ProvisionedResourceSet.Builder.class)
+@Deprecated(since = "milestone9")
 public class ProvisionedResourceSet {
     private String transferProcessId;
 

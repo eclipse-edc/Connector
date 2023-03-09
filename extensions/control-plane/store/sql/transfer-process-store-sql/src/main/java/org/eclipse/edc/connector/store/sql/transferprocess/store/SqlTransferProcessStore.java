@@ -19,11 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.SqlQueryExecutor;
@@ -176,7 +178,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
 
     private @Nullable TransferProcess findByIdInternal(Connection conn, String id) {
         return transactionContext.execute(() -> {
-            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
+            var q = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("id", "=", id))).build();
             return single(executeQuery(conn, q).collect(toList()));
         });
     }
@@ -194,7 +196,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getTraceContext()),
                 process.getErrorDetail(),
                 toJson(process.getResourceManifest()),
-                toJson(process.getProvisionedResourceSet()),
+                toJson(process.getProvisionedResources()),
                 toJson(process.getContentDataAddress()),
                 toJson(process.getDeprovisionedResources()),
                 process.getUpdatedAt(),
@@ -239,7 +241,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     private void insert(Connection conn, TransferProcess process) {
-        // insert TransferProcess
         var insertTpStatement = statements.getInsertStatement();
         SqlQueryExecutor.executeQuery(conn, insertTpStatement, process.getId(),
                 process.getState(),
@@ -250,13 +251,12 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getTraceContext()),
                 process.getErrorDetail(),
                 toJson(process.getResourceManifest()),
-                toJson(process.getProvisionedResourceSet()),
+                toJson(process.getProvisionedResources()),
                 toJson(process.getContentDataAddress()),
                 process.getType().toString(),
                 toJson(process.getDeprovisionedResources()),
                 toJson(process.getProperties()));
 
-        //insert DataRequest
         var dr = process.getDataRequest();
         if (dr != null) {
             insertDataRequest(process.getId(), dr, conn);
@@ -281,6 +281,15 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     private TransferProcess mapTransferProcess(ResultSet resultSet) throws SQLException {
+        List<ProvisionedResource> provisionedResources;
+        // this try-catch block exists to handle situations where the TP has the provisioned resources stored as `ProvisionedResourceSet`. Can be removed once `ProvisionedResourceSet` gets deleted.
+        try {
+            provisionedResources = fromJson(resultSet.getString(statements.getProvisionedResourcesetColumn()), getTypeRef());
+        } catch (EdcPersistenceException e) {
+            var provisionedResourceSet = fromJson(resultSet.getString(statements.getProvisionedResourcesetColumn()), ProvisionedResourceSet.class);
+            provisionedResources = provisionedResourceSet.getResources();
+        }
+
         return TransferProcess.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
                 .type(TransferProcess.Type.valueOf(resultSet.getString(statements.getTypeColumn())))
@@ -291,12 +300,11 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .stateCount(resultSet.getInt(statements.getStateCountColumn()))
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), getTypeRef()))
                 .resourceManifest(fromJson(resultSet.getString(statements.getResourceManifestColumn()), ResourceManifest.class))
-                .provisionedResourceSet(fromJson(resultSet.getString(statements.getProvisionedResourcesetColumn()), ProvisionedResourceSet.class))
+                .provisionedResources(provisionedResources)
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .dataRequest(mapDataRequest(resultSet))
                 .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
-                .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), new TypeReference<>() {
-                }))
+                .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), getTypeRef()))
                 .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
                 .build();
     }

@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.store.sql.transferprocess.store.SqlTransferProc
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions;
 import org.eclipse.edc.connector.transfer.spi.testfixtures.store.TransferProcessStoreTestBase;
-import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
@@ -36,7 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
@@ -59,8 +57,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     private SqlTransferProcessStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
-
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
         var typeManager = new TypeManager();
         typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
@@ -73,7 +70,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getTransferProcessTableName() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getDataRequestTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getLeaseTableName() + " CASCADE");
@@ -131,11 +128,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
                 .transferProcessId("testprocess1")
                 .id("pr-id")
                 .build();
-        var prs = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(resource))
-                .build();
         var tp = createTransferProcessBuilder("testprocess1")
-                .provisionedResourceSet(prs)
+                .provisionedResources(List.of(resource))
                 .build();
         store.save(tp);
         store.save(createTransferProcess("testprocess2"));

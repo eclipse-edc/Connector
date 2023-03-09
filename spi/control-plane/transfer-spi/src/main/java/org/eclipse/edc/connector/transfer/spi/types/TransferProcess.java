@@ -34,11 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
@@ -106,7 +106,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private DataRequest dataRequest;
     private DataAddress contentDataAddress;
     private ResourceManifest resourceManifest;
-    private ProvisionedResourceSet provisionedResourceSet;
+    @Deprecated(since = "milestone9") private ProvisionedResourceSet provisionedResourceSet;
+    private final List<ProvisionedResource> provisionedResources = new ArrayList<>();
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, String> properties = new HashMap<>();
 
@@ -129,6 +130,16 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return resourceManifest;
     }
 
+    public List<ProvisionedResource> getProvisionedResources() {
+        return provisionedResources;
+    }
+
+    /**
+     * Get provisioned resource set
+     *
+     * @deprecated please use {@link #getProvisionedResources}
+     */
+    @Deprecated(since = "milestone9")
     public ProvisionedResourceSet getProvisionedResourceSet() {
         return provisionedResourceSet;
     }
@@ -148,10 +159,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void addProvisionedResource(ProvisionedResource resource) {
-        if (provisionedResourceSet == null) {
-            provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(id).build();
-        }
-        provisionedResourceSet.addResource(resource);
+        provisionedResources.add(resource);
         setModified();
 
     }
@@ -163,10 +171,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     @Nullable
     public ProvisionedResource getProvisionedResource(String id) {
-        if (provisionedResourceSet == null) {
-            return null;
-        }
-        return provisionedResourceSet.getResources().stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
+        return provisionedResources.stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
     }
 
     /**
@@ -178,11 +183,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         if (resourceManifest == null) {
             return emptyList();
         }
-        if (provisionedResourceSet == null) {
-            return unmodifiableList(resourceManifest.getDefinitions());
-        }
-        var provisionedResources = provisionedResourceSet.getResources().stream().map(ProvisionedResource::getResourceDefinitionId).collect(toSet());
-        return resourceManifest.getDefinitions().stream().filter(r -> !provisionedResources.contains(r.getId())).collect(toList());
+        var provisionedResourcesId = provisionedResources.stream().map(ProvisionedResource::getResourceDefinitionId).collect(toSet());
+        return resourceManifest.getDefinitions().stream().filter(r -> !provisionedResourcesId.contains(r.getId())).collect(toList());
     }
 
     public boolean provisioningComplete() {
@@ -199,12 +201,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     @JsonIgnore
     @NotNull
     public List<ProvisionedResource> getResourcesToDeprovision() {
-        if (provisionedResourceSet == null) {
-            return emptyList();
-        }
-
         var deprovisionedResources = this.deprovisionedResources.stream().map(DeprovisionedResource::getProvisionedResourceId).collect(toSet());
-        return provisionedResourceSet.getResources().stream().filter(r -> !deprovisionedResources.contains(r.getId())).collect(toList());
+        return provisionedResources.stream().filter(r -> !deprovisionedResources.contains(r.getId())).collect(toList());
     }
 
     public Map<String, String> getProperties() {
@@ -332,7 +330,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         var builder = Builder.newInstance()
                 .resourceManifest(resourceManifest)
                 .dataRequest(dataRequest)
-                .provisionedResourceSet(provisionedResourceSet)
+                .provisionedResources(provisionedResources)
                 .contentDataAddress(contentDataAddress)
                 .deprovisionedResources(deprovisionedResources)
                 .properties(properties)
@@ -406,8 +404,20 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
+        public Builder provisionedResources(List<ProvisionedResource> resources) {
+            entity.provisionedResources.addAll(resources);
+            return this;
+        }
+
+        /**
+         * Set ProvisionedResourceSet.
+         *
+         * @deprecated please use {@link #provisionedResources(List)}; do not delete until the deprecation expires because it's used by the cosmos implementation of the transfer store.
+         */
+        @Deprecated(since = "milestone9")
         public Builder provisionedResourceSet(ProvisionedResourceSet set) {
             entity.provisionedResourceSet = set;
+            Optional.ofNullable(set).map(ProvisionedResourceSet::getResources).ifPresent(entity.provisionedResources::addAll);
             return this;
         }
 
@@ -432,10 +442,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
             if (entity.resourceManifest != null) {
                 entity.resourceManifest.setTransferProcessId(entity.id);
-            }
-
-            if (entity.provisionedResourceSet != null) {
-                entity.provisionedResourceSet.setTransferProcessId(entity.id);
             }
 
             if (entity.dataRequest != null) {
