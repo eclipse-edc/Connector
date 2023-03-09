@@ -3,6 +3,15 @@
 - [Domain Model](domain-model.md)
 - [Key Principles](coding-principles.md)
 - [Terminology](terminology.md)
+- [Catalog](catalog/)
+- [Usage Control](usage-control/)
+- [Data Transfer](data-transfer/)
+- [Configuration](configuration/)
+- [Domain Model](domain-model.md)
+- [Identity Management](identity-management/)
+- [Terminology](terminology.md)
+- [Dataspace Protocol](ids-dataspace-protocol/)
+- [IDS Standard (deprecated)](ids/)
 
 ## Configuration
 
