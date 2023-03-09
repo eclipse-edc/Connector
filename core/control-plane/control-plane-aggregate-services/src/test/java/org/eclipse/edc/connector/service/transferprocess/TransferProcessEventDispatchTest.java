@@ -134,23 +134,4 @@ public class TransferProcessEventDispatchTest {
         await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessTerminated.class)));
     }
 
-    @Test
-    void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(failedFuture(new RuntimeException("an error")));
-        dispatcherRegistry.register(testDispatcher);
-        eventRouter.register(eventSubscriber);
-
-        var dataRequest = DataRequest.Builder.newInstance()
-                .assetId("assetId")
-                .destinationType("any")
-                .protocol("test")
-                .managedResources(false)
-                .build();
-
-        service.initiateTransfer(dataRequest);
-
-        await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessTerminated.class)));
-    }
 }

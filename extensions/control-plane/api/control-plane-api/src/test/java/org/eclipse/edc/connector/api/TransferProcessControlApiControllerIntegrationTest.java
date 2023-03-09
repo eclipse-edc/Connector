@@ -58,7 +58,7 @@ class TransferProcessControlApiControllerIntegrationTest {
                 "web.http.control.path", "/"
         ));
         var registry = mock(RemoteMessageDispatcherRegistry.class);
-        when(registry.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
     }
 

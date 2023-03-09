@@ -71,7 +71,7 @@ public class TransferProcessHttpClientIntegrationTest {
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
         var registry = mock(RemoteMessageDispatcherRegistry.class);
-        when(registry.send(any(), any(), any())).thenReturn(completedFuture("any"));
+        when(registry.send(any(), any())).thenReturn(completedFuture("any"));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
     }
 

@@ -504,13 +504,13 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
-        when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class), any())).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class), any());
+            verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class));
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
         });
     }
@@ -522,12 +522,12 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
-        when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class), any())).thenReturn(failedFuture(new EdcException("error in sending the message")));
+        when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class))).thenReturn(failedFuture(new EdcException("error in sending the message")));
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class), any());
+            verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class));
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTING.code()));
         });
     }
@@ -679,12 +679,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(COMPLETING);
         when(transferProcessStore.nextForState(eq(COMPLETING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
-        when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class), any())).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class), any());
+            verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class));
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == COMPLETED.code()));
             verify(listener).completed(process);
         });
@@ -695,12 +695,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(COMPLETING);
         when(transferProcessStore.nextForState(eq(COMPLETING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
-        when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class), any())).thenReturn(failedFuture(new EdcException("an error")));
+        when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class))).thenReturn(failedFuture(new EdcException("an error")));
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class), any());
+            verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class));
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
@@ -710,12 +710,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
         when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class), any())).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class), any());
+            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
@@ -726,12 +726,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
         when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class), any())).thenReturn(failedFuture(new EdcException("an error")));
+        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class))).thenReturn(failedFuture(new EdcException("an error")));
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class), any());
+            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
@@ -741,13 +741,13 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
         when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class), any())).thenReturn(failedFuture(new EdcException("an error")));
+        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class))).thenReturn(failedFuture(new EdcException("an error")));
         doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class), any());
+            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
         });
     }

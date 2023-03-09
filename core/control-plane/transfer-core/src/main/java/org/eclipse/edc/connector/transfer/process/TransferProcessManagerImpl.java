@@ -371,7 +371,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataRequest = process.getDataRequest();
         var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, dataRequest, process::getId))
+        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, dataRequest))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToRequested(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -443,7 +443,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
 
-        sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message, process::getId))
+        sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToStarted(t))
                 .onFailure((t, throwable) -> transitToStarting(t))
@@ -510,7 +510,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message, process::getId))
+        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
@@ -540,7 +540,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message, process::getId))
+        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -763,42 +763,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         transferProcess.transitionDeprovisioned(message);
         updateTransferProcess(transferProcess, l -> l.preDeprovisioned(transferProcess));
         observable.invokeForEach(l -> l.deprovisioned(transferProcess));
-    }
-
-    private boolean processConsumerRequest(TransferProcess process, DataRequest dataRequest) {
-        if (sendRetryManager.shouldDelay(process)) {
-            breakLease(process);
-            return false;
-        }
-
-        sendConsumerRequest(process, dataRequest);
-        return true;
-    }
-
-    private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
-        monitor.debug(format("TransferProcessManager: Sending process %s request to %s", process.getId(), dataRequest.getConnectorAddress()));
-        dispatcherRegistry.send(Object.class, dataRequest)
-                .whenComplete((result, throwable) -> {
-                    if (throwable == null) {
-                        transitToRequested(process);
-                    } else {
-                        handlingSendingRequestedFailure(process, throwable);
-                    }
-                });
-    }
-
-    private void transitToRequested(TransferProcess transferProcess) {
-        transferProcess.transitionRequested();
-        updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
-        observable.invokeForEach(l -> l.requested(transferProcess));
-        return true;
-    }
-
-    private boolean transitToStarted(TransferProcess process) {
-        process.transitionStarted();
-        updateTransferProcess(process, l -> l.preStarted(process));
-        observable.invokeForEach(l -> l.started(process));
-        return true;
     }
 
     private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {

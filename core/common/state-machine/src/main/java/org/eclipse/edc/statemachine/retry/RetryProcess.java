@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 /**
  * Represent a process on a {@link StatefulEntity} that is retried after a certain delay if it fails.
  * This works only used on a state machine, where states are persisted.
- * <br/>
  * The process is a unit of logic that can be executed on the entity.
  */
 public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryProcess<E, T>> {

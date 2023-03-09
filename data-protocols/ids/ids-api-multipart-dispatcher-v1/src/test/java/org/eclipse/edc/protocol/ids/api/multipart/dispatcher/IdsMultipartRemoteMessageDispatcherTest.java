@@ -37,7 +37,7 @@ class IdsMultipartRemoteMessageDispatcherTest {
                 .connectorAddress("http://an/address")
                 .build();
 
-        var future = dispatcher.send(Object.class, message, () -> "processId");
+        var future = dispatcher.send(Object.class, message);
 
         assertThat(future).succeedsWithin(5, SECONDS);
         verifyNoInteractions(sender);
@@ -50,7 +50,7 @@ class IdsMultipartRemoteMessageDispatcherTest {
                 .connectorAddress("http://an/address")
                 .build();
 
-        var future = dispatcher.send(Object.class, message, () -> "processId");
+        var future = dispatcher.send(Object.class, message);
 
         assertThat(future).succeedsWithin(5, SECONDS);
         verifyNoInteractions(sender);
@@ -63,7 +63,7 @@ class IdsMultipartRemoteMessageDispatcherTest {
                 .connectorAddress("http://an/address")
                 .build();
 
-        var future = dispatcher.send(Object.class, message, () -> "processId");
+        var future = dispatcher.send(Object.class, message);
 
         assertThat(future).succeedsWithin(5, SECONDS);
         verifyNoInteractions(sender);
