@@ -132,7 +132,7 @@ and `edc.receiver.http.` will be aliases for the registration of `CallbackAddres
 > implementations. The implementations in EDC can be converted to `RemoteMessageDispatcher`s but we need to discuss how to handle end-user supplied `EndpointDataReferenceReceiver`
 > implementations.
 
-The most significant change will involve propagating the EDR from the provider to the client. The new IDS protocol `TransferStartMessage` contains a `dataAddress` field that can be
+The most significant change will involve propagating the EDR from the provider to the consumer. The new IDS protocol `TransferStartMessage` contains a `dataAddress` field that can be
 used to propagate the EDR instead of requiring the `DataFlowController` to send the EDR out-of-band to the client. The `DataFlowController` will need to return the EDR from
 the `initiateFlow` method using a `DataFlowResponse`:
 
