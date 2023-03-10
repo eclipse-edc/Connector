@@ -1,10 +1,15 @@
-# Data Flows Supported by the EDC
+# Data Transfer
+
+## Data Flows Supported by the EDC
 
 |   |Push<br />Provider initiates the data flow|Pull<br />Consumer initiates the data flow|
 |---|---|---|
 |HTTP/REST|API on Consumer side|API on provider side|
 |Stream|Provider streams data to messaging Destination on consumer side|Consumer connects to a Destination on provider side|
 |S3|Provider pushes data to destination bucket on consumer side|Consumer pulls data from a bucket on provider side|
+
+## Transfer Process State Machine
+![Transfer Process State Machine](diagrams/transfer-process-states.png)
 
 ## Preliminary IDS Messages
 

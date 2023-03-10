@@ -30,4 +30,5 @@ The EDC connector is able to provide contract offers. This feature requires four
 
 ## Negotiation
 
-TBD
+### State Machine
+![Contract Negotiation State Machine](diagrams/contract-negotiation-states.png)
