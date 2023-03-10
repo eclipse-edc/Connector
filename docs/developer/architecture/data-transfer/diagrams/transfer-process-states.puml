@@ -43,19 +43,19 @@ state Consumer {
   INITIAL_consumer --> PROVISIONING_consumer
   PROVISIONED_consumer --> REQUESTING
   REQUESTING --> REQUESTED
-  REQUESTING -[dashed]-> INITIAL_provider : sends\nREQUESTED\nmessage
+  REQUESTING -[dashed]-> INITIAL_provider : sends\n**TransferRequestMessage**\nmessage
 
   REQUESTED -[hidden]-> STARTED_consumer : used for layout
 
   STARTED_consumer --> COMPLETING_consumer
 
   COMPLETING_consumer --> COMPLETED_consumer
-  COMPLETING_consumer -[dashed]-> COMPLETED_provider : sends\nCOMPLETED\nmessage
+  COMPLETING_consumer -[dashed]-> COMPLETED_provider : sends\n**TransferCompletionMessage**\nmessage
   COMPLETED_consumer --> DEPROVISIONING
 
   STARTED_consumer -[hidden]-> TERMINATING_consumer : used for layout
   TERMINATING_consumer --> TERMINATED_consumer
-  TERMINATING_consumer -[dashed]-> TERMINATED_provider : sends\nTERMINATED\nmessage
+  TERMINATING_consumer -[dashed]-> TERMINATED_provider : sends\n**TransferTerminationMessage**\nmessage
   TERMINATED_consumer --> DEPROVISIONING
 }
 
@@ -89,16 +89,16 @@ state Provider {
   INITIAL_provider --> PROVISIONING_provider
   PROVISIONED_provider --> STARTING_provider
   STARTING_provider --> STARTED_provider
-  STARTING_provider -[dashed]-> STARTED_consumer : sends\nSTARTED\nmessage
+  STARTING_provider -[dashed]-> STARTED_consumer : sends\n**TransferStartMessage**\nmessage
 
   STARTED_provider --> COMPLETING_provider
   COMPLETING_provider --> COMPLETED_provider
-  COMPLETING_provider -[dashed]-> COMPLETED_consumer : sends\nCOMPLETED\nmessage
+  COMPLETING_provider -[dashed]-> COMPLETED_consumer : sends\n**TransferCompletionMessage**\nmessage
   COMPLETED_provider --> DEPROVISIONING
 
   STARTED_provider -[hidden]-> TERMINATING_provider : used for layout
   TERMINATING_provider --> TERMINATED_provider
-  TERMINATING_provider -[dashed]-> TERMINATED_consumer : sends\nTERMINATED\nmessage
+  TERMINATING_provider -[dashed]-> TERMINATED_consumer : sends\n**TransferTerminationMessage**\nmessage
   TERMINATED_provider --> DEPROVISIONING
 }
 
