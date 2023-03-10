@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
-      - uses: actions/checkout@v3
       - uses: deepakputhraya/action-pr-title@master
         with:
           # Match pull request titles conventional commit syntax (https://www.conventionalcommits.org/en/v1.0.0/)
@@ -37,7 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
-      - uses: actions/checkout@v3
       - uses: agilepathway/label-checker@v1.4.25
         with:
           any_of: api,bug,build,dependencies,documentation,enhancement,no-changelog,refactoring
