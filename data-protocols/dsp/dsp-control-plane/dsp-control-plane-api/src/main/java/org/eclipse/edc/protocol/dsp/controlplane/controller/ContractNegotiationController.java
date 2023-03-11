@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.controlplane.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -24,13 +25,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.protocol.dsp.spi.controlplane.service.ContractNegotiationService;
+import org.eclipse.edc.protocol.dsp.spi.controlplane.service.DspContractNegotiationService;
 import org.eclipse.edc.spi.monitor.Monitor;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.compactDocument;
+import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.expandDocument;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -39,11 +40,14 @@ public class ContractNegotiationController implements ContractNegotiationApiProv
 
     private final Monitor monitor;
 
-    private final ContractNegotiationService service;
+    private final DspContractNegotiationService service;
 
-    public ContractNegotiationController(Monitor monitor, ContractNegotiationService service) {
+    private final ObjectMapper mapper;
+
+    public ContractNegotiationController(Monitor monitor, DspContractNegotiationService service, TypeManager typeManager) {
         this.monitor = monitor;
         this.service = service;
+        this.mapper = typeManager.getMapper("json-ld");
     }
 
     // Provider
@@ -51,17 +55,22 @@ public class ContractNegotiationController implements ContractNegotiationApiProv
     @GET
     @Path("/{id}")
     @Override
-    public Map<String, Object> getNegotiation(@PathParam("id") String id) {
+    public JsonObject getNegotiation(@PathParam("id") String id) {
         monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
-        return new HashMap<>();
+
+        return service.getNegotiationById(id);
     }
 
     @POST
     @Path("/request")
     @Override
-    public Map<String, Object> initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
+    public JsonObject initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
         monitor.debug("DSP: Contract negotiation process started.");
-        return new HashMap<>();
+        var contractRequest = expandDocument(body).getJsonObject(0);
+
+        var negotiation = service.createNegotiation(contractRequest);
+
+        return mapper.convertValue(compactDocument(negotiation), JsonObject.class);
     }
 
     @POST
@@ -100,7 +109,7 @@ public class ContractNegotiationController implements ContractNegotiationApiProv
 
     @Override
     public void providerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractOfferMessage", required = true) JsonObject body) {
-        
+
     }
 
     @POST

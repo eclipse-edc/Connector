@@ -18,7 +18,7 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:control-plane:contract-spi"))
     api(project(":data-protocols:dsp:dsp-spi:dsp-core-spi"))
     implementation("jakarta.json:jakarta.json-api:2.1.1")
 }

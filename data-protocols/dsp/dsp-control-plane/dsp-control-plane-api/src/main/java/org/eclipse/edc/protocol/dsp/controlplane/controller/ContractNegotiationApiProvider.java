@@ -19,16 +19,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 
-import java.util.Map;
-
 @OpenAPIDefinition
 @Tag(name = "Dataspace Protocol: Contract Negotiation")
 public interface ContractNegotiationApiProvider {
     @Operation(description = "Gets contract negotiation by id", operationId = "dspGetNegotiation")
-    Map<String, Object> getNegotiation(String id);
+    JsonObject getNegotiation(String id);
 
     @Operation(description = "Starts contract negotiation", operationId = "dspInitiateNegotiation")
-    Map<String, Object> initiateNegotiation(JsonObject body);
+    JsonObject initiateNegotiation(JsonObject body);
 
     @Operation(description = "Adds contract offer to contract negotiation", operationId = "dspConsumerOfferNegotiation")
     void consumerOffer(String id, JsonObject body);
