@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.controlplane.controller;
 
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -29,10 +30,12 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/negotiations")
-public class ContractNegotiationController {
+public class ContractNegotiationController implements ContractNegotiationApiProvider, ContractNegotiationApiConsumer {
 
     private final Monitor monitor;
 
@@ -47,45 +50,70 @@ public class ContractNegotiationController {
 
     @GET
     @Path("/{id}")
+    @Override
     public Map<String, Object> getNegotiation(@PathParam("id") String id) {
-        //monitor.debug(format("Get contract negotiation with id %s", id));
+        monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
         return new HashMap<>();
     }
 
     @POST
     @Path("/request")
-    public Map<String, Object> initiateNegotiation(JsonObject jsonObject) {
+    @Override
+    public Map<String, Object> initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
+        monitor.debug("DSP: Contract negotiation process started.");
         return new HashMap<>();
     }
 
     @POST
     @Path("/{id}/request")
-    public void consumerOffer(JsonObject jsonObject) { }
+    @Override
+    public void consumerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
+        monitor.debug(format("DSP: Incoming contract offer for contract negotiation process with id %s", id));
+    }
+
 
     @POST
     @Path("/{id}/events")
-    public void acceptCurrentOffer() { }
+    @Override
+    public void acceptCurrentOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationEventMessage", required = true) JsonObject body) {
+
+    }
 
     @POST
     @Path("/{id}/agreement/verification")
-    public void verifyAgreement(JsonObject jsonObject) { }
+    @Override
+    public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementVerificationMessage", required = true) JsonObject body) {
+
+    }
 
     @POST
     @Path("/{id}/termination")
-    public void terminateNegotiation() { }
+    @Override
+    public void terminateNegotiation(@PathParam("id") String id) {
+
+    }
 
     // Consumer
 
     @POST
     @Path("/{id}/offers")
-    public void providerOffer(JsonObject jsonObject) { }
+
+    @Override
+    public void providerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractOfferMessage", required = true) JsonObject body) {
+        
+    }
 
     @POST
     @Path("/{id}/agreement")
-    public void sendAgreement(JsonObject jsonObject) { }
+    @Override
+    public void createAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementMessage", required = true) JsonObject body) {
+
+    }
 
     @POST
     @Path("/{id}/events")
-    public void finalizeAgreement(JsonObject jsonObject) { }
+    @Override
+    public void finalizeAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationEventMessage", required = true) JsonObject body) {
 
+    }
 }
