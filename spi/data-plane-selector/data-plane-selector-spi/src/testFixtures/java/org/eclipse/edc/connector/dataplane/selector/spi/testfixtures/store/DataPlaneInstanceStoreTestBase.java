@@ -54,7 +54,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
     }
 
     @Test
-    void save_whenExists_shouldUpdate() {
+    void update_whenExists_shouldUpdate() {
         var inst = TestFunctions.createInstance("test-id");
         getStore().create(inst);
 

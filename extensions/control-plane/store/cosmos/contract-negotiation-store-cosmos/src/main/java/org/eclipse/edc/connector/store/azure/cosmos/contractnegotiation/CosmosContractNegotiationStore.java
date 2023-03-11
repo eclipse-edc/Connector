@@ -22,6 +22,7 @@ import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import dev.failsafe.RetryPolicy;
+import dev.failsafe.function.CheckedRunnable;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
 import org.eclipse.edc.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.edc.azure.cosmos.util.CosmosLeaseContext;
@@ -104,7 +105,13 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     public void save(ContractNegotiation negotiation) {
         try {
             leaseContext.acquireLease(negotiation.getId());
-            with(retryPolicy).run(() -> cosmosDbApi.createItem(new ContractNegotiationDocument(negotiation, partitionKey)));
+            CheckedRunnable action;
+            if (findByIdInternal(negotiation.getId()) != null) {
+                action = () -> cosmosDbApi.updateItem(new ContractNegotiationDocument(negotiation, partitionKey));
+            } else {
+                action = () -> cosmosDbApi.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
+            }
+            with(retryPolicy).run(action);
             leaseContext.breakLease(negotiation.getId());
         } catch (BadRequestException ex) {
             throw new IllegalStateException(ex);

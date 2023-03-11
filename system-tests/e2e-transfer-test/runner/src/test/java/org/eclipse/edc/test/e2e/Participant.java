@@ -43,8 +43,13 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 
 public class Participant {
-
+    public static final String E2E_TEST_NAME;
     private static final String IDS_PATH = "/api/v1/ids";
+
+    static {
+        E2E_TEST_NAME = "e2e-transfer-test-" + UUID.randomUUID();
+    }
+
     private final Duration timeout = Duration.ofSeconds(30);
 
     private final URI controlPlane = URI.create("http://localhost:" + getFreePort());
@@ -101,10 +106,11 @@ public class Participant {
                 .contentType(JSON).contentType(JSON);
     }
 
-    public void createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId) {
+    public void createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId, long contractValidityDurationSeconds) {
         var contractDefinition = Map.of(
                 "id", definitionId,
                 "accessPolicyId", accessPolicyId,
+                "validity", String.valueOf(contractValidityDurationSeconds),
                 "contractPolicyId", contractPolicyId,
                 "criteria", AssetSelectorExpression.Builder.newInstance().constraint("asset:prop:id", "=", assetId).build().getCriteria()
         );
@@ -358,27 +364,27 @@ public class Participant {
 
     public Map<String, String> controlPlaneCosmosDbConfiguration() {
         var baseConfiguration = controlPlaneConfiguration();
-
+        var prefix = name;
         var cosmosDbConfiguration = new HashMap<String, String>() {
             {
                 put("edc.assetindex.cosmos.account-name", "test");
-                put("edc.assetindex.cosmos.database-name", "e2e-transfer-test");
-                put("edc.assetindex.cosmos.container-name", "assetindex");
+                put("edc.assetindex.cosmos.database-name", E2E_TEST_NAME);
+                put("edc.assetindex.cosmos.container-name", prefix + "-assetindex");
                 put("edc.contractdefinitionstore.cosmos.account-name", "test");
-                put("edc.contractdefinitionstore.cosmos.database-name", "e2e-transfer-test");
-                put("edc.contractdefinitionstore.cosmos.container-name", "contractdefinitionstore");
+                put("edc.contractdefinitionstore.cosmos.database-name", E2E_TEST_NAME);
+                put("edc.contractdefinitionstore.cosmos.container-name", prefix + "-contractdefinitionstore");
                 put("edc.contractnegotiationstore.cosmos.account-name", "test");
-                put("edc.contractnegotiationstore.cosmos.database-name", "e2e-transfer-test");
-                put("edc.contractnegotiationstore.cosmos.container-name", "contractnegotiationstore");
+                put("edc.contractnegotiationstore.cosmos.database-name", E2E_TEST_NAME);
+                put("edc.contractnegotiationstore.cosmos.container-name", prefix + "-contractnegotiationstore");
                 put("edc.node.directory.cosmos.account.name", "test");
-                put("edc.node.directory.cosmos.database.name", "e2e-transfer-test");
-                put("edc.node.directory.cosmos.container.name", "nodedirectory");
+                put("edc.node.directory.cosmos.database.name", E2E_TEST_NAME);
+                put("edc.node.directory.cosmos.container.name", prefix + "-nodedirectory");
                 put("edc.policystore.cosmos.account-name", "test");
-                put("edc.policystore.cosmos.database-name", "e2e-transfer-test");
-                put("edc.policystore.cosmos.container-name", "policystore");
+                put("edc.policystore.cosmos.database-name", E2E_TEST_NAME);
+                put("edc.policystore.cosmos.container-name", prefix + "-policystore");
                 put("edc.transfer-process-store.cosmos.account.name", "test");
-                put("edc.transfer-process-store.database.name", "e2e-transfer-test");
-                put("edc.transfer-process-store.cosmos.container-name", "transfer-process-store");
+                put("edc.transfer-process-store.database.name", E2E_TEST_NAME);
+                put("edc.transfer-process-store.cosmos.container-name", prefix + "-transfer-process-store");
             }
         };
         baseConfiguration.putAll(cosmosDbConfiguration);

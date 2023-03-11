@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
@@ -202,7 +203,12 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).hasSize(1);
 
         //add an offer, should modify
-        var newOffer = ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build()).asset(Asset.Builder.newInstance().build()).id("new-offer-1").build();
+        var newOffer = ContractOffer.Builder.newInstance()
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plus(365, ChronoUnit.DAYS))
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().build()).id("new-offer-1")
+                .build();
         negotiation.getContractOffers().add(newOffer);
         store.save(negotiation);
 

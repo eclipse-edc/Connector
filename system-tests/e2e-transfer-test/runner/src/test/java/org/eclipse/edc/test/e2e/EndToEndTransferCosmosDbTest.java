@@ -14,15 +14,21 @@
 
 package org.eclipse.edc.test.e2e;
 
+import com.azure.cosmos.CosmosDatabase;
+import com.azure.cosmos.models.CosmosDatabaseResponse;
 import org.eclipse.edc.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.edc.azure.testfixtures.CosmosTestClient;
 import org.eclipse.edc.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.test.e2e.Participant.E2E_TEST_NAME;
 
 @AzureCosmosDbIntegrationTest
 class EndToEndTransferCosmosDbTest extends AbstractEndToEndTransfer {
@@ -76,20 +82,23 @@ class EndToEndTransferCosmosDbTest extends AbstractEndToEndTransfer {
                 }
             }
     );
+    private static CosmosDatabase database;
 
     @BeforeAll
     static void beforeAll() {
         var client = CosmosTestClient.createClient();
-        var response = client.createDatabaseIfNotExists("e2e-transfer-test");
-        var database = client.getDatabase(response.getProperties().getId());
+        var response = client.createDatabaseIfNotExists(E2E_TEST_NAME);
+        database = client.getDatabase(response.getProperties().getId());
 
-        Stream.of(
-                        "assetindex",
-                        "contractdefinitionstore",
-                        "contractnegotiationstore",
-                        "nodedirectory",
-                        "policystore",
-                        "transfer-process-store")
+        Stream.of("provider", "consumer")
+                .flatMap(str -> Stream.of(
+                        str + "-assetindex",
+                        str + "-contractdefinitionstore",
+                        str + "-contractnegotiationstore",
+                        str + "-nodedirectory",
+                        str + "-policystore",
+                        str + "-transfer-process-store"))
+
                 .map(name -> database.createContainerIfNotExists(name, "/partitionKey"))
                 .map(r -> database.getContainer(r.getProperties().getId()))
                 .forEach(container -> {
@@ -98,5 +107,13 @@ class EndToEndTransferCosmosDbTest extends AbstractEndToEndTransfer {
                     api.uploadStoredProcedure("lease");
                 });
 
+    }
+
+    @AfterAll
+    static void cleanup() {
+        if (database != null) {
+            CosmosDatabaseResponse delete = database.delete();
+            assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
+        }
     }
 }
