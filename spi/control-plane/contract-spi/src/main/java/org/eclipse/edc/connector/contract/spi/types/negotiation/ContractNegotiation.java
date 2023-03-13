@@ -35,15 +35,18 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFIED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
 
@@ -251,24 +254,28 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
-     * Transition to state CONFIRMING (type provider only).
+     * Transition to state PROVIDER_AGREEING (type provider only).
      */
-    public void transitionConfirming() {
+    public void transitionProviderAgreeing() {
         if (CONSUMER == type) {
-            throw new IllegalStateException("Consumer processes have no CONFIRMING state");
+            throw new IllegalStateException("Consumer processes have no PROVIDER_AGREEING state");
         }
         transition(PROVIDER_AGREEING, PROVIDER_AGREEING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
     }
 
     /**
-     * Transition to state CONFIRMED.
+     * Transition to state PROVIDER_AGREED.
      */
-    public void transitionConfirmed() {
+    public void transitionProviderAgreed() {
         if (CONSUMER == type) {
             transition(PROVIDER_AGREED, PROVIDER_AGREEING, CONSUMER_AGREED, CONSUMER_REQUESTED, PROVIDER_AGREED);
         } else {
             transition(PROVIDER_AGREED, PROVIDER_AGREEING);
         }
+    }
+
+    public void transitionProviderFinalized() {
+        transition(PROVIDER_FINALIZED, PROVIDER_FINALIZED, PROVIDER_FINALIZING, PROVIDER_AGREED, CONSUMER_VERIFIED);
     }
 
     /**

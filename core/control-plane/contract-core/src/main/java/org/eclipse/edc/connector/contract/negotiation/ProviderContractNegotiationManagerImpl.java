@@ -39,8 +39,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
@@ -62,7 +62,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
-                .processor(processNegotiationsInState(PROVIDER_AGREEING, this::processConfirming))
+                .processor(processNegotiationsInState(PROVIDER_AGREEING, this::processProviderAgreeing))
                 .processor(onCommands(this::processCommand))
                 .build();
 
@@ -156,7 +156,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
-        negotiation.transitionConfirming();
+        negotiation.transitionProviderAgreeing();
         negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -257,7 +257,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false elsewhere
      */
     @WithSpan
-    private boolean processConfirming(ContractNegotiation negotiation) {
+    private boolean processProviderAgreeing(ContractNegotiation negotiation) {
         if (sendRetryManager.shouldDelay(negotiation)) {
             breakLease(negotiation);
             return false;
@@ -344,12 +344,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return new AsyncSendResultHandler(id, "send agreement")
                 .onSuccess(negotiation -> {
                     negotiation.setContractAgreement(agreement);
-                    negotiation.transitionConfirmed();
+                    negotiation.transitionProviderAgreed();
                     negotiationStore.save(negotiation);
                     observable.invokeForEach(l -> l.confirmed(negotiation));
                 })
                 .onFailure(negotiation -> {
-                    negotiation.transitionConfirming();
+                    negotiation.transitionProviderAgreeing();
                     negotiationStore.save(negotiation);
                 })
                 .build();

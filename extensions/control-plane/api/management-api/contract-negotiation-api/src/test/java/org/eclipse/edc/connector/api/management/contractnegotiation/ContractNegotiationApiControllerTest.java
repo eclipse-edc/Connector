@@ -143,7 +143,7 @@ class ContractNegotiationApiControllerTest {
 
     @Test
     void getContractNegotiationState_found() {
-        when(service.getState("negotiationId")).thenReturn("REQUESTED");
+        when(service.getState("negotiationId")).thenReturn("CONSUMER_REQUESTED");
 
         var state = controller.getNegotiationState("negotiationId");
 

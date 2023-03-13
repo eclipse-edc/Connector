@@ -42,11 +42,11 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -64,6 +64,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(CONSUMER_REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(CONSUMER_AGREEING, this::processConsumerApproving))
+                .processor(processNegotiationsInState(PROVIDER_AGREED, this::processProviderAgreed))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
                 .processor(onCommands(this::processCommand))
                 .build();
@@ -107,7 +108,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Tells this manager that a previously sent contract offer has been confirmed by the provider. Validates the
+     * Tells this manager that a previously sent contract offer has been agreed by the provider. Validates the
      * contract agreement sent by the provider against the last contract offer and transitions the corresponding
      * {@link ContractNegotiation} to state CONFIRMED or DECLINING.
      *
@@ -119,6 +120,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     @Override
+    // TODO: must be renamed to providerAgreed
     public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
@@ -147,10 +149,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         // Agreement has been approved.
         negotiation.setContractAgreement(agreement); // TODO persist unchecked agreement of provider?
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
-        if (negotiation.getState() != PROVIDER_AGREED.code()) {
-            // TODO: otherwise will fail. But should do it, since it's already confirmed? A duplicated message received shouldn't be an issue
-            negotiation.transitionConfirmed();
-        }
+        negotiation.transitionProviderAgreed();
         negotiationStore.save(negotiation);
         observable.invokeForEach(l -> l.confirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
@@ -310,6 +309,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         return false;
     }
+
+    @WithSpan
+    private boolean processProviderAgreed(ContractNegotiation negotiation) {
+        // TODO: should pass by verifying/verified first
+        negotiation.transitionProviderFinalized();
+        negotiationStore.save(negotiation);
+        return true;
+    }
+
 
     /**
      * Processes {@link ContractNegotiation} in state DECLINING. Tries to send a contract rejection to the respective

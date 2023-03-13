@@ -40,8 +40,8 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.AdditionalMatchers.and;
