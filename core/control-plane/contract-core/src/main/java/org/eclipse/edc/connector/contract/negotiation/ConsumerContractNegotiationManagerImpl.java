@@ -43,7 +43,7 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
@@ -63,7 +63,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         stateMachineManager = StateMachineManager.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(CONSUMER_REQUESTING, this::processRequesting))
-                .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))
+                .processor(processNegotiationsInState(CONSUMER_AGREEING, this::processConsumerApproving))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
                 .processor(onCommands(this::processCommand))
                 .build();
