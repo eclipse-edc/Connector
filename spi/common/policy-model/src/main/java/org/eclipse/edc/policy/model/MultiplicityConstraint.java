@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * A collection of child constraints. Subclasses define the semantics for when this constraint is satisfied.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 public abstract class MultiplicityConstraint extends Constraint {
     protected List<Constraint> constraints = new ArrayList<>();
 
