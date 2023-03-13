@@ -25,28 +25,27 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.test.e2e.Participant.E2E_TEST_NAME;
 
 @AzureCosmosDbIntegrationTest
 class EndToEndTransferCosmosDbTest extends AbstractEndToEndTransfer {
 
+    public static final String E2E_TEST_NAME = "e2e-transfer-test-" + UUID.randomUUID();
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane-cosmosdb",
             "consumer-control-plane",
-            CONSUMER.controlPlaneCosmosDbConfiguration()
+            CONSUMER.controlPlaneCosmosDbConfiguration(E2E_TEST_NAME)
     );
-
     @RegisterExtension
     static EdcRuntimeExtension consumerDataPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:data-plane",
             "consumer-data-plane",
             CONSUMER.dataPlaneConfiguration()
     );
-
     @RegisterExtension
     static EdcRuntimeExtension consumerBackendService = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:backend-service",
@@ -57,21 +56,18 @@ class EndToEndTransferCosmosDbTest extends AbstractEndToEndTransfer {
                 }
             }
     );
-
     @RegisterExtension
     static EdcRuntimeExtension providerDataPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:data-plane",
             "provider-data-plane",
             PROVIDER.dataPlaneConfiguration()
     );
-
     @RegisterExtension
     static EdcRuntimeExtension providerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane-cosmosdb",
             "provider-control-plane",
-            PROVIDER.controlPlaneCosmosDbConfiguration()
+            PROVIDER.controlPlaneCosmosDbConfiguration(E2E_TEST_NAME)
     );
-
     @RegisterExtension
     static EdcRuntimeExtension providerBackendService = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:backend-service",

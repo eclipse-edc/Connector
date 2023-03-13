@@ -44,29 +44,6 @@ public abstract class AbstractEndToEndTransfer {
     protected static final Participant PROVIDER = new Participant("provider");
     protected final Duration timeout = Duration.ofSeconds(60);
 
-    @NotNull
-    private static Map<String, String> httpDataAddressProperties() {
-        return Map.of(
-                "name", "transfer-test",
-                "baseUrl", PROVIDER.backendService() + "/api/provider/data",
-                "type", "HttpData",
-                "proxyQueryParams", "true"
-        );
-    }
-
-    @NotNull
-    private static Map<String, String> httpDataAddressOauth2Properties() {
-        return Map.of(
-                "name", "transfer-test",
-                "baseUrl", PROVIDER.backendService() + "/api/provider/oauth2data",
-                "type", "HttpData",
-                "proxyQueryParams", "true",
-                "oauth2:clientId", "clientId",
-                "oauth2:clientSecretKey", "provision-oauth-secret",
-                "oauth2:tokenUrl", PROVIDER.backendService() + "/api/oauth2/token"
-        );
-    }
-
     @Test
     void httpPullDataTransfer() {
         registerDataPlanes();
@@ -208,6 +185,29 @@ public abstract class AbstractEndToEndTransfer {
                     .statusCode(anyOf(is(200), is(204)))
                     .body(is(notNullValue()));
         });
+    }
+
+    @NotNull
+    private Map<String, String> httpDataAddressOauth2Properties() {
+        return Map.of(
+                "name", "transfer-test",
+                "baseUrl", PROVIDER.backendService() + "/api/provider/oauth2data",
+                "type", "HttpData",
+                "proxyQueryParams", "true",
+                "oauth2:clientId", "clientId",
+                "oauth2:clientSecretKey", "provision-oauth-secret",
+                "oauth2:tokenUrl", PROVIDER.backendService() + "/api/oauth2/token"
+        );
+    }
+
+    @NotNull
+    private Map<String, String> httpDataAddressProperties() {
+        return Map.of(
+                "name", "transfer-test",
+                "baseUrl", PROVIDER.backendService() + "/api/provider/data",
+                "type", "HttpData",
+                "proxyQueryParams", "true"
+        );
     }
 
     private void registerDataPlanes() {
