@@ -69,7 +69,7 @@ class CosmosContractNegotiationStoreTest {
         var doc = generateDocument();
         when(cosmosDbApi.queryItemById("test-id-1")).thenReturn(doc);
 
-        var result = store.find("test-id-1");
+        var result = store.findById("test-id-1");
 
         assertThat(result).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
         verify(cosmosDbApi).queryItemById("test-id-1");
@@ -80,7 +80,7 @@ class CosmosContractNegotiationStoreTest {
     void find_notFound() {
         when(cosmosDbApi.queryItemById(anyString())).thenReturn(null);
 
-        assertThat(store.find("test-id-1")).isNull();
+        assertThat(store.findById("test-id-1")).isNull();
         verify(cosmosDbApi).queryItemById(anyString());
         verifyNoMoreInteractions(cosmosDbApi);
     }
@@ -108,7 +108,7 @@ class CosmosContractNegotiationStoreTest {
     void save() {
         var negotiation = TestFunctions.createNegotiation();
 
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         verify(cosmosDbApi).queryItemById(eq(negotiation.getId()));
         verify(cosmosDbApi).createItem(any(ContractNegotiationDocument.class));
@@ -169,7 +169,7 @@ class CosmosContractNegotiationStoreTest {
 
         when(cosmosDbApi.queryItems(isA(SqlQuerySpec.class))).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()));
 
-        var all = store.queryNegotiations(QuerySpec.Builder.newInstance().build());
+        var all = store.findAllNegotiations(QuerySpec.Builder.newInstance().build());
         assertThat(all).hasSize(10);
     }
 
@@ -179,7 +179,7 @@ class CosmosContractNegotiationStoreTest {
         when(cosmosDbApi.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().equals("SELECT * FROM ContractNegotiationDocument OFFSET 3 LIMIT 4"))))).thenReturn(IntStream.range(0, 4).mapToObj(i -> generateDocument()));
 
         // page size fits
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
 
 
     }
@@ -190,7 +190,7 @@ class CosmosContractNegotiationStoreTest {
         when(cosmosDbApi.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().equals("SELECT * FROM ContractNegotiationDocument OFFSET 5 LIMIT 100"))))).thenReturn(IntStream.range(0, 5).mapToObj(i -> generateDocument()));
 
         // page size too large
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
 
         verify(cosmosDbApi).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().equals("SELECT * FROM ContractNegotiationDocument OFFSET 5 LIMIT 100"))));
     }
@@ -202,14 +202,14 @@ class CosmosContractNegotiationStoreTest {
                 .thenReturn(Stream.of(doc));
 
 
-        var all = store.queryNegotiations(QuerySpec.Builder.newInstance().filter("id=foobar").build());
+        var all = store.findAllNegotiations(QuerySpec.Builder.newInstance().filter("id=foobar").build());
         assertThat(all).hasSize(1).extracting(ContractNegotiation::getId).containsOnly(doc.getId());
         verify(cosmosDbApi).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().startsWith("SELECT * FROM ContractNegotiationDocument WHERE ContractNegotiationDocument.wrappedInstance.id = @id"))));
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        assertThatThrownBy(() -> store.queryNegotiations(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+        assertThatThrownBy(() -> store.findAllNegotiations(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test
@@ -217,7 +217,7 @@ class CosmosContractNegotiationStoreTest {
         when(cosmosDbApi.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().contains("SELECT * FROM ContractNegotiationDocument ORDER BY ContractNegotiationDocument.wrappedInstance.id DESC")))))
                 .thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractNegotiationDocument::getId).reversed()).map(c -> c));
 
-        var all = store.queryNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build()).collect(Collectors.toList());
+        var all = store.findAllNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
 
         verify(cosmosDbApi).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().contains("SELECT * FROM ContractNegotiationDocument ORDER BY ContractNegotiationDocument.wrappedInstance.id DESC"))));
@@ -229,7 +229,7 @@ class CosmosContractNegotiationStoreTest {
                 .thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractNegotiationDocument::getId)).map(c -> c));
 
 
-        var all = store.queryNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
+        var all = store.findAllNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractNegotiation::getId));
 
 
@@ -240,6 +240,6 @@ class CosmosContractNegotiationStoreTest {
     void findAll_verifySorting_invalidField() {
         when(cosmosDbApi.queryItems(isA(SqlQuerySpec.class))).thenReturn(Stream.empty());
 
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().sortField("nonexist").sortOrder(SortOrder.DESC).build())).isEmpty();
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().sortField("nonexist").sortOrder(SortOrder.DESC).build())).isEmpty();
     }
 }

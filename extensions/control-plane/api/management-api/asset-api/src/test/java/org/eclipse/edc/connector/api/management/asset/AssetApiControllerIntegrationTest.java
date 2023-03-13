@@ -274,7 +274,7 @@ public class AssetApiControllerIntegrationTest {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
         assetIndex.accept(asset, dataAddress);
-        negotiationStore.save(createContractNegotiation(asset));
+        negotiationStore.updateOrCreate(createContractNegotiation(asset));
 
         baseRequest()
                 .contentType(JSON)

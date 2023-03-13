@@ -32,7 +32,15 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      * Returns the transfer process for the id or null if not found.
      */
     @Nullable
-    TransferProcess find(String id);
+    TransferProcess findById(String id);
+
+    /**
+     * Returns all the transfer processes in the store that are covered by a given {@link QuerySpec}.
+     * <p>
+     * Note: supplying a sort field that does not exist on the {@link TransferProcess} may cause some implementations
+     * to return an empty Stream, others will return an unsorted Stream, depending on the backing storage implementation.
+     */
+    Stream<TransferProcess> findAll(QuerySpec querySpec);
 
     /**
      * Returns the transfer process for the data request id or null if not found.
@@ -44,7 +52,7 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      * Persists a transfer process. This follows UPSERT semantics, so if the object didn't exit before, it's
      * created.
      */
-    void save(TransferProcess process);
+    void updateOrCreate(TransferProcess process);
 
 
     /**
@@ -52,11 +60,5 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      */
     void delete(String processId);
 
-    /**
-     * Returns all the transfer processes in the store that are covered by a given {@link QuerySpec}.
-     * <p>
-     * Note: supplying a sort field that does not exist on the {@link TransferProcess} may cause some implementations
-     * to return an empty Stream, others will return an unsorted Stream, depending on the backing storage implementation.
-     */
-    Stream<TransferProcess> findAll(QuerySpec querySpec);
+
 }

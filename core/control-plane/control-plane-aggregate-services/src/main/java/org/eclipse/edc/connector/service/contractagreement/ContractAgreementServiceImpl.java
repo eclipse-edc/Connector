@@ -50,6 +50,6 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
             return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
 
-        return ServiceResult.success(transactionContext.execute(() -> store.queryAgreements(query)));
+        return ServiceResult.success(transactionContext.execute(() -> store.findAllAgreements(query)));
     }
 }

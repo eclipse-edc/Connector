@@ -167,7 +167,7 @@ class AssetServiceImplTest {
 
     @Test
     void delete_shouldDeleteAssetIfItsNotReferencedByAnyNegotiation() {
-        when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
+        when(contractNegotiationStore.findAllNegotiations(any())).thenReturn(Stream.empty());
         when(index.deleteById("assetId")).thenReturn(StoreResult.success(createAsset("assetId")));
 
         var deleted = service.delete("assetId");
@@ -193,13 +193,13 @@ class AssetServiceImplTest {
                         .policy(Policy.Builder.newInstance().build())
                         .build())
                 .build();
-        when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.of(contractNegotiation));
+        when(contractNegotiationStore.findAllNegotiations(any())).thenReturn(Stream.of(contractNegotiation));
 
         var deleted = service.delete("assetId");
 
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
-        verify(contractNegotiationStore).queryNegotiations(any());
+        verify(contractNegotiationStore).findAllNegotiations(any());
         verifyNoMoreInteractions(contractNegotiationStore);
     }
 
@@ -220,7 +220,7 @@ class AssetServiceImplTest {
 
         var deleted = service.delete("test-asset");
         assertThat(deleted.succeeded()).isTrue();
-        verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 &&
+        verify(contractNegotiationStore).findAllNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 &&
                 argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
     }
 

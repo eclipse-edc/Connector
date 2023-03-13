@@ -77,7 +77,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @Nullable TransferProcess findById(String transferProcessId) {
-        return transactionContext.execute(() -> transferProcessStore.find(transferProcessId));
+        return transactionContext.execute(() -> transferProcessStore.findById(transferProcessId));
     }
 
     @Override
@@ -93,7 +93,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     @Override
     public @Nullable String getState(String transferProcessId) {
         return transactionContext.execute(() -> {
-            var process = transferProcessStore.find(transferProcessId);
+            var process = transferProcessStore.findById(transferProcessId);
             return Optional.ofNullable(process).map(p -> TransferProcessStates.from(p.getState()).name()).orElse(null);
         });
     }
@@ -175,7 +175,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     private ServiceResult<TransferProcess> apply(String transferProcessId, Function<TransferProcess, ServiceResult<TransferProcess>> function) {
         return transactionContext.execute(() -> {
-            var transferProcess = transferProcessStore.find(transferProcessId);
+            var transferProcess = transferProcessStore.findById(transferProcessId);
             return Optional.ofNullable(transferProcess)
                     .map(function)
                     .orElse(ServiceResult.notFound(format("TransferProcess %s does not exist", transferProcessId)));

@@ -54,7 +54,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public @Nullable ContractNegotiation find(String negotiationId) {
+    public @Nullable ContractNegotiation findById(String negotiationId) {
         return store.find(negotiationId);
     }
 
@@ -74,7 +74,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public void save(ContractNegotiation negotiation) {
+    public void updateOrCreate(ContractNegotiation negotiation) {
         store.upsert(negotiation);
     }
 
@@ -88,13 +88,13 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> findAllNegotiations(QuerySpec querySpec) {
         return negotiationQueryResolver.query(store.findAll(), querySpec);
     }
 
 
     @Override
-    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+    public @NotNull Stream<ContractAgreement> findAllAgreements(QuerySpec querySpec) {
         return agreementQueryResolver.query(getAgreements(), querySpec);
     }
 

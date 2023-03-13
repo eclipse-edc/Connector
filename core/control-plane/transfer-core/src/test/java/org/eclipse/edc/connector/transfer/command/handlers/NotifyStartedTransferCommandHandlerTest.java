@@ -58,22 +58,22 @@ class NotifyStartedTransferCommandHandlerTest {
     @Test
     void shouldTransitStateToStarted() {
         var process = TransferProcess.Builder.newInstance().id("processId").type(CONSUMER).state(REQUESTED.code()).build();
-        when(store.find(process.getId())).thenReturn(process);
+        when(store.findById(process.getId())).thenReturn(process);
 
         handler.handle(new NotifyStartedTransferCommand("processId"));
 
-        verify(store).save(argThat(p -> p.currentStateIsOneOf(STARTED) && p.getId().equals("processId")));
+        verify(store).updateOrCreate(argThat(p -> p.currentStateIsOneOf(STARTED) && p.getId().equals("processId")));
         verify(listener).started(isA(TransferProcess.class));
     }
 
     @Test
     void shouldNotTransitToStarted_whenItInAnInvalidState() {
         var process = TransferProcess.Builder.newInstance().id("processId").type(CONSUMER).state(COMPLETED.code()).build();
-        when(store.find(process.getId())).thenReturn(process);
+        when(store.findById(process.getId())).thenReturn(process);
 
         handler.handle(new NotifyStartedTransferCommand("processId"));
 
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 }

@@ -58,7 +58,7 @@ class ContractAgreementServiceImplTest {
     @Test
     void query_filtersBySpec() {
         var agreement = createContractAgreement("agreementId");
-        when(store.queryAgreements(isA(QuerySpec.class))).thenReturn(Stream.of(agreement));
+        when(store.findAllAgreements(isA(QuerySpec.class))).thenReturn(Stream.of(agreement));
 
         var result = service.query(QuerySpec.none());
 

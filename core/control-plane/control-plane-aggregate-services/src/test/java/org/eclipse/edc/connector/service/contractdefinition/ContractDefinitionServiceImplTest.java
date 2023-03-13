@@ -123,20 +123,20 @@ class ContractDefinitionServiceImplTest {
     void create_shouldCreateDefinitionIfItDoesNotAlreadyExist() {
         var definition = createContractDefinition();
         when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.empty());
-        when(store.save(definition)).thenReturn(StoreResult.success());
+        when(store.create(definition)).thenReturn(StoreResult.success());
 
         var inserted = service.create(definition);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(definition.getId()));
-        verify(store).save(argThat(it -> definition.getId().equals(it.getId())));
+        verify(store).create(argThat(it -> definition.getId().equals(it.getId())));
         verify(listener).created(any());
     }
 
     @Test
     void create_shouldNotCreateDefinitionIfItAlreadyExists() {
         var definition = createContractDefinition();
-        when(store.save(definition)).thenReturn(StoreResult.alreadyExists(""));
+        when(store.create(definition)).thenReturn(StoreResult.alreadyExists(""));
 
         var inserted = service.create(definition);
 
@@ -149,7 +149,7 @@ class ContractDefinitionServiceImplTest {
     void create_shouldNotCreateDefinitionIfTheStoreFails() {
         var definition = createContractDefinition();
         when(store.findById(definition.getId())).thenReturn(null);
-        when(store.save(definition)).thenReturn(StoreResult.alreadyExists("Exists"));
+        when(store.create(definition)).thenReturn(StoreResult.alreadyExists("Exists"));
 
         var inserted = service.create(definition);
 

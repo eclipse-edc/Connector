@@ -150,7 +150,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
     @Test
     void save() {
         var definition = generateDefinition();
-        store.save(definition);
+        store.create(definition);
 
         var actual = container.readAllItems(new PartitionKey(TEST_PARTITION_KEY), Object.class);
 
@@ -167,7 +167,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
         //modify a single field
         defToAdd.getSelectorExpression().getCriteria().add(new Criterion("anotherkey", "isGreaterThan", "anotherValue"));
 
-        var saveResult = store.save(defToAdd);
+        var saveResult = store.create(defToAdd);
 
         assertThat(saveResult.failed()).isTrue();
         assertThat(saveResult.reason()).isEqualTo(ALREADY_EXISTS);
@@ -213,7 +213,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
     @Test
     void save_delete_find_shouldNotExist() {
         var def1 = generateDefinition();
-        store.save(def1);
+        store.create(def1);
         assertThat(store.findAll(QuerySpec.max())).containsOnly(def1);
 
         store.deleteById(def1.getId());
@@ -341,7 +341,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
     void verify_readWriteFindAll() {
         // add an object
         var def = generateDefinition();
-        store.save(def);
+        store.create(def);
         assertThat(store.findAll(QuerySpec.max())).containsExactly(def);
 
         // modify the object

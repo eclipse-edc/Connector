@@ -77,7 +77,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getAllContractNegotiations(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
+        store.updateOrCreate(createContractNegotiation("negotiationId"));
 
         baseRequest()
                 .get("/contractnegotiations")
@@ -89,7 +89,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getAllContractNegotiations_withPaging(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
+        store.updateOrCreate(createContractNegotiation("negotiationId"));
 
         baseRequest()
                 .get("/contractnegotiations?offset=0&limit=15&sort=ASC")
@@ -109,7 +109,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void queryAllContractNegotiations(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
+        store.updateOrCreate(createContractNegotiation("negotiationId"));
 
         baseRequest()
                 .contentType(JSON)
@@ -122,7 +122,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void queryAllContractNegotiations_withPaging(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
+        store.updateOrCreate(createContractNegotiation("negotiationId"));
 
         baseRequest()
                 .contentType(JSON)
@@ -136,7 +136,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void queryAll_invalidQuery(ContractNegotiationStore store) {
-        IntStream.range(0, 10).forEach(i -> store.save(createContractNegotiation("negotiationId" + i)));
+        IntStream.range(0, 10).forEach(i -> store.updateOrCreate(createContractNegotiation("negotiationId" + i)));
 
         baseRequest()
                 .contentType(JSON)
@@ -150,7 +150,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getSingleContractNegotation(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
+        store.updateOrCreate(createContractNegotiation("negotiationId"));
 
         baseRequest()
                 .get("/contractnegotiations/negotiationId")
@@ -170,7 +170,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getSingleContractNegotationState(ContractNegotiationStore store) {
-        store.save(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
+        store.updateOrCreate(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
 
         var state = baseRequest()
                 .get("/contractnegotiations/negotiationId/state")
@@ -185,7 +185,7 @@ class ContractNegotiationApiControllerIntegrationTest {
     @Test
     void getSingleContractNegotationAgreement(ContractNegotiationStore store) {
         var contractAgreement = createContractAgreement("negotiationId");
-        store.save(createContractNegotiationBuilder("negotiationId").contractAgreement(contractAgreement).build());
+        store.updateOrCreate(createContractNegotiationBuilder("negotiationId").contractAgreement(contractAgreement).build());
 
         baseRequest()
                 .get("/contractnegotiations/negotiationId/agreement")
@@ -197,7 +197,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getSingleContractNegotationAgreement_notFound(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
+        store.updateOrCreate(createContractNegotiation("negotiationId"));
 
         baseRequest()
                 .get("/contractnegotiations/negotiationId/agreement")
@@ -249,7 +249,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void cancel(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
+        store.updateOrCreate(createContractNegotiation("negotiationId"));
 
         baseRequest()
                 .contentType(JSON)
@@ -266,7 +266,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .state(REQUESTED.code())
                 .correlationId(UUID.randomUUID().toString())
                 .build();
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         baseRequest()
                 .contentType(JSON)
@@ -275,7 +275,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .statusCode(204);
 
         await().untilAsserted(() -> {
-            assertThat(store.find("negotiationId").getState()).isEqualTo(DECLINED.code());
+            assertThat(store.findById("negotiationId").getState()).isEqualTo(DECLINED.code());
         });
     }
 

@@ -59,7 +59,7 @@ public class ContractAgreementApiControllerIntegrationTest {
 
     @Test
     void getAllContractAgreements(ContractNegotiationStore store) {
-        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+        store.updateOrCreate(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 
         baseRequest()
                 .get("/contractagreements")
@@ -71,7 +71,7 @@ public class ContractAgreementApiControllerIntegrationTest {
 
     @Test
     void getAllContractAgreements_withPaging(ContractNegotiationStore store) {
-        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+        store.updateOrCreate(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 
         baseRequest()
                 .get("/contractagreements?offset=0&limit=15&sort=ASC")
@@ -91,7 +91,7 @@ public class ContractAgreementApiControllerIntegrationTest {
 
     @Test
     void queryAllContractAgreements(ContractNegotiationStore store) {
-        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+        store.updateOrCreate(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 
         baseRequest()
                 .contentType(JSON)
@@ -104,7 +104,7 @@ public class ContractAgreementApiControllerIntegrationTest {
 
     @Test
     void queryAllContractAgreements_withPaging(ContractNegotiationStore store) {
-        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+        store.updateOrCreate(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 
         baseRequest()
                 .contentType(JSON)
@@ -118,7 +118,7 @@ public class ContractAgreementApiControllerIntegrationTest {
 
     @Test
     void queryAllContractAgreements_withFilter(ContractNegotiationStore store) {
-        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+        store.updateOrCreate(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 
         baseRequest()
                 .contentType(JSON)
@@ -132,7 +132,7 @@ public class ContractAgreementApiControllerIntegrationTest {
 
     @Test
     void getSingleContractAgreement(ContractNegotiationStore store) {
-        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+        store.updateOrCreate(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 
         baseRequest()
                 .get("/contractagreements/agreementId")

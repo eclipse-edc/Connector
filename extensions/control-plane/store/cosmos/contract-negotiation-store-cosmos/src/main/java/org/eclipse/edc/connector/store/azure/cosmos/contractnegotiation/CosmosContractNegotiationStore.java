@@ -75,7 +75,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public @Nullable ContractNegotiation find(String negotiationId) {
+    public @Nullable ContractNegotiation findById(String negotiationId) {
         var object = with(retryPolicy).get(() -> findByIdInternal(negotiationId));
         return object != null ? toNegotiation(object) : null;
     }
@@ -102,7 +102,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public void save(ContractNegotiation negotiation) {
+    public void updateOrCreate(ContractNegotiation negotiation) {
         try {
             leaseContext.acquireLease(negotiation.getId());
             CheckedRunnable action;
@@ -146,7 +146,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> findAllNegotiations(QuerySpec querySpec) {
         var statement = new SqlStatement<>(ContractNegotiationDocument.class);
         var query = statement.where(querySpec.getFilterExpression())
                 .offset(querySpec.getOffset())
@@ -159,7 +159,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+    public @NotNull Stream<ContractAgreement> findAllAgreements(QuerySpec querySpec) {
         var criteria = querySpec.getFilterExpression().stream()
                 .map(it -> it.withLeftOperand(op -> "contractAgreement." + op))
                 .collect(Collectors.toList());

@@ -76,7 +76,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
 
 
     @Override
-    public StoreResult<Void> save(ContractDefinition definition) {
+    public StoreResult<Void> create(ContractDefinition definition) {
         try {
             with(retryPolicy).run(() -> cosmosDbApi.createItem(convertToDocument(definition)));
             return StoreResult.success();

@@ -19,7 +19,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.StoreResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
@@ -28,9 +28,6 @@ import java.util.stream.Stream;
  */
 @ExtensionPoint
 public interface PolicyDefinitionStore {
-
-    String POLICY_NOT_FOUND = "Policy with ID %s could not be found";
-    String POLICY_ALREADY_EXISTS = "Policy with ID %s already exists";
 
     /**
      * Finds the policy by id.
@@ -51,31 +48,31 @@ public interface PolicyDefinitionStore {
     Stream<PolicyDefinition> findAll(QuerySpec spec);
 
     /**
-     * Persists the policy, if it does not yet exist.
+     * Persists the policy.
      *
      * @param policy to be saved.
-     * @return {@link StoreResult#success()} if it could be stored, {@link StoreResult#alreadyExists(String)} if a policy with the same ID already exists.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    StoreResult<PolicyDefinition> save(PolicyDefinition policy);
+    void create(PolicyDefinition policy);
 
     /**
      * Updates the policy.
      *
+     * @param policyId ID of the Policy to be updated
      * @param policy to be updated.
-     * @return {@link StoreResult#success()} if it could be updated, {@link StoreResult#notFound(String)} if a policy with the same ID was not found.
      * @throws EdcPersistenceException if any exception occurs during Query Execution e.g., SQLException.
      */
-    StoreResult<PolicyDefinition> update(PolicyDefinition policy);
+    PolicyDefinition update(String policyId, PolicyDefinition policy);
 
     /**
      * Deletes a policy for the given id.
      *
      * @param policyId id of the policy to be removed.
-     * @return {@link StoreResult#success()} if was deleted, {@link StoreResult#notFound(String)} if a policy with the same ID was not found.
+     * @return Deleted {@link Policy} or null if policy not found.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    StoreResult<PolicyDefinition> deleteById(String policyId);
+    @Nullable
+    PolicyDefinition deleteById(String policyId);
 
     /**
      * If the store implementation supports caching, this method triggers a cache-reload.

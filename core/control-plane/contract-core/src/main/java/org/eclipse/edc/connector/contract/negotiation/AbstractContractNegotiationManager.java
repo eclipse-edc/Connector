@@ -166,7 +166,7 @@ public abstract class AbstractContractNegotiationManager {
     }
 
     protected void breakLease(ContractNegotiation negotiation) {
-        negotiationStore.save(negotiation);
+        negotiationStore.updateOrCreate(negotiation);
     }
 
     protected class AsyncSendResultHandler {
@@ -192,7 +192,7 @@ public abstract class AbstractContractNegotiationManager {
 
         public BiConsumer<Object, Throwable> build() {
             return (response, throwable) -> {
-                var negotiation = negotiationStore.find(negotiationId);
+                var negotiation = negotiationStore.findById(negotiationId);
                 if (negotiation == null) {
                     monitor.severe(format("[%s] ContractNegotiation %s not found.", getName(), negotiationId));
                     return;
@@ -204,7 +204,7 @@ public abstract class AbstractContractNegotiationManager {
                             negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 } else if (sendRetryManager.retriesExhausted(negotiation)) {
                     negotiation.transitionError("Retry limited exceeded: " + throwable.getMessage());
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                     observable.invokeForEach(l -> l.failed(negotiation));
                     monitor.severe(format("[%s] attempt #%d failed to %s. Retry limit exceeded, ContractNegotiation %s moves to ERROR state",
                             getName(), negotiation.getStateCount(), operationDescription, negotiation.getId()), throwable);

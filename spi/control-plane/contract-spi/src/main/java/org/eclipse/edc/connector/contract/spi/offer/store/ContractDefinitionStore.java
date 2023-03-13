@@ -58,7 +58,7 @@ public interface ContractDefinitionStore {
      * @return {@link StoreResult#success()} if the contract definition was stored, {@link StoreResult#alreadyExists(String)} if a contract
      *         definition with the same ID already exists.
      */
-    StoreResult<Void> save(ContractDefinition definition);
+    StoreResult<Void> create(ContractDefinition definition);
 
     /**
      * Update the contract definition if a contract definition with the same ID exists.

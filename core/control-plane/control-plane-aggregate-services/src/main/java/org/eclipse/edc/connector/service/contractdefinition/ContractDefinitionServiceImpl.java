@@ -58,7 +58,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     @Override
     public ServiceResult<ContractDefinition> create(ContractDefinition contractDefinition) {
         return transactionContext.execute(() -> {
-            var saveResult = store.save(contractDefinition);
+            var saveResult = store.create(contractDefinition);
             if (saveResult.succeeded()) {
                 observable.invokeForEach(l -> l.created(contractDefinition));
                 return ServiceResult.success(contractDefinition);

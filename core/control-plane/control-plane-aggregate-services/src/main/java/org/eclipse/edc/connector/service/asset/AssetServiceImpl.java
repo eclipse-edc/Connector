@@ -93,7 +93,7 @@ public class AssetServiceImpl implements AssetService {
                     .filter(List.of(new Criterion(ASSET_ID_QUERY, "=", assetId)))
                     .build();
 
-            try (var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query)) {
+            try (var negotiationsOnAsset = contractNegotiationStore.findAllNegotiations(query)) {
                 if (negotiationsOnAsset.findAny().isPresent()) {
                     return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
                 }

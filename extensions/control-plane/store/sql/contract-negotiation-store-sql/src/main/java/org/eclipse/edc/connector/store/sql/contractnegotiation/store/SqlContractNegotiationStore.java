@@ -62,7 +62,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public @Nullable ContractNegotiation find(String negotiationId) {
+    public @Nullable ContractNegotiation findById(String negotiationId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 return findInternal(connection, negotiationId);
@@ -77,7 +77,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         return transactionContext.execute(() -> {
             // utilize the generic query api
             var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("correlationId", "=", correlationId))).build();
-            try (var stream = queryNegotiations(query)) {
+            try (var stream = findAllNegotiations(query)) {
                 return single(stream.collect(Collectors.toList()));
             }
         });
@@ -96,7 +96,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public void save(ContractNegotiation negotiation) {
+    public void updateOrCreate(ContractNegotiation negotiation) {
         var id = negotiation.getId();
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
@@ -117,7 +117,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     @Override
     public void delete(String negotiationId) {
         transactionContext.execute(() -> {
-            var existing = find(negotiationId);
+            var existing = findById(negotiationId);
 
             //if exists, attempt delete
             if (existing != null) {
@@ -144,7 +144,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> findAllNegotiations(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try {
                 var statement = statements.createNegotiationsQuery(querySpec);
@@ -156,7 +156,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+    public @NotNull Stream<ContractAgreement> findAllAgreements(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try {
                 var statement = statements.createAgreementsQuery(querySpec);

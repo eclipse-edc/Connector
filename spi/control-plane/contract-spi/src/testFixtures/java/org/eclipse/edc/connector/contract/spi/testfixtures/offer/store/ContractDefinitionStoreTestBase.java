@@ -59,7 +59,7 @@ public abstract class ContractDefinitionStoreTestBase {
     @DisplayName("Save a single Contract Definition that doesn't already exist")
     void saveOne_doesntExist() {
         var definition = createContractDefinition("id");
-        getContractDefinitionStore().save(definition);
+        getContractDefinitionStore().create(definition);
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.max())
                 .collect(Collectors.toList());
@@ -72,8 +72,8 @@ public abstract class ContractDefinitionStoreTestBase {
     @Test
     @DisplayName("Shouldn't save a single Contract Definition that already exists")
     void saveOne_alreadyExist_shouldNotUpdate() {
-        getContractDefinitionStore().save(createContractDefinition("id", "policy", "contract"));
-        var saveResult = getContractDefinitionStore().save(createContractDefinition("id", "updatedAccess", "updatedContract"));
+        getContractDefinitionStore().create(createContractDefinition("id", "policy", "contract"));
+        var saveResult = getContractDefinitionStore().create(createContractDefinition("id", "updatedAccess", "updatedContract"));
 
         assertThat(saveResult.failed()).isTrue();
         assertThat(saveResult.reason()).isEqualTo(ALREADY_EXISTS);
@@ -88,8 +88,8 @@ public abstract class ContractDefinitionStoreTestBase {
     void saveOne_sameParametersDifferentId() {
         var definition1 = createContractDefinition("id1", "policy", "contract");
         var definition2 = createContractDefinition("id2", "policy", "contract");
-        getContractDefinitionStore().save(definition1);
-        getContractDefinitionStore().save(definition2);
+        getContractDefinitionStore().create(definition1);
+        getContractDefinitionStore().create(definition2);
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.max());
 
@@ -151,7 +151,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var definition1 = createContractDefinition("id", "policy1", "contract1");
         var definition2 = createContractDefinition("id", "policy2", "contract2");
 
-        getContractDefinitionStore().save(definition1);
+        getContractDefinitionStore().create(definition1);
         getContractDefinitionStore().update(definition2);
 
         var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
@@ -178,7 +178,7 @@ public abstract class ContractDefinitionStoreTestBase {
     @ValueSource(ints = { 49, 50, 51, 100 })
     void findAll_verifyQueryDefaults(int size) {
         var all = IntStream.range(0, size).mapToObj(i -> createContractDefinition("id" + i, "policyId" + i, "contractId" + i))
-                .peek(cd -> getContractDefinitionStore().save(cd))
+                .peek(cd -> getContractDefinitionStore().create(cd))
                 .collect(Collectors.toList());
 
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(size)
@@ -272,7 +272,7 @@ public abstract class ContractDefinitionStoreTestBase {
     void findById() {
         var id = "definitionId";
         var definition = createContractDefinition(id, "policyId", "contractId");
-        getContractDefinitionStore().save(definition);
+        getContractDefinitionStore().create(definition);
 
         var result = getContractDefinitionStore().findById(id);
 
@@ -287,7 +287,7 @@ public abstract class ContractDefinitionStoreTestBase {
     @Test
     void delete() {
         var definitionExpected = createContractDefinition("test-id1", "policy1", "contract1");
-        getContractDefinitionStore().save(definitionExpected);
+        getContractDefinitionStore().create(definitionExpected);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
 
         var deleted = getContractDefinitionStore().deleteById("test-id1");
@@ -309,10 +309,10 @@ public abstract class ContractDefinitionStoreTestBase {
         var definition1 = createContractDefinition("1");
         var definition2 = createContractDefinition("2");
 
-        getContractDefinitionStore().save(definition1);
+        getContractDefinitionStore().create(definition1);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
 
-        getContractDefinitionStore().save(definition2);
+        getContractDefinitionStore().create(definition2);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
 
         var deletedDefinition = getContractDefinitionStore().deleteById(definition1.getId());
@@ -323,13 +323,13 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     void findAll_defaultQuerySpec() {
-        var all = IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).peek(getContractDefinitionStore()::save).collect(Collectors.toList());
+        var all = IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).peek(getContractDefinitionStore()::create).collect(Collectors.toList());
         assertThat(getContractDefinitionStore().findAll(QuerySpec.none())).containsExactlyInAnyOrder(all.toArray(new ContractDefinition[]{}));
     }
 
     @Test
     void findAll_verifyPaging() {
-        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::create);
 
         // page size fits
         assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().offset(4).limit(2).build())).hasSize(2);
@@ -340,21 +340,21 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     void findAll_verifyFiltering() {
-        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::create);
         assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=id3").build())).extracting(ContractDefinition::getId)
                 .containsOnly("id3");
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::create);
         assertThatThrownBy(() -> getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
     void findAll_verifySorting() {
-        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::create);
 
         assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
         assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
@@ -511,7 +511,7 @@ public abstract class ContractDefinitionStoreTestBase {
     @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
     void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::create);
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         // must actually collect, otherwise the stream is not materialized
@@ -529,7 +529,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
     protected void saveContractDefinitions(List<ContractDefinition> definitions) {
         for (var cd : definitions) {
-            getContractDefinitionStore().save(cd);
+            getContractDefinitionStore().create(cd);
         }
     }
 }

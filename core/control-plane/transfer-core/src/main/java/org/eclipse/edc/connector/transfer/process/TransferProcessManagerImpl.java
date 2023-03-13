@@ -179,7 +179,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @Override
     public void handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
             return;
@@ -215,7 +215,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @Override
     public void handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
             return;
@@ -264,7 +264,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));
-        transferProcessStore.save(process);
+        transferProcessStore.updateOrCreate(process);
         observable.invokeForEach(l -> l.initiated(process));
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
 
@@ -542,14 +542,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
-            transferProcessStore.save(transferProcess);
+            transferProcessStore.updateOrCreate(transferProcess);
             observable.invokeForEach(l -> l.provisioned(transferProcess));
         } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
             transferProcess.transitionProvisioningRequested();
-            transferProcessStore.save(transferProcess);
+            transferProcessStore.updateOrCreate(transferProcess);
             observable.invokeForEach(l -> l.provisioningRequested(transferProcess));
         } else {
-            transferProcessStore.save(transferProcess);
+            transferProcessStore.updateOrCreate(transferProcess);
         }
     }
 
@@ -573,14 +573,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
-            transferProcessStore.save(transferProcess);
+            transferProcessStore.updateOrCreate(transferProcess);
             observable.invokeForEach(l -> l.deprovisioned(transferProcess));
         } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
             transferProcess.transitionDeprovisioningRequested();
-            transferProcessStore.save(transferProcess);
+            transferProcessStore.updateOrCreate(transferProcess);
             observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
-            transferProcessStore.save(transferProcess);
+            transferProcessStore.updateOrCreate(transferProcess);
         }
     }
 
@@ -633,7 +633,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void transitionToError(String id, Throwable throwable, String message) {
-        var transferProcess = transferProcessStore.find(id);
+        var transferProcess = transferProcessStore.findById(id);
         if (transferProcess == null) {
             monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", id));
             return;
@@ -649,7 +649,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void transitionToDeprovisioningError(String processId, Throwable throwable) {
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
             monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", processId));
             return;
@@ -753,17 +753,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 TransferProcessStates.from(transferProcess.getState())), e);
         // update state count and timestamp
         transferProcess.transitionRequesting();
-        transferProcessStore.save(transferProcess);
+        transferProcessStore.updateOrCreate(transferProcess);
     }
 
     private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {
         observable.invokeForEach(observe);
-        transferProcessStore.save(transferProcess);
+        transferProcessStore.updateOrCreate(transferProcess);
         monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
     }
 
     private void breakLease(TransferProcess process) {
-        transferProcessStore.save(process);
+        transferProcessStore.updateOrCreate(process);
     }
 
     @NotNull

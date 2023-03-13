@@ -90,12 +90,12 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var agreement2 = createContract("agr2");
         var negotiation1 = createNegotiation("neg1", agreement1);
         var negotiation2 = createNegotiation("neg2", agreement2);
-        store.save(negotiation1);
-        store.save(negotiation2);
+        store.updateOrCreate(negotiation1);
+        store.updateOrCreate(negotiation2);
 
         var expression = "contractAgreement.id = agr1";
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation1);
     }
@@ -123,12 +123,12 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var agreement2 = createContractBuilder("agr2").policy(policy).build();
         var negotiation1 = createNegotiation("neg1", agreement1);
         var negotiation2 = createNegotiation("neg2", agreement2);
-        store.save(negotiation1);
-        store.save(negotiation2);
+        store.updateOrCreate(negotiation1);
+        store.updateOrCreate(negotiation2);
 
         var expression = "contractAgreement.policy.assignee = test-assignee";
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(negotiation1, negotiation2);
     }
@@ -137,11 +137,11 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     void query_invalidKey_shouldThrowException() {
         var agreement1 = createContract("agr1");
         var negotiation1 = createNegotiation("neg1", agreement1);
-        store.save(negotiation1);
+        store.updateOrCreate(negotiation1);
 
         var expression = "contractAgreement.notexist = agr1";
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
-        assertThatThrownBy(() -> store.queryNegotiations(query))
+        assertThatThrownBy(() -> store.findAllNegotiations(query))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
     }
@@ -150,11 +150,11 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     void query_invalidKeyInJson() {
         var agreement1 = createContract("agr1");
         var negotiation1 = createNegotiation("neg1", agreement1);
-        store.save(negotiation1);
+        store.updateOrCreate(negotiation1);
 
         var expression = "contractAgreement.policy.permissions.notexist = foobar";
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
-        assertThat(store.queryNegotiations(query)).isEmpty();
+        assertThat(store.findAllNegotiations(query)).isEmpty();
     }
 
     @Test
@@ -164,11 +164,11 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var query = QuerySpec.Builder.newInstance().filter("assetId = asset-2").build();
-        var all = store.queryAgreements(query);
+        var all = store.findAllAgreements(query);
 
         assertThat(all).hasSize(1);
     }
@@ -180,11 +180,11 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var query = QuerySpec.Builder.newInstance().filter("notexistprop = asset-2").build();
-        assertThatThrownBy(() -> store.queryAgreements(query));
+        assertThatThrownBy(() -> store.findAllAgreements(query));
     }
 
     @Test
@@ -194,11 +194,11 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var query = QuerySpec.Builder.newInstance().offset(2).limit(2).build();
-        assertThat(store.queryAgreements(query)).hasSize(2);
+        assertThat(store.findAllAgreements(query)).hasSize(2);
     }
 
     @Test
@@ -208,32 +208,32 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var query = QuerySpec.Builder.newInstance().filter("assetId = notexist").build();
-        assertThat(store.queryAgreements(query)).isEmpty();
+        assertThat(store.findAllAgreements(query)).isEmpty();
     }
 
     @Test
     void create_and_cancel_contractAgreement() {
         var negotiationId = "test-cn1";
         var negotiation = createNegotiation(negotiationId);
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         // now add the agreement
         var agreement = createContract("test-ca1");
         var updatedNegotiation = createNegotiation(negotiationId, agreement);
 
-        store.save(updatedNegotiation);
-        assertThat(store.queryAgreements(QuerySpec.none()))
+        store.updateOrCreate(updatedNegotiation);
+        assertThat(store.findAllAgreements(QuerySpec.none()))
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(agreement);
 
         // cancel the agreement
         updatedNegotiation.transitionError("Cancelled");
-        store.save(updatedNegotiation);
+        store.updateOrCreate(updatedNegotiation);
     }
 
     @Override

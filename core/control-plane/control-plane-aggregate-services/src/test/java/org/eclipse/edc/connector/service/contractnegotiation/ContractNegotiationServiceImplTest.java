@@ -64,7 +64,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void findById_filtersById() {
         var negotiation = createContractNegotiation("negotiationId");
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.findbyId("negotiationId");
 
@@ -73,7 +73,7 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void findById_returnsNullIfNotFound() {
-        when(store.find("negotiationId")).thenReturn(null);
+        when(store.findById("negotiationId")).thenReturn(null);
 
         var result = service.findbyId("negotiationId");
 
@@ -83,7 +83,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void query_filtersBySpec() {
         var negotiation = createContractNegotiation("negotiationId");
-        when(store.queryNegotiations(isA(QuerySpec.class))).thenReturn(Stream.of(negotiation));
+        when(store.findAllNegotiations(isA(QuerySpec.class))).thenReturn(Stream.of(negotiation));
 
         var result = service.query(QuerySpec.none());
 
@@ -117,7 +117,7 @@ class ContractNegotiationServiceImplTest {
                 .filter(validFilter)
                 .build();
         service.query(query);
-        verify(store).queryNegotiations(query);
+        verify(store).findAllNegotiations(query);
     }
 
     @Test
@@ -125,7 +125,7 @@ class ContractNegotiationServiceImplTest {
         var negotiation = createContractNegotiationBuilder("negotiationId")
                 .state(REQUESTED.code())
                 .build();
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.getState("negotiationId");
 
@@ -134,7 +134,7 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void getState_returnsNullIfNegotiationDoesNotExist() {
-        when(store.find("negotiationId")).thenReturn(null);
+        when(store.findById("negotiationId")).thenReturn(null);
 
         var result = service.getState("negotiationId");
 
@@ -147,33 +147,33 @@ class ContractNegotiationServiceImplTest {
         var negotiation = createContractNegotiation("negotiationId");
         negotiation.setContractAgreement(contractAgreement);
 
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.getForNegotiation("negotiationId");
 
         assertThat(result).matches(it -> it.getId().equals("agreementId"));
-        verify(store).find(any());
+        verify(store).findById(any());
         verifyNoMoreInteractions(store);
     }
 
     @Test
     void getForNegotiation_negotiationNotFound() {
-        when(store.find("negotiationId")).thenReturn(null);
+        when(store.findById("negotiationId")).thenReturn(null);
         var result = service.getForNegotiation("negotiationId");
         assertThat(result).isNull();
-        verify(store).find(any());
+        verify(store).findById(any());
         verifyNoMoreInteractions(store);
     }
 
     @Test
     void getForNegotiation_negotiationNoAgreement() {
         var negotiation = createContractNegotiation("negotiationId");
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.getForNegotiation("negotiationId");
 
         assertThat(result).isNull();
-        verify(store).find(any());
+        verify(store).findById(any());
         verifyNoMoreInteractions(store);
     }
 
@@ -211,7 +211,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void cancel_shouldCancelNegotiationIfItCanBeCanceled() {
         var negotiation = createContractNegotiation("negotiationId");
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.cancel("negotiationId");
 
@@ -222,7 +222,7 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void cancel_shouldNotCancelNegationIfItDoesNotExist() {
-        when(store.find("negotiationId")).thenReturn(null);
+        when(store.findById("negotiationId")).thenReturn(null);
 
         var result = service.cancel("negotiationId");
 
@@ -234,7 +234,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void decline_shouldSucceedIfManagerIsBeingAbleToDeclineIt() {
         var negotiation = createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build();
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.decline("negotiationId");
 
@@ -245,7 +245,7 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void decline_shouldNotCancelNegationIfItDoesNotExist() {
-        when(store.find("negotiationId")).thenReturn(null);
+        when(store.findById("negotiationId")).thenReturn(null);
 
         var result = service.decline("negotiationId");
 
@@ -257,7 +257,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void decline_shouldFailIfCannotBeDeclined() {
         var negotiation = createContractNegotiationBuilder("negotiationId").state(CONFIRMED.code()).build();
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.decline("negotiationId");
 

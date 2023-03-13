@@ -59,15 +59,15 @@ class CancelTransferCommandHandlerTest {
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
 
-        when(store.find(anyString())).thenReturn(tp);
+        when(store.findById(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TERMINATING.code());
         assertThat(tp.getErrorDetail()).isEqualTo("transfer cancelled");
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
-        verify(store).find(anyString());
-        verify(store).save(tp);
+        verify(store).findById(anyString());
+        verify(store).updateOrCreate(tp);
         verifyNoMoreInteractions(store);
     }
 
@@ -79,12 +79,12 @@ class CancelTransferCommandHandlerTest {
         var originalDate = tp.getUpdatedAt();
         var cmd = new CancelTransferCommand("test-id");
 
-        when(store.find(anyString())).thenReturn(tp);
+        when(store.findById(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
         assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
 
-        verify(store).find(anyString());
+        verify(store).findById(anyString());
         verifyNoMoreInteractions(store);
         verifyNoInteractions(listener);
     }
@@ -93,7 +93,7 @@ class CancelTransferCommandHandlerTest {
     void handle_notFound() {
         var cmd = new CancelTransferCommand("test-id");
 
-        when(store.find(anyString())).thenReturn(null);
+        when(store.findById(anyString())).thenReturn(null);
         assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(EdcException.class).hasMessageStartingWith("Could not find TransferProcess with ID [test-id]");
         verifyNoInteractions(listener);
     }

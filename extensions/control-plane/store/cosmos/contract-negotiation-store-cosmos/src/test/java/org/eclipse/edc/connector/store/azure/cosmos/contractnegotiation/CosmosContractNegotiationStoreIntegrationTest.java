@@ -127,14 +127,14 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         container.createItem(doc1);
         container.createItem(doc2);
 
-        var foundItem = store.find(doc1.getId());
+        var foundItem = store.findById(doc1.getId());
 
         assertThat(foundItem).isNotNull().usingRecursiveComparison().isEqualTo(doc1.getWrappedInstance());
     }
 
     @Test
     void findById_notExist() {
-        var foundItem = store.find("not-exit");
+        var foundItem = store.findById("not-exit");
         assertThat(foundItem).isNull();
     }
 
@@ -188,7 +188,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     @Test
     void save_notExists_shouldCreate() {
         var negotiation = TestFunctions.createNegotiation();
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         var allObjs = container.readAllItems(new PartitionKey(partitionKey), Object.class);
 
@@ -210,7 +210,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .asset(Asset.Builder.newInstance().build()).id("new-offer-1")
                 .build();
         negotiation.getContractOffers().add(newOffer);
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         var allObjs = container.readAllItems(new PartitionKey(partitionKey), Object.class);
 
@@ -229,7 +229,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
         negotiation.transitionError("test-error");
 
-        assertThatThrownBy(() -> store.save(negotiation)).isInstanceOf(IllegalStateException.class).hasRootCauseInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> store.updateOrCreate(negotiation)).isInstanceOf(IllegalStateException.class).hasRootCauseInstanceOf(BadRequestException.class);
     }
 
     @Test
@@ -354,7 +354,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
         n.transitionDeclining();
         n.updateStateTimestamp();
-        store.save(n);
+        store.updateOrCreate(n);
 
         storedDoc = readItem(n.getId());
         assertThat(storedDoc.getLease()).isNull();
@@ -385,7 +385,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         container.createItem(doc1);
         container.createItem(doc2);
 
-        assertThat(store.queryNegotiations(QuerySpec.none())).hasSize(2).extracting(ContractNegotiation::getId).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
+        assertThat(store.findAllNegotiations(QuerySpec.none())).hasSize(2).extracting(ContractNegotiation::getId).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
     }
 
     @Test
@@ -398,7 +398,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(ContractNegotiation::getId).isSubsetOf(all);
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(ContractNegotiation::getId).isSubsetOf(all);
 
     }
 
@@ -411,7 +411,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(ContractNegotiation::getId).isSubsetOf(all);
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(ContractNegotiation::getId).isSubsetOf(all);
     }
 
     @Test
@@ -424,7 +424,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         var expectedId = documents.get(3).getId();
 
         var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
-        assertThat(store.queryNegotiations(query)).extracting(ContractNegotiation::getId).containsOnly(expectedId);
+        assertThat(store.findAllNegotiations(query)).extracting(ContractNegotiation::getId).containsOnly(expectedId);
     }
 
     @Test
@@ -433,7 +433,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
-        assertThatThrownBy(() -> store.queryNegotiations(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
+        assertThatThrownBy(() -> store.findAllNegotiations(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
     }
 
     @Test
@@ -442,7 +442,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
         var query = QuerySpec.Builder.newInstance().filter("something = other").build();
 
-        assertThat(store.queryNegotiations(query)).isEmpty();
+        assertThat(store.findAllNegotiations(query)).isEmpty();
     }
 
     @Test
@@ -450,9 +450,9 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
         var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
-        assertThat(store.queryNegotiations(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractNegotiation::getId));
+        assertThat(store.findAllNegotiations(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractNegotiation::getId));
         var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
-        assertThat(store.queryNegotiations(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        assertThat(store.findAllNegotiations(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     @Test
@@ -460,7 +460,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
         var query = QuerySpec.Builder.newInstance().sortField("xyz").sortOrder(SortOrder.ASC).build();
-        var negotiations = store.queryNegotiations(query);
+        var negotiations = store.findAllNegotiations(query);
 
         assertThat(negotiations).hasSize(10);
     }
@@ -470,10 +470,10 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
-        var all = store.queryAgreements(QuerySpec.Builder.newInstance().build());
+        var all = store.findAllAgreements(QuerySpec.Builder.newInstance().build());
 
         assertThat(all).hasSize(10);
     }
@@ -483,14 +483,14 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         // page size fits
-        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+        assertThat(store.findAllAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
 
         // page size too large
-        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+        assertThat(store.findAllAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
     @Test
@@ -498,11 +498,11 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContractBuilder().id(i + ":" + i).build();
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
         var query = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=3:3").build();
 
-        var result = store.queryAgreements(query);
+        var result = store.findAllAgreements(query);
 
         assertThat(result).extracting(ContractAgreement::getId).containsOnly("3:3");
     }
@@ -512,13 +512,13 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         IntStream.range(0, 9).forEach(i -> {
             var contractAgreement = createContractBuilder().id(i + ":" + i).build();
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var queryAsc = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
-        assertThat(store.queryAgreements(queryAsc)).hasSize(9).isSortedAccordingTo(Comparator.comparing(ContractAgreement::getId));
+        assertThat(store.findAllAgreements(queryAsc)).hasSize(9).isSortedAccordingTo(Comparator.comparing(ContractAgreement::getId));
         var queryDesc = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
-        assertThat(store.queryAgreements(queryDesc)).hasSize(9).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        assertThat(store.findAllAgreements(queryDesc)).hasSize(9).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     @Test
@@ -526,11 +526,11 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContractBuilder().id(i + ":" + i).build();
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-        var agreements = store.queryAgreements(query);
+        var agreements = store.findAllAgreements(query);
 
         assertThat(agreements).hasSize(10);
     }
@@ -541,12 +541,12 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         var negotiation = createNegotiationBuilder("negotiation1").contractAgreement(agreement).build();
         var assetId = agreement.getAssetId();
 
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
     }
@@ -565,15 +565,15 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .protocol("ids-multipart")
                 .build();
 
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).isEmpty();
-        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+        assertThat(store.findAllAgreements(QuerySpec.none())).isEmpty();
     }
 
     @Test
@@ -582,13 +582,13 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         var negotiation1 = createNegotiation("negotiation1", createContractBuilder("contract1").assetId(assetId).build());
         var negotiation2 = createNegotiation("negotiation2", createContractBuilder("contract2").assetId(assetId).build());
 
-        store.save(negotiation1);
-        store.save(negotiation2);
+        store.updateOrCreate(negotiation1);
+        store.updateOrCreate(negotiation2);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).hasSize(2)
                 .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");

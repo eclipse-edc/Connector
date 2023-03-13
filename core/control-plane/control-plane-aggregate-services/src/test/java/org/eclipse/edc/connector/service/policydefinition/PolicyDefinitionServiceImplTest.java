@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -34,14 +33,16 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class PolicyDefinitionServiceImplTest {
@@ -89,33 +90,29 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void createPolicy_shouldCreatePolicyIfItDoesNotAlreadyExist() {
         var policy = createPolicy("policyId");
-        when(policyStore.save(policy)).thenReturn(StoreResult.success(policy));
+        when(policyStore.findById("policyId")).thenReturn(null);
 
         var inserted = policyServiceImpl.create(policy);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).isEqualTo(policy);
-        verify(policyStore).save(policy);
-        verifyNoMoreInteractions(policyStore);
     }
 
     @Test
     void createPolicy_shouldNotCreatePolicyIfItAlreadyExists() {
         var policy = createPolicy("policyId");
-        when(policyStore.save(policy)).thenReturn(StoreResult.alreadyExists("test"));
+        when(policyStore.findById("policyId")).thenReturn(policy);
 
         var inserted = policyServiceImpl.create(policy);
 
         assertThat(inserted.succeeded()).isFalse();
-        verify(policyStore).save(policy);
-        verifyNoMoreInteractions(policyStore);
     }
 
     @Test
     void delete_shouldDeletePolicyIfItsNotReferencedByAnyContractDefinition() {
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.empty(), Stream.empty());
         when(policyStore.findById(any())).thenReturn(createPolicy("policyId"));
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.success(createPolicy("policyId")));
+        when(policyStore.deleteById("policyId")).thenReturn(createPolicy("policyId"));
 
         var deleted = policyServiceImpl.deleteById("policyId");
 
@@ -126,9 +123,9 @@ class PolicyDefinitionServiceImplTest {
     }
 
     @Test
-    void delete_shouldNotDelete_whenPolicyPartOfContractDef() {
+    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfContractDefinitionButPolicyDoesNotExistInPolicyStore() {
         var policy = createPolicy("policyId");
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.success(policy));
+        when(policyStore.deleteById("policyId")).thenReturn(policy);
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
@@ -143,13 +140,13 @@ class PolicyDefinitionServiceImplTest {
         var deleted = policyServiceImpl.deleteById("policyId");
 
         assertThat(deleted.failed()).isTrue();
-        assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
+        assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
     }
 
     @Test
-    void delete_shouldNotDelete_whenPolicyIsPartOfContractDefinition() {
+    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfContractDefinitionButIsNotInContractDefinitionStore() {
         var policy = createPolicy("policyId");
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.success(policy));
+        when(policyStore.deleteById("policyId")).thenReturn(policy);
 
         ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
@@ -164,12 +161,12 @@ class PolicyDefinitionServiceImplTest {
         var deleted = policyServiceImpl.deleteById("policyId");
 
         assertThat(deleted.failed()).isTrue();
-        assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
+        assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
     }
 
     @Test
     void delete_shouldFailIfPolicyDoesNotExist() {
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.notFound("test"));
+        when(policyStore.deleteById("policyId")).thenReturn(null);
 
         var deleted = policyServiceImpl.deleteById("policyId");
 
@@ -180,36 +177,33 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void delete_verifyCorrectQueries() {
         var policyId = "test-policy";
-        when(policyStore.deleteById(policyId)).thenReturn(StoreResult.success());
+        when(policyStore.findById(policyId)).thenReturn(createPolicy(policyId));
         policyServiceImpl.deleteById(policyId);
 
-        verify(policyStore).deleteById(eq(policyId));
-        verifyNoMoreInteractions(policyStore);
+        verify(contractDefinitionStore).findAll(argThat(qs -> qs.getFilterExpression().size() == 1 &&
+                qs.getFilterExpression().get(0).getOperandLeft().equals("accessPolicyId")));
+        verify(contractDefinitionStore).findAll(argThat(qs -> qs.getFilterExpression().size() == 1 &&
+                qs.getFilterExpression().get(0).getOperandLeft().equals("contractPolicyId")));
     }
 
     @Test
     void updatePolicy_ifPolicyNotExists() {
         var policy = createPolicy("policyId");
-        when(policyStore.update(policy)).thenReturn(StoreResult.notFound("test"));
-        var updated = policyServiceImpl.update(policy);
+        var updated = policyServiceImpl.update(policy.getUid(), policy);
         assertThat(updated.succeeded()).isFalse();
         assertThat(updated.getContent()).isNull();
-        verify(policyStore).update(any());
-        verifyNoMoreInteractions(policyStore);
-
     }
 
     @Test
     void updatePolicy_shouldUpdateWhenExists() {
         var policyId = "policyId";
         var policy = createPolicy(policyId);
-        when(policyStore.update(policy)).thenReturn(StoreResult.success(policy));
+        when(policyStore.findById(anyString())).thenReturn(policy);
 
-        var updated = policyServiceImpl.update(policy);
+        var updated = policyServiceImpl.update(policyId, policy);
 
         assertThat(updated.succeeded()).isTrue();
-        verify(policyStore).update(eq(policy));
-        verifyNoMoreInteractions(policyStore);
+        verify(policyStore).update(eq(policyId), eq(policy));
         verify(observable).invokeForEach(any());
     }
 
@@ -217,15 +211,28 @@ class PolicyDefinitionServiceImplTest {
     void updatePolicy_shouldReturnNotFound_whenNotExists() {
         var policyId = "policyId";
         var policy = createPolicy(policyId);
-        when(policyStore.update(policy)).thenReturn(StoreResult.notFound("test"));
+        when(policyStore.findById(anyString())).thenReturn(null);
 
-        var updated = policyServiceImpl.update(policy);
+        var updated = policyServiceImpl.update(policyId, policy);
 
         assertThat(updated.failed()).isTrue();
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
-        verify(policyStore).update(policy);
-        verifyNoMoreInteractions(policyStore);
+        verify(policyStore, never()).create(eq(policy));
         verify(observable, never()).invokeForEach(any());
+    }
+
+    @Test
+    void updatePolicy_shouldReturnBadRequest_whenPolicyIdWrong() {
+        var policyId = "policyId";
+        var policy = createPolicy(policyId);
+        when(policyStore.findById(anyString())).thenReturn(policy);
+
+        var updated = policyServiceImpl.update("another-id", policy);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(policyStore);
+        verifyNoInteractions(observable);
     }
 
     @NotNull

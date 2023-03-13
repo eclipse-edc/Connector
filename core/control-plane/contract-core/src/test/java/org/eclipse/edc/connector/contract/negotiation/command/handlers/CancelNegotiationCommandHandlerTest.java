@@ -53,7 +53,7 @@ class CancelNegotiationCommandHandlerTest {
         var originalTime = negotiation.getUpdatedAt();
         var command = new CancelNegotiationCommand(negotiationId);
 
-        when(store.find(negotiationId)).thenReturn(negotiation);
+        when(store.findById(negotiationId)).thenReturn(negotiation);
 
         commandHandler.handle(command);
 
@@ -67,7 +67,7 @@ class CancelNegotiationCommandHandlerTest {
         var negotiationId = "test";
         var command = new CancelNegotiationCommand(negotiationId);
 
-        when(store.find(negotiationId)).thenReturn(null);
+        when(store.findById(negotiationId)).thenReturn(null);
 
         assertThatThrownBy(() -> commandHandler.handle(command))
                 .isInstanceOf(EdcException.class)

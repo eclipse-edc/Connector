@@ -66,15 +66,15 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation = TestFunctions.createNegotiationBuilder(id).build();
         negotiation.transitionInitial();
 
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
-        ContractNegotiation found = store.find(id);
+        ContractNegotiation found = store.findById(id);
 
         assertNotNull(found);
         assertNotSame(found, negotiation); // enforce by-value
 
         store.delete(id);
-        assertNull(store.find(id));
+        assertNull(store.findById(id));
         assertNull(store.findContractAgreement("agreementId"));
     }
 
@@ -84,17 +84,17 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation = TestFunctions.createNegotiation(id);
         negotiation.transitionInitial();
 
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
-        var found = store.find(id);
+        var found = store.findById(id);
         assertNotNull(store.findContractAgreement("agreementId"));
 
         assertEquals(INITIAL.code(), found.getState());
 
         negotiation.transitionRequesting();
 
-        store.save(negotiation);
-        found = store.find(id);
+        store.updateOrCreate(negotiation);
+        found = store.findById(id);
         assertNotNull(found);
         assertEquals(REQUESTING.code(), found.getState());
 
@@ -104,15 +104,15 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void verifyNext() throws InterruptedException {
         var negotiation1 = requestingNegotiation();
-        store.save(negotiation1);
+        store.updateOrCreate(negotiation1);
         var negotiation2 = requestingNegotiation();
-        store.save(negotiation2);
+        store.updateOrCreate(negotiation2);
 
         negotiation2.transitionRequested();
-        store.save(negotiation2);
+        store.updateOrCreate(negotiation2);
         Thread.sleep(1);
         negotiation1.transitionRequested();
-        store.save(negotiation1);
+        store.updateOrCreate(negotiation1);
 
         var requestingNegotiations = store.nextForState(REQUESTING.code(), 1);
         assertThat(requestingNegotiations).isEmpty();
@@ -130,7 +130,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     void nextForState_shouldLeaseEntityUntilSave() {
         var negotiation = TestFunctions.createNegotiation("any");
         negotiation.transitionInitial();
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         var firstQueryResult = store.nextForState(INITIAL.code(), 1);
         assertThat(firstQueryResult).hasSize(1);
@@ -139,7 +139,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         assertThat(secondQueryResult).hasSize(0);
 
         var retrieved = firstQueryResult.get(0);
-        store.save(retrieved);
+        store.updateOrCreate(retrieved);
 
         var thirdQueryResult = store.nextForState(INITIAL.code(), 1);
         assertThat(thirdQueryResult).hasSize(1);
@@ -150,18 +150,18 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         String id1 = UUID.randomUUID().toString();
         ContractNegotiation negotiation1 = TestFunctions.createNegotiation(id1);
         negotiation1.transitionInitial();
-        store.save(negotiation1);
+        store.updateOrCreate(negotiation1);
 
         String id2 = UUID.randomUUID().toString();
         ContractNegotiation negotiation2 = TestFunctions.createNegotiation(id2);
         negotiation2.transitionInitial();
-        store.save(negotiation2);
+        store.updateOrCreate(negotiation2);
 
 
-        ContractNegotiation found1 = store.find(id1);
+        ContractNegotiation found1 = store.findById(id1);
         assertNotNull(found1);
 
-        ContractNegotiation found2 = store.find(id2);
+        ContractNegotiation found2 = store.findById(id2);
         assertNotNull(found2);
 
         var found = store.nextForState(INITIAL.code(), 3);
@@ -174,7 +174,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         for (int i = 0; i < 100; i++) {
             ContractNegotiation negotiation = TestFunctions.createNegotiation("test-negotiation-" + i);
             negotiation.transitionInitial();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         }
 
         List<ContractNegotiation> processes = store.nextForState(INITIAL.code(), 50);
@@ -188,7 +188,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         for (int i = 0; i < 10; i++) {
             ContractNegotiation negotiation = TestFunctions.createNegotiation("test-negotiation-" + i);
             negotiation.transitionInitial();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         }
 
         var list1 = store.nextForState(INITIAL.code(), 5);
@@ -198,50 +198,50 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
     @Test
     void findAll_noQuerySpec() {
-        IntStream.range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
+        IntStream.range(0, 10).forEach(i -> store.updateOrCreate(TestFunctions.createNegotiation("test-neg-" + i)));
 
-        var all = store.queryNegotiations(QuerySpec.Builder.newInstance().build());
+        var all = store.findAllNegotiations(QuerySpec.Builder.newInstance().build());
         assertThat(all).hasSize(10);
     }
 
     @Test
     void findAll_verifyPaging() {
 
-        IntStream.range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
+        IntStream.range(0, 10).forEach(i -> store.updateOrCreate(TestFunctions.createNegotiation("test-neg-" + i)));
 
         // page size fits
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
 
         // page size too large
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
     @Test
     void findAll_verifyFiltering() {
-        IntStream.range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(ContractNegotiation::getId).containsOnly("test-neg-3");
+        IntStream.range(0, 10).forEach(i -> store.updateOrCreate(TestFunctions.createNegotiation("test-neg-" + i)));
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(ContractNegotiation::getId).containsOnly("test-neg-3");
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
-        assertThatThrownBy(() -> store.queryNegotiations(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+        IntStream.range(0, 10).forEach(i -> store.updateOrCreate(TestFunctions.createNegotiation("test-neg-" + i)));
+        assertThatThrownBy(() -> store.findAllNegotiations(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test
     void findAll_verifySorting() {
-        IntStream.range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
+        IntStream.range(0, 10).forEach(i -> store.updateOrCreate(TestFunctions.createNegotiation("test-neg-" + i)));
 
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractNegotiation::getId));
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractNegotiation::getId));
+        assertThat(store.findAllNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     @Test
     void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
+        IntStream.range(0, 10).forEach(i -> store.updateOrCreate(TestFunctions.createNegotiation("test-neg-" + i)));
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
-        var result = store.queryNegotiations(query);
+        var result = store.findAllNegotiations(query);
 
         assertThat(result).isEmpty();
     }
@@ -251,10 +251,10 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
-        var all = store.queryAgreements(QuerySpec.Builder.newInstance().build());
+        var all = store.findAllAgreements(QuerySpec.Builder.newInstance().build());
 
         assertThat(all).hasSize(10);
     }
@@ -264,14 +264,14 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         // page size fits
-        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+        assertThat(store.findAllAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
 
         // page size too large
-        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+        assertThat(store.findAllAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
     @Test
@@ -279,11 +279,11 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = TestFunctions.createAgreementBuilder().id(i + ":" + i).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
         var query = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=3:3").build();
 
-        var result = store.queryAgreements(query);
+        var result = store.findAllAgreements(query);
 
         assertThat(result).extracting(ContractAgreement::getId).containsOnly("3:3");
     }
@@ -293,13 +293,13 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         IntStream.range(0, 9).forEach(i -> {
             var contractAgreement = TestFunctions.createAgreementBuilder().id(i + ":" + i).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var queryAsc = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
-        assertThat(store.queryAgreements(queryAsc)).hasSize(9).isSortedAccordingTo(Comparator.comparing(ContractAgreement::getId));
+        assertThat(store.findAllAgreements(queryAsc)).hasSize(9).isSortedAccordingTo(Comparator.comparing(ContractAgreement::getId));
         var queryDesc = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
-        assertThat(store.queryAgreements(queryDesc)).hasSize(9).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        assertThat(store.findAllAgreements(queryDesc)).hasSize(9).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     @Test
@@ -307,12 +307,12 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = TestFunctions.createAgreementBuilder().id(i + ":" + i).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
         });
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
-        assertThat(store.queryAgreements(query)).isEmpty();
+        assertThat(store.findAllAgreements(query)).isEmpty();
     }
 
     @Test
@@ -321,12 +321,12 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation = TestFunctions.createNegotiationBuilder("negotiation1").contractAgreement(agreement).build();
         var assetId = agreement.getAssetId();
 
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
 
         assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
@@ -346,15 +346,15 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                 .protocol("ids-multipart")
                 .build();
 
-        store.save(negotiation);
+        store.updateOrCreate(negotiation);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).isEmpty();
-        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+        assertThat(store.findAllAgreements(QuerySpec.none())).isEmpty();
     }
 
     @Test
@@ -363,13 +363,13 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation1 = TestFunctions.createNegotiationBuilder("negotiation1").contractAgreement(TestFunctions.createAgreementBuilder().id("contract1").assetId(assetId).build()).build();
         var negotiation2 = TestFunctions.createNegotiationBuilder("negotiation2").contractAgreement(TestFunctions.createAgreementBuilder().id("contract2").assetId(assetId).build()).build();
 
-        store.save(negotiation1);
-        store.save(negotiation2);
+        store.updateOrCreate(negotiation1);
+        store.updateOrCreate(negotiation2);
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
                 .build();
-        var result = store.queryNegotiations(query).collect(Collectors.toList());
+        var result = store.findAllNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).hasSize(2)
                 .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
@@ -377,7 +377,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
     @Test
     void findContractAgreement_returnsNullIfAgreementDoesNotExist() {
-        store.save(TestFunctions.createNegotiationBuilder("negotiation1").build());
+        store.updateOrCreate(TestFunctions.createNegotiationBuilder("negotiation1").build());
 
         var agreement = store.findContractAgreement("negotiation1");
 
@@ -397,9 +397,9 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
         IntStream.range(0, 100)
                 .mapToObj(i -> org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation("" + i))
-                .forEach(cn -> getContractNegotiationStore().save(cn));
+                .forEach(cn -> getContractNegotiationStore().updateOrCreate(cn));
 
-        var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
+        var result = getContractNegotiationStore().findAllNegotiations(querySpec).collect(Collectors.toList());
 
         Assertions.assertThat(result).hasSize(10)
                 .extracting(ContractNegotiation::getId)

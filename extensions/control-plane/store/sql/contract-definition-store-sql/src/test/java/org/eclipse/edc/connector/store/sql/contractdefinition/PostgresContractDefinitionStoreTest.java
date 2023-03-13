@@ -99,7 +99,7 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
     // Override in PG since it does not have the field mapping
     @Test
     void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).mapToObj(i -> TestFunctions.createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        IntStream.range(0, 10).mapToObj(i -> TestFunctions.createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::create);
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         assertThatThrownBy(() -> getContractDefinitionStore().findAll(query)).isInstanceOf(IllegalArgumentException.class);

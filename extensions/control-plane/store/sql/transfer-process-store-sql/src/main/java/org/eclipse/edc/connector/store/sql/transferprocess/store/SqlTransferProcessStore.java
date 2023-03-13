@@ -84,7 +84,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public @Nullable TransferProcess find(String id) {
+    public @Nullable TransferProcess findById(String id) {
         return transactionContext.execute(() -> {
             var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
             return single(findAll(q).collect(toList()));
@@ -104,7 +104,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public void save(TransferProcess process) {
+    public void updateOrCreate(TransferProcess process) {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         if (process.getDataRequest() == null) {
             throw new IllegalArgumentException("Cannot store TransferProcess without a DataRequest");
@@ -128,7 +128,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     public void delete(String processId) {
 
         transactionContext.execute(() -> {
-            var existing = find(processId);
+            var existing = findById(processId);
             if (existing != null) {
                 try (var conn = getConnection()) {
                     // attempt to acquire lease - should fail if someone else holds the lease

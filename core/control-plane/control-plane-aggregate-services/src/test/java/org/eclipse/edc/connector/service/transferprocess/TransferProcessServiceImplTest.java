@@ -82,7 +82,7 @@ class TransferProcessServiceImplTest {
 
     @Test
     void findById_whenFound() {
-        when(store.find(id)).thenReturn(process1);
+        when(store.findById(id)).thenReturn(process1);
         assertThat(service.findById(id)).isSameAs(process1);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -126,7 +126,7 @@ class TransferProcessServiceImplTest {
 
     @Test
     void getState_whenFound() {
-        when(store.find(id)).thenReturn(process1);
+        when(store.findById(id)).thenReturn(process1);
         assertThat(service.getState(id)).isEqualTo(TransferProcessStates.from(process1.getState()).name());
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -211,7 +211,7 @@ class TransferProcessServiceImplTest {
     @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "TERMINATED" })
     void deprovision(TransferProcessStates state) {
         var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
+        when(store.findById(id)).thenReturn(process);
 
         var result = service.deprovision(id);
 
@@ -227,7 +227,7 @@ class TransferProcessServiceImplTest {
     @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "TERMINATED" })
     void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
         var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
+        when(store.findById(id)).thenReturn(process);
 
         var result = service.deprovision(id);
 
@@ -249,7 +249,7 @@ class TransferProcessServiceImplTest {
     @Test
     void started_shouldEnqueueCommand() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
 
         var result = service.notifyStarted("dataRequestId");
 
@@ -261,7 +261,7 @@ class TransferProcessServiceImplTest {
     @Test
     void started_shouldNotEnqueueCommandIfProcessIsNotFound() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(null);
+        when(store.findById("processId")).thenReturn(null);
 
         var result = service.notifyStarted("dataRequestId");
 
@@ -273,7 +273,7 @@ class TransferProcessServiceImplTest {
     @Test
     void started_shouldNotEnqueueCommandIfIsNotConsumerAndStateIsNotValid() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
+        when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
 
         var result = service.notifyStarted("dataRequestId");
 

@@ -58,7 +58,7 @@ class DeclineNegotiationCommandHandlerTest {
         var originalTime = negotiation.getUpdatedAt();
         var command = new DeclineNegotiationCommand(negotiationId);
 
-        when(store.find(negotiationId)).thenReturn(negotiation);
+        when(store.findById(negotiationId)).thenReturn(negotiation);
 
         commandHandler.handle(command);
 
@@ -72,7 +72,7 @@ class DeclineNegotiationCommandHandlerTest {
         var negotiationId = "test";
         var command = new DeclineNegotiationCommand(negotiationId);
 
-        when(store.find(negotiationId)).thenReturn(null);
+        when(store.findById(negotiationId)).thenReturn(null);
 
         assertThatThrownBy(() -> commandHandler.handle(command))
                 .isInstanceOf(EdcException.class)

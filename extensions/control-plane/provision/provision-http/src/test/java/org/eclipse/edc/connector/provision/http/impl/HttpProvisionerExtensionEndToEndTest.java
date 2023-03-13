@@ -95,8 +95,8 @@ public class HttpProvisionerExtensionEndToEndTest {
                                      ContractNegotiationStore negotiationStore,
                                      AssetIndex assetIndex,
                                      TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
-        negotiationStore.save(createContractNegotiation());
-        policyStore.save(createPolicyDefinition());
+        negotiationStore.updateOrCreate(createContractNegotiation());
+        policyStore.create(createPolicyDefinition());
         assetIndex.accept(createAssetEntry());
 
         when(delegate.intercept(any()))
@@ -106,7 +106,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         var result = processManager.initiateProviderRequest(createRequest());
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find(result.getContent());
+            var transferProcess = store.findById(result.getContent());
             assertThat(transferProcess).isNotNull()
                     .extracting(StatefulEntity::getState).isEqualTo(PROVISIONING_REQUESTED.code());
         });

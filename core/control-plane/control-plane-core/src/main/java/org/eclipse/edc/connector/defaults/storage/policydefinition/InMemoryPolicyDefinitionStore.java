@@ -20,15 +20,13 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.util.concurrency.LockManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import static java.lang.String.format;
 
 /**
  * An in-memory, threadsafe policy store. This implementation is intended for testing purposes only.
@@ -48,7 +46,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
         try {
             return lockManager.readLock(() -> policiesById.get(policyId));
         } catch (Exception e) {
-            throw new EdcPersistenceException(format("Finding policy by id %s failed.", policyId), e);
+            throw new EdcPersistenceException(String.format("Finding policy by id %s failed.", policyId), e);
         }
     }
 
@@ -57,54 +55,38 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
         try {
             return lockManager.readLock(() -> queryResolver.query(policiesById.values().stream(), spec));
         } catch (Exception e) {
-            throw new EdcPersistenceException(format("Finding policy stream by query spec %s failed", spec), e);
+            throw new EdcPersistenceException(String.format("Finding policy stream by query spec %s failed", spec), e);
         }
     }
 
     @Override
-    public StoreResult<PolicyDefinition> save(PolicyDefinition policy) {
+    public void create(PolicyDefinition policy) {
         try {
-            return lockManager.writeLock(() -> {
-                var id = policy.getUid();
-                // do not replace if already exists
-                if (policiesById.containsKey(id)) {
-                    return StoreResult.alreadyExists(format(POLICY_ALREADY_EXISTS, id));
-                }
-                policiesById.put(id, policy);
-                return StoreResult.success(policy);
-            });
+            lockManager.writeLock(() -> policiesById.put(policy.getUid(), policy));
         } catch (Exception e) {
             throw new EdcPersistenceException("Saving policy failed", e);
         }
     }
 
     @Override
-    public StoreResult<PolicyDefinition> update(PolicyDefinition policy) {
+    public PolicyDefinition update(String policyId, PolicyDefinition policy) {
         try {
-            var policyId = policy.getId();
             Objects.requireNonNull(policyId, "policyId");
             Objects.requireNonNull(policy, "policy");
-            // do not update if not exists
-            return lockManager.writeLock(() -> {
-                if (policiesById.containsKey(policyId)) {
-                    policiesById.put(policyId, policy);
-                    return StoreResult.success(policy);
-                }
-                return StoreResult.notFound(format(POLICY_NOT_FOUND, policyId));
-            });
-
+            if (policiesById.containsKey(policyId)) {
+                lockManager.writeLock(() -> policiesById.put(policyId, policy));
+                return policy;
+            }
+            return null;
         } catch (Exception e) {
             throw new EdcPersistenceException("Updating policy failed", e);
         }
     }
 
     @Override
-    public StoreResult<PolicyDefinition> deleteById(String policyId) {
+    public @Nullable PolicyDefinition deleteById(String policyId) {
         try {
-            var previous = lockManager.writeLock(() -> policiesById.remove(policyId));
-            return previous == null ?
-                    StoreResult.notFound(format(POLICY_NOT_FOUND, policyId)) :
-                    StoreResult.success(previous);
+            return lockManager.writeLock(() -> policiesById.remove(policyId));
         } catch (Exception e) {
             throw new EdcPersistenceException("Deleting policy failed", e);
         }

@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -27,10 +26,10 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
 
@@ -47,16 +46,15 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
-    public StoreResult<Void> create(DataPlaneInstance instance) {
+    public void updateOrCreate(DataPlaneInstance instance) {
 
-        return transactionContext.execute(() -> {
+        transactionContext.execute(() -> {
             try (var connection = getConnection()) {
 
                 if (findByIdInternal(connection, instance.getId()) == null) {
                     insert(connection, instance);
-                    return StoreResult.success();
                 } else {
-                    return StoreResult.alreadyExists(format(DATA_PLANE_INSTANCE_EXISTS, instance.getId()));
+                    update(connection, instance);
                 }
 
             } catch (Exception exception) {
@@ -66,18 +64,16 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
-    public StoreResult<Void> update(DataPlaneInstance instance) {
-
-        return transactionContext.execute(() -> {
+    public void updateOrCreateAll(Collection<DataPlaneInstance> instances) {
+        transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-
-                if (findByIdInternal(connection, instance.getId()) == null) {
-                    return StoreResult.notFound(format(DATA_PLANE_INSTANCE_NOT_FOUND, instance.getId()));
-                } else {
-                    update(connection, instance);
-                    return StoreResult.success();
+                for (var instance : instances) {
+                    if (findByIdInternal(connection, instance.getId()) == null) {
+                        insert(connection, instance);
+                    } else {
+                        update(connection, instance);
+                    }
                 }
-
             } catch (Exception exception) {
                 throw new EdcPersistenceException(exception);
             }

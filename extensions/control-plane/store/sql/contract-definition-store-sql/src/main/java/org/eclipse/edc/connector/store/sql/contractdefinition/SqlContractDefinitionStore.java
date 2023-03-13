@@ -78,7 +78,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
 
     @Override
-    public StoreResult<Void> save(ContractDefinition definition) {
+    public StoreResult<Void> create(ContractDefinition definition) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (existsById(connection, definition.getId())) {

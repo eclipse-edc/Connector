@@ -50,7 +50,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public ContractNegotiation findbyId(String contractNegotiationId) {
-        return transactionContext.execute(() -> store.find(contractNegotiationId));
+        return transactionContext.execute(() -> store.findById(contractNegotiationId));
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
         if (result.failed()) {
             return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return ServiceResult.success(transactionContext.execute(() -> store.queryNegotiations(query)));
+        return ServiceResult.success(transactionContext.execute(() -> store.findAllNegotiations(query)));
     }
 
     @Override
@@ -75,7 +75,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public ContractAgreement getForNegotiation(String negotiationId) {
-        return transactionContext.execute(() -> ofNullable(store.find(negotiationId))
+        return transactionContext.execute(() -> ofNullable(store.findById(negotiationId))
                 .map(ContractNegotiation::getContractAgreement).orElse(null));
     }
 
@@ -87,7 +87,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     @Override
     public ServiceResult<ContractNegotiation> cancel(String negotiationId) {
         return transactionContext.execute(() -> {
-            var negotiation = store.find(negotiationId);
+            var negotiation = store.findById(negotiationId);
             if (negotiation == null) {
                 return ServiceResult.notFound(format("ContractNegotiation %s does not exist", negotiationId));
             } else {
@@ -101,7 +101,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     public ServiceResult<ContractNegotiation> decline(String negotiationId) {
         return transactionContext.execute(() -> {
             try {
-                var negotiation = store.find(negotiationId);
+                var negotiation = store.findById(negotiationId);
                 if (negotiation == null) {
                     return ServiceResult.notFound(format("ContractNegotiation %s does not exist", negotiationId));
                 }

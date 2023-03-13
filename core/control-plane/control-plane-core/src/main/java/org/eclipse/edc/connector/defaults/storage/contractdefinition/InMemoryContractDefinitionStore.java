@@ -51,7 +51,7 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
 
 
     @Override
-    public StoreResult<Void> save(ContractDefinition definition) {
+    public StoreResult<Void> create(ContractDefinition definition) {
         var prev = cache.putIfAbsent(definition.getId(), definition);
         return Optional.ofNullable(prev)
                 .map(a -> StoreResult.<Void>alreadyExists(format(CONTRACT_DEFINITION_EXISTS, definition.getId())))

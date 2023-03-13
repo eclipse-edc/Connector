@@ -100,7 +100,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
         negotiation.transitionInitial();
-        negotiationStore.save(negotiation);
+        negotiationStore.updateOrCreate(negotiation);
         observable.invokeForEach(l -> l.initiated(negotiation));
 
         monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
@@ -122,7 +122,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     @Override
     public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
-        var negotiation = negotiationStore.find(negotiationId);
+        var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
         }
@@ -140,7 +140,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             monitor.debug("[Consumer] " + message);
             negotiation.setErrorDetail(message);
             negotiation.transitionDeclining();
-            negotiationStore.save(negotiation);
+            negotiationStore.updateOrCreate(negotiation);
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return StatusResult.success(negotiation);
@@ -153,7 +153,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             // TODO: otherwise will fail. But should do it, since it's already confirmed? A duplicated message received shouldn't be an issue
             negotiation.transitionConfirmed();
         }
-        negotiationStore.save(negotiation);
+        negotiationStore.updateOrCreate(negotiation);
         observable.invokeForEach(l -> l.confirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -179,7 +179,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
         negotiation.transitionDeclined();
-        negotiationStore.save(negotiation);
+        negotiationStore.updateOrCreate(negotiation);
         observable.invokeForEach(l -> l.declined(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -197,7 +197,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
-        var negotiation = negotiationStore.find(negotiationId);
+        var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             negotiation = negotiationStore.findForCorrelationId(negotiationId);
         }
@@ -235,7 +235,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processInitial(ContractNegotiation negotiation) {
         negotiation.transitionRequesting();
-        negotiationStore.save(negotiation);
+        negotiationStore.updateOrCreate(negotiation);
         return true;
     }
 
@@ -367,12 +367,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return new AsyncSendResultHandler(id, "send initial offer")
                 .onSuccess(negotiation -> {
                     negotiation.transitionRequested();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                     observable.invokeForEach(l -> l.requested(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionRequesting();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                 })
                 .build();
     }
@@ -382,12 +382,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return new AsyncSendResultHandler(negotiationId, "send counter offer")
                 .onSuccess(negotiation -> {
                     negotiation.transitionOffered();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                     observable.invokeForEach(l -> l.offered(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionOffering();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                 })
                 .build();
     }
@@ -397,12 +397,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return new AsyncSendResultHandler(negotiationId, "send agreement")
                 .onSuccess(negotiation -> {
                     negotiation.transitionApproved();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                     observable.invokeForEach(l -> l.approved(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionApproving();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                 })
                 .build();
     }
@@ -412,12 +412,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return new AsyncSendResultHandler(negotiationId, "send rejection")
                 .onSuccess(negotiation -> {
                     negotiation.transitionDeclined();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                     observable.invokeForEach(l -> l.declined(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionDeclining();
-                    negotiationStore.save(negotiation);
+                    negotiationStore.updateOrCreate(negotiation);
                 })
                 .build();
     }

@@ -90,7 +90,7 @@ class CosmosPolicyDefinitionStoreTest {
         doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generatePolicy();
 
-        store.save(definition);
+        store.create(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
         verify(cosmosDbApiMock).createItem(captor.capture());
@@ -104,7 +104,7 @@ class CosmosPolicyDefinitionStoreTest {
 
         when(cosmosDbApiMock.queryItems(any(SqlQuerySpec.class))).thenReturn(IntStream.range(0, 1).mapToObj((i) -> captor.getValue()));
 
-        store.save(definition); //should write through the cache
+        store.create(definition); //should write through the cache
 
         var all = store.findAll(QuerySpec.none());
 
@@ -119,7 +119,7 @@ class CosmosPolicyDefinitionStoreTest {
         doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generatePolicy();
 
-        store.save(definition);
+        store.create(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
         verify(cosmosDbApiMock).createItem(captor.capture());

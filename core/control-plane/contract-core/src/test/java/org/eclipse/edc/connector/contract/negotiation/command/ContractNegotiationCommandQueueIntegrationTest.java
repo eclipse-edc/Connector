@@ -72,7 +72,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
         negotiation = getNegotiation(negotiationId);
         command = new TestCommand(negotiationId);
 
-        when(store.find(negotiationId)).thenReturn(negotiation);
+        when(store.findById(negotiationId)).thenReturn(negotiation);
     }
 
     @Test
@@ -105,7 +105,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
 
     @Test
     void submitTestCommand_consumerManager() throws Exception {
-        when(store.find(negotiationId)).thenReturn(negotiation);
+        when(store.findById(negotiationId)).thenReturn(negotiation);
 
         // Create and start the negotiation manager
         var negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -175,7 +175,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
         @Override
         protected boolean modify(ContractNegotiation negotiation) {
             negotiation.transitionError(errorDetail);
-            store.save(negotiation);
+            store.updateOrCreate(negotiation);
             return true;
         }
     }

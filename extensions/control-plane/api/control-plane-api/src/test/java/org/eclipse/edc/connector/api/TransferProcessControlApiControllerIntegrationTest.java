@@ -56,7 +56,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callTransferProcessHookWithComplete(TransferProcessStore store) {
-        store.save(createTransferProcess());
+        store.updateOrCreate(createTransferProcess());
 
         baseRequest()
                 .contentType("application/json")
@@ -67,7 +67,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull()
                     .extracting(StatefulEntity::getState).isEqualTo(COMPLETED.code());
         });
@@ -75,7 +75,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callTransferProcessHookWithError(TransferProcessStore store) {
-        store.save(createTransferProcess());
+        store.updateOrCreate(createTransferProcess());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
                 .errorMessage("error")
@@ -91,7 +91,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies((process) -> {
                 assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
@@ -144,7 +144,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callCompleteTransferProcessHook_invalidState(TransferProcessStore store) {
-        store.save(createTransferProcessBuilder().state(INITIAL.code()).build());
+        store.updateOrCreate(createTransferProcessBuilder().state(INITIAL.code()).build());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
                 .errorMessage("error")

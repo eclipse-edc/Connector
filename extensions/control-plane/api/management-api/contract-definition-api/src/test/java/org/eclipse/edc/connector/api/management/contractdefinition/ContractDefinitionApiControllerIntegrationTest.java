@@ -65,7 +65,7 @@ class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void getAllContractDefs(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
+        store.create(createContractDefinition("definitionId"));
 
         baseRequest()
                 .get("/contractdefinitions")
@@ -77,7 +77,7 @@ class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void getAllContractDefs_withPaging(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
+        store.create(createContractDefinition("definitionId"));
 
         baseRequest()
                 .get("/contractdefinitions?offset=0&limit=15&sort=ASC")
@@ -97,7 +97,7 @@ class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void queryAllContractDefs(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
+        store.create(createContractDefinition("definitionId"));
 
         baseRequest()
                 .contentType(JSON)
@@ -110,7 +110,7 @@ class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void queryAllContractDefs_withPaging(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
+        store.create(createContractDefinition("definitionId"));
 
         baseRequest()
                 .contentType(JSON)
@@ -136,7 +136,7 @@ class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void getSingleContractDef(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
+        store.create(createContractDefinition("definitionId"));
 
         baseRequest()
                 .get("/contractdefinitions/definitionId")
@@ -189,7 +189,7 @@ class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void postContractDefinition_alreadyExists(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
+        store.create(createContractDefinition("definitionId"));
         var dto = createDto("definitionId");
 
         baseRequest()
@@ -203,7 +203,7 @@ class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void deleteContractDefinition(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
+        store.create(createContractDefinition("definitionId"));
 
         baseRequest()
                 .contentType(JSON)
@@ -226,7 +226,7 @@ class ContractDefinitionApiControllerIntegrationTest {
     void updateContractDefinition_whenExists(ContractDefinitionStore store) {
 
         var cd = createContractDefinition("definitionId");
-        store.save(cd);
+        store.create(cd);
 
         var dto = updateDto();
 

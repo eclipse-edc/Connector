@@ -36,7 +36,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      * Finds the contract negotiation for the id or null.
      */
     @Nullable
-    ContractNegotiation find(String negotiationId);
+    ContractNegotiation findById(String negotiationId);
 
     /**
      * Returns the contract negotiation for the correlation id provided by the consumer or null.
@@ -54,7 +54,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      * Persists a contract negotiation. This follows UPSERT semantics, so if the object didn't exit before, it's
      * created.
      */
-    void save(ContractNegotiation negotiation);
+    void updateOrCreate(ContractNegotiation negotiation);
 
     /**
      * Removes a contract negotiation for the given id.
@@ -75,7 +75,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      * @return a stream of ContractNegotiation, cannot be null.
      */
     @NotNull
-    Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec);
+    Stream<ContractNegotiation> findAllNegotiations(QuerySpec querySpec);
 
 
     /**
@@ -86,5 +86,5 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      * @return a stream of ContractAgreement, cannot be null.
      */
     @NotNull
-    Stream<ContractAgreement> queryAgreements(QuerySpec querySpec);
+    Stream<ContractAgreement> findAllAgreements(QuerySpec querySpec);
 }

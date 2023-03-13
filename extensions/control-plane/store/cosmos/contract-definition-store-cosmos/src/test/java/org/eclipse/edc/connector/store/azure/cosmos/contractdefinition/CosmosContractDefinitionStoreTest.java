@@ -114,7 +114,7 @@ class CosmosContractDefinitionStoreTest {
         doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generateDefinition();
 
-        store.save(definition);
+        store.create(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
         verify(cosmosDbApiMock).createItem(captor.capture());
@@ -128,7 +128,7 @@ class CosmosContractDefinitionStoreTest {
         // cosmosDbApiQueryMock.queryAllItems() should never be called
         var definition = generateDefinition();
 
-        store.save(definition); //should write through the cache
+        store.create(definition); //should write through the cache
 
         var all = store.findAll(QuerySpec.max());
 
