@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AzureCosmosDbIntegrationTest
 class EndToEndTransferCosmosDbTest extends AbstractEndToEndTransfer {
 
-    public static final String E2E_TEST_NAME = "e2e-transfer-test-" + UUID.randomUUID();
+    private static final String E2E_TEST_NAME = "e2e-transfer-test-" + UUID.randomUUID();
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane-cosmosdb",
