@@ -48,7 +48,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.UNSAVED;
 
 /**
  * Represents a contract negotiation.
@@ -151,7 +150,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state INITIAL.
      */
     public void transitionInitial() {
-        transition(INITIAL, REQUESTING, UNSAVED);
+        transition(INITIAL, REQUESTING, INITIAL);
     }
 
     /**
@@ -169,7 +168,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
-            transition(REQUESTED, UNSAVED);
+            transition(REQUESTED, INITIAL);
         } else {
             transition(REQUESTED, REQUESTED, REQUESTING);
         }
