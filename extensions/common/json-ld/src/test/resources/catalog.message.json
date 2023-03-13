@@ -1,0 +1,70 @@
+{
+  "@context": {
+    "dcat": "http://www.w3.org/ns/dcat/",
+    "dct": "http://purl.org/dc/terms/",
+    "odrl": "https://www.w3.org/TR/odrl-model/",
+    "ids": "https://idsa.org/"
+  },
+  "@id": "urn:uuid:3afeadd8-ed2d-569e-d634-8394a8836d57",
+  "@type": "dcat:Catalog",
+  "dct:title": "Data Provider A Catalog",
+  "dct:description": "A catalog of data items",
+  "dct:publisher": "Data Provider A",
+  "dcat:keyword": [
+    "traffic", "government"
+  ],
+  "dcat:DataService": [
+    {
+      "@id": "urn:uuid:4aa2dcc8-4d2d-569e-d634-8394a8834d77",
+      "@type": "dcat:DataService",
+      "dct:terms": "ids:connector",
+      "dct:endpointUrl": "https://provder-a.com/connector"
+    }
+  ],
+  "dcat:dataset": [
+    {
+      "@id": "urn:uuid:3dd1add8-4d2d-569e-d634-8394a8836a88",
+      "@type": "dcat:Dataset",
+      "dct:title": "Traffic Data",
+      "dct:description": "Traffic data sample extract",
+      "dcat:keyword": [
+        "traffic"
+      ],
+      "dcat:hasPolicy": [
+        {
+          "@context": {
+            "@vocab": "https://www.w3.org/TR/odrl-model/"
+          },
+          "uid": "urn:uuid:2828282:3dd1add8-4d2d-569e-d634-8394a8836a88",
+          "permissions": [
+            {
+              "constraints": [
+                {
+                  "leftExpression": {
+                    "@value": "spatial"
+                  },
+                  "rightExpression": {
+                    "@value": "EU"
+                  },
+                  "operator": "EQ"
+                }
+              ],
+              "odrl:duties": []
+            }
+          ],
+          "odrl:prohibitions": [],
+          "odrl:obligations": []
+        }
+      ],
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "ids:s3+push"
+          },
+          "dcat:accessService": "urn:uuid:4aa2dcc8-4d2d-569e-d634-8394a8834d77"
+        }
+      ]
+    }
+  ]
+}
