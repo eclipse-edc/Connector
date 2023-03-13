@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.AdditionalMatchers.and;
@@ -123,7 +123,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void getState_returnsStringRepresentation() {
         var negotiation = createContractNegotiationBuilder("negotiationId")
-                .state(REQUESTED.code())
+                .state(CONSUMER_REQUESTED.code())
                 .build();
         when(store.find("negotiationId")).thenReturn(negotiation);
 
@@ -233,7 +233,7 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void decline_shouldSucceedIfManagerIsBeingAbleToDeclineIt() {
-        var negotiation = createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build();
+        var negotiation = createContractNegotiationBuilder("negotiationId").state(CONSUMER_REQUESTED.code()).build();
         when(store.find("negotiationId")).thenReturn(negotiation);
 
         var result = service.decline("negotiationId");

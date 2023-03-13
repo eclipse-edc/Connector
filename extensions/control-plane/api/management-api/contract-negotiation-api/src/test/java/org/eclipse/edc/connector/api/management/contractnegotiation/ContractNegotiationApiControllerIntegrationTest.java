@@ -45,7 +45,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
@@ -170,7 +170,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getSingleContractNegotationState(ContractNegotiationStore store) {
-        store.save(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
+        store.save(createContractNegotiationBuilder("negotiationId").state(CONSUMER_REQUESTED.code()).build());
 
         var state = baseRequest()
                 .get("/contractnegotiations/negotiationId/state")
@@ -263,7 +263,7 @@ class ContractNegotiationApiControllerIntegrationTest {
         registry.register(dispatcher);
         when(dispatcher.send(any(), any())).thenReturn(completedFuture(null));
         var negotiation = createContractNegotiationBuilder("negotiationId")
-                .state(REQUESTED.code())
+                .state(CONSUMER_REQUESTED.code())
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         store.save(negotiation);

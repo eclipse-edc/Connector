@@ -24,8 +24,8 @@ import java.util.Arrays;
 public enum ContractNegotiationStates {
 
     INITIAL(50),
-    REQUESTING(100),
-    REQUESTED(200),
+    CONSUMER_REQUESTING(100),
+    CONSUMER_REQUESTED(200),
     PROVIDER_OFFERING(300),
     PROVIDER_OFFERED(400),
     CONSUMER_OFFERING(500),

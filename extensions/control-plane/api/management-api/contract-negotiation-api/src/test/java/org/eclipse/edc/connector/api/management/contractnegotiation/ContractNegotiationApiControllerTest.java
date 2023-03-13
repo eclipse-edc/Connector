@@ -50,7 +50,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -147,7 +147,7 @@ class ContractNegotiationApiControllerTest {
 
         var state = controller.getNegotiationState("negotiationId");
 
-        assertThat(state.getState()).isEqualTo(REQUESTED.name());
+        assertThat(state.getState()).isEqualTo(CONSUMER_REQUESTED.name());
     }
 
     @Test

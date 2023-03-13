@@ -553,7 +553,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .id("negotiation1")
                 .contractAgreement(null)
                 .correlationId("corr-negotiation1")
-                .state(ContractNegotiationStates.REQUESTED.code())
+                .state(ContractNegotiationStates.CONSUMER_REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .protocol("ids-multipart")
