@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import dev.failsafe.FailsafeExecutor;
 import dev.failsafe.Fallback;
 import dev.failsafe.RetryPolicy;
+import dev.failsafe.function.CheckedRunnable;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
 import org.eclipse.edc.azure.cosmos.CosmosDocument;
 import org.eclipse.edc.azure.cosmos.dialect.SqlStatement;
@@ -121,7 +122,11 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         try {
             leaseContext.acquireLease(process.getId());
-            failsafeExecutor.run(() -> cosmosDbApi.createItem(new TransferProcessDocument(process, partitionKey)));
+            CheckedRunnable action = () -> cosmosDbApi.createItem(new TransferProcessDocument(process, partitionKey));
+            if (findByIdInternal(process.getId()) != null) {
+                action = () -> cosmosDbApi.updateItem(new TransferProcessDocument(process, partitionKey));
+            }
+            failsafeExecutor.run(action);
             leaseContext.breakLease(process.getId());
         } catch (BadRequestException ex) {
             throw new EdcException(ex);

@@ -93,7 +93,7 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
         } catch (NotFoundException nfe) {
             var msg = format(POLICY_NOT_FOUND, policy.getUid());
             monitor.debug(() -> msg);
-            return StoreResult.alreadyExists(msg);
+            return StoreResult.notFound(msg);
         }
     }
 

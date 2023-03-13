@@ -149,7 +149,7 @@ public class EdcRuntimeExtension extends EdcExtension {
      * Replace Gradle subproject JAR entries with subproject build directories in classpath. This ensures modified
      * classes are picked up without needing to rebuild dependent JARs.
      *
-     * @param root project root directory.
+     * @param root           project root directory.
      * @param classPathEntry class path entry to resolve.
      * @return resolved class path entries for the input argument.
      */
