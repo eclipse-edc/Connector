@@ -44,10 +44,9 @@ import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -64,7 +63,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         stateMachineManager = StateMachineManager.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(CONSUMER_REQUESTING, this::processRequesting))
-                .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
                 .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
                 .processor(onCommands(this::processCommand))
@@ -261,27 +259,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state CONSUMER_OFFERING. Tries to send the current offer to the
-     * respective provider. If this succeeds, the ContractNegotiation is transitioned to state CONSUMER_OFFERED. Else,
-     * it is transitioned to CONSUMER_OFFERING for a retry.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private boolean processConsumerOffering(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
-        var offer = negotiation.getLastContractOffer();
-        sendOffer(offer, negotiation, ContractOfferRequest.Type.COUNTER_OFFER)
-                .whenComplete(onCounterOfferSent(negotiation.getId()));
-
-        return true;
-    }
-
-    /**
      * Processes {@link ContractNegotiation} in state CONSUMER_APPROVING. Tries to send a dummy contract agreement to
      * the respective provider in order to approve the last offer sent by the provider. If this succeeds, the
      * ContractNegotiation is transitioned to state CONSUMER_APPROVED. Else, it is transitioned to CONSUMER_APPROVING
@@ -372,21 +349,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionRequesting();
-                    negotiationStore.save(negotiation);
-                })
-                .build();
-    }
-
-    @NotNull
-    private BiConsumer<Object, Throwable> onCounterOfferSent(String negotiationId) {
-        return new AsyncSendResultHandler(negotiationId, "send counter offer")
-                .onSuccess(negotiation -> {
-                    negotiation.transitionOffered();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.offered(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    negotiation.transitionOffering();
                     negotiationStore.save(negotiation);
                 })
                 .build();

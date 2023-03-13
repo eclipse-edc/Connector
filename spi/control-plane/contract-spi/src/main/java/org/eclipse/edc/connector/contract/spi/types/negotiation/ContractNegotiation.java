@@ -39,15 +39,13 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_APPROVED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_OFFERED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 
 /**
  * Represents a contract negotiation.
@@ -179,7 +177,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionOffering() {
         if (CONSUMER == type) {
-            transition(CONSUMER_OFFERING, CONSUMER_OFFERING, CONSUMER_REQUESTED);
+            transition(CONSUMER_REQUESTING, CONSUMER_REQUESTING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
         } else {
             transition(PROVIDER_OFFERING, PROVIDER_OFFERING, PROVIDER_OFFERED, CONSUMER_REQUESTED);
         }
@@ -191,7 +189,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionOffered() {
         if (CONSUMER == type) {
-            transition(CONSUMER_OFFERED, PROVIDER_OFFERED, CONSUMER_OFFERING);
+            transition(PROVIDER_OFFERED, PROVIDER_OFFERED, CONSUMER_REQUESTED);
         } else {
             transition(PROVIDER_OFFERED, PROVIDER_OFFERED, PROVIDER_OFFERING);
         }
@@ -204,7 +202,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
         }
-        transition(CONSUMER_APPROVING, CONSUMER_APPROVING, CONSUMER_OFFERED, CONSUMER_REQUESTED);
+        transition(CONSUMER_APPROVING, CONSUMER_APPROVING, CONSUMER_REQUESTED);
     }
 
     /**
@@ -226,7 +224,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         Stream<ContractNegotiationStates> validStartingStates;
 
         if (CONSUMER == type) {
-            validStartingStates = Stream.of(DECLINING, CONSUMER_REQUESTED, CONSUMER_OFFERED, CONSUMER_APPROVED);
+            validStartingStates = Stream.of(DECLINING, CONSUMER_REQUESTED, CONSUMER_APPROVED);
         } else {
             validStartingStates = Stream.of(CONSUMER_REQUESTED, DECLINING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
         }
@@ -246,7 +244,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionDeclined() {
         if (CONSUMER == type) {
-            transition(DECLINED, DECLINING, CONSUMER_OFFERED, CONSUMER_REQUESTED);
+            transition(DECLINED, DECLINING, CONSUMER_REQUESTED);
         } else {
             transition(DECLINED, DECLINING, PROVIDER_OFFERED, CONFIRMING, CONFIRMED, CONSUMER_REQUESTED);
         }
@@ -267,7 +265,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionConfirmed() {
         if (CONSUMER == type) {
-            transition(CONFIRMED, CONFIRMING, CONSUMER_APPROVED, CONSUMER_REQUESTED, CONSUMER_OFFERED, CONFIRMED);
+            transition(CONFIRMED, CONFIRMING, CONSUMER_APPROVED, CONSUMER_REQUESTED, CONFIRMED);
         } else {
             transition(CONFIRMED, CONFIRMING);
         }
@@ -416,13 +414,18 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
 
         @Override
         public ContractNegotiation build() {
+            super.build();
+
             Objects.requireNonNull(entity.counterPartyId);
             Objects.requireNonNull(entity.counterPartyAddress);
             Objects.requireNonNull(entity.protocol);
             if (Type.PROVIDER == entity.type) {
                 Objects.requireNonNull(entity.correlationId);
             }
-            return super.build();
+            if (entity.state == 0) {
+                entity.transitionTo(INITIAL.code());
+            }
+            return entity;
         }
     }
 }

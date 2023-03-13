@@ -44,8 +44,8 @@ import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
@@ -177,9 +177,9 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .extract().asString();
+                .extract().as(Map.class);
 
-        assertThat(state).isEqualTo("{\"state\":\"REQUESTED\"}");
+        assertThat(state).containsEntry("state", "CONSUMER_REQUESTED");
     }
 
     @Test

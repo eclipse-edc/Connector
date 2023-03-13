@@ -333,12 +333,12 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState_verifySaveClearsLease() {
-        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
+        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_REQUESTED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
         // verify nextForState sets the lease
-        var result = store.nextForState(ContractNegotiationStates.CONSUMER_OFFERED.code(), 5);
+        var result = store.nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 5);
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
         var storedDoc = readItem(n.getId());
         assertThat(storedDoc.getLease()).isNotNull();
@@ -359,12 +359,12 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     @Test
     @DisplayName("Verify that a leased entity can not be deleted")
     void nextForState_verifyDelete() {
-        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
+        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_REQUESTED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
         // verify nextForState sets the lease
-        var result = store.nextForState(ContractNegotiationStates.CONSUMER_OFFERED.code(), 5);
+        var result = store.nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 5);
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
 
         // verify entity can be deleted
