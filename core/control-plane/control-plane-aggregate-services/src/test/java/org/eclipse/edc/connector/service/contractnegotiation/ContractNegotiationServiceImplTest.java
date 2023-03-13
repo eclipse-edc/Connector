@@ -40,7 +40,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
@@ -129,7 +129,7 @@ class ContractNegotiationServiceImplTest {
 
         var result = service.getState("negotiationId");
 
-        assertThat(result).isEqualTo("REQUESTED");
+        assertThat(result).isEqualTo(CONSUMER_REQUESTED.name());
     }
 
     @Test
@@ -256,7 +256,7 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void decline_shouldFailIfCannotBeDeclined() {
-        var negotiation = createContractNegotiationBuilder("negotiationId").state(CONFIRMED.code()).build();
+        var negotiation = createContractNegotiationBuilder("negotiationId").state(PROVIDER_AGREED.code()).build();
         when(store.find("negotiationId")).thenReturn(negotiation);
 
         var result = service.decline("negotiationId");

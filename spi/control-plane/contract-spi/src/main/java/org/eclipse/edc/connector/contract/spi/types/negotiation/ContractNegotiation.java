@@ -35,8 +35,8 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
@@ -246,7 +246,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (CONSUMER == type) {
             transition(DECLINED, DECLINING, CONSUMER_REQUESTED);
         } else {
-            transition(DECLINED, DECLINING, PROVIDER_OFFERED, CONFIRMING, CONFIRMED, CONSUMER_REQUESTED);
+            transition(DECLINED, DECLINING, PROVIDER_OFFERED, PROVIDER_AGREEING, PROVIDER_AGREED, CONSUMER_REQUESTED);
         }
     }
 
@@ -257,7 +257,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (CONSUMER == type) {
             throw new IllegalStateException("Consumer processes have no CONFIRMING state");
         }
-        transition(CONFIRMING, CONFIRMING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
+        transition(PROVIDER_AGREEING, PROVIDER_AGREEING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
     }
 
     /**
@@ -265,9 +265,9 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionConfirmed() {
         if (CONSUMER == type) {
-            transition(CONFIRMED, CONFIRMING, CONSUMER_AGREED, CONSUMER_REQUESTED, CONFIRMED);
+            transition(PROVIDER_AGREED, PROVIDER_AGREEING, CONSUMER_AGREED, CONSUMER_REQUESTED, PROVIDER_AGREED);
         } else {
-            transition(CONFIRMED, CONFIRMING);
+            transition(PROVIDER_AGREED, PROVIDER_AGREEING);
         }
     }
 

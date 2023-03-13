@@ -39,7 +39,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -62,7 +62,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
-                .processor(processNegotiationsInState(CONFIRMING, this::processConfirming))
+                .processor(processNegotiationsInState(PROVIDER_AGREEING, this::processConfirming))
                 .processor(onCommands(this::processCommand))
                 .build();
 

@@ -32,8 +32,8 @@ public enum ContractNegotiationStates {
     CONSUMER_AGREED(800),
     DECLINING(900),
     DECLINED(1000),
-    CONFIRMING(1100),
-    CONFIRMED(1200),
+    PROVIDER_AGREEING(1100),
+    PROVIDER_AGREED(1200),
     ERROR(-1);
 
     private final int code;

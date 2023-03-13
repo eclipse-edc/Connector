@@ -177,7 +177,7 @@ public abstract class TransferSimulationUtils {
                         jmesPath("state").saveAs("status")
                 )
                 .checkIf(
-                        session -> ContractNegotiationStates.CONFIRMED.name().equals(session.getString("status"))
+                        session -> ContractNegotiationStates.PROVIDER_AGREED.name().equals(session.getString("status"))
                 ).then(
                         jmesPath("contractAgreementId").notNull().saveAs(CONTRACT_AGREEMENT_ID)
                 );

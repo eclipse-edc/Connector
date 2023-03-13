@@ -57,7 +57,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isA;
@@ -172,7 +172,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(providerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
-                    assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
+                    assertThat(consumerNegotiation.getState()).isEqualTo(PROVIDER_AGREED.code());
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
                     assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 

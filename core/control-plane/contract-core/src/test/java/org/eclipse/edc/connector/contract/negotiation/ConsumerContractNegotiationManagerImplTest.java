@@ -50,7 +50,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
@@ -155,7 +155,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
-                negotiation.getState() == CONFIRMED.code() &&
+                negotiation.getState() == PROVIDER_AGREED.code() &&
                         negotiation.getContractAgreement() == contractAgreement
         ));
         verify(validationService).validateConfirmed(eq(contractAgreement), any(ContractOffer.class));
