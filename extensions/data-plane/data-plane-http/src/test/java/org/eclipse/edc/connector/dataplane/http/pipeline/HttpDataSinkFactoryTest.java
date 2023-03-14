@@ -83,7 +83,7 @@ class HttpDataSinkFactoryTest {
         var request = createRequest(address);
         when(provider.provideSinkParams(request)).thenThrow(new EdcException(errorMsg));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).hasSize(1);
@@ -101,7 +101,7 @@ class HttpDataSinkFactoryTest {
                 .build();
         when(provider.provideSinkParams(request)).thenReturn(params);
 
-        assertThat(factory.validate(request).succeeded()).isTrue();
+        assertThat(factory.validateRequest(request).succeeded()).isTrue();
         var sink = factory.createSink(request);
         assertThat(sink).isNotNull();
 

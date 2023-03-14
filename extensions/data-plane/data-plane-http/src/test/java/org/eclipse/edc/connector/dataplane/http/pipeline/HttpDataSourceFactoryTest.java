@@ -69,7 +69,7 @@ class HttpDataSourceFactoryTest {
 
         when(provider.provideSourceParams(request)).thenThrow(new EdcException(errorMsg));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).hasSize(1);
         assertThat(result.getFailureMessages().get(0)).contains(errorMsg);
@@ -85,7 +85,7 @@ class HttpDataSourceFactoryTest {
 
         when(provider.provideSourceParams(request)).thenReturn(params);
 
-        assertThat(factory.validate(request).succeeded()).isTrue();
+        assertThat(factory.validateRequest(request).succeeded()).isTrue();
         var source = factory.createSource(request);
         assertThat(source).isNotNull();
 

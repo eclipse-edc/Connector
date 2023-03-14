@@ -61,7 +61,7 @@ class GcsDataSourceFactoryTest {
 
         var request = TestFunctions.createRequest(source);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -76,7 +76,7 @@ class GcsDataSourceFactoryTest {
 
         var request = TestFunctions.createRequest(source);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.failed()).isTrue();
     }

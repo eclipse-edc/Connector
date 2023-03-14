@@ -35,12 +35,22 @@ public interface DataSinkFactory {
 
     /**
      * Returns true if the request is valid.
+     *
+     * @deprecated use {@link #validateRequest(DataFlowRequest)} instead.
      */
+    @Deprecated(since = "milestone9")
     @NotNull Result<Boolean> validate(DataFlowRequest request);
 
     /**
      * Creates a sink to send data to.
      */
     DataSink createSink(DataFlowRequest request);
+
+    /**
+     * Returns a Result object of the validation result.
+     */
+    default @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+        return validate(request).mapTo();
+    }
 
 }
