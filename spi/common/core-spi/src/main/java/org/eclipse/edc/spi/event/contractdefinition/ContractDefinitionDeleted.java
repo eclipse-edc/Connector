@@ -15,42 +15,37 @@
 
 package org.eclipse.edc.spi.event.contractdefinition;
 
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Describe a ContractDefinition deletion, after this has emitted, the ContractDefinition represented by the id won't be available anymore.
  */
-public class ContractDefinitionDeleted extends ContractDefinitionEvent<ContractDefinitionDeleted.Payload> {
+@JsonDeserialize(builder = ContractDefinitionDeleted.Builder.class)
+public class ContractDefinitionDeleted extends ContractDefinitionEvent {
 
     private ContractDefinitionDeleted() {
     }
 
-    /**
-     * This class contains all event specific attributes of a ContractDefinition Deletion Event
-     *
-     */
-    public static class Payload extends ContractDefinitionEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionDeleted, Builder> {
 
-    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionDeleted, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new ContractDefinitionDeleted(), new Payload());
+            super(new ContractDefinitionDeleted());
         }
 
-        public Builder contractDefinitionId(String contractDefinitionId) {
-            event.payload.contractDefinitionId = contractDefinitionId;
+
+        @Override
+        public Builder self() {
             return this;
         }
 
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.contractDefinitionId);
-        }
     }
 
 }

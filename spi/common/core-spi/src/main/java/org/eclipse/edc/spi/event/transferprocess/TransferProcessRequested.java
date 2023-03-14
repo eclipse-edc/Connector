@@ -14,31 +14,35 @@
 
 package org.eclipse.edc.spi.event.transferprocess;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * This event is raised when the TransferProcess has been requested to the provider.
  */
-public class TransferProcessRequested extends TransferProcessEvent<TransferProcessRequested.Payload> {
+@JsonDeserialize(builder = TransferProcessRequested.Builder.class)
+public class TransferProcessRequested extends TransferProcessEvent {
 
     private TransferProcessRequested() {
     }
 
-    /**
-     * This class contains all event specific attributes of a TransferProcess Requested Event
-     *
-     */
-    public static class Payload extends TransferProcessEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessRequested, Builder> {
 
-    public static class Builder extends TransferProcessEvent.Builder<TransferProcessRequested, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new TransferProcessRequested(), new Payload());
+            super(new TransferProcessRequested());
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
     }
 
 }

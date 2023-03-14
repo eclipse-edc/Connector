@@ -15,29 +15,34 @@
 
 package org.eclipse.edc.spi.event.contractdefinition;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * Describe a new ContractDefinition creation, after this has emitted, a ContractDefinition with a certain id will be available.
  */
-public class ContractDefinitionCreated extends ContractDefinitionEvent<ContractDefinitionCreated.Payload> {
+@JsonDeserialize(builder = ContractDefinitionCreated.Builder.class)
+public class ContractDefinitionCreated extends ContractDefinitionEvent {
 
     private ContractDefinitionCreated() {
     }
 
-    /**
-     * This class contains all event specific attributes of a ContractDefinition Creation Event
-     *
-     */
-    public static class Payload extends ContractDefinitionEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionCreated, Builder> {
 
-    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionCreated, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new ContractDefinitionCreated(), new Payload());
+            super(new ContractDefinitionCreated());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

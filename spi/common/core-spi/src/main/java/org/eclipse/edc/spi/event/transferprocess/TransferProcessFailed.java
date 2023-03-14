@@ -14,29 +14,34 @@
 
 package org.eclipse.edc.spi.event.transferprocess;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * This event is raised when the TransferProcess has failed.
  */
-public class TransferProcessFailed extends TransferProcessEvent<TransferProcessFailed.Payload> {
+@JsonDeserialize(builder = TransferProcessFailed.Builder.class)
+public class TransferProcessFailed extends TransferProcessEvent {
 
     private TransferProcessFailed() {
     }
 
-    /**
-     * This class contains all event specific attributes of a TransferProcess Failed Event
-     *
-     */
-    public static class Payload extends TransferProcessEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessFailed, Builder> {
 
-    public static class Builder extends TransferProcessEvent.Builder<TransferProcessFailed, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new TransferProcessFailed(), new Payload());
+            super(new TransferProcessFailed());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

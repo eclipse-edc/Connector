@@ -15,29 +15,34 @@
 
 package org.eclipse.edc.spi.event.policydefinition;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * Describe a new PolicyDefinition creation, after this has emitted, a PolicyDefinition with a certain id will be available.
  */
-public class PolicyDefinitionCreated extends PolicyDefinitionEvent<PolicyDefinitionCreated.Payload> {
+@JsonDeserialize(builder = PolicyDefinitionCreated.Builder.class)
+public class PolicyDefinitionCreated extends PolicyDefinitionEvent {
 
     private PolicyDefinitionCreated() {
     }
 
-    /**
-     * This class contains all event specific attributes of a PolicyDefinition Creation Event
-     *
-     */
-    public static class Payload extends PolicyDefinitionEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionCreated, Builder> {
 
-    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionCreated, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new PolicyDefinitionCreated(), new Payload());
+            super(new PolicyDefinitionCreated());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

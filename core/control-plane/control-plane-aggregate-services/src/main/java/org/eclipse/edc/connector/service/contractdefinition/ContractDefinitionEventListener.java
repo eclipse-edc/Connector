@@ -16,9 +16,11 @@ package org.eclipse.edc.connector.service.contractdefinition;
 
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionListener;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionDeleted;
+import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionEvent;
 import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionUpdated;
 
 import java.time.Clock;
@@ -39,29 +41,35 @@ public class ContractDefinitionEventListener implements ContractDefinitionListen
     public void created(ContractDefinition contractDefinition) {
         var event = ContractDefinitionCreated.Builder.newInstance()
                 .contractDefinitionId(contractDefinition.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
     }
 
     @Override
     public void deleted(ContractDefinition contractDefinition) {
         var event = ContractDefinitionDeleted.Builder.newInstance()
                 .contractDefinitionId(contractDefinition.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
     }
 
     @Override
     public void updated(ContractDefinition contractDefinition) {
         var event = ContractDefinitionUpdated.Builder.newInstance()
                 .contractDefinitionId(contractDefinition.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
+    }
+
+    private void publish(ContractDefinitionEvent event) {
+        var envelope = EventEnvelope.Builder.newInstance()
+                .payload(event)
+                .at(clock.millis())
+                .build();
+        
+        eventRouter.publish(envelope);
     }
 }
