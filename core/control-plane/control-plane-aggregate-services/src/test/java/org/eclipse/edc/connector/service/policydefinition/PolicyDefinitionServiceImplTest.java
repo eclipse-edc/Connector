@@ -89,25 +89,25 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void createPolicy_shouldCreatePolicyIfItDoesNotAlreadyExist() {
         var policy = createPolicy("policyId");
-        when(policyStore.save(policy)).thenReturn(StoreResult.success(policy));
+        when(policyStore.create(policy)).thenReturn(StoreResult.success(policy));
 
         var inserted = policyServiceImpl.create(policy);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).isEqualTo(policy);
-        verify(policyStore).save(policy);
+        verify(policyStore).create(policy);
         verifyNoMoreInteractions(policyStore);
     }
 
     @Test
     void createPolicy_shouldNotCreatePolicyIfItAlreadyExists() {
         var policy = createPolicy("policyId");
-        when(policyStore.save(policy)).thenReturn(StoreResult.alreadyExists("test"));
+        when(policyStore.create(policy)).thenReturn(StoreResult.alreadyExists("test"));
 
         var inserted = policyServiceImpl.create(policy);
 
         assertThat(inserted.succeeded()).isFalse();
-        verify(policyStore).save(policy);
+        verify(policyStore).create(policy);
         verifyNoMoreInteractions(policyStore);
     }
 
@@ -115,7 +115,7 @@ class PolicyDefinitionServiceImplTest {
     void delete_shouldDeletePolicyIfItsNotReferencedByAnyContractDefinition() {
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.empty(), Stream.empty());
         when(policyStore.findById(any())).thenReturn(createPolicy("policyId"));
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.success(createPolicy("policyId")));
+        when(policyStore.delete("policyId")).thenReturn(StoreResult.success(createPolicy("policyId")));
 
         var deleted = policyServiceImpl.deleteById("policyId");
 
@@ -128,7 +128,7 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void delete_shouldNotDelete_whenPolicyPartOfContractDef() {
         var policy = createPolicy("policyId");
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.success(policy));
+        when(policyStore.delete("policyId")).thenReturn(StoreResult.success(policy));
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
@@ -149,7 +149,7 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void delete_shouldNotDelete_whenPolicyIsPartOfContractDefinition() {
         var policy = createPolicy("policyId");
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.success(policy));
+        when(policyStore.delete("policyId")).thenReturn(StoreResult.success(policy));
 
         ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
@@ -169,7 +169,7 @@ class PolicyDefinitionServiceImplTest {
 
     @Test
     void delete_shouldFailIfPolicyDoesNotExist() {
-        when(policyStore.deleteById("policyId")).thenReturn(StoreResult.notFound("test"));
+        when(policyStore.delete("policyId")).thenReturn(StoreResult.notFound("test"));
 
         var deleted = policyServiceImpl.deleteById("policyId");
 
@@ -180,10 +180,10 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void delete_verifyCorrectQueries() {
         var policyId = "test-policy";
-        when(policyStore.deleteById(policyId)).thenReturn(StoreResult.success());
+        when(policyStore.delete(policyId)).thenReturn(StoreResult.success());
         policyServiceImpl.deleteById(policyId);
 
-        verify(policyStore).deleteById(eq(policyId));
+        verify(policyStore).delete(eq(policyId));
         verifyNoMoreInteractions(policyStore);
     }
 

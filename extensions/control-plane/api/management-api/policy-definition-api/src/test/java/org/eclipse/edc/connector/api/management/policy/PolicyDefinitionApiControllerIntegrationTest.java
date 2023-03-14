@@ -64,7 +64,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     void getAllpolicydefinitions(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
-        policyStore.save(policy);
+        policyStore.create(policy);
 
         baseRequest()
                 .get("/policydefinitions")
@@ -86,7 +86,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     void queryAllPolicyDefinitions(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
-        policyStore.save(policy);
+        policyStore.create(policy);
 
         baseRequest()
                 .contentType(JSON)
@@ -99,7 +99,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
 
     @Test
     void queryAllPolicyDefinitions_withQuery(PolicyDefinitionStore policyStore) {
-        IntStream.range(0, 10).forEach(i -> policyStore.save(createPolicy("id" + i)));
+        IntStream.range(0, 10).forEach(i -> policyStore.create(createPolicy("id" + i)));
 
         baseRequest()
                 .contentType(JSON)
@@ -118,7 +118,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
 
     @Test
     void queryAllPolicyDefinitions_withPaging(PolicyDefinitionStore policyStore) {
-        IntStream.range(0, 10).forEach(i -> policyStore.save(createPolicy("id" + i)));
+        IntStream.range(0, 10).forEach(i -> policyStore.create(createPolicy("id" + i)));
 
         baseRequest()
                 .contentType(JSON)
@@ -138,7 +138,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     @Test
     void getSinglePolicy(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
-        policyStore.save(policy);
+        policyStore.create(policy);
 
         baseRequest()
                 .get("/policydefinitions/id")
@@ -175,7 +175,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     @Test
     void put_whenPolicyExists(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("policyDefId");
-        policyStore.save(policy);
+        policyStore.create(policy);
 
         policy.getPolicy().getExtensibleProperties().put("anotherKey", "anotherVal");
 
@@ -207,7 +207,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
 
     @Test
     void postPolicyId_alreadyExists(PolicyDefinitionStore policyStore) {
-        policyStore.save(createPolicy("id"));
+        policyStore.create(createPolicy("id"));
 
         baseRequest()
                 .body(createPolicy("id"))
@@ -221,7 +221,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     void deletePolicy(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
-        policyStore.save(policy);
+        policyStore.create(policy);
 
         baseRequest()
                 .contentType(JSON)
@@ -243,7 +243,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     @Test
     void deletePolicy_whenReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyStore) {
         var policy = createPolicy("access");
-        policyStore.save(policy);
+        policyStore.create(policy);
         contractDefinitionStore.save(createContractDefinition(policy.getUid()));
 
         baseRequest()

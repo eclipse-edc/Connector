@@ -74,7 +74,7 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
     }
 
     @Override
-    public StoreResult<PolicyDefinition> save(PolicyDefinition policy) {
+    public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
         try {
             with(retryPolicy).run(() -> cosmosDbApi.createItem(convertToDocument(policy)));
             return StoreResult.success(policy);
@@ -98,7 +98,7 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
     }
 
     @Override
-    public StoreResult<PolicyDefinition> deleteById(String policyId) {
+    public StoreResult<PolicyDefinition> delete(String policyId) {
         try {
             var deletedItem = cosmosDbApi.deleteItem(policyId);
             return StoreResult.success(convert(deletedItem));
