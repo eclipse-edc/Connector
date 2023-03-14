@@ -29,8 +29,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.injection.InjectionContainer;
-import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -44,9 +42,8 @@ import static java.lang.String.format;
  * Base runtime class. During its {@code main()} method it instantiates a new {@code BaseRuntime} object that bootstraps
  * the connector. It goes through the following steps, all of which are overridable:
  * <ul>
- *     <li>{@link BaseRuntime#createTypeManager()}: instantiates a new {@link TypeManager}</li>
  *     <li>{@link BaseRuntime#createMonitor()} : instantiates a new {@link Monitor}</li>
- *     <li>{@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
+ *     <li>{@link BaseRuntime#createContext(Monitor)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
  *     <li>{@link BaseRuntime#createExtensions(ServiceExtensionContext)}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ExtensionLoader#loadServiceExtensions(ServiceExtensionContext)}</li>
  *     <li>{@link BaseRuntime#bootExtensions(ServiceExtensionContext, List)}: initializes the service extensions by putting them through their lifecycle.
  *     By default this calls {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)} </li>
@@ -96,24 +93,16 @@ public class BaseRuntime {
 
     @NotNull
     protected ServiceExtensionContext createServiceExtensionContext() {
-        var typeManager = createTypeManager();
         monitor = createMonitor();
         MonitorProvider.setInstance(monitor);
 
-        var telemetry = createTelemetry();
-
-        var context = createContext(typeManager, monitor, telemetry);
+        var context = createContext(monitor);
         initializeContext(context);
         return context;
     }
 
-    @NotNull
-    protected Telemetry createTelemetry() {
-        return ExtensionLoader.loadTelemetry();
-    }
-
     /**
-     * Initializes the context. If {@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry)} is overridden and the (custom) context
+     * Initializes the context. If {@link BaseRuntime#createContext(Monitor)} is overridden and the (custom) context
      * needs to be initialized, this method should be overridden as well.
      *
      * @param context The context.
@@ -166,13 +155,12 @@ public class BaseRuntime {
      * Create a {@link ServiceExtensionContext} that will be used in this runtime. If e.g. a third-party dependency-injection framework were to be used,
      * this would likely need to be overridden.
      *
-     * @param typeManager The TypeManager (for JSON de-/serialization)
      * @param monitor     a Monitor
      * @return a {@code ServiceExtensionContext}
      */
     @NotNull
-    protected ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        return new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
+    protected ServiceExtensionContext createContext(Monitor monitor) {
+        return new DefaultServiceExtensionContext(monitor, loadConfigurationExtensions());
     }
 
     protected List<ConfigurationExtension> loadConfigurationExtensions() {
@@ -203,14 +191,6 @@ public class BaseRuntime {
     @NotNull
     protected Monitor createMonitor() {
         return ExtensionLoader.loadMonitor();
-    }
-
-    /**
-     * Hook point to supply a (custom) TypeManager. By default a new TypeManager is created
-     */
-    @NotNull
-    protected TypeManager createTypeManager() {
-        return new TypeManager();
     }
 
     private void boot(boolean addShutdownHook) {

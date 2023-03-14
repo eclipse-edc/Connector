@@ -15,22 +15,20 @@
 
 package org.eclipse.edc.connector.transfer.command.handlers;
 
-import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
+
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 
 /**
  * Completes a transfer process and sends it to the {@link TransferProcessStates#COMPLETED} state.
  */
 public class CompleteTransferCommandHandler extends SingleTransferProcessCommandHandler<CompleteTransferCommand> {
 
-    private final TransferProcessObservable observable;
-
-    public CompleteTransferCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
+    public CompleteTransferCommandHandler(TransferProcessStore store) {
         super(store);
-        this.observable = observable;
     }
 
     @Override
@@ -40,8 +38,8 @@ public class CompleteTransferCommandHandler extends SingleTransferProcessCommand
 
     @Override
     protected boolean modify(TransferProcess process, CompleteTransferCommand command) {
-        if (process.getState() == TransferProcessStates.IN_PROGRESS.code()) {
-            process.transitionCompleted();
+        if (process.getState() == STARTED.code()) {
+            process.transitionCompleting();
             return true;
         }
         return false;
@@ -49,6 +47,5 @@ public class CompleteTransferCommandHandler extends SingleTransferProcessCommand
 
     @Override
     protected void postAction(TransferProcess process) {
-        observable.invokeForEach(l -> l.completed(process));
     }
 }

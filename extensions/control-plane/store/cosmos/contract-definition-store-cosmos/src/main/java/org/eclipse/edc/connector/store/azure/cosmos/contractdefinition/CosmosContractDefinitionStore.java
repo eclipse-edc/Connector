@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.contractdefinition;
 
+import com.azure.cosmos.implementation.ConflictException;
 import com.azure.cosmos.implementation.NotFoundException;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
@@ -25,14 +26,14 @@ import org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.model.Con
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
+import static java.lang.String.format;
 
 /**
  * Implementation of the {@link ContractDefinitionStore} based on CosmosDB. This store implements simple write-through
@@ -73,29 +74,37 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
         return definition != null ? convert(definition) : null;
     }
 
+
     @Override
-    public void save(Collection<ContractDefinition> definitions) {
-        with(retryPolicy).run(() -> cosmosDbApi.saveItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList())));
+    public StoreResult<Void> save(ContractDefinition definition) {
+        try {
+            with(retryPolicy).run(() -> cosmosDbApi.createItem(convertToDocument(definition)));
+            return StoreResult.success();
+        } catch (ConflictException e) {
+            monitor.debug(() -> format(CONTRACT_DEFINITION_EXISTS, definition.getId()));
+            return StoreResult.alreadyExists(format(CONTRACT_DEFINITION_EXISTS, definition.getId()));
+        }
     }
 
     @Override
-    public void save(ContractDefinition definition) {
-        with(retryPolicy).run(() -> cosmosDbApi.saveItem(convertToDocument(definition)));
+    public StoreResult<Void> update(ContractDefinition definition) {
+        try {
+            with(retryPolicy).run(() -> cosmosDbApi.updateItem(convertToDocument(definition)));
+            return StoreResult.success();
+        } catch (NotFoundException e) {
+            monitor.debug(() -> format(CONTRACT_DEFINITION_NOT_FOUND, definition.getId()));
+            return StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, definition.getId()));
+        }
     }
 
     @Override
-    public void update(ContractDefinition definition) {
-        save(definition); //cosmos db api internally uses "upsert" semantics
-    }
-
-    @Override
-    public ContractDefinition deleteById(String id) {
+    public StoreResult<ContractDefinition> deleteById(String id) {
         try {
             var deletedItem = with(retryPolicy).get(() -> cosmosDbApi.deleteItem(id));
-            return deletedItem == null ? null : convert(deletedItem);
+            return StoreResult.success(convert(deletedItem));
         } catch (NotFoundException e) {
-            monitor.debug(() -> String.format("ContractDefinition with id %s not found", id));
-            return null;
+            monitor.debug(() -> format(CONTRACT_DEFINITION_NOT_FOUND, id));
+            return StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, id));
         }
     }
 

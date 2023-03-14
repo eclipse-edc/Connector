@@ -207,6 +207,45 @@ paths:
           description: An  policy definition with the given ID does not exist
       tags:
       - Policy
+  /policydefinitions/{policyId}:
+    put:
+      description: "Updates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: updatePolicy
+      parameters:
+      - in: path
+        name: policyId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
+      responses:
+        "200":
+          description: policy definition was updated successfully. Returns the Policy
+            Definition Id and updated timestamp
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDetail'
+          description: "policy definition could not be updated, because it does not\
+            \ exists"
+      tags:
+      - Policy
 components:
   schemas:
     Action:
@@ -396,6 +435,14 @@ components:
         id:
           type: string
           example: null
+        policy:
+          $ref: '#/components/schemas/Policy'
+      required:
+      - policy
+    PolicyDefinitionUpdateDto:
+      type: object
+      example: null
+      properties:
         policy:
           $ref: '#/components/schemas/Policy'
       required:

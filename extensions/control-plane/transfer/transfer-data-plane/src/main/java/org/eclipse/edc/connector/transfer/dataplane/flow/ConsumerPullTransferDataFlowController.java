@@ -80,7 +80,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
                 .endpointDataReference(edr)
                 .build();
 
-        return dispatcherRegistry.send(Object.class, request, dataRequest::getId)
+        return dispatcherRegistry.send(Object.class, request)
                 .thenApply(o -> StatusResult.success())
                 .exceptionally(throwable -> StatusResult.failure(ResponseStatus.ERROR_RETRY, "Transfer failed: " + throwable.getMessage()))
                 .join();

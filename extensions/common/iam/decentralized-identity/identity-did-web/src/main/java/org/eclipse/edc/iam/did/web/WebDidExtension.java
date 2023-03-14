@@ -22,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.util.string.StringUtils;
 
 
@@ -45,6 +46,9 @@ public class WebDidExtension implements ServiceExtension {
     @Inject
     private EdcHttpClient httpClient;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -52,7 +56,7 @@ public class WebDidExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var mapper = context.getTypeManager().getMapper();
+        var mapper = typeManager.getMapper();
         var monitor = context.getMonitor();
         var useHttpsScheme = context.getSetting(USE_HTTPS_SCHEME, true);
 

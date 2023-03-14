@@ -76,13 +76,12 @@ public class AssetServiceImpl implements AssetService {
         }
 
         return transactionContext.execute(() -> {
-            if (findById(asset.getId()) == null) {
-                index.accept(asset, dataAddress);
+            var createResult = index.accept(asset, dataAddress);
+            if (createResult.succeeded()) {
                 observable.invokeForEach(l -> l.created(asset));
                 return ServiceResult.success(asset);
-            } else {
-                return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
             }
+            return ServiceResult.fromFailure(createResult);
         });
     }
 
@@ -101,12 +100,26 @@ public class AssetServiceImpl implements AssetService {
             }
 
             var deleted = index.deleteById(assetId);
-            if (deleted == null) {
-                return ServiceResult.notFound(format("Asset %s does not exist", assetId));
-            }
+            deleted.onSuccess(a -> observable.invokeForEach(l -> l.deleted(a)));
+            return ServiceResult.from(deleted);
+        });
+    }
 
-            observable.invokeForEach(l -> l.deleted(deleted));
-            return ServiceResult.success(deleted);
+    @Override
+    public ServiceResult<Asset> update(Asset asset) {
+        return transactionContext.execute(() -> {
+            var updatedAsset = index.updateAsset(asset);
+            updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));
+            return ServiceResult.from(updatedAsset);
+        });
+    }
+
+    @Override
+    public ServiceResult<DataAddress> update(String assetId, DataAddress dataAddress) {
+        return transactionContext.execute(() -> {
+            var result = index.updateDataAddress(assetId, dataAddress);
+            result.onSuccess(da -> observable.invokeForEach(l -> l.updated(findById(assetId))));
+            return ServiceResult.from(result);
         });
     }
 }

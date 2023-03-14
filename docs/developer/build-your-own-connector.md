@@ -7,6 +7,7 @@ This guide will explain how to set up a **connector**, that would be able to com
 negotiate contracts and transfer data.
 
 A connector is logically divided in 3 parts:
+
 - control-plane
 - data-plane
 - data-plane-selector
@@ -18,11 +19,12 @@ to scale data-planes independently of control-planes.
 
 The easiest way to build up a connector is to build all their parts into a single deployment unit.
 To do this, create a new gradle project with a `build.gradle.kts` file in it:
+
 ```kotlin
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.0.0"
 }
 
 repositories {
@@ -65,14 +67,17 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
 ```
 
-Note that no `data-plane-selector` modules are needed, this because the `data-plane` is built as embedded in the connector.
+Note that no `data-plane-selector` modules are needed, this because the `data-plane` is built as embedded in the
+connector.
 
 Build:
+
 ```
 ./gradlew build
 ```
 
 Run:
+
 ```
 java -jar build/libs/connector.jar
 ```
@@ -89,10 +94,13 @@ Currently, there are two different database extensions for the control-plane:
 ### Setting data-plane
 
 To make the *control-plane* interact with the *data-plane*, it will need at least one of these extensions:
+
 - `data-plane-transfer-client`: provides a client to delegate data transfer to the *data-plane*.
-- `data-plane-transfer-sync`: provides services to use the *data-plane* as a proxy for querying data from the provider data source.
+- `data-plane-transfer-sync`: provides services to use the *data-plane* as a proxy for querying data from the provider
+  data source.
 
 The *data-plane* will need extensions to being able to read/write data from/to different protocols/services, e.g.:
+
 - `data-plane-api`: will make the *data-plane* expose APIs that are needed to actually transfer data
 - `data-plane-http`: support HTTP protocol
 - `data-plane-azure-storage`: support [Azure Blob Storage](https://azure.microsoft.com/products/storage/blobs/) service

@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.util.string.StringUtils;
 
 @Extension(value = HttpEndpointDataReferenceReceiverExtension.NAME)
@@ -41,6 +42,9 @@ public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtens
     @Inject
     private EdcHttpClient httpClient;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -58,7 +62,7 @@ public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtens
                 .endpoint(endpoint)
                 .authHeader(authKey, authCode)
                 .httpClient(httpClient)
-                .typeManager(context.getTypeManager())
+                .typeManager(typeManager)
                 .monitor(context.getMonitor())
                 .build();
         receiverRegistry.registerReceiver(receiver);

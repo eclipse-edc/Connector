@@ -22,10 +22,4 @@ dependencies {
     api(project(":spi:common:policy-model"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

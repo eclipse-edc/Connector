@@ -21,6 +21,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -30,6 +31,8 @@ import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.policy.model.Policy;
@@ -91,7 +94,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     @POST
     @Override
-    public IdResponseDto createPolicy(PolicyDefinitionRequestDto requestDto) {
+    public IdResponseDto createPolicy(@Valid PolicyDefinitionRequestDto requestDto) {
         var transformResult = transformerRegistry.transform(requestDto, PolicyDefinition.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
@@ -116,6 +119,23 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         monitor.debug(format("Attempting to delete policy with id %s", id));
         policyDefinitionService.deleteById(id).orElseThrow(exceptionMapper(PolicyDefinition.class, id));
         monitor.debug(format("Policy deleted %s", id));
+    }
+
+    @PUT
+    @Path("{policyId}")
+    @Override
+    public void updatePolicy(@PathParam("policyId") String policyId, @Valid PolicyDefinitionUpdateDto updatedPolicyDefinition) {
+        var wrapper = PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
+                .policyId(policyId)
+                .updateRequest(updatedPolicyDefinition)
+                .build();
+        var transformResult = transformerRegistry.transform(wrapper, PolicyDefinition.class);
+        if (transformResult.failed()) {
+            throw new InvalidRequestException(transformResult.getFailureMessages());
+        }
+
+        policyDefinitionService.update(transformResult.getContent())
+                .orElseThrow(exceptionMapper(PolicyDefinition.class, policyId));
     }
 
     private List<PolicyDefinitionResponseDto> queryPolicies(QuerySpecDto querySpecDto) {

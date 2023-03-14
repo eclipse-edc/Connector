@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
 
@@ -44,6 +45,9 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
     @Inject
     private Clock clock;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -54,10 +58,10 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
         var configuration = new CosmosContractNegotiationStoreConfig(context);
 
         var cosmosDbApi = new CosmosDbApiImpl(configuration, clientProvider.createClient(vault, configuration));
-        var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey(), clock);
+        var store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey(), clock);
         context.registerService(ContractNegotiationStore.class, store);
 
-        context.getTypeManager().registerTypes(ContractNegotiationDocument.class);
+        typeManager.registerTypes(ContractNegotiationDocument.class);
 
         context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 

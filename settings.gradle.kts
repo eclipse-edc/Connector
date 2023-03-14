@@ -55,14 +55,10 @@ include(":core:common:state-machine")
 include(":core:common:util")
 include(":core:common:junit")
 
-
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:control-plane-aggregate-services")
 include(":core:control-plane:transfer-core")
-include(":core:control-plane:control-plane-api")
-include(":core:control-plane:control-plane-api-client")
-
 
 include(":core:data-plane:data-plane-util")
 include(":core:data-plane:data-plane-core")
@@ -119,6 +115,7 @@ include(":extensions:common:sql:sql-pool:sql-pool-apache-commons")
 include(":extensions:common:transaction")
 include(":extensions:common:transaction:transaction-atomikos")
 include(":extensions:common:transaction:transaction-local")
+include(":extensions:common:vault:vault-aws")
 include(":extensions:common:vault:vault-azure")
 include(":extensions:common:vault:vault-filesystem")
 include(":extensions:common:vault:vault-hashicorp")
@@ -126,6 +123,8 @@ include(":extensions:common:vault:vault-hashicorp")
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
 
+include(":extensions:control-plane:api:control-plane-api")
+include(":extensions:control-plane:api:control-plane-api-client")
 include(":extensions:control-plane:api:management-api")
 include(":extensions:control-plane:api:management-api:asset-api")
 include(":extensions:control-plane:api:management-api:catalog-api")
@@ -161,12 +160,13 @@ include(":extensions:data-plane:data-plane-client")
 include(":extensions:data-plane:data-plane-azure-storage")
 include(":extensions:data-plane:data-plane-azure-data-factory")
 include(":extensions:data-plane:data-plane-http")
+include(":extensions:data-plane:data-plane-http-oauth2")
+include(":extensions:data-plane:data-plane-http-oauth2-core")
 include(":extensions:data-plane:data-plane-aws-s3")
 include(":extensions:data-plane:data-plane-google-storage")
 include(":extensions:data-plane:data-plane-integration-tests")
 include(":extensions:data-plane:store:sql:data-plane-store-sql")
 include(":extensions:data-plane:store:cosmos:data-plane-store-cosmos")
-
 
 
 include(":extensions:data-plane-selector:data-plane-selector-api")
@@ -202,8 +202,8 @@ include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
 include(":spi:control-plane:control-plane-api-client-spi")
 
-
 include(":spi:data-plane:data-plane-spi")
+include(":spi:data-plane:data-plane-http-spi")
 
 include(":spi:data-plane-selector:data-plane-selector-spi")
 

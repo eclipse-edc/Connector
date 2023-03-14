@@ -34,7 +34,6 @@ import static org.mockito.Mockito.verify;
 
 public class BaseRuntimeTest {
 
-
     private BaseRuntimeFixture runtime;
 
     @AfterEach
@@ -58,19 +57,6 @@ public class BaseRuntimeTest {
     }
 
     @Test
-    void baseRuntime_shouldNotBootWithoutExtensions() {
-
-        var monitor = mock(Monitor.class);
-
-        var runtime = new BaseRuntimeFixture(monitor);
-
-        runtime.start();
-
-        verify(monitor).severe(startsWith("Error booting runtime:"), any(EdcException.class));
-
-    }
-
-    @Test
     void baseRuntime_shouldNotBootWithException() {
         var monitor = mock(Monitor.class);
         var extension = spy(new BaseExtension());
@@ -82,7 +68,6 @@ public class BaseRuntimeTest {
         runtime.start();
 
         verify(monitor).severe(startsWith("Error booting runtime: Failed to start base extension"), any(EdcException.class));
-
     }
 
 

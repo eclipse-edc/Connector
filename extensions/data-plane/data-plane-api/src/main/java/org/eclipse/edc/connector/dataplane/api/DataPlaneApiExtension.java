@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
@@ -75,6 +76,9 @@ public class DataPlaneApiExtension implements ServiceExtension {
     @Inject
     private ControlApiConfiguration controlApiConfiguration;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -83,7 +87,6 @@ public class DataPlaneApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var typeManager = context.getTypeManager();
 
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
 

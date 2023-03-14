@@ -46,3 +46,7 @@ dependencies {
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))
 }
+
+edcBuild {
+    publish.set(false)
+}

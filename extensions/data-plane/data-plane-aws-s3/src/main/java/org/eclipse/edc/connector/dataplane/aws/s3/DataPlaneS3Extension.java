@@ -21,6 +21,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.concurrent.Executors;
 
@@ -37,6 +38,9 @@ public class DataPlaneS3Extension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -48,10 +52,10 @@ public class DataPlaneS3Extension implements ServiceExtension {
 
         var monitor = context.getMonitor();
 
-        var sourceFactory = new S3DataSourceFactory(awsClientProvider);
+        var sourceFactory = new S3DataSourceFactory(awsClientProvider, vault, typeManager);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new S3DataSinkFactory(awsClientProvider, executorService, monitor, vault, context.getTypeManager());
+        var sinkFactory = new S3DataSinkFactory(awsClientProvider, executorService, monitor, vault, typeManager);
         pipelineService.registerFactory(sinkFactory);
     }
 }

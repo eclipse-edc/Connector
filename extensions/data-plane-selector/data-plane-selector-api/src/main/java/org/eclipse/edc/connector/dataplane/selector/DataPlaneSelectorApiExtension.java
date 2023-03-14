@@ -22,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 
 import static java.lang.String.format;
@@ -48,12 +49,15 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
     @Inject
     private ManagementApiConfiguration managementApiConfiguration;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         //todo: add authentication
         //var filter = new AuthenticationRequestFilter();
 
-        context.getTypeManager().registerTypes(DataPlaneInstance.class);
+        typeManager.registerTypes(DataPlaneInstance.class);
 
         var controller = new DataplaneSelectorApiController(selectionService);
 

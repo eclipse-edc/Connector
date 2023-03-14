@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -40,11 +41,14 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
     @Inject(required = false)
     private AssetStatements dialect;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
 
-        var sqlAssetLoader = new SqlAssetIndex(dataSourceRegistry, dataSourceName, transactionContext, context.getTypeManager().getMapper(), getDialect());
+        var sqlAssetLoader = new SqlAssetIndex(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), getDialect());
 
         context.registerService(AssetIndex.class, sqlAssetLoader);
         context.registerService(DataAddressResolver.class, sqlAssetLoader);

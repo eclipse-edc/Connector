@@ -20,6 +20,8 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
@@ -37,15 +39,18 @@ import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HttpDataSourceTest {
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private String requestId;
     private String url;
+    private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
 
     @BeforeEach
     public void setUp() {
@@ -61,9 +66,9 @@ class HttpDataSourceTest {
         var interceptor = new CustomInterceptor(200, responseBody, "Test message");
         var params = mock(HttpRequestParams.class);
         var request = new Request.Builder().url(url).get().build();
-        var source = defaultBuilder(interceptor).params(params).build();
+        var source = defaultBuilder(interceptor).params(params).requestFactory(requestFactory).build();
 
-        when(params.toRequest()).thenReturn(request);
+        when(requestFactory.toRequest(any())).thenReturn(request);
 
         var parts = source.openPartStream().collect(Collectors.toList());
 
@@ -75,7 +80,7 @@ class HttpDataSourceTest {
             assertThat(new String(is.readAllBytes())).isEqualTo(json);
         }
 
-        verify(params).toRequest();
+        verify(requestFactory).toRequest(any());
     }
 
     @Test
@@ -85,15 +90,15 @@ class HttpDataSourceTest {
         var interceptor = new CustomInterceptor(400, ResponseBody.create(body, MediaType.parse("text/plain")), message);
         var params = mock(HttpRequestParams.class);
         var request = new Request.Builder().url(url).get().build();
-        var source = defaultBuilder(interceptor).params(params).build();
+        var source = defaultBuilder(interceptor).params(params).requestFactory(requestFactory).build();
 
-        when(params.toRequest()).thenReturn(request);
+        when(requestFactory.toRequest(any())).thenReturn(request);
 
         assertThatExceptionOfType(EdcException.class)
                 .isThrownBy(source::openPartStream)
                 .withMessage("Received code transferring HTTP data for request %s: %d - %s. %s", requestId, 400, message, body);
 
-        verify(params).toRequest();
+        verify(requestFactory).toRequest(any());
     }
 
     private HttpDataSource.Builder defaultBuilder(Interceptor interceptor) {

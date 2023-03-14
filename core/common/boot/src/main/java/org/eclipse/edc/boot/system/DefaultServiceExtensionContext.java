@@ -21,10 +21,7 @@ import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
 
-import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,13 +40,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private String connectorId;
     private Config config;
 
-    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
+    public DefaultServiceExtensionContext(Monitor monitor, List<ConfigurationExtension> configurationExtensions) {
         this.configurationExtensions = configurationExtensions;
-        // register as services
-        registerService(TypeManager.class, typeManager);
+        // register as service
         registerService(Monitor.class, monitor);
-        registerService(Telemetry.class, telemetry);
-        registerService(Clock.class, Clock.systemUTC());
     }
 
     @Override
@@ -122,7 +116,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
                 .reduce(Config::merge)
                 .orElse(ConfigFactory.empty());
 
-        var environmentConfig = ConfigFactory.fromMap(getEnvironmentVariables());
+        var environmentConfig = ConfigFactory.fromEnvironment(getEnvironmentVariables());
         var systemPropertyConfig = ConfigFactory.fromProperties(System.getProperties());
 
         return config.merge(environmentConfig).merge(systemPropertyConfig);

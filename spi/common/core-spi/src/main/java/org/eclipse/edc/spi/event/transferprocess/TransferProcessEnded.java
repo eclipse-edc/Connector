@@ -16,7 +16,10 @@ package org.eclipse.edc.spi.event.transferprocess;
 
 /**
  * This event is raised when the TransferProcess has been ended.
+ *
+ * @deprecated this event is not thrown by anyone, please use {@link TransferProcessTerminated} instead
  */
+@Deprecated(since = "milestone9")
 public class TransferProcessEnded extends TransferProcessEvent<TransferProcessEnded.Payload> {
 
     private TransferProcessEnded() {

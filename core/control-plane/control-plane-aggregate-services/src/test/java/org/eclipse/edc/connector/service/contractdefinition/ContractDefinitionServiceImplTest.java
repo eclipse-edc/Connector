@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +36,14 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -119,19 +123,33 @@ class ContractDefinitionServiceImplTest {
     void create_shouldCreateDefinitionIfItDoesNotAlreadyExist() {
         var definition = createContractDefinition();
         when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.empty());
+        when(store.save(definition)).thenReturn(StoreResult.success());
 
         var inserted = service.create(definition);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(definition.getId()));
-        verify(store).accept(argThat(it -> definition.getId().equals(it.getId())));
+        verify(store).save(argThat(it -> definition.getId().equals(it.getId())));
         verify(listener).created(any());
     }
 
     @Test
     void create_shouldNotCreateDefinitionIfItAlreadyExists() {
         var definition = createContractDefinition();
-        when(store.findById(definition.getId())).thenReturn(definition);
+        when(store.save(definition)).thenReturn(StoreResult.alreadyExists(""));
+
+        var inserted = service.create(definition);
+
+        assertThat(inserted.failed()).isTrue();
+        assertThat(inserted.reason()).isEqualTo(CONFLICT);
+        verifyNoInteractions(listener);
+    }
+
+    @Test
+    void create_shouldNotCreateDefinitionIfTheStoreFails() {
+        var definition = createContractDefinition();
+        when(store.findById(definition.getId())).thenReturn(null);
+        when(store.save(definition)).thenReturn(StoreResult.alreadyExists("Exists"));
 
         var inserted = service.create(definition);
 
@@ -143,13 +161,50 @@ class ContractDefinitionServiceImplTest {
     @Test
     void delete_shouldDeleteDefinitionIfItsNotReferencedByAnyAgreement() {
         var definition = createContractDefinition();
-        when(store.deleteById("assetId")).thenReturn(definition);
+        when(store.deleteById("assetId")).thenReturn(StoreResult.success(definition));
 
         var deleted = service.delete("assetId");
 
         assertThat(deleted.succeeded()).isTrue();
         assertThat(deleted.getContent()).matches(hasId(definition.getId()));
         verify(listener).deleted(any());
+    }
+
+
+    @Test
+    void update_shouldUpdate_whenExists() {
+        var definition = createContractDefinition();
+        when(store.update(definition)).thenReturn(StoreResult.success());
+
+        var updated = service.update(definition);
+
+        assertThat(updated.succeeded()).isTrue();
+        verify(store).update(eq(definition));
+        verify(listener).updated(any());
+    }
+
+    @Test
+    void update_shouldReturnNotFound_whenNotExists() {
+        var definition = createContractDefinition();
+        when(store.update(definition)).thenReturn(StoreResult.notFound(""));
+
+        var updated = service.update(definition);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        verify(listener, never()).updated(any());
+    }
+
+    @Test
+    void update_shouldReturnNotFound_whenTheStoreFails() {
+        var definition = createContractDefinition();
+        when(store.update(definition)).thenReturn(StoreResult.notFound("Not found"));
+
+        var updated = service.update(definition);
+
+        assertThat(updated.failed()).isTrue();
+        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        verify(listener, never()).updated(any());
     }
 
     @NotNull

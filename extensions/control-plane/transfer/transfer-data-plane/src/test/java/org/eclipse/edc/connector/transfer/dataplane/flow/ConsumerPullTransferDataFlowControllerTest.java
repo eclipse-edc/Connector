@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.proxy.ConsumerPullTransf
 import org.eclipse.edc.connector.transfer.dataplane.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.message.MessageContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -75,14 +74,14 @@ class ConsumerPullTransferDataFlowControllerTest {
         var edrRequestCaptor = ArgumentCaptor.forClass(EndpointDataReferenceMessage.class);
         var proxyCreationRequestCaptor = ArgumentCaptor.forClass(ConsumerPullTransferEndpointDataReferenceCreationRequest.class);
 
-        when(dispatcherRegistryMock.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(dispatcherRegistryMock.send(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
         when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.success(edr));
         when(proxyResolverMock.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
 
         var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
 
         verify(proxyReferenceServiceMock).createProxyReference(proxyCreationRequestCaptor.capture());
-        verify(dispatcherRegistryMock).send(eq(Object.class), edrRequestCaptor.capture(), any(MessageContext.class));
+        verify(dispatcherRegistryMock).send(eq(Object.class), edrRequestCaptor.capture());
         verify(proxyResolverMock).resolveProxyUrl(any());
 
         assertThat(result.succeeded()).isTrue();
@@ -110,7 +109,7 @@ class ConsumerPullTransferDataFlowControllerTest {
 
         var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
 
-        verify(dispatcherRegistryMock, never()).send(any(), any(), any());
+        verify(dispatcherRegistryMock, never()).send(any(), any());
         verify(proxyResolverMock).resolveProxyUrl(any());
 
         assertThat(result.failed()).isTrue();

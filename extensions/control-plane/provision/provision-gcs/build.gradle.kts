@@ -27,10 +27,4 @@ dependencies {
     implementation(libs.googlecloud.iam.credentials)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

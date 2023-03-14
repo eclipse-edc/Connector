@@ -18,19 +18,15 @@ plugins {
 
 dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":spi:data-plane:data-plane-http-spi"))
     api(project(":spi:common:http-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":core:data-plane:data-plane-util"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(libs.restAssured)
     testImplementation(libs.mockserver.netty)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

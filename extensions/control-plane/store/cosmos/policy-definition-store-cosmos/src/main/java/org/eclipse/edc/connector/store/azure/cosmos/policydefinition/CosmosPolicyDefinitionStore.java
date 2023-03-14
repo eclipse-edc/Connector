@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.policydefinition;
 
+import com.azure.cosmos.implementation.ConflictException;
 import com.azure.cosmos.implementation.NotFoundException;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
@@ -24,13 +25,14 @@ import org.eclipse.edc.connector.store.azure.cosmos.policydefinition.model.Polic
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
+import static java.lang.String.format;
 
 /**
  * Implementation of the {@link PolicyDefinitionStore} based on CosmosDB. This store implements simple write-through
@@ -72,21 +74,38 @@ public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
     }
 
     @Override
-    public void save(PolicyDefinition policy) {
-        with(retryPolicy).run(() -> cosmosDbApi.saveItem(convertToDocument(policy)));
+    public StoreResult<PolicyDefinition> save(PolicyDefinition policy) {
+        try {
+            with(retryPolicy).run(() -> cosmosDbApi.createItem(convertToDocument(policy)));
+            return StoreResult.success(policy);
+        } catch (ConflictException ex) {
+            var msg = format(POLICY_ALREADY_EXISTS, policy.getUid());
+            monitor.debug(() -> msg);
+            return StoreResult.alreadyExists(msg);
+        }
     }
 
     @Override
-    public @Nullable PolicyDefinition deleteById(String policyId) {
+    public StoreResult<PolicyDefinition> update(PolicyDefinition policy) {
+        try {
+            with(retryPolicy).run(() -> cosmosDbApi.updateItem((convertToDocument(policy))));
+            return StoreResult.success(policy);
+        } catch (NotFoundException nfe) {
+            var msg = format(POLICY_NOT_FOUND, policy.getUid());
+            monitor.debug(() -> msg);
+            return StoreResult.notFound(msg);
+        }
+    }
+
+    @Override
+    public StoreResult<PolicyDefinition> deleteById(String policyId) {
         try {
             var deletedItem = cosmosDbApi.deleteItem(policyId);
-            if (deletedItem == null) {
-                return null;
-            }
-            return convert(deletedItem);
-        } catch (NotFoundException e) {
-            monitor.debug(() -> String.format("PolicyDefinition with id %s not found", policyId));
-            return null;
+            return StoreResult.success(convert(deletedItem));
+        } catch (NotFoundException nfe) {
+            var msg = format(POLICY_NOT_FOUND, policyId);
+            monitor.debug(() -> msg);
+            return StoreResult.notFound(msg);
         }
     }
 

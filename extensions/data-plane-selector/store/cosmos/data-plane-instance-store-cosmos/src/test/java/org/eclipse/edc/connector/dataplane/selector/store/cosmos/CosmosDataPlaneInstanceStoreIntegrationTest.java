@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store.DataPlaneInstanceStoreTestBase;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 @AzureCosmosDbIntegrationTest
 class CosmosDataPlaneInstanceStoreIntegrationTest extends DataPlaneInstanceStoreTestBase {
@@ -86,7 +88,7 @@ class CosmosDataPlaneInstanceStoreIntegrationTest extends DataPlaneInstanceStore
 
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
         var retryPolicy = RetryPolicy.builder().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS).build();
-        store = new CosmosDataPlaneInstanceStore(cosmosDbApi, typeManager, retryPolicy, TEST_PARTITION_KEY);
+        store = new CosmosDataPlaneInstanceStore(cosmosDbApi, typeManager, retryPolicy, TEST_PARTITION_KEY, mock(Monitor.class));
     }
 
     @AfterEach

@@ -12,11 +12,15 @@
  *       Amadeus - test retrieval of auth code from vault
  *       Amadeus - add test for mapping of path segments
  *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities - improvements
  *
  */
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -36,16 +40,16 @@ import static org.mockito.Mockito.when;
 
 class HttpDataSourceFactoryTest {
 
-    private static final EdcHttpClient HTTP_CLIENT = mock(EdcHttpClient.class);
-    private static final Monitor MONITOR = mock(Monitor.class);
-
-    private final HttpRequestParamsSupplier supplierMock = mock(HttpRequestParamsSupplier.class);
+    private final EdcHttpClient httpClient = mock(EdcHttpClient.class);
+    private final Monitor monitor = mock(Monitor.class);
+    private final HttpRequestParamsProvider provider = mock(HttpRequestParamsProvider.class);
+    private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
 
     private HttpDataSourceFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSourceFactory(HTTP_CLIENT, supplierMock, MONITOR);
+        factory = new HttpDataSourceFactory(httpClient, provider, monitor, requestFactory);
     }
 
     @Test
@@ -63,7 +67,7 @@ class HttpDataSourceFactoryTest {
         var errorMsg = "Test error message";
         var request = createRequest(DataAddress.Builder.newInstance().type("Test type").build());
 
-        when(supplierMock.apply(request)).thenThrow(new EdcException(errorMsg));
+        when(provider.provideSourceParams(request)).thenThrow(new EdcException(errorMsg));
 
         var result = factory.validate(request);
         assertThat(result.failed()).isTrue();
@@ -79,7 +83,7 @@ class HttpDataSourceFactoryTest {
         var request = createRequest(address);
         var params = mock(HttpRequestParams.class);
 
-        when(supplierMock.apply(request)).thenReturn(params);
+        when(provider.provideSourceParams(request)).thenReturn(params);
 
         assertThat(factory.validate(request).succeeded()).isTrue();
         var source = factory.createSource(request);
@@ -89,14 +93,15 @@ class HttpDataSourceFactoryTest {
                 .params(params)
                 .name(address.getName())
                 .requestId(request.getId())
-                .httpClient(HTTP_CLIENT)
-                .monitor(MONITOR)
+                .httpClient(httpClient)
+                .monitor(monitor)
+                .requestFactory(requestFactory)
                 .build();
 
         assertThat(source).usingRecursiveComparison().isEqualTo(expected);
     }
 
-    private static DataFlowRequest createRequest(DataAddress source) {
+    private DataFlowRequest createRequest(DataAddress source) {
         return DataFlowRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(UUID.randomUUID().toString())

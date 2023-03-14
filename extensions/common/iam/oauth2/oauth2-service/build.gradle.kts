@@ -21,10 +21,4 @@ dependencies {
     implementation(project(":extensions:common:iam:oauth2:oauth2-core"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

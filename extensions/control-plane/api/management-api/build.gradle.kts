@@ -28,10 +28,4 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api:transfer-process-api"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

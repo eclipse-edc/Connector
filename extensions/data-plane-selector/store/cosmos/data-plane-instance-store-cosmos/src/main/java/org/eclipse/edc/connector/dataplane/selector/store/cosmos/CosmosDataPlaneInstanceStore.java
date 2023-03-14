@@ -14,19 +14,22 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.cosmos;
 
+import com.azure.cosmos.implementation.ConflictException;
+import com.azure.cosmos.implementation.NotFoundException;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
 import org.eclipse.edc.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
-import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
+import static java.lang.String.format;
 
 /**
  * Implementation of the {@link DataPlaneInstanceStore} based on CosmosDB. This store implements simple write-through
@@ -41,30 +44,38 @@ public class CosmosDataPlaneInstanceStore implements DataPlaneInstanceStore {
     private final RetryPolicy<Object> retryPolicy;
 
     private final String partitionKey;
+    private final Monitor monitor;
 
     public CosmosDataPlaneInstanceStore(CosmosDbApi cosmosDbApi, TypeManager typeManager,
-                                        RetryPolicy<Object> retryPolicy, String partitionKey) {
+                                        RetryPolicy<Object> retryPolicy, String partitionKey, Monitor monitor) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
         this.partitionKey = partitionKey;
+        this.monitor = monitor;
     }
 
     @Override
-    public void save(DataPlaneInstance instance) {
+    public StoreResult<Void> create(DataPlaneInstance instance) {
         try {
-            insertOrUpdate(instance);
-        } catch (Exception exception) {
-            throw new EdcPersistenceException(exception);
+            insertInternal(instance);
+            return StoreResult.success();
+        } catch (ConflictException exception) {
+            var msg = format(DATA_PLANE_INSTANCE_EXISTS, instance.getId());
+            monitor.debug(msg);
+            return StoreResult.alreadyExists(msg);
         }
     }
 
     @Override
-    public void saveAll(Collection<DataPlaneInstance> instances) {
+    public StoreResult<Void> update(DataPlaneInstance instance) {
         try {
-            instances.forEach(this::insertOrUpdate);
-        } catch (Exception exception) {
-            throw new EdcPersistenceException(exception);
+            updateInternal(instance);
+            return StoreResult.success();
+        } catch (NotFoundException exception) {
+            var msg = format(DATA_PLANE_INSTANCE_NOT_FOUND, instance.getId());
+            monitor.debug(msg);
+            return StoreResult.notFound(msg);
         }
     }
 
@@ -82,9 +93,14 @@ public class CosmosDataPlaneInstanceStore implements DataPlaneInstanceStore {
         return dataSpaceInstances.map(this::convert);
     }
 
-    private void insertOrUpdate(DataPlaneInstance instance) {
+    private void insertInternal(DataPlaneInstance instance) {
         var document = new DataPlaneInstanceDocument(instance, partitionKey);
-        with(retryPolicy).run(() -> cosmosDbApi.saveItem(document));
+        with(retryPolicy).run(() -> cosmosDbApi.createItem(document));
+    }
+
+    private void updateInternal(DataPlaneInstance instance) {
+        var document = new DataPlaneInstanceDocument(instance, partitionKey);
+        with(retryPolicy).run(() -> cosmosDbApi.updateItem(document));
     }
 
     private DataPlaneInstance convert(Object object) {

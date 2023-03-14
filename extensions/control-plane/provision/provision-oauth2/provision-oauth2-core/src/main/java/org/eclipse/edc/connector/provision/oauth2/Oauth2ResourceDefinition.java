@@ -26,13 +26,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.SCOPE;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.TOKEN_URL;
-import static org.eclipse.edc.connector.provision.oauth2.Oauth2DataAddressSchema.VALIDITY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.SCOPE;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
+import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.VALIDITY;
 
 /**
  * An OAuth2 resource definition

@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:common:aggregate-service-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:api:management-api-configuration"))
     implementation(project(":extensions:common:api:api-core")) //for the exception mapper
@@ -37,10 +38,4 @@ edcBuild {
 }
 
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

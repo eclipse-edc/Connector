@@ -59,6 +59,7 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -139,6 +140,9 @@ public class ContractCoreExtension implements ServiceExtension {
     @Inject
     private EventRouter eventRouter;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -146,7 +150,7 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerTypes(context);
+        typeManager.registerTypes(ContractNegotiation.class);
         registerServices(context);
     }
 
@@ -174,7 +178,7 @@ public class ContractCoreExtension implements ServiceExtension {
         var contractOfferResolver = new ContractOfferResolverImpl(agentService, definitionService, assetIndex, policyStore, clock, monitor);
         context.registerService(ContractOfferResolver.class, contractOfferResolver);
 
-        var policyEquality = new PolicyEquality(context.getTypeManager());
+        var policyEquality = new PolicyEquality(typeManager);
         var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
@@ -239,11 +243,6 @@ public class ContractCoreExtension implements ServiceExtension {
         var retryLimit = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_LIMIT, 7);
         var retryBaseDelay = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_BASE_DELAY_MS, 100L);
         return new EntitySendRetryManager(monitor, () -> new ExponentialWaitStrategy(retryBaseDelay), clock, retryLimit);
-    }
-
-    private void registerTypes(ServiceExtensionContext context) {
-        var typeManager = context.getTypeManager();
-        typeManager.registerTypes(ContractNegotiation.class);
     }
 
 }

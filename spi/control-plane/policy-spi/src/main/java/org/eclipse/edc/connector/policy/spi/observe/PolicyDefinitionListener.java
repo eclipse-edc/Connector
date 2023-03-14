@@ -42,4 +42,12 @@ public interface PolicyDefinitionListener {
 
     }
 
+    /**
+     * Called after a {@link PolicyDefinition} was updated.
+     *
+     * @param policyDefinition the policyDefinition that has been updated.
+     */
+    default void updated(PolicyDefinition policyDefinition) {
+
+    }
 }

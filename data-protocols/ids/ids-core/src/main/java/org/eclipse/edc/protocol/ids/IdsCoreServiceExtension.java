@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,9 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     @Inject
     private IdentityService identityService;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -73,7 +77,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        IdsTypeManagerUtil.customizeTypeManager(context.getTypeManager());
+        IdsTypeManagerUtil.customizeTypeManager(typeManager);
 
         List<String> settingErrors = new ArrayList<>();
         ConnectorServiceSettings connectorServiceSettings = null;

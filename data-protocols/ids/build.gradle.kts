@@ -27,10 +27,4 @@ dependencies {
     api(project(":data-protocols:ids:ids-api-configuration"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

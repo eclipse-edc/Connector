@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -51,6 +52,10 @@ public class CosmosDataPlaneInstanceStoreExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @Inject
+    private Monitor monitor;
+
+
     @Override
     public String name() {
         return NAME;
@@ -62,9 +67,9 @@ public class CosmosDataPlaneInstanceStoreExtension implements ServiceExtension {
 
         var cosmosDbApi = new CosmosDbApiImpl(configuration, clientProvider.createClient(vault, configuration));
 
-        var store = new CosmosDataPlaneInstanceStore(cosmosDbApi, typeManager, retryPolicy, configuration.getPartitionKey());
+        var store = new CosmosDataPlaneInstanceStore(cosmosDbApi, typeManager, retryPolicy, configuration.getPartitionKey(), monitor);
         context.registerService(CosmosDataPlaneInstanceStore.class, store);
 
-        context.getTypeManager().registerTypes(DataPlaneInstanceDocument.class);
+        typeManager.registerTypes(DataPlaneInstanceDocument.class);
     }
 }

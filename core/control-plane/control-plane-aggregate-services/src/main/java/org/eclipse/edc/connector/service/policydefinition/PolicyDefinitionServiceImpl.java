@@ -81,10 +81,6 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
         return transactionContext.execute(() -> {
 
-            if (policyStore.findById(policyId) == null) {
-                return ServiceResult.notFound(format("PolicyDefinition %s does not exist", policyId));
-            }
-
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
             try (var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter)) {
                 if (contractDefinitionOnPolicy.findAny().isPresent()) {
@@ -100,28 +96,28 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
                 }
             }
 
-
             var deleted = policyStore.deleteById(policyId);
-            if (deleted == null) {
-                return ServiceResult.notFound(format("PolicyDefinition %s cannot be deleted because it does not exist", policyId));
-            }
-
-            observable.invokeForEach(l -> l.deleted(deleted));
-            return ServiceResult.success(deleted);
+            deleted.onSuccess(pd -> observable.invokeForEach(l -> l.deleted(pd)));
+            return ServiceResult.from(deleted);
         });
     }
 
     @Override
     public @NotNull ServiceResult<PolicyDefinition> create(PolicyDefinition policyDefinition) {
-
         return transactionContext.execute(() -> {
-            if (policyStore.findById(policyDefinition.getUid()) == null) {
-                policyStore.save(policyDefinition);
-                observable.invokeForEach(l -> l.created(policyDefinition));
-                return ServiceResult.success(policyDefinition);
-            } else {
-                return ServiceResult.conflict(format("PolicyDefinition %s cannot be created because it already exists", policyDefinition.getUid()));
-            }
+            var saveResult = policyStore.save(policyDefinition);
+            saveResult.onSuccess(v -> observable.invokeForEach(l -> l.created(policyDefinition)));
+            return ServiceResult.from(saveResult);
+        });
+    }
+
+
+    @Override
+    public ServiceResult<PolicyDefinition> update(PolicyDefinition policyDefinition) {
+        return transactionContext.execute(() -> {
+            var updateResult = policyStore.update(policyDefinition);
+            updateResult.onSuccess(p -> observable.invokeForEach(l -> l.updated(p)));
+            return ServiceResult.from(updateResult);
         });
     }
 

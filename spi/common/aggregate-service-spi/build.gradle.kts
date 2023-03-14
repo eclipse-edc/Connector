@@ -21,10 +21,4 @@ dependencies {
     api(project(":spi:common:core-spi"))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

@@ -27,7 +27,7 @@ import static java.util.Optional.ofNullable;
 
 public final class InjectorImpl implements Injector {
 
-    private final Map<Class<?>, Supplier<Object>> defaults;
+    private final DefaultServiceSupplier defaultServiceSupplier;
 
     /**
      * Constructs a new Injector instance, which can either resolve services from the {@link ServiceExtensionContext}, or -
@@ -36,11 +36,17 @@ public final class InjectorImpl implements Injector {
      * @param defaultSuppliers A map that contains dependency types as key, and default service objects as value.
      */
     public InjectorImpl(Map<Class<?>, Supplier<Object>> defaultSuppliers) {
-        defaults = defaultSuppliers;
+        this(type -> ofNullable(defaultSuppliers.get(type)).map(Supplier::get).orElse(null));
     }
 
-    public InjectorImpl() {
-        this(Map.of());
+    /**
+     * Constructs a new Injector instance, which can either resolve services from the {@link ServiceExtensionContext}, or -
+     * if the required service is not present - use the default implementations provided in the map.
+     *
+     * @param defaultServiceSupplier A function that maps a type to its default service instance, that could be null.
+     */
+    public InjectorImpl(DefaultServiceSupplier defaultServiceSupplier) {
+        this.defaultServiceSupplier = defaultServiceSupplier;
     }
 
     @Override
@@ -68,22 +74,14 @@ public final class InjectorImpl implements Injector {
     }
 
     private Object resolveService(ServiceExtensionContext context, Class<?> serviceClass, boolean isRequired) {
-        if (isRequired) {
-            if (context.hasService(serviceClass)) {
-                return context.getService(serviceClass, false);
-            } else {
-                return ofNullable(defaults.get(serviceClass)).map(Supplier::get).orElseThrow(() -> new EdcInjectionException("No default provider for required service " + serviceClass));
-            }
+        if (context.hasService(serviceClass)) {
+            return context.getService(serviceClass, !isRequired);
         } else {
-            var service = context.getService(serviceClass, true);
-            if (service == null) {
-                var supplier = defaults.get(serviceClass);
-                if (supplier != null) {
-                    service = supplier.get();
-                }
-
+            Object defaultService = defaultServiceSupplier.provideFor(serviceClass);
+            if (isRequired && defaultService == null) {
+                throw new EdcInjectionException("No default provider for required service " + serviceClass);
             }
-            return service;
+            return defaultService;
         }
     }
 }

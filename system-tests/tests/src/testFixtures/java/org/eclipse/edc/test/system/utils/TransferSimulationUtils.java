@@ -82,7 +82,7 @@ public abstract class TransferSimulationUtils {
                 .doIf(s -> verifyTransferResult(simulationConfiguration, s))
                 .then(
                         exec(deprovision())
-                                .exec(waitForTransferState(TransferProcessStates.ENDED, Duration.ofSeconds(60)))
+                                .exec(waitForTransferState(TransferProcessStates.DEPROVISIONED, Duration.ofSeconds(60)))
 
                                 // Perform one additional request if the transfer successful.
                                 // This allows running Gatling assertions to validate that the transfer actually succeeded

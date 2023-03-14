@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.assetindex;
 
+import com.azure.cosmos.implementation.ConflictException;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlQuerySpec;
 import dev.failsafe.RetryPolicy;
@@ -25,6 +26,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -37,6 +39,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
+import static java.lang.String.format;
 
 public class CosmosAssetIndex implements AssetIndex {
 
@@ -100,19 +103,29 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public void accept(AssetEntry item) {
+    public StoreResult<Void> accept(AssetEntry item) {
         var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
-        assetDb.saveItem(assetDocument);
+        try {
+            assetDb.createItem(assetDocument);
+        } catch (ConflictException ex) {
+            var id = item.getAsset().getId();
+            var msg = format(ASSET_EXISTS_TEMPLATE, id);
+            monitor.debug(() -> msg);
+            return StoreResult.alreadyExists(msg);
+        }
+        return StoreResult.success();
     }
 
     @Override
-    public Asset deleteById(String assetId) {
+    public StoreResult<Asset> deleteById(String assetId) {
         try {
             var deletedItem = assetDb.deleteItem(assetId);
-            return convertObject(deletedItem).getWrappedAsset();
-        } catch (NotFoundException notFoundException) {
-            monitor.debug(() -> String.format("Asset with id %s not found", assetId));
-            return null;
+            // todo: the CosmosDbApi should not throw an exception when the item isn't found
+            return StoreResult.success(convertObject(deletedItem).getWrappedAsset());
+        } catch (NotFoundException nfe) {
+            var msg = format(ASSET_NOT_FOUND_TEMPLATE, assetId);
+            monitor.debug(() -> msg);
+            return StoreResult.notFound(msg);
         }
     }
 
@@ -124,6 +137,35 @@ public class CosmosAssetIndex implements AssetIndex {
         sqlQuery.setQueryText(stmt);
         return with(retryPolicy).get(() -> assetDb.queryItems(sqlQuery))
                 .findFirst().map(this::extractCount).orElse(0L);
+    }
+
+    @Override
+    public StoreResult<Asset> updateAsset(Asset asset) {
+        // cannot simply invoke assetDb.updateItem, because for that we'd need the DataAddress, which we don't have here
+        var assetId = asset.getId();
+        var result = queryByIdInternal(assetId);
+
+        return result.map(assetDocument -> {
+            var updated = new AssetDocument(asset, assetDocument.getPartitionKey(), assetDocument.getDataAddress());
+
+            // the following statement could theoretically still raise a NotFoundException, but at that point we'll let it bubble up the stack
+            assetDb.updateItem(updated);
+            return StoreResult.success(asset);
+        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId)));
+    }
+
+    @Override
+    public StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress) {
+        // cannot simply invoke assetDb.saveItem, because for that we'd need the Asset, which we don't have here
+        var result = queryByIdInternal(assetId);
+
+        return result.map(assetDocument -> {
+            var updated = new AssetDocument(assetDocument.getWrappedAsset(), assetDocument.getPartitionKey(), dataAddress);
+
+            // the following statement could theoretically still raise a NotFoundException, but at that point we'll let it bubble up the stack
+            assetDb.updateItem(updated);
+            return StoreResult.success(dataAddress);
+        }).orElse(StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId)));
     }
 
     @Override

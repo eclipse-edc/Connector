@@ -14,51 +14,32 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.api.model.CriterionDto;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@JsonDeserialize(builder = ContractDefinitionRequestDto.Builder.class)
-public class ContractDefinitionRequestDto {
+public abstract class ContractDefinitionRequestDto {
 
     /**
      * Default validity is set to one year.
      */
     private static final long DEFAULT_VALIDITY = TimeUnit.DAYS.toSeconds(365);
 
-    private String id;
     @NotNull(message = "accessPolicyId cannot be null")
-    private String accessPolicyId;
+    protected String accessPolicyId;
     @NotNull(message = "contractPolicyId cannot be null")
-    private String contractPolicyId;
+    protected String contractPolicyId;
     @Valid
     @NotNull(message = "criteria cannot be null")
-    private List<CriterionDto> criteria = new ArrayList<>();
+    protected List<CriterionDto> criteria = new ArrayList<>();
     @Positive(message = "validity must be positive")
-    private long validity = DEFAULT_VALIDITY;
+    protected long validity = DEFAULT_VALIDITY;
 
-    private ContractDefinitionRequestDto() {
-    }
-
-    @AssertTrue(message = "id must be either be null or not blank, and it cannot contain the ':' character")
-    @JsonIgnore
-    public boolean isIdValid() {
-        return Optional.of(this)
-                .map(it -> it.id)
-                .map(it -> !it.isBlank() && !it.contains(":"))
-                .orElse(true);
-    }
 
     public String getAccessPolicyId() {
         return accessPolicyId;
@@ -76,50 +57,39 @@ public class ContractDefinitionRequestDto {
         return validity;
     }
 
-    public String getId() {
-        return id;
-    }
+    protected abstract static class Builder<A extends ContractDefinitionRequestDto, B extends Builder<A, B>> {
+        protected final A dto;
 
-    @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final ContractDefinitionRequestDto dto;
-
-        private Builder() {
-            this.dto = new ContractDefinitionRequestDto();
+        protected Builder(A dto) {
+            this.dto = dto;
         }
 
-        @JsonCreator
-        public static Builder newInstance() {
-            return new Builder();
-        }
 
-        public Builder accessPolicyId(String accessPolicyId) {
+        public B accessPolicyId(String accessPolicyId) {
             dto.accessPolicyId = accessPolicyId;
-            return this;
+            return self();
         }
 
-        public Builder contractPolicyId(String contractPolicyId) {
+        public B contractPolicyId(String contractPolicyId) {
             dto.contractPolicyId = contractPolicyId;
-            return this;
+            return self();
         }
 
-        public Builder criteria(List<CriterionDto> criteria) {
+        public B criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
-            return this;
+            return self();
         }
 
-        public Builder validity(long validity) {
+        public B validity(long validity) {
             dto.validity = validity;
-            return this;
+            return self();
         }
 
-        public Builder id(String id) {
-            dto.id = id;
-            return this;
-        }
+        public abstract B self();
 
-        public ContractDefinitionRequestDto build() {
+        public A build() {
             return dto;
         }
+
     }
 }

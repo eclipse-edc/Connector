@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
+import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionUpdated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,11 +50,13 @@ public class PolicyDefinitionEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service, EventRouter eventRouter) throws InterruptedException {
+    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletionAndUpdate(PolicyDefinitionService service, EventRouter eventRouter) throws InterruptedException {
 
         doAnswer(i -> null).when(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
 
         doAnswer(i -> null).when(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
+
+        doAnswer(i -> null).when(eventSubscriber).on(isA(PolicyDefinitionUpdated.class));
 
         eventRouter.register(eventSubscriber);
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
@@ -61,6 +64,11 @@ public class PolicyDefinitionEventDispatchTest {
         service.create(policyDefinition);
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+        });
+
+        service.update(policyDefinition);
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(PolicyDefinitionUpdated.class));
         });
 
         service.deleteById(policyDefinition.getUid());

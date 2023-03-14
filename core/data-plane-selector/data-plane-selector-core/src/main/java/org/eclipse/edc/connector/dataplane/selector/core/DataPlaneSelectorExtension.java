@@ -26,6 +26,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 
 @Provides({ DataPlaneSelector.class, SelectionStrategyRegistry.class, DataPlaneSelectorService.class })
 @Extension(value = "DataPlane core selector")
@@ -33,6 +34,10 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     @Inject
     private DataPlaneInstanceStore instanceStore;
+
+    @Inject
+    private TransactionContext transactionContext;
+
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -43,7 +48,7 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
         context.registerService(DataPlaneSelector.class, selector);
         context.registerService(SelectionStrategyRegistry.class, strategy);
-        context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(selector, instanceStore, strategy));
+        context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(selector, instanceStore, strategy, transactionContext));
     }
 
 }

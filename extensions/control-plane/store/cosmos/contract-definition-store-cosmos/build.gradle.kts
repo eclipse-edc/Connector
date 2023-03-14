@@ -28,10 +28,4 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+

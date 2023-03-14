@@ -25,19 +25,48 @@ import static org.eclipse.edc.spi.system.configuration.ConfigImpl.TO_MAP;
  */
 public class ConfigFactory {
 
+    /**
+     * Returns an empty {@link Config}.
+     *
+     * @return an empty {@link Config}
+     */
     public static Config empty() {
         return new ConfigImpl(emptyMap());
     }
 
-    public static Config fromMap(Map<String, String> propertyCache) {
-        return new ConfigImpl(propertyCache);
+    /**
+     * Returns a config built from a {@link Map}.
+     *
+     * @return a {@link Config} instance based on the given {@link Map}
+     */
+    public static Config fromMap(Map<String, String> settings) {
+        return new ConfigImpl(settings);
     }
 
+    /**
+     * Returns a config built from {@link Properties}.
+     *
+     * @return a {@link Config} instance based on the given {@link Properties}
+     */
     public static Config fromProperties(Properties properties) {
         var entries = properties.entrySet().stream()
                 .map(it -> Map.entry(it.getKey().toString(), it.getValue().toString()))
                 .collect(TO_MAP);
 
         return new ConfigImpl(entries);
+    }
+
+    /**
+     * Returns a config built from a {@link Map} containing environment variables, converting ENV_KEY_FORMAT to env.key.format
+     * keys.
+     *
+     * @return a {@link Config} instance based on the given {@link Properties}
+     */
+    public static Config fromEnvironment(Map<String, String> environmentVariables) {
+        var settings = environmentVariables.entrySet().stream()
+                .map(it -> Map.entry(it.getKey().toLowerCase().replace("_", "."), it.getValue()))
+                .collect(TO_MAP);
+
+        return new ConfigImpl(settings);
     }
 }

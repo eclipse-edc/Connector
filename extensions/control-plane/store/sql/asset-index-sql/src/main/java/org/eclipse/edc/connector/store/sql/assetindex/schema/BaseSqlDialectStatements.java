@@ -39,7 +39,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
         return format("INSERT INTO %s (%s, %s) VALUES (?, ?%s)",
                 getDataAddressTable(),
                 getDataAddressAssetIdFkColumn(),
-                getDataAddressColumnProperties(),
+                getDataAddressPropertiesColumn(),
                 getFormatAsJsonOperator());
     }
 
@@ -83,6 +83,19 @@ public class BaseSqlDialectStatements implements AssetStatements {
     @Override
     public String getDeleteAssetByIdTemplate() {
         return format("DELETE FROM %s WHERE %s = ?", getAssetTable(), getAssetIdColumn());
+    }
+
+    @Override
+    public String getUpdateDataAddressTemplate() {
+        return format("UPDATE %s SET %s = ?%s WHERE %s = ?", getDataAddressTable(),
+                getDataAddressPropertiesColumn(),
+                getFormatAsJsonOperator(),
+                getDataAddressAssetIdFkColumn());
+    }
+
+    @Override
+    public String getDeletePropertyByIdTemplate() {
+        return format("DELETE FROM %s WHERE %s = ?", getAssetPropertyTable(), getPropertyAssetIdFkColumn());
     }
 
     @Override

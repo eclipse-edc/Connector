@@ -64,14 +64,16 @@ public class CosmosDataPlaneStore implements DataPlaneStore {
         var request = findByIdInternal(processId);
         var ts = clock.millis();
         if (request == null) {
-            save(new DataFlowRequestDocument(processId, state, ts, ts, partitionKey));
+            var d = new DataFlowRequestDocument(processId, state, ts, ts, partitionKey);
+            with(retryPolicy).run(() -> cosmosDbApi.createItem(d));
         } else {
-            save(new DataFlowRequestDocument(request.getId(), state, request.getCreatedAt(), ts, partitionKey));
+            var d = (new DataFlowRequestDocument(request.getId(), state, request.getCreatedAt(), ts, partitionKey));
+            with(retryPolicy).run(() -> cosmosDbApi.updateItem(d));
         }
     }
 
     private void save(DataFlowRequestDocument doc) {
-        with(retryPolicy).run(() -> cosmosDbApi.saveItem(doc));
+
     }
 
     private DataFlowRequestDocument findByIdInternal(String processorId) {

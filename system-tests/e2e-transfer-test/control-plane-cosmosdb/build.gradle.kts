@@ -21,3 +21,7 @@ dependencies {
     implementation(project(":extensions:control-plane:store:cosmos:control-plane-cosmos"))
     implementation(testFixtures(project(":extensions:common:azure:azure-test")))
 }
+
+edcBuild {
+    publish.set(false)
+}

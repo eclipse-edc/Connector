@@ -29,10 +29,4 @@ dependencies {
     testImplementation(libs.jersey.beanvalidation) //for validation
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(project.name) {
-            from(components["java"])
-        }
-    }
-}
+
