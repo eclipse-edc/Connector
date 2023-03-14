@@ -14,15 +14,42 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.service;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
+import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
+import org.eclipse.edc.connector.contract.spi.offer.DatasetResolver;
+import org.eclipse.edc.connector.contract.spi.types.offer.DataService;
+import org.eclipse.edc.connector.contract.spi.types.offer.Distribution;
 import org.eclipse.edc.protocol.dsp.spi.catalog.service.CatalogService;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.stream.Collectors;
+
+import static java.util.UUID.randomUUID;
+
 public class CatalogServiceImpl implements CatalogService {
+    
+    private DatasetResolver datasetResolver;
+    
+    public CatalogServiceImpl(DatasetResolver datasetResolver) {
+        this.datasetResolver = datasetResolver;
+    }
+    
     @Override
-    public JsonObject getCatalog(JsonObject filter) {
-        return Json.createObjectBuilder()
-                //.add("@type", "ids:Catalog")
+    public Catalog getCatalog(ContractOfferQuery query) {
+        var datasets = datasetResolver.queryDatasets(query).collect(Collectors.toList());
+
+        var dataServices = new HashSet<DataService>();
+        for (var dataset : datasets) {
+            dataset.getDistributions().stream()
+                    .map(Distribution::getDataService)
+                    .forEach(dataServices::add);
+        }
+        
+        return Catalog.Builder.newInstance()
+                .id(randomUUID().toString())
+                .datasets(datasets)
+                .dataServices(new ArrayList<>(dataServices))
                 .build();
     }
 }

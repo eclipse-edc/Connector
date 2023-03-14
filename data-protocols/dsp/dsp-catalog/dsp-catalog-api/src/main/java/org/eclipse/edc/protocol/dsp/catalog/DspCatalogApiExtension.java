@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.catalog;
 
+import org.eclipse.edc.connector.contract.spi.offer.DatasetResolver;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.catalog.controller.CatalogController;
 import org.eclipse.edc.protocol.dsp.catalog.service.CatalogServiceImpl;
@@ -42,6 +43,9 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Inject
     private DspApiConfiguration apiConfiguration;
     
+    @Inject
+    private DatasetResolver datasetResolver;
+    
     @Override
     public String name() {
         return NAME;
@@ -49,7 +53,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var catalogService = new CatalogServiceImpl();
+        var catalogService = new CatalogServiceImpl(datasetResolver);
         var catalogController = new CatalogController(monitor, catalogService, typeManager);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
     }

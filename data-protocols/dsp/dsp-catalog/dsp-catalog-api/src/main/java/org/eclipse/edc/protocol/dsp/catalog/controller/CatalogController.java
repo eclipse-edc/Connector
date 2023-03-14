@@ -17,12 +17,14 @@ package org.eclipse.edc.protocol.dsp.catalog.controller;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
 import org.eclipse.edc.protocol.dsp.spi.catalog.service.CatalogService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -45,15 +47,19 @@ public class CatalogController {
         this.mapper = typeManager.getMapper("json-ld");
     }
     
-    //TODO authentication
-    
     @POST
     @Path("/request")
     public Map<String, Object> getCatalog(JsonObject jsonObject) {
-        var document = expandDocument(jsonObject);
+        var document = expandDocument(jsonObject); //expanding document returns a JsonArray of size 1
+    
+        //TODO use json-ld transformer registry
+        var query = ContractOfferQuery.Builder.newInstance().build();
+        
+        var catalog = catalogService.getCatalog(query);
+    
+        //TODO use json-ld transformer registry
+        var catalogJson = Json.createObjectBuilder().build();
 
-        var catalog = catalogService.getCatalog(document.getJsonObject(0)); //expanding document returns a JsonArray of size 1
-
-        return mapper.convertValue(compactDocument(catalog), Map.class);
+        return mapper.convertValue(compactDocument(catalogJson), Map.class);
     }
 }

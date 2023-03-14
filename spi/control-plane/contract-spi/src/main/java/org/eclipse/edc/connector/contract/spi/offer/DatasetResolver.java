@@ -12,13 +12,16 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.spi.catalog.service;
+package org.eclipse.edc.connector.contract.spi.offer;
 
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
+import java.util.stream.Stream;
 
-public interface CatalogService {
+import org.eclipse.edc.connector.contract.spi.types.offer.Dataset;
+import org.jetbrains.annotations.NotNull;
+
+public interface DatasetResolver {
     
-    Catalog getCatalog(ContractOfferQuery query);
+    @NotNull
+    Stream<Dataset> queryDatasets(ContractOfferQuery query);
     
 }
