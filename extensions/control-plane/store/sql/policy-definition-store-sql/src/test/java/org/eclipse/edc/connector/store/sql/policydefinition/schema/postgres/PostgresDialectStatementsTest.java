@@ -31,15 +31,15 @@ class PostgresDialectStatementsTest {
 
     @Test
     void createQuery_jsonArrayProperty() {
-        assertThat(statements.createQuery(createQuery("policy.permissions.duties.target=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(createQuery("policy.prohibitions.action.type=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(createQuery("policy.obligations.assignee=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(createQuery("policy.extensibleProperties.something=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+        assertThat(statements.create(createQuery("policy.permissions.duties.target=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+        assertThat(statements.create(createQuery("policy.prohibitions.action.type=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+        assertThat(statements.create(createQuery("policy.obligations.assignee=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+        assertThat(statements.create(createQuery("policy.extensibleProperties.something=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
     }
 
     @Test
     void createQuery_normalProperty() {
         var q = createQuery("policy.assigner=foobar");
-        assertThat(statements.createQuery(q).getQueryAsString()).doesNotContain("->>", "->", "json_array_elements");
+        assertThat(statements.create(q).getQueryAsString()).doesNotContain("->>", "->", "json_array_elements");
     }
 }

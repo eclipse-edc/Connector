@@ -37,7 +37,7 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     }
 
     @Override
-    public SqlQueryStatement createQuery(QuerySpec querySpec) {
+    public SqlQueryStatement create(QuerySpec querySpec) {
         if (querySpec.containsAnyLeftOperand("policy.prohibitions")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getProhibitionsColumn(), PROHIBITIONS_ALIAS);
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
@@ -51,7 +51,7 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getExtensiblePropertiesColumn(), EXT_PROPERTIES_ALIAS);
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
         } else {
-            return super.createQuery(querySpec);
+            return super.create(querySpec);
         }
     }
 

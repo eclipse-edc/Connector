@@ -98,5 +98,5 @@ public interface SqlPolicyStoreStatements {
         return BaseSqlDialect.getJsonCastOperator();
     }
 
-    SqlQueryStatement createQuery(QuerySpec querySpec);
+    SqlQueryStatement create(QuerySpec querySpec);
 }

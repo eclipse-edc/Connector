@@ -69,7 +69,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         return transactionContext.execute(() -> {
             var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("id", "=", id))).build();
             try {
-                var queryStatement = statements.createQuery(query);
+                var queryStatement = statements.create(query);
                 return executeQuerySingle(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
@@ -83,7 +83,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
 
         return transactionContext.execute(() -> {
             try {
-                var queryStatement = statements.createQuery(querySpec);
+                var queryStatement = statements.create(querySpec);
                 return executeQuery(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);

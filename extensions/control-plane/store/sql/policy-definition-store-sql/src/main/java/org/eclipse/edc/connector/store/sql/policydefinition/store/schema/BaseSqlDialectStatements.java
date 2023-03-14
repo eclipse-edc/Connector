@@ -70,7 +70,7 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
     }
 
     @Override
-    public SqlQueryStatement createQuery(QuerySpec querySpec) {
+    public SqlQueryStatement create(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new PolicyDefinitionMapping(this));
     }
 }
