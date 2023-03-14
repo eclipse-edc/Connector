@@ -76,7 +76,7 @@ public class AssetServiceImpl implements AssetService {
         }
 
         return transactionContext.execute(() -> {
-            var createResult = index.accept(asset, dataAddress);
+            var createResult = index.create(asset, dataAddress);
             if (createResult.succeeded()) {
                 observable.invokeForEach(l -> l.created(asset));
                 return ServiceResult.success(asset);

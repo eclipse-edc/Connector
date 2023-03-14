@@ -99,7 +99,7 @@ public class FileTransferExtension implements ServiceExtension {
         var assetId = "test-document";
         var asset = Asset.Builder.newInstance().id(assetId).build();
 
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
     }
 
     private void registerContractDefinition(String policyId) {

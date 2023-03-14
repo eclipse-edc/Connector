@@ -71,7 +71,7 @@ public class AssetApiControllerIntegrationTest {
     void getAllAssets(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .get("/assets")
@@ -85,7 +85,7 @@ public class AssetApiControllerIntegrationTest {
     void getAllAssetsQuery(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .get("/assets?limit=1&offset=0&filter=asset:prop:id=id&sort=DESC&sortField=properties.asset:prop:id")
@@ -107,7 +107,7 @@ public class AssetApiControllerIntegrationTest {
     void queryAllAssets(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .contentType(JSON)
@@ -122,7 +122,7 @@ public class AssetApiControllerIntegrationTest {
     void queryAllAssetsQuery(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .contentType(JSON)
@@ -138,7 +138,7 @@ public class AssetApiControllerIntegrationTest {
     void queryAll_noResults(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .contentType(JSON)
@@ -154,7 +154,7 @@ public class AssetApiControllerIntegrationTest {
     void getSingleAsset(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .get("/assets/id")
@@ -223,7 +223,7 @@ public class AssetApiControllerIntegrationTest {
     void postAssetId_alreadyExists(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
         var assetEntryDto = createAssetEntryDto("assetId");
 
         baseRequest()
@@ -250,7 +250,7 @@ public class AssetApiControllerIntegrationTest {
     void deleteAsset(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .contentType(JSON)
@@ -273,7 +273,7 @@ public class AssetApiControllerIntegrationTest {
     void deleteAsset_alreadyReferencedInAgreement(ContractNegotiationStore negotiationStore, AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
         negotiationStore.save(createContractNegotiation(asset));
 
         baseRequest()
@@ -287,7 +287,7 @@ public class AssetApiControllerIntegrationTest {
     void getAssetAddress(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         baseRequest()
                 .get("/assets/id/address")
@@ -309,7 +309,7 @@ public class AssetApiControllerIntegrationTest {
     void updateAsset_whenExists(AssetIndex assetIndex) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         asset.getProperties().put("anotherKey", "anotherVal");
 
@@ -344,7 +344,7 @@ public class AssetApiControllerIntegrationTest {
     void updateDataAddress_whenAssetExists(AssetIndex assetIndex, DataAddressResolver resolver) {
         var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         dataAddress.getProperties().put("anotherKey", "anotherVal");
 

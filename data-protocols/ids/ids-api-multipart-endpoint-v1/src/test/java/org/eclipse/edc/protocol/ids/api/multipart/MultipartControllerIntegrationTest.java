@@ -262,7 +262,7 @@ class MultipartControllerIntegrationTest {
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
@@ -398,7 +398,7 @@ class MultipartControllerIntegrationTest {
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
 
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.ARTIFACT).build()
@@ -459,7 +459,7 @@ class MultipartControllerIntegrationTest {
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
 
         var request = createRequest(getDescriptionRequestMessage(
                 IdsId.Builder.newInstance().value(assetId).type(IdsType.REPRESENTATION).build()
@@ -524,7 +524,7 @@ class MultipartControllerIntegrationTest {
                 .property("asset:prop:byteSize", BigInteger.valueOf(10))
                 .property("asset:prop:fileExtension", "txt")
                 .build();
-        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
@@ -614,7 +614,7 @@ class MultipartControllerIntegrationTest {
                         ._contractEnd_(CalendarUtil.gregorianNow())
                         .build());
         var asset = Asset.Builder.newInstance().id(assetId).build();
-        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
 
         var response = httpClient.execute(request);
 
@@ -661,7 +661,7 @@ class MultipartControllerIntegrationTest {
                         ._contractDate_(CalendarUtil.gregorianNow())
                         .build());
         var asset = Asset.Builder.newInstance().id(assetId).build();
-        assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
+        assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
         when(consumerContractNegotiationManager.confirmed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
 
         var response = httpClient.execute(request);

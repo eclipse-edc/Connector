@@ -93,7 +93,7 @@ class ContractNegotiationEventDispatchTest {
                 .build();
         contractDefinitionStore.save(contractDefinition);
         policyDefinitionStore.save(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
-        assetIndex.accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
+        assetIndex.create(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
         manager.requested(token, createContractOfferRequest(policy));
 

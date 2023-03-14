@@ -127,13 +127,13 @@ class AssetServiceImplTest {
         var asset = createAsset(assetId);
         var addressType = "addressType";
         var dataAddress = DataAddress.Builder.newInstance().type(addressType).build();
-        when(index.accept(asset, dataAddress)).thenReturn(StoreResult.success());
+        when(index.create(asset, dataAddress)).thenReturn(StoreResult.success());
 
         var inserted = service.create(asset, dataAddress);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(assetId));
-        verify(index).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
+        verify(index).create(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
         verifyNoMoreInteractions(index);
         verify(observable).invokeForEach(any());
     }
@@ -143,7 +143,7 @@ class AssetServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var asset = createAsset("assetId");
         var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
-        when(index.accept(asset, dataAddress)).thenReturn(StoreResult.alreadyExists("test"));
+        when(index.create(asset, dataAddress)).thenReturn(StoreResult.alreadyExists("test"));
 
         var inserted = service.create(asset, dataAddress);
 
