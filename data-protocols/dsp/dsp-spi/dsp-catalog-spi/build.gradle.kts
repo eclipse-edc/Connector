@@ -18,7 +18,8 @@ plugins {
 
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:catalog-spi"))
     implementation("jakarta.json:jakarta.json-api:2.1.1")
 }
 
