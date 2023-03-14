@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
@@ -40,8 +39,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFIED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
@@ -49,6 +46,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 
 /**
@@ -220,41 +218,6 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
-     * Tells if the negotiation can be declined, so if it can be put in the `DECLINING` state
-     *
-     * @return true if the negotiation can be declined, false otherwise
-     */
-    public boolean canDecline() {
-        Stream<ContractNegotiationStates> validStartingStates;
-
-        if (CONSUMER == type) {
-            validStartingStates = Stream.of(DECLINING, CONSUMER_REQUESTED, CONSUMER_AGREED);
-        } else {
-            validStartingStates = Stream.of(CONSUMER_REQUESTED, DECLINING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
-        }
-
-        return validStartingStates.map(ContractNegotiationStates::code).anyMatch(code -> code == state);
-    }
-
-    /**
-     * Transition to state DECLINING.
-     */
-    public void transitionDeclining() {
-        transition(DECLINING, state -> canDecline());
-    }
-
-    /**
-     * Transition to state DECLINED.
-     */
-    public void transitionDeclined() {
-        if (CONSUMER == type) {
-            transition(DECLINED, DECLINING, CONSUMER_REQUESTED);
-        } else {
-            transition(DECLINED, DECLINING, PROVIDER_OFFERED, PROVIDER_AGREEING, PROVIDER_AGREED, CONSUMER_REQUESTED);
-        }
-    }
-
-    /**
      * Transition to state PROVIDER_AGREEING (type provider only).
      */
     public void transitionProviderAgreeing() {
@@ -280,13 +243,40 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
+     * Tells if the negotiation can be terminated, so if it can be put in the `TERMINATING` state
+     *
+     * @return true if the negotiation can be terminated, false otherwise
+     */
+    public boolean canBeTerminated() {
+        return true;
+    }
+
+    /**
      * Transition to state TERMINATING.
      *
      * @param errorDetail Message describing the error.
      */
     public void transitionTerminating(@Nullable String errorDetail) {
         this.errorDetail = errorDetail;
-        transitionTo(TERMINATING.code());
+        transitionTerminating();
+    }
+
+    /**
+     * Transition to state TERMINATING.
+     */
+    public void transitionTerminating() {
+        transition(TERMINATING, state -> canBeTerminated());
+    }
+
+    /**
+     * Transition to state TERMINATED.
+     */
+    public void transitionTerminated() {
+        if (CONSUMER == type) {
+            transition(TERMINATED, TERMINATING, CONSUMER_REQUESTED);
+        } else {
+            transition(TERMINATED, TERMINATING, PROVIDER_OFFERED, PROVIDER_AGREEING, PROVIDER_AGREED, CONSUMER_REQUESTED);
+        }
     }
 
     /**

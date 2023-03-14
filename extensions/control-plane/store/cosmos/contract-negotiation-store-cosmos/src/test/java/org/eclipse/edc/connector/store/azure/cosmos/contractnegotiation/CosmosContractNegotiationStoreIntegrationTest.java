@@ -346,7 +346,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         assertThat(storedDoc.getLease().getLeasedAt()).isGreaterThan(0);
         assertThat(storedDoc.getLease().getLeaseDuration()).isEqualTo(60000L);
 
-        n.transitionDeclining();
+        n.transitionTerminating();
         n.updateStateTimestamp();
         store.save(n);
 

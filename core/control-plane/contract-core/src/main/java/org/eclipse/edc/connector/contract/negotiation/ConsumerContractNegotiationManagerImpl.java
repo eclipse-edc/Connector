@@ -44,9 +44,9 @@ import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -65,7 +65,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .processor(processNegotiationsInState(CONSUMER_REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(CONSUMER_AGREEING, this::processConsumerApproving))
                 .processor(processNegotiationsInState(PROVIDER_AGREED, this::processProviderAgreed))
-                .processor(processNegotiationsInState(DECLINING, this::processDeclining))
+                .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
                 .processor(onCommands(this::processCommand))
                 .build();
 
@@ -139,7 +139,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             var message = "Contract agreement received. Validation failed: " + result.getFailureDetail();
             monitor.debug("[Consumer] " + message);
             negotiation.setErrorDetail(message);
-            negotiation.transitionDeclining();
+            negotiation.transitionTerminating();
             negotiationStore.save(negotiation);
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -175,9 +175,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
-        negotiation.transitionDeclined();
+        negotiation.transitionTerminated();
         negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.declined(negotiation));
+        observable.invokeForEach(l -> l.terminated(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return StatusResult.success(negotiation);
@@ -318,16 +318,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return true;
     }
 
-
     /**
-     * Processes {@link ContractNegotiation} in state DECLINING. Tries to send a contract rejection to the respective
-     * provider. If this succeeds, the ContractNegotiation is transitioned to state DECLINED. Else, it is transitioned
-     * to DECLINING for a retry.
+     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract rejection to the respective
+     * provider. If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
+     * to TERMINATING for a retry.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processDeclining(ContractNegotiation negotiation) {
+    private boolean processTerminating(ContractNegotiation negotiation) {
         if (sendRetryManager.shouldDelay(negotiation)) {
             breakLease(negotiation);
             return false;
@@ -381,12 +380,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private BiConsumer<Object, Throwable> onRejectionSent(String negotiationId) {
         return new AsyncSendResultHandler(negotiationId, "send rejection")
                 .onSuccess(negotiation -> {
-                    negotiation.transitionDeclined();
+                    negotiation.transitionTerminated();
                     negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.declined(negotiation));
+                    observable.invokeForEach(l -> l.terminated(negotiation));
                 })
                 .onFailure(negotiation -> {
-                    negotiation.transitionDeclining();
+                    negotiation.transitionTerminating();
                     negotiationStore.save(negotiation);
                 })
                 .build();

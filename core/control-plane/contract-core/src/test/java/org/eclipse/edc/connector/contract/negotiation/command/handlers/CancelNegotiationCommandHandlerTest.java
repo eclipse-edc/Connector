@@ -34,13 +34,11 @@ import static org.mockito.Mockito.when;
 
 class CancelNegotiationCommandHandlerTest {
 
+    private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private CancelNegotiationCommandHandler commandHandler;
-
-    private ContractNegotiationStore store;
 
     @BeforeEach
     public void setUp() {
-        store = mock(ContractNegotiationStore.class);
         commandHandler = new CancelNegotiationCommandHandler(store);
     }
 
