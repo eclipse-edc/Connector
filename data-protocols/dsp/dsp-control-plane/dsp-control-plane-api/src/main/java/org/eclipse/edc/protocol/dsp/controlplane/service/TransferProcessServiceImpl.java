@@ -14,5 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane.service;
 
-public class TransferProcessService {
+import org.eclipse.edc.protocol.dsp.spi.controlplane.service.TransferProcessService;
+
+public class TransferProcessServiceImpl implements TransferProcessService {
 }
