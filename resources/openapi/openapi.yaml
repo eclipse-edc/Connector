@@ -155,7 +155,7 @@ paths:
       description: "Updates an asset with the given ID if it exists. If the asset\
         \ is not found, no further action is taken. DANGER ZONE: Note that updating\
         \ assets can have unexpected results, especially for contract offers that\
-        \ have been sent out or ongoing or contract negotiations."
+        \ have been sent out or are ongoing in contract negotiations."
       operationId: updateAsset
       parameters:
       - name: assetId
@@ -182,14 +182,12 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
-          description: "Asset could not be updated, because it does not exist. Asset\
-            \ need to be created together with DataAddresses."
+          description: "Asset could not be updated, because it does not exist."
   /assets/{assetId}/dataaddress:
     put:
       tags:
       - Asset
-      description: "Updates a DataAddress for an asset with the given ID. If the asset\
-        \ is not found, no further action is taken"
+      description: Updates a DataAddress for an asset with the given ID.
       operationId: updateDataAddress
       parameters:
       - name: assetId
@@ -2230,11 +2228,11 @@ components:
           type: string
           format: uri
         contractEnd:
-          type: string
-          format: date-time
+          type: integer
+          format: int64
         contractStart:
-          type: string
-          format: date-time
+          type: integer
+          format: int64
         id:
           type: string
         offerEnd:
