@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - implement methods
  *
  */
 
@@ -19,7 +20,7 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.model.Catalog;
+import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,11 +31,11 @@ import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 /**
  * Converts from a {@link Catalog} to a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form.
  */
-public class FromCatalogTransformer extends AbstractJsonLdTransformer<Catalog, JsonObject> {
+public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<Catalog, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
 
-    public FromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
         super(Catalog.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;
@@ -47,14 +48,21 @@ public class FromCatalogTransformer extends AbstractJsonLdTransformer<Catalog, J
         }
 
         var objectBuilder = jsonFactory.createObjectBuilder();
+        objectBuilder.add("@id", catalog.getId());
+        objectBuilder.add("@type", "dcat:Catalog");
 
         var datasets = catalog.getDatasets().stream()
                 .map(offer -> context.transform(offer, JsonObject.class))
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
-
         objectBuilder.add(DCAT_SCHEMA + "dataset", datasets);
-
+    
+        var dataServices = catalog.getDataServices().stream()
+                .map(service -> context.transform(service, JsonObject.class))
+                .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
+                .build();
+        objectBuilder.add(DCAT_SCHEMA + "DataService", dataServices);
+        
         // transform properties, which are generic JSON values.
         catalog.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));
 

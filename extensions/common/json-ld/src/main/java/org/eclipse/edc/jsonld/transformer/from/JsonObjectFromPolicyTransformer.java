@@ -9,16 +9,20 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - implement methods
  *
  */
 
 package org.eclipse.edc.jsonld.transformer.from;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -35,14 +39,17 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.util.UUID.randomUUID;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
+
 /**
  * Transforms a {@link Policy} to an ODRL type as a {@link JsonObject} in expanded JSON-LD form.
  */
-public class FromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
+public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
 
-    public FromPolicyTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
         super(Policy.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;
@@ -53,7 +60,7 @@ public class FromPolicyTransformer extends AbstractJsonLdTransformer<Policy, Jso
         if (policy == null) {
             return null;
         }
-        return policy.accept(new Visitor(context));
+        return policy.accept(new Visitor(context, jsonFactory));
     }
 
     /**
@@ -61,9 +68,11 @@ public class FromPolicyTransformer extends AbstractJsonLdTransformer<Policy, Jso
      */
     private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
         private TransformerContext context;
+        private JsonBuilderFactory jsonFactory;
 
-        Visitor(TransformerContext context) {
+        Visitor(TransformerContext context, JsonBuilderFactory jsonFactory) {
             this.context = context;
+            this.jsonFactory = jsonFactory;
         }
 
         @Override
@@ -92,53 +101,97 @@ public class FromPolicyTransformer extends AbstractJsonLdTransformer<Policy, Jso
 
         @Override
         public JsonObject visitAtomicConstraint(AtomicConstraint atomicConstraint) {
-            var leftObject = atomicConstraint.getLeftExpression().accept(this);
-            var rightObject = atomicConstraint.getRightExpression().accept(this);
-            return null;
+            var constraintBuilder = jsonFactory.createObjectBuilder();
+    
+            constraintBuilder.add(ODRL_SCHEMA + "leftOperand", atomicConstraint.getLeftExpression().accept(this));
+            constraintBuilder.add(ODRL_SCHEMA + "operator", atomicConstraint.getOperator().name());
+            constraintBuilder.add(ODRL_SCHEMA + "rightOperand", atomicConstraint.getRightExpression().accept(this));
+    
+            return constraintBuilder.build();
         }
 
         @Override
         public JsonObject visitLiteralExpression(LiteralExpression expression) {
-            return null;
+            return jsonFactory.createObjectBuilder()
+                    .add("@value", Json.createValue(expression.getValue().toString()))
+                    .build();
         }
 
         @Override
         public JsonObject visitPolicy(Policy policy) {
-            policy.getPermissions().forEach(permission -> permission.accept(this));
-            policy.getProhibitions().forEach(prohibition -> prohibition.accept(this));
-            policy.getObligations().forEach(duty -> duty.accept(this));
-            return null;
+            var permissionsBuilder = jsonFactory.createArrayBuilder();
+            policy.getPermissions().forEach(permission -> permissionsBuilder.add(permission.accept(this)));
+    
+            var prohibitionsBuilder = jsonFactory.createArrayBuilder();
+            policy.getProhibitions().forEach(prohibition -> prohibitionsBuilder.add(prohibition.accept(this)));
+    
+            var obligationsBuilder = jsonFactory.createArrayBuilder();
+            policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
+    
+            return jsonFactory.createObjectBuilder()
+                    .add("@id", randomUUID().toString())
+                    .add(ODRL_SCHEMA + "permissions", permissionsBuilder.build())
+                    .add(ODRL_SCHEMA + "prohibitions", prohibitionsBuilder.build())
+                    .add(ODRL_SCHEMA + "obligations", obligationsBuilder.build())
+                    .build();
         }
 
         @Override
         public JsonObject visitPermission(Permission permission) {
+            var permissionBuilder = visitRule(permission);
+    
             if (permission.getDuties() != null) {
+                var dutiesBuilder = jsonFactory.createArrayBuilder();
                 for (var duty : permission.getDuties()) {
-                    var constraintsArray = visitRule(duty);
+                    dutiesBuilder.add(visitDuty(duty));
                 }
+                permissionBuilder.add(ODRL_SCHEMA + "duties", dutiesBuilder.build());
             }
-            var constraintsArray = visitRule(permission);
-            return null;
+    
+            return permissionBuilder.build();
         }
 
         @Override
         public JsonObject visitProhibition(Prohibition prohibition) {
-            var constraintsArray = visitRule(prohibition);
-            return null;
+            var prohibitionBuilder = visitRule(prohibition);
+    
+            return prohibitionBuilder.build();
         }
 
         @Override
         public JsonObject visitDuty(Duty duty) {
-            var constraintsArray = visitRule(duty);
-            return null;
+            var obligationBuilder = visitRule(duty);
+    
+            //TODO consequence (duty), parentPermission?
+    
+            return obligationBuilder.build();
+        }
+    
+        private JsonObjectBuilder visitRule(Rule rule) {
+            var ruleBuilder = jsonFactory.createObjectBuilder();
+        
+            ruleBuilder.add("action", visitAction(rule.getAction()));
+            ruleBuilder.add("constraints", visitConstraints(rule));
+        
+            return ruleBuilder;
         }
 
-        private JsonArray visitRule(Rule rule) {
+        private JsonArray visitConstraints(Rule rule) {
+            var constraintsBuilder = jsonFactory.createArrayBuilder();
+        
             for (Constraint constraint : rule.getConstraints()) {
-                var result = constraint.accept(this);
+                constraintsBuilder.add(constraint.accept(this));
             }
-            return null;
+        
+            return constraintsBuilder.build();
         }
-
+    
+        private JsonObject visitAction(Action action) {
+            return jsonFactory.createObjectBuilder()
+                    .add("type", action.getType())
+                    .add("includedIn", action.getIncludedIn())
+                    .add("constraint", action.getConstraint().accept(this))
+                    .build();
+        }
     }
 }

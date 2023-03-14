@@ -17,8 +17,14 @@ package org.eclipse.edc.jsonld;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
+import jakarta.json.Json;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDataServiceTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDatasetTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDistributionTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -27,6 +33,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+
+import java.util.Map;
 
 @Extension(value = JsonLdExtension.NAME)
 @Provides({JsonLdTransformerRegistry.class})
@@ -47,7 +55,14 @@ public class JsonLdExtension implements ServiceExtension {
         var mapper = getObjectMapper();
         typeManager.registerContext("json-ld", mapper);
         
+        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
+        
         var registry = new JsonLdTransformerRegistryImpl();
+        registry.register(new JsonObjectFromCatalogTransformer(jsonBuilderFactory, mapper));
+        registry.register(new JsonObjectFromDatasetTransformer(jsonBuilderFactory, mapper));
+        registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, mapper));
+        registry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory, mapper));
+        registry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory, mapper));
         
         context.registerService(JsonLdTransformerRegistry.class, registry);
     }
