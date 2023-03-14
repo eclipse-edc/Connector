@@ -182,7 +182,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     private Stream<TransferProcess> executeQuery(Connection connection, QuerySpec querySpec) {
-        var statement = statements.createQuery(querySpec);
+        var statement = statements.create(querySpec);
         return SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
     }
 

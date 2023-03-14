@@ -28,14 +28,14 @@ class PostgresDialectStatementsTest {
     void createQuery() {
         var q = query("id=foobar");
 
-        assertThat(statements.createQuery(q).getQueryAsString()).doesNotContain("json_array_elements");
+        assertThat(statements.create(q).getQueryAsString()).doesNotContain("json_array_elements");
     }
 
     @Test
     void createQuery_isJsonArray() {
-        assertThat(statements.createQuery(query("deprovisionedResources.inProcess=true")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(query("provisionedResourceSet.resources.id=something")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(query("resourceManifest.definitions.id like %foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+        assertThat(statements.create(query("deprovisionedResources.inProcess=true")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+        assertThat(statements.create(query("provisionedResourceSet.resources.id=something")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+        assertThat(statements.create(query("resourceManifest.definitions.id like %foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
     }
 
     @Test

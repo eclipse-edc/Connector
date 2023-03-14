@@ -158,5 +158,5 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return BaseSqlDialect.getJsonCastOperator();
     }
 
-    SqlQueryStatement createQuery(QuerySpec querySpec);
+    SqlQueryStatement create(QuerySpec querySpec);
 }

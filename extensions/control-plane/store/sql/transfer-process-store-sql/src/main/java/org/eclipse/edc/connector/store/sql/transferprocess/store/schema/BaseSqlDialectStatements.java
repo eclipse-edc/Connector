@@ -120,7 +120,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
     }
 
     @Override
-    public SqlQueryStatement createQuery(QuerySpec querySpec) {
+    public SqlQueryStatement create(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this));
     }
 }

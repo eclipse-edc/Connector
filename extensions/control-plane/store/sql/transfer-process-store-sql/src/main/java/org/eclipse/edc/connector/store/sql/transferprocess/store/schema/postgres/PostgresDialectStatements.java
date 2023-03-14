@@ -37,7 +37,7 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     }
 
     @Override
-    public SqlQueryStatement createQuery(QuerySpec querySpec) {
+    public SqlQueryStatement create(QuerySpec querySpec) {
         // if any criterion targets a JSON array field, we need to slightly adapt the FROM clause
         if (querySpec.containsAnyLeftOperand("resourceManifest.definitions")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s -> '%s'", getResourceManifestColumn(), "definitions"), DEFINITIONS_ALIAS);
@@ -49,6 +49,6 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s", getDeprovisionedResourcesColumn()), DEPROVISIONED_RESOURCES_ALIAS);
             return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this));
         }
-        return super.createQuery(querySpec);
+        return super.create(querySpec);
     }
 }
