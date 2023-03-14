@@ -100,7 +100,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     void query_assetPropertyAsObject() {
         var asset = TestFunctions.createAsset("id1");
         asset.getProperties().put("testobj", new TestObject("test123", 42, false));
-        sqlAssetIndex.accept(asset, TestFunctions.createDataAddress("test-type"));
+        sqlAssetIndex.create(asset, TestFunctions.createDataAddress("test-type"));
 
         var assetsFound = sqlAssetIndex.queryAssets(QuerySpec.Builder.newInstance()
                 .filter(new Criterion("testobj", "like", "%test1%"))
@@ -123,7 +123,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     @DisplayName("Verify an asset query where the operator is invalid (=not supported)")
     void queryAgreements_withQuerySpec_invalidOperator() {
         var asset = TestFunctions.createAssetBuilder("id1").property("testproperty", "testvalue").build();
-        sqlAssetIndex.accept(asset, TestFunctions.createDataAddress("test-type"));
+        sqlAssetIndex.create(asset, TestFunctions.createDataAddress("test-type"));
 
         var query = QuerySpec.Builder.newInstance().filter("testproperty <> foobar").build();
         assertThatThrownBy(() -> sqlAssetIndex.queryAssets(query)).isInstanceOf(IllegalArgumentException.class);
@@ -144,7 +144,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
                     .property("test-key", "test-value" + i)
                     .build();
             var dataAddress = TestFunctions.createDataAddress("test-type");
-            sqlAssetIndex.accept(asset, dataAddress);
+            sqlAssetIndex.create(asset, dataAddress);
             return asset;
         }).collect(Collectors.toList());
     }

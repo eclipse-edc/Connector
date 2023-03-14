@@ -188,7 +188,7 @@ class ContractOfferResolverImplIntegrationTest {
 
     private void store(Collection<Asset> assets) {
         assets.stream().map(a -> new AssetEntry(a, DataAddress.Builder.newInstance().type("test-type").build()))
-                .forEach(assetIndex::accept);
+                .forEach(assetIndex::create);
     }
 
     private AssetSelectorExpression selectorFrom(Collection<Asset> assets1) {

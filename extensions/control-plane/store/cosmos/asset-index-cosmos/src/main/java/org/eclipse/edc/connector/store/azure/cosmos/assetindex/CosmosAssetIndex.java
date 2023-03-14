@@ -86,7 +86,7 @@ public class CosmosAssetIndex implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Void> accept(AssetEntry item) {
+    public StoreResult<Void> create(AssetEntry item) {
         var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
         try {
             assetDb.createItem(assetDocument);

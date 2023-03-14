@@ -72,11 +72,11 @@ public interface AssetIndex extends DataAddressResolver {
      * @param dataAddress The {@link DataAddress} to store
      * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
      */
-    default StoreResult<Void> accept(Asset asset, DataAddress dataAddress) {
-        return accept(new AssetEntry(asset, dataAddress));
+    default StoreResult<Void> create(Asset asset, DataAddress dataAddress) {
+        return create(new AssetEntry(asset, dataAddress));
     }
 
-    StoreResult<Void> accept(AssetEntry item);
+    StoreResult<Void> create(AssetEntry item);
 
     /**
      * Deletes an asset if it exists.

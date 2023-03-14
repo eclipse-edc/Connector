@@ -175,7 +175,7 @@ class MultipartDispatcherIntegrationTest {
     @Test
     void testSendContractRequestMessage(RemoteMessageDispatcherRegistry dispatcher, AssetIndex assetIndex) {
         var contractOffer = contractOffer("id:someId");
-        assetIndex.accept(Asset.Builder.newInstance().id("1").build(), DataAddress.Builder.newInstance().type("any").build());
+        assetIndex.create(Asset.Builder.newInstance().id("1").build(), DataAddress.Builder.newInstance().type("any").build());
         when(negotiationService.notifyRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));

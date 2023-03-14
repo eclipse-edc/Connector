@@ -91,7 +91,7 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Void> accept(AssetEntry item) {
+    public StoreResult<Void> create(AssetEntry item) {
         lock.writeLock().lock();
         try {
             var id = item.getAsset().getId();
