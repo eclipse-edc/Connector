@@ -49,6 +49,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 
 /**
  * Represents a contract negotiation.
@@ -279,15 +280,13 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
-     * Transition to state ERROR.
+     * Transition to state TERMINATING.
      *
      * @param errorDetail Message describing the error.
      */
-    public void transitionError(@Nullable String errorDetail) {
-        state = ContractNegotiationStates.ERROR.code();
+    public void transitionTerminating(@Nullable String errorDetail) {
         this.errorDetail = errorDetail;
-        stateCount = 1;
-        updateStateTimestamp();
+        transitionTo(TERMINATING.code());
     }
 
     /**

@@ -56,11 +56,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ERROR;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -211,7 +211,7 @@ class ProviderContractNegotiationManagerImplTest {
     }
 
     @Test
-    void providerOffering_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
+    void providerOffering_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_OFFERING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
@@ -221,7 +221,7 @@ class ProviderContractNegotiationManagerImplTest {
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
             verify(listener).failed(any());
         });
@@ -262,7 +262,7 @@ class ProviderContractNegotiationManagerImplTest {
     }
 
     @Test
-    void declining_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
+    void declining_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(DECLINING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(DECLINING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
@@ -273,7 +273,7 @@ class ProviderContractNegotiationManagerImplTest {
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
             verify(listener).failed(any());
         });
@@ -336,7 +336,7 @@ class ProviderContractNegotiationManagerImplTest {
     }
 
     @Test
-    void confirming_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
+    void confirming_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREEING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
@@ -346,7 +346,7 @@ class ProviderContractNegotiationManagerImplTest {
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
             verify(listener).failed(any());
         });

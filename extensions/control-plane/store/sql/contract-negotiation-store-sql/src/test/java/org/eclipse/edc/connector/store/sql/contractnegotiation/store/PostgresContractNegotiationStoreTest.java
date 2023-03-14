@@ -232,7 +232,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                 .containsExactly(agreement);
 
         // cancel the agreement
-        updatedNegotiation.transitionError("Cancelled");
+        updatedNegotiation.transitionTerminating("Cancelled");
         store.save(updatedNegotiation);
     }
 

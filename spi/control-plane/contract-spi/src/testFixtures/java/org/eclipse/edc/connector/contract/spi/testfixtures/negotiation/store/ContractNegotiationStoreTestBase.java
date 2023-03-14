@@ -258,7 +258,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .containsExactly(agreement);
 
         // cancel the agreement
-        updatedNegotiation.transitionError("Cancelled");
+        updatedNegotiation.transitionTerminating("Cancelled");
         getContractNegotiationStore().save(updatedNegotiation);
     }
 

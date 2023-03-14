@@ -39,8 +39,7 @@ public enum ContractNegotiationStates {
     PROVIDER_FINALIZING(1150),
     PROVIDER_FINALIZED(1200),
     TERMINATING(1300),
-    TERMINATED(1400),
-    ERROR(-1);
+    TERMINATED(1400);
 
     private final int code;
 

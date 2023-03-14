@@ -17,14 +17,18 @@ package org.eclipse.edc.connector.contract.negotiation.command.handlers;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.spi.EdcException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.time.Clock;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,11 +47,12 @@ class CancelNegotiationCommandHandlerTest {
     @Test
     void handle_negotiationExists_cancelNegotiation() {
         var negotiationId = "test";
+        var clock = incrementingClock();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(negotiationId)
+                .clock(clock)
                 .counterPartyId("counter-party")
                 .counterPartyAddress("https://counter-party")
-                .updatedAt(12345) // impossible time
                 .protocol("test-protocol")
                 .build();
         var originalTime = negotiation.getUpdatedAt();
@@ -57,7 +62,7 @@ class CancelNegotiationCommandHandlerTest {
 
         commandHandler.handle(command);
 
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
+        assertThat(negotiation.getState()).isEqualTo(TERMINATING.code());
         assertThat(negotiation.getErrorDetail()).isEqualTo("Cancelled");
         assertThat(negotiation.getUpdatedAt()).isNotEqualTo(originalTime);
     }
@@ -77,6 +82,14 @@ class CancelNegotiationCommandHandlerTest {
     @Test
     void getType_returnType() {
         assertThat(commandHandler.getType()).isEqualTo(CancelNegotiationCommand.class);
+    }
+
+    @NotNull
+    private static Clock incrementingClock() {
+        var clock = mock(Clock.class);
+        var timestamp = new AtomicLong(1L);
+        when(clock.millis()).thenAnswer(i -> timestamp.incrementAndGet());
+        return clock;
     }
 
 }

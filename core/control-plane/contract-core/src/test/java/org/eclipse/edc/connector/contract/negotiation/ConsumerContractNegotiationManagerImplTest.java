@@ -56,9 +56,9 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ERROR;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -239,7 +239,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void requesting_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
+    void requesting_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
@@ -249,7 +249,7 @@ class ConsumerContractNegotiationManagerImplTest {
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
             verify(listener).failed(any());
         });
@@ -288,7 +288,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void consumerApproving_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
+    void consumerApproving_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
@@ -298,7 +298,7 @@ class ConsumerContractNegotiationManagerImplTest {
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
             verify(listener).failed(any());
         });
@@ -339,7 +339,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void declining_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
+    void declining_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(DECLINING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(DECLINING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
@@ -350,7 +350,7 @@ class ConsumerContractNegotiationManagerImplTest {
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
             verify(listener).failed(any());
         });

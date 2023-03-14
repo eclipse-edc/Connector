@@ -41,7 +41,7 @@ public class CancelNegotiationCommandHandler extends SingleContractNegotiationCo
      */
     @Override
     protected boolean modify(ContractNegotiation negotiation) {
-        negotiation.transitionError("Cancelled");
+        negotiation.transitionTerminating("Cancelled");
         return true;
     }
 

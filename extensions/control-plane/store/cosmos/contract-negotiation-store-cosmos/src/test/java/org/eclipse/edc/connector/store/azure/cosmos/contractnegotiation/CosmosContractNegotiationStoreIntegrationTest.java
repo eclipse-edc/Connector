@@ -221,7 +221,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         item.acquireLease("someone-else", clock);
         container.createItem(item);
 
-        negotiation.transitionError("test-error");
+        negotiation.transitionTerminating("test-error");
 
         assertThatThrownBy(() -> store.save(negotiation)).isInstanceOf(IllegalStateException.class).hasRootCauseInstanceOf(BadRequestException.class);
     }
