@@ -18,9 +18,9 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.model.Catalog;
 import org.eclipse.edc.jsonld.model.Dataset;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
-import org.eclipse.edc.jsonld.transformer.from.FromCatalogTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.from.FromContractOfferTransformer;
-import org.eclipse.edc.jsonld.transformer.from.FromPolicyTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.ToCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.to.ToContractOfferTransformer;
 import org.eclipse.edc.jsonld.transformer.to.ToDataServiceTransformer;
@@ -126,13 +126,13 @@ class BindingTest {
 
         builderFactory = Json.createBuilderFactory(Map.of());
 
-        var fromCatalogTransformer = new FromCatalogTransformer(builderFactory, mapper);
+        var fromCatalogTransformer = new JsonObjectFromCatalogTransformer(builderFactory, mapper);
         registry.register(fromCatalogTransformer);
 
         var fromContractOfferTransformer = new FromContractOfferTransformer(builderFactory);
         registry.register(fromContractOfferTransformer);
 
-        var fromPolicyTransformer = new FromPolicyTransformer(builderFactory, mapper);
+        var fromPolicyTransformer = new JsonObjectFromPolicyTransformer(builderFactory, mapper);
         registry.register(fromPolicyTransformer);
     }
 

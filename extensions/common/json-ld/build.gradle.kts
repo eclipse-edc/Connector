@@ -29,6 +29,7 @@ dependencies {
     api("org.glassfish:jakarta.json:2.0.0")
 
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:control-plane:contract-spi"))
 

@@ -1,0 +1,68 @@
+/*
+ *  Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.jsonld.transformer.from;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
+import org.eclipse.edc.connector.contract.spi.types.offer.Dataset;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.transform.spi.TransformerContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
+
+public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<Dataset, JsonObject> {
+    
+    private final JsonBuilderFactory jsonFactory;
+    private final ObjectMapper mapper;
+    
+    public JsonObjectFromDatasetTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+        super(Dataset.class, JsonObject.class);
+        this.jsonFactory = jsonFactory;
+        this.mapper = mapper;
+    }
+    
+    @Override
+    public @Nullable JsonObject transform(@Nullable Dataset dataset, @NotNull TransformerContext context) {
+        if (dataset == null) {
+            return null;
+        }
+        
+        var objectBuilder = jsonFactory.createObjectBuilder();
+        objectBuilder.add("@id", dataset.getId());
+        objectBuilder.add("@type", "dcat:Dataset");
+        
+        var policies = dataset.getPolicies().stream()
+                .map(policy -> context.transform(policy, JsonObject.class))
+                .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
+                .build();
+        objectBuilder.add(DCAT_SCHEMA + "hasPolicy", policies);
+        
+        var distributions = dataset.getDistributions().stream()
+                .map(distribution -> context.transform(distribution, JsonObject.class))
+                .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
+                .build();
+        objectBuilder.add(DCAT_SCHEMA + "distribution", distributions);
+    
+        // transform properties, which are generic JSON values.
+        dataset.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));
+        
+        return objectBuilder.build();
+    }
+}
