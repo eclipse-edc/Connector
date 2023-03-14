@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.controlplane;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.controlplane.controller.ContractNegotiationController;
 import org.eclipse.edc.protocol.dsp.controlplane.controller.TransferProcessController;
@@ -41,6 +42,9 @@ public class DspControlPlaneExtension implements ServiceExtension {
     @Inject
     private ProviderContractNegotiationManager providerNegotiationManager;
 
+    @Inject
+    private TransferProcessManager transferProcessManager;
+
     private ContractNegotiationService contractNegotiationService;
 
     @Inject
@@ -61,7 +65,7 @@ public class DspControlPlaneExtension implements ServiceExtension {
 
         var contractNegotiationController = new ContractNegotiationController(monitor, negotiationService, typeManager);
 
-        var transferProcessService = new TransferProcessServiceImpl();
+        var transferProcessService = new TransferProcessServiceImpl(transferProcessManager);
         var transferProcessController = new TransferProcessController(monitor,transferProcessService, typeManager);
 
         webService.registerResource(config.getContextAlias(), transferProcessController);

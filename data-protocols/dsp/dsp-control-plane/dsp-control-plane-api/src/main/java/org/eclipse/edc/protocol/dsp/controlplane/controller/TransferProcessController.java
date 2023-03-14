@@ -57,22 +57,22 @@ public class TransferProcessController {
 
     @POST
     @Path("/{id}/start")
-    public void consumerTransferProcessStart(JsonObject jsonObject) {
+    public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject) {
     }
 
     @POST
     @Path("/{id}/completion")
-    public void consumerTransferProcessCompletion(JsonObject jsonObject) {
+    public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject) {
     }
 
     @POST
     @Path("/{id}/termination")
-    public void consumerTransferProcessTermination(JsonObject jsonObject) {
+    public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject) {
     }
 
     @POST
     @Path("/{id}/suspension")
-    public void consumerTransferProcessSuspension(JsonObject jsonObject) {
+    public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject) {
 
     }
 }

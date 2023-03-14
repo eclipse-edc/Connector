@@ -14,5 +14,20 @@
 
 package org.eclipse.edc.protocol.dsp.spi.controlplane.service;
 
+import jakarta.json.JsonObject;
+
 public interface TransferProcessService {
+
+    JsonObject getTransferProcessByID(String id);
+
+    JsonObject initiateTransferProcess(JsonObject jsonObject);
+
+    void consumerTransferProcessStart(String id, JsonObject jsonObject);
+
+    void consumerTransferProcessCompletion(String id, JsonObject jsonObject);
+
+    void consumerTransferProcessTermination(String id, JsonObject jsonObject);
+
+    void consumerTransferProcessSuspension(String id, JsonObject jsonObject);
+
 }
