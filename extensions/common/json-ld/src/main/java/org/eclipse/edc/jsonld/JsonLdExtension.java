@@ -25,6 +25,16 @@ import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDataServiceTransfor
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDatasetTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToActionTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToCatalogTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToConstraintTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataServiceTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDatasetTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDistributionTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDutyTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPermissionTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPolicyTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToProhibitionTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -58,11 +68,25 @@ public class JsonLdExtension implements ServiceExtension {
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
         
         var registry = new JsonLdTransformerRegistryImpl();
+        
+        // EDC model to JSON-LD transformers
         registry.register(new JsonObjectFromCatalogTransformer(jsonBuilderFactory, mapper));
         registry.register(new JsonObjectFromDatasetTransformer(jsonBuilderFactory, mapper));
         registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, mapper));
         registry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory, mapper));
         registry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory, mapper));
+        
+        // JSON-LD to EDC model transformers
+        registry.register(new JsonObjectToCatalogTransformer());
+        registry.register(new JsonObjectToDataServiceTransformer());
+        registry.register(new JsonObjectToDatasetTransformer());
+        registry.register(new JsonObjectToDistributionTransformer());
+        registry.register(new JsonObjectToPolicyTransformer());
+        registry.register(new JsonObjectToPermissionTransformer());
+        registry.register(new JsonObjectToProhibitionTransformer());
+        registry.register(new JsonObjectToDutyTransformer());
+        registry.register(new JsonObjectToActionTransformer());
+        registry.register(new JsonObjectToConstraintTransformer());
         
         context.registerService(JsonLdTransformerRegistry.class, registry);
     }
