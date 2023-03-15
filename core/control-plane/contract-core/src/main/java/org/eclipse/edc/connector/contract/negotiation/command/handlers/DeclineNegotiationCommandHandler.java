@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCo
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 
 /**
- * Handler for {@link DeclineNegotiationCommand}s. Transitions the specified ContractNegotiation to the DECLINING state.
+ * Handler for {@link DeclineNegotiationCommand}s. Transitions the specified ContractNegotiation to the TERMINATING state.
  */
 public class DeclineNegotiationCommandHandler extends SingleContractNegotiationCommandHandler<DeclineNegotiationCommand> {
 
@@ -40,8 +40,7 @@ public class DeclineNegotiationCommandHandler extends SingleContractNegotiationC
      */
     @Override
     protected boolean modify(ContractNegotiation negotiation) {
-        negotiation.transitionDeclining();
-        negotiation.setErrorDetail("Declined");
+        negotiation.transitionTerminating("Declined");
         return true;
     }
 

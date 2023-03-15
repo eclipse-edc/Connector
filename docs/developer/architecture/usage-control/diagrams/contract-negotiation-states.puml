@@ -35,6 +35,10 @@ state Consumer {
   }
   state "PROVIDER_FINALIZED" as PROVIDER_FINALIZED_consumer {
   }
+  state "TERMINATING" as TERMINATING_consumer {
+  }
+  state "TERMINATED" as TERMINATED_consumer {
+  }
 
   [*] --> INITIAL_consumer
   INITIAL_consumer --> CONSUMER_REQUESTING_consumer
@@ -54,6 +58,10 @@ state Consumer {
   CONSUMER_VERIFYING_consumer -[dashed]-> CONSUMER_VERIFIED_provider : sends\n**ContractAgreementVerificationMessage**
 
   CONSUMER_VERIFIED_consumer -[hidden]-> PROVIDER_FINALIZED_consumer : used for layout
+
+  CONSUMER_VERIFIED_consumer -[hidden]-> TERMINATING_consumer : used for layout
+  TERMINATING_consumer -[dashed]-> TERMINATED_provider : sends\n**TransferTerminationMessage**\nmessage
+  TERMINATING_consumer --> TERMINATED_consumer
 }
 
 state Provider {
@@ -77,6 +85,10 @@ state Provider {
   }
   state "PROVIDER_FINALIZED" as PROVIDER_FINALIZED_provider {
   }
+  state "TERMINATING" as TERMINATING_provider {
+  }
+  state "TERMINATED" as TERMINATED_provider {
+  }
 
   [*] --> INITIAL_provider
   INITIAL_provider --> PROVIDER_OFFERING_provider
@@ -95,6 +107,9 @@ state Provider {
   PROVIDER_FINALIZING_provider --> PROVIDER_FINALIZED_provider
   PROVIDER_FINALIZING_provider -[dashed]-> PROVIDER_FINALIZED_consumer : sends\n**ContractNegotiationEventMessage**
 
+  PROVIDER_FINALIZING_provider -[hidden]-> TERMINATING_provider : used for layout
+  TERMINATING_provider -[dashed]-> TERMINATED_consumer : sends\n**TransferTerminationMessage**\nmessage
+  TERMINATING_provider --> TERMINATED_provider
 }
 
 

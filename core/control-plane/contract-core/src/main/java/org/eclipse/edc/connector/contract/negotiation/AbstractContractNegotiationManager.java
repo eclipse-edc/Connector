@@ -203,9 +203,8 @@ public abstract class AbstractContractNegotiationManager {
                     monitor.debug(format("[%s] ContractNegotiation %s is now in state %s.", getName(),
                             negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 } else if (sendRetryManager.retriesExhausted(negotiation)) {
-                    negotiation.transitionError("Retry limited exceeded: " + throwable.getMessage());
+                    negotiation.transitionTerminating("Retry limited exceeded: " + throwable.getMessage());
                     negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.failed(negotiation));
                     monitor.severe(format("[%s] attempt #%d failed to %s. Retry limit exceeded, ContractNegotiation %s moves to ERROR state",
                             getName(), negotiation.getStateCount(), operationDescription, negotiation.getId()), throwable);
                 } else {

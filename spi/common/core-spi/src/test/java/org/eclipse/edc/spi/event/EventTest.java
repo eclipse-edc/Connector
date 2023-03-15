@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationOffered;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
@@ -82,6 +83,7 @@ class EventTest {
                     ContractNegotiationInitiated.Builder.newInstance().contractNegotiationId("id"),
                     ContractNegotiationOffered.Builder.newInstance().contractNegotiationId("id"),
                     ContractNegotiationRequested.Builder.newInstance().contractNegotiationId("id"),
+                    ContractNegotiationTerminated.Builder.newInstance().contractNegotiationId("id"),
                     PolicyDefinitionCreated.Builder.newInstance().policyDefinitionId("id"),
                     PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id"),
                     TransferProcessCompleted.Builder.newInstance().transferProcessId("id"),

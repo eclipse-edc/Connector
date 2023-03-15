@@ -42,12 +42,11 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.DECLINING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -63,10 +62,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
-                .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
-                .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
-                .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))
-                .processor(processNegotiationsInState(DECLINING, this::processDeclining))
+                .processor(processNegotiationsInState(CONSUMER_REQUESTING, this::processRequesting))
+                .processor(processNegotiationsInState(CONSUMER_AGREEING, this::processConsumerApproving))
+                .processor(processNegotiationsInState(PROVIDER_AGREED, this::processProviderAgreed))
+                .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
                 .processor(onCommands(this::processCommand))
                 .build();
 
@@ -109,7 +108,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Tells this manager that a previously sent contract offer has been confirmed by the provider. Validates the
+     * Tells this manager that a previously sent contract offer has been agreed by the provider. Validates the
      * contract agreement sent by the provider against the last contract offer and transitions the corresponding
      * {@link ContractNegotiation} to state CONFIRMED or DECLINING.
      *
@@ -121,6 +120,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     @Override
+    // TODO: must be renamed to providerAgreed
     public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
@@ -139,7 +139,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             var message = "Contract agreement received. Validation failed: " + result.getFailureDetail();
             monitor.debug("[Consumer] " + message);
             negotiation.setErrorDetail(message);
-            negotiation.transitionDeclining();
+            negotiation.transitionTerminating();
             negotiationStore.save(negotiation);
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -149,10 +149,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         // Agreement has been approved.
         negotiation.setContractAgreement(agreement); // TODO persist unchecked agreement of provider?
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
-        if (negotiation.getState() != CONFIRMED.code()) {
-            // TODO: otherwise will fail. But should do it, since it's already confirmed? A duplicated message received shouldn't be an issue
-            negotiation.transitionConfirmed();
-        }
+        negotiation.transitionProviderAgreed();
         negotiationStore.save(negotiation);
         observable.invokeForEach(l -> l.confirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
@@ -178,9 +175,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
-        negotiation.transitionDeclined();
+        negotiation.transitionTerminated();
         negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.declined(negotiation));
+        observable.invokeForEach(l -> l.terminated(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return StatusResult.success(negotiation);
@@ -261,27 +258,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state CONSUMER_OFFERING. Tries to send the current offer to the
-     * respective provider. If this succeeds, the ContractNegotiation is transitioned to state CONSUMER_OFFERED. Else,
-     * it is transitioned to CONSUMER_OFFERING for a retry.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private boolean processConsumerOffering(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
-        var offer = negotiation.getLastContractOffer();
-        sendOffer(offer, negotiation, ContractOfferRequest.Type.COUNTER_OFFER)
-                .whenComplete(onCounterOfferSent(negotiation.getId()));
-
-        return true;
-    }
-
-    /**
      * Processes {@link ContractNegotiation} in state CONSUMER_APPROVING. Tries to send a dummy contract agreement to
      * the respective provider in order to approve the last offer sent by the provider. If this succeeds, the
      * ContractNegotiation is transitioned to state CONSUMER_APPROVED. Else, it is transitioned to CONSUMER_APPROVING
@@ -334,15 +310,23 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return false;
     }
 
+    @WithSpan
+    private boolean processProviderAgreed(ContractNegotiation negotiation) {
+        // TODO: should pass by verifying/verified first
+        negotiation.transitionProviderFinalized();
+        negotiationStore.save(negotiation);
+        return true;
+    }
+
     /**
-     * Processes {@link ContractNegotiation} in state DECLINING. Tries to send a contract rejection to the respective
-     * provider. If this succeeds, the ContractNegotiation is transitioned to state DECLINED. Else, it is transitioned
-     * to DECLINING for a retry.
+     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract rejection to the respective
+     * provider. If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
+     * to TERMINATING for a retry.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processDeclining(ContractNegotiation negotiation) {
+    private boolean processTerminating(ContractNegotiation negotiation) {
         if (sendRetryManager.shouldDelay(negotiation)) {
             breakLease(negotiation);
             return false;
@@ -378,21 +362,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     @NotNull
-    private BiConsumer<Object, Throwable> onCounterOfferSent(String negotiationId) {
-        return new AsyncSendResultHandler(negotiationId, "send counter offer")
-                .onSuccess(negotiation -> {
-                    negotiation.transitionOffered();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.offered(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    negotiation.transitionOffering();
-                    negotiationStore.save(negotiation);
-                })
-                .build();
-    }
-
-    @NotNull
     private BiConsumer<Object, Throwable> onAgreementSent(String negotiationId) {
         return new AsyncSendResultHandler(negotiationId, "send agreement")
                 .onSuccess(negotiation -> {
@@ -411,12 +380,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private BiConsumer<Object, Throwable> onRejectionSent(String negotiationId) {
         return new AsyncSendResultHandler(negotiationId, "send rejection")
                 .onSuccess(negotiation -> {
-                    negotiation.transitionDeclined();
+                    negotiation.transitionTerminated();
                     negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.declined(negotiation));
+                    observable.invokeForEach(l -> l.terminated(negotiation));
                 })
                 .onFailure(negotiation -> {
-                    negotiation.transitionDeclining();
+                    negotiation.transitionTerminating();
                     negotiationStore.save(negotiation);
                 })
                 .build();

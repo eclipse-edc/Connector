@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationOffered;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 
 import java.time.Clock;
 
@@ -69,6 +70,16 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     @Override
     public void approved(ContractNegotiation negotiation) {
         var event = ContractNegotiationApproved.Builder.newInstance()
+                .contractNegotiationId(negotiation.getId())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void terminated(ContractNegotiation negotiation) {
+        var event = ContractNegotiationTerminated.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
                 .at(clock.millis())
                 .build();

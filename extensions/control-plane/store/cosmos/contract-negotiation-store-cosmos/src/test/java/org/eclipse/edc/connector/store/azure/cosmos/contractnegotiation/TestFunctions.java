@@ -29,7 +29,7 @@ import java.util.UUID;
 public class TestFunctions {
 
     public static ContractNegotiation createNegotiation() {
-        return createNegotiation(ContractNegotiationStates.UNSAVED);
+        return createNegotiation(ContractNegotiationStates.INITIAL);
     }
 
     public static ContractNegotiation createNegotiation(ContractNegotiationStates state) {

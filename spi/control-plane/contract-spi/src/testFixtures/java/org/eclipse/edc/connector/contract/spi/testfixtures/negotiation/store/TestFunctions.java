@@ -68,7 +68,7 @@ public class TestFunctions {
                 .id(id)
                 .contractAgreement(null)
                 .correlationId("corr-" + id)
-                .state(ContractNegotiationStates.REQUESTED.code())
+                .state(ContractNegotiationStates.CONSUMER_REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .protocol("ids-multipart");
