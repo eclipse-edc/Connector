@@ -16,8 +16,6 @@
 
 package org.eclipse.edc.test.system.local;
 
-import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PerformanceTest;
 import org.eclipse.edc.test.system.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +29,8 @@ import static org.eclipse.edc.test.system.local.FileTransferLocalSimulation.CONS
 import static org.eclipse.edc.test.system.local.FileTransferLocalSimulation.PROVIDER_ASSET_PATH;
 import static org.eclipse.edc.test.system.utils.GatlingUtils.runGatling;
 
-@EndToEndTest
-@PerformanceTest
+//@EndToEndTest
+//@PerformanceTest
 public class FileTransferIntegrationTest extends FileTransferEdcRuntime {
 
     @Test
