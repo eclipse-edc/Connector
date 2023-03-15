@@ -298,11 +298,15 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public void transitionTerminating(@Nullable String errorDetail) {
         this.errorDetail = errorDetail;
+        transitionTerminating();
+    }
+
+    public void transitionTerminating() {
         transition(TERMINATING, state -> canBeTerminated());
     }
 
     public void transitionTerminated() {
-        transition(TERMINATED, TERMINATING);
+        transition(TERMINATED, state -> canBeTerminated());
     }
 
     public boolean currentStateIsOneOf(TransferProcessStates... states) {

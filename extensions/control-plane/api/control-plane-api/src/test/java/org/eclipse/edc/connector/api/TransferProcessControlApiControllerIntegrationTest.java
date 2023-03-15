@@ -23,11 +23,13 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +39,9 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
@@ -52,6 +57,9 @@ class TransferProcessControlApiControllerIntegrationTest {
                 "web.http.control.port", String.valueOf(port),
                 "web.http.control.path", "/"
         ));
+        var registry = mock(RemoteMessageDispatcherRegistry.class);
+        when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
     }
 
     @Test
@@ -168,6 +176,8 @@ class TransferProcessControlApiControllerIntegrationTest {
                 .type(TransferProcess.Type.PROVIDER)
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("file")
+                        .protocol("protocol")
+                        .connectorAddress("http://an/address")
                         .build());
     }
 

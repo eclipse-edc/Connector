@@ -16,9 +16,11 @@ package org.eclipse.edc.statemachine.retry;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 
 import java.time.Clock;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 /**
@@ -70,6 +72,21 @@ public class EntitySendRetryManager implements SendRetryManager {
     @Override
     public <T extends StatefulEntity<T>> boolean retriesExhausted(T entity) {
         return entity.getStateCount() > retryLimit;
+    }
+
+    @Override
+    public <T extends StatefulEntity<T>> SimpleRetryProcess<T> doSimpleProcess(T entity, Supplier<Boolean> process) {
+        return new SimpleRetryProcess<>(entity, process, this);
+    }
+
+    @Override
+    public <T extends StatefulEntity<T>, C> StatusResultRetryProcess<T, C> doSyncProcess(T entity, String description, Supplier<StatusResult<C>> process) {
+        return new StatusResultRetryProcess<>(entity, process, this, monitor, description);
+    }
+
+    @Override
+    public <T extends StatefulEntity<T>, C> CompletableFutureRetryProcess<T, C> doAsyncProcess(T entity, String description, Supplier<CompletableFuture<C>> process) {
+        return new CompletableFutureRetryProcess<>(entity, process, this, monitor, description);
     }
 
 }
