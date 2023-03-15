@@ -15,11 +15,16 @@
 
 package org.eclipse.edc.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import static java.util.stream.Collectors.joining;
 
 /**
  * Disallows an action if its constraints are satisfied.
  */
+@JsonDeserialize(builder = Prohibition.Builder.class)
+@JsonTypeName("dataspaceconnector:prohibition")
 public class Prohibition extends Rule {
 
     @Override
