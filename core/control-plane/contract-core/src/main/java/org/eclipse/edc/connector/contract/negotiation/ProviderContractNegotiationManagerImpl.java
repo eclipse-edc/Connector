@@ -32,10 +32,8 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
@@ -97,9 +95,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         if (negotiation.getContractAgreement() != null) {
             negotiation.setContractAgreement(null);
         }
-        negotiation.transitionTerminated();
-        negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.terminated(negotiation));
+        transitToTerminated(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -147,8 +143,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer received. Will be rejected: " + result.getFailureDetail());
             negotiation.setErrorDetail(result.getFailureMessages().get(0));
-            negotiation.transitionTerminating();
-            negotiationStore.save(negotiation);
+            transitToTerminating(negotiation);
 
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -156,17 +151,11 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
-        negotiation.transitionProviderAgreeing();
-        negotiationStore.save(negotiation);
+        transitToProviderAgreeing(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return StatusResult.success(negotiation);
-    }
-
-    @Override
-    protected String getName() {
-        return PROVIDER.name();
     }
 
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
@@ -199,11 +188,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processProviderOffering(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
         var currentOffer = negotiation.getLastContractOffer();
 
         var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
@@ -214,10 +198,13 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .correlationId(negotiation.getCorrelationId())
                 .build();
 
-        //TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, contractOfferRequest)
-                .whenComplete(onCounterOfferSent(negotiation.getId()));
-        return false;
+        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, contractOfferRequest))
+                .entityRetrieve(negotiationStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess((n, result) -> transitToOffered(n))
+                .onFailure((n, throwable) -> transitToOffering(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
+                .execute("send counter offer");
     }
 
     /**
@@ -229,11 +216,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processTerminating(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
         if (negotiation.getCorrelationId() != null) {
             var rejection = ContractRejection.Builder.newInstance()
                     .protocol(negotiation.getProtocol())
@@ -243,17 +225,25 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .rejectionReason(negotiation.getErrorDetail())
                     .build();
 
-            //TODO protocol-independent response type?
-            dispatcherRegistry.send(Object.class, rejection)
-                    .whenComplete(onRejectionSent(negotiation.getId()));
+            return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
+                    .entityRetrieve(negotiationStore::find)
+                    .onDelay(this::breakLease)
+                    .onSuccess((n, result) -> transitToTerminated(n))
+                    .onFailure((n, throwable) -> transitToTerminating(n))
+                    .onRetryExhausted((n, throwable) -> transitToTerminated(n)) // TODO: must pass the exception to explain why it will be terminated
+                    .execute("send rejection");
         } else {
             // TODO: cover this case, terminating a negotiation that has not reached the consumer side
-            negotiation.transitionTerminated();
-            negotiationStore.save(negotiation);
-            observable.invokeForEach(l -> l.terminated(negotiation));
+            transitToTerminated(negotiation);
         }
 
         return false;
+    }
+
+    private void transitToTerminated(ContractNegotiation negotiation) {
+        negotiation.transitionTerminated();
+        negotiationStore.save(negotiation);
+        observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
     /**
@@ -265,11 +255,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processProviderAgreeing(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
         var retrievedAgreement = negotiation.getContractAgreement();
 
         ContractAgreement agreement;
@@ -310,56 +295,41 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .policy(policy)
                 .build();
 
-        //TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, request)
-                .whenComplete(onAgreementSent(negotiation.getId(), agreement));
-        return true;
+        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
+                .entityRetrieve(negotiationStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess((n, result) -> transitToProviderAgreed(n, agreement))
+                .onFailure((n, throwable) -> transitToProviderAgreeing(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
+                .execute("send agreement");
     }
 
-    @NotNull
-    private BiConsumer<Object, Throwable> onCounterOfferSent(String negotiationId) {
-        return new AsyncSendResultHandler(negotiationId, "send counter offer")
-                .onSuccess(negotiation -> {
-                    negotiation.transitionOffered();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.offered(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    negotiation.transitionOffering();
-                    negotiationStore.save(negotiation);
-                })
-                .build();
+    private void transitToOffering(ContractNegotiation negotiation) {
+        negotiation.transitionOffering();
+        negotiationStore.save(negotiation);
     }
 
-    @NotNull
-    private BiConsumer<Object, Throwable> onRejectionSent(String negotiationId) {
-        return new AsyncSendResultHandler(negotiationId, "send rejection")
-                .onSuccess(negotiation -> {
-                    negotiation.transitionTerminated();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.terminated(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    negotiation.transitionTerminating();
-                    negotiationStore.save(negotiation);
-                })
-                .build();
+    private void transitToOffered(ContractNegotiation negotiation) {
+        negotiation.transitionOffered();
+        negotiationStore.save(negotiation);
+        observable.invokeForEach(l -> l.offered(negotiation));
     }
 
-    @NotNull
-    private BiConsumer<Object, Throwable> onAgreementSent(String id, ContractAgreement agreement) {
-        return new AsyncSendResultHandler(id, "send agreement")
-                .onSuccess(negotiation -> {
-                    negotiation.setContractAgreement(agreement);
-                    negotiation.transitionProviderAgreed();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.confirmed(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    negotiation.transitionProviderAgreeing();
-                    negotiationStore.save(negotiation);
-                })
-                .build();
+    private void transitToTerminating(ContractNegotiation negotiation) {
+        negotiation.transitionTerminating();
+        negotiationStore.save(negotiation);
+    }
+
+    private void transitToProviderAgreeing(ContractNegotiation negotiation) {
+        negotiation.transitionProviderAgreeing();
+        negotiationStore.save(negotiation);
+    }
+
+    private void transitToProviderAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
+        negotiation.setContractAgreement(agreement);
+        negotiation.transitionProviderAgreed();
+        negotiationStore.save(negotiation);
+        observable.invokeForEach(l -> l.confirmed(negotiation));
     }
 
     /**

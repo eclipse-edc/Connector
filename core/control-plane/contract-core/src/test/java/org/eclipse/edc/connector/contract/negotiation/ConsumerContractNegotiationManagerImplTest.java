@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -343,7 +342,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void terminating_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
+    void terminating_shouldTransitionToTerminatedIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
@@ -354,7 +353,7 @@ class ConsumerContractNegotiationManagerImplTest {
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
         });
     }

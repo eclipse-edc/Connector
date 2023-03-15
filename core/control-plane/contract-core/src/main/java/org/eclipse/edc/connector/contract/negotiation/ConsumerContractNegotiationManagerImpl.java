@@ -27,17 +27,13 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -174,9 +170,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
-        negotiation.transitionTerminated();
-        negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.terminated(negotiation));
+        transitToTerminated(negotiation);
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return StatusResult.success(negotiation);
@@ -187,11 +181,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         commandQueue.enqueue(command);
     }
 
-    @Override
-    protected String getName() {
-        return CONSUMER.name();
-    }
-
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
@@ -199,28 +188,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         return negotiation;
-    }
-
-    /**
-     * Builds and sends a {@link ContractOfferRequest} for a given {@link ContractNegotiation} and
-     * {@link ContractOffer}.
-     *
-     * @param offer   The contract offer.
-     * @param process The contract negotiation.
-     * @return The response to the sent message.
-     */
-    private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
-        var request = ContractOfferRequest.Builder.newInstance()
-                .contractOffer(offer)
-                .connectorAddress(process.getCounterPartyAddress())
-                .protocol(process.getProtocol())
-                .connectorId(process.getCounterPartyId())
-                .correlationId(process.getId())
-                .type(type)
-                .build();
-
-        // TODO protocol-independent response type?
-        return dispatcherRegistry.send(Object.class, request);
     }
 
     /**
@@ -244,13 +211,21 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
+        var request = ContractOfferRequest.Builder.newInstance()
+                .contractOffer(offer)
+                .connectorAddress(negotiation.getCounterPartyAddress())
+                .protocol(negotiation.getProtocol())
+                .connectorId(negotiation.getCounterPartyId())
+                .correlationId(negotiation.getId())
+                .type(ContractOfferRequest.Type.INITIAL)
+                .build();
 
-        return sendRetryManager.doAsyncProcess(negotiation, () -> sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL))
+        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
                 .entityRetrieve(negotiationStore::find)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToRequested(n))
                 .onFailure((n, throwable) -> transitToRequesting(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
                 .execute("Send ContractRequestMessage message");
     }
 
@@ -264,12 +239,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processConsumerApproving(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
-        //TODO this is a dummy agreement used to approve the provider's offer, real agreement will be created and sent by provider
         var lastOffer = negotiation.getLastContractOffer();
 
         var contractId = ContractId.parse(lastOffer.getId());
@@ -300,11 +269,13 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .policy(policy)
                 .build();
 
-        // TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, request)
-                .whenComplete(onAgreementSent(negotiation.getId()));
-
-        return false;
+        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
+                .entityRetrieve(negotiationStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess((n, result) -> transitToApproved(n))
+                .onFailure((n, throwable) -> transitToApproving(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
+                .execute("send agreement");
     }
 
     @WithSpan
@@ -324,11 +295,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processTerminating(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
         var rejection = ContractRejection.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
@@ -337,18 +303,13 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
 
-        // TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, rejection)
-                .whenComplete(onRejectionSent(negotiation.getId()));
-        return false;
-    }
-
-    @NotNull
-    private BiConsumer<Object, Throwable> onInitialOfferSent(String id) {
-        return new AsyncSendResultHandler(id, "send initial offer")
-                .onSuccess(this::transitToRequested)
-                .onFailure(this::transitToRequesting)
-                .build();
+        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
+                .entityRetrieve(negotiationStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess((n, result) -> transitToTerminated(n))
+                .onFailure((n, throwable) -> transitToTerminating(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminated(n)) // TODO: must pass the exception to explain why it was terminated
+                .execute("send rejection");
     }
 
     private void transitToRequesting(ContractNegotiation negotiation) {
@@ -362,33 +323,21 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         observable.invokeForEach(l -> l.requested(negotiation));
     }
 
-    @NotNull
-    private BiConsumer<Object, Throwable> onAgreementSent(String negotiationId) {
-        return new AsyncSendResultHandler(negotiationId, "send agreement")
-                .onSuccess(negotiation -> {
-                    negotiation.transitionApproved();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.approved(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    negotiation.transitionApproving();
-                    negotiationStore.save(negotiation);
-                })
-                .build();
+    private void transitToApproving(ContractNegotiation negotiation) {
+        negotiation.transitionApproving();
+        negotiationStore.save(negotiation);
     }
 
-    @NotNull
-    private BiConsumer<Object, Throwable> onRejectionSent(String negotiationId) {
-        return new AsyncSendResultHandler(negotiationId, "send rejection")
-                .onSuccess(negotiation -> {
-                    negotiation.transitionTerminated();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.terminated(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    transitToTerminating(negotiation);
-                })
-                .build();
+    private void transitToApproved(ContractNegotiation negotiation) {
+        negotiation.transitionApproved();
+        negotiationStore.save(negotiation);
+        observable.invokeForEach(l -> l.approved(negotiation));
+    }
+
+    private void transitToTerminated(ContractNegotiation negotiation) {
+        negotiation.transitionTerminated();
+        negotiationStore.save(negotiation);
+        observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
     private void transitToTerminating(ContractNegotiation negotiation) {
