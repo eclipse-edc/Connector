@@ -37,13 +37,16 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryP
     /**
      *  Execute some logic on the {@link E} entity, return true if the process happened, false otherwise.
      */
-    abstract boolean process(E entity);
+    abstract boolean process(E entity, String description);
 
     /**
      * If entity is not yet ready to be processed executes {@link #onDelay} handler and return false,
      * otherwise processes it.
+     *
+     * @param description the process description.
+     * @return true if the process happened, false otherwise.
      */
-    public boolean execute() {
+    public boolean execute(String description) {
         if (sendRetryManager.shouldDelay(entity)) {
             if (onDelay != null) {
                 onDelay.accept(entity);
@@ -51,7 +54,7 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryP
             return false;
         }
 
-        return process(entity);
+        return process(entity, description);
     }
 
     /**

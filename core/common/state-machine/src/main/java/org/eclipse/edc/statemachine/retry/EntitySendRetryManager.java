@@ -80,13 +80,13 @@ public class EntitySendRetryManager implements SendRetryManager {
     }
 
     @Override
-    public <T extends StatefulEntity<T>, C> StatusResultRetryProcess<T, C> doSyncProcess(T entity, String description, Supplier<StatusResult<C>> process) {
-        return new StatusResultRetryProcess<>(entity, process, this, monitor, description);
+    public <T extends StatefulEntity<T>, C> StatusResultRetryProcess<T, C> doSyncProcess(T entity, Supplier<StatusResult<C>> process) {
+        return new StatusResultRetryProcess<>(entity, process, this, monitor);
     }
 
     @Override
-    public <T extends StatefulEntity<T>, C> CompletableFutureRetryProcess<T, C> doAsyncProcess(T entity, String description, Supplier<CompletableFuture<C>> process) {
-        return new CompletableFutureRetryProcess<>(entity, process, this, monitor, description);
+    public <T extends StatefulEntity<T>, C> CompletableFutureRetryProcess<T, C> doAsyncProcess(T entity, Supplier<CompletableFuture<C>> process) {
+        return new CompletableFutureRetryProcess<>(entity, process, this, monitor);
     }
 
 }

@@ -30,21 +30,19 @@ import static java.lang.String.format;
 public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C> extends RetryProcess<E, CompletableFutureRetryProcess<E, C>> {
     private final Supplier<CompletableFuture<C>> process;
     private final Monitor monitor;
-    private final String description;
     private Function<String, E> entityRetrieve;
     private BiConsumer<E, C> onSuccessHandler;
     private BiConsumer<E, Throwable> onFailureHandler;
     private BiConsumer<E, Throwable> onRetryExhausted;
 
-    public CompletableFutureRetryProcess(E entity, Supplier<CompletableFuture<C>> process, SendRetryManager sendRetryManager, Monitor monitor, String description) {
+    public CompletableFutureRetryProcess(E entity, Supplier<CompletableFuture<C>> process, SendRetryManager sendRetryManager, Monitor monitor) {
         super(entity, sendRetryManager);
         this.process = process;
         this.monitor = monitor;
-        this.description = description;
     }
 
     @Override
-    boolean process(E entity) {
+    boolean process(E entity, String description) {
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
         process.get()
                 .whenComplete((result, throwable) -> {

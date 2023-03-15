@@ -31,7 +31,7 @@ public class SimpleRetryProcess<E extends StatefulEntity<E>> extends RetryProces
     }
 
     @Override
-    boolean process(E entity) {
+    boolean process(E entity, String description) {
         return process.get();
     }
 

@@ -245,13 +245,13 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processRequesting(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
 
-        return sendRetryManager.doAsyncProcess(negotiation, "Send ContractRequestMessage message", () -> sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL))
+        return sendRetryManager.doAsyncProcess(negotiation, () -> sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL))
                 .entityRetrieve(negotiationStore::find)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToRequested(n))
                 .onFailure((n, throwable) -> transitToRequesting(n))
                 .onRetryExhausted((n, throwable) -> transitToTerminating(n))
-                .execute();
+                .execute("Send ContractRequestMessage message");
     }
 
     /**

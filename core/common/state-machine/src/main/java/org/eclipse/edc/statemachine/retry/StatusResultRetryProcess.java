@@ -30,21 +30,19 @@ import static java.lang.String.format;
 public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends RetryProcess<E, StatusResultRetryProcess<E, C>> {
     private final Supplier<StatusResult<C>> process;
     private final Monitor monitor;
-    private final String description;
     private BiConsumer<E, C> onSuccessHandler;
     private BiConsumer<E, ResponseFailure> onFailureHandler;
     private BiConsumer<E, ResponseFailure> onFatalError;
     private BiConsumer<E, ResponseFailure> onRetryExhausted;
 
-    public StatusResultRetryProcess(E entity, Supplier<StatusResult<C>> process, SendRetryManager sendRetryManager, Monitor monitor, String description) {
+    public StatusResultRetryProcess(E entity, Supplier<StatusResult<C>> process, SendRetryManager sendRetryManager, Monitor monitor) {
         super(entity, sendRetryManager);
         this.process = process;
         this.monitor = monitor;
-        this.description = description;
     }
 
     @Override
-    boolean process(E entity) {
+    boolean process(E entity, String description) {
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
         var result = process.get();
 

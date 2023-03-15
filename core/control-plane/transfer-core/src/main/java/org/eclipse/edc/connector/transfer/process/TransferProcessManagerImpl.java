@@ -333,13 +333,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var resources = process.getResourcesToProvision();
 
-        return sendRetryManager.doAsyncProcess(process, "Provisioning", () -> provisionManager.provision(resources, policy))
+        return sendRetryManager.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
                         .entityRetrieve(transferProcessStore::find)
                         .onSuccess((t, content) -> handleProvisionResult(t.getId(), content))
                         .onFailure((t, throwable) -> transitToProvisioning(t))
                         .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
                         .onDelay(this::breakLease)
-                        .execute();
+                        .execute("Provisioning");
     }
 
     /**
@@ -384,13 +384,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description =  format("Send %s to %s", message.getClass().getSimpleName(), message.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
+        return sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToRequested(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onFailure((t, throwable) -> transitToRequesting(t))
                 .onDelay(this::breakLease)
-                .execute();
+                .execute(description);
     }
 
     /**
@@ -437,13 +437,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = "Initiate data flow";
 
-        return sendRetryManager.doSyncProcess(process, description, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
+        return sendRetryManager.doSyncProcess(process, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
                 .onSuccess((t, content) -> sendTransferStartMessage(t))
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitToStarting(t))
                 .onRetryExhausted((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onDelay(this::breakLease)
-                .execute();
+                .execute(description);
     }
 
     @WithSpan
@@ -456,13 +456,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
 
-        sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
+        sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToStarted(t))
                 .onFailure((t, throwable) -> transitToStarting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onDelay(this::breakLease)
-                .execute();
+                .execute(description);
     }
 
     /**
@@ -480,7 +480,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         return sendRetryManager.doSimpleProcess(transferProcess, () -> checkCompletion(transferProcess))
                 .onDelay(this::breakLease)
-                .execute();
+                .execute("Check completion");
     }
 
     @NotNull
@@ -523,13 +523,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
+        return sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onDelay(this::breakLease)
-                .execute();
+                .execute(description);
     }
 
     /**
@@ -553,13 +553,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
+        return sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onRetryExhausted(this::transitToTerminated)
                 .onDelay(this::breakLease)
-                .execute();
+                .execute(description);
     }
 
     /**
