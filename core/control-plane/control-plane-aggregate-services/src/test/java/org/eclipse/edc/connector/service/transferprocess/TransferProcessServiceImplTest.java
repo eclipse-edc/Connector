@@ -24,8 +24,8 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.transfer.spi.types.command.CancelTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -47,11 +47,16 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -132,45 +137,6 @@ class TransferProcessServiceImplTest {
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "ERROR", "ENDED" })
-    void cancel(TransferProcessStates state) {
-        var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
-
-        var result = service.cancel(id);
-
-        assertThat(result.succeeded()).isTrue();
-        verify(manager).enqueueCommand(commandCaptor.capture());
-        assertThat(commandCaptor.getValue()).isInstanceOf(CancelTransferCommand.class);
-        assertThat(commandCaptor.getValue().getTransferProcessId())
-                .isEqualTo(id);
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "ERROR", "ENDED" })
-    void cancel_whenNonCancellable(TransferProcessStates state) {
-        var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
-
-        var result = service.cancel(id);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + process.getId() + " cannot be canceled as it is in state " + state);
-        verifyNoInteractions(manager);
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    @Test
-    void cancel_whenNotFound() {
-        var result = service.cancel(id);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
     @Test
     void initiateTransfer() {
         var dataRequest = dataRequest();
@@ -242,7 +208,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "ENDED", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "TERMINATED" })
     void deprovision(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -258,7 +224,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "ENDED", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "TERMINATED" })
     void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -278,6 +244,42 @@ class TransferProcessServiceImplTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void started_shouldEnqueueCommand() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+
+        var result = service.notifyStarted("dataRequestId");
+
+        assertThat(result).matches(ServiceResult::succeeded);
+        verify(manager).enqueueCommand(isA(NotifyStartedTransferCommand.class));
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void started_shouldNotEnqueueCommandIfProcessIsNotFound() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(null);
+
+        var result = service.notifyStarted("dataRequestId");
+
+        assertThat(result).matches(ServiceResult::failed);
+        verify(manager, never()).enqueueCommand(any());
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void started_shouldNotEnqueueCommandIfIsNotConsumerAndStateIsNotValid() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
+
+        var result = service.notifyStarted("dataRequestId");
+
+        assertThat(result).matches(ServiceResult::failed);
+        verify(manager, never()).enqueueCommand(any());
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     private TransferProcess transferProcess() {

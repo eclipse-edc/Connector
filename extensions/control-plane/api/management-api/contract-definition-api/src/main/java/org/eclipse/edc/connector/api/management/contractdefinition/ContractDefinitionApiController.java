@@ -20,6 +20,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -27,8 +28,10 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDtoWrapper;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -89,7 +92,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @POST
     @Override
-    public IdResponseDto createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
+    public IdResponseDto createContractDefinition(@Valid ContractDefinitionCreateDto dto) {
         monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
@@ -106,6 +109,25 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
                 .createdAt(resultContent.getCreatedAt())
                 .build();
 
+    }
+
+    @PUT
+    @Path("{contractDefinitionId}")
+    @Override
+    public void updateContractDefinition(@PathParam("contractDefinitionId") String contractDefinitionId, @Valid ContractDefinitionUpdateDto contractDefinition) {
+        var contractDefinitionWrapper = ContractDefinitionUpdateDtoWrapper.Builder
+                .newInstance()
+                .id(contractDefinitionId)
+                .contractDefinition(contractDefinition)
+                .build();
+
+        var contractDefinitionResult = transformerRegistry.transform(contractDefinitionWrapper,
+                ContractDefinition.class);
+        if (contractDefinitionResult.failed()) {
+            throw new InvalidRequestException(contractDefinitionResult.getFailureMessages());
+        }
+        service.update(contractDefinitionResult.getContent())
+                .orElseThrow(exceptionMapper(ContractDefinition.class, contractDefinitionId));
     }
 
     @DELETE

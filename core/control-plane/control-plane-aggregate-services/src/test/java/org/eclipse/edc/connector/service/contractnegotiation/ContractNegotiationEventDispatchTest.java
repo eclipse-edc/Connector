@@ -152,7 +152,7 @@ class ContractNegotiationEventDispatchTest {
     private RemoteMessageDispatcher succeedingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         return testDispatcher;
     }
 
@@ -160,7 +160,7 @@ class ContractNegotiationEventDispatchTest {
     private RemoteMessageDispatcher failingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("any")));
+        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("any")));
         return testDispatcher;
     }
 }

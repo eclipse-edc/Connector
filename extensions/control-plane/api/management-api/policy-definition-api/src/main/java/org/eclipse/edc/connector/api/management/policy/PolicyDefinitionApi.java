@@ -26,6 +26,7 @@ import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
@@ -73,7 +74,7 @@ public interface PolicyDefinitionApi {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createPolicy(PolicyDefinitionRequestDto policy);
+    IdResponseDto createPolicy(@Valid PolicyDefinitionRequestDto policy);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
             "by a contract definition, in which case an error is returned. " +
@@ -90,4 +91,14 @@ public interface PolicyDefinitionApi {
     )
     void deletePolicy(String id);
 
+    @Operation(description = "Updates an existing Policy, If the Policy is not found, an error is reported",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "policy definition was updated successfully. Returns the Policy Definition Id and updated timestamp"),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "policy definition could not be updated, because it does not exists",
+                            content = @Content(schema = @Schema(implementation = ApiErrorDetail.class)))
+            }
+    )
+    void updatePolicy(String policyId, @Valid PolicyDefinitionUpdateDto policy);
 }

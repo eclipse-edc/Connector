@@ -15,17 +15,17 @@
 package org.eclipse.edc.connector.api.management.asset.transform;
 
 import org.eclipse.edc.api.transformer.DtoTransformer;
-import org.eclipse.edc.connector.api.management.asset.model.AssetRequestDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetRequestDto, Asset> {
+public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetCreationRequestDto, Asset> {
 
     @Override
-    public Class<AssetRequestDto> getInputType() {
-        return AssetRequestDto.class;
+    public Class<AssetCreationRequestDto> getInputType() {
+        return AssetCreationRequestDto.class;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetRe
     }
 
     @Override
-    public @Nullable Asset transform(@NotNull AssetRequestDto object, @NotNull TransformerContext context) {
+    public @Nullable Asset transform(@NotNull AssetCreationRequestDto object, @NotNull TransformerContext context) {
         return Asset.Builder.newInstance()
                 .id(object.getId())
                 .properties(object.getProperties())

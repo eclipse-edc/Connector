@@ -1,3 +1,3 @@
 # Micrometer extension
 
-See [developer documentation](IdeaProjects/edc/connector/docs/developer/metrics.md)
+See [developer documentation](../../../../docs/developer/metrics.md)

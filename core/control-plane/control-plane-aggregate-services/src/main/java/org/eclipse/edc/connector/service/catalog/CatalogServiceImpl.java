@@ -40,6 +40,6 @@ public class CatalogServiceImpl implements CatalogService {
                 .querySpec(spec)
                 .build();
 
-        return dispatcher.send(Catalog.class, request, () -> null);
+        return dispatcher.send(Catalog.class, request);
     }
 }

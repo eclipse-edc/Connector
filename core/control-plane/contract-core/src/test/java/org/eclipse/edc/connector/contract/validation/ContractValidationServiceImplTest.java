@@ -193,7 +193,6 @@ class ContractValidationServiceImplTest {
         var contractDefinition = createContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
@@ -210,7 +209,6 @@ class ContractValidationServiceImplTest {
 
         assertThat(isValid.succeeded()).isTrue();
         verify(agentService).createFor(isA(ClaimToken.class));
-        verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
         verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
     }
 

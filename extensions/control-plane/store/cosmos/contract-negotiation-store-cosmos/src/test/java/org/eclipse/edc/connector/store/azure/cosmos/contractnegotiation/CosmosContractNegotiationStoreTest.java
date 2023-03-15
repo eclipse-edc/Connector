@@ -110,7 +110,8 @@ class CosmosContractNegotiationStoreTest {
 
         store.save(negotiation);
 
-        verify(cosmosDbApi).saveItem(any(ContractNegotiationDocument.class));
+        verify(cosmosDbApi).queryItemById(eq(negotiation.getId()));
+        verify(cosmosDbApi).createItem(any(ContractNegotiationDocument.class));
         verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any());
         verifyNoMoreInteractions(cosmosDbApi);
     }

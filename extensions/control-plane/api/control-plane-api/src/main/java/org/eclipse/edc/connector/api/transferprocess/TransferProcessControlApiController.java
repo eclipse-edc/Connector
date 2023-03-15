@@ -54,7 +54,7 @@ public class TransferProcessControlApiController implements TransferProcessContr
     @Path("/{processId}/fail")
     @Override
     public void fail(@PathParam("processId") String processId, @NotNull @Valid TransferProcessFailStateDto request) {
-        transferProcessService.fail(processId, request.getErrorMessage()).orElseThrow(exceptionMapper(TransferProcess.class, processId));
+        transferProcessService.terminate(processId, request.getErrorMessage()).orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 
 }

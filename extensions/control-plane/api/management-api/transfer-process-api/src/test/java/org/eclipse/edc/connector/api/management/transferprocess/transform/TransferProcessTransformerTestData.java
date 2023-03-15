@@ -21,22 +21,18 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.transform.spi.TransformerContext;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.mockito.Mockito.mock;
-
 public class TransferProcessTransformerTestData {
 
-    TransformerContext context = mock(TransformerContext.class);
     String id = UUID.randomUUID().toString();
     TransferProcess.Type type = TransferProcess.Type.CONSUMER;
     TransferProcessStates state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];
-    long stateTimestamp = ThreadLocalRandom.current().nextLong();
+    long stateTimestamp = System.currentTimeMillis();
     long createdTimestamp = ThreadLocalRandom.current().nextLong();
     String errorDetail = "test error detail";
 

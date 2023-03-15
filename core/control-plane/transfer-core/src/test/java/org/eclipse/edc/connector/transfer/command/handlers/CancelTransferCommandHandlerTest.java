@@ -29,6 +29,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,13 +48,13 @@ class CancelTransferCommandHandlerTest {
     @BeforeEach
     void setUp() {
         observable.registerListener(listener);
-        handler = new CancelTransferCommandHandler(store, observable);
+        handler = new CancelTransferCommandHandler(store);
     }
 
     @Test
     void handle() {
         var cmd = new CancelTransferCommand("test-id");
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code())
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(STARTED.code())
                 .updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
@@ -60,18 +62,17 @@ class CancelTransferCommandHandlerTest {
         when(store.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
-        assertThat(tp.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
-        assertThat(tp.getErrorDetail()).isNull();
+        assertThat(tp.getState()).isEqualTo(TERMINATING.code());
+        assertThat(tp.getErrorDetail()).isEqualTo("transfer cancelled");
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
         verify(store).find(anyString());
         verify(store).save(tp);
         verifyNoMoreInteractions(store);
-        verify(listener).cancelled(tp);
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED" })
     void handle_illegalState(TransferProcessStates targetState) {
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();

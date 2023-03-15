@@ -76,7 +76,7 @@ class GcsDataSinkFactoryTest {
 
         var request = createRequest(source);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -92,7 +92,7 @@ class GcsDataSinkFactoryTest {
 
         var request = createRequest(source);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.failed()).isTrue();
     }

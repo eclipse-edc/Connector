@@ -82,7 +82,7 @@ class CosmosDbApiImplIntegrationTest {
     @Test
     void createItem() {
         var testItem = new TestCosmosDocument("payload", PARTITION_KEY);
-        cosmosDbApi.saveItem(testItem);
+        cosmosDbApi.createItem(testItem);
         record.add(testItem);
 
         assertThat(container.readAllItems(new PartitionKey(PARTITION_KEY), Object.class)).hasSize(1);
@@ -171,4 +171,24 @@ class CosmosDbApiImplIntegrationTest {
                 .isInstanceOf(NotFoundException.class);
     }
 
+
+    @Test
+    void update_whenNotExists() {
+        var item = new TestCosmosDocument("payload", PARTITION_KEY);
+        assertThatThrownBy(() -> cosmosDbApi.updateItem(item)).isInstanceOf(NotFoundException.class);
+
+        assertThat(container.readAllItems(new PartitionKey(PARTITION_KEY), Object.class)).isEmpty();
+    }
+
+    @Test
+    void update_whenExists() {
+        var item = new TestCosmosDocument("payload", PARTITION_KEY);
+        cosmosDbApi.createItem(item);
+        record.add(item);
+
+        //now update
+        cosmosDbApi.updateItem(item);
+
+        assertThat(container.readAllItems(new PartitionKey(PARTITION_KEY), Object.class)).hasSize(1);
+    }
 }

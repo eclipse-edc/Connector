@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +60,7 @@ class DataPlaneSelectorApiExtensionTest {
         context.registerService(WebService.class, webService);
         context.registerService(ManagementApiConfiguration.class, managementApiConfiguration);
         context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(mock(DataPlaneSelector.class),
-                mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class)));
+                mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class), new NoopTransactionContext()));
 
         extension = factory.constructInstance(DataPlaneSelectorApiExtension.class);
     }

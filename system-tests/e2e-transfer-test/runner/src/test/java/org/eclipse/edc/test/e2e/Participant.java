@@ -43,8 +43,9 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 
 public class Participant {
-
     private static final String IDS_PATH = "/api/v1/ids";
+
+
     private final Duration timeout = Duration.ofSeconds(30);
 
     private final URI controlPlane = URI.create("http://localhost:" + getFreePort());
@@ -101,10 +102,11 @@ public class Participant {
                 .contentType(JSON).contentType(JSON);
     }
 
-    public void createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId) {
+    public void createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId, long contractValidityDurationSeconds) {
         var contractDefinition = Map.of(
                 "id", definitionId,
                 "accessPolicyId", accessPolicyId,
+                "validity", String.valueOf(contractValidityDurationSeconds),
                 "contractPolicyId", contractPolicyId,
                 "criteria", AssetSelectorExpression.Builder.newInstance().constraint("asset:prop:id", "=", assetId).build().getCriteria()
         );
@@ -356,29 +358,28 @@ public class Participant {
         return baseConfiguration;
     }
 
-    public Map<String, String> controlPlaneCosmosDbConfiguration() {
+    public Map<String, String> controlPlaneCosmosDbConfiguration(String uniqueTestName) {
         var baseConfiguration = controlPlaneConfiguration();
-
         var cosmosDbConfiguration = new HashMap<String, String>() {
             {
                 put("edc.assetindex.cosmos.account-name", "test");
-                put("edc.assetindex.cosmos.database-name", "e2e-transfer-test");
-                put("edc.assetindex.cosmos.container-name", "assetindex");
+                put("edc.assetindex.cosmos.database-name", uniqueTestName);
+                put("edc.assetindex.cosmos.container-name", name + "-assetindex");
                 put("edc.contractdefinitionstore.cosmos.account-name", "test");
-                put("edc.contractdefinitionstore.cosmos.database-name", "e2e-transfer-test");
-                put("edc.contractdefinitionstore.cosmos.container-name", "contractdefinitionstore");
+                put("edc.contractdefinitionstore.cosmos.database-name", uniqueTestName);
+                put("edc.contractdefinitionstore.cosmos.container-name", name + "-contractdefinitionstore");
                 put("edc.contractnegotiationstore.cosmos.account-name", "test");
-                put("edc.contractnegotiationstore.cosmos.database-name", "e2e-transfer-test");
-                put("edc.contractnegotiationstore.cosmos.container-name", "contractnegotiationstore");
+                put("edc.contractnegotiationstore.cosmos.database-name", uniqueTestName);
+                put("edc.contractnegotiationstore.cosmos.container-name", name + "-contractnegotiationstore");
                 put("edc.node.directory.cosmos.account.name", "test");
-                put("edc.node.directory.cosmos.database.name", "e2e-transfer-test");
-                put("edc.node.directory.cosmos.container.name", "nodedirectory");
+                put("edc.node.directory.cosmos.database.name", uniqueTestName);
+                put("edc.node.directory.cosmos.container.name", name + "-nodedirectory");
                 put("edc.policystore.cosmos.account-name", "test");
-                put("edc.policystore.cosmos.database-name", "e2e-transfer-test");
-                put("edc.policystore.cosmos.container-name", "policystore");
+                put("edc.policystore.cosmos.database-name", uniqueTestName);
+                put("edc.policystore.cosmos.container-name", name + "-policystore");
                 put("edc.transfer-process-store.cosmos.account.name", "test");
-                put("edc.transfer-process-store.database.name", "e2e-transfer-test");
-                put("edc.transfer-process-store.cosmos.container-name", "transfer-process-store");
+                put("edc.transfer-process-store.database.name", uniqueTestName);
+                put("edc.transfer-process-store.cosmos.container-name", name + "-transfer-process-store");
             }
         };
         baseConfiguration.putAll(cosmosDbConfiguration);

@@ -144,12 +144,12 @@ components:
           format: uri
           example: null
         contractEnd:
-          type: string
-          format: date-time
+          type: integer
+          format: int64
           example: null
         contractStart:
-          type: string
-          format: date-time
+          type: integer
+          format: int64
           example: null
         id:
           type: string

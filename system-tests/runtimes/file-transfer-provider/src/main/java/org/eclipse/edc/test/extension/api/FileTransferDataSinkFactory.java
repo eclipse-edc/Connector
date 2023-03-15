@@ -45,8 +45,14 @@ class FileTransferDataSinkFactory implements DataSinkFactory {
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
-        return Result.success(true);
+        return validateRequest(request).map(it -> true);
     }
+
+    @Override
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+        return Result.success();
+    }
+
 
     @Override
     public DataSink createSink(DataFlowRequest request) {

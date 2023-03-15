@@ -21,22 +21,23 @@ import java.util.Arrays;
  * Defines the states a consumer and provider transfer process can be in.
  */
 public enum TransferProcessStates {
-    UNSAVED(0),
     INITIAL(100),
     PROVISIONING(200),
     PROVISIONING_REQUESTED(250),
     PROVISIONED(300),
     REQUESTING(400),
     REQUESTED(500),
-    IN_PROGRESS(600),
-    STREAMING(700),
+    STARTING(550),
+    STARTED(600),
+    SUSPENDING(650),
+    SUSPENDED(700),
+    COMPLETING(750),
     COMPLETED(800),
+    TERMINATING(825),
+    TERMINATED(850),
     DEPROVISIONING(900),
     DEPROVISIONING_REQUESTED(950),
-    DEPROVISIONED(1000),
-    ENDED(1100),
-    CANCELLED(1200),
-    ERROR(-1);
+    DEPROVISIONED(1000);
 
     private final int code;
 

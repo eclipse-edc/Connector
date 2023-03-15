@@ -25,6 +25,8 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 
 import java.util.List;
 
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
+
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/instances")
@@ -48,7 +50,8 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
     @POST
     public void addEntry(DataPlaneInstance instance) {
-        selectionService.addInstance(instance);
+        selectionService.addInstance(instance)
+                .orElseThrow(exceptionMapper(DataPlaneInstance.class, instance.getId()));
     }
 
     @GET

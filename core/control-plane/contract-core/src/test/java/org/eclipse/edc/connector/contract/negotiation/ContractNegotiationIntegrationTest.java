@@ -137,8 +137,8 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferAccepted() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementRequest.class), any())).then(onProviderSentAgreementRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class), any())).then(onConsumerSentOfferRequest());
+        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementRequest.class))).then(onProviderSentAgreementRequest());
+        when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class))).then(onConsumerSentOfferRequest());
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
@@ -184,8 +184,8 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferDeclined() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractRejection.class), any())).then(onProviderSentRejection());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class), any())).then(onConsumerSentOfferRequest());
+        when(providerDispatcherRegistry.send(any(), isA(ContractRejection.class))).then(onProviderSentRejection());
+        when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class))).then(onConsumerSentOfferRequest());
         consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
 
@@ -228,9 +228,9 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_agreementDeclined() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementRequest.class), any())).then(onProviderSentAgreementRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class), any())).then(onConsumerSentOfferRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractRejection.class), any())).then(onConsumerSentRejection());
+        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementRequest.class))).then(onProviderSentAgreementRequest());
+        when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class))).then(onConsumerSentOfferRequest());
+        when(consumerDispatcherRegistry.send(any(), isA(ContractRejection.class))).then(onConsumerSentRejection());
         consumerNegotiationId = null;
         var offer = getContractOffer();
 

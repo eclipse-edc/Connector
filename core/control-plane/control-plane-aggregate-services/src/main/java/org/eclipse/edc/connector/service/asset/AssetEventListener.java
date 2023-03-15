@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.service.asset;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.asset.AssetCreated;
 import org.eclipse.edc.spi.event.asset.AssetDeleted;
+import org.eclipse.edc.spi.event.asset.AssetUpdated;
 import org.eclipse.edc.spi.observe.asset.AssetListener;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
@@ -47,6 +48,16 @@ public class AssetEventListener implements AssetListener {
     @Override
     public void deleted(Asset asset) {
         var event = AssetDeleted.Builder.newInstance()
+                .assetId(asset.getId())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void updated(Asset asset) {
+        var event = AssetUpdated.Builder.newInstance()
                 .assetId(asset.getId())
                 .at(clock.millis())
                 .build();

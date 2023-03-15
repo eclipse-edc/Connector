@@ -74,11 +74,11 @@ public class EndpointDataReference {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
+        private final Map<String, String> properties = new HashMap<>();
         private String id = UUID.randomUUID().toString();
         private String endpoint;
         private String authKey;
         private String authCode;
-        private final Map<String, String> properties = new HashMap<>();
 
         private Builder() {
         }

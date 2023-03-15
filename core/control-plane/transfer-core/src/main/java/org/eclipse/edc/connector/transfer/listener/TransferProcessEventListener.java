@@ -17,16 +17,16 @@ package org.eclipse.edc.connector.transfer.listener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessCancelled;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioningRequested;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessEnded;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessFailed;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioningRequested;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
+import org.eclipse.edc.spi.event.transferprocess.TransferProcessStarted;
+import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 
 import java.time.Clock;
 
@@ -83,6 +83,16 @@ public class TransferProcessEventListener implements TransferProcessListener {
     }
 
     @Override
+    public void started(TransferProcess process) {
+        var event = TransferProcessStarted.Builder.newInstance()
+                .transferProcessId(process.getId())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
     public void completed(TransferProcess process) {
         var event = TransferProcessCompleted.Builder.newInstance()
                 .transferProcessId(process.getId())
@@ -113,18 +123,8 @@ public class TransferProcessEventListener implements TransferProcessListener {
     }
 
     @Override
-    public void ended(TransferProcess process) {
-        var event = TransferProcessEnded.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .at(clock.millis())
-                .build();
-
-        eventRouter.publish(event);
-    }
-
-    @Override
-    public void cancelled(TransferProcess process) {
-        var event = TransferProcessCancelled.Builder.newInstance()
+    public void terminated(TransferProcess process) {
+        var event = TransferProcessTerminated.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .at(clock.millis())
                 .build();

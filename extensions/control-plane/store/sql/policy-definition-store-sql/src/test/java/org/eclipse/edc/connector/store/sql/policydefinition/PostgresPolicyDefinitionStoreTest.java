@@ -65,7 +65,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getPolicyTable() + " CASCADE");
     }
 

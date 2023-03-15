@@ -128,10 +128,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var agent = agentService.createFor(token);
-        var contractDefinition = contractDefinitionService.definitionFor(agent, contractId.definitionPart());
-        if (contractDefinition == null) {
-            return Result.failure(format("The ContractDefinition with id %s either does not exist or the access to it is not granted.", agreement.getId()));
-        }
         var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent);
         if (!policyResult.succeeded()) {
             return Result.failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));

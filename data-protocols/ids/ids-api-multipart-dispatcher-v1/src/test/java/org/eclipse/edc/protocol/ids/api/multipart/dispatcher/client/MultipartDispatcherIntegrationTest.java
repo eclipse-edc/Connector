@@ -111,7 +111,7 @@ class MultipartDispatcherIntegrationTest {
                 .build();
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(getBaseConnector()));
 
-        var future = dispatcher.send(BaseConnector.class, request, () -> null);
+        var future = dispatcher.send(BaseConnector.class, request);
 
         assertThat(future).succeedsWithin(5, SECONDS).isInstanceOf(BaseConnector.class);
     }
@@ -139,7 +139,7 @@ class MultipartDispatcherIntegrationTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
-        var future = dispatcher.send(null, request, () -> null);
+        var future = dispatcher.send(null, request);
 
         assertThat(future).succeedsWithin(5, SECONDS);
     }
@@ -159,7 +159,7 @@ class MultipartDispatcherIntegrationTest {
                 .correlationId("1")
                 .build();
 
-        var future = dispatcher.send(null, request, () -> null);
+        var future = dispatcher.send(null, request);
 
         assertThat(future).failsWithin(5, SECONDS); // ContractOfferMessageImpl is not supported by MultipartController
         verify(transformerRegistry).transform(any(), any());
@@ -181,7 +181,7 @@ class MultipartDispatcherIntegrationTest {
                 .correlationId("1")
                 .build();
 
-        var future = dispatcher.send(null, request, () -> null);
+        var future = dispatcher.send(null, request);
 
         assertThat(future).succeedsWithin(5, SECONDS);
         verify(transformerRegistry).transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class));
@@ -210,7 +210,7 @@ class MultipartDispatcherIntegrationTest {
                 .policy(Policy.Builder.newInstance().build())
                 .build();
 
-        var future = dispatcher.send(null, request, () -> null);
+        var future = dispatcher.send(null, request);
 
         assertThat(future).succeedsWithin(5, SECONDS);
         verify(transformerRegistry, times(2)).transform(any(), any());
@@ -227,7 +227,7 @@ class MultipartDispatcherIntegrationTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        var future = dispatcher.send(null, rejection, () -> null);
+        var future = dispatcher.send(null, rejection);
 
         assertThat(future).succeedsWithin(5, SECONDS);
     }

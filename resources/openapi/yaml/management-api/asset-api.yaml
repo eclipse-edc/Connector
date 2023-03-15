@@ -122,6 +122,80 @@ paths:
           description: Request body was malformed
       tags:
       - Asset
+  /assets/{assetId}:
+    put:
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or are ongoing in contract negotiations."
+      operationId: updateAsset
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetUpdateRequestDto'
+      responses:
+        "200":
+          description: Asset was updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: "Asset could not be updated, because it does not exist."
+      tags:
+      - Asset
+  /assets/{assetId}/dataaddress:
+    put:
+      description: Updates a DataAddress for an asset with the given ID.
+      operationId: updateDataAddress
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataAddressDto'
+      responses:
+        "200":
+          description: Asset was updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An asset with the given ID does not exist
+      tags:
+      - Asset
   /assets/{id}:
     delete:
       description: "Removes an asset with the given ID if possible. Deleting an asset\
@@ -263,18 +337,7 @@ components:
         type:
           type: string
           example: null
-    AssetEntryDto:
-      type: object
-      example: null
-      properties:
-        asset:
-          $ref: '#/components/schemas/AssetRequestDto'
-        dataAddress:
-          $ref: '#/components/schemas/DataAddressDto'
-      required:
-      - asset
-      - dataAddress
-    AssetRequestDto:
+    AssetCreationRequestDto:
       type: object
       example: null
       properties:
@@ -289,6 +352,17 @@ components:
           example: null
       required:
       - properties
+    AssetEntryDto:
+      type: object
+      example: null
+      properties:
+        asset:
+          $ref: '#/components/schemas/AssetCreationRequestDto'
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressDto'
+      required:
+      - asset
+      - dataAddress
     AssetResponseDto:
       type: object
       example: null
@@ -306,6 +380,18 @@ components:
             type: object
             example: null
           example: null
+    AssetUpdateRequestDto:
+      type: object
+      example: null
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+      required:
+      - properties
     CriterionDto:
       type: object
       example: null

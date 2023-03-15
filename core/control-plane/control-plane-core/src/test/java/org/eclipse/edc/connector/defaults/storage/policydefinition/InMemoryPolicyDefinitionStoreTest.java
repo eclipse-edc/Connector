@@ -45,10 +45,11 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
         store = new InMemoryPolicyDefinitionStore(manager);
     }
 
-
     @Test
     void deleteById_whenNonexistent() {
-        assertThat(store.deleteById("nonexistent")).isNull();
+        var result = store.deleteById("nonexistent");
+        assertThat(result).isNotNull();
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -88,6 +89,14 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
         assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query)).isInstanceOfAny(EdcPersistenceException.class);
     }
 
+    @Test
+    void update_throwsException() {
+        var policy = createPolicy("test-id");
+        getPolicyDefinitionStore().save(policy);
+
+        doThrow(new RuntimeException()).when(manager).writeLock(any());
+        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.update(createPolicyDef()));
+    }
 
     @Override
     protected PolicyDefinitionStore getPolicyDefinitionStore() {
@@ -113,14 +122,5 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
         return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
     }
 
-    private PolicyDefinition createPolicyDef(String id) {
-        return PolicyDefinition.Builder.newInstance()
-                .id(id)
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
 
-    private PolicyDefinition createPolicyDef(String id, String target) {
-        return PolicyDefinition.Builder.newInstance().id(id).policy(Policy.Builder.newInstance().target(target).build()).build();
-    }
 }

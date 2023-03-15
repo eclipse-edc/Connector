@@ -20,9 +20,11 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -31,12 +33,16 @@ import java.time.Clock;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchException;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
  * This is the minimum test specification that all {@link AssetIndex} implementations must support. All
@@ -70,8 +76,80 @@ public abstract class AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verify that an asset can be stored")
+    void accept() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        var assetIndex = getAssetIndex();
+        var result = assetIndex.accept(asset, dataAddress);
+        assertThat(result.succeeded()).isTrue();
+
+        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset);
+        assertThat(assetIndex.resolveForAsset(asset.getId())).usingRecursiveComparison().isEqualTo(dataAddress);
+    }
+
+    @Test
+    @DisplayName("Verify that storing an asset fails if it already exists")
+    void accept_exists() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, dataAddress);
+
+        DataAddress dataAddress1 = createDataAddress(asset);
+        var result = assetIndex.accept(asset, dataAddress1);
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.reason()).isEqualTo(ALREADY_EXISTS);
+        //assert that this replaces the previous data address
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset);
+
+    }
+
+    @Test
+    @DisplayName("Verify that multiple assets can be stored")
+    void acceptAll() {
+        var asset1 = createAsset("asset1", "id1");
+        var asset2 = createAsset("asset2", "id2");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset2);
+
+        var assetIndex = getAssetIndex();
+        var results = Stream.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2)).map(assetIndex::accept);
+
+        assertThat(results).allSatisfy(sr -> assertThat(sr.succeeded()).isTrue());
+        assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(2)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactlyInAnyOrder(asset1, asset2);
+    }
+
+    @Test
+    @DisplayName("Verify that the correct results are returned for a series of assets, when one fails")
+    void acceptMany_oneExists_shouldReturnFailure() {
+        var asset1 = createAsset("asset1", "id1");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset1);
+
+        var results = List.of(new AssetEntry(asset1, address1), new AssetEntry(asset1, address2))
+                .stream().map(entry -> getAssetIndex().accept(entry));
+
+        assertThat(results).extracting(StoreResult::succeeded).contains(true, false);
+        // only one address/asset combo should exist
+        assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .contains(asset1);
+
+    }
+
+    @Test
     @DisplayName("Verify that the object was stored with the correct timestamp")
-    void store_verifyTimestamp() {
+    void accept_verifyTimestamp() {
         var asset = getAsset("test-asset");
         getAssetIndex().accept(asset, getDataAddress());
 
@@ -128,7 +206,7 @@ public abstract class AssetIndexTestBase {
     void deleteAsset_doesNotExist() {
         var assetDeleted = getAssetIndex().deleteById("id1");
 
-        assertThat(assetDeleted).isNull();
+        assertThat(assetDeleted).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
     }
 
     @Test
@@ -139,8 +217,8 @@ public abstract class AssetIndexTestBase {
 
         var assetDeleted = getAssetIndex().deleteById("id1");
 
-        assertThat(assetDeleted).isNotNull();
-        assertThat(assetDeleted).usingRecursiveComparison().isEqualTo(asset);
+        assertThat(assetDeleted).isNotNull().extracting(StoreResult::succeeded).isEqualTo(true);
+        assertThat(assetDeleted.getContent()).usingRecursiveComparison().isEqualTo(asset);
 
         assertThat(getAssetIndex().queryAssets(QuerySpec.none())).isEmpty();
     }
@@ -294,6 +372,7 @@ public abstract class AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verifies an asset query, that contains a filter expression")
     void queryAsset_withFilterExpression() {
         var qs = QuerySpec.Builder.newInstance().filter(List.of(
                 new Criterion("version", "=", "2.0"),
@@ -347,6 +426,179 @@ public abstract class AssetIndexTestBase {
         assertThat(dataAddressFound).usingRecursiveComparison().isEqualTo(dataAddress);
     }
 
+    @Test
+    @DisplayName("Update Asset that does not yet exist")
+    void updateAsset_doesNotExist() {
+        var id = "id1";
+        var assetExpected = getAsset(id);
+        var assetIndex = getAssetIndex();
+
+        var updated = assetIndex.updateAsset(assetExpected);
+        assertThat(updated).isNotNull().extracting(StoreResult::succeeded).isEqualTo(false);
+    }
+
+    @Test
+    @DisplayName("Update an Asset that exists, adding a property")
+    void updateAsset_exists_addsProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, getDataAddress());
+
+        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+
+        var updatedAsset = asset;
+        updatedAsset.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateAsset(updatedAsset);
+
+        assertThat(updated).isNotNull();
+
+        var assetFound = getAssetIndex().findById("id1");
+
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(updatedAsset);
+    }
+
+    @Test
+    @DisplayName("Update an Asset that exists, removing a property")
+    void updateAsset_exists_removesProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        asset.getProperties().put("newKey", "newValue");
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, getDataAddress());
+
+        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+
+        var updatedAsset = asset;
+        updatedAsset.getProperties().remove("newKey");
+        var updated = assetIndex.updateAsset(updatedAsset);
+
+        assertThat(updated).isNotNull();
+
+        var assetFound = getAssetIndex().findById("id1");
+
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(updatedAsset);
+        assertThat(assetFound.getProperties().keySet()).doesNotContain("newKey");
+    }
+
+    @Test
+    @DisplayName("Update an Asset that exists, replacing a property")
+    void updateAsset_exists_replacingProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        asset.getProperties().put("newKey", "originalValue");
+        var assetIndex = getAssetIndex();
+        assetIndex.accept(asset, getDataAddress());
+
+        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+
+        var updatedAsset = asset;
+        updatedAsset.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateAsset(updatedAsset);
+
+        assertThat(updated).isNotNull();
+
+        var assetFound = getAssetIndex().findById("id1");
+
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(updatedAsset);
+        assertThat(assetFound.getProperties()).containsEntry("newKey", "newValue");
+    }
+
+    @Test
+    @DisplayName("Update DataAddress where the Asset does not yet exist")
+    void updateDataAddress_doesNotExist() {
+        var id = "id1";
+        var assetExpected = getDataAddress();
+        var assetIndex = getAssetIndex();
+
+        var updated = assetIndex.updateDataAddress(id, assetExpected);
+        assertThat(updated).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Update a DataAddress that exists, adding a new property")
+    void updateDataAddress_exists_addsProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        var dataAddress = getDataAddress();
+        assetIndex.accept(asset, dataAddress);
+
+        var updatedDataAddress = getDataAddress();
+        updatedDataAddress.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
+
+        assertThat(updated).isNotNull();
+
+        var addressFound = getAssetIndex().resolveForAsset("id1");
+
+        assertThat(addressFound).isNotNull();
+        assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
+    }
+
+    @Test
+    @DisplayName("Update a DataAddress that exists, removing a property")
+    void updateDataAddress_exists_removesProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        var dataAddress = getDataAddress();
+        dataAddress.getProperties().put("newKey", "newValue");
+        assetIndex.accept(asset, dataAddress);
+
+        var updatedDataAddress = dataAddress;
+        updatedDataAddress.getProperties().remove("newKey");
+        var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
+
+        assertThat(updated).isNotNull();
+
+        var addressFound = getAssetIndex().resolveForAsset("id1");
+
+        assertThat(addressFound).isNotNull();
+        assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
+        assertThat(addressFound.getProperties()).doesNotContainKeys("newKey");
+    }
+
+    @Test
+    @DisplayName("Update a DataAddress that exists, replacing a property")
+    void updateDataAddress_exists_replacesProperty() {
+        var id = "id1";
+        var asset = getAsset(id);
+        var assetIndex = getAssetIndex();
+        var dataAddress = getDataAddress();
+        dataAddress.getProperties().put("newKey", "originalValue");
+        assetIndex.accept(asset, dataAddress);
+
+        var updatedDataAddress = dataAddress;
+        updatedDataAddress.getProperties().put("newKey", "newValue");
+        var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
+
+        assertThat(updated).isNotNull();
+
+        var addressFound = getAssetIndex().resolveForAsset("id1");
+
+        assertThat(addressFound).isNotNull();
+        assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
+        assertThat(addressFound.getProperties()).containsEntry("newKey", "newValue");
+    }
+
+    @NotNull
+    protected Asset createAsset(String name) {
+        return createAsset(name, UUID.randomUUID().toString());
+    }
+
+    @NotNull
+    protected Asset createAsset(String name, String id) {
+        return createAsset(name, id, "contentType");
+    }
+
+    @NotNull
+    protected Asset createAsset(String name, String id, String contentType) {
+        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType(contentType).build();
+    }
 
     /**
      * Returns an array of all operators supported by a particular AssetIndex. If no limitations or constraints exist
@@ -361,6 +613,13 @@ public abstract class AssetIndexTestBase {
      * Returns the SuT i.e. the fully constructed instance of the {@link AssetIndex}
      */
     protected abstract AssetIndex getAssetIndex();
+
+    protected DataAddress createDataAddress(Asset asset) {
+        return DataAddress.Builder.newInstance()
+                .keyName("test-keyname")
+                .type(asset.getContentType())
+                .build();
+    }
 
     private Asset getAsset(String id) {
         return Asset.Builder.newInstance()

@@ -15,6 +15,7 @@
 package org.eclipse.edc.service.spi.result;
 
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.List;
 
@@ -46,6 +47,38 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
 
     public static <T> ServiceResult<T> badRequest(List<String> messages) {
         return new ServiceResult<>(null, new ServiceFailure(messages, BAD_REQUEST));
+    }
+
+    public static <T> ServiceResult<T> success() {
+        return ServiceResult.success(null);
+    }
+
+    public static <T> ServiceResult<T> from(StoreResult<T> storeResult) {
+        if (storeResult.succeeded()) {
+            return success(storeResult.getContent());
+        }
+        switch (storeResult.reason()) {
+            case NOT_FOUND:
+                return notFound(storeResult.getFailureDetail());
+            case ALREADY_EXISTS:
+                return conflict(storeResult.getFailureDetail());
+            default:
+                return badRequest(storeResult.getFailureDetail());
+        }
+    }
+
+    public static <T> ServiceResult<T> fromFailure(StoreResult<?> storeResult) {
+        if (storeResult.succeeded()) {
+            throw new IllegalArgumentException("Can only use this method when the argument is a failed result!");
+        }
+        switch (storeResult.reason()) {
+            case NOT_FOUND:
+                return notFound(storeResult.getFailureDetail());
+            case ALREADY_EXISTS:
+                return conflict(storeResult.getFailureDetail());
+            default:
+                return badRequest(storeResult.getFailureDetail());
+        }
     }
 
     public ServiceFailure.Reason reason() {

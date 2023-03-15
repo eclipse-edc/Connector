@@ -54,12 +54,12 @@ class CatalogServiceImplTest {
                 .contractEnd(ZonedDateTime.now().toInstant().toEpochMilli())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
-        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
+        when(dispatcher.send(any(), any())).thenReturn(completedFuture(catalog))
                 .thenReturn(completedFuture(Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build()));
 
         var future = service.getByProviderUrl("test.provider.url", new QuerySpec());
 
         assertThat(future).succeedsWithin(1, SECONDS).extracting(Catalog::getContractOffers, InstanceOfAssertFactories.list(ContractOffer.class)).hasSize(1);
-        verify(dispatcher, times(1)).send(eq(Catalog.class), isA(CatalogRequest.class), any());
+        verify(dispatcher, times(1)).send(eq(Catalog.class), isA(CatalogRequest.class));
     }
 }

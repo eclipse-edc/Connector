@@ -84,7 +84,7 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
     void findAll_queryByInvalidKey() {
 
         var definitionsExpected = TestFunctions.createContractDefinitions(20);
-        getContractDefinitionStore().save(definitionsExpected);
+        saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("notexist", "=", "somevalue")))

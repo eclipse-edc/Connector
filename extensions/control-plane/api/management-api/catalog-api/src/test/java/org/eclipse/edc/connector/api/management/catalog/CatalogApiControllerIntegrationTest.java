@@ -27,7 +27,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.message.MessageContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -85,7 +84,7 @@ class CatalogApiControllerIntegrationTest {
         var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
-        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
+        when(dispatcher.send(any(), any())).thenReturn(completedFuture(catalog))
                 .thenReturn(completedFuture(emptyCatalog));
 
         baseRequest()
@@ -103,7 +102,7 @@ class CatalogApiControllerIntegrationTest {
         var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
-        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
+        when(dispatcher.send(any(), any())).thenReturn(completedFuture(catalog))
                 .thenReturn(completedFuture(emptyCatalog));
 
         baseRequest()
@@ -118,7 +117,7 @@ class CatalogApiControllerIntegrationTest {
         var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
-        when(dispatcher.send(any(), any(), any()))
+        when(dispatcher.send(any(), any()))
                 .thenReturn(completedFuture(catalog))
                 .thenReturn(completedFuture(emptyCatalog));
 
@@ -143,7 +142,7 @@ class CatalogApiControllerIntegrationTest {
                 .body("id", notNullValue())
                 .body("contractOffers.size()", is(1));
         var requestCaptor = ArgumentCaptor.forClass(CatalogRequest.class);
-        verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture(), any(MessageContext.class));
+        verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture());
         var rq = requestCaptor.getValue().getQuerySpec();
 
         var query = requestDto.getQuerySpec();
@@ -160,7 +159,7 @@ class CatalogApiControllerIntegrationTest {
         var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
-        when(dispatcher.send(any(), any(), any()))
+        when(dispatcher.send(any(), any()))
                 .thenReturn(completedFuture(catalog))
                 .thenReturn(completedFuture(emptyCatalog));
 
@@ -180,7 +179,7 @@ class CatalogApiControllerIntegrationTest {
                 .body("contractOffers.size()", is(1));
 
         var requestCaptor = ArgumentCaptor.forClass(CatalogRequest.class);
-        verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture(), any(MessageContext.class));
+        verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture());
         var rq = requestCaptor.getValue().getQuerySpec();
         assertThat(rq.getOffset()).isZero();
         assertThat(rq.getLimit()).isEqualTo(50);
@@ -200,7 +199,7 @@ class CatalogApiControllerIntegrationTest {
 
     @Test
     void postCatalogRequest_whenDispatcherFailsReturnsBadGatewayWithDetail() {
-        when(dispatcher.send(any(), any(), any()))
+        when(dispatcher.send(any(), any()))
                 .thenReturn(failedFuture(new EdcException("Something happened with the provider connector")));
 
         var request = CatalogRequestDto.Builder.newInstance().providerUrl("http://provider/url").build();
@@ -216,7 +215,7 @@ class CatalogApiControllerIntegrationTest {
 
     @Test
     void postCatalogRequest_whenDispatcherFailsWithGenericExceptionReturns500() {
-        when(dispatcher.send(any(), any(), any()))
+        when(dispatcher.send(any(), any()))
                 .thenReturn(failedFuture(new RuntimeException("any error")));
 
         var request = CatalogRequestDto.Builder.newInstance().providerUrl("http://provider/url").build();

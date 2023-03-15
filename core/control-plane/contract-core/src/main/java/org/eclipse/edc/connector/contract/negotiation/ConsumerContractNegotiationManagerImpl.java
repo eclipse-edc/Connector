@@ -224,7 +224,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         // TODO protocol-independent response type?
-        return dispatcherRegistry.send(Object.class, request, process::getId);
+        return dispatcherRegistry.send(Object.class, request);
     }
 
     /**
@@ -328,7 +328,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         // TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, request, negotiation::getId)
+        dispatcherRegistry.send(Object.class, request)
                 .whenComplete(onAgreementSent(negotiation.getId()));
 
         return false;
@@ -357,7 +357,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         // TODO protocol-independent response type?
-        dispatcherRegistry.send(Object.class, rejection, negotiation::getId)
+        dispatcherRegistry.send(Object.class, rejection)
                 .whenComplete(onRejectionSent(negotiation.getId()));
         return false;
     }

@@ -19,7 +19,10 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
+import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,11 +33,13 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     private final DataPlaneSelector selector;
     private final DataPlaneInstanceStore store;
     private final SelectionStrategyRegistry selectionStrategyRegistry;
+    private final TransactionContext transactionContext;
 
-    public DataPlaneSelectorServiceImpl(DataPlaneSelector selector, DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry) {
+    public DataPlaneSelectorServiceImpl(DataPlaneSelector selector, DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
         this.selector = selector;
         this.store = store;
         this.selectionStrategyRegistry = selectionStrategyRegistry;
+        this.transactionContext = transactionContext;
     }
 
     @Override
@@ -62,7 +67,15 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     }
 
     @Override
-    public void addInstance(DataPlaneInstance instance) {
-        store.save(instance);
+    public ServiceResult<Void> addInstance(DataPlaneInstance instance) {
+        return transactionContext.execute(() -> {
+            StoreResult<Void> result;
+            if (store.findById(instance.getId()) == null) {
+                result = store.create(instance);
+            } else {
+                result = store.update(instance);
+            }
+            return ServiceResult.from(result);
+        });
     }
 }
