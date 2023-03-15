@@ -126,8 +126,7 @@ class TransferProcessManagerImplTest {
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
     private final Clock clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
-    private final int retryLimit = 2;
-    private final SendRetryManager sendRetryManager = spy(new EntitySendRetryManager(mock(Monitor.class), () -> mock(ExponentialWaitStrategy.class), clock, retryLimit));
+    private final SendRetryManager sendRetryManager = spy(new EntitySendRetryManager(mock(Monitor.class), () -> mock(ExponentialWaitStrategy.class), clock, 2));
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
     private TransferProcessManagerImpl manager;

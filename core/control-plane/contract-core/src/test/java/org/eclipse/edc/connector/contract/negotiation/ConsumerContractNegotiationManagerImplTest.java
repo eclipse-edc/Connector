@@ -34,17 +34,21 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
 import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -62,9 +66,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -76,7 +82,8 @@ class ConsumerContractNegotiationManagerImplTest {
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
-    private final SendRetryManager sendRetryManager = mock(SendRetryManager.class);
+    private final Clock clock = Clock.systemUTC();
+    private final SendRetryManager sendRetryManager = spy(new EntitySendRetryManager(mock(Monitor.class), () -> mock(ExponentialWaitStrategy.class), clock, 2));
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -227,7 +234,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
+        doReturn(false).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -243,7 +250,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
+        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -275,7 +282,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
+        doReturn(false).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -291,7 +298,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
+        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -325,7 +332,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
+        doReturn(false).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -342,7 +349,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
+        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 

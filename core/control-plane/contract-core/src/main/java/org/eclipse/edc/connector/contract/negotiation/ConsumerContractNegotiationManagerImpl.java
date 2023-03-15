@@ -139,8 +139,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             var message = "Contract agreement received. Validation failed: " + result.getFailureDetail();
             monitor.debug("[Consumer] " + message);
             negotiation.setErrorDetail(message);
-            negotiation.transitionTerminating();
-            negotiationStore.save(negotiation);
+            transitToTerminating(negotiation);
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return StatusResult.success(negotiation);
@@ -231,30 +230,28 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processInitial(ContractNegotiation negotiation) {
-        negotiation.transitionRequesting();
-        negotiationStore.save(negotiation);
+        transitToRequesting(negotiation);
         return true;
     }
 
     /**
      * Processes {@link ContractNegotiation} in state REQUESTING. Tries to send the current offer to the respective
      * provider. If this succeeds, the ContractNegotiation is transitioned to state REQUESTED. Else, it is transitioned
-     * to INITIAL for a retry.
+     * to REQUESTING for a retry.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
-        if (sendRetryManager.shouldDelay(negotiation)) {
-            breakLease(negotiation);
-            return false;
-        }
-
         var offer = negotiation.getLastContractOffer();
-        sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL)
-                .whenComplete(onInitialOfferSent(negotiation.getId()));
 
-        return true;
+        return sendRetryManager.doAsyncProcess(negotiation, "Send ContractRequestMessage message", () -> sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL))
+                .entityRetrieve(negotiationStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess((n, result) -> transitToRequested(n))
+                .onFailure((n, throwable) -> transitToRequesting(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n))
+                .execute();
     }
 
     /**
@@ -349,16 +346,20 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @NotNull
     private BiConsumer<Object, Throwable> onInitialOfferSent(String id) {
         return new AsyncSendResultHandler(id, "send initial offer")
-                .onSuccess(negotiation -> {
-                    negotiation.transitionRequested();
-                    negotiationStore.save(negotiation);
-                    observable.invokeForEach(l -> l.requested(negotiation));
-                })
-                .onFailure(negotiation -> {
-                    negotiation.transitionRequesting();
-                    negotiationStore.save(negotiation);
-                })
+                .onSuccess(this::transitToRequested)
+                .onFailure(this::transitToRequesting)
                 .build();
+    }
+
+    private void transitToRequesting(ContractNegotiation negotiation) {
+        negotiation.transitionRequesting();
+        negotiationStore.save(negotiation);
+    }
+
+    private void transitToRequested(ContractNegotiation negotiation) {
+        negotiation.transitionRequested();
+        negotiationStore.save(negotiation);
+        observable.invokeForEach(l -> l.requested(negotiation));
     }
 
     @NotNull
@@ -385,10 +386,14 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                     observable.invokeForEach(l -> l.terminated(negotiation));
                 })
                 .onFailure(negotiation -> {
-                    negotiation.transitionTerminating();
-                    negotiationStore.save(negotiation);
+                    transitToTerminating(negotiation);
                 })
                 .build();
+    }
+
+    private void transitToTerminating(ContractNegotiation negotiation) {
+        negotiation.transitionTerminating();
+        negotiationStore.save(negotiation);
     }
 
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
