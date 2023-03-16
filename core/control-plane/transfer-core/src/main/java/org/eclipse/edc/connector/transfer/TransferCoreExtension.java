@@ -60,7 +60,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManagerConfiguration;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 
 import java.time.Clock;
 
@@ -90,7 +90,7 @@ public class TransferCoreExtension implements ServiceExtension {
     @Setting(value = "how many times a specific operation must be tried before terminating the transfer with error", type = "int", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
     private static final String TRANSFER_SEND_RETRY_LIMIT = "edc.transfer.send.retry.limit";
 
-    @Setting(value = "The base delay for retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
+    @Setting(value = "The base delay for the transfer retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
     private static final String TRANSFER_SEND_RETRY_BASE_DELAY_MS = "edc.transfer.send.retry.base-delay.ms";
 
     @Inject
@@ -169,7 +169,7 @@ public class TransferCoreExtension implements ServiceExtension {
 
         var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
         var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
-        var sendRetryManagerConfiguration = new EntitySendRetryManagerConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
+        var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
@@ -191,7 +191,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .policyArchive(policyArchive)
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .addressResolver(addressResolver)
-                .sendRetryManagerConfiguration(sendRetryManagerConfiguration)
+                .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);

@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
 
+import java.time.Clock;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -35,8 +36,8 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
     private BiConsumer<E, ResponseFailure> onFatalError;
     private BiConsumer<E, ResponseFailure> onRetryExhausted;
 
-    public StatusResultRetryProcess(E entity, Supplier<StatusResult<C>> process, SendRetryManager sendRetryManager, Monitor monitor) {
-        super(entity, sendRetryManager);
+    public StatusResultRetryProcess(E entity, Supplier<StatusResult<C>> process, Monitor monitor, Clock clock, EntityRetryProcessConfiguration configuration) {
+        super(entity, configuration, monitor, clock);
         this.process = process;
         this.monitor = monitor;
     }
@@ -47,12 +48,17 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
         var result = process.get();
 
         if (result.succeeded()) {
-            onSuccessHandler.accept(entity, result.getContent());
+            if (onSuccessHandler != null) {
+                onSuccessHandler.accept(entity, result.getContent());
+            }
         } else {
             if (result.fatalError() && onFatalError != null) {
                 monitor.severe(format("%s: ID %s. Fatal error while %s. Error details: %s",
                         entity.getClass().getSimpleName(), entity.getId(), description, result.getFailureDetail()));
-                onFatalError.accept(entity, result.getFailure());
+
+                if (onFatalError != null) {
+                    onFatalError.accept(entity, result.getFailure());
+                }
             } else if (retriesExhausted(entity)) {
                 var message = format("%s: ID %s. Attempt #%d failed to %s. Retry limit exceeded. Cause: %s",
                         entity.getClass().getSimpleName(),
@@ -61,7 +67,10 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
                         description,
                         result.getFailureDetail());
                 monitor.severe(message);
-                onRetryExhausted.accept(entity, result.getFailure());
+
+                if (onRetryExhausted != null) {
+                    onRetryExhausted.accept(entity, result.getFailure());
+                }
             } else {
                 var message = format("%s: ID %s. Attempt #%d failed to %s. Cause: %s",
                         entity.getClass().getSimpleName(),
@@ -71,7 +80,10 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
                         result.getFailureDetail());
 
                 monitor.debug(message);
-                onFailureHandler.accept(entity, result.getFailure());
+
+                if (onFailureHandler != null) {
+                    onFailureHandler.accept(entity, result.getFailure());
+                }
             }
         }
 

@@ -59,7 +59,7 @@ import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManagerConfiguration;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -128,7 +128,7 @@ class TransferProcessManagerImplTest {
     void setup() {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
-        var sendRetryManagerConfiguration = new EntitySendRetryManagerConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
+        var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
         manager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(dataFlowManager)
@@ -147,7 +147,7 @@ class TransferProcessManagerImplTest {
                 .policyArchive(policyArchive)
                 .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
-                .sendRetryManagerConfiguration(sendRetryManagerConfiguration)
+                .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .build();
     }
 

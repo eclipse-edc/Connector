@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
@@ -41,8 +40,6 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
 import java.net.URI;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -95,8 +91,6 @@ class ContractNegotiationIntegrationTest {
 
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
-        var sendRetryManager = new EntitySendRetryManager(monitor, () -> waitStrategy, Clock.systemUTC(), 3);
-
         waitStrategy = () -> 1000;
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(providerDispatcherRegistry)
@@ -108,7 +102,6 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(providerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
-                .sendRetryManager(sendRetryManager)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -121,7 +114,6 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(consumerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
-                .sendRetryManager(sendRetryManager)
                 .build();
     }
 

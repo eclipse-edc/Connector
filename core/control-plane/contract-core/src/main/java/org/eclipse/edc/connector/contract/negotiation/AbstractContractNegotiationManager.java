@@ -25,16 +25,21 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.util.Objects;
 
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_ITERATION_WAIT;
+import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
+import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_LIMIT;
 
 public abstract class AbstractContractNegotiationManager {
 
@@ -52,7 +57,8 @@ public abstract class AbstractContractNegotiationManager {
     protected int batchSize = DEFAULT_BATCH_SIZE;
     protected WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
     protected PolicyDefinitionStore policyStore;
-    protected SendRetryManager sendRetryManager;
+    protected EntityRetryProcessFactory entityRetryProcessFactory;
+    protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
 
     public static class Builder<T extends AbstractContractNegotiationManager> {
 
@@ -130,8 +136,8 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
-        public Builder<T> sendRetryManager(SendRetryManager sendRetryManager) {
-            manager.sendRetryManager = sendRetryManager;
+        public Builder<T> entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
+            manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
             return this;
         }
 
@@ -147,8 +153,9 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(manager.negotiationStore, "store");
             Objects.requireNonNull(manager.policyStore, "policyStore");
-            Objects.requireNonNull(manager.sendRetryManager, "sendRetryManager");
+
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);
 
             return manager;
         }
@@ -158,4 +165,8 @@ public abstract class AbstractContractNegotiationManager {
         negotiationStore.save(negotiation);
     }
 
+    @NotNull
+    private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
+    }
 }

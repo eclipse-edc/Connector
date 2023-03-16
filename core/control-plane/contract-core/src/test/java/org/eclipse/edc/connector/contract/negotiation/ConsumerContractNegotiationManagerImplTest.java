@@ -36,12 +36,10 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -65,24 +63,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
 
+    private static final int RETRY_LIMIT = 1;
+    private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
+    private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
-    private final Clock clock = Clock.systemUTC();
-    private final SendRetryManager sendRetryManager = spy(new EntitySendRetryManager(mock(Monitor.class), () -> mock(ExponentialWaitStrategy.class), clock, 2));
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -104,7 +101,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
-                .sendRetryManager(sendRetryManager)
+                .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .build();
     }
 
@@ -229,11 +226,10 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void requesting_shouldTransitionRequestingIfSendFails_andRetriesNotExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        doReturn(false).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -245,11 +241,10 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void requesting_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -277,11 +272,10 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void consumerApproving_shouldTransitionApprovingIfSendFails_andRetriesNotExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        doReturn(false).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -293,11 +287,10 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void consumerApproving_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -326,12 +319,11 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void terminating_shouldTransitionTerminatingIfSendFails_andRetriesNotExhausted() {
-        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        doReturn(false).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 
@@ -343,12 +335,11 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void terminating_shouldTransitionToTerminatedIfSendFails_andRetriesExhausted() {
-        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         negotiationManager.start();
 

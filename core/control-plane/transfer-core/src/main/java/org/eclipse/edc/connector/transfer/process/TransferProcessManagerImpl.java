@@ -57,9 +57,8 @@ import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManagerConfiguration;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
@@ -133,15 +132,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private StateMachineManager stateMachineManager;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private SendRetryManager sendRetryManager;
+    private EntityRetryProcessFactory entityRetryProcessFactory;
     private Clock clock;
-    private EntitySendRetryManagerConfiguration sendRetryManagerConfiguration = defaultSendRetryManagerConfiguration();
+    private EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
 
     private TransferProcessManagerImpl() {
     }
 
     public void start() {
-        sendRetryManager = new EntitySendRetryManager(monitor, sendRetryManagerConfiguration.getWaitStrategySupplier(), clock, sendRetryManagerConfiguration.getRetryLimit());
+        entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
         stateMachineManager = StateMachineManager.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
                 .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
@@ -340,7 +339,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var resources = process.getResourcesToProvision();
 
-        return sendRetryManager.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
+        return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
                         .entityRetrieve(transferProcessStore::find)
                         .onSuccess((t, content) -> handleProvisionResult(t.getId(), content))
                         .onFailure((t, throwable) -> transitToProvisioning(t))
@@ -391,7 +390,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description =  format("Send %s to %s", message.getClass().getSimpleName(), message.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToRequested(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -444,7 +443,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = "Initiate data flow";
 
-        return sendRetryManager.doSyncProcess(process, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
+        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
                 .onSuccess((t, content) -> sendTransferStartMessage(t))
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitToStarting(t))
@@ -463,7 +462,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
 
-        sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToStarted(t))
                 .onFailure((t, throwable) -> transitToStarting(t))
@@ -485,7 +484,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return false;
         }
 
-        return sendRetryManager.doSimpleProcess(transferProcess, () -> checkCompletion(transferProcess))
+        return entityRetryProcessFactory.doSimpleProcess(transferProcess, () -> checkCompletion(transferProcess))
                 .onDelay(this::breakLease)
                 .execute("Check completion");
     }
@@ -530,7 +529,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
@@ -560,7 +559,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -809,8 +808,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @NotNull
-    private EntitySendRetryManagerConfiguration defaultSendRetryManagerConfiguration() {
-        return new EntitySendRetryManagerConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
+    private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
     }
 
     public static class Builder {
@@ -818,6 +817,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         private Builder() {
             manager = new TransferProcessManagerImpl();
+            manager.clock = Clock.systemUTC(); // default implementation
             manager.telemetry = new Telemetry(); // default noop implementation
             manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
         }
@@ -921,8 +921,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return this;
         }
 
-        public Builder sendRetryManagerConfiguration(EntitySendRetryManagerConfiguration sendRetryManagerConfiguration) {
-            manager.sendRetryManagerConfiguration = sendRetryManagerConfiguration;
+        public Builder entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
+            manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
             return this;
         }
 
@@ -941,7 +941,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
             Objects.requireNonNull(manager.transferProcessStore, "transferProcessStore cannot be null");
             Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
+
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);
 
             return manager;
         }

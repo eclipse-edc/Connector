@@ -19,21 +19,21 @@ import org.eclipse.edc.spi.retry.WaitStrategy;
 
 import java.util.function.Supplier;
 
-public class EntitySendRetryManagerConfiguration {
+public class EntityRetryProcessConfiguration {
 
     private final int retryLimit;
-    private final Supplier<WaitStrategy> waitStrategySupplier;
+    private final Supplier<WaitStrategy> delayStrategySupplier;
 
-    public EntitySendRetryManagerConfiguration(int retryLimit, Supplier<WaitStrategy> waitStrategySupplier) {
+    public EntityRetryProcessConfiguration(int retryLimit, Supplier<WaitStrategy> delayStrategySupplier) {
         this.retryLimit = retryLimit;
-        this.waitStrategySupplier = waitStrategySupplier;
+        this.delayStrategySupplier = delayStrategySupplier;
     }
 
     public int getRetryLimit() {
         return retryLimit;
     }
 
-    public Supplier<WaitStrategy> getWaitStrategySupplier() {
-        return waitStrategySupplier;
+    public Supplier<WaitStrategy> getDelayStrategySupplier() {
+        return delayStrategySupplier;
     }
 }

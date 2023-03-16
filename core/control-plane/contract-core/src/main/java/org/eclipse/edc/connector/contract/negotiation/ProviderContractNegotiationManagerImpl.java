@@ -195,7 +195,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .correlationId(negotiation.getCorrelationId())
                 .build();
 
-        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, contractOfferRequest))
+        return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, contractOfferRequest))
                 .entityRetrieve(negotiationStore::find)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToOffered(n))
@@ -222,12 +222,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .rejectionReason(negotiation.getErrorDetail())
                     .build();
 
-            return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
+            return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
                     .entityRetrieve(negotiationStore::find)
                     .onDelay(this::breakLease)
                     .onSuccess((n, result) -> transitToTerminated(n))
                     .onFailure((n, throwable) -> transitToTerminating(n))
-                    .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
+                    .onRetryExhausted((n, throwable) -> transitToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
                     .execute("[Provider] send rejection");
         } else {
             // TODO: cover this case, terminating a negotiation that has not reached the consumer side
@@ -235,12 +235,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         return false;
-    }
-
-    private void transitToTerminated(ContractNegotiation negotiation) {
-        negotiation.transitionTerminated();
-        negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
     /**
@@ -292,7 +286,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .policy(policy)
                 .build();
 
-        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
+        return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
                 .entityRetrieve(negotiationStore::find)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToProviderAgreed(n, agreement))
@@ -332,6 +326,17 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         negotiation.transitionProviderAgreed();
         negotiationStore.save(negotiation);
         observable.invokeForEach(l -> l.confirmed(negotiation));
+    }
+
+    private void transitToTerminated(ContractNegotiation negotiation, String message) {
+        negotiation.setErrorDetail(message);
+        transitToTerminated(negotiation);
+    }
+
+    private void transitToTerminated(ContractNegotiation negotiation) {
+        negotiation.transitionTerminated();
+        negotiationStore.save(negotiation);
+        observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
     /**

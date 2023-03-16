@@ -17,6 +17,7 @@ package org.eclipse.edc.statemachine.retry;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.time.Clock;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -35,8 +36,8 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C> exten
     private BiConsumer<E, Throwable> onFailureHandler;
     private BiConsumer<E, Throwable> onRetryExhausted;
 
-    public CompletableFutureRetryProcess(E entity, Supplier<CompletableFuture<C>> process, SendRetryManager sendRetryManager, Monitor monitor) {
-        super(entity, sendRetryManager);
+    public CompletableFutureRetryProcess(E entity, Supplier<CompletableFuture<C>> process, Monitor monitor, Clock clock, EntityRetryProcessConfiguration configuration) {
+        super(entity, configuration, monitor, clock);
         this.process = process;
         this.monitor = monitor;
     }
@@ -46,7 +47,7 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C> exten
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
         process.get()
                 .whenComplete((result, throwable) -> {
-                    var reloadedEntity = entityRetrieve.apply(entity.getId());
+                    var reloadedEntity = entityRetrieve != null ? entityRetrieve.apply(entity.getId()) : entity;
 
                     if (throwable == null) {
                         onSuccessHandler.accept(reloadedEntity, result);

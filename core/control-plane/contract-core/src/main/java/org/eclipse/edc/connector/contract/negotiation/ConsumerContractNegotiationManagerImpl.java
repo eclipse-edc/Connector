@@ -220,7 +220,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .type(ContractOfferRequest.Type.INITIAL)
                 .build();
 
-        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
+        return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
                 .entityRetrieve(negotiationStore::find)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToRequested(n))
@@ -269,7 +269,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .policy(policy)
                 .build();
 
-        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
+        return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
                 .entityRetrieve(negotiationStore::find)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToApproved(n))
@@ -303,7 +303,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
 
-        return sendRetryManager.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
+        return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
                 .entityRetrieve(negotiationStore::find)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToTerminated(n))
