@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.catalog;
 
+import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.delegate.CatalogRequestDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspRemoteMessageDispatcher;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -31,6 +32,8 @@ public class DspCatalogDispatcherExtension implements ServiceExtension {
     private DspRemoteMessageDispatcher messageDispatcher;
     @Inject
     private TypeManager typeManager;
+    @Inject
+    private JsonLdTransformerRegistry transformerRegistry;
     
     @Override
     public String name() {
@@ -39,7 +42,7 @@ public class DspCatalogDispatcherExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-        messageDispatcher.registerDelegate(new CatalogRequestDelegate(typeManager.getMapper("json-ld")));
+        messageDispatcher.registerDelegate(new CatalogRequestDelegate(typeManager.getMapper("json-ld"), transformerRegistry));
     }
     
 }

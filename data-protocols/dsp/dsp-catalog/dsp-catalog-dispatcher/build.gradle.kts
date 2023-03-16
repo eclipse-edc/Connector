@@ -22,6 +22,8 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi:dsp-catalog-spi"))
     api(project(":data-protocols:dsp:dsp-spi:dsp-core-spi"))
 
+    api(project(":extensions:common:json-ld"))
+
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:catalog-spi"))
 

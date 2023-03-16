@@ -23,16 +23,22 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
 
-public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequest, JsonObject> {
+import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
+
+public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequest, Catalog> {
     
     private ObjectMapper objectMapper;
+    private JsonLdTransformerRegistry transformerRegistry;
     
-    public CatalogRequestDelegate(ObjectMapper objectMapper) {
+    public CatalogRequestDelegate(ObjectMapper objectMapper, JsonLdTransformerRegistry transformerRegistry) {
         this.objectMapper = objectMapper;
+        this.transformerRegistry = transformerRegistry;
     }
     
     @Override
@@ -42,21 +48,28 @@ public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequ
     
     @Override
     public Request buildRequest(CatalogRequest message) {
-        //TODO body
-        var requestBody = RequestBody.create("content", MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
+        //TODO body from transformer registry
+        var requestBody = RequestBody.create("{}", MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
         
         return new Request.Builder()
                 .url(message.getConnectorAddress() + "/catalog/request")
-                .header("Authorization", "") //TODO authentication
+                .header("Authorization", "xyz") //TODO auth token should be handled centrally
+                .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
     }
     
     @Override
-    public Function<Response, JsonObject> parseResponse() {
+    public Function<Response, Catalog> parseResponse() {
         return response -> {
             try {
-                return objectMapper.readValue(response.body().bytes(), JsonObject.class);
+                var jsonObject = objectMapper.readValue(response.body().bytes(), JsonObject.class);
+                var result = transformerRegistry.transform(expandDocument(jsonObject).get(0), Catalog.class);
+                if (result.succeeded()) {
+                    return result.getContent();
+                } else {
+                    throw new EdcException("Failed to read response body.");
+                }
             } catch (IOException e) {
                 throw new EdcException("Failed to read response body.", e);
             }
