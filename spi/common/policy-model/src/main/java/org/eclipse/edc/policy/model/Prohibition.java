@@ -15,14 +15,17 @@
 
 package org.eclipse.edc.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import static java.util.stream.Collectors.joining;
 
 /**
  * Disallows an action if its constraints are satisfied.
  */
+
 @JsonDeserialize(builder = Prohibition.Builder.class)
 @JsonTypeName("dataspaceconnector:prohibition")
 public class Prohibition extends Rule {
@@ -54,12 +57,14 @@ public class Prohibition extends Rule {
                 .build();
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends Rule.Builder<Prohibition, Prohibition.Builder> {
 
         private Builder() {
             rule = new Prohibition();
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }

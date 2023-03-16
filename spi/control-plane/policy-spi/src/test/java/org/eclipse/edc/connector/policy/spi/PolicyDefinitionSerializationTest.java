@@ -49,7 +49,7 @@ class PolicyDefinitionSerializationTest {
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(policyDef);
         assertThat(deserialized.getCreatedAt()).isEqualTo(12345L);
     }
-
+    
     private Policy createPolicy() {
         var permission = Permission.Builder.newInstance()
                 .uid(UUID.randomUUID().toString())
