@@ -14,10 +14,12 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
+import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.serdes.JsonLdObjectMapperProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -28,6 +30,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 @Extension(value = DspApiConfigurationExtension.NAME)
 @Provides({ DspApiConfiguration.class })
+@Requires({ JsonLdTransformerRegistry.class })
 public class DspApiConfigurationExtension implements ServiceExtension {
     
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
