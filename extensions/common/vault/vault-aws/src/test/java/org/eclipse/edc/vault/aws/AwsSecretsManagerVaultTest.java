@@ -28,6 +28,8 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.TestInstance.Lifecycle;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -37,13 +39,13 @@ import static org.mockito.Mockito.when;
 @TestInstance(Lifecycle.PER_CLASS)
 class AwsSecretsManagerVaultTest {
 
+    private static final String KEY = "valid-key";
+    private static final String SANITIZED_KEY = "valid-key-sanitized";
     private final Monitor monitor = mock(Monitor.class);
     private final SecretsManagerClient secretClient = mock(SecretsManagerClient.class);
     private final AwsSecretsManagerVaultSanitationStrategy sanitizer = mock(AwsSecretsManagerVaultSanitationStrategy.class);
     private final AwsSecretsManagerVault vault = new AwsSecretsManagerVault(secretClient, monitor,
             sanitizer);
-    private static final String KEY = "valid-key";
-    private static final String SANITIZED_KEY = "valid-key-sanitized";
 
     @BeforeAll
     void setup() {
@@ -101,20 +103,23 @@ class AwsSecretsManagerVaultTest {
         var result = vault.resolveSecret(KEY);
 
         assertThat(result).isNull();
-        verify(monitor, times(2))
-                .debug(ArgumentMatchers.anyString(), ArgumentMatchers.any());
+        verify(monitor, times(1))
+                .debug(anyString());
+
+        verify(monitor, times(1))
+                .debug(anyString(), any());
     }
 
     @Test
     void resolveSecret_shouldReturnNullAndLogErrorOnGenericException() {
         when(secretClient.getSecretValue(GetSecretValueRequest.builder().secretId(SANITIZED_KEY)
-                        .build()))
+                .build()))
                 .thenThrow(new RuntimeException("test"));
 
         var result = vault.resolveSecret(KEY);
 
         assertThat(result).isNull();
-        verify(monitor).debug(ArgumentMatchers.anyString());
-        verify(monitor).severe(ArgumentMatchers.anyString(), ArgumentMatchers.isA(RuntimeException.class));
+        verify(monitor).debug(anyString());
+        verify(monitor).severe(anyString(), ArgumentMatchers.isA(RuntimeException.class));
     }
 }
