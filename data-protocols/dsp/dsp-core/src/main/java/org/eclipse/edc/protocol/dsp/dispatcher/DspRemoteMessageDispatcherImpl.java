@@ -23,7 +23,6 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.types.MessageProtocol;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
-import org.eclipse.edc.spi.message.MessageContext;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import static java.lang.String.format;
@@ -50,12 +49,13 @@ public class DspRemoteMessageDispatcherImpl implements DspRemoteMessageDispatche
     }
     
     @Override
-    public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message, MessageContext context) {
+    public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message) {
         var delegate = (DspDispatcherDelegate<M, T>) delegates.get(message.getClass());
         if (delegate == null) {
             throw new EdcException(format("No DSP message dispatcher found for message type %s", message.getClass()));
         }
         
+        //TODO setting auth info should be handled centrally
         var request = delegate.buildRequest(message);
         return httpClient.executeAsync(request, delegate.parseResponse());
     }
