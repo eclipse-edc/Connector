@@ -35,6 +35,7 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
+import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -77,6 +78,7 @@ class Oauth2ServiceImplTest {
     private final Oauth2Client client = mock(Oauth2Client.class);
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider = mock(CredentialsRequestAdditionalParametersProvider.class);
+    private final JwtDecorator jwtDecorator = mock(JwtDecorator.class);
     private Oauth2ServiceImpl authService;
     private JWSSigner jwsSigner;
 
@@ -105,7 +107,10 @@ class Oauth2ServiceImplTest {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, client, new JwtDecoratorRegistryImpl(), tokenValidationService, credentialsRequestAdditionalParametersProvider);
+        var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
+        jwtDecoratorRegistry.register(jwtDecorator);
+
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
     }
 
     @Test
