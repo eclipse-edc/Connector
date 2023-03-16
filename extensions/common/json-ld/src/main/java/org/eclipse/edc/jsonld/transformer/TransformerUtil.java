@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.VALUE;
 
 public class TransformerUtil {
     
@@ -48,7 +49,7 @@ public class TransformerUtil {
     
     /**
      * Transforms a JsonValue to a string and applies the result function. If the value parameter
-     * is not of type JsonString, a problem is reported to the context.
+     * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
      *
      * @param value the value to transform
      * @param resultFunction the function to apply to the transformation result
@@ -58,6 +59,11 @@ public class TransformerUtil {
         if (value instanceof JsonString) {
             var result = ((JsonString) value).getString();
             resultFunction.accept(result);
+        } else if (value instanceof JsonObject) {
+            var jsonString = ((JsonObject) value).getJsonString(VALUE);
+            transformString(jsonString, resultFunction, context);
+        } else if (value instanceof JsonArray) {
+            transformString(((JsonArray) value).get(0), resultFunction, context);
         } else {
             context.reportProblem(format("Invalid property. Expected JsonString but got %s",
                     value.getClass().getSimpleName()));
@@ -78,6 +84,9 @@ public class TransformerUtil {
         if (value instanceof JsonObject) {
             var result = context.transform((JsonObject) value, type);
             resultFunction.accept(result);
+        } else if (value instanceof JsonArray) {
+            var array = (JsonArray) value;
+            transformObject(array.get(0), type, resultFunction, context);
         } else {
             context.reportProblem(format("Invalid property of type %s. Expected JsonObject but got %s",
                     type.getSimpleName(), value.getClass().getSimpleName()));

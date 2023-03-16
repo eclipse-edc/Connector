@@ -45,6 +45,11 @@ public class JsonLdFunctions {
     public static String nodeType(JsonObject object, TransformerContext context) {
         var array = typeValueArray(object, context);
         if (array == null) {
+            //TODO refactor or remove
+            var typeNode = object.get(JsonLdKeywords.TYPE);
+            if (typeNode instanceof JsonString) {
+                return ((JsonString) typeNode).getString();
+            }
             return null;
         }
         var typeValue = array.get(0); // a note can have more than one type, take the first

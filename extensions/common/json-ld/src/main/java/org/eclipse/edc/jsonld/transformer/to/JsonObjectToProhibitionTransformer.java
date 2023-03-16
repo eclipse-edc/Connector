@@ -25,13 +25,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayOrObject;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformObject;
 
 public class JsonObjectToProhibitionTransformer extends AbstractJsonLdTransformer<JsonObject, Prohibition> {
     
-    private static final String ODRL_ACTION_PROPERTY = "action";
-    private static final String ODRL_CONSTRAINT_PROPERTY = "constraint";
+    private static final String ODRL_ACTION_PROPERTY = ODRL_SCHEMA + "action";
+    private static final String ODRL_CONSTRAINT_PROPERTY = ODRL_SCHEMA + "constraint";
     
     public JsonObjectToProhibitionTransformer() {
         super(JsonObject.class, Prohibition.class);

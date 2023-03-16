@@ -26,14 +26,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayOrObject;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformGenericProperty;
 
 public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<JsonObject, Policy> {
     
-    private static final String ODRL_PERMISSION_PROPERTY = "permission";
-    private static final String ODRL_PROHIBITION_PROPERTY = "prohibition";
-    private static final String ODRL_OBLIGATION_PROPERTY = "obligation";
+    private static final String ODRL_PERMISSION_PROPERTY = ODRL_SCHEMA + "permission";
+    private static final String ODRL_PROHIBITION_PROPERTY = ODRL_SCHEMA + "prohibition";
+    private static final String ODRL_OBLIGATION_PROPERTY = ODRL_SCHEMA + "obligation";
     
     public JsonObjectToPolicyTransformer() {
         super(JsonObject.class, Policy.class);

@@ -26,14 +26,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayOrObject;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformObject;
 
 public class JsonObjectToPermissionTransformer extends AbstractJsonLdTransformer<JsonObject, Permission> {
     
-    private static final String ODRL_ACTION_PROPERTY = "action";
-    private static final String ODRL_CONSTRAINT_PROPERTY = "constraint";
-    private static final String ODRL_DUTY_PROPERTY = "duty";
+    private static final String ODRL_ACTION_PROPERTY = ODRL_SCHEMA + "action";
+    private static final String ODRL_CONSTRAINT_PROPERTY = ODRL_SCHEMA + "constraint";
+    private static final String ODRL_DUTY_PROPERTY = ODRL_SCHEMA + "duty";
     
     public JsonObjectToPermissionTransformer() {
         super(JsonObject.class, Permission.class);

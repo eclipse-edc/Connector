@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.jsonld.transformer.to;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.contract.spi.types.offer.Distribution;
@@ -63,6 +64,10 @@ public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransform
         } else if (DCT_FORMAT.equals(key)) {
             if (value instanceof JsonObject) {
                 var format = nodeId((JsonObject) value);
+                builder.format(format);
+            } else if (value instanceof JsonArray) {
+                var array = (JsonArray) value;
+                var format = nodeId((JsonObject) array.get(0));
                 builder.format(format);
             } else {
                 context.reportProblem("Invalid format property.");

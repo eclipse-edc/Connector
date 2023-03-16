@@ -23,6 +23,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCT_SCHEMA;
 
 public class JsonObjectFromDataServiceTransformer extends AbstractJsonLdTransformer<DataService, JsonObject> {
@@ -43,8 +46,8 @@ public class JsonObjectFromDataServiceTransformer extends AbstractJsonLdTransfor
         }
     
         var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add("@id", dataService.getId());
-        objectBuilder.add("@type", "dcat:DataService");
+        objectBuilder.add(ID, dataService.getId());
+        objectBuilder.add(TYPE, DCAT_SCHEMA + "DataService");
         
         objectBuilder.add(DCT_SCHEMA + "terms", dataService.getTerms());
         objectBuilder.add(DCT_SCHEMA + "endpointUrl", dataService.getEndpointUrl());
