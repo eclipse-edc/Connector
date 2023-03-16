@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.badGatewayErrors;
 import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.internalErrors;
 import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.validationError;
 
@@ -149,7 +150,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
                         if (result.succeeded()) {
                             response.resume(Response.ok(stream.toString()).build());
                         } else {
-                            response.resume(internalErrors(result.getFailureMessages()));
+                            response.resume(badGatewayErrors(result.getFailureMessages()));
                         }
                     } else {
                         response.resume(internalErrors(List.of("Unhandled exception occurred during data transfer: " + throwable.getMessage())));

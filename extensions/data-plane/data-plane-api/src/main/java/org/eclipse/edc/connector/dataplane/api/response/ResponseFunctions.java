@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 
 import java.util.List;
 
+import static jakarta.ws.rs.core.Response.Status.BAD_GATEWAY;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -47,6 +48,16 @@ public final class ResponseFunctions {
      */
     public static Response validationErrors(List<String> errors) {
         return createErrorResponse(BAD_REQUEST, errors);
+    }
+
+    /**
+     * Returns a response for a collection of bad gateway errors.
+     *
+     * @param errors List of errors.
+     * @return Error response.
+     */
+    public static Response badGatewayErrors(List<String> errors) {
+        return createErrorResponse(BAD_GATEWAY, errors);
     }
 
     /**
