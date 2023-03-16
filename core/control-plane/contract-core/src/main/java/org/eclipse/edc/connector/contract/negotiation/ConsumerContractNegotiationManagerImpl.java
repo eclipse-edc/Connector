@@ -226,7 +226,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess((n, result) -> transitToRequested(n))
                 .onFailure((n, throwable) -> transitToRequesting(n))
                 .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
-                .execute("Send ContractRequestMessage message");
+                .execute("[Consumer] Send ContractRequestMessage message");
     }
 
     /**
@@ -275,7 +275,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess((n, result) -> transitToApproved(n))
                 .onFailure((n, throwable) -> transitToApproving(n))
                 .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
-                .execute("send agreement");
+                .execute("[consumer] send agreement");
     }
 
     @WithSpan
@@ -309,7 +309,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess((n, result) -> transitToTerminated(n))
                 .onFailure((n, throwable) -> transitToTerminating(n))
                 .onRetryExhausted((n, throwable) -> transitToTerminated(n)) // TODO: must pass the exception to explain why it was terminated
-                .execute("send rejection");
+                .execute("[Consumer] send rejection");
     }
 
     private void transitToRequesting(ContractNegotiation negotiation) {

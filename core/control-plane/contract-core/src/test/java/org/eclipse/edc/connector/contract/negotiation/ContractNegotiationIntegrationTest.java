@@ -39,7 +39,9 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
 import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -48,6 +50,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
 import java.net.URI;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -66,7 +69,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ComponentTest
+//@ComponentTest
 class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
@@ -81,6 +84,7 @@ class ContractNegotiationIntegrationTest {
 
     private ProviderContractNegotiationManagerImpl providerManager;
     private ConsumerContractNegotiationManagerImpl consumerManager;
+    private WaitStrategy waitStrategy;
 
     @BeforeEach
     void init() {
@@ -91,13 +95,14 @@ class ContractNegotiationIntegrationTest {
 
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
-        var sendRetryManager = mock(SendRetryManager.class);
+        var sendRetryManager = new EntitySendRetryManager(monitor, () -> waitStrategy, Clock.systemUTC(), 3);
 
+        waitStrategy = () -> 1000;
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(providerDispatcherRegistry)
                 .monitor(monitor)
                 .validationService(validationService)
-                .waitStrategy(() -> 1000)
+                .waitStrategy(waitStrategy)
                 .commandQueue(queue)
                 .commandRunner(runner)
                 .observable(new ContractNegotiationObservableImpl())

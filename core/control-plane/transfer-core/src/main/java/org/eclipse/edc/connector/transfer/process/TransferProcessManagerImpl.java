@@ -49,6 +49,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -56,6 +57,8 @@ import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
+import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntitySendRetryManagerConfiguration;
 import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,6 +75,8 @@ import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
+import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
+import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_SEND_RETRY_LIMIT;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
@@ -130,11 +135,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private PolicyArchive policyArchive;
     private SendRetryManager sendRetryManager;
     private Clock clock;
+    private EntitySendRetryManagerConfiguration sendRetryManagerConfiguration = defaultSendRetryManagerConfiguration();
 
     private TransferProcessManagerImpl() {
     }
 
     public void start() {
+        sendRetryManager = new EntitySendRetryManager(monitor, sendRetryManagerConfiguration.getWaitStrategySupplier(), clock, sendRetryManagerConfiguration.getRetryLimit());
         stateMachineManager = StateMachineManager.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
                 .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
@@ -801,6 +808,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
+    @NotNull
+    private EntitySendRetryManagerConfiguration defaultSendRetryManagerConfiguration() {
+        return new EntitySendRetryManagerConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
+    }
+
     public static class Builder {
         private final TransferProcessManagerImpl manager;
 
@@ -816,11 +828,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder batchSize(int size) {
             manager.batchSize = size;
-            return this;
-        }
-
-        public Builder sendRetryManager(SendRetryManager sendRetryManager) {
-            manager.sendRetryManager = sendRetryManager;
             return this;
         }
 
@@ -911,6 +918,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder addressResolver(DataAddressResolver addressResolver) {
             manager.addressResolver = addressResolver;
+            return this;
+        }
+
+        public Builder sendRetryManagerConfiguration(EntitySendRetryManagerConfiguration sendRetryManagerConfiguration) {
+            manager.sendRetryManagerConfiguration = sendRetryManagerConfiguration;
             return this;
         }
 

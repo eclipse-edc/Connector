@@ -97,7 +97,6 @@ class TransferProcessManagerImplIntegrationTest {
                 .manifestGenerator(manifestGenerator)
                 .monitor(monitor)
                 .clock(clock)
-                .sendRetryManager(new EntitySendRetryManager(monitor, () -> waitStrategy, clock, 3))
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())

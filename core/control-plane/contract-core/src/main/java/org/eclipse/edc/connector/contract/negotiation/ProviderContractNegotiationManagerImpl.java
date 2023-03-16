@@ -36,6 +36,7 @@ import org.eclipse.edc.statemachine.StateProcessorImpl;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
@@ -51,10 +52,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
     private ProviderContractNegotiationManagerImpl() {
     }
-
-    //TODO check state count for retry
-
-    //TODO validate previous offers against hash?
 
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
@@ -96,7 +93,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             negotiation.setContractAgreement(null);
         }
         transitToTerminated(negotiation);
-        monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+        monitor.debug(format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return StatusResult.success(negotiation);
@@ -132,7 +129,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         negotiationStore.save(negotiation);
         observable.invokeForEach(l -> l.requested(negotiation));
 
-        monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
+        monitor.debug(format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         var offer = request.getContractOffer();
@@ -145,14 +142,14 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             negotiation.setErrorDetail(result.getFailureMessages().get(0));
             transitToTerminating(negotiation);
 
-            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+            monitor.debug(format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return StatusResult.success(negotiation);
         }
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
         transitToProviderAgreeing(negotiation);
-        monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+        monitor.debug(format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return StatusResult.success(negotiation);
@@ -203,8 +200,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToOffered(n))
                 .onFailure((n, throwable) -> transitToOffering(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
-                .execute("send counter offer");
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to consumer: %s", contractOfferRequest.getClass().getSimpleName(), throwable.getMessage())))
+                .execute("[Provider] send counter offer");
     }
 
     /**
@@ -230,8 +227,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .onDelay(this::breakLease)
                     .onSuccess((n, result) -> transitToTerminated(n))
                     .onFailure((n, throwable) -> transitToTerminating(n))
-                    .onRetryExhausted((n, throwable) -> transitToTerminated(n)) // TODO: must pass the exception to explain why it will be terminated
-                    .execute("send rejection");
+                    .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
+                    .execute("[Provider] send rejection");
         } else {
             // TODO: cover this case, terminating a negotiation that has not reached the consumer side
             transitToTerminated(negotiation);
@@ -300,8 +297,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToProviderAgreed(n, agreement))
                 .onFailure((n, throwable) -> transitToProviderAgreeing(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
-                .execute("send agreement");
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to consumer: %s", request.getClass().getSimpleName(), throwable.getMessage())))
+                .execute("[Provider] send agreement");
     }
 
     private void transitToOffering(ContractNegotiation negotiation) {
@@ -313,6 +310,11 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         negotiation.transitionOffered();
         negotiationStore.save(negotiation);
         observable.invokeForEach(l -> l.offered(negotiation));
+    }
+
+    private void transitToTerminating(ContractNegotiation negotiation, String message) {
+        negotiation.transitionTerminating(message);
+        negotiationStore.save(negotiation);
     }
 
     private void transitToTerminating(ContractNegotiation negotiation) {

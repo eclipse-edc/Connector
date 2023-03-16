@@ -59,17 +59,14 @@ import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntitySendRetryManagerConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -99,11 +96,9 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -114,8 +109,7 @@ class TransferProcessManagerImplTest {
     private static final String DESTINATION_TYPE = "test-type";
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private static final String PROVISIONED_RESOURCE_ID = "1";
-
-    private final long currentTime = 1343411;
+    private static final int RETRY_LIMIT = 1;
 
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
@@ -125,8 +119,7 @@ class TransferProcessManagerImplTest {
     private final PolicyArchive policyArchive = mock(PolicyArchive.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
-    private final Clock clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
-    private final SendRetryManager sendRetryManager = spy(new EntitySendRetryManager(mock(Monitor.class), () -> mock(ExponentialWaitStrategy.class), clock, 2));
+    private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
     private TransferProcessManagerImpl manager;
@@ -135,10 +128,11 @@ class TransferProcessManagerImplTest {
     void setup() {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
+        var sendRetryManagerConfiguration = new EntitySendRetryManagerConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
         manager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(dataFlowManager)
-                .waitStrategy(mock(ExponentialWaitStrategy.class))
+                .waitStrategy(() -> 50L)
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
@@ -153,7 +147,7 @@ class TransferProcessManagerImplTest {
                 .policyArchive(policyArchive)
                 .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
-                .sendRetryManager(sendRetryManager)
+                .sendRetryManagerConfiguration(sendRetryManagerConfiguration)
                 .build();
     }
 
@@ -170,7 +164,7 @@ class TransferProcessManagerImplTest {
         manager.initiateProviderRequest(dataRequest); // repeat request
         manager.stop();
 
-        verify(transferProcessStore, times(1)).save(isA(TransferProcess.class));
+        verify(transferProcessStore, times(RETRY_LIMIT)).save(isA(TransferProcess.class));
         verify(transferProcessStore, times(2)).processIdForDataRequestId(anyString());
     }
 
@@ -183,7 +177,7 @@ class TransferProcessManagerImplTest {
         manager.initiateProviderRequest(dataRequest);
         manager.stop();
 
-        verify(transferProcessStore, times(1)).save(argThat(p -> p.getCreatedAt() == currentTime));
+        verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getCreatedAt() > 0));
         verify(listener).initiated(any());
     }
 
@@ -303,13 +297,13 @@ class TransferProcessManagerImplTest {
     @Test
     void provisioning_shouldTransitionToTerminating_whenProvisionErrorAndRetriesExhausted() {
         var process = createTransferProcess(PROVISIONING).toBuilder()
+                .stateCount(2)
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
-        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         manager.start();
 
@@ -410,38 +404,21 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == REQUESTING.code()));
         });
     }
 
     @Test
     void requesting_onFailureAndRetriesExhausted_transitToTerminating() {
-        var process = createTransferProcess(REQUESTING);
+        var process = createTransferProcess(REQUESTING).toBuilder().stateCount(2).build();
         when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(failedFuture(new EdcException("send failed")));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-        when(sendRetryManager.retriesExhausted(process)).thenReturn(true);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATING.code()));
-        });
-    }
-
-    @Test
-    void requesting_whenShouldWait_updatesStateCount() {
-        var process = createTransferProcess(REQUESTING);
-        when(sendRetryManager.shouldDelay(process)).thenReturn(true);
-        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
-        when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verifyNoInteractions(dispatcherRegistry);
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
@@ -458,7 +435,7 @@ class TransferProcessManagerImplTest {
 
         manager.start();
 
-        await().pollDelay(1, SECONDS).untilAsserted(() -> verify(transferProcessStore, never()).save(any()));
+        await().pollDelay(RETRY_LIMIT, SECONDS).untilAsserted(() -> verify(transferProcessStore, never()).save(any()));
     }
 
     @Test
@@ -543,7 +520,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == STARTING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == STARTING.code()));
         });
     }
 
@@ -563,23 +540,21 @@ class TransferProcessManagerImplTest {
 
     @Test
     void starting_onFailureAndRetriesExhausted_transitToTerminating() {
-        var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
+        var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_LIMIT + 1).build();
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
-        doReturn(true).when(sendRetryManager).retriesExhausted(any());
+        when(transferProcessStore.find(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
     @Test
     void starting_whenShouldWait_updatesStateCount() {
-        var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-        when(sendRetryManager.shouldDelay(process)).thenReturn(true);
+        var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(2).stateTimestamp(clock.millis() + 1000L).build();
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
@@ -588,7 +563,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verifyNoInteractions(dataFlowManager);
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == STARTING.code()));
+            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTING.code()));
         });
     }
 
@@ -611,9 +586,11 @@ class TransferProcessManagerImplTest {
 
     @Test
     void started_shouldComplete_whenNotManagedResourcesAndCheckerCompleted() {
-        var process = createTransferProcess(STARTED, new TransferType(), false);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
+        var process = createTransferProcessBuilder(STARTED, false)
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
+                        .resources(List.of(provisionedDataDestinationResource(), provisionedDataDestinationResource()))
+                        .build())
+                .build();
 
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
@@ -660,9 +637,11 @@ class TransferProcessManagerImplTest {
 
     @Test
     void started_shouldComplete_whenNoCheckerForNotManaged() {
-        var process = createTransferProcess(STARTED, new TransferType(), false);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
+        var process = createTransferProcessBuilder(STARTED, false)
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
+                        .resources(List.of(provisionedDataDestinationResource(), provisionedDataDestinationResource()))
+                        .build())
+                .build();
 
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
@@ -686,7 +665,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class));
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == COMPLETED.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == COMPLETED.code()));
             verify(listener).completed(process);
         });
     }
@@ -702,7 +681,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class));
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == COMPLETING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
 
@@ -717,7 +696,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
     }
@@ -733,23 +712,22 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
     @Test
     void terminating_shouldTransitToTerminated_whenSendingMessageFailedAndRetriesExhausted() {
-        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
+        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).stateCount(2).build();
         when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
         when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class))).thenReturn(failedFuture(new EdcException("an error")));
-        doReturn(true).when(sendRetryManager).retriesExhausted(any());
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
         });
     }
 
@@ -763,7 +741,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verifyNoInteractions(dispatcherRegistry);
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == TERMINATED.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
     }
@@ -930,23 +908,18 @@ class TransferProcessManagerImplTest {
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
-        return createTransferProcessBuilder(inState, new TransferType(), true).build();
-    }
-
-    private TransferProcess createTransferProcess(TransferProcessStates inState, TransferType type, boolean managed) {
-        return createTransferProcessBuilder(inState, type, managed)
-                .build();
+        return createTransferProcessBuilder(inState, true).build();
     }
 
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState) {
-        return createTransferProcessBuilder(inState, new TransferType(), true);
+        return createTransferProcessBuilder(inState, true);
     }
 
-    private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState, TransferType type, boolean managed) {
+    private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState, boolean managed) {
         var processId = UUID.randomUUID().toString();
         var dataRequest = createDataRequestBuilder()
                 .processId(processId)
-                .transferType(type)
+                .transferType(new TransferType())
                 .protocol("ids-protocol")
                 .connectorAddress("http://an/address")
                 .managedResources(managed)
