@@ -40,6 +40,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.util.UUID.randomUUID;
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 
 /**
@@ -103,9 +105,9 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         public JsonObject visitAtomicConstraint(AtomicConstraint atomicConstraint) {
             var constraintBuilder = jsonFactory.createObjectBuilder();
     
-            constraintBuilder.add(ODRL_SCHEMA + "leftOperand", atomicConstraint.getLeftExpression().accept(this));
-            constraintBuilder.add(ODRL_SCHEMA + "operator", atomicConstraint.getOperator().name());
-            constraintBuilder.add(ODRL_SCHEMA + "rightOperand", atomicConstraint.getRightExpression().accept(this));
+            constraintBuilder.add("leftOperand", atomicConstraint.getLeftExpression().accept(this));
+            constraintBuilder.add("operator", atomicConstraint.getOperator().name());
+            constraintBuilder.add("rightOperand", atomicConstraint.getRightExpression().accept(this));
     
             return constraintBuilder.build();
         }
@@ -130,9 +132,11 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     
             return jsonFactory.createObjectBuilder()
                     .add("@id", randomUUID().toString())
-                    .add(ODRL_SCHEMA + "permissions", permissionsBuilder.build())
-                    .add(ODRL_SCHEMA + "prohibitions", prohibitionsBuilder.build())
-                    .add(ODRL_SCHEMA + "obligations", obligationsBuilder.build())
+                    .add(CONTEXT, jsonFactory.createObjectBuilder()
+                            .add(VOCAB, ODRL_SCHEMA))
+                    .add("permission", permissionsBuilder)
+                    .add("prohibition", prohibitionsBuilder)
+                    .add("obligation", obligationsBuilder)
                     .build();
         }
 
@@ -140,12 +144,12 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         public JsonObject visitPermission(Permission permission) {
             var permissionBuilder = visitRule(permission);
     
-            if (permission.getDuties() != null) {
+            if (permission.getDuties() != null && !permission.getDuties().isEmpty()) {
                 var dutiesBuilder = jsonFactory.createArrayBuilder();
                 for (var duty : permission.getDuties()) {
                     dutiesBuilder.add(visitDuty(duty));
                 }
-                permissionBuilder.add(ODRL_SCHEMA + "duties", dutiesBuilder.build());
+                permissionBuilder.add("duties", dutiesBuilder.build());
             }
     
             return permissionBuilder.build();
@@ -171,7 +175,9 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             var ruleBuilder = jsonFactory.createObjectBuilder();
         
             ruleBuilder.add("action", visitAction(rule.getAction()));
-            ruleBuilder.add("constraints", visitConstraints(rule));
+            if (rule.getConstraints() != null && !rule.getConstraints().isEmpty()) {
+                ruleBuilder.add("constraints", visitConstraints(rule));
+            }
         
             return ruleBuilder;
         }
@@ -187,11 +193,15 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         }
     
         private JsonObject visitAction(Action action) {
-            return jsonFactory.createObjectBuilder()
-                    .add("type", action.getType())
-                    .add("includedIn", action.getIncludedIn())
-                    .add("constraint", action.getConstraint().accept(this))
-                    .build();
+            var actionBuilder = jsonFactory.createObjectBuilder();
+            actionBuilder.add("type", action.getType());
+            if (action.getIncludedIn() != null) {
+                actionBuilder.add("includedIn", action.getIncludedIn());
+            }
+            if (action.getConstraint() != null) {
+                actionBuilder.add("refinement", action.getConstraint().accept(this));
+            }
+            return actionBuilder.build();
         }
     }
 }

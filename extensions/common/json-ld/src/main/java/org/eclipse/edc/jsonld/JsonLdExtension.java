@@ -35,6 +35,7 @@ import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDutyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPermissionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToProhibitionTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -87,6 +88,7 @@ public class JsonLdExtension implements ServiceExtension {
         registry.register(new JsonObjectToDutyTransformer());
         registry.register(new JsonObjectToActionTransformer());
         registry.register(new JsonObjectToConstraintTransformer());
+        registry.register(new JsonValueToGenericTypeTransformer(mapper));
         
         context.registerService(JsonLdTransformerRegistry.class, registry);
     }

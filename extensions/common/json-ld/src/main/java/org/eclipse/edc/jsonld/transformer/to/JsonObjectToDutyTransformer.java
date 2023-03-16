@@ -25,14 +25,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayOrObject;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformObject;
 
 public class JsonObjectToDutyTransformer extends AbstractJsonLdTransformer<JsonObject, Duty> {
     
-    private static final String ODRL_ACTION_PROPERTY = "action";
-    private static final String ODRL_CONSTRAINT_PROPERTY = "constraint";
-    private static final String ODRL_CONSEQUENCE_PROPERTY = "consequence";
+    private static final String ODRL_ACTION_PROPERTY = ODRL_SCHEMA + "action";
+    private static final String ODRL_CONSTRAINT_PROPERTY = ODRL_SCHEMA + "constraint";
+    private static final String ODRL_CONSEQUENCE_PROPERTY = ODRL_SCHEMA + "consequence";
     
     public JsonObjectToDutyTransformer() {
         super(JsonObject.class, Duty.class);

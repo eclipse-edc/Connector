@@ -25,6 +25,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 
 public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<Dataset, JsonObject> {
@@ -45,8 +47,8 @@ public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<
         }
         
         var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add("@id", dataset.getId());
-        objectBuilder.add("@type", "dcat:Dataset");
+        objectBuilder.add(ID, dataset.getId());
+        objectBuilder.add(TYPE, DCAT_SCHEMA + "Dataset");
         
         var policies = dataset.getPolicies().stream()
                 .map(policy -> context.transform(policy, JsonObject.class))

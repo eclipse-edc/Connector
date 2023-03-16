@@ -23,6 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCT_SCHEMA;
 
@@ -44,7 +45,7 @@ public class JsonObjectFromDistributionTransformer extends AbstractJsonLdTransfo
         }
     
         var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add("@type", "dcat:Distribution");
+        objectBuilder.add(TYPE, DCAT_SCHEMA + "Distribution");
         
         objectBuilder.add(DCT_SCHEMA + "format", jsonFactory.createObjectBuilder()
                 .add("@id", distribution.getFormat())

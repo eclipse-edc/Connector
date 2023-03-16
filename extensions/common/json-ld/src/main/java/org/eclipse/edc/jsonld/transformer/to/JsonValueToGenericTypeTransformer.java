@@ -17,10 +17,10 @@ import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.VALUE;
 /**
  *
  */
-public class ToGenericTypeTransformer extends AbstractJsonLdTransformer<JsonValue, Object> {
+public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer<JsonValue, Object> {
     private final ObjectMapper mapper;
 
-    public ToGenericTypeTransformer(ObjectMapper mapper) {
+    public JsonValueToGenericTypeTransformer(ObjectMapper mapper) {
         super(JsonValue.class, Object.class);
         this.mapper = mapper;
     }

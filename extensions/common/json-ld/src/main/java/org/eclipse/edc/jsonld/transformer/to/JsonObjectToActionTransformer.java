@@ -24,14 +24,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformObject;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformString;
 
 public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<JsonObject, Action> {
     
-    private static final String ODRL_TYPE_PROPERTY = "type";
-    private static final String ODRL_INCLUDED_IN_PROPERTY = "includedIn";
-    private static final String ODRL_REFINEMENT_PROPERTY = "refinement";
+    private static final String ODRL_TYPE_PROPERTY = ODRL_SCHEMA + "type";
+    private static final String ODRL_INCLUDED_IN_PROPERTY = ODRL_SCHEMA + "includedIn";
+    private static final String ODRL_REFINEMENT_PROPERTY = ODRL_SCHEMA + "refinement";
     
     public JsonObjectToActionTransformer() {
         super(JsonObject.class, Action.class);

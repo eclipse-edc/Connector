@@ -26,6 +26,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 
 /**
@@ -48,8 +50,8 @@ public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<
         }
 
         var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add("@id", catalog.getId());
-        objectBuilder.add("@type", "dcat:Catalog");
+        objectBuilder.add(ID, catalog.getId());
+        objectBuilder.add(TYPE, DCAT_SCHEMA + "Catalog");
 
         var datasets = catalog.getDatasets().stream()
                 .map(offer -> context.transform(offer, JsonObject.class))
