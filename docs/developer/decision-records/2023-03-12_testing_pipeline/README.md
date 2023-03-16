@@ -93,8 +93,8 @@ workflows:
     - `Checkstyle`: job that runs checkstyle
     - `Dependency-Analysis`: runs the dependency analysis
 - `Unit-Test.yaml`: runs unit tests with coverage and uploads test reports
-- `Api-Tests.yaml`: contains a job that runs all API tests
 - `Integration-Test.yaml`: Contains the following jobs, each running the respective integration tests:
+    - `Api-Tests.yaml`: contains a job that runs all API tests
     - `Azure-Storage`
     - `Azure-Cosmos`: uses real Cosmos instance, runs only if `COSMOS_KEY` is present
     - `Aws`
