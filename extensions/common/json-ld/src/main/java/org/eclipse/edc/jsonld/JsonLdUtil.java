@@ -12,16 +12,24 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.util;
+package org.eclipse.edc.jsonld;
 
-import java.net.URI;
+import java.util.Map;
 
 import com.apicatalog.jsonld.JsonLd;
 import com.apicatalog.jsonld.JsonLdError;
 import com.apicatalog.jsonld.document.JsonDocument;
+import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.EdcException;
+
+import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_PREFIX;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_PREFIX;
+import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 
 public class JsonLdUtil {
     //TODO => JSON-LD extension
@@ -37,10 +45,21 @@ public class JsonLdUtil {
     }
     
     public static JsonObject compactDocument(JsonObject jsonObject) {
-        var contextUri = URI.create("http://schema.org/"); //TODO context
         try {
             var document = JsonDocument.of(jsonObject);
-            return JsonLd.compact(document, contextUri).get();
+    
+            var builderFactory = Json.createBuilderFactory(Map.of());
+            var contextObject = builderFactory
+                    .createObjectBuilder()
+                    .add(DCAT_PREFIX, DCAT_SCHEMA)
+                    .add(ODRL_PREFIX, ODRL_SCHEMA)
+                    .add(DCT_PREFIX, DCT_SCHEMA)
+                    .build();
+            var contextDocument = JsonDocument.of(builderFactory.createObjectBuilder()
+                    .add("@context", contextObject)
+                    .build());
+            
+            return JsonLd.compact(document, contextDocument).get();
         } catch (JsonLdError e) {
             throw new EdcException(e);
         }

@@ -30,8 +30,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.compactDocument;
-import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.expandDocument;
+import static org.eclipse.edc.jsonld.JsonLdUtil.compactDocument;
+import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
