@@ -21,13 +21,13 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 public class DataService {
     
-//    private String id;
+    private String id;
     private String terms; //"dct:terms": "ids:connector"
     private String endpointUrl;
     
-//    public String getId() {
-//        return id;
-//    }
+    public String getId() {
+        return id;
+    }
     
     public String getTerms() {
         return terms;
@@ -63,10 +63,10 @@ public class DataService {
             return new Builder();
         }
         
-//        public Builder id(String id) {
-//            dataService.id = id;
-//            return this;
-//        }
+        public Builder id(String id) {
+            dataService.id = id;
+            return this;
+        }
         
         public Builder terms(String terms) {
             dataService.terms = terms;
@@ -79,7 +79,7 @@ public class DataService {
         }
         
         public DataService build() {
-//            Objects.requireNonNull(dataService.id, "Id must not be null.");
+            Objects.requireNonNull(dataService.id, "Id must not be null.");
             Objects.requireNonNull(dataService.terms, "Terms must not be null.");
             Objects.requireNonNull(dataService.endpointUrl, "EndpointUrl must not be null.");
             return dataService;

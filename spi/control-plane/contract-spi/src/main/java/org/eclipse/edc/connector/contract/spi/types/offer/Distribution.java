@@ -23,6 +23,7 @@ public class Distribution {
     
     private String format; //e.g. ids:s3+push
     private DataService dataService;
+    private String dataServiceId;
     
     public String getFormat() {
         return format;
@@ -30,6 +31,10 @@ public class Distribution {
     
     public DataService getDataService() {
         return dataService;
+    }
+    
+    public String getDataServiceId() {
+        return dataServiceId;
     }
     
     @JsonPOJOBuilder(withPrefix = "")
@@ -55,9 +60,18 @@ public class Distribution {
             return this;
         }
         
+        public Builder dataServiceId(String dataServiceId) {
+            distribution.dataServiceId = dataServiceId;
+            return this;
+        }
+
         public Distribution build() {
+            if (distribution.dataServiceId == null) {
+                Objects.requireNonNull(distribution.dataService, "DataService must not be null.");
+            }
+    
             Objects.requireNonNull(distribution.format, "Format must not be null.");
-            Objects.requireNonNull(distribution.dataService, "DataService must not be null.");
+            
             return distribution;
         }
     }
