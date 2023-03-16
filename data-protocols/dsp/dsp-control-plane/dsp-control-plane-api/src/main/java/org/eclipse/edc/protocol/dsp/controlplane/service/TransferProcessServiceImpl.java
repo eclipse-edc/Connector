@@ -16,6 +16,8 @@ package org.eclipse.edc.protocol.dsp.controlplane.service;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.protocol.dsp.spi.controlplane.service.TransferProcessService;
 
 public class TransferProcessServiceImpl implements TransferProcessService {
@@ -26,8 +28,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         this.transferProcessManager = transferProcessManager;
     }
 
+
+    //Provider Side
     @Override
     public JsonObject getTransferProcessByID(String id) {
+
         return null;
     }
 
@@ -37,22 +42,23 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public void consumerTransferProcessStart(String id, JsonObject jsonObject) {
+    public void transferProcessStart(String id, JsonObject jsonObject) {
+    }
+
+    @Override
+    public void transferProcessCompletion(String id, JsonObject jsonObject) {
 
     }
 
     @Override
-    public void consumerTransferProcessCompletion(String id, JsonObject jsonObject) {
-
+    public void transferProcessTermination(String id, JsonObject jsonObject) {
+        jsonObject.getString("@id");
+        var cmd = new TerminateTransferCommand(id,"API-CALL"); //TODO Generate better Reason
+        transferProcessManager.enqueueCommand(cmd);
     }
 
     @Override
-    public void consumerTransferProcessTermination(String id, JsonObject jsonObject) {
-
-    }
-
-    @Override
-    public void consumerTransferProcessSuspension(String id, JsonObject jsonObject) {
-
+    public void transferProcessSuspension(String id, JsonObject jsonObject) {
+        var dataRequest = DataRequest.Builder.newInstance().build();
     }
 }

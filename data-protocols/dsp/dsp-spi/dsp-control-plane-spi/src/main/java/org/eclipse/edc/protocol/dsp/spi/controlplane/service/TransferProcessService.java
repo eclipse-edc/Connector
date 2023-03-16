@@ -22,12 +22,12 @@ public interface TransferProcessService {
 
     JsonObject initiateTransferProcess(JsonObject jsonObject);
 
-    void consumerTransferProcessStart(String id, JsonObject jsonObject);
+    void transferProcessStart(String id, JsonObject jsonObject);
 
-    void consumerTransferProcessCompletion(String id, JsonObject jsonObject);
+    void transferProcessCompletion(String id, JsonObject jsonObject);
 
-    void consumerTransferProcessTermination(String id, JsonObject jsonObject);
+    void transferProcessTermination(String id, JsonObject jsonObject);
 
-    void consumerTransferProcessSuspension(String id, JsonObject jsonObject);
+    void transferProcessSuspension(String id, JsonObject jsonObject);
 
 }

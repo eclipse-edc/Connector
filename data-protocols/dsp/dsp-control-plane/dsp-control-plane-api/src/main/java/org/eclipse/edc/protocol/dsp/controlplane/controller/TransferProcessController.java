@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.controlplane.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -23,7 +22,7 @@ import org.eclipse.edc.protocol.dsp.spi.controlplane.service.TransferProcessServ
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import java.util.Map;
+import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.expandDocument;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -42,37 +41,56 @@ public class TransferProcessController {
         this.mapper = typeManager.getMapper("json-ld"); //TODO Use correct mapper
     }
 
+    //Provider side
     @GET
     @Path("/{id}")
     public JsonObject getTransferProcess(@PathParam("id") String id) {
 
-        return null;
+        return transferProcessService.getTransferProcessByID(id);
     }
 
+    //Provider side
     @POST
     @Path("/request")
-    public Map<String, Object> initiateTransferProcess(JsonObject jsonObject) {
-        return null;
+    public JsonObject initiateTransferProcess(JsonObject jsonObject) {
+        var document = expandDocument(jsonObject).getJsonObject(0);
+
+        return transferProcessService.initiateTransferProcess(document);
     }
 
+    //both sides
     @POST
     @Path("/{id}/start")
     public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject) {
+        var document = expandDocument(jsonObject).getJsonObject(0);
+
+        transferProcessService.transferProcessStart(id, document);
     }
 
+    //both sides
     @POST
     @Path("/{id}/completion")
     public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject) {
+        var document = expandDocument(jsonObject).getJsonObject(0);
+
+        transferProcessService.transferProcessCompletion(id,document);
     }
 
+    //both sides
     @POST
     @Path("/{id}/termination")
     public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject) {
+        var document = expandDocument(jsonObject).getJsonObject(0);
+
+        transferProcessService.transferProcessTermination(id, document);
     }
 
+    //both sides
     @POST
     @Path("/{id}/suspension")
     public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject) {
+        var document = expandDocument(jsonObject).getJsonObject(0);
 
+        transferProcessService.transferProcessSuspension(id, document);
     }
 }
