@@ -57,7 +57,7 @@ public class OutputStreamDataSink implements DataSink {
                     });
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request", e);
-            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, "Error processing data transfer request"));
+            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, String.format("Error processing data transfer request - %s", e.getMessage())));
         }
     }
 

@@ -64,7 +64,7 @@ public abstract class ParallelSink implements DataSink {
                     .exceptionally(throwable -> StatusResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request: " + requestId, e);
-            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, "Error processing data transfer request"));
+            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, String.format("Error processing data transfer request - %s", e.getMessage())));
         }
     }
 

@@ -81,7 +81,7 @@ class ParallelSinkTest {
 
         assertThat(fakeSink.transfer(dataSourceMock)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
-                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly("Error processing data transfer request"));
+                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly("Error processing data transfer request - test-errormessage"));
         assertThat(fakeSink.complete).isEqualTo(0);
     }
 
