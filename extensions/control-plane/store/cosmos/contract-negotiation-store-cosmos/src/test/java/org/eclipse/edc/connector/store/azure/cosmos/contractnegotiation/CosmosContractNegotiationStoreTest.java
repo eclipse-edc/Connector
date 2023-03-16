@@ -112,7 +112,7 @@ class CosmosContractNegotiationStoreTest {
 
         verify(cosmosDbApi).queryItemById(eq(negotiation.getId()));
         verify(cosmosDbApi).createItem(any(ContractNegotiationDocument.class));
-        verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any());
+        verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any(), any(), any());
         verifyNoMoreInteractions(cosmosDbApi);
     }
 
@@ -125,7 +125,7 @@ class CosmosContractNegotiationStoreTest {
 
         verify(cosmosDbApi).queryItemById("test-id");
         verify(cosmosDbApi).deleteItem("test-id");
-        verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any());
+        verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any(), any(), any());
         verifyNoMoreInteractions(cosmosDbApi);
     }
 
