@@ -245,12 +245,15 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionVerifying() {
         if (PROVIDER == type) {
-            throw new IllegalStateException("Consumer processes have no CONSUMER_AGREEING state");
+            throw new IllegalStateException("Consumer processes have no CONSUMER_VERIFYING state");
         }
 
         transition(CONSUMER_VERIFYING, CONSUMER_VERIFYING, PROVIDER_AGREED, CONSUMER_AGREED);
     }
 
+    /**
+     * Transition to state CONSUMER_VERIFIED.
+     */
     public void transitionVerified() {
         if (type == CONSUMER) {
             transition(CONSUMER_VERIFIED, CONSUMER_VERIFIED, CONSUMER_VERIFYING);
@@ -259,6 +262,21 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         }
     }
 
+    /**
+     * Transition to state PROVIDER_FINALIZING.
+     */
+    public void transitionProviderFinalizing() {
+        if (CONSUMER == type) {
+            throw new IllegalStateException("Consumer processes have no PROVIDER_FINALIZING state");
+        }
+
+        transition(PROVIDER_FINALIZING, PROVIDER_FINALIZING, CONSUMER_VERIFIED);
+    }
+
+
+    /**
+     * Transition to state PROVIDER_FINALIZED.
+     */
     public void transitionProviderFinalized() {
         transition(PROVIDER_FINALIZED, PROVIDER_FINALIZED, PROVIDER_FINALIZING, PROVIDER_AGREED, CONSUMER_VERIFIED);
     }
@@ -365,7 +383,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     public enum Type {
-        CONSUMER, PROVIDER
+        CONSUMER, PROVIDER;
     }
 
     /**
@@ -373,6 +391,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends StatefulEntity.Builder<ContractNegotiation, Builder> {
+
 
         private Builder(ContractNegotiation negotiation) {
             super(negotiation);

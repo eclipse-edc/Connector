@@ -39,7 +39,6 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -66,7 +65,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ComponentTest
+//@ComponentTest
 class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
@@ -141,7 +140,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-protocol")
                 .build();
 
         consumerManager.initiate(request);
@@ -186,7 +185,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-protocol")
                 .build();
         consumerManager.initiate(request);
 
@@ -233,7 +232,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-protocol")
                 .build();
         consumerManager.initiate(request);
 

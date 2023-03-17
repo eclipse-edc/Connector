@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableI
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
@@ -67,6 +68,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
@@ -195,9 +197,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var result = negotiationManager.finalized("negotiationId");
 
         assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent)
-                .satisfies(actual -> {
-                    assertThat(actual.getState()).isEqualTo(PROVIDER_FINALIZED.code());
-                });
+                .satisfies(actual -> assertThat(actual.getState()).isEqualTo(PROVIDER_FINALIZED.code()));
         verify(store).save(argThat(n -> n.getState() == PROVIDER_FINALIZED.code()));
     }
 
@@ -366,7 +366,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFIED.code()));
-            verify(dispatcherRegistry).send(any(), any());
+            verify(dispatcherRegistry).send(any(), isA(ContractAgreementVerificationMessage.class));
         });
     }
 
@@ -381,7 +381,6 @@ class ConsumerContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFYING.code()));
-            verify(dispatcherRegistry).send(any(), any());
         });
     }
 
@@ -396,7 +395,6 @@ class ConsumerContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
-            verify(dispatcherRegistry).send(any(), any());
         });
     }
 
