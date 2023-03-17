@@ -35,6 +35,12 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.14.2")
 
     implementation(libs.jakarta.rsApi)
+
+    testImplementation(project(":extensions:common:http"))
+    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:control-plane:control-plane-core"))
+
+    testImplementation(libs.restAssured)
 }
 
 
