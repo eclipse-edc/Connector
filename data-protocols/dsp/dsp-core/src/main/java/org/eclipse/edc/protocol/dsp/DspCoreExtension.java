@@ -20,6 +20,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -32,9 +33,10 @@ public class DspCoreExtension implements ServiceExtension {
     
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    
     @Inject
     private EdcHttpClient httpClient;
+    @Inject
+    private IdentityService identityService;
     
     @Override
     public String name() {
@@ -43,7 +45,7 @@ public class DspCoreExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dispatcher = new DspRemoteMessageDispatcherImpl(httpClient);
+        var dispatcher = new DspRemoteMessageDispatcherImpl(httpClient, identityService);
         dispatcherRegistry.register(dispatcher);
         context.registerService(DspRemoteMessageDispatcher.class, dispatcher);
     }

@@ -23,6 +23,9 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.types.MessageProtocol;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import static java.lang.String.format;
@@ -30,11 +33,12 @@ import static java.lang.String.format;
 public class DspRemoteMessageDispatcherImpl implements DspRemoteMessageDispatcher {
     
     private Map<Class<? extends RemoteMessage>, DspDispatcherDelegate> delegates;
-    
     private EdcHttpClient httpClient;
+    private IdentityService identityService;
     
-    public DspRemoteMessageDispatcherImpl(EdcHttpClient httpClient) {
+    public DspRemoteMessageDispatcherImpl(EdcHttpClient httpClient, IdentityService identityService) {
         this.httpClient = httpClient;
+        this.identityService = identityService;
         this.delegates = new HashMap<>();
     }
     
@@ -55,8 +59,25 @@ public class DspRemoteMessageDispatcherImpl implements DspRemoteMessageDispatche
             throw new EdcException(format("No DSP message dispatcher found for message type %s", message.getClass()));
         }
         
-        //TODO setting auth info should be handled centrally
         var request = delegate.buildRequest(message);
-        return httpClient.executeAsync(request, delegate.parseResponse());
+    
+        var token = obtainToken(message);
+        var requestWithAuth = request.newBuilder()
+                .header("Authorization", token.getToken())
+                .build();
+        
+        return httpClient.executeAsync(requestWithAuth, delegate.parseResponse());
+    }
+    
+    private TokenRepresentation obtainToken(RemoteMessage message) {
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .audience(message.getConnectorAddress())
+                .build();
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
+        if (tokenResult.failed()) {
+            throw new EdcException(format("Unable to obtain credentials: %s", String.join(", ", tokenResult.getFailureMessages())));
+        }
+        
+        return tokenResult.getContent();
     }
 }

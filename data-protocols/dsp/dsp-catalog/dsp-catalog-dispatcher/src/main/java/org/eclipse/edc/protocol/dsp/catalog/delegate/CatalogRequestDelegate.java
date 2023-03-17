@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.delegate;
 
-import java.io.IOException;
-import java.util.function.Function;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -28,6 +25,9 @@ import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
+
+import java.io.IOException;
+import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
 
@@ -53,7 +53,6 @@ public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequ
         
         return new Request.Builder()
                 .url(message.getConnectorAddress() + "/catalog/request")
-                .header("Authorization", "xyz") //TODO auth token should be handled centrally
                 .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
