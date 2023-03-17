@@ -161,7 +161,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     @Override
-    String getType() {
+    protected String getType() {
         return TYPE;
     }
 
@@ -223,28 +223,21 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processTerminating(ContractNegotiation negotiation) {
-        if (negotiation.getCorrelationId() != null) {
-            var rejection = ContractRejection.Builder.newInstance()
-                    .protocol(negotiation.getProtocol())
-                    .connectorId(negotiation.getCounterPartyId())
-                    .connectorAddress(negotiation.getCounterPartyAddress())
-                    .correlationId(negotiation.getCorrelationId())
-                    .rejectionReason(negotiation.getErrorDetail())
-                    .build();
+        var rejection = ContractRejection.Builder.newInstance()
+                .protocol(negotiation.getProtocol())
+                .connectorId(negotiation.getCounterPartyId())
+                .connectorAddress(negotiation.getCounterPartyAddress())
+                .correlationId(negotiation.getCorrelationId())
+                .rejectionReason(negotiation.getErrorDetail())
+                .build();
 
-            return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
-                    .entityRetrieve(negotiationStore::find)
-                    .onDelay(this::breakLease)
-                    .onSuccess((n, result) -> transitToTerminated(n))
-                    .onFailure((n, throwable) -> transitToTerminating(n))
-                    .onRetryExhausted((n, throwable) -> transitToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
-                    .execute("[Provider] send rejection");
-        } else {
-            // TODO: cover this case, terminating a negotiation that has not reached the consumer side
-            transitToTerminated(negotiation);
-        }
-
-        return false;
+        return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
+                .entityRetrieve(negotiationStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess((n, result) -> transitToTerminated(n))
+                .onFailure((n, throwable) -> transitToTerminating(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
+                .execute("[Provider] send rejection");
     }
 
     /**

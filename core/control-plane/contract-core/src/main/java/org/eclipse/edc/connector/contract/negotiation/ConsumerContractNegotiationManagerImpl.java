@@ -181,7 +181,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     @Override
-    String getType() {
+    protected String getType() {
         return TYPE;
     }
 

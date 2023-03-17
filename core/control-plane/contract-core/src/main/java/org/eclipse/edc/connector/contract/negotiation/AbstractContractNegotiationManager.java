@@ -62,7 +62,12 @@ public abstract class AbstractContractNegotiationManager {
     protected EntityRetryProcessFactory entityRetryProcessFactory;
     protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
 
-    abstract String getType();
+    /**
+     * Gives the type of the manager
+     *
+     * @return "Provider" for provider, "Consumer" for consumer
+     */
+    protected abstract String getType();
 
     protected void transitToInitial(ContractNegotiation negotiation) {
         negotiation.transitionInitial();

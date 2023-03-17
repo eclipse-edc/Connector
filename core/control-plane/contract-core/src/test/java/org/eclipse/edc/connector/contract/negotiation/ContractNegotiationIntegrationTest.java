@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
