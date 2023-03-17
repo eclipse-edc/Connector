@@ -56,8 +56,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering))
-                .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
                 .processor(processNegotiationsInState(PROVIDER_AGREEING, this::processProviderAgreeing))
+                .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
                 .processor(onCommands(this::processCommand))
                 .build();
 
@@ -205,9 +205,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state DECLINING. Tries to send a contract rejection to the respective
-     * consumer. If this succeeds, the ContractNegotiation is transitioned to state DECLINED. Else, it is transitioned
-     * to DECLINING for a retry.
+     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract rejection to the respective
+     * consumer. If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
+     * to TERMINATING for a retry.
      *
      * @return true if processed, false elsewhere
      */
@@ -261,7 +261,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             var definitionId = contractId.definitionPart();
 
             policy = lastOffer.getPolicy();
-            //TODO move to own service
+
             agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId))
                     .contractStartDate(clock.instant().getEpochSecond())
@@ -277,7 +277,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             policy = agreement.getPolicy();
         }
 
-        var request = ContractAgreementRequest.Builder.newInstance()
+        var request = ContractAgreementRequest.Builder.newInstance() // TODO: should be renamed to ContractAgreementMessage
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())

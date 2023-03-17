@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
@@ -36,12 +37,16 @@ import org.eclipse.edc.statemachine.StateProcessorImpl;
 import java.util.UUID;
 import java.util.function.Function;
 
+import javax.management.remote.JMXServerErrorException;
+
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFYING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
@@ -61,6 +66,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .processor(processNegotiationsInState(CONSUMER_REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(CONSUMER_AGREEING, this::processConsumerApproving))
                 .processor(processNegotiationsInState(PROVIDER_AGREED, this::processProviderAgreed))
+                .processor(processNegotiationsInState(CONSUMER_VERIFYING, this::processConsumerVerifying))
                 .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
                 .processor(onCommands(this::processCommand))
                 .build();
@@ -94,19 +100,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
-        negotiation.transitionInitial();
-        negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.initiated(negotiation));
+        transitToInitial(negotiation);
 
-        monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return StatusResult.success(negotiation);
     }
 
     /**
      * Tells this manager that a previously sent contract offer has been agreed by the provider. Validates the
      * contract agreement sent by the provider against the last contract offer and transitions the corresponding
-     * {@link ContractNegotiation} to state CONFIRMED or DECLINING.
+     * {@link ContractNegotiation} to state AGREED or TERMINATING.
      *
      * @param token         Claim token of the consumer that send the contract request.
      * @param negotiationId Id of the ContractNegotiation.
@@ -116,7 +118,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     @Override
-    // TODO: must be renamed to providerAgreed
+    // TODO: should be renamed to agreed
     public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
@@ -131,24 +133,14 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         var result = validationService.validateConfirmed(agreement, latestOffer);
         if (result.failed()) {
-            // TODO Add contract offer possibility.
             var message = "Contract agreement received. Validation failed: " + result.getFailureDetail();
             monitor.debug("[Consumer] " + message);
-            negotiation.setErrorDetail(message);
-            transitToTerminating(negotiation);
-            monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            transitToTerminating(negotiation, message);
             return StatusResult.success(negotiation);
         }
 
-        // Agreement has been approved.
-        negotiation.setContractAgreement(agreement); // TODO persist unchecked agreement of provider?
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
-        negotiation.transitionProviderAgreed();
-        negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.confirmed(negotiation));
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+        transitToProviderAgreed(negotiation, agreement);
 
         return StatusResult.success(negotiation);
     }
@@ -171,8 +163,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
         transitToTerminated(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return StatusResult.success(negotiation);
     }
 
@@ -211,7 +201,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
-        var request = ContractOfferRequest.Builder.newInstance()
+        var request = ContractOfferRequest.Builder.newInstance() // TODO: should be renamed to ContractRequestMessage
                 .contractOffer(offer)
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .protocol(negotiation.getProtocol())
@@ -225,7 +215,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToRequested(n))
                 .onFailure((n, throwable) -> transitToRequesting(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to provider: %s", request.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Consumer] Send ContractRequestMessage message");
     }
 
@@ -274,16 +264,49 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToApproved(n))
                 .onFailure((n, throwable) -> transitToApproving(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n)) // TODO: must pass the exception to explain why it will be terminated
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to provider: %s", request.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[consumer] send agreement");
     }
 
+    /**
+     * Processes {@link ContractNegotiation} in state PROVIDER_AGREED. For the deprecated ids-protocol, it's transitioned
+     * to PROVIDER_FINALIZED, otherwise to CONSUMER_VERIFYING to make the verification process start.
+     *
+     * @return true if processed, false otherwise
+     */
     @WithSpan
     private boolean processProviderAgreed(ContractNegotiation negotiation) {
-        // TODO: should pass by verifying/verified first
-        negotiation.transitionProviderFinalized();
-        negotiationStore.save(negotiation);
+        if ("ids-multipart".equals(negotiation.getProtocol())) {
+            negotiation.transitionProviderFinalized();
+            negotiationStore.save(negotiation);
+            return true;
+        }
+
+        transitToVerifying(negotiation);
         return true;
+    }
+
+    /**
+     * Processes {@link ContractNegotiation} in state CONSUMER_VERIFYING. Verifies the Agreement and send the
+     * {@link ContractAgreementVerificationMessage} to the provider and transition the negotiation to the CONSUMER_VERIFIED
+     * state.
+     *
+     * @return true if processed, false otherwise
+     */
+    @WithSpan
+    private boolean processConsumerVerifying(ContractNegotiation negotiation) {
+        var message = ContractAgreementVerificationMessage.Builder.newInstance()
+                .protocol(negotiation.getProtocol())
+                .connectorAddress(negotiation.getCounterPartyAddress())
+                .build();
+
+        return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))
+                .entityRetrieve(negotiationStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess((n, result) -> transitToVerified(n))
+                .onFailure((n, throwable) -> transitToVerifying(n))
+                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to provider: %s", message.getClass().getSimpleName(), throwable.getMessage())))
+                .execute(format("[consumer] send %s", message.getClass().getSimpleName()));
     }
 
     /**
@@ -308,41 +331,96 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToTerminated(n))
                 .onFailure((n, throwable) -> transitToTerminating(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminated(n)) // TODO: must pass the exception to explain why it was terminated
+                .onRetryExhausted((n, throwable) -> transitToTerminated(n, format("Failed to send %s to provider: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Consumer] send rejection");
+    }
+
+    private void transitToInitial(ContractNegotiation negotiation) {
+        negotiation.transitionInitial();
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+        observable.invokeForEach(l -> l.initiated(negotiation));
     }
 
     private void transitToRequesting(ContractNegotiation negotiation) {
         negotiation.transitionRequesting();
         negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
     }
 
     private void transitToRequested(ContractNegotiation negotiation) {
         negotiation.transitionRequested();
         negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         observable.invokeForEach(l -> l.requested(negotiation));
+    }
+
+    private void transitToProviderAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
+        negotiation.setContractAgreement(agreement);
+        negotiation.transitionProviderAgreed();
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+        observable.invokeForEach(l -> l.confirmed(negotiation));
     }
 
     private void transitToApproving(ContractNegotiation negotiation) {
         negotiation.transitionApproving();
         negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
     }
 
     private void transitToApproved(ContractNegotiation negotiation) {
         negotiation.transitionApproved();
         negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         observable.invokeForEach(l -> l.approved(negotiation));
     }
 
-    private void transitToTerminated(ContractNegotiation negotiation) {
-        negotiation.transitionTerminated();
+    private void transitToVerifying(ContractNegotiation negotiation) {
+        negotiation.transitionVerifying();
         negotiationStore.save(negotiation);
-        observable.invokeForEach(l -> l.terminated(negotiation));
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+    }
+
+    private void transitToVerified(ContractNegotiation negotiation) {
+        negotiation.transitionVerified();
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+    }
+
+    private void transitToTerminating(ContractNegotiation negotiation, String message) {
+        negotiation.transitionTerminating(message);
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
     }
 
     private void transitToTerminating(ContractNegotiation negotiation) {
         negotiation.transitionTerminating();
         negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+    }
+
+    private void transitToTerminated(ContractNegotiation negotiation, String message) {
+        negotiation.setErrorDetail(message);
+        transitToTerminated(negotiation);
+    }
+
+    private void transitToTerminated(ContractNegotiation negotiation) {
+        negotiation.transitionTerminated();
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+        observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {

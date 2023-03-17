@@ -19,6 +19,9 @@ import org.eclipse.edc.spi.retry.WaitStrategy;
 
 import java.util.function.Supplier;
 
+/**
+ * Configure a {@link RetryProcess}
+ */
 public class EntityRetryProcessConfiguration {
 
     private final int retryLimit;

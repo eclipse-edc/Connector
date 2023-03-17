@@ -34,11 +34,13 @@ import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFIED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFYING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
@@ -235,6 +237,25 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             transition(PROVIDER_AGREED, PROVIDER_AGREEING, CONSUMER_AGREED, CONSUMER_REQUESTED, PROVIDER_AGREED);
         } else {
             transition(PROVIDER_AGREED, PROVIDER_AGREEING);
+        }
+    }
+
+    /**
+     * Transition to state CONSUMER_VERIFYING.
+     */
+    public void transitionVerifying() {
+        if (PROVIDER == type) {
+            throw new IllegalStateException("Consumer processes have no CONSUMER_AGREEING state");
+        }
+
+        transition(CONSUMER_VERIFYING, CONSUMER_VERIFYING, PROVIDER_AGREED, CONSUMER_AGREED);
+    }
+
+    public void transitionVerified() {
+        if (type == CONSUMER) {
+            transition(CONSUMER_VERIFIED, CONSUMER_VERIFIED, CONSUMER_VERIFYING);
+        } else {
+            transition(CONSUMER_VERIFIED, CONSUMER_VERIFIED, CONSUMER_AGREED, PROVIDER_AGREED);
         }
     }
 

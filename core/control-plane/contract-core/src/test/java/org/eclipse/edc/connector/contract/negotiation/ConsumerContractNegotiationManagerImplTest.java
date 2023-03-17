@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -55,8 +56,11 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFIED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFYING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.mockito.ArgumentMatchers.any;
@@ -106,7 +110,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void initiateShouldSaveNewNegotiationInInitialState() {
+    void initiate_shouldSaveNewNegotiationInInitialState() {
         var contractOffer = contractOffer();
         var request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -131,7 +135,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testConfirmedInvalidId() {
+    void confirmed_invalidId() {
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
         var policy = Policy.Builder.newInstance().build();
@@ -145,7 +149,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testConfirmedConfirmAgreement() {
+    void confirmed_confirmAgreement() {
         var negotiationConsumerRequested = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
@@ -165,7 +169,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testConfirmedTerminateAgreement() {
+    void confirmed_terminateAgreement() {
         var negotiationConsumerOffered = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
@@ -184,7 +188,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testDeclined() {
+    void declined() {
         var negotiationConsumerOffered = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
@@ -297,6 +301,79 @@ class ConsumerContractNegotiationManagerImplTest {
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
+        });
+    }
+
+    @Test
+    void providerAgreed_shouldTransitToVerifying() {
+        var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREED.code()).build();
+        when(store.nextForState(eq(PROVIDER_AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFYING.code()));
+            verifyNoInteractions(dispatcherRegistry);
+        });
+    }
+
+    @Test
+    void providerAgreed_shouldTransitToFinalized_whenProtocolIsIdsMultipart() {
+        var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREED.code()).protocol("ids-multipart").build();
+        when(store.nextForState(eq(PROVIDER_AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == PROVIDER_FINALIZED.code()));
+            verifyNoInteractions(dispatcherRegistry);
+        });
+    }
+
+    @Test
+    void consumerVerifying_shouldSendMessageAndTransitToVerified() {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).build();
+        when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture("any"));
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFIED.code()));
+            verify(dispatcherRegistry).send(any(), any());
+        });
+    }
+
+    @Test
+    void consumerVerifying_shouldKeepState_whenDispatchFails() {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).stateCount(RETRIES_NOT_EXHAUSTED).build();
+        when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFYING.code()));
+            verify(dispatcherRegistry).send(any(), any());
+        });
+    }
+
+    @Test
+    void consumerVerifying_shouldTransitToTerminating_whenDispatchFailsAndRetriesExhausted() {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).stateCount(RETRIES_EXHAUSTED).build();
+        when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(dispatcherRegistry).send(any(), any());
         });
     }
 
