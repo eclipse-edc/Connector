@@ -37,8 +37,6 @@ import org.eclipse.edc.statemachine.StateProcessorImpl;
 import java.util.UUID;
 import java.util.function.Function;
 
-import javax.management.remote.JMXServerErrorException;
-
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
@@ -46,7 +44,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFYING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
@@ -142,6 +139,17 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
         transitToProviderAgreed(negotiation, agreement);
 
+        return StatusResult.success(negotiation);
+    }
+
+    @Override
+    public StatusResult<ContractNegotiation> finalized(String negotiationId) {
+        var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
+        }
+
+        transitToFinalized(negotiation);
         return StatusResult.success(negotiation);
     }
 
@@ -391,6 +399,13 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
     private void transitToVerified(ContractNegotiation negotiation) {
         negotiation.transitionVerified();
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+    }
+
+    private void transitToFinalized(ContractNegotiation negotiation) {
+        negotiation.transitionProviderFinalized();
         negotiationStore.save(negotiation);
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));

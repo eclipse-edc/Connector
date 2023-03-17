@@ -40,4 +40,9 @@ public interface ConsumerContractNegotiationManager extends ContractNegotiationM
      * The negotiation has been confirmed by the provider and the final contract received.
      */
     StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy);
+
+    /**
+     * The negotiation has been finalized by the provider.
+     */
+    StatusResult<ContractNegotiation> finalized(String negotiationId);
 }

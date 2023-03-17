@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -34,6 +33,7 @@ import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -185,6 +185,29 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getContractAgreement() == null
         ));
         verify(validationService).validateConfirmed(eq(contractAgreement), any(ContractOffer.class));
+    }
+
+    @Test
+    void finalized_shouldTransitToFinalizedState() {
+        var negotiation = contractNegotiationBuilder().id("negotiationId").state(CONSUMER_VERIFIED.code()).build();
+        when(store.find("negotiationId")).thenReturn(negotiation);
+
+        var result = negotiationManager.finalized("negotiationId");
+
+        assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent)
+                .satisfies(actual -> {
+                    assertThat(actual.getState()).isEqualTo(PROVIDER_FINALIZED.code());
+                });
+        verify(store).save(argThat(n -> n.getState() == PROVIDER_FINALIZED.code()));
+    }
+
+    @Test
+    void finalized_shouldFail_whenNegotiationDoesNotExist() {
+        when(store.find("negotiationId")).thenReturn(null);
+
+        var result = negotiationManager.finalized("negotiationId");
+
+        assertThat(result).matches(StatusResult::failed);
     }
 
     @Test
