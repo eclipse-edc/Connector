@@ -5,6 +5,8 @@
 The Connector repository will be split up into a "core" repository and technology repositories. Extensions that are
 specific to a particular cloud environment will get moved out into new repositories to which we will refer as
 "technology repos".
+All technology-specific extensions of all the other repos (FederatedCatalog, IdentityHub, RegistrationService) will be
+moved out as well.
 
 The Connector repository will _not_ get renamed, but it can henceforth be referred to as "core" or "connector-core".
 
@@ -37,9 +39,9 @@ The reasoning for moving these kinds of extensions out to separate repositories 
 
 At the time of this writing three technology repositories can be identified:
 
-- `technology-azure`
-- `technology-aws`
-- `technology-gcp`
+- `Technology-Azure`
+- `Technology-Aws`
+- `Technology-Gcp`
 
 Once these repositories are created, all extensions, that contain code for services, that are cloud-specific, will be
 moved out accordingly. Initially, this will just be a code dump in the technology repos, but all further development
