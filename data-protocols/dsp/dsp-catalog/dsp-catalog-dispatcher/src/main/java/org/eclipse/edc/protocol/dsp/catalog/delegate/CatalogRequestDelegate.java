@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.delegate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -23,6 +24,7 @@ import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.spi.catalog.types.CatalogRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
 
@@ -33,11 +35,11 @@ import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
 
 public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequest, Catalog> {
     
-    private ObjectMapper objectMapper;
+    private ObjectMapper mapper;
     private JsonLdTransformerRegistry transformerRegistry;
     
-    public CatalogRequestDelegate(ObjectMapper objectMapper, JsonLdTransformerRegistry transformerRegistry) {
-        this.objectMapper = objectMapper;
+    public CatalogRequestDelegate(ObjectMapper mapper, JsonLdTransformerRegistry transformerRegistry) {
+        this.mapper = mapper;
         this.transformerRegistry = transformerRegistry;
     }
     
@@ -48,8 +50,10 @@ public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequ
     
     @Override
     public Request buildRequest(CatalogRequest message) {
-        //TODO body from transformer registry
-        var requestBody = RequestBody.create("{}", MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
+        var catalogRequestMessage = CatalogRequestMessage.Builder.newInstance()
+                .filter(message.getQuerySpec())
+                .build();
+        var requestBody = RequestBody.create(toJson(catalogRequestMessage), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
         
         return new Request.Builder()
                 .url(message.getConnectorAddress() + "/catalog/request")
@@ -58,11 +62,19 @@ public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequ
                 .build();
     }
     
+    private String toJson(CatalogRequestMessage message) {
+        try {
+            return mapper.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            throw new EdcException("Failed to serialize catalog request", e);
+        }
+    }
+    
     @Override
     public Function<Response, Catalog> parseResponse() {
         return response -> {
             try {
-                var jsonObject = objectMapper.readValue(response.body().bytes(), JsonObject.class);
+                var jsonObject = mapper.readValue(response.body().bytes(), JsonObject.class);
                 var result = transformerRegistry.transform(expandDocument(jsonObject).get(0), Catalog.class);
                 if (result.succeeded()) {
                     return result.getContent();
