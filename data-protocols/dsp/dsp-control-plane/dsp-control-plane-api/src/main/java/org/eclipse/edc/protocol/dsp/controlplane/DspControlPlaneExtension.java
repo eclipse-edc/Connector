@@ -17,12 +17,12 @@ package org.eclipse.edc.protocol.dsp.controlplane;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.controlplane.controller.ContractNegotiationController;
 import org.eclipse.edc.protocol.dsp.controlplane.controller.TransferProcessController;
 import org.eclipse.edc.protocol.dsp.controlplane.service.DspContractNegotiationServiceImpl;
-import org.eclipse.edc.protocol.dsp.controlplane.service.TransferProcessServiceImpl;
+import org.eclipse.edc.protocol.dsp.controlplane.service.DspTransferProcessServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -43,7 +43,7 @@ public class DspControlPlaneExtension implements ServiceExtension {
     private ProviderContractNegotiationManager providerNegotiationManager;
 
     @Inject
-    private TransferProcessManager transferProcessManager;
+    private TransferProcessService transferProcessService;
 
     private ContractNegotiationService contractNegotiationService;
 
@@ -65,8 +65,8 @@ public class DspControlPlaneExtension implements ServiceExtension {
 
         var contractNegotiationController = new ContractNegotiationController(monitor, negotiationService, typeManager);
 
-        var transferProcessService = new TransferProcessServiceImpl(transferProcessManager);
-        var transferProcessController = new TransferProcessController(monitor,transferProcessService, typeManager);
+        var dspTransferProcessService = new DspTransferProcessServiceImpl(transferProcessService, typeManager);
+        var transferProcessController = new TransferProcessController(monitor,dspTransferProcessService, typeManager);
 
         webService.registerResource(config.getContextAlias(), transferProcessController);
         webService.registerResource(config.getContextAlias(), contractNegotiationController);

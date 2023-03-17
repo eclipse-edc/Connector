@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp.spi.controlplane.service;
 
 import jakarta.json.JsonObject;
 
-public interface TransferProcessService {
+public interface DspTransferProcessService {
 
     JsonObject getTransferProcessByID(String id);
 

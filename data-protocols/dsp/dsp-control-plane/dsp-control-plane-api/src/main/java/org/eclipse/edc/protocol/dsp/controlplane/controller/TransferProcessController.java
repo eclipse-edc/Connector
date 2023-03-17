@@ -18,11 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.protocol.dsp.spi.controlplane.service.TransferProcessService;
+import org.eclipse.edc.protocol.dsp.spi.controlplane.service.DspTransferProcessService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.expandDocument;
+import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
+
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -31,13 +32,13 @@ public class TransferProcessController {
 
     private Monitor monitor;
 
-    private TransferProcessService transferProcessService;
+    private DspTransferProcessService dspTransferProcessService;
 
     private ObjectMapper mapper;
 
-    public TransferProcessController(Monitor monitor, TransferProcessService transferProcessService, TypeManager typeManager) {
+    public TransferProcessController(Monitor monitor, DspTransferProcessService dspTransferProcessService, TypeManager typeManager) {
         this.monitor = monitor;
-        this.transferProcessService = transferProcessService;
+        this.dspTransferProcessService = dspTransferProcessService;
         this.mapper = typeManager.getMapper("json-ld"); //TODO Use correct mapper
     }
 
@@ -45,8 +46,7 @@ public class TransferProcessController {
     @GET
     @Path("/{id}")
     public JsonObject getTransferProcess(@PathParam("id") String id) {
-
-        return transferProcessService.getTransferProcessByID(id);
+        return dspTransferProcessService.getTransferProcessByID(id);
     }
 
     //Provider side
@@ -55,7 +55,7 @@ public class TransferProcessController {
     public JsonObject initiateTransferProcess(JsonObject jsonObject) {
         var document = expandDocument(jsonObject).getJsonObject(0);
 
-        return transferProcessService.initiateTransferProcess(document);
+        return dspTransferProcessService.initiateTransferProcess(document);
     }
 
     //both sides
@@ -64,7 +64,7 @@ public class TransferProcessController {
     public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject) {
         var document = expandDocument(jsonObject).getJsonObject(0);
 
-        transferProcessService.transferProcessStart(id, document);
+        dspTransferProcessService.transferProcessStart(id, document);
     }
 
     //both sides
@@ -73,7 +73,7 @@ public class TransferProcessController {
     public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject) {
         var document = expandDocument(jsonObject).getJsonObject(0);
 
-        transferProcessService.transferProcessCompletion(id,document);
+        dspTransferProcessService.transferProcessCompletion(id,document);
     }
 
     //both sides
@@ -82,7 +82,7 @@ public class TransferProcessController {
     public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject) {
         var document = expandDocument(jsonObject).getJsonObject(0);
 
-        transferProcessService.transferProcessTermination(id, document);
+        dspTransferProcessService.transferProcessTermination(id, document);
     }
 
     //both sides
@@ -91,6 +91,6 @@ public class TransferProcessController {
     public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject) {
         var document = expandDocument(jsonObject).getJsonObject(0);
 
-        transferProcessService.transferProcessSuspension(id, document);
+        dspTransferProcessService.transferProcessSuspension(id, document);
     }
 }

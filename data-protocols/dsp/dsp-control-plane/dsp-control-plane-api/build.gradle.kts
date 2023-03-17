@@ -24,6 +24,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi:dsp-control-plane-spi"))
 
     api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
 
