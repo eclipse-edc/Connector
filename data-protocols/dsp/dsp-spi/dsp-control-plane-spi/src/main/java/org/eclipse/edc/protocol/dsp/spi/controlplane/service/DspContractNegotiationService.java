@@ -16,23 +16,28 @@ package org.eclipse.edc.protocol.dsp.spi.controlplane.service;
 
 import jakarta.json.JsonObject;
 
+/**
+ * NOTE: Result for propagating errors to the controller.
+ */
 public interface DspContractNegotiationService {
 
     JsonObject getNegotiationById(String id);
 
-    JsonObject createNegotiation(JsonObject negotiation);
+    JsonObject createNegotiation(JsonObject message);
 
-    JsonObject consumerOffer(String id, JsonObject offer);
+    void consumerOffer(String id, JsonObject message);
 
-    JsonObject acceptCurrentOffer(String id);
+    void processEvent(String id, JsonObject message);
 
-    JsonObject verifyAgreement(String id);
+    void verifyAgreement(String id, JsonObject message);
 
-    JsonObject terminateNegotiation(String id);
+    void terminateNegotiation(String id, JsonObject message);
 
-    void providerOffer(String id, JsonObject body);
+    void providerOffer(String id, JsonObject message);
 
-    void createAgreement(String id, JsonObject body);
+    void createAgreement(String id, JsonObject message);
 
-    void finalizeAgreement(String id, JsonObject body);
+    void acceptCurrentOffer(String id);
+
+    void finalizeAgreement(String id);
 }

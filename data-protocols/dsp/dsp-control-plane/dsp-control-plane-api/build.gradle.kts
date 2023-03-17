@@ -22,6 +22,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-api-configuration"))
     api(project(":data-protocols:dsp:dsp-core"))
     api(project(":data-protocols:dsp:dsp-spi:dsp-control-plane-spi"))
+    api(project(":data-protocols:dsp:dsp-transform"))
 
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-spi"))

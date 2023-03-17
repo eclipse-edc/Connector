@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane.controller;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.json.JsonObject;
@@ -30,13 +29,13 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.JsonLdUtil.compactDocument;
-import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
+import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.compactDocument;
+import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.expandDocument;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/negotiations")
-public class ContractNegotiationController implements ContractNegotiationApiProvider, ContractNegotiationApiConsumer {
+public class ContractNegotiationController implements ContractNegotiationApi {
 
     private final Monitor monitor;
 
@@ -50,26 +49,22 @@ public class ContractNegotiationController implements ContractNegotiationApiProv
         this.mapper = typeManager.getMapper("json-ld");
     }
 
-    // Provider
-
     @GET
     @Path("/{id}")
     @Override
     public JsonObject getNegotiation(@PathParam("id") String id) {
         monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
 
-        return service.getNegotiationById(id);
+        return mapper.convertValue(compactDocument(service.getNegotiationById(id)), JsonObject.class);
     }
 
     @POST
     @Path("/request")
     @Override
     public JsonObject initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
-        monitor.debug("DSP: Contract negotiation process started.");
-        var contractRequest = expandDocument(body).getJsonObject(0);
+        monitor.debug("DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
 
-        var negotiation = service.createNegotiation(contractRequest);
-
+        var negotiation = service.createNegotiation(expandDocument(body).getJsonObject(0));
         return mapper.convertValue(compactDocument(negotiation), JsonObject.class);
     }
 
@@ -77,52 +72,55 @@ public class ContractNegotiationController implements ContractNegotiationApiProv
     @Path("/{id}/request")
     @Override
     public void consumerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
-        monitor.debug(format("DSP: Incoming contract offer for contract negotiation process with id %s", id));
+        monitor.debug(format("DSP: Incoming ContractRequestMessage for process %s", id));
+
+        service.consumerOffer(id, expandDocument(body).getJsonObject(0));
     }
 
 
     @POST
     @Path("/{id}/events")
-    @Override
-    public void acceptCurrentOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationEventMessage", required = true) JsonObject body) {
+    @Override // finalize agreement, acceptCurrentOffer
+    public void createEvent(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationEventMessage", required = true) JsonObject body) {
+        monitor.debug(format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
 
+        service.processEvent(id, expandDocument(body).getJsonObject(0));
     }
 
     @POST
     @Path("/{id}/agreement/verification")
     @Override
     public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementVerificationMessage", required = true) JsonObject body) {
+        monitor.debug(format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
 
+        service.verifyAgreement(id, expandDocument(body).getJsonObject(0));
     }
 
     @POST
     @Path("/{id}/termination")
     @Override
-    public void terminateNegotiation(@PathParam("id") String id) {
+    public void terminateNegotiation(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationTerminationMessage", required = true) JsonObject body) {
+        monitor.debug(format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
 
+        service.terminateNegotiation(id, expandDocument(body).getJsonObject(0));
     }
-
-    // Consumer
 
     @POST
     @Path("/{id}/offers")
 
     @Override
     public void providerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractOfferMessage", required = true) JsonObject body) {
+        monitor.debug(format("DSP: Incoming ContractOfferMessage for process %s", id));
 
+        service.providerOffer(id, expandDocument(body).getJsonObject(0));
     }
 
     @POST
     @Path("/{id}/agreement")
     @Override
     public void createAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementMessage", required = true) JsonObject body) {
+        monitor.debug(format("DSP: Incoming ContractAgreementMessage for process %s", id));
 
-    }
-
-    @POST
-    @Path("/{id}/events")
-    @Override
-    public void finalizeAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationEventMessage", required = true) JsonObject body) {
-
+        service.createAgreement(id, expandDocument(body).getJsonObject(0));
     }
 }

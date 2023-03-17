@@ -14,14 +14,13 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane;
 
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.controlplane.controller.ContractNegotiationController;
 import org.eclipse.edc.protocol.dsp.controlplane.controller.TransferProcessController;
-import org.eclipse.edc.protocol.dsp.controlplane.service.DspContractNegotiationServiceImpl;
+import org.eclipse.edc.protocol.dsp.controlplane.service.ContractNegotiationServiceImpl;
 import org.eclipse.edc.protocol.dsp.controlplane.service.DspTransferProcessServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -35,12 +34,6 @@ import org.eclipse.edc.web.spi.WebService;
 public class DspControlPlaneExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol: Control Plane Extension";
-
-    @Inject
-    private ConsumerContractNegotiationManager consumerNegotiationManager;
-
-    @Inject
-    private ProviderContractNegotiationManager providerNegotiationManager;
 
     @Inject
     private TransferProcessService transferProcessService;
@@ -59,14 +52,16 @@ public class DspControlPlaneExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private JsonLdTransformerRegistry registry;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var negotiationService = new DspContractNegotiationServiceImpl(consumerNegotiationManager, providerNegotiationManager, contractNegotiationService);
-
+        var negotiationService = new ContractNegotiationServiceImpl(contractNegotiationService, registry);
         var contractNegotiationController = new ContractNegotiationController(monitor, negotiationService, typeManager);
 
         var dspTransferProcessService = new DspTransferProcessServiceImpl(transferProcessService, typeManager);
-        var transferProcessController = new TransferProcessController(monitor,dspTransferProcessService, typeManager);
+        var transferProcessController = new TransferProcessController(monitor, dspTransferProcessService, typeManager);
 
         webService.registerResource(config.getContextAlias(), transferProcessController);
         webService.registerResource(config.getContextAlias(), contractNegotiationController);
