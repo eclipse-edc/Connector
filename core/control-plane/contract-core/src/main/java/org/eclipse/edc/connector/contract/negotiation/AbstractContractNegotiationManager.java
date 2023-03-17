@@ -16,7 +16,9 @@ package org.eclipse.edc.connector.contract.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -59,6 +61,106 @@ public abstract class AbstractContractNegotiationManager {
     protected PolicyDefinitionStore policyStore;
     protected EntityRetryProcessFactory entityRetryProcessFactory;
     protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
+
+    abstract String getType();
+
+    protected void transitToInitial(ContractNegotiation negotiation) {
+        negotiation.transitionInitial();
+        update(negotiation);
+        observable.invokeForEach(l -> l.initiated(negotiation));
+    }
+
+    protected void transitToRequesting(ContractNegotiation negotiation) {
+        negotiation.transitionRequesting();
+        update(negotiation);
+    }
+
+    protected void transitToRequested(ContractNegotiation negotiation) {
+        negotiation.transitionRequested();
+        update(negotiation);
+        observable.invokeForEach(l -> l.requested(negotiation));
+    }
+
+    protected void transitToProviderAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
+        negotiation.setContractAgreement(agreement);
+        negotiation.transitionProviderAgreed();
+        update(negotiation);
+        observable.invokeForEach(l -> l.confirmed(negotiation));
+    }
+
+    protected void transitToApproving(ContractNegotiation negotiation) {
+        negotiation.transitionApproving();
+        update(negotiation);
+    }
+
+    protected void transitToApproved(ContractNegotiation negotiation) {
+        negotiation.transitionApproved();
+        update(negotiation);
+        observable.invokeForEach(l -> l.approved(negotiation));
+    }
+
+    protected void transitToOffering(ContractNegotiation negotiation) {
+        negotiation.transitionOffering();
+        update(negotiation);
+    }
+
+    protected void transitToOffered(ContractNegotiation negotiation) {
+        negotiation.transitionOffered();
+        update(negotiation);
+        observable.invokeForEach(l -> l.offered(negotiation));
+    }
+
+    protected void transitToProviderAgreeing(ContractNegotiation negotiation) {
+        negotiation.transitionProviderAgreeing();
+        update(negotiation);
+    }
+
+    protected void transitToVerifying(ContractNegotiation negotiation) {
+        negotiation.transitionVerifying();
+        update(negotiation);
+    }
+
+    protected void transitToVerified(ContractNegotiation negotiation) {
+        negotiation.transitionVerified();
+        update(negotiation);
+    }
+
+    protected void transitToFinalizing(ContractNegotiation negotiation) {
+        negotiation.transitionProviderFinalizing();
+        update(negotiation);
+    }
+
+    protected void transitToFinalized(ContractNegotiation negotiation) {
+        negotiation.transitionProviderFinalized();
+        update(negotiation);
+    }
+
+    protected void transitToTerminating(ContractNegotiation negotiation, String message) {
+        negotiation.transitionTerminating(message);
+        update(negotiation);
+    }
+
+    protected void transitToTerminating(ContractNegotiation negotiation) {
+        negotiation.transitionTerminating();
+        update(negotiation);
+    }
+
+    protected void transitToTerminated(ContractNegotiation negotiation, String message) {
+        negotiation.setErrorDetail(message);
+        transitToTerminated(negotiation);
+    }
+
+    protected void transitToTerminated(ContractNegotiation negotiation) {
+        negotiation.transitionTerminated();
+        update(negotiation);
+        observable.invokeForEach(l -> l.terminated(negotiation));
+    }
+
+    private void update(ContractNegotiation negotiation) {
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[%s] ContractNegotiation %s is now in state %s.",
+                getType(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+    }
 
     public static class Builder<T extends AbstractContractNegotiationManager> {
 

@@ -52,6 +52,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class ConsumerContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ConsumerContractNegotiationManager {
 
+    private static final String TYPE = "Consumer";
     private StateMachineManager stateMachineManager;
 
     private ConsumerContractNegotiationManagerImpl() {
@@ -179,6 +180,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         commandQueue.enqueue(command);
     }
 
+    @Override
+    String getType() {
+        return TYPE;
+    }
+
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
@@ -285,8 +291,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processProviderAgreed(ContractNegotiation negotiation) {
         if ("ids-multipart".equals(negotiation.getProtocol())) {
-            negotiation.transitionProviderFinalized();
-            negotiationStore.save(negotiation);
+            transitToFinalized(negotiation);
             return true;
         }
 
@@ -341,101 +346,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onFailure((n, throwable) -> transitToTerminating(n))
                 .onRetryExhausted((n, throwable) -> transitToTerminated(n, format("Failed to send %s to provider: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Consumer] send rejection");
-    }
-
-    private void transitToInitial(ContractNegotiation negotiation) {
-        negotiation.transitionInitial();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        observable.invokeForEach(l -> l.initiated(negotiation));
-    }
-
-    private void transitToRequesting(ContractNegotiation negotiation) {
-        negotiation.transitionRequesting();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    private void transitToRequested(ContractNegotiation negotiation) {
-        negotiation.transitionRequested();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        observable.invokeForEach(l -> l.requested(negotiation));
-    }
-
-    private void transitToProviderAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
-        negotiation.setContractAgreement(agreement);
-        negotiation.transitionProviderAgreed();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        observable.invokeForEach(l -> l.confirmed(negotiation));
-    }
-
-    private void transitToApproving(ContractNegotiation negotiation) {
-        negotiation.transitionApproving();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    private void transitToApproved(ContractNegotiation negotiation) {
-        negotiation.transitionApproved();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        observable.invokeForEach(l -> l.approved(negotiation));
-    }
-
-    private void transitToVerifying(ContractNegotiation negotiation) {
-        negotiation.transitionVerifying();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    private void transitToVerified(ContractNegotiation negotiation) {
-        negotiation.transitionVerified();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    private void transitToFinalized(ContractNegotiation negotiation) {
-        negotiation.transitionProviderFinalized();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    private void transitToTerminating(ContractNegotiation negotiation, String message) {
-        negotiation.transitionTerminating(message);
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    private void transitToTerminating(ContractNegotiation negotiation) {
-        negotiation.transitionTerminating();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    private void transitToTerminated(ContractNegotiation negotiation, String message) {
-        negotiation.setErrorDetail(message);
-        transitToTerminated(negotiation);
-    }
-
-    private void transitToTerminated(ContractNegotiation negotiation) {
-        negotiation.transitionTerminated();
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {

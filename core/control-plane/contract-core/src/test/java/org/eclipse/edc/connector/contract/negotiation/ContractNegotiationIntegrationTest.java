@@ -140,7 +140,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("ids-protocol")
+                .protocol("ids-multipart")
                 .build();
 
         consumerManager.initiate(request);
@@ -185,7 +185,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("ids-protocol")
+                .protocol("ids-multipart")
                 .build();
         consumerManager.initiate(request);
 
@@ -232,7 +232,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("ids-protocol")
+                .protocol("ids-multipart")
                 .build();
         consumerManager.initiate(request);
 
