@@ -190,6 +190,7 @@ include(":extensions:data-plane-selector:store:cosmos:data-plane-instance-store-
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
 include(":launchers:dpf-selector")
+include(":launchers:dsp-connector")
 include(":launchers:ids-connector")
 
 // extension points for a connector ----------------------------------------------------------------

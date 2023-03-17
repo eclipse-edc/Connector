@@ -1,0 +1,388 @@
+{
+	"info": {
+		"_postman_id": "208b0c94-729c-41b9-ac03-fba9c77f7d96",
+		"name": "DSP-TESTS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Catalog",
+			"item": [
+				{
+					"name": "catalog/request endpoint",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/transfers/request",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"transfers",
+								"request"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ContractNegotiation",
+			"item": [
+				{
+					"name": "provider negotiations resource",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/{id}",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								"{id}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider negotiations/request resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/request",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider negotiations/:id/request resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/{id}/request",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								"{id}",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider negotiations/:id/events resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/{id}/events",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								"{id}",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider negotiations/:id/agreement/verification resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/:id/agreement/verification",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								":id",
+								"agreement",
+								"verification"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "consumer negotiations/:id/offers resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/:id/offers",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								":id",
+								"offers"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "consumer negotiations/:id/agreement resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/:id/agreement",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								":id",
+								"agreement"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "consumer negotiations/:id/events resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/negotiations/:id/events",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"negotiations",
+								":id",
+								"events"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "TransferProcess",
+			"item": [
+				{
+					"name": "provider transfers resource",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/transfers/10",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"transfers",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider transfers/request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/transfers/request",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"transfers",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider transfers/:id/start resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/transfers/{id}/start",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"transfers",
+								"{id}",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider transfers/:id/completion resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/transfers/{id}/completion",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"transfers",
+								"{id}",
+								"completion"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider transfers/:id/termination resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/transfers/{id}/termination",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"transfers",
+								"{id}",
+								"termination"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provider transfers/:id/suspension resource",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8282/api/v1/dsp/catalog/request",
+							"host": [
+								"localhost"
+							],
+							"port": "8282",
+							"path": [
+								"api",
+								"v1",
+								"dsp",
+								"catalog",
+								"request"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
