@@ -38,43 +38,63 @@ public class JsonLdFunctions {
         var id = object.get(ID);
         return id instanceof JsonString ? ((JsonString) id).getString() : null;
     }
-
+    
     /**
      * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first. For multiple types, {@see #nodeTypes}.
      */
     public static String nodeType(JsonObject object, TransformerContext context) {
-        var array = typeValueArray(object, context);
-        if (array == null) {
-            //TODO refactor or remove
-            var typeNode = object.get(JsonLdKeywords.TYPE);
-            if (typeNode instanceof JsonString) {
-                return ((JsonString) typeNode).getString();
+        var typeNode = object.get(JsonLdKeywords.TYPE);
+        if (typeNode == null) {
+            context.reportProblem("Property @type not found on JSON Object");
+            return null;
+        }
+        
+        if (typeNode instanceof JsonString) {
+            return ((JsonString) typeNode).getString();
+        } else if (typeNode instanceof JsonArray) {
+            var array = typeValueArray(typeNode, context);
+            if (array == null) {
+                return null;
             }
-            return null;
+            var typeValue = array.get(0); // a note can have more than one type, take the first
+            if (!(typeValue instanceof JsonString)) {
+                context.reportProblem("Expected @type value to be a string");
+                return null;
+            }
+            return ((JsonString) typeValue).getString();
         }
-        var typeValue = array.get(0); // a note can have more than one type, take the first
-        if (!(typeValue instanceof JsonString)) {
-            context.reportProblem("Expected @type value to be a string");
-            return null;
-        }
-        return ((JsonString) typeValue).getString();
+        
+        context.reportProblem("Expected @type value to be either string or array");
+        return null;
     }
-
+    
     /**
      * Returns the {@code @type}s of the JSON object.
      */
     public static List<String> nodeTypes(JsonObject object, TransformerContext context) {
-        var array = typeValueArray(object, context);
-        return array == null ? null : array.stream().filter(jsonValue -> jsonValue instanceof JsonString).map(JsonValue::toString).collect(Collectors.toList());
-    }
-
-    @Nullable
-    private static JsonArray typeValueArray(JsonObject object, TransformerContext context) {
         var typeNode = object.get(JsonLdKeywords.TYPE);
         if (typeNode == null) {
-            context.reportProblem("Property @key not found on JSON Object");
+            context.reportProblem("Property @type not found on JSON Object");
             return null;
-        } else if (!(typeNode instanceof JsonArray)) {
+        }
+        
+        if (typeNode instanceof JsonString) {
+            return List.of(((JsonString) typeNode).getString());
+        } else if (typeNode instanceof JsonArray) {
+            var array = typeValueArray(object, context);
+            return array == null ? null : array.stream()
+                    .filter(JsonString.class::isInstance)
+                    .map(JsonValue::toString)
+                    .collect(Collectors.toList());
+        }
+    
+        context.reportProblem("Expected @type value to be either string or array");
+        return null;
+    }
+    
+    @Nullable
+    private static JsonArray typeValueArray(JsonValue typeNode, TransformerContext context) {
+        if (!(typeNode instanceof JsonArray)) {
             context.reportProblem("Invalid @type node: " + typeNode.getValueType());
             return null;
         }
