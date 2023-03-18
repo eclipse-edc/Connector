@@ -87,6 +87,7 @@ include(":data-protocols:dsp:dsp-core")
 include(":data-protocols:dsp:dsp-spi:dsp-catalog-spi")
 include(":data-protocols:dsp:dsp-spi:dsp-control-plane-spi")
 include(":data-protocols:dsp:dsp-spi:dsp-core-spi")
+include(":data-protocols:dsp:dsp-transform")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
