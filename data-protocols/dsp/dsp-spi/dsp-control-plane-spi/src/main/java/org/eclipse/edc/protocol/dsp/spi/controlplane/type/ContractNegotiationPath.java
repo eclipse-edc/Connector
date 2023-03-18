@@ -12,18 +12,24 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.edc.protocol.dsp.spi.controlplane.type;
 
+public interface ContractNegotiationPath {
 
-dependencies {
-    api(project(":data-protocols:dsp:dsp-core"))
-    api(project(":data-protocols:dsp:dsp-spi:dsp-control-plane-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":extensions:common:json-ld"))
+    String BASE_PATH = "/negotiations/";
 
-    implementation("jakarta.json:jakarta.json-api:2.1.1")
-    implementation(libs.dnsOverHttps)
+    String INITIAL_CONTRACT_REQUEST = "request";
+
+    String CONTRACT_REQUEST = "/request";
+
+    String CONTRACT_OFFER = "/offers";
+
+    String EVENT = "/events";
+
+    String AGREEMENT = "/agreement";
+
+    String VERIFICATION = "/verification";
+
+    String TERMINATION = "/termination";
+
 }

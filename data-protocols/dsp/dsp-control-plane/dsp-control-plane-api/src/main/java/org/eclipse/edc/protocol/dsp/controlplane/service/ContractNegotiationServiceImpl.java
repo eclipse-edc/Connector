@@ -14,27 +14,35 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.controlplane.service.DspContractNegotiationService;
+import org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationError;
 import org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationEventType;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
-// TODO support ContractNegotiationError
+import java.util.List;
+
+import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.compactDocument;
+
 public class ContractNegotiationServiceImpl implements DspContractNegotiationService {
 
     private final ContractNegotiationService contractNegotiationService;
 
     private final JsonLdTransformerRegistry registry;
 
-    public ContractNegotiationServiceImpl(ContractNegotiationService contractNegotiationService, JsonLdTransformerRegistry registry) {
+    private final ObjectMapper mapper;
+
+    public ContractNegotiationServiceImpl(ContractNegotiationService contractNegotiationService, JsonLdTransformerRegistry registry, ObjectMapper mapper) {
         this.contractNegotiationService = contractNegotiationService;
         this.registry = registry;
+        this.mapper = mapper;
     }
 
     @Override
@@ -55,7 +63,8 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
 
     @Override
     public JsonObject createNegotiation(JsonObject message) {
-        var resultRequest = registry.transform(message, ContractOfferRequest.class); // TODO write transformer
+        // TODO add validation of request id with process id in message
+        var resultRequest = registry.transform(message, ContractOfferRequest.class);
 
         if (resultRequest.failed()) {
             throw new InvalidRequestException("Request body was malformed.");
@@ -140,5 +149,18 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
     public void finalizeAgreement(String id) {
         // TODO after https://github.com/eclipse-edc/Connector/pull/2601
         // Error: "Failed to process dspace:ContractNegotiationEventMessage with status FINALIZED."
+    }
+
+    private String createNegotiationError(String code, String processId, String reason) {
+        // TODO support ContractNegotiationError
+        var error = ContractNegotiationError.Builder.newInstance()
+                .code(code)
+                .processId(processId)
+                .reasons(List.of(reason))
+                .build();
+
+        var result = registry.transform(error, JsonObject.class);
+
+        return mapper.convertValue(compactDocument(result.getContent()), JsonObject.class).toString();
     }
 }

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transform.type;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -33,12 +32,10 @@ import static org.eclipse.edc.protocol.dsp.transform.DspNamespaces.DSPACE_SCHEMA
 public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLdTransformer<ContractNegotiation, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
 
-    public JsonObjectFromContractNegotiationTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromContractNegotiationTransformer(JsonBuilderFactory jsonFactory) {
         super(ContractNegotiation.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
     }
 
     @Override
@@ -53,7 +50,7 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
 
         builder.add(DSPACE_SCHEMA + "correlationId", negotiation.getCorrelationId());
         builder.add(DSPACE_SCHEMA + "state", ContractNegotiationStates.from(negotiation.getState()).name());
-        //builder.add(DSPACE_PREFIX + "checksum", negotiation.getChecksum());
+        //builder.add(DSPACE_PREFIX + "checksum", negotiation.getChecksum()); TODO
 
         return builder.build();
     }

@@ -57,7 +57,7 @@ public class DspControlPlaneExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var negotiationService = new ContractNegotiationServiceImpl(contractNegotiationService, registry);
+        var negotiationService = new ContractNegotiationServiceImpl(contractNegotiationService, registry, typeManager.getMapper("json-ld"));
         var contractNegotiationController = new ContractNegotiationController(monitor, negotiationService, typeManager);
 
         var dspTransferProcessService = new DspTransferProcessServiceImpl(transferProcessService, registry);

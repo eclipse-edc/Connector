@@ -29,12 +29,20 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.CONTRACT_OFFER;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.CONTRACT_REQUEST;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.EVENT;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.INITIAL_CONTRACT_REQUEST;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.TERMINATION;
+import static org.eclipse.edc.protocol.dsp.spi.controlplane.type.ContractNegotiationPath.VERIFICATION;
 import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.compactDocument;
 import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.expandDocument;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path("/negotiations")
+@Path(BASE_PATH)
 public class ContractNegotiationController implements ContractNegotiationApi {
 
     private final Monitor monitor;
@@ -50,7 +58,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
     }
 
     @GET
-    @Path("/{id}")
+    @Path("{id}")
     @Override
     public JsonObject getNegotiation(@PathParam("id") String id) {
         monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
@@ -59,7 +67,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
     }
 
     @POST
-    @Path("/request")
+    @Path(INITIAL_CONTRACT_REQUEST)
     @Override
     public JsonObject initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
         monitor.debug("DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
@@ -69,7 +77,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
     }
 
     @POST
-    @Path("/{id}/request")
+    @Path("{id}" + CONTRACT_REQUEST)
     @Override
     public void consumerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body) {
         monitor.debug(format("DSP: Incoming ContractRequestMessage for process %s", id));
@@ -79,7 +87,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
 
 
     @POST
-    @Path("/{id}/events")
+    @Path("{id}" + EVENT)
     @Override // finalize agreement, acceptCurrentOffer
     public void createEvent(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationEventMessage", required = true) JsonObject body) {
         monitor.debug(format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
@@ -88,7 +96,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
     }
 
     @POST
-    @Path("/{id}/agreement/verification")
+    @Path("{id}" + AGREEMENT + VERIFICATION)
     @Override
     public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementVerificationMessage", required = true) JsonObject body) {
         monitor.debug(format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
@@ -97,7 +105,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
     }
 
     @POST
-    @Path("/{id}/termination")
+    @Path("{id}" + TERMINATION)
     @Override
     public void terminateNegotiation(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationTerminationMessage", required = true) JsonObject body) {
         monitor.debug(format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
@@ -106,7 +114,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
     }
 
     @POST
-    @Path("/{id}/offers")
+    @Path("{id}" + CONTRACT_OFFER)
 
     @Override
     public void providerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractOfferMessage", required = true) JsonObject body) {
@@ -116,7 +124,7 @@ public class ContractNegotiationController implements ContractNegotiationApi {
     }
 
     @POST
-    @Path("/{id}/agreement")
+    @Path("{id}" + AGREEMENT)
     @Override
     public void createAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementMessage", required = true) JsonObject body) {
         monitor.debug(format("DSP: Incoming ContractAgreementMessage for process %s", id));

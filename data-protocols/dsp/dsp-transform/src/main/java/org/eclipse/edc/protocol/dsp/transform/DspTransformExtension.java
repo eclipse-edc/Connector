@@ -17,7 +17,10 @@ package org.eclipse.edc.protocol.dsp.transform;
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.transform.type.JsonObjectFromContractAgreementRequestTransformer;
+import org.eclipse.edc.protocol.dsp.transform.type.JsonObjectFromContractNegotiationErrorTransformer;
 import org.eclipse.edc.protocol.dsp.transform.type.JsonObjectFromContractNegotiationTransformer;
+import org.eclipse.edc.protocol.dsp.transform.type.JsonObjectFromContractRequestTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -50,6 +53,9 @@ public class DspTransformExtension implements ServiceExtension {
 
         var mapper = typeManager.getMapper("json-ld");
 
-        registry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectFromContractAgreementRequestTransformer(builderFactory));
+        registry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory));
+        registry.register(new JsonObjectFromContractRequestTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectFromContractNegotiationErrorTransformer(builderFactory, mapper));
     }
 }

@@ -31,7 +31,7 @@ public class ContractNegotiationError {
 
     private String code;
 
-    private List<String> reasons;
+    private List<String> reasons; // TODO should be object?
 
     @JsonProperty("dspace:processId")
     public String getProcessId() {
