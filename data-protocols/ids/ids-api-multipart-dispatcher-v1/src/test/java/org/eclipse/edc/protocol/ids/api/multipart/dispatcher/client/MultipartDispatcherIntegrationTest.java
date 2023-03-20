@@ -29,7 +29,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferReq
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
@@ -130,7 +130,7 @@ class MultipartDispatcherIntegrationTest {
                 .id("1:2").build());
         when(validationService.validateAgreement(any(), any(ContractAgreement.class))).thenReturn(Result.success(null));
 
-        var request = DataRequest.Builder.newInstance()
+        var request = TransferRequestMessage.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
@@ -280,7 +280,7 @@ class MultipartDispatcherIntegrationTest {
                 .id(id)
                 .counterPartyId(UUID.randomUUID().toString())
                 .counterPartyAddress("address")
-                .protocol("protocol")
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .build();
     }
 

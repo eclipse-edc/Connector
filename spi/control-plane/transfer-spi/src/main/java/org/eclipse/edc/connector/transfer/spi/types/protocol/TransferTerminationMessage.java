@@ -20,6 +20,11 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
+/**
+ * The {@link TransferTerminationMessage} is sent by the provider or consumer at any point except a terminal state to
+ * indicate the data transfer process should stop and be placed in a terminal state. If the termination was due to an
+ * error, the sender may include error information.
+ */
 public class TransferTerminationMessage implements RemoteMessage {
 
     private String connectorAddress;

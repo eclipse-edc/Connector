@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.Polymorphic;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +29,7 @@ import java.util.Map;
  */
 @JsonTypeName("dataspaceconnector:datarequest")
 @JsonDeserialize(builder = DataRequest.Builder.class)
-public class DataRequest implements RemoteMessage, Polymorphic {
+public class DataRequest implements Polymorphic {
     private String id;
     private String processId;
     private String connectorAddress;
@@ -72,7 +71,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     /**
      * The protocol over which the data request is sent to the provider connector.
      */
-    @Override
     public String getProtocol() {
         return protocol;
     }
@@ -80,7 +78,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     /**
      * The protocol-specific address of the other connector.
      */
-    @Override
     public String getConnectorAddress() {
         return connectorAddress;
     }

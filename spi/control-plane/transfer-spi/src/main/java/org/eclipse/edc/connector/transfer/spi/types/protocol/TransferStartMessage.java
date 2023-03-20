@@ -20,6 +20,9 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
+/**
+ * The {@link TransferStartMessage} is sent by the provider to indicate the asset transfer has been initiated.
+ */
 public class TransferStartMessage implements RemoteMessage {
 
     private String connectorAddress;

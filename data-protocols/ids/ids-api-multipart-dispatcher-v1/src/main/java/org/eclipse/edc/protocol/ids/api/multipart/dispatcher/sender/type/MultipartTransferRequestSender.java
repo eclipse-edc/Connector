@@ -18,7 +18,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
@@ -41,30 +41,30 @@ import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_A
 /**
  * MultipartSenderDelegate for data requests.
  */
-public class MultipartArtifactRequestSender implements MultipartSenderDelegate<DataRequest, String> {
+public class MultipartTransferRequestSender implements MultipartSenderDelegate<TransferRequestMessage, String> {
 
     private final SenderDelegateContext context;
     private final Vault vault;
 
-    public MultipartArtifactRequestSender(SenderDelegateContext context, Vault vault) {
+    public MultipartTransferRequestSender(SenderDelegateContext context, Vault vault) {
         this.context = context;
         this.vault = vault;
     }
 
     @Override
-    public Class<DataRequest> getMessageType() {
-        return DataRequest.class;
+    public Class<TransferRequestMessage> getMessageType() {
+        return TransferRequestMessage.class;
     }
 
     /**
-     * Builds an {@link de.fraunhofer.iais.eis.ArtifactRequestMessage} for the given {@link DataRequest}.
+     * Builds an {@link de.fraunhofer.iais.eis.ArtifactRequestMessage} for the given {@link TransferRequestMessage}.
      *
      * @param request the request.
      * @param token   the dynamic attribute token.
      * @return an ArtifactRequestMessage
      */
     @Override
-    public Message buildMessageHeader(DataRequest request, DynamicAttributeToken token) {
+    public Message buildMessageHeader(TransferRequestMessage request, DynamicAttributeToken token) {
         var artifactId = IdsId.Builder.newInstance()
                 .value(request.getAssetId())
                 .type(IdsType.ARTIFACT)
@@ -100,7 +100,7 @@ public class MultipartArtifactRequestSender implements MultipartSenderDelegate<D
      * @throws Exception if parsing the payload fails.
      */
     @Override
-    public String buildMessagePayload(DataRequest request) throws Exception {
+    public String buildMessagePayload(TransferRequestMessage request) throws Exception {
         var requestPayloadBuilder = ArtifactRequestMessagePayload.Builder.newInstance()
                 .dataDestination(request.getDataDestination());
 

@@ -37,6 +37,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -370,8 +371,20 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
 
         var dataRequest = process.getDataRequest();
-        var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, dataRequest))
+
+        var message = TransferRequestMessage.Builder.newInstance()
+                .id(dataRequest.getId())
+                .protocol(dataRequest.getProtocol())
+                .connectorAddress(dataRequest.getConnectorAddress())
+                .connectorId(dataRequest.getConnectorId())
+                .dataDestination(dataRequest.getDataDestination())
+                .properties(dataRequest.getProperties())
+                .assetId(dataRequest.getAssetId())
+                .contractId(dataRequest.getContractId())
+                .build();
+
+        var description =  format("Send %s to %s", message.getClass().getSimpleName(), message.getConnectorAddress());
+        return sendRetryManager.doAsyncProcess(process, description, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToRequested(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
