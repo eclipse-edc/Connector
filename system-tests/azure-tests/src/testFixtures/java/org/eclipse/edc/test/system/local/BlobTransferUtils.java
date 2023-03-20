@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_CONNECTOR_MANAGEMENT_URL;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_MANAGEMENT_PATH;
-import static org.eclipse.edc.test.system.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
-import static org.eclipse.edc.test.system.utils.TransferSimulationUtils.PROVIDER_ASSET_ID;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_ID;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_MANAGEMENT_URL;
+
 
 public class BlobTransferUtils {
 
@@ -119,6 +119,6 @@ public class BlobTransferUtils {
 
     private static RequestSpecification givenProviderBaseRequest() {
         return given()
-                .baseUri(PROVIDER_CONNECTOR_MANAGEMENT_URL + PROVIDER_MANAGEMENT_PATH);
+                .baseUri(PROVIDER_CONNECTOR_MANAGEMENT_URL);
     }
 }

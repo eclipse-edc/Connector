@@ -20,18 +20,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation(libs.gatling) {
-        exclude(group = "io.gatling", module = "gatling-jms")
-        exclude(group = "io.gatling", module = "gatling-jms-java")
-        exclude(group = "io.gatling", module = "gatling-mqtt")
-        exclude(group = "io.gatling", module = "gatling-mqtt-java")
-        exclude(group = "io.gatling", module = "gatling-jdbc")
-        exclude(group = "io.gatling", module = "gatling-jdbc-java")
-        exclude(group = "io.gatling", module = "gatling-redis")
-        exclude(group = "io.gatling", module = "gatling-redis-java")
-        exclude(group = "io.gatling", module = "gatling-graphite")
-    }
-
+    
     testImplementation(project(":extensions:common:azure:azure-blob-core"))
     testFixturesImplementation(project(":extensions:common:azure:azure-blob-core"))
     testImplementation(project(":core:common:junit"))

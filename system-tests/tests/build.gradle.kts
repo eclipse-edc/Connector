@@ -19,23 +19,21 @@ plugins {
 }
 
 dependencies {
-    testFixturesApi(libs.gatling) {
-        exclude(group = "io.gatling", module = "gatling-jms")
-        exclude(group = "io.gatling", module = "gatling-jms-java")
-        exclude(group = "io.gatling", module = "gatling-mqtt")
-        exclude(group = "io.gatling", module = "gatling-mqtt-java")
-        exclude(group = "io.gatling", module = "gatling-jdbc")
-        exclude(group = "io.gatling", module = "gatling-jdbc-java")
-        exclude(group = "io.gatling", module = "gatling-redis")
-        exclude(group = "io.gatling", module = "gatling-redis-java")
-        exclude(group = "io.gatling", module = "gatling-graphite")
-    }
-
+    
     testFixturesApi(project(":core:common:junit"))
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
+    testFixturesApi(project(":spi:control-plane:contract-spi"))
     testFixturesApi(project(":core:common:util"))
+    testFixturesApi(project(":extensions:control-plane:api:management-api:contract-negotiation-api"))
+    testFixturesApi(project(":extensions:control-plane:api:management-api:transfer-process-api"))
+
 
     testFixturesApi(libs.junit.jupiter.api)
+
+    testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(libs.restAssured)
+    testFixturesImplementation(libs.awaitility)
+
     testImplementation(libs.opentelemetry.api)
     testImplementation("io.opentelemetry.proto:opentelemetry-proto:0.14.0-alpha")
     testImplementation(libs.awaitility)

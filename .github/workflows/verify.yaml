@@ -110,12 +110,6 @@ jobs:
             ./gradlew -p extensions test -DincludeTags="AzureStorageIntegrationTest"
             ./gradlew -p system-tests/azure-tests test -DincludeTags="AzureStorageIntegrationTest"
 
-      - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: Gatling reports
-          path: '**/build/reports/gatling/**'
 
   Azure-CosmosDB-Integration-Tests:
     # run only if COSMOS_KEY is present (https://github.com/orgs/community/discussions/25735)
@@ -237,12 +231,6 @@ jobs:
         with:
           command: ./gradlew test -DincludeTags="EndToEndTest"
 
-      - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: Gatling reports
-          path: '**/build/reports/gatling/**'
 
   Component-Tests:
     env:

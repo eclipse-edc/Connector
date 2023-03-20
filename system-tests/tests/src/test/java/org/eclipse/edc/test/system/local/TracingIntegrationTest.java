@@ -18,13 +18,15 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import org.eclipse.edc.junit.annotations.OpenTelemetryIntegrationTest;
-import org.eclipse.edc.test.system.utils.TransferSimulationUtils;
+import org.eclipse.edc.test.system.utils.FileTransferConfiguration;
+import org.eclipse.edc.test.system.utils.TransferTestRunner;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 
+import java.io.File;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -39,8 +41,9 @@ import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.test.system.local.FileTransferLocalSimulation.PROVIDER_ASSET_PATH;
-import static org.eclipse.edc.test.system.utils.GatlingUtils.runGatling;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.tempDirectory;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_MANAGEMENT_URL;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_DATA;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -91,13 +94,15 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
     void transferFile_testTraces() throws Exception {
         traceCollectorServer.when(request()).respond(response().withStatusCode(200));
 
+        var destinationPath = new File(tempDirectory(), "output.txt").getAbsolutePath();
         // Arrange
         // Create a file with test data on provider file system.
         String fileContent = "FileTransfer-tracing-test-" + UUID.randomUUID();
         Files.write(Path.of(PROVIDER_ASSET_PATH), fileContent.getBytes(StandardCharsets.UTF_8));
 
-        // Act
-        runGatling(FileTransferLocalSimulation.class, TransferSimulationUtils.DESCRIPTION);
+        var runner = new TransferTestRunner(new FileTransferConfiguration(CONSUMER_CONNECTOR_MANAGEMENT_URL, PROVIDER_IDS_API_DATA, destinationPath));
+
+        runner.executeTransfer();
 
         // Assert
         await().atMost(30, SECONDS).untilAsserted(() -> {

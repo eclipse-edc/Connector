@@ -15,10 +15,14 @@
 package org.eclipse.edc.test.system.remote;
 
 import org.eclipse.edc.test.system.remote.annotations.MinikubeIntegrationTest;
-import org.eclipse.edc.test.system.utils.TransferSimulationUtils;
+import org.eclipse.edc.test.system.utils.FileTransferConfiguration;
+import org.eclipse.edc.test.system.utils.TransferTestRunner;
 import org.junit.jupiter.api.Test;
 
-import static org.eclipse.edc.test.system.utils.GatlingUtils.runGatling;
+import java.util.Objects;
+
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.IDS_PATH;
 
 
 /**
@@ -27,8 +31,19 @@ import static org.eclipse.edc.test.system.utils.GatlingUtils.runGatling;
 @MinikubeIntegrationTest
 public class FileTransferAsClientIntegrationTest {
 
+    private static String getFromEnv(String env) {
+        return Objects.requireNonNull(System.getenv(env), env + " must be set.");
+    }
+
     @Test
     public void performFileTransfer() {
-        runGatling(FileTransferAsClientSimulation.class, TransferSimulationUtils.DESCRIPTION);
+
+        var providerUrl = getFromEnv("PROVIDER_URL") + IDS_PATH + "/data";
+        var destinationPath = getFromEnv("DESTINATION_PATH");
+        var consumerUrl = getFromEnv("CONSUMER_URL") + CONSUMER_MANAGEMENT_PATH;
+
+        var runner = new TransferTestRunner(new FileTransferConfiguration(consumerUrl, providerUrl, destinationPath));
+
+        runner.executeTransfer();
     }
 }
