@@ -15,29 +15,34 @@
 
 package org.eclipse.edc.spi.event.policydefinition;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * Describe a PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.
  */
-public class PolicyDefinitionDeleted extends PolicyDefinitionEvent<PolicyDefinitionDeleted.Payload> {
+@JsonDeserialize(builder = PolicyDefinitionDeleted.Builder.class)
+public class PolicyDefinitionDeleted extends PolicyDefinitionEvent {
 
     private PolicyDefinitionDeleted() {
     }
 
-    /**
-     * This class contains all event specific attributes of a PolicyDefinition Deletion Event
-     *
-     */
-    public static class Payload extends PolicyDefinitionEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionDeleted, Builder> {
 
-    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionDeleted, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new PolicyDefinitionDeleted(), new Payload());
+            super(new PolicyDefinitionDeleted());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

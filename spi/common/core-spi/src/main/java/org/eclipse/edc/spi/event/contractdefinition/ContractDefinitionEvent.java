@@ -15,7 +15,6 @@
 package org.eclipse.edc.spi.event.contractdefinition;
 
 import org.eclipse.edc.spi.event.Event;
-import org.eclipse.edc.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -23,31 +22,34 @@ import java.util.Objects;
  *  Class as organizational between level to catch events of type ContractDefinition to catch them together in an Event Subscriber
  *  Contains data related to contract definitions
  */
-public abstract class ContractDefinitionEvent<P extends ContractDefinitionEvent.Payload> extends Event<P> {
+public abstract class ContractDefinitionEvent extends Event {
 
-    public abstract static class Payload extends EventPayload {
-        protected String contractDefinitionId;
+    protected String contractDefinitionId;
 
-        public String getContractDefinitionId() {
-            return contractDefinitionId;
-        }
+    public String getContractDefinitionId() {
+        return contractDefinitionId;
     }
 
-    public static class Builder<E extends ContractDefinitionEvent<P>, P extends ContractDefinitionEvent.Payload, B extends Builder<E, P, B>> extends Event.Builder<E, P, B> {
+    public abstract static class Builder<T extends ContractDefinitionEvent, B extends Builder<T, B>> {
 
-        protected Builder(E event, P payload) {
-            super(event, payload);
+        protected final T event;
+
+        protected Builder(T event) {
+            this.event = event;
         }
 
-        @SuppressWarnings("unchecked")
+
         public B contractDefinitionId(String contractDefinitionId) {
-            event.payload.contractDefinitionId = contractDefinitionId;
-            return (B) this;
+            event.contractDefinitionId = contractDefinitionId;
+            return self();
         }
 
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.contractDefinitionId);
+        public abstract B self();
+
+
+        public T build() {
+            Objects.requireNonNull(event.contractDefinitionId);
+            return event;
         }
 
     }

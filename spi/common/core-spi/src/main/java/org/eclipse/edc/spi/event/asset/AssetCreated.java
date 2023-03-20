@@ -15,32 +15,35 @@
 
 package org.eclipse.edc.spi.event.asset;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * Describe a new Asset creation, after this has emitted, an Asset with a certain id will be available.
  */
-public class AssetCreated extends AssetEvent<AssetCreated.Payload> {
+@JsonDeserialize(builder = AssetCreated.Builder.class)
+public class AssetCreated extends AssetEvent {
 
     private AssetCreated() {
     }
 
-    /**
-     * This class contains all event specific attributes of an Asset Creation Event
-     *
-     */
-    public static class Payload extends AssetEvent.Payload {
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends AssetEvent.Builder<AssetCreated, Builder> {
 
-    }
-
-    public static class Builder extends AssetEvent.Builder<AssetCreated, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new AssetCreated(), new Payload());
+            super(new AssetCreated());
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
     }
 
 }

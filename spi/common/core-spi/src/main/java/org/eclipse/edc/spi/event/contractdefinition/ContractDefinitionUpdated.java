@@ -14,42 +14,36 @@
 
 package org.eclipse.edc.spi.event.contractdefinition;
 
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Describe a ContractDefinition modification.
  */
-public class ContractDefinitionUpdated extends ContractDefinitionEvent<ContractDefinitionUpdated.Payload> {
+@JsonDeserialize(builder = ContractDefinitionUpdated.Builder.class)
+public class ContractDefinitionUpdated extends ContractDefinitionEvent {
 
     private ContractDefinitionUpdated() {
     }
 
-    /**
-     * This class contains all event specific attributes of a ContractDefinition Updated Event
-     */
-    public static class Payload extends ContractDefinitionEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionUpdated, Builder> {
 
-    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionUpdated, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new ContractDefinitionUpdated(), new Payload());
+            super(new ContractDefinitionUpdated());
         }
 
         @Override
-        public Builder contractDefinitionId(String contractDefinitionId) {
-            event.payload.contractDefinitionId = contractDefinitionId;
+        public Builder self() {
             return this;
         }
 
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.contractDefinitionId);
-        }
     }
 
 }

@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
+import org.eclipse.edc.spi.event.transferprocess.TransferProcessEvent;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
@@ -38,11 +39,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,7 +75,7 @@ public class TransferProcessEventDispatchTest {
         when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         dispatcherRegistry.register(testDispatcher);
-        eventRouter.register(eventSubscriber);
+        eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id("dataRequestId")
@@ -86,28 +89,28 @@ public class TransferProcessEventDispatchTest {
         var initiateResult = service.initiateTransfer(dataRequest);
 
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(TransferProcessInitiated.class));
-            verify(eventSubscriber).on(isA(TransferProcessProvisioned.class));
-            verify(eventSubscriber).on(isA(TransferProcessRequested.class));
-            verify(eventSubscriber).on(isA(TransferProcessRequested.class));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessProvisioned.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
 
         service.notifyStarted("dataRequestId");
 
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(TransferProcessStarted.class));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessStarted.class)));
         });
 
         service.complete(initiateResult.getContent());
 
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(TransferProcessCompleted.class));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessCompleted.class)));
         });
 
         service.deprovision(initiateResult.getContent());
 
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(TransferProcessDeprovisioned.class));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessDeprovisioned.class)));
         });
     }
 
@@ -117,7 +120,7 @@ public class TransferProcessEventDispatchTest {
         when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         dispatcherRegistry.register(testDispatcher);
-        eventRouter.register(eventSubscriber);
+        eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .assetId("assetId")
@@ -131,7 +134,28 @@ public class TransferProcessEventDispatchTest {
 
         service.terminate(initiateResult.getContent(), "any reason");
 
-        await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessTerminated.class)));
+        await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
+    }
+    
+    @Test
+    void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+        var testDispatcher = mock(RemoteMessageDispatcher.class);
+        when(testDispatcher.protocol()).thenReturn("test");
+        when(testDispatcher.send(any(), any())).thenReturn(failedFuture(new RuntimeException("an error")));
+        dispatcherRegistry.register(testDispatcher);
+        eventRouter.register(TransferProcessEvent.class, eventSubscriber);
+
+        var dataRequest = DataRequest.Builder.newInstance()
+                .assetId("assetId")
+                .destinationType("any")
+                .protocol("test")
+                .managedResources(false)
+                .connectorAddress("http://an/address")
+                .build();
+
+        service.initiateTransfer(dataRequest);
+
+        await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }
 
 }

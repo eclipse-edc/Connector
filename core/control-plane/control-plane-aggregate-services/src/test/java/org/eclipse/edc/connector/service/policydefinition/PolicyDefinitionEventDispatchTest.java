@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
+import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionEvent;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionUpdated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,8 +31,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,28 +54,28 @@ public class PolicyDefinitionEventDispatchTest {
     @Test
     void shouldDispatchEventOnPolicyDefinitionCreationAndDeletionAndUpdate(PolicyDefinitionService service, EventRouter eventRouter) throws InterruptedException {
 
-        doAnswer(i -> null).when(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+        doAnswer(i -> null).when(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionCreated.class)));
 
-        doAnswer(i -> null).when(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
+        doAnswer(i -> null).when(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionDeleted.class)));
 
-        doAnswer(i -> null).when(eventSubscriber).on(isA(PolicyDefinitionUpdated.class));
+        doAnswer(i -> null).when(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
 
-        eventRouter.register(eventSubscriber);
+        eventRouter.register(PolicyDefinitionEvent.class, eventSubscriber);
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
         service.create(policyDefinition);
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionCreated.class)));
         });
 
         service.update(policyDefinition);
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(PolicyDefinitionUpdated.class));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
         });
 
         service.deleteById(policyDefinition.getUid());
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionDeleted.class)));
 
         });
     }

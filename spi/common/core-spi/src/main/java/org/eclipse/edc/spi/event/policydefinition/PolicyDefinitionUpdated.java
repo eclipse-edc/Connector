@@ -14,29 +14,34 @@
 
 package org.eclipse.edc.spi.event.policydefinition;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * Describe a PolicyDefinition update, after this has emitted, a PolicyDefinition with a certain id will be available/updated.
  */
-public class PolicyDefinitionUpdated extends PolicyDefinitionEvent<PolicyDefinitionUpdated.Payload> {
+@JsonDeserialize(builder = PolicyDefinitionUpdated.Builder.class)
+public class PolicyDefinitionUpdated extends PolicyDefinitionEvent {
 
     private PolicyDefinitionUpdated() {
     }
 
-    /**
-     * This class contains all event specific attributes of a PolicyDefinition Update Event
-     *
-     */
-    public static class Payload extends PolicyDefinitionEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionUpdated, Builder> {
 
-    public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionUpdated, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new PolicyDefinitionUpdated(), new Payload());
+            super(new PolicyDefinitionUpdated());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

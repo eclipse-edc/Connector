@@ -15,30 +15,34 @@
 
 package org.eclipse.edc.spi.event.asset;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * Describe an Asset deletion, after this has emitted, the Asset represented by the id won't be available anymore.
  */
-public class AssetDeleted extends AssetEvent<AssetDeleted.Payload> {
+@JsonDeserialize(builder = AssetDeleted.Builder.class)
+public class AssetDeleted extends AssetEvent {
 
     private AssetDeleted() {
     }
+    
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends AssetEvent.Builder<AssetDeleted, Builder> {
 
-    /**
-     * This class contains all event specific attributes of a Asset Deletion Event
-     *
-     */
-    public static class Payload extends AssetEvent.Payload {
-
-    }
-
-    public static class Builder extends AssetEvent.Builder<AssetDeleted, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new AssetDeleted(), new Payload());
+            super(new AssetDeleted());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

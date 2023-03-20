@@ -14,10 +14,15 @@
 
 package org.eclipse.edc.spi.event.transferprocess;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * This event is raised when the TransferProcess has been terminated.
  */
-public class TransferProcessTerminated extends TransferProcessEvent<TransferProcessTerminated.Payload> {
+@JsonDeserialize(builder = TransferProcessTerminated.Builder.class)
+public class TransferProcessTerminated extends TransferProcessEvent {
 
     private String reason;
 
@@ -28,15 +33,10 @@ public class TransferProcessTerminated extends TransferProcessEvent<TransferProc
         return reason;
     }
 
-    /**
-     * This class contains all event specific attributes of a TransferProcess Terminated Event
-     *
-     */
-    public static class Payload extends TransferProcessEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessTerminated, Builder> {
 
-    public static class Builder extends TransferProcessEvent.Builder<TransferProcessTerminated, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
@@ -47,7 +47,12 @@ public class TransferProcessTerminated extends TransferProcessEvent<TransferProc
         }
 
         private Builder() {
-            super(new TransferProcessTerminated(), new Payload());
+            super(new TransferProcessTerminated());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

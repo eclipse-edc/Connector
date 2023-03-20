@@ -16,6 +16,9 @@ Actually, there are two ways to register an `EventSubscriber`:
   - reliable, an eventual exception will be thrown to the caller, and it could make a transactional context fail
   - to be used for event persistence and to satisfy the "at-least-one" rule.
 
+The `EventSubscriber` is typed over the event kind (Class), and it will be invoked only if the type of the event matches 
+the published one (instanceOf). The base class for all events is `Event`.
+ 
 Extension example:
 ```java
 public class ExampleEventSubscriptionExtension implements ServiceExtension {
@@ -24,109 +27,136 @@ public class ExampleEventSubscriptionExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        eventRouter.register(new ExampleEventSubscriber()); // asynchronous dispatch
-        eventRouter.registerSync(new ExampleEventSubscriber()); // synchronous dispatch
+        eventRouter.register(Event.class, new ExampleEventSubscriber()); // asynchronous dispatch
+        eventRouter.registerSync(Event.class, new ExampleEventSubscriber()); // synchronous dispatch
     }
 }
 ```
 
 Then the `EventSubscriber` subscription will receive all the events emitted from the EDC and react to them:
+
 ```java
-public class ExampleEventSubscriber implements EventSubscriber {
+public class ExampleEventSubscriber implements EventSubscriber<Event> {
     
-    public void on(Event event) {
+    public void on(EventEnvelope<Event> event) {
         // react to event    
     }
     
 }
 ```
 
-To filter events, the payload classes of the events can be used. There are 5 "Intermediate superclasses" (AssetEventPayload, 
-ContractDefinitionEventPayload, ContractNegotiationEventPayload, PolicyDefinitionEventPayload, TransferProcessEventPayload) of 
-which one payload class inherits in each case. These intermediate superclasses inherit again from the class EventPayload. Thus, 
-in addition to filtering on a specific event, such as TransferProcessCompleted, it is possible to react to a group of events 
-that generally have to do with Assets, ContractDefinition, ContractNegotiation, PolicyDefinition and TransferProcess. You can 
-also filter for the EventClass directly, like seen in the example for the event AssetCreated.
+The `EventEnvelope` is used as a container for the `Event` itself. It will also have additional fields like
 
+- id: unique identifier of the event (set by default at a random UUID)
+- at: creation timestamp 
+
+
+To filter events, the classes of the events can be used. There are 5 "Intermediate superclasses" (AssetEvent, 
+ContractDefinitionEvent, ContractNegotiationEvent, PolicyDefinitionEvent, TransferProcessEvent) of Event. 
+Thus, in addition to filtering on a specific event, such as TransferProcessCompleted, it is possible to react to a group of events 
+that generally have to do with Assets, ContractDefinition, ContractNegotiation, PolicyDefinition and TransferProcess.
+
+In the example below the subscriber is interested in all events by using the type `Event`. In this case a manual filter with
+`instanceOf` the event kind is needed:
+ 
 ```java
-public class ExampleEventSubscriber implements EventSubscriber {
+public class ExampleEventSubscriber implements EventSubscriber<Event> {
     
-    public void on(Event event) {
-        if (event instanceof AssetCreated) {
+    public void on(EventEnvelope<Event> event) {
+        var payload = event.getPayload();
+        if (payload instanceof AssetCreated) {
             // react only to AssetCreated events
-        }
-        
-        if (event.getPayload() instanceof TransferProcessEventPayload) {
-            // react on Events related to TransferProcessEvents
         }
     }
     
 }
 ```
 
+To subscribe a particular type of event, a specific class is needed like in this example:
+
+```java
+public class ExampleEventSubscriber implements EventSubscriber<AssetCreated> {
+    
+    public void on(EventEnvelope<AssetCreated> event) {
+        // Typed
+        AssetCreated payload = event.getPayload();
+    }
+}
+```
+
+This works also for group of events using "intermediate superclasses" such as `AssetEvent`, `ContractDefinitionEvent`, etc.
+
+The dispatcher will take care of calling the right subscribers based on their expressed type.
+
 ## Emit custom events
 It's also possible to create and publish custom events on top of the EDC eventing system.
-To define the event, extend the `Event` class, if you need to attach data to an event you have to extend the `Event.Payload` class,
-and pass the class as `Event` class parameter.
+To define the event, extend the `Event` class.
+
 > Rule of thumb: events should be named at past tense, as they describe something that's already happened
+
 ```java
 public class SomethingHappened extends Event {
+
+    private String description;
+
+    public String getDescription() {
+        return description;
+    }
 
     private SomethingHappened() {
     }
 
-    public static class Builder extends Event.Builder<SomethingHappened, Payload, Builder> {
+    public static class Builder  {
+
+        private SomethingHappened event;
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new SomethingHappened(), new Payload());
+            event = SomethingHappened();
         }
 
         public Builder description(String description) {
-            event.payload.description = description;
+            event.description = description;
             return this;
         }
 
-        protected void validate() {
+        public SomethingHappened build() {
             Objects.requireNonNull(event.payload.description);
-            // this validation helps to catch up missing properties in the test phase,
-            // but isn't supposed to fail in a production environment, so it's not mandatory.
-        }
-    }
-    
-    public static class Payload extends EventPayload {
-        private String description;
-
-        public String getDescription() {
-            return assetId;
+            return event;
         }
     }
 }
 ```
-All the data regarding an event should be contained in the `Payload` class.
+
+All the data regarding an event should be contained in the `Event` class.
 
 As you may notice, we use the builder pattern to construct objects, as stated in
 the [Architecture Principles document](architecture/coding-principles.md).
 The extended builder will inherit all the builder method from the superclass.
-The `validate` method is the place where validations on the payload can be added.
 
 Once the event is created, it can be published it through the `EventRouter` component:
+
 ```java
 public class ExampleBusinessLogic {
     public void doSomething() {
         // some business logic that does something
         var event = SomethingHappened.Builder.newInstance()
                 .description("something interesting happened")
+                .build();
+
+        var envelope = EventEnvelope.Builder.newInstance()
                 .at(clock.millis())
+                .payload(event)
                 .build();
         
-        eventRouter.publish(event);
+        eventRouter.publish(envelope);
     }    
 }
 ```
+
 Please note that the `at` field is a timestamp that every event has, and it's mandatory 
 (please use the `Clock` service to get the current timestamp).
 
@@ -134,8 +164,10 @@ Please note that the `at` field is a timestamp that every event has, and it's ma
 
 By default, events must be serializable, because of this, every class that extends `Event` will be serializable to json by default 
 (through the `TypeManager` service). 
-The json will contain an additional field called `type` that describes the name of the event class. For example, a serialized `SomethingHappened`
+The json will contain an additional field called `type` that describes the name of the event class. For example, a serialized `EventEnvelope<SomethingHappened>`
 event will look like:
+
+
 ```json
 {
   "type": "SomethingHappened",
@@ -147,13 +179,15 @@ event will look like:
 ```
 
 To make such an event deserializable by the `TypeManager`, is necessary to register the type:
+
 ```java
 typeManager.registerTypes(new NamedType(SomethingHappened.class, SomethingHappened.class.getSimpleName()));
 ```
 
-doing so, the event can be deserialized using the `Event` superclass as type:
+doing so, the event can be deserialized using the `EvenEnvelope` class as type:
+
 ```
-var deserialized = typeManager.readValue(json, Event.class);
-// deserialized will have the `SomethingHappened` type at runtime
+var deserialized = typeManager.readValue(json, EventEnvelope.class);
+// deserialized will have the `EventEnvelope<SomethingHappened>` type at runtime
 ```
 (please take a look at the [`EventTest`](../../spi/common/core-spi/src/test/java/org/eclipse/edc/spi/event/EventTest.java) class for a serialization/deserialization example)

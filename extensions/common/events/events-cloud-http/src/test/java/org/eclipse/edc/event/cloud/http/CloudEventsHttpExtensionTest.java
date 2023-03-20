@@ -15,6 +15,7 @@
 package org.eclipse.edc.event.cloud.http;
 
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.AfterEach;
@@ -51,13 +52,19 @@ public class CloudEventsHttpExtensionTest {
 
     @Test
     void shouldSendEventAccordingToCloudEventSpec(EventRouter eventRouter, TypeManager typeManager) {
-        var event = TestEvent.Builder.newInstance().id("event-id").data("useful information").at(1655903853723L).build();
+        var event = TestEvent.Builder.newInstance().data("useful information").build();
+        
+        var envelope = EventEnvelope.Builder.newInstance()
+                .id("event-id")
+                .payload(event)
+                .at(1655903853723L)
+                .build();
 
-        eventRouter.publish(event);
+        eventRouter.publish(envelope);
 
         await().untilAsserted(() -> {
             var expectedRequest = HttpRequest.request()
-                    .withBody(new JsonBody(typeManager.writeValueAsString(event.getPayload())))
+                    .withBody(new JsonBody(typeManager.writeValueAsString(event)))
                     .withHeader("ce-id", "event-id")
                     .withHeader("ce-source", "localhost")
                     .withHeader("ce-specversion", "1.0")
