@@ -33,6 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.Executors;
 
+import static java.util.UUID.randomUUID;
 import static org.mockito.Mockito.mock;
 
 public class EndToEndTest {
@@ -69,7 +70,7 @@ public class EndToEndTest {
 
         FixedEndpoint(Monitor monitor) {
             stream = new ByteArrayOutputStream();
-            sink = new OutputStreamDataSink(stream, Executors.newFixedThreadPool(1), monitor);
+            sink = new OutputStreamDataSink(randomUUID().toString(), stream, Executors.newFixedThreadPool(1), monitor);
         }
 
         public ByteArrayOutputStream getStream() {

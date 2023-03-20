@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
+import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
@@ -33,11 +34,13 @@ import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
  * Sends data to an output stream. The transfer is done asynchronously using the supplied executor service.
  */
 public class OutputStreamDataSink implements DataSink {
+    private final String requestId;
     private final OutputStream stream;
     private final ExecutorService executorService;
     private final Monitor monitor;
 
-    public OutputStreamDataSink(OutputStream stream, ExecutorService executorService, Monitor monitor) {
+    public OutputStreamDataSink(String requestId, OutputStream stream, ExecutorService executorService, Monitor monitor) {
+        this.requestId = requestId;
         this.stream = stream;
         this.executorService = executorService;
         this.monitor = monitor;
@@ -56,8 +59,9 @@ public class OutputStreamDataSink implements DataSink {
                         return StatusResult.success();
                     });
         } catch (Exception e) {
-            monitor.severe("Error processing data transfer request", e);
-            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, "Error processing data transfer request"));
+            var errorMessage = format("Error processing data transfer request - Request ID: %s", requestId);
+            monitor.severe(errorMessage, e);
+            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, errorMessage));
         }
     }
 

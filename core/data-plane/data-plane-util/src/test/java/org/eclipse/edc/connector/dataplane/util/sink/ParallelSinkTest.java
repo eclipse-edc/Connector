@@ -26,12 +26,13 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import static java.lang.String.format;
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,6 +47,7 @@ class ParallelSinkTest {
     private final InputStreamDataSource dataSource = new InputStreamDataSource(
             dataSourceName,
             new ByteArrayInputStream(dataSourceContent.getBytes()));
+    private final String dataFlowRequestId = randomUUID().toString();
     FakeParallelSink fakeSink;
 
     @BeforeEach
@@ -54,7 +56,7 @@ class ParallelSinkTest {
         fakeSink.monitor = monitor;
         fakeSink.telemetry = new Telemetry(); // default noop implementation
         fakeSink.executorService = executor;
-        fakeSink.requestId = UUID.randomUUID().toString();
+        fakeSink.requestId = dataFlowRequestId;
     }
 
     @Test
@@ -81,7 +83,7 @@ class ParallelSinkTest {
 
         assertThat(fakeSink.transfer(dataSourceMock)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
-                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly("Error processing data transfer request"));
+                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly(format("Error processing data transfer request - Request ID: %s", dataFlowRequestId)));
         assertThat(fakeSink.complete).isEqualTo(0);
     }
 
