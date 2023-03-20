@@ -22,12 +22,13 @@ import org.eclipse.edc.protocol.dsp.spi.controlplane.service.DspTransferProcessS
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
 
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path("/transfer-processes")
+@Path("/transfers")
 public class TransferProcessController {
 
     private Monitor monitor;
@@ -46,6 +47,8 @@ public class TransferProcessController {
     @GET
     @Path("/{id}")
     public JsonObject getTransferProcess(@PathParam("id") String id) {
+        monitor.debug(format("DSP: Incoming request for transfer process with id %s", id));
+
         return dspTransferProcessService.getTransferProcessByID(id);
     }
 
@@ -53,15 +56,18 @@ public class TransferProcessController {
     @POST
     @Path("/request")
     public JsonObject initiateTransferProcess(JsonObject jsonObject) {
-        var document = expandDocument(jsonObject).getJsonObject(0);
+        monitor.debug("DSP: Incoming TransferRequestMessage for initiating a transfer process");
 
-        return dspTransferProcessService.initiateTransferProcess(document);
+        var document = expandDocument(jsonObject).getJsonObject(0);
+        var result = dspTransferProcessService.initiateTransferProcess(document);
+        return null; //TODO Find correct way to get TransferProcessObject.
     }
 
     //both sides
     @POST
     @Path("/{id}/start")
     public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject) {
+        monitor.debug(format("DSP: Incoming TransferStartMessage for transfer process %s"));
         var document = expandDocument(jsonObject).getJsonObject(0);
 
         dspTransferProcessService.transferProcessStart(id, document);
@@ -71,6 +77,7 @@ public class TransferProcessController {
     @POST
     @Path("/{id}/completion")
     public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject) {
+        monitor.debug(format("DSP: Incoming TransferCompletionMessage for transfer process %s"));
         var document = expandDocument(jsonObject).getJsonObject(0);
 
         dspTransferProcessService.transferProcessCompletion(id,document);
@@ -80,6 +87,8 @@ public class TransferProcessController {
     @POST
     @Path("/{id}/termination")
     public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject) {
+        monitor.debug(format("DSP: Incoming TransferTerminationMessage for transfer process %s"));
+
         var document = expandDocument(jsonObject).getJsonObject(0);
 
         dspTransferProcessService.transferProcessTermination(id, document);
@@ -89,8 +98,9 @@ public class TransferProcessController {
     @POST
     @Path("/{id}/suspension")
     public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject) {
-        var document = expandDocument(jsonObject).getJsonObject(0);
+        monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s"));
 
+        var document = expandDocument(jsonObject).getJsonObject(0);
         dspTransferProcessService.transferProcessSuspension(id, document);
     }
 }
