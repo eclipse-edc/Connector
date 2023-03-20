@@ -18,7 +18,7 @@ package org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type;
 
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.edc.protocol.ids.serialization.IdsTypeManagerUtil;
 import org.eclipse.edc.protocol.ids.spi.domain.IdsConstants;
@@ -39,9 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.mockito.Mockito.mock;
 
-class MultipartArtifactRequestSenderTest {
+class MultipartTransferRequestSenderTest {
 
-    private MultipartArtifactRequestSender sender;
+    private MultipartTransferRequestSender sender;
     private SenderDelegateContext senderContext;
     private String idsWebhookAddress;
 
@@ -55,7 +55,7 @@ class MultipartArtifactRequestSenderTest {
         var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
         senderContext = new SenderDelegateContext(connectorId, objectMapper, transformerRegistry, idsWebhookAddress);
-        sender = new MultipartArtifactRequestSender(senderContext, vault);
+        sender = new MultipartTransferRequestSender(senderContext, vault);
     }
 
     @Test
@@ -84,22 +84,23 @@ class MultipartArtifactRequestSenderTest {
 
     @Test
     void buildMessagePayload() throws Exception {
-        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(dataAddress).build();
+        var request = createRequest();
 
-        var result = sender.buildMessagePayload(dataRequest);
+        var result = sender.buildMessagePayload(request);
 
         assertThat(result).isNotNull();
     }
 
-    private static DataRequest createRequest() {
-        return DataRequest.Builder.newInstance()
+    private static TransferRequestMessage createRequest() {
+        return TransferRequestMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .connectorId("connector-test")
                 .properties(Map.of("foo", "bar", "hello", "world"))
+                .protocol("ids-multipart")
+                .connectorAddress("http://any")
                 .build();
     }
 }

@@ -20,6 +20,11 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
+/**
+ * The {@link TransferCompletionMessage} is sent by the provider or consumer when asset transfer has completed. Note
+ * that some data plane implementations may optimize completion notification by performing it as part of its wire
+ * protocol. In those cases, a {@link TransferCompletionMessage} message does not need to be sent.
+ */
 public class TransferCompletionMessage implements RemoteMessage {
 
     private String connectorAddress;

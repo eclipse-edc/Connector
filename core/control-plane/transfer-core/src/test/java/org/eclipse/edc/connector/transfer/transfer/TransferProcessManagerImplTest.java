@@ -42,6 +42,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
@@ -385,7 +386,7 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void requesting_shouldTransitionToRequested() {
+    void requesting_shouldSendMessageAndTransitionToRequested() {
         var process = createTransferProcess(REQUESTING);
         when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -394,6 +395,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
+            verify(dispatcherRegistry).send(eq(Object.class), isA(TransferRequestMessage.class));
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
         });
