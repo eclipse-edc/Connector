@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
@@ -13,7 +14,7 @@ public class TransferProcess {
 
     private String correlationId;
 
-    private String state;
+    private String state; //TODO create own Class for state
 
     @JsonProperty("dspace:correlationId")
     public String getCorrelationId(){
@@ -25,6 +26,7 @@ public class TransferProcess {
         return state;
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder{
         TransferProcess transferProcess;
 
