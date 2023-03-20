@@ -75,7 +75,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public @Nullable ContractNegotiation find(String negotiationId) {
+    public @Nullable ContractNegotiation findById(String negotiationId) {
         var object = with(retryPolicy).get(() -> findByIdInternal(negotiationId));
         return object != null ? toNegotiation(object) : null;
     }

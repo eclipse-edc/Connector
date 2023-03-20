@@ -272,8 +272,10 @@ public abstract class AbstractContractNegotiationManager {
         negotiationStore.save(negotiation);
     }
 
+
     @NotNull
     private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
         return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
+
     }
 }

@@ -127,14 +127,14 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         container.createItem(doc1);
         container.createItem(doc2);
 
-        var foundItem = store.find(doc1.getId());
+        var foundItem = store.findById(doc1.getId());
 
         assertThat(foundItem).isNotNull().usingRecursiveComparison().isEqualTo(doc1.getWrappedInstance());
     }
 
     @Test
     void findById_notExist() {
-        var foundItem = store.find("not-exit");
+        var foundItem = store.findById("not-exit");
         assertThat(foundItem).isNull();
     }
 

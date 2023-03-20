@@ -151,7 +151,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
     @Override
     public StatusResult<ContractNegotiation> verified(String negotiationId) {
-        var negotiation = negotiationStore.find(negotiationId);
+        var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
         }
@@ -166,7 +166,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
-        var negotiation = negotiationStore.find(negotiationId);
+        var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             negotiation = negotiationStore.findForCorrelationId(negotiationId);
         }
@@ -206,7 +206,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, contractOfferRequest))
-                .entityRetrieve(negotiationStore::find)
+                .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToOffered(n))
                 .onFailure((n, throwable) -> transitToOffering(n))
@@ -232,7 +232,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
-                .entityRetrieve(negotiationStore::find)
+                .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToTerminated(n))
                 .onFailure((n, throwable) -> transitToTerminating(n))
@@ -290,7 +290,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
-                .entityRetrieve(negotiationStore::find)
+                .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToProviderAgreed(n, agreement))
                 .onFailure((n, throwable) -> transitToProviderAgreeing(n))
@@ -327,7 +327,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(negotiationStore::find)
+                .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitToFinalized(n))
                 .onFailure((n, throwable) -> transitToFinalizing(n))

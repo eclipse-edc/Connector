@@ -276,7 +276,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .statusCode(204);
 
         await().untilAsserted(() -> {
-            assertThat(store.find("negotiationId")).isNotNull().extracting(StatefulEntity::getState).isEqualTo(TERMINATED.code());
+            assertThat(store.findById("negotiationId")).isNotNull().extracting(StatefulEntity::getState).isEqualTo(TERMINATED.code());
         });
     }
 

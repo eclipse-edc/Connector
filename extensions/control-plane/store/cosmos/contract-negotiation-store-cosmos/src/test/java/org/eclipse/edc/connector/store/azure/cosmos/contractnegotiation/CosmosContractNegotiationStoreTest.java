@@ -69,7 +69,7 @@ class CosmosContractNegotiationStoreTest {
         var doc = generateDocument();
         when(cosmosDbApi.queryItemById("test-id-1")).thenReturn(doc);
 
-        var result = store.find("test-id-1");
+        var result = store.findById("test-id-1");
 
         assertThat(result).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
         verify(cosmosDbApi).queryItemById("test-id-1");
@@ -80,7 +80,7 @@ class CosmosContractNegotiationStoreTest {
     void find_notFound() {
         when(cosmosDbApi.queryItemById(anyString())).thenReturn(null);
 
-        assertThat(store.find("test-id-1")).isNull();
+        assertThat(store.findById("test-id-1")).isNull();
         verify(cosmosDbApi).queryItemById(anyString());
         verifyNoMoreInteractions(cosmosDbApi);
     }
