@@ -14,22 +14,28 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.json.JsonObject;
+
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.controlplane.service.DspTransferProcessService;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.EdcException;
+
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 public class DspTransferProcessServiceImpl implements DspTransferProcessService {
 
     private final TransferProcessService transferProcessService;
 
-    private final ObjectMapper mapper;
+    private final JsonLdTransformerRegistry registry;
 
-    public DspTransferProcessServiceImpl(TransferProcessService transferProcessService, TypeManager typeManager){
+    public DspTransferProcessServiceImpl(TransferProcessService transferProcessService, JsonLdTransformerRegistry registry){
         this.transferProcessService = transferProcessService;
-        this.mapper = typeManager.getMapper("json-ld");
+        this.registry = registry;
     }
 
 
@@ -39,16 +45,28 @@ public class DspTransferProcessServiceImpl implements DspTransferProcessService 
 
         var transferProcess = transferProcessService.findById(id);
 
-        return mapper.convertValue(transferProcess,JsonObject.class); //TODO Check if Return Value works correct
+        if (transferProcess == null){
+            throw new ObjectNotFoundException(TransferProcess.class,id);
+        }
+
+        var result = registry.transform(transferProcess,JsonObject.class);
+
+        if (result.failed()){
+            throw new EdcException("Response could not be created");
+        }
+
+        return result.getContent(); //TODO Check if Return Value works correct
     }
 
     @Override
     public JsonObject initiateTransferProcess(JsonObject jsonObject) {
-        var dataRequest = DataRequest.Builder.newInstance().build();
+        var dataRequest = registry.transform(jsonObject, DataRequest.class); //TODO Write transformer
 
-        //TODO Build DataRequest
+        if (dataRequest.failed()){
+            throw new InvalidRequestException("Request body was malformed");
+        }
 
-        var value = transferProcessService.initiateTransfer(dataRequest);
+        var value = transferProcessService.initiateTransfer(dataRequest.getContent()); //TODO get
 
         return null; //TODO RETURN Correct Value
     }

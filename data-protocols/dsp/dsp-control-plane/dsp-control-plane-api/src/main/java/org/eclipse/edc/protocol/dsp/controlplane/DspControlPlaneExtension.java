@@ -60,7 +60,7 @@ public class DspControlPlaneExtension implements ServiceExtension {
         var negotiationService = new ContractNegotiationServiceImpl(contractNegotiationService, registry);
         var contractNegotiationController = new ContractNegotiationController(monitor, negotiationService, typeManager);
 
-        var dspTransferProcessService = new DspTransferProcessServiceImpl(transferProcessService, typeManager);
+        var dspTransferProcessService = new DspTransferProcessServiceImpl(transferProcessService, registry);
         var transferProcessController = new TransferProcessController(monitor, dspTransferProcessService, typeManager);
 
         webService.registerResource(config.getContextAlias(), transferProcessController);
