@@ -16,6 +16,9 @@ package org.eclipse.edc.protocol.dsp.controlplane.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
@@ -39,10 +42,21 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
 
     private final ObjectMapper mapper;
 
-    public ContractNegotiationServiceImpl(ContractNegotiationService contractNegotiationService, JsonLdTransformerRegistry registry, ObjectMapper mapper) {
+    // TODO remove managers as soon as core ContractNegotiationServiceImpl can handle all transitions
+    private final ConsumerContractNegotiationManager consumerNegotiationManager;
+
+    private final ProviderContractNegotiationManager providerNegotiationManager;
+
+    public ContractNegotiationServiceImpl(ContractNegotiationService contractNegotiationService,
+                                          JsonLdTransformerRegistry registry, ObjectMapper mapper,
+                                          ConsumerContractNegotiationManager consumerNegotiationManager,
+                                          ProviderContractNegotiationManager providerNegotiationManager) {
         this.contractNegotiationService = contractNegotiationService;
         this.registry = registry;
         this.mapper = mapper;
+
+        this.consumerNegotiationManager = consumerNegotiationManager;
+        this.providerNegotiationManager = providerNegotiationManager;
     }
 
     @Override
@@ -65,7 +79,6 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
     public JsonObject createNegotiation(JsonObject message) {
         // TODO add validation of request id with process id in message
         var resultRequest = registry.transform(message, ContractOfferRequest.class);
-
         if (resultRequest.failed()) {
             throw new InvalidRequestException("Request body was malformed.");
         }
@@ -103,7 +116,8 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
                 acceptCurrentOffer(id);
                 break;
             default:
-                throw new InvalidRequestException(String.format("Cannot process dspace:ContractNegotiationEventMessage with unexpected type: %s.", eventType));
+                throw new InvalidRequestException(String.format("Cannot process dspace:ContractNegotiationEventMessage with unexpected type: %s.",
+                        eventType));
         }
     }
 
@@ -114,12 +128,7 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
 
     @Override
     public void terminateNegotiation(String id, JsonObject message) {
-        String processId;
-        try {
-            processId = message.get("dspace:processId").toString();
-        } catch (NullPointerException e) {
-            throw new InvalidRequestException("Value dspace:processId is missing or malformed.");
-        }
+        var processId = getValueByKey(message, "dspace:processId");
 
         var result = contractNegotiationService.cancel(processId); // TODO or decline?
         if (result.failed()) {
@@ -135,8 +144,16 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
 
     @Override
     public void createAgreement(String id, JsonObject message) {
-        // TODO after https://github.com/eclipse-edc/Connector/pull/2601
-        // TODO missing service class to trigger ConsumerContractNegotiationManager.providerAgreed()
+        var processId = getValueByKey(message, "dspace:processId");
+        var agreement = getObjectByKey(message, "dspace:agreement");
+
+        var resultAgreement = registry.transform(agreement, ContractAgreement.class); //TODO transformer
+        if (resultAgreement.failed()) {
+            throw new InvalidRequestException("Agreement could not be processed.");
+        }
+
+        // NOTE: claim token and policy not used in manager, why is it forwarded? TODO
+        consumerNegotiationManager.confirmed(null, processId, resultAgreement.getContent(), null);
     }
 
     @Override
@@ -151,8 +168,16 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
         // Error: "Failed to process dspace:ContractNegotiationEventMessage with status FINALIZED."
     }
 
+    /**
+     * Build a negotiation error that can be used as response body for codes 4xx and 5xx.
+     * TODO support ContractNegotiationError
+     *
+     * @param code      response code.
+     * @param processId negotiation process id.
+     * @param reason    why the request could not be processed.
+     * @return a dspace:ContractNegotiationError as String.
+     */
     private String createNegotiationError(String code, String processId, String reason) {
-        // TODO support ContractNegotiationError
         var error = ContractNegotiationError.Builder.newInstance()
                 .code(code)
                 .processId(processId)
@@ -162,5 +187,21 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
         var result = registry.transform(error, JsonObject.class);
 
         return mapper.convertValue(compactDocument(result.getContent()), JsonObject.class).toString();
+    }
+
+    private String getValueByKey(JsonObject object, String key) {
+        try {
+            return object.get(key).toString();
+        } catch (NullPointerException e) {
+            throw new InvalidRequestException(String.format("Value %s is missing.", key));
+        }
+    }
+
+    private JsonObject getObjectByKey(JsonObject object, String key) {
+        try {
+            return object.get(key).asJsonObject();
+        } catch (NullPointerException e) {
+            throw new InvalidRequestException(String.format("Value %s is missing.", key));
+        }
     }
 }

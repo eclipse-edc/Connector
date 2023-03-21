@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.controlplane;
 
+import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
@@ -38,6 +40,7 @@ public class DspControlPlaneExtension implements ServiceExtension {
     @Inject
     private TransferProcessService transferProcessService;
 
+    @Inject
     private ContractNegotiationService contractNegotiationService;
 
     @Inject
@@ -55,9 +58,15 @@ public class DspControlPlaneExtension implements ServiceExtension {
     @Inject
     private JsonLdTransformerRegistry registry;
 
+    @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+
+    @Inject
+    private ProviderContractNegotiationManager providerNegotiationManager;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var negotiationService = new ContractNegotiationServiceImpl(contractNegotiationService, registry, typeManager.getMapper("json-ld"));
+        var negotiationService = new ContractNegotiationServiceImpl(contractNegotiationService, registry, typeManager.getMapper("json-ld"), consumerNegotiationManager, providerNegotiationManager);
         var contractNegotiationController = new ContractNegotiationController(monitor, negotiationService, typeManager);
 
         var dspTransferProcessService = new DspTransferProcessServiceImpl(transferProcessService, registry);
