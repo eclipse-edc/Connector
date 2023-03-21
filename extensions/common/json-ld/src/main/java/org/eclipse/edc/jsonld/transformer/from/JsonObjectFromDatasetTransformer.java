@@ -15,6 +15,7 @@
 package org.eclipse.edc.jsonld.transformer.from;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
@@ -49,11 +50,8 @@ public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, dataset.getId());
         objectBuilder.add(TYPE, DCAT_SCHEMA + "Dataset");
-        
-        var policies = dataset.getPolicies().stream()
-                .map(policy -> context.transform(policy, JsonObject.class))
-                .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
-                .build();
+
+        var policies = transformOffers(dataset, context);
         objectBuilder.add(DCAT_SCHEMA + "hasPolicy", policies);
         
         var distributions = dataset.getDistributions().stream()
@@ -66,5 +64,18 @@ public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<
         dataset.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));
         
         return objectBuilder.build();
+    }
+    
+    private JsonValue transformOffers(Dataset dataset, TransformerContext context) {
+        var builder = jsonFactory.createArrayBuilder();
+        for (var entry : dataset.getOffers().entrySet()) {
+            var policy = context.transform(entry.getValue(), JsonObject.class);
+            
+            var policyBuilder = jsonFactory.createObjectBuilder(policy);
+            policyBuilder.add(ID, Json.createValue(entry.getKey()));
+            builder.add(policyBuilder.build());
+            
+        }
+        return builder.build();
     }
 }
