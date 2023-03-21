@@ -29,9 +29,9 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConfirmed;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConsumerRequested;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationEvent;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationProviderAgreed;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -46,9 +46,9 @@ import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -104,13 +104,13 @@ class ContractNegotiationEventDispatchTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
-        manager.requested(token, createContractOfferRequest(policy));
+        var result = manager.requested(token, createContractOfferRequest(policy));
 
         await().untilAsserted(() -> {
             //noinspection unchecked
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationConsumerRequested.class)));
             //noinspection unchecked
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationConfirmed.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationProviderAgreed.class)));
         });
     }
 
@@ -139,7 +139,7 @@ class ContractNegotiationEventDispatchTest {
     private RemoteMessageDispatcher succeedingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        when(testDispatcher.send(any(), any())).thenReturn(completedFuture("any"));
         return testDispatcher;
     }
 

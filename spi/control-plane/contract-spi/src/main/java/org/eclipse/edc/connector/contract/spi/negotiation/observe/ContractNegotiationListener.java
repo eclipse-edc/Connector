@@ -41,7 +41,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been requested.
      */
-    default void requested(ContractNegotiation negotiation) {
+    default void consumerRequested(ContractNegotiation negotiation) {
 
     }
 
@@ -50,7 +50,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been offered.
      */
-    default void offered(ContractNegotiation negotiation) {
+    default void providerOffered(ContractNegotiation negotiation) {
 
     }
 
@@ -59,7 +59,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been approved.
      */
-    default void approved(ContractNegotiation negotiation) {
+    default void consumerAgreed(ContractNegotiation negotiation) {
 
     }
 
@@ -95,11 +95,29 @@ public interface ContractNegotiationListener {
     }
 
     /**
-     * Called after a {@link ContractNegotiation} was confirmed.
+     * Called after a {@link ContractNegotiation} was agreed by the provider.
      *
      * @param negotiation the contract negotiation that has been confirmed.
      */
-    default void confirmed(ContractNegotiation negotiation) {
+    default void providerAgreed(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} was verified by the consumer.
+     *
+     * @param negotiation the contract negotiation that has been verified.
+     */
+    default void consumerVerified(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} was finalized by the provider.
+     *
+     * @param negotiation the contract negotiation that has been finalized.
+     */
+    default void providerFinalized(ContractNegotiation negotiation) {
 
     }
 }

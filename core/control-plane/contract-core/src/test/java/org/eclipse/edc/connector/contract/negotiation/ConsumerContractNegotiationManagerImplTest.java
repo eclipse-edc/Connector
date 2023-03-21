@@ -151,7 +151,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void confirmed_confirmAgreement() {
+    void confirmed_shouldTransitionToProviderAgreed() {
         var negotiationConsumerRequested = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
@@ -167,7 +167,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getContractAgreement() == contractAgreement
         ));
         verify(validationService).validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class));
-        verify(listener).confirmed(any());
+        verify(listener).providerAgreed(any());
     }
 
     @Test
@@ -187,7 +187,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void finalized_shouldTransitToFinalizedState() {
+    void finalized_shouldTransitionToProviderFinalizedState() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").state(CONSUMER_VERIFIED.code()).build();
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -199,6 +199,7 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent)
                 .satisfies(actual -> assertThat(actual.getState()).isEqualTo(PROVIDER_FINALIZED.code()));
         verify(store).save(argThat(n -> n.getState() == PROVIDER_FINALIZED.code()));
+        verify(listener).providerFinalized(negotiation);
     }
 
     @Test
@@ -280,7 +281,7 @@ class ConsumerContractNegotiationManagerImplTest {
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == CONSUMER_REQUESTED.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
-            verify(listener).requested(any());
+            verify(listener).consumerRequested(any());
         });
     }
 
@@ -326,7 +327,7 @@ class ConsumerContractNegotiationManagerImplTest {
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == CONSUMER_AGREED.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
-            verify(listener).approved(any());
+            verify(listener).consumerAgreed(any());
         });
     }
 
@@ -361,7 +362,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void providerAgreed_shouldTransitToVerifying() {
+    void providerAgreed_shouldTransitionToVerifying() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREED.code()).build();
         when(store.nextForState(eq(PROVIDER_AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
@@ -375,7 +376,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void providerAgreed_shouldTransitToFinalized_whenProtocolIsIdsMultipart() {
+    void providerAgreed_shouldTransitionToFinalized_whenProtocolIsIdsMultipart() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREED.code()).protocol("ids-multipart").build();
         when(store.nextForState(eq(PROVIDER_AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
@@ -389,7 +390,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void consumerVerifying_shouldSendMessageAndTransitToVerified() {
+    void consumerVerifying_shouldSendMessageAndTransitionToVerified() {
         var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).build();
         when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
@@ -418,7 +419,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void consumerVerifying_shouldTransitToTerminating_whenDispatchFailsAndRetriesExhausted() {
+    void consumerVerifying_shouldTransitionToTerminating_whenDispatchFailsAndRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).stateCount(RETRIES_EXHAUSTED).build();
         when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);

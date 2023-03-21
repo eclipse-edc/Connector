@@ -103,7 +103,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         if (negotiation.getContractAgreement() != null) {
             negotiation.setContractAgreement(null);
         }
-        transitToTerminated(negotiation);
+        transitionToTerminated(negotiation);
 
         return StatusResult.success(negotiation);
     }
@@ -142,12 +142,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .type(PROVIDER)
                 .build();
 
-        transitToRequested(negotiation);
+        transitionToConsumerRequested(negotiation);
 
         negotiation.addContractOffer(offer);
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
-        transitToProviderAgreeing(negotiation);
+        transitionToProviderAgreeing(negotiation);
 
         return StatusResult.success(negotiation);
     }
@@ -164,7 +164,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             return StatusResult.failure(FATAL_ERROR, "Invalid client credentials");
         }
 
-        transitToVerified(negotiation);
+        transitionToConsumerVerified(negotiation);
         return StatusResult.success(negotiation);
     }
 
@@ -216,9 +216,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, contractOfferRequest))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
-                .onSuccess((n, result) -> transitToOffered(n))
-                .onFailure((n, throwable) -> transitToOffering(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to consumer: %s", contractOfferRequest.getClass().getSimpleName(), throwable.getMessage())))
+                .onSuccess((n, result) -> transitionToProviderOffered(n))
+                .onFailure((n, throwable) -> transitionToProviderOffering(n))
+                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to consumer: %s", contractOfferRequest.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send counter offer");
     }
 
@@ -242,9 +242,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
-                .onSuccess((n, result) -> transitToTerminated(n))
-                .onFailure((n, throwable) -> transitToTerminating(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
+                .onSuccess((n, result) -> transitionToTerminated(n))
+                .onFailure((n, throwable) -> transitionToTerminating(n))
+                .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send rejection");
     }
 
@@ -300,9 +300,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
-                .onSuccess((n, result) -> transitToProviderAgreed(n, agreement))
-                .onFailure((n, throwable) -> transitToProviderAgreeing(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to consumer: %s", request.getClass().getSimpleName(), throwable.getMessage())))
+                .onSuccess((n, result) -> transitionToProviderAgreed(n, agreement))
+                .onFailure((n, throwable) -> transitionToProviderAgreeing(n))
+                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to consumer: %s", request.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send agreement");
     }
 
@@ -314,7 +314,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processConsumerVerified(ContractNegotiation negotiation) {
-        transitToFinalizing(negotiation);
+        transitionToProviderFinalizing(negotiation);
         return true;
     }
 
@@ -337,9 +337,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
-                .onSuccess((n, result) -> transitToFinalized(n))
-                .onFailure((n, throwable) -> transitToFinalizing(n))
-                .onRetryExhausted((n, throwable) -> transitToTerminating(n, format("Failed to send %s to consumer: %s", message.getClass().getSimpleName(), throwable.getMessage())))
+                .onSuccess((n, result) -> transitionToProviderFinalized(n))
+                .onFailure((n, throwable) -> transitionToProviderFinalizing(n))
+                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to consumer: %s", message.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send finalization");
     }
 

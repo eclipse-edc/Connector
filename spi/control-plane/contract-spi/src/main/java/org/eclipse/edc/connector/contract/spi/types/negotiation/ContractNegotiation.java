@@ -156,19 +156,19 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
-     * Transition to state REQUESTING (type consumer only).
+     * Transition to state CONSUMER_REQUESTING (type consumer only).
      */
-    public void transitionRequesting() {
+    public void transitionConsumerRequesting() {
         if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no REQUESTING state");
+            throw new IllegalStateException("Provider processes have no CONSUMER_REQUESTING state");
         }
         transition(CONSUMER_REQUESTING, CONSUMER_REQUESTING, INITIAL);
     }
 
     /**
-     * Transition to state REQUESTED.
+     * Transition to state CONSUMER_REQUESTED.
      */
-    public void transitionRequested() {
+    public void transitionConsumerRequested() {
         if (Type.PROVIDER == type) {
             transition(CONSUMER_REQUESTED, INITIAL);
         } else {
@@ -177,21 +177,20 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
-     * Transition to state REQUESTED.
+     * Transition to state PROVIDER_OFFERING (type provider only).
      */
-    public void transitionOffering() {
+    public void transitionProviderOffering() {
         if (CONSUMER == type) {
-            transition(CONSUMER_REQUESTING, CONSUMER_REQUESTING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
-        } else {
-            transition(PROVIDER_OFFERING, PROVIDER_OFFERING, PROVIDER_OFFERED, CONSUMER_REQUESTED);
+            throw new IllegalStateException("Provider processes have no PROVIDER_OFFERING state");
         }
+
+        transition(PROVIDER_OFFERING, PROVIDER_OFFERING, PROVIDER_OFFERED, CONSUMER_REQUESTED);
     }
 
     /**
-     * Transition to state CONSUMER_OFFERED for type consumer and PROVIDER_OFFERED for type
-     * provider.
+     * Transition to state PROVIDER_OFFERED.
      */
-    public void transitionOffered() {
+    public void transitionProviderOffered() {
         if (CONSUMER == type) {
             transition(PROVIDER_OFFERED, PROVIDER_OFFERED, CONSUMER_REQUESTED);
         } else {
@@ -202,7 +201,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     /**
      * Transition to state CONSUMER_APPROVING (type consumer only).
      */
-    public void transitionApproving() {
+    public void transitionConsumerAgreeing() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
         }
@@ -210,12 +209,9 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
-     * Transition to state CONSUMER_APPROVED (type consumer only).
+     * Transition to state CONSUMER_AGREED.
      */
-    public void transitionApproved() {
-        if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no CONSUMER_APPROVED state");
-        }
+    public void transitionConsumerAgreed() {
         transition(CONSUMER_AGREED, CONSUMER_AGREED, CONSUMER_AGREEING, PROVIDER_OFFERED);
     }
 
@@ -243,7 +239,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     /**
      * Transition to state CONSUMER_VERIFYING.
      */
-    public void transitionVerifying() {
+    public void transitionConsumerVerifying() {
         if (PROVIDER == type) {
             throw new IllegalStateException("Consumer processes have no CONSUMER_VERIFYING state");
         }
@@ -254,7 +250,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     /**
      * Transition to state CONSUMER_VERIFIED.
      */
-    public void transitionVerified() {
+    public void transitionConsumerVerified() {
         if (type == CONSUMER) {
             transition(CONSUMER_VERIFIED, CONSUMER_VERIFIED, CONSUMER_VERIFYING);
         } else {
@@ -272,7 +268,6 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
 
         transition(PROVIDER_FINALIZING, PROVIDER_FINALIZING, CONSUMER_VERIFIED);
     }
-
 
     /**
      * Transition to state PROVIDER_FINALIZED.
