@@ -22,6 +22,7 @@ public class ContractNegotiationEventMessage implements RemoteMessage {
 
     private String protocol;
     private String connectorAddress;
+    private String correlationId;
     private Type type;
 
     @Override
@@ -32,6 +33,10 @@ public class ContractNegotiationEventMessage implements RemoteMessage {
     @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     public Type getType() {
@@ -59,6 +64,11 @@ public class ContractNegotiationEventMessage implements RemoteMessage {
             return this;
         }
 
+        public Builder correlationId(String correlationId) {
+            this.message.correlationId = correlationId;
+            return this;
+        }
+
         public Builder type(Type type) {
             this.message.type = type;
             return this;
@@ -67,6 +77,7 @@ public class ContractNegotiationEventMessage implements RemoteMessage {
         public ContractNegotiationEventMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
             Objects.requireNonNull(message.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(message.correlationId, "correlationId");
             Objects.requireNonNull(message.type, "type");
             return message;
         }
