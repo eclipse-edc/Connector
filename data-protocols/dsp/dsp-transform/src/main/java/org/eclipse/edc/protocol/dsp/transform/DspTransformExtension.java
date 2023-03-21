@@ -56,5 +56,8 @@ public class DspTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectFromContractNegotiationErrorTransformer(builderFactory, mapper));
 
         registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory,mapper));
+        
+        registry.register(new JsonObjectFromCatalogRequestMessageTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectToCatalogRequestMessageTransformer(mapper));
     }
 }

@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":extensions:common:json-ld"))
+    api(project(":data-protocols:dsp:dsp-spi:dsp-catalog-spi"))
 
     implementation("jakarta.json:jakarta.json-api:2.1.1")
     implementation(libs.dnsOverHttps)
