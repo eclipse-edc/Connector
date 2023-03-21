@@ -241,8 +241,3 @@ runner module as `testCompileOnly`. (example in [`build.gradle.kts`](/system-tes
 This would permit the dependency isolation between runtimes (very important the test need to run two different
 components like a control plane and a data plane).
 
-## Performance tests
-
-To evaluate performance of the system such tests can be added. Each performance tests should be tagged with
-`@PerformanceTest` annotation. To maintain historic data about system performance these tests are executed nightly via
-github workflow `performancetests.yml`, test reports are uploaded as an github artifact at end of workflow run.
