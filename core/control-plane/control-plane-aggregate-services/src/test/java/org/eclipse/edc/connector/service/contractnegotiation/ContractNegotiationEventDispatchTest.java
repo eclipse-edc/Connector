@@ -55,6 +55,7 @@ import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -104,23 +105,24 @@ class ContractNegotiationEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventsOnFailedContractNegotiation(ContractNegotiationService service, EventRouter eventRouter,
-                                                         RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    void shouldDispatchEventsOnTerminatedContractNegotiation(ContractNegotiationService service, EventRouter eventRouter,
+                                                             RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                             ProviderContractNegotiationManager manager) {
 
         dispatcherRegistry.register(succeedingDispatcher());
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
 
-        var negotiation = service.initiateNegotiation(createContractOfferRequest(policy));
+        var result = manager.requested(token, createContractOfferRequest(policy));
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
         });
 
-        service.cancel(negotiation.getId());
+        service.cancel(result.getContent().getId());
 
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf((ContractNegotiationTerminated.class))));
+            verify(eventSubscriber, atLeastOnce()).on(argThat(isEnvelopeOf((ContractNegotiationTerminated.class))));
         });
     }
 
