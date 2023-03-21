@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.contract.negotiation.ProviderContractNegotiatio
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.edc.connector.contract.offer.ContractOfferResolverImpl;
+import org.eclipse.edc.connector.contract.offer.DatasetResolverImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyArchiveImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -32,6 +33,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
+import org.eclipse.edc.connector.contract.spi.offer.DatasetResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
@@ -47,6 +49,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.command.BoundedCommandQueue;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandQueue;
@@ -68,7 +71,7 @@ import java.time.Clock;
 @Provides({
         ContractOfferResolver.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
         PolicyArchive.class, ProviderContractNegotiationManager.class, ContractNegotiationObservable.class,
-        ContractDefinitionService.class
+        ContractDefinitionService.class, DatasetResolver.class
 })
 @CoreExtension
 @Extension(value = ContractCoreExtension.NAME)
@@ -144,6 +147,9 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+    
+    @Inject
+    private DataAddressResolver dataAddressResolver;
 
     @Override
     public String name() {
@@ -179,6 +185,9 @@ public class ContractCoreExtension implements ServiceExtension {
 
         var contractOfferResolver = new ContractOfferResolverImpl(agentService, definitionService, assetIndex, policyStore, clock, monitor);
         context.registerService(ContractOfferResolver.class, contractOfferResolver);
+        
+        var datasetResolver = new DatasetResolverImpl(agentService, definitionService, assetIndex, dataAddressResolver, policyStore, monitor);
+        context.registerService(DatasetResolver.class, datasetResolver);
 
         var policyEquality = new PolicyEquality(typeManager);
         var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
