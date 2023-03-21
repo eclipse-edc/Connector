@@ -47,7 +47,7 @@ public class DataService {
         }
         
         var dataService = (DataService) o;
-        return terms.equals(dataService.getTerms()) && endpointUrl.equals(dataService.getEndpointUrl());
+        return id.equals(dataService.getId()) && terms.equals(dataService.getTerms()) && endpointUrl.equals(dataService.getEndpointUrl());
     }
     
     @JsonPOJOBuilder(withPrefix = "")
