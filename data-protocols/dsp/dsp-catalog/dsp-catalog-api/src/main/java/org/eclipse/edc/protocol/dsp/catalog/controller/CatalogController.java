@@ -17,20 +17,18 @@ package org.eclipse.edc.protocol.dsp.catalog.controller;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
 import org.eclipse.edc.protocol.dsp.spi.catalog.service.CatalogService;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.TypeManager;
 
-import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.compactDocument;
-import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.expandDocument;
+import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.compactDocument;
+import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.expandDocument;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -41,25 +39,20 @@ public class CatalogController {
     private CatalogService catalogService;
     private ObjectMapper mapper;
     
-    public CatalogController(Monitor monitor, CatalogService catalogService, TypeManager typeManager) {
+    public CatalogController(Monitor monitor, CatalogService catalogService, ObjectMapper mapper) {
         this.monitor = monitor;
         this.catalogService = catalogService;
-        this.mapper = typeManager.getMapper("json-ld");
+        this.mapper = mapper;
     }
     
     @POST
     @Path("/request")
     public Map<String, Object> getCatalog(JsonObject jsonObject) {
         var document = expandDocument(jsonObject); //expanding document returns a JsonArray of size 1
-    
-        //TODO use json-ld transformer registry
-        var query = ContractOfferQuery.Builder.newInstance().build();
-        
-        var catalog = catalogService.getCatalog(query);
-    
-        //TODO use json-ld transformer registry
-        var catalogJson = Json.createObjectBuilder().build();
 
-        return mapper.convertValue(compactDocument(catalogJson), Map.class);
+        var claimToken = ClaimToken.Builder.newInstance().build(); //TODO get auth token
+        var catalog = catalogService.getCatalog(document.getJsonObject(0), claimToken);
+    
+        return mapper.convertValue(compactDocument(catalog), Map.class);
     }
 }

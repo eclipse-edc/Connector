@@ -16,14 +16,15 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":data-protocols:dsp:dsp-api-configuration"))
     api(project(":data-protocols:dsp:dsp-core"))
     api(project(":data-protocols:dsp:dsp-spi:dsp-catalog-spi"))
+    api(project(":data-protocols:dsp:dsp-transform"))
 
     api(project(":spi:common:core-spi"))
     api(project(":extensions:common:http"))
+    api(project(":extensions:common:json-ld"))
 
     implementation("com.apicatalog:titanium-json-ld:1.3.1")
     implementation("jakarta.json:jakarta.json-api:2.1.1")
@@ -32,5 +33,3 @@ dependencies {
 
     implementation(libs.jakarta.rsApi)
 }
-
-

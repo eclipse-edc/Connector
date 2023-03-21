@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.protocol.dsp.spi.catalog.service;
 
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
+import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.iam.ClaimToken;
 
 public interface CatalogService {
     
-    Catalog getCatalog(ContractOfferQuery query);
+    JsonObject getCatalog(JsonObject request, ClaimToken claimToken);
     
 }
