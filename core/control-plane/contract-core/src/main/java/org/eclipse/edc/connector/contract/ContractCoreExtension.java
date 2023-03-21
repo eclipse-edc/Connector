@@ -60,7 +60,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.statemachine.retry.EntitySendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
@@ -78,6 +78,8 @@ public class ContractCoreExtension implements ServiceExtension {
 
     public static final long DEFAULT_ITERATION_WAIT = 1000;
     public static final int DEFAULT_BATCH_SIZE = 20;
+    public static final int DEFAULT_SEND_RETRY_LIMIT = 7;
+    public static final long DEFAULT_SEND_RETRY_BASE_DELAY = 1000L;
 
     @Setting(value = "the iteration wait time in milliseconds in the negotiation state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
     private static final String NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.negotiation.state-machine.iteration-wait-millis";
@@ -88,16 +90,16 @@ public class ContractCoreExtension implements ServiceExtension {
     @Setting(value = "the batch size in the provider negotiation state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
     private static final String NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.provider.state-machine.batch-size";
 
-    @Setting
+    @Setting(value = "how many times a specific operation must be tried before terminating the consumer negotiation with error", type = "int", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
     private static final String NEGOTIATION_CONSUMER_SEND_RETRY_LIMIT = "edc.negotiation.consumer.send.retry.limit";
 
-    @Setting
+    @Setting(value = "how many times a specific operation must be tried before terminating the provider negotiation with error", type = "int", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
     private static final String NEGOTIATION_PROVIDER_SEND_RETRY_LIMIT = "edc.negotiation.provider.send.retry.limit";
 
-    @Setting
+    @Setting(value = "The base delay for the consumer negotiation retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
     private static final String NEGOTIATION_CONSUMER_SEND_RETRY_BASE_DELAY_MS = "edc.negotiation.consumer.send.retry.base-delay.ms";
 
-    @Setting
+    @Setting(value = "The base delay for the provider negotiation retry mechanism in millisecond", type = "long", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
     private static final String NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS = "edc.negotiation.provider.send.retry.base-delay.ms";
 
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
@@ -208,7 +210,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .store(store)
                 .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
-                .sendRetryManager(consumerSendRetryManager(context))
+                .entityRetryProcessConfiguration(consumerEntityRetryProcessConfiguration(context))
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -225,24 +227,24 @@ public class ContractCoreExtension implements ServiceExtension {
                 .store(store)
                 .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
-                .sendRetryManager(providerSendRetryManager(context))
+                .entityRetryProcessConfiguration(providerEntityRetryProcessConfiguration(context))
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
         context.registerService(ProviderContractNegotiationManager.class, providerNegotiationManager);
     }
 
-    private EntitySendRetryManager providerSendRetryManager(ServiceExtensionContext context) {
-        var retryLimit = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_LIMIT, 7);
-        var retryBaseDelay = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS, 100L);
-        return new EntitySendRetryManager(monitor, () -> new ExponentialWaitStrategy(retryBaseDelay), clock, retryLimit);
+    private EntityRetryProcessConfiguration providerEntityRetryProcessConfiguration(ServiceExtensionContext context) {
+        var retryLimit = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
+        var retryBaseDelay = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
+        return new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
     }
 
     @NotNull
-    private EntitySendRetryManager consumerSendRetryManager(ServiceExtensionContext context) {
-        var retryLimit = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_LIMIT, 7);
-        var retryBaseDelay = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_BASE_DELAY_MS, 100L);
-        return new EntitySendRetryManager(monitor, () -> new ExponentialWaitStrategy(retryBaseDelay), clock, retryLimit);
+    private EntityRetryProcessConfiguration consumerEntityRetryProcessConfiguration(ServiceExtensionContext context) {
+        var retryLimit = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
+        var retryBaseDelay = context.getSetting(NEGOTIATION_CONSUMER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
+        return new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
     }
 
 }

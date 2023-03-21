@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.contract.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
@@ -26,19 +27,21 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_ITERATION_WAIT;
+import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
+import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_LIMIT;
 
 public abstract class AbstractContractNegotiationManager {
 
@@ -56,14 +59,113 @@ public abstract class AbstractContractNegotiationManager {
     protected int batchSize = DEFAULT_BATCH_SIZE;
     protected WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
     protected PolicyDefinitionStore policyStore;
-    protected SendRetryManager sendRetryManager;
+    protected EntityRetryProcessFactory entityRetryProcessFactory;
+    protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
 
     /**
-     * Gives the name of the manager
+     * Gives the type of the manager
      *
      * @return "Provider" for provider, "Consumer" for consumer
      */
-    protected abstract String getName();
+    protected abstract String getType();
+
+    protected void transitToInitial(ContractNegotiation negotiation) {
+        negotiation.transitionInitial();
+        update(negotiation);
+        observable.invokeForEach(l -> l.initiated(negotiation));
+    }
+
+    protected void transitToRequesting(ContractNegotiation negotiation) {
+        negotiation.transitionRequesting();
+        update(negotiation);
+    }
+
+    protected void transitToRequested(ContractNegotiation negotiation) {
+        negotiation.transitionRequested();
+        update(negotiation);
+        observable.invokeForEach(l -> l.requested(negotiation));
+    }
+
+    protected void transitToProviderAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
+        negotiation.setContractAgreement(agreement);
+        negotiation.transitionProviderAgreed();
+        update(negotiation);
+        observable.invokeForEach(l -> l.confirmed(negotiation));
+    }
+
+    protected void transitToApproving(ContractNegotiation negotiation) {
+        negotiation.transitionApproving();
+        update(negotiation);
+    }
+
+    protected void transitToApproved(ContractNegotiation negotiation) {
+        negotiation.transitionApproved();
+        update(negotiation);
+        observable.invokeForEach(l -> l.approved(negotiation));
+    }
+
+    protected void transitToOffering(ContractNegotiation negotiation) {
+        negotiation.transitionOffering();
+        update(negotiation);
+    }
+
+    protected void transitToOffered(ContractNegotiation negotiation) {
+        negotiation.transitionOffered();
+        update(negotiation);
+        observable.invokeForEach(l -> l.offered(negotiation));
+    }
+
+    protected void transitToProviderAgreeing(ContractNegotiation negotiation) {
+        negotiation.transitionProviderAgreeing();
+        update(negotiation);
+    }
+
+    protected void transitToVerifying(ContractNegotiation negotiation) {
+        negotiation.transitionVerifying();
+        update(negotiation);
+    }
+
+    protected void transitToVerified(ContractNegotiation negotiation) {
+        negotiation.transitionVerified();
+        update(negotiation);
+    }
+
+    protected void transitToFinalizing(ContractNegotiation negotiation) {
+        negotiation.transitionProviderFinalizing();
+        update(negotiation);
+    }
+
+    protected void transitToFinalized(ContractNegotiation negotiation) {
+        negotiation.transitionProviderFinalized();
+        update(negotiation);
+    }
+
+    protected void transitToTerminating(ContractNegotiation negotiation, String message) {
+        negotiation.transitionTerminating(message);
+        update(negotiation);
+    }
+
+    protected void transitToTerminating(ContractNegotiation negotiation) {
+        negotiation.transitionTerminating();
+        update(negotiation);
+    }
+
+    protected void transitToTerminated(ContractNegotiation negotiation, String message) {
+        negotiation.setErrorDetail(message);
+        transitToTerminated(negotiation);
+    }
+
+    protected void transitToTerminated(ContractNegotiation negotiation) {
+        negotiation.transitionTerminated();
+        update(negotiation);
+        observable.invokeForEach(l -> l.terminated(negotiation));
+    }
+
+    private void update(ContractNegotiation negotiation) {
+        negotiationStore.save(negotiation);
+        monitor.debug(String.format("[%s] ContractNegotiation %s is now in state %s.",
+                getType(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+    }
 
     public static class Builder<T extends AbstractContractNegotiationManager> {
 
@@ -141,8 +243,8 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
-        public Builder<T> sendRetryManager(SendRetryManager sendRetryManager) {
-            manager.sendRetryManager = sendRetryManager;
+        public Builder<T> entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
+            manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
             return this;
         }
 
@@ -158,8 +260,9 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(manager.negotiationStore, "store");
             Objects.requireNonNull(manager.policyStore, "policyStore");
-            Objects.requireNonNull(manager.sendRetryManager, "sendRetryManager");
+
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);
 
             return manager;
         }
@@ -169,52 +272,8 @@ public abstract class AbstractContractNegotiationManager {
         negotiationStore.save(negotiation);
     }
 
-    protected class AsyncSendResultHandler {
-        private final String negotiationId;
-        private final String operationDescription;
-        private Consumer<ContractNegotiation> onSuccessHandler = n -> {};
-        private Consumer<ContractNegotiation> onFailureHandler = n -> {};
-
-        public AsyncSendResultHandler(String negotiationId, String operationDescription) {
-            this.negotiationId = negotiationId;
-            this.operationDescription = operationDescription;
-        }
-
-        public AsyncSendResultHandler onSuccess(Consumer<ContractNegotiation> onSuccessHandler) {
-            this.onSuccessHandler = onSuccessHandler;
-            return this;
-        }
-
-        public AsyncSendResultHandler onFailure(Consumer<ContractNegotiation> onFailureHandler) {
-            this.onFailureHandler = onFailureHandler;
-            return this;
-        }
-
-        public BiConsumer<Object, Throwable> build() {
-            return (response, throwable) -> {
-                var negotiation = negotiationStore.find(negotiationId);
-                if (negotiation == null) {
-                    monitor.severe(format("[%s] ContractNegotiation %s not found.", getName(), negotiationId));
-                    return;
-                }
-
-                if (throwable == null) {
-                    onSuccessHandler.accept(negotiation);
-                    monitor.debug(format("[%s] ContractNegotiation %s is now in state %s.", getName(),
-                            negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                } else if (sendRetryManager.retriesExhausted(negotiation)) {
-                    negotiation.transitionTerminating("Retry limited exceeded: " + throwable.getMessage());
-                    negotiationStore.save(negotiation);
-                    monitor.severe(format("[%s] attempt #%d failed to %s. Retry limit exceeded, ContractNegotiation %s moves to ERROR state",
-                            getName(), negotiation.getStateCount(), operationDescription, negotiation.getId()), throwable);
-                } else {
-                    onFailureHandler.accept(negotiation);
-                    monitor.warning(format("[%s] attempt #%d failed to %s. ContractNegotiation %s will stay in %s state",
-                            getName(), negotiation.getStateCount(), operationDescription, negotiation.getId(),
-                            ContractNegotiationStates.from(negotiation.getState())), throwable);
-                }
-            };
-        }
+    @NotNull
+    private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
     }
-
 }

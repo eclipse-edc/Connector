@@ -30,7 +30,6 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +53,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private String negotiationId;
     private ContractNegotiation negotiation;
     private TestCommand command;
-    private SendRetryManager sendRetryManager = mock(SendRetryManager.class);
 
     @BeforeEach
     void setUp() {
@@ -86,7 +84,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
-                .sendRetryManager(sendRetryManager)
                 .build();
 
         negotiationManager.start();
@@ -117,7 +114,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
-                .sendRetryManager(sendRetryManager)
                 .build();
         negotiationManager.start();
 

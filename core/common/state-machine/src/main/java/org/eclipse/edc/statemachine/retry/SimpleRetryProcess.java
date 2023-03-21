@@ -15,7 +15,9 @@
 package org.eclipse.edc.statemachine.retry;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.time.Clock;
 import java.util.function.Supplier;
 
 /**
@@ -25,13 +27,13 @@ public class SimpleRetryProcess<E extends StatefulEntity<E>> extends RetryProces
 
     private final Supplier<Boolean> process;
 
-    public SimpleRetryProcess(E entity, Supplier<Boolean> process, SendRetryManager sendRetryManager) {
-        super(entity, sendRetryManager);
+    public SimpleRetryProcess(E entity, Supplier<Boolean> process, Monitor monitor, Clock clock, EntityRetryProcessConfiguration configuration) {
+        super(entity, configuration, monitor, clock);
         this.process = process;
     }
 
     @Override
-    boolean process(E entity) {
+    boolean process(E entity, String description) {
         return process.get();
     }
 

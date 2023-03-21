@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableI
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
@@ -33,9 +34,11 @@ import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,14 +57,18 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFIED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFYING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
@@ -71,12 +78,14 @@ import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
 
+    private static final int RETRY_LIMIT = 1;
+    private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
+    private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
-    private final SendRetryManager sendRetryManager = mock(SendRetryManager.class);
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -98,12 +107,12 @@ class ConsumerContractNegotiationManagerImplTest {
                 .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
-                .sendRetryManager(sendRetryManager)
+                .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .build();
     }
 
     @Test
-    void initiateShouldSaveNewNegotiationInInitialState() {
+    void initiate_shouldSaveNewNegotiationInInitialState() {
         var contractOffer = contractOffer();
         var request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -128,7 +137,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testConfirmedInvalidId() {
+    void confirmed_invalidId() {
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
         var policy = Policy.Builder.newInstance().build();
@@ -142,7 +151,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testConfirmedConfirmAgreement() {
+    void confirmed_confirmAgreement() {
         var negotiationConsumerRequested = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
@@ -162,7 +171,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testConfirmedTerminateAgreement() {
+    void confirmed_terminateAgreement() {
         var negotiationConsumerOffered = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
@@ -181,7 +190,28 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void testDeclined() {
+    void finalized_shouldTransitToFinalizedState() {
+        var negotiation = contractNegotiationBuilder().id("negotiationId").state(CONSUMER_VERIFIED.code()).build();
+        when(store.find("negotiationId")).thenReturn(negotiation);
+
+        var result = negotiationManager.finalized("negotiationId");
+
+        assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent)
+                .satisfies(actual -> assertThat(actual.getState()).isEqualTo(PROVIDER_FINALIZED.code()));
+        verify(store).save(argThat(n -> n.getState() == PROVIDER_FINALIZED.code()));
+    }
+
+    @Test
+    void finalized_shouldFail_whenNegotiationDoesNotExist() {
+        when(store.find("negotiationId")).thenReturn(null);
+
+        var result = negotiationManager.finalized("negotiationId");
+
+        assertThat(result).matches(StatusResult::failed);
+    }
+
+    @Test
+    void declined() {
         var negotiationConsumerOffered = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
@@ -223,11 +253,10 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void requesting_shouldTransitionRequestingIfSendFails_andRetriesNotExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
 
         negotiationManager.start();
 
@@ -239,11 +268,10 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void requesting_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_REQUESTING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
 
         negotiationManager.start();
 
@@ -271,11 +299,10 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void consumerApproving_shouldTransitionApprovingIfSendFails_andRetriesNotExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
 
         negotiationManager.start();
 
@@ -287,17 +314,87 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void consumerApproving_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
-        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_AGREEING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
 
         negotiationManager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
+        });
+    }
+
+    @Test
+    void providerAgreed_shouldTransitToVerifying() {
+        var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREED.code()).build();
+        when(store.nextForState(eq(PROVIDER_AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFYING.code()));
+            verifyNoInteractions(dispatcherRegistry);
+        });
+    }
+
+    @Test
+    void providerAgreed_shouldTransitToFinalized_whenProtocolIsIdsMultipart() {
+        var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREED.code()).protocol("ids-multipart").build();
+        when(store.nextForState(eq(PROVIDER_AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == PROVIDER_FINALIZED.code()));
+            verifyNoInteractions(dispatcherRegistry);
+        });
+    }
+
+    @Test
+    void consumerVerifying_shouldSendMessageAndTransitToVerified() {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).build();
+        when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture("any"));
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFIED.code()));
+            verify(dispatcherRegistry).send(any(), isA(ContractAgreementVerificationMessage.class));
+        });
+    }
+
+    @Test
+    void consumerVerifying_shouldKeepState_whenDispatchFails() {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).stateCount(RETRIES_NOT_EXHAUSTED).build();
+        when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONSUMER_VERIFYING.code()));
+        });
+    }
+
+    @Test
+    void consumerVerifying_shouldTransitToTerminating_whenDispatchFailsAndRetriesExhausted() {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFYING.code()).stateCount(RETRIES_EXHAUSTED).build();
+        when(store.nextForState(eq(CONSUMER_VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
@@ -320,12 +417,11 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void terminating_shouldTransitionTerminatingIfSendFails_andRetriesNotExhausted() {
-        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
 
         negotiationManager.start();
 
@@ -336,18 +432,17 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void terminating_shouldTransitionTerminatingIfSendFails_andRetriesExhausted() {
-        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).build();
+    void terminating_shouldTransitionToTerminatedIfSendFails_andRetriesExhausted() {
+        var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
 
         negotiationManager.start();
 
         await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
         });
     }

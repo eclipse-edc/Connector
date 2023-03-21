@@ -15,7 +15,9 @@
 package org.eclipse.edc.statemachine.retry;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.time.Clock;
 import java.util.function.Consumer;
 
 /**
@@ -26,32 +28,45 @@ import java.util.function.Consumer;
 public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryProcess<E, T>> {
 
     private final E entity;
-    private final SendRetryManager sendRetryManager;
+    private final EntityRetryProcessConfiguration configuration;
+    private final Monitor monitor;
+    private final Clock clock;
     protected Consumer<E> onDelay;
 
-    protected RetryProcess(E entity, SendRetryManager sendRetryManager) {
+    protected RetryProcess(E entity, EntityRetryProcessConfiguration configuration, Monitor monitor, Clock clock) {
         this.entity = entity;
-        this.sendRetryManager = sendRetryManager;
+        this.configuration = configuration;
+        this.monitor = monitor;
+        this.clock = clock;
     }
 
     /**
      *  Execute some logic on the {@link E} entity, return true if the process happened, false otherwise.
      */
-    abstract boolean process(E entity);
+    abstract boolean process(E entity, String description);
 
     /**
      * If entity is not yet ready to be processed executes {@link #onDelay} handler and return false,
      * otherwise processes it.
+     *
+     * @param description the process description.
+     * @return false if process should not be run yet, the result of the process otherwise.
      */
-    public boolean execute() {
-        if (sendRetryManager.shouldDelay(entity)) {
-            if (onDelay != null) {
-                onDelay.accept(entity);
+    public boolean execute(String description) {
+        if (isRetry(entity)) {
+            var delay = delayMillis(entity);
+            if (delay > 0) {
+                monitor.debug(String.format("Entity %s %s retry #%d will not be attempted before %d ms.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, delay));
+                if (onDelay != null) {
+                    onDelay.accept(entity);
+                }
+                return false;
+            } else {
+                monitor.debug(String.format("Entity %s %s retry #%d of %d.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, configuration.getRetryLimit()));
             }
-            return false;
         }
 
-        return process(entity);
+        return process(entity, description);
     }
 
     /**
@@ -63,9 +78,30 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryP
     }
 
     /**
-     * Checks if retries are exhausted
+     * Determines whether retries for sending the given entity have been exhausted.
+     *
+     * @param entity entity to be evaluated.
+     * @return {@code true} if the entity should not be sent anymore.
      */
     protected boolean retriesExhausted(E entity) {
-        return sendRetryManager.retriesExhausted(entity);
+        return entity.getStateCount() > configuration.getRetryLimit();
+    }
+
+    private long delayMillis(E entity) {
+        // Get a new instance of WaitStrategy.
+        var delayStrategy = configuration.getDelayStrategySupplier().get();
+
+        // Set the WaitStrategy to have observed <retryCount> previous failures.
+        // This is relevant for stateful strategies such as exponential wait.
+        delayStrategy.failures(entity.getStateCount() - 1);
+
+        // Get the delay time following the number of failures.
+        long waitMillis = delayStrategy.retryInMillis();
+
+        return entity.getStateTimestamp() + waitMillis - clock.millis();
+    }
+
+    private boolean isRetry(E entity) {
+        return entity.getStateCount() - 1 > 0;
     }
 }

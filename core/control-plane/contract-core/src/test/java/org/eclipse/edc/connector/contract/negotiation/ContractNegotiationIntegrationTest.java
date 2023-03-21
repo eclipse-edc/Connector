@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
@@ -40,7 +39,6 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +64,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ComponentTest
+//@ComponentTest
 class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
@@ -91,8 +89,6 @@ class ContractNegotiationIntegrationTest {
 
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
-        var sendRetryManager = mock(SendRetryManager.class);
-
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(providerDispatcherRegistry)
                 .monitor(monitor)
@@ -103,7 +99,6 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(providerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
-                .sendRetryManager(sendRetryManager)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -116,7 +111,6 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(consumerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
-                .sendRetryManager(sendRetryManager)
                 .build();
     }
 
@@ -145,7 +139,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-multipart")
                 .build();
 
         consumerManager.initiate(request);
@@ -190,7 +184,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-multipart")
                 .build();
         consumerManager.initiate(request);
 
@@ -237,7 +231,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-multipart")
                 .build();
         consumerManager.initiate(request);
 
