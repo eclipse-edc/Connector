@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.jsonld.transformer.to;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.contract.spi.types.offer.Dataset;
@@ -64,11 +65,25 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
     
     private void transformProperties(String key, JsonValue value, Dataset.Builder builder, TransformerContext context) {
         if (DCAT_POLICY_PROPERTY.equals(key)) {
-            transformArrayOrObject(value, Policy.class, builder::policy, builder::policies, context);
+            transformPolicies(value, builder, context);
         } else if (DCAT_DISTRIBUTION_PROPERTY.equals(key)) {
             transformArrayOrObject(value, Distribution.class, builder::distribution, builder::distributions, context);
         } else {
             builder.property(key, transformGenericProperty(value, context));
+        }
+    }
+    
+    private void transformPolicies(JsonValue value, Dataset.Builder builder, TransformerContext context) {
+        if (value instanceof JsonObject) {
+            var object = (JsonObject) value;
+            var id = nodeId(object);
+            var policy = context.transform(object, Policy.class);
+            builder.offer(id, policy);
+        } else if (value instanceof JsonArray) {
+            var array = (JsonArray) value;
+            array.stream().forEach(entry -> transformPolicies(entry, builder, context));
+        } else {
+            context.reportProblem("Invalid hasPolicy property");
         }
     }
 }
