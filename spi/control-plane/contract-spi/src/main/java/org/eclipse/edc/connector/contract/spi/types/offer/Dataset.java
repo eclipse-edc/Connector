@@ -27,16 +27,16 @@ import org.eclipse.edc.policy.model.Policy;
 public class Dataset {
     
     private String id;
-    private List<Policy> policies = new ArrayList<>();
+    private Map<String, Policy> offers = new HashMap<>();
     private List<Distribution> distributions = new ArrayList<>();
     private Map<String, Object> properties = new HashMap<>();
     
     public String getId() {
         return id;
     }
-    
-    public List<Policy> getPolicies() {
-        return policies;
+
+    public Map<String, Policy> getOffers() {
+        return offers;
     }
     
     public List<Distribution> getDistributions() {
@@ -70,13 +70,8 @@ public class Dataset {
             return this;
         }
         
-        public Builder policies(List<Policy> policies) {
-            dataset.policies = policies;
-            return this;
-        }
-        
-        public Builder policy(Policy policy) {
-            dataset.policies.add(policy);
+        public Builder offer(String offerId, Policy policy) {
+            dataset.offers.put(offerId, policy);
             return this;
         }
         
