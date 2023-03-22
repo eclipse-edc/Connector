@@ -493,6 +493,7 @@ class TransferProcessManagerImplTest {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class));
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+            verify(listener).started(process);
         });
     }
 
