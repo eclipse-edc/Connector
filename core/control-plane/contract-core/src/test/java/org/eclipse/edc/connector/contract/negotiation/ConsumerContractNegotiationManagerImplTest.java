@@ -145,7 +145,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var result = negotiationManager.confirmed(token, "not a valid id", contractAgreement, policy);
 
         assertThat(result.fatalError()).isTrue();
-        verify(policyStore, never()).save(any());
+        verify(policyStore, never()).create(any());
         verify(store, never()).save(any());
         verifyNoInteractions(listener);
     }

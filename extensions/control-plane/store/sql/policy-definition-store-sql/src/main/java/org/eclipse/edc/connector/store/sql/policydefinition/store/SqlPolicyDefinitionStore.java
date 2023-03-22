@@ -92,7 +92,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     }
 
     @Override
-    public StoreResult<PolicyDefinition> save(PolicyDefinition policy) {
+    public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
         Objects.requireNonNull(policy);
         var policyId = policy.getUid();
         return transactionContext.execute(() -> {
@@ -118,7 +118,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     }
 
     @Override
-    public StoreResult<PolicyDefinition> deleteById(String policyId) {
+    public StoreResult<PolicyDefinition> delete(String policyId) {
         Objects.requireNonNull(policyId);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
