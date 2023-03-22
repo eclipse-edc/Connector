@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.controller;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -27,6 +25,8 @@ import org.eclipse.edc.protocol.dsp.spi.catalog.service.CatalogService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
+import java.util.Map;
+
 import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.compactDocument;
 import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.expandDocument;
 
@@ -34,19 +34,19 @@ import static org.eclipse.edc.protocol.dsp.util.JsonLdUtil.expandDocument;
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/catalog")
 public class CatalogController {
-    
+
     private Monitor monitor;
     private CatalogService catalogService;
     private ObjectMapper mapper;
-    
+
     public CatalogController(Monitor monitor, CatalogService catalogService, TypeManager typeManager) {
         this.monitor = monitor;
         this.catalogService = catalogService;
         this.mapper = typeManager.getMapper("json-ld");
     }
-    
+
     //TODO authentication
-    
+
     @POST
     @Path("/request")
     public Map<String, Object> getCatalog(JsonObject jsonObject) {

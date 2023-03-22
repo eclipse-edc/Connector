@@ -14,18 +14,18 @@
 
 package org.eclipse.edc.protocol.dsp.spi.dispatcher;
 
-import java.util.function.Function;
-
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
+import java.util.function.Function;
+
 public interface DspDispatcherDelegate<M extends RemoteMessage, R> {
 
     Class<M> getMessageType();
-    
+
     Request buildRequest(M message);
-    
+
     Function<Response, R> parseResponse();
 
 }

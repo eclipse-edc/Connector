@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.delegate;
 
-import java.io.IOException;
-import java.util.function.Function;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -27,31 +24,34 @@ import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
 
+import java.io.IOException;
+import java.util.function.Function;
+
 public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequest, JsonObject> {
-    
+
     private ObjectMapper objectMapper;
-    
+
     public CatalogRequestDelegate(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
-    
+
     @Override
     public Class<CatalogRequest> getMessageType() {
         return CatalogRequest.class;
     }
-    
+
     @Override
     public Request buildRequest(CatalogRequest message) {
         //TODO body
         var requestBody = RequestBody.create("content", MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
-        
+
         return new Request.Builder()
                 .url(message.getConnectorAddress() + "/catalog/request")
                 .header("Authorization", "") //TODO authentication
                 .post(requestBody)
                 .build();
     }
-    
+
     @Override
     public Function<Response, JsonObject> parseResponse() {
         return response -> {
