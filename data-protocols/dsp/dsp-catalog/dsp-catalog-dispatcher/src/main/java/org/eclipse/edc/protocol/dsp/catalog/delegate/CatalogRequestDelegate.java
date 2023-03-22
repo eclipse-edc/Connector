@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.JsonLdUtil.expandDocument;
+import static org.eclipse.edc.protocol.dsp.spi.catalog.types.CatalogPath.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.catalog.types.CatalogPath.CATALOG_REQUEST;
 
 public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequest, Catalog> {
     
@@ -56,7 +58,7 @@ public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequ
         var requestBody = RequestBody.create(toJson(catalogRequestMessage), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
         
         return new Request.Builder()
-                .url(message.getConnectorAddress() + "/catalog/request")
+                .url(message.getConnectorAddress() + BASE_PATH + CATALOG_REQUEST)
                 .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();

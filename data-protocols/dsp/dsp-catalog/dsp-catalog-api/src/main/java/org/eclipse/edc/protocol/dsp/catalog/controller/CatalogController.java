@@ -31,12 +31,14 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.util.Map;
 
 import static org.eclipse.edc.protocol.dsp.api.configuration.auth.ClaimTokenRequestFilter.CLAIM_TOKEN_HEADER;
+import static org.eclipse.edc.protocol.dsp.spi.catalog.types.CatalogPath.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.catalog.types.CatalogPath.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.compactDocument;
 import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.expandDocument;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path("/catalog")
+@Path(BASE_PATH)
 public class CatalogController {
     
     private Monitor monitor;
@@ -50,7 +52,7 @@ public class CatalogController {
     }
     
     @POST
-    @Path("/request")
+    @Path(CATALOG_REQUEST)
     public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(CLAIM_TOKEN_HEADER) String token) {
         var document = expandDocument(jsonObject); //expanding document returns a JsonArray of size 1
         
