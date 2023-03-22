@@ -15,10 +15,12 @@
 package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
+@JsonDeserialize(builder = DataService.Builder.class)
 public class DataService {
 
     private String id;

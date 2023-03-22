@@ -15,10 +15,14 @@
 package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
+@JsonDeserialize(builder = Distribution.Builder.class)
 public class Distribution {
 
     private String format; //e.g. ids:s3+push
@@ -29,10 +33,12 @@ public class Distribution {
         return format;
     }
 
+    @JsonIgnore
     public DataService getDataService() {
         return dataService;
     }
-
+    
+    @JsonProperty("dataService")
     public String getDataServiceId() {
         return dataServiceId;
     }

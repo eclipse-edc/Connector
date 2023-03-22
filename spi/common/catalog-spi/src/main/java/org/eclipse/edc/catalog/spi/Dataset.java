@@ -16,6 +16,7 @@ package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
 
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@JsonDeserialize(builder = Dataset.Builder.class)
 public class Dataset {
 
     private String id;
