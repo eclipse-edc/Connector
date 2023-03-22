@@ -27,11 +27,6 @@ val metaModelVersion: String by project
 buildscript {
     repositories {
         mavenLocal()
-        maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-        }
-        mavenCentral()
-        gradlePluginPortal()
     }
     dependencies {
         val edcGradlePluginsVersion: String by project
