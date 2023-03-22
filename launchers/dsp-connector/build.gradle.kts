@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
 
     implementation(project(":data-protocols:dsp:dsp-api-configuration"))
-    //implementation(project(":data-protocols:dsp:dsp-catalog"))
+    implementation(project(":data-protocols:dsp:dsp-catalog"))
     implementation(project(":data-protocols:dsp:dsp-control-plane"))
     implementation(project(":data-protocols:dsp:dsp-core"))
     implementation(project(":data-protocols:dsp:dsp-spi:dsp-catalog-spi"))
