@@ -18,6 +18,7 @@ package org.eclipse.edc.protocol.dsp.controlplane.service;
 import jakarta.json.JsonObject;
 
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
@@ -66,20 +67,19 @@ public class DspTransferProcessServiceImpl implements DspTransferProcessService 
             throw new InvalidRequestException("Request body was malformed");
         }
 
-        var value = transferProcessService.initiateTransfer(dataRequest.getContent()); //TODO get
+        var value = transferProcessService.initiateTransfer(dataRequest.getContent()); //TODO get TransferProcess as Return Value
 
         return null; //TODO RETURN Correct Value
     }
 
     @Override
     public void transferProcessStart(String id, JsonObject jsonObject) {
-
         //TODO START transferProcess
     }
 
     @Override
     public void transferProcessCompletion(String id, JsonObject jsonObject) {
-        transferProcessService.terminate(id, "API Call"); //TODO Write Correct Reason
+        transferProcessService.complete(id); //TODO Write Correct Reason
     }
 
     @Override
