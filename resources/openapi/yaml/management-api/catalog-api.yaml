@@ -108,8 +108,24 @@ components:
           example: null
           items:
             $ref: '#/components/schemas/ContractOffer'
+        dataServices:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/DataService'
+        datasets:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Dataset'
         id:
           type: string
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
           example: null
     CatalogRequestDto:
       type: object
@@ -125,14 +141,14 @@ components:
     Constraint:
       type: object
       discriminator:
-        propertyName: edctype
+        propertyName: '@type'
       example: null
       properties:
-        edctype:
+        '@type':
           type: string
           example: null
       required:
-      - edctype
+      - '@type'
     ContractOffer:
       type: object
       example: null
@@ -184,6 +200,54 @@ components:
       required:
       - operandLeft
       - operator
+    DataService:
+      type: object
+      example: null
+      properties:
+        endpointUrl:
+          type: string
+          example: null
+        id:
+          type: string
+          example: null
+        terms:
+          type: string
+          example: null
+    Dataset:
+      type: object
+      example: null
+      properties:
+        distributions:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Distribution'
+        id:
+          type: string
+          example: null
+        offers:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Policy'
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+    Distribution:
+      type: object
+      example: null
+      properties:
+        dataService:
+          $ref: '#/components/schemas/DataService'
+        dataServiceId:
+          type: string
+          example: null
+        format:
+          type: string
+          example: null
     Duty:
       type: object
       example: null

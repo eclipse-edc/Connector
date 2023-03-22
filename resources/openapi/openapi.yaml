@@ -155,7 +155,7 @@ paths:
       description: "Updates an asset with the given ID if it exists. If the asset\
         \ is not found, no further action is taken. DANGER ZONE: Note that updating\
         \ assets can have unexpected results, especially for contract offers that\
-        \ have been sent out or ongoing or contract negotiations."
+        \ have been sent out or are ongoing in contract negotiations."
       operationId: updateAsset
       parameters:
       - name: assetId
@@ -182,14 +182,12 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
-          description: "Asset could not be updated, because it does not exist. Asset\
-            \ need to be created together with DataAddresses."
+          description: "Asset could not be updated, because it does not exist."
   /assets/{assetId}/dataaddress:
     put:
       tags:
       - Asset
-      description: "Updates a DataAddress for an asset with the given ID. If the asset\
-        \ is not found, no further action is taken"
+      description: Updates a DataAddress for an asset with the given ID.
       operationId: updateDataAddress
       parameters:
       - name: assetId
@@ -2090,8 +2088,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ContractOffer'
+        dataServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataService'
+        datasets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dataset'
         id:
           type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: object
     CatalogRequestDto:
       required:
       - providerUrl
@@ -2103,13 +2113,13 @@ components:
           $ref: '#/components/schemas/QuerySpecDto'
     Constraint:
       required:
-      - edctype
+      - '@type'
       type: object
       properties:
-        edctype:
+        '@type':
           type: string
       discriminator:
-        propertyName: edctype
+        propertyName: '@type'
     ContractAgreementDto:
       required:
       - assetId
@@ -2362,6 +2372,32 @@ components:
           type: string
         id:
           type: string
+    DataService:
+      type: object
+      properties:
+        endpointUrl:
+          type: string
+        id:
+          type: string
+        terms:
+          type: string
+    Dataset:
+      type: object
+      properties:
+        distributions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Distribution'
+        id:
+          type: string
+        offers:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Policy'
+        properties:
+          type: object
+          additionalProperties:
+            type: object
     DeprovisionedResource:
       type: object
       properties:
@@ -2372,6 +2408,15 @@ components:
         inProcess:
           type: boolean
         provisionedResourceId:
+          type: string
+    Distribution:
+      type: object
+      properties:
+        dataService:
+          $ref: '#/components/schemas/DataService'
+        dataServiceId:
+          type: string
+        format:
           type: string
     Duty:
       type: object

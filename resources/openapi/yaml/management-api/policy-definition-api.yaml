@@ -279,14 +279,14 @@ components:
     Constraint:
       type: object
       discriminator:
-        propertyName: edctype
+        propertyName: '@type'
       example: null
       properties:
-        edctype:
+        '@type':
           type: string
           example: null
       required:
-      - edctype
+      - '@type'
     CriterionDto:
       type: object
       example: null
