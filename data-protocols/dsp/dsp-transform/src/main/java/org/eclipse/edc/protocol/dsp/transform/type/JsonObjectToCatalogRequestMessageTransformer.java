@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.transform.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
@@ -60,8 +61,11 @@ public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLd
     private QuerySpec transformQuerySpec(JsonValue value, TransformerContext context) {
         if (value instanceof JsonObject) {
             return mapper.convertValue(value, QuerySpec.class);
+        } else if (value instanceof JsonArray) {
+            var array = (JsonArray) value;
+            return transformQuerySpec(array.getJsonObject(0), context);
         } else {
-            context.reportProblem(format("Expected filter to be JsonObject, but was %s", value.getClass().getSimpleName()));
+            context.reportProblem(format("Expected filter to be JsonObject or JsonArray, but was %s", value.getClass().getSimpleName()));
             return null;
         }
     }
