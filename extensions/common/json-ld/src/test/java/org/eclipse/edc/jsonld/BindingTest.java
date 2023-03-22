@@ -25,8 +25,8 @@ import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.model.Catalog;
-import org.eclipse.edc.jsonld.model.Dataset;
+import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.transformer.from.FromContractOfferTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
@@ -72,8 +72,8 @@ class BindingTest {
     @Test
     public void fromCatalog() throws Exception {
         var catalog = Catalog.Builder.newInstance()
-                .dataset(Dataset.Builder.newInstance().id(UUID.randomUUID().toString()).offer(createPolicy()).build())
-                .dataset(Dataset.Builder.newInstance().id(UUID.randomUUID().toString()).offer(Policy.Builder.newInstance().build()).build())
+                .dataset(Dataset.Builder.newInstance().id(UUID.randomUUID().toString()).offer("offerId", createPolicy()).build())
+                .dataset(Dataset.Builder.newInstance().id(UUID.randomUUID().toString()).offer("offerId", Policy.Builder.newInstance().build()).build())
                 .property(FOO_NAMESPACE + "fooprop", "fooval")
                 .property(FOO_NAMESPACE + "bazprop", "bazval")
                 .build();
