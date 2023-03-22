@@ -15,11 +15,12 @@
 package org.eclipse.edc.test.system.local;
 
 import org.eclipse.edc.azure.blob.api.BlobStoreApiImpl;
+import org.eclipse.edc.azure.testfixtures.TestFunctions;
 import org.eclipse.edc.azure.testfixtures.annotations.AzureDataFactoryIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.eclipse.edc.test.system.utils.TransferSimulationUtils;
+import org.eclipse.edc.test.system.utils.TransferTestRunner;
 import org.eclipse.edc.vault.azure.AzureVault;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
@@ -43,25 +44,26 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.lang.System.getenv;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.eclipse.edc.test.system.local.BlobTransferSimulationConfiguration.BLOB_CONTENT;
+import static org.eclipse.edc.test.system.local.BlobTransferConfiguration.BLOB_CONTENT;
 import static org.eclipse.edc.test.system.local.BlobTransferUtils.createAsset;
 import static org.eclipse.edc.test.system.local.BlobTransferUtils.createContractDefinition;
 import static org.eclipse.edc.test.system.local.BlobTransferUtils.createPolicy;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.CONSUMER_CONNECTOR_PATH;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.CONSUMER_CONNECTOR_PORT;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.CONSUMER_IDS_API;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.CONSUMER_IDS_API_PORT;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.CONSUMER_MANAGEMENT_PATH;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.CONSUMER_MANAGEMENT_PORT;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.IDS_PATH;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_CONNECTOR_PATH;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_CONNECTOR_PORT;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_IDS_API;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_IDS_API_PORT;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_MANAGEMENT_PATH;
-import static org.eclipse.edc.test.system.local.TransferLocalSimulation.PROVIDER_MANAGEMENT_PORT;
-import static org.eclipse.edc.test.system.utils.GatlingUtils.runGatling;
-import static org.eclipse.edc.test.system.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_MANAGEMENT_URL;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.IDS_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_DATA;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PORT;
 
 @AzureDataFactoryIntegrationTest
 class AzureDataFactoryTransferIntegrationTest {
@@ -169,11 +171,11 @@ class AzureDataFactoryTransferIntegrationTest {
         var policyId = createPolicy();
         createContractDefinition(policyId);
 
-        // Act
-        System.setProperty(BlobTransferLocalSimulation.ACCOUNT_NAME_PROPERTY, CONSUMER_STORAGE_ACCOUNT_NAME);
-        System.setProperty(BlobTransferLocalSimulation.ACCOUNT_KEY_PROPERTY, account2Key);
-        System.setProperty(BlobTransferLocalSimulation.ACCOUNT_ENDPOINT_PROPERTY, format("https://%s.blob.core.windows.net", CONSUMER_STORAGE_ACCOUNT_NAME));
-        System.setProperty(BlobTransferLocalSimulation.MAX_DURATION_SECONDS_PROPERTY, "360"); // ADF SLA is to initiate copy within 4 minutes
-        runGatling(BlobTransferLocalSimulation.class, TransferSimulationUtils.DESCRIPTION);
+
+        var blobServiceClient = TestFunctions.getBlobServiceClient(CONSUMER_STORAGE_ACCOUNT_NAME, account2Key, TestFunctions.getBlobServiceTestEndpoint(format("https://%s.blob.core.windows.net", CONSUMER_STORAGE_ACCOUNT_NAME)));
+
+        var runner = new TransferTestRunner(new BlobTransferConfiguration(CONSUMER_CONNECTOR_MANAGEMENT_URL, PROVIDER_IDS_API_DATA, blobServiceClient, 360));
+
+        runner.executeTransfer();
     }
 }

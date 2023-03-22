@@ -17,36 +17,41 @@
 package org.eclipse.edc.test.system.local;
 
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PerformanceTest;
-import org.eclipse.edc.test.system.utils.TransferSimulationUtils;
+import org.eclipse.edc.test.system.utils.FileTransferConfiguration;
+import org.eclipse.edc.test.system.utils.TransferTestRunner;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.test.system.local.FileTransferLocalSimulation.CONSUMER_ASSET_PATH;
-import static org.eclipse.edc.test.system.local.FileTransferLocalSimulation.PROVIDER_ASSET_PATH;
-import static org.eclipse.edc.test.system.utils.GatlingUtils.runGatling;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.tempDirectory;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_MANAGEMENT_URL;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_DATA;
 
 @EndToEndTest
-@PerformanceTest
 public class FileTransferIntegrationTest extends FileTransferEdcRuntime {
 
     @Test
     public void transferFile_success() throws Exception {
+
+        var destinationPath = new File(tempDirectory(), "output.txt").getAbsolutePath();
+
         // Arrange
         // Create a file with test data on provider file system.
         var fileContent = "FileTransfer-test-" + UUID.randomUUID();
         Files.write(Path.of(PROVIDER_ASSET_PATH), fileContent.getBytes(StandardCharsets.UTF_8));
 
-        // Act
-        runGatling(FileTransferLocalSimulation.class, TransferSimulationUtils.DESCRIPTION);
+
+        var runner = new TransferTestRunner(new FileTransferConfiguration(CONSUMER_CONNECTOR_MANAGEMENT_URL, PROVIDER_IDS_API_DATA, destinationPath));
+
+        runner.executeTransfer();
 
         // Assert
-        var copiedFilePath = Path.of(CONSUMER_ASSET_PATH);
+        var copiedFilePath = Path.of(destinationPath);
         assertThat(copiedFilePath)
                 .withFailMessage("Destination file %s not created", copiedFilePath)
                 .exists();
