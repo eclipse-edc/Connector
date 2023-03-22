@@ -111,6 +111,7 @@ class TransferProcessManagerImplTest {
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private static final String PROVISIONED_RESOURCE_ID = "1";
     private static final int RETRY_LIMIT = 1;
+    private static final int RETRY_EXHAUSTED = RETRY_LIMIT + 1;
 
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
@@ -544,7 +545,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void starting_onFailureAndRetriesExhausted_transitToTerminating() {
-        var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_LIMIT + 1).build();
+        var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -884,6 +885,7 @@ class TransferProcessManagerImplTest {
     @Test
     void deprovisioning_shouldTransitionToDeprovisionedWithErrorOnDeprovisionFailure() {
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
+                .stateCount(RETRY_EXHAUSTED)
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
