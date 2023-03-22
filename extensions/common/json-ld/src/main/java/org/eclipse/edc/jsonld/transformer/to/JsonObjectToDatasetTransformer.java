@@ -17,8 +17,8 @@ package org.eclipse.edc.jsonld.transformer.to;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.contract.spi.types.offer.Dataset;
-import org.eclipse.edc.connector.contract.spi.types.offer.Distribution;
+import org.eclipse.edc.catalog.spi.Dataset;
+import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -34,35 +34,35 @@ import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayO
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformGenericProperty;
 
 public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<JsonObject, Dataset> {
-    
+
     private static final String DCAT_DATASET_TYPE = DCAT_SCHEMA + "Dataset";
     private static final String DCAT_DISTRIBUTION_PROPERTY = DCAT_SCHEMA + "distribution";
     private static final String DCAT_POLICY_PROPERTY = DCAT_SCHEMA + "hasPolicy";
-    
+
     public JsonObjectToDatasetTransformer() {
         super(JsonObject.class, Dataset.class);
     }
-    
+
     @Override
     public @Nullable Dataset transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
         if (object == null) {
             return null;
         }
-    
+
         var type = nodeType(object, context);
         if (DCAT_DATASET_TYPE.equals(type)) {
             var builder = Dataset.Builder.newInstance();
-            
+
             builder.id(nodeId(object));
             visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-            
+
             return builder.build();
         }else {
             context.reportProblem(format("Cannot transform type %s to Dataset", type));
             return null;
         }
     }
-    
+
     private void transformProperties(String key, JsonValue value, Dataset.Builder builder, TransformerContext context) {
         if (DCAT_POLICY_PROPERTY.equals(key)) {
             transformPolicies(value, builder, context);
@@ -72,7 +72,7 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
             builder.property(key, transformGenericProperty(value, context));
         }
     }
-    
+
     private void transformPolicies(JsonValue value, Dataset.Builder builder, TransformerContext context) {
         if (value instanceof JsonObject) {
             var object = (JsonObject) value;

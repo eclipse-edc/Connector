@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.contract.spi.types.offer;
+package org.eclipse.edc.catalog.spi;
 
 import java.util.Objects;
 
@@ -20,23 +20,23 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 public class DataService {
-    
+
     private String id;
     private String terms; //"dct:terms": "ids:connector"
     private String endpointUrl;
-    
+
     public String getId() {
         return id;
     }
-    
+
     public String getTerms() {
         return terms;
     }
-    
+
     public String getEndpointUrl() {
         return endpointUrl;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -45,39 +45,39 @@ public class DataService {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        
+
         var dataService = (DataService) o;
         return id.equals(dataService.getId()) && terms.equals(dataService.getTerms()) && endpointUrl.equals(dataService.getEndpointUrl());
     }
-    
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private DataService dataService;
-        
+
         private Builder() {
             dataService = new DataService();
         }
-    
+
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
-        
+
         public Builder id(String id) {
             dataService.id = id;
             return this;
         }
-        
+
         public Builder terms(String terms) {
             dataService.terms = terms;
             return this;
         }
-        
+
         public Builder endpointUrl(String endpointUrl) {
             dataService.endpointUrl = endpointUrl;
             return this;
         }
-        
+
         public DataService build() {
             Objects.requireNonNull(dataService.id, "Id must not be null.");
             Objects.requireNonNull(dataService.terms, "Terms must not be null.");
@@ -85,5 +85,5 @@ public class DataService {
             return dataService;
         }
     }
-    
+
 }

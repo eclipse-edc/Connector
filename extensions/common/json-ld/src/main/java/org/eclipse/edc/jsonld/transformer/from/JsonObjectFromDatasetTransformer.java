@@ -20,7 +20,7 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.contract.spi.types.offer.Dataset;
+import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -31,50 +31,50 @@ import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 
 public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<Dataset, JsonObject> {
-    
+
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
-    
+
     public JsonObjectFromDatasetTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
         super(Dataset.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;
     }
-    
+
     @Override
     public @Nullable JsonObject transform(@Nullable Dataset dataset, @NotNull TransformerContext context) {
         if (dataset == null) {
             return null;
         }
-        
+
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, dataset.getId());
         objectBuilder.add(TYPE, DCAT_SCHEMA + "Dataset");
 
         var policies = transformOffers(dataset, context);
         objectBuilder.add(DCAT_SCHEMA + "hasPolicy", policies);
-        
+
         var distributions = dataset.getDistributions().stream()
                 .map(distribution -> context.transform(distribution, JsonObject.class))
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
         objectBuilder.add(DCAT_SCHEMA + "distribution", distributions);
-    
+
         // transform properties, which are generic JSON values.
         dataset.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));
-        
+
         return objectBuilder.build();
     }
-    
+
     private JsonValue transformOffers(Dataset dataset, TransformerContext context) {
         var builder = jsonFactory.createArrayBuilder();
         for (var entry : dataset.getOffers().entrySet()) {
             var policy = context.transform(entry.getValue(), JsonObject.class);
-            
+
             var policyBuilder = jsonFactory.createObjectBuilder(policy);
             policyBuilder.add(ID, Json.createValue(entry.getKey()));
             builder.add(policyBuilder.build());
-            
+
         }
         return builder.build();
     }

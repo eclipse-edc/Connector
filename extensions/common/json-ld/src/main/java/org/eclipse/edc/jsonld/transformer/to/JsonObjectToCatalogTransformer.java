@@ -18,8 +18,8 @@ package org.eclipse.edc.jsonld.transformer.to;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.connector.contract.spi.types.offer.DataService;
-import org.eclipse.edc.connector.contract.spi.types.offer.Dataset;
+import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformGeneri
  *
  */
 public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
-    
+
     private static final String DCAT_CATALOG_TYPE = DCAT_SCHEMA + "Catalog";
     private static final String DCAT_DATASET_PROPERTY = DCAT_SCHEMA + "dataset";
     private static final String DCAT_DATA_SERVICE_PROPERTY = DCAT_SCHEMA + "DataService";

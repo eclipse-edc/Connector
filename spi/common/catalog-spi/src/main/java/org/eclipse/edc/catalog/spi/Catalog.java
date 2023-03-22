@@ -18,8 +18,6 @@ package org.eclipse.edc.catalog.spi;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.contract.spi.types.offer.DataService;
-import org.eclipse.edc.connector.contract.spi.types.offer.Dataset;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,15 +44,15 @@ public class Catalog {
     public List<ContractOffer> getContractOffers() {
         return contractOffers;
     }
-    
+
     public List<Dataset> getDatasets() {
         return datasets;
     }
-    
+
     public List<DataService> getDataServices() {
         return dataServices;
     }
-    
+
     public Map<String, Object> getProperties() {
         return properties;
     }
@@ -62,7 +60,7 @@ public class Catalog {
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private Catalog catalog;
-        
+
         private Builder() {
             catalog = new Catalog();
         }
@@ -80,32 +78,32 @@ public class Catalog {
             catalog.contractOffers = contractOffers;
             return this;
         }
-        
+
         public Builder datasets(List<Dataset> datasets) {
             catalog.datasets = datasets;
             return this;
         }
-    
+
         public Builder dataset(Dataset dataset) {
             catalog.datasets.add(dataset);
             return this;
         }
-        
+
         public Builder dataServices(List<DataService> dataServices) {
             catalog.dataServices = dataServices;
             return this;
         }
-    
+
         public Builder dataService(DataService dataService) {
             catalog.dataServices.add(dataService);
             return this;
         }
-        
+
         public Builder properties(Map<String, Object> properties) {
             catalog.properties = properties;
             return this;
         }
-        
+
         public Builder property(String key, Object value) {
             catalog.properties.put(key, value);
             return this;
@@ -118,7 +116,7 @@ public class Catalog {
             if (catalog.contractOffers == null && catalog.datasets == null) {
                 throw new NullPointerException("Either contractOffers or datasets required for catalog.");
             }
-            
+
             return catalog;
         }
 

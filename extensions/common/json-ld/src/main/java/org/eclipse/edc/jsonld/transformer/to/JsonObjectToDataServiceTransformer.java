@@ -2,7 +2,7 @@ package org.eclipse.edc.jsonld.transformer.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.contract.spi.types.offer.DataService;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransforme
     private static final String DCAT_DATA_SERVICE_TYPE =  DCAT_SCHEMA + "DataService";
     private static final String DCT_TERMS_PROPERTY = DCT_SCHEMA + "terms";
     private static final String DCT_ENDPOINT_URL_PROPERTY = DCT_SCHEMA + "endpointUrl";
-    
+
     public JsonObjectToDataServiceTransformer() {
         super(JsonObject.class, DataService.class);
     }
@@ -34,21 +34,21 @@ public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransforme
         if (object == null) {
             return null;
         }
-    
+
         var type = nodeType(object, context);
         if (DCAT_DATA_SERVICE_TYPE.equals(type)) {
             var builder = DataService.Builder.newInstance();
-    
+
             builder.id(nodeId(object));
             visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-    
+
             return builder.build();
         } else {
             context.reportProblem(format("Cannot transform type %s to DataService", type));
             return null;
         }
     }
-    
+
     private void transformProperties(String key, JsonValue value, DataService.Builder builder, TransformerContext context) {
         if (DCT_TERMS_PROPERTY.equals(key)) {
             transformString(value, builder::terms, context);

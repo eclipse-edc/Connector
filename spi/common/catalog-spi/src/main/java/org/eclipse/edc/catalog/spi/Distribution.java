@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.contract.spi.types.offer;
+package org.eclipse.edc.catalog.spi;
 
 import java.util.Objects;
 
@@ -20,46 +20,46 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 public class Distribution {
-    
+
     private String format; //e.g. ids:s3+push
     private DataService dataService;
     private String dataServiceId;
-    
+
     public String getFormat() {
         return format;
     }
-    
+
     public DataService getDataService() {
         return dataService;
     }
-    
+
     public String getDataServiceId() {
         return dataServiceId;
     }
-    
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private Distribution distribution;
-        
+
         private Builder() {
             distribution = new Distribution();
         }
-    
+
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
-        
+
         public Builder format(String format) {
             distribution.format = format;
             return this;
         }
-        
+
         public Builder dataService(DataService dataService) {
             distribution.dataService = dataService;
             return this;
         }
-        
+
         public Builder dataServiceId(String dataServiceId) {
             distribution.dataServiceId = dataServiceId;
             return this;
@@ -69,11 +69,11 @@ public class Distribution {
             if (distribution.dataServiceId == null) {
                 Objects.requireNonNull(distribution.dataService, "DataService must not be null.");
             }
-    
+
             Objects.requireNonNull(distribution.format, "Format must not be null.");
-            
+
             return distribution;
         }
     }
-    
+
 }
