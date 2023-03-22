@@ -311,6 +311,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorAddress(negotiation.getCounterPartyAddress())
+                .correlationId(negotiation.getId())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))

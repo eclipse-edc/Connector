@@ -22,6 +22,7 @@ public class ContractAgreementVerificationMessage implements RemoteMessage {
 
     private String protocol;
     private String connectorAddress;
+    private String correlationId;
 
     @Override
     public String getProtocol() {
@@ -31,6 +32,10 @@ public class ContractAgreementVerificationMessage implements RemoteMessage {
     @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     public static class Builder {
@@ -54,9 +59,15 @@ public class ContractAgreementVerificationMessage implements RemoteMessage {
             return this;
         }
 
+        public Builder correlationId(String correlationId) {
+            this.message.correlationId = correlationId;
+            return this;
+        }
+
         public ContractAgreementVerificationMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
             Objects.requireNonNull(message.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(message.correlationId, "correlationId");
             return message;
         }
     }
