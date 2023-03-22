@@ -14,19 +14,23 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.controller;
 
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.protocol.dsp.spi.catalog.service.CatalogService;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.util.Map;
+
+import static org.eclipse.edc.protocol.dsp.api.configuration.auth.ClaimTokenRequestFilter.CLAIM_TOKEN_HEADER;
 import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.compactDocument;
 import static org.eclipse.edc.protocol.dsp.transform.util.DocumentUtil.expandDocument;
 
@@ -47,12 +51,19 @@ public class CatalogController {
     
     @POST
     @Path("/request")
-    public Map<String, Object> getCatalog(JsonObject jsonObject) {
+    public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(CLAIM_TOKEN_HEADER) String token) {
         var document = expandDocument(jsonObject); //expanding document returns a JsonArray of size 1
-
-        var claimToken = ClaimToken.Builder.newInstance().build(); //TODO get auth token
-        var catalog = catalogService.getCatalog(document.getJsonObject(0), claimToken);
+        
+        var catalog = catalogService.getCatalog(document.getJsonObject(0), readToken(token));
     
         return mapper.convertValue(compactDocument(catalog), Map.class);
+    }
+    
+    private ClaimToken readToken(String token) {
+        try {
+            return mapper.readValue(token, ClaimToken.class);
+        } catch (JsonProcessingException e) {
+            throw new EdcException("Failed to read request.");
+        }
     }
 }
