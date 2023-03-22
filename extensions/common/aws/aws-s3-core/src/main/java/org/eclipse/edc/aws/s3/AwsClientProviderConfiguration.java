@@ -26,6 +26,7 @@ public class AwsClientProviderConfiguration {
     private AwsCredentialsProvider credentialsProvider;
     private URI endpointOverride;
     private int threadPoolSize = DEFAULT_AWS_ASYNC_CLIENT_THREAD_POOL_SIZE;
+    private boolean pathStyleAccessEnabled = false;
 
     private AwsClientProviderConfiguration() {
 
@@ -41,6 +42,10 @@ public class AwsClientProviderConfiguration {
 
     public int getThreadPoolSize() {
         return threadPoolSize;
+    }
+
+    public boolean getPathStyleAccessEnabled() {
+        return pathStyleAccessEnabled;
     }
 
     public static class Builder {
@@ -67,6 +72,11 @@ public class AwsClientProviderConfiguration {
 
         public Builder threadPoolSize(int threadPoolSize) {
             configuration.threadPoolSize = threadPoolSize;
+            return this;
+        }
+
+        public Builder pathStyleAccessEnabled(boolean pathStyleAccessEnabled) {
+            configuration.pathStyleAccessEnabled = pathStyleAccessEnabled;
             return this;
         }
 

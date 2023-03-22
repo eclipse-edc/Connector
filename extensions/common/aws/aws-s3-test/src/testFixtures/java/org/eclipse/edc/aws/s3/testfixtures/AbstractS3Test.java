@@ -68,12 +68,14 @@ public abstract class AbstractS3Test {
     // [see http://stackoverflow.com/questions/13898057/aws-error-message-a-conflicting-conditional-operation-is-currently-in-progress]
     protected static final String MINIO_ENDPOINT = "http://localhost:9000";
     protected static final URI S3_ENDPOINT = URI.create(propOrEnv("it.aws.endpoint", MINIO_ENDPOINT));
+    protected static final Boolean PATH_STYLE_ACCESS_ENABLED = Boolean.valueOf(propOrEnv("it.aws.path.style.access.enabled", "true"));
     protected final UUID processId = UUID.randomUUID();
     protected String bucketName = createBucketName();
     protected S3AsyncClient s3AsyncClient;
     private final AwsClientProviderConfiguration configuration = AwsClientProviderConfiguration.Builder.newInstance()
             .credentialsProvider(this::getCredentials)
             .endpointOverride(S3_ENDPOINT)
+            .pathStyleAccessEnabled(PATH_STYLE_ACCESS_ENABLED)
             .build();
     protected AwsClientProvider clientProvider = new AwsClientProviderImpl(configuration);
 

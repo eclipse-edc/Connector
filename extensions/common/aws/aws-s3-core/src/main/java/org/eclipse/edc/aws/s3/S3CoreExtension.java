@@ -45,6 +45,8 @@ public class S3CoreExtension implements ServiceExtension {
     private static final String AWS_ENDPOINT_OVERRIDE = "edc.aws.endpoint.override";
     @Setting(value = "The size of the thread pool used for the async clients")
     private static final String AWS_ASYNC_CLIENT_THREAD_POOL_SIZE = "edc.aws.client.async.thread-pool-size";
+    @Setting(value = "If true, path style addressing is used instead of virtual-hosted style")
+    private static final String AWS_PATH_STYLE_ACCESS_ENABLED = "edc.aws.path.style.access.enabled";
     @Inject
     private Vault vault;
 
@@ -65,10 +67,13 @@ public class S3CoreExtension implements ServiceExtension {
 
         var threadPoolSize = context.getSetting(AWS_ASYNC_CLIENT_THREAD_POOL_SIZE, DEFAULT_AWS_ASYNC_CLIENT_THREAD_POOL_SIZE);
 
+        var pathStyleAccessEnabled = context.getSetting(AWS_PATH_STYLE_ACCESS_ENABLED, true);
+
         var configuration = AwsClientProviderConfiguration.Builder.newInstance()
                 .credentialsProvider(createCredentialsProvider(context))
                 .endpointOverride(endpointOverride)
                 .threadPoolSize(threadPoolSize)
+                .pathStyleAccessEnabled(pathStyleAccessEnabled)
                 .build();
 
         return new AwsClientProviderImpl(configuration);
