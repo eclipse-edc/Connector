@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:auth-spi"))
     api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
 

@@ -14,12 +14,15 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
+import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.api.configuration.auth.DataspaceAuthenticationService;
 import org.eclipse.edc.protocol.dsp.api.configuration.serdes.JsonLdObjectMapperProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Requires;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -57,6 +60,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     private WebServer webServer;
     @Inject
     private WebServiceConfigurer configurator;
+    @Inject
+    private IdentityService identityService;
     
     @Override
     public String name() {
@@ -66,9 +71,11 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var config = configurator.configure(context, webServer, SETTINGS);
-        var idsWebhookAddress = context.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS);
-        context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), idsWebhookAddress));
+        var dspWebhookAddress = context.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS);
+        context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
         
+        var authService = new DataspaceAuthenticationService(identityService, dspWebhookAddress);
+        webService.registerResource(config.getContextAlias(), new AuthenticationRequestFilter(authService));
         webService.registerResource(config.getContextAlias(), new JsonLdObjectMapperProvider(typeManager.getMapper("json-ld")));
     }
 
