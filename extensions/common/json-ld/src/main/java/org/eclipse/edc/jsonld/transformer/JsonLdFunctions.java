@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -38,7 +38,7 @@ public class JsonLdFunctions {
         var id = object.get(ID);
         return id instanceof JsonString ? ((JsonString) id).getString() : null;
     }
-    
+
     /**
      * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first. For multiple types, {@see #nodeTypes}.
      */
@@ -48,7 +48,7 @@ public class JsonLdFunctions {
             context.reportProblem("Property @type not found on JSON Object");
             return null;
         }
-        
+
         if (typeNode instanceof JsonString) {
             return ((JsonString) typeNode).getString();
         } else if (typeNode instanceof JsonArray) {
@@ -63,11 +63,11 @@ public class JsonLdFunctions {
             }
             return ((JsonString) typeValue).getString();
         }
-        
+
         context.reportProblem("Expected @type value to be either string or array");
         return null;
     }
-    
+
     /**
      * Returns the {@code @type}s of the JSON object.
      */
@@ -77,7 +77,7 @@ public class JsonLdFunctions {
             context.reportProblem("Property @type not found on JSON Object");
             return null;
         }
-        
+
         if (typeNode instanceof JsonString) {
             return List.of(((JsonString) typeNode).getString());
         } else if (typeNode instanceof JsonArray) {
@@ -87,11 +87,11 @@ public class JsonLdFunctions {
                     .map(JsonValue::toString)
                     .collect(Collectors.toList());
         }
-    
+
         context.reportProblem("Expected @type value to be either string or array");
         return null;
     }
-    
+
     @Nullable
     private static JsonArray typeValueArray(JsonValue typeNode, TransformerContext context) {
         if (!(typeNode instanceof JsonArray)) {
