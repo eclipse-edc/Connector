@@ -28,13 +28,11 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
-import org.eclipse.edc.jsonld.transformer.from.FromContractOfferTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataServiceTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
-import org.eclipse.edc.jsonld.transformer.to.ToContractOfferTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Permission;
@@ -128,9 +126,6 @@ class BindingTest {
         var toCatalogTransformer = new JsonObjectToCatalogTransformer();
         registry.register(toCatalogTransformer);
 
-        var toContractOfferTransformer = new ToContractOfferTransformer();
-        registry.register(toContractOfferTransformer);
-
         var toDataServiceTransformer = new JsonObjectToDataServiceTransformer();
         registry.register(toDataServiceTransformer);
 
@@ -138,9 +133,6 @@ class BindingTest {
 
         var fromCatalogTransformer = new JsonObjectFromCatalogTransformer(builderFactory, mapper);
         registry.register(fromCatalogTransformer);
-
-        var fromContractOfferTransformer = new FromContractOfferTransformer(builderFactory);
-        registry.register(fromContractOfferTransformer);
 
         var fromPolicyTransformer = new JsonObjectFromPolicyTransformer(builderFactory, mapper);
         registry.register(fromPolicyTransformer);
