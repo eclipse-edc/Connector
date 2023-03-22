@@ -14,9 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.api.configuration.auth.DataspaceAuthenticationService;
+import org.eclipse.edc.protocol.dsp.api.configuration.auth.ClaimTokenRequestFilter;
 import org.eclipse.edc.protocol.dsp.api.configuration.serdes.JsonLdObjectMapperProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -38,7 +37,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
     
-    private static final String DEFAULT_DSP_WEBHOOK_ADDRESS = "http://localhost";
+    private static final String DEFAULT_DSP_WEBHOOK_ADDRESS = "http://localhost:8282/api/v1/dsp";
     private static final String DSP_WEBHOOK_ADDRESS = "dsp.webhook.address";
     
     private static final int DEFAULT_PROTOCOL_PORT = 8282;
@@ -73,9 +72,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var config = configurator.configure(context, webServer, SETTINGS);
         var dspWebhookAddress = context.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS);
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
-        
-        var authService = new DataspaceAuthenticationService(identityService, dspWebhookAddress);
-        webService.registerResource(config.getContextAlias(), new AuthenticationRequestFilter(authService));
+
+        webService.registerResource(config.getContextAlias(), new ClaimTokenRequestFilter(identityService, dspWebhookAddress));
         webService.registerResource(config.getContextAlias(), new JsonLdObjectMapperProvider(typeManager.getMapper("json-ld")));
     }
 
