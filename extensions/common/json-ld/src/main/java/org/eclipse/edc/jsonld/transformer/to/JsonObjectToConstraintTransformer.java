@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.jsonld.transformer.to;
 
-import java.util.function.Consumer;
-
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
@@ -28,32 +26,34 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
+
 import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
 
 public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer<JsonObject, Constraint> {
-    
+
     private static final String ODRL_LEFT_OPERAND_PROPERTY = ODRL_SCHEMA + "leftOperand";
     private static final String ODRL_OPERATOR_PROPERTY = ODRL_SCHEMA + "operator";
     private static final String ODRL_RIGHT_OPERAND_PROPERTY = ODRL_SCHEMA + "rightOperand";
-    
+
     public JsonObjectToConstraintTransformer() {
         super(JsonObject.class, Constraint.class);
     }
-    
+
     @Override
     public @Nullable Constraint transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
         if (object == null) {
             return null;
         }
-        
+
         //TODO check for type of constraint (atomic, and, or, ...)
         var builder = AtomicConstraint.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
         return builder.build();
     }
-    
+
     private void transformProperties(String key, JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {
         if (ODRL_LEFT_OPERAND_PROPERTY.equals(key)) {
             transformOperand(value, builder::leftExpression, context);
@@ -63,7 +63,7 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
             transformOperand(value, builder::rightExpression, context);
         }
     }
-    
+
     private void transformOperand(JsonValue value, Consumer<LiteralExpression> builderFunction, TransformerContext context) {
         if (value instanceof JsonObject) {
             var object = (JsonObject) value;
@@ -73,7 +73,7 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
             context.reportProblem("Invalid operand property");
         }
     }
-    
+
     private void transformOperator(JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {
         if (value instanceof JsonString) {
             var string = (JsonString) value;

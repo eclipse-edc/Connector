@@ -33,9 +33,6 @@ import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayOrObject;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformGenericProperty;
 
-/**
- *
- */
 public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
 
     private static final String DCAT_CATALOG_TYPE = DCAT_SCHEMA + "Catalog";

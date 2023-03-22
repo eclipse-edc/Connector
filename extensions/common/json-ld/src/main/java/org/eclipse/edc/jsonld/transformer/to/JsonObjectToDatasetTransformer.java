@@ -57,7 +57,7 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
             visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
 
             return builder.build();
-        }else {
+        } else {
             context.reportProblem(format("Cannot transform type %s to Dataset", type));
             return null;
         }

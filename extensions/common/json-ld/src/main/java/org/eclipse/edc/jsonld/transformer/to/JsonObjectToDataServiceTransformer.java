@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *
+ */
+
 package org.eclipse.edc.jsonld.transformer.to;
 
 import jakarta.json.JsonObject;
@@ -16,9 +30,6 @@ import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformString;
 
-/**
- *
- */
 public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransformer<JsonObject, DataService> {
 
     private static final String DCAT_DATA_SERVICE_TYPE =  DCAT_SCHEMA + "DataService";

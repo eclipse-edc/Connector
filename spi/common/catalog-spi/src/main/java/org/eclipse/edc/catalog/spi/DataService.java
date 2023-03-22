@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.catalog.spi;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.util.Objects;
 
 public class DataService {
 
@@ -35,6 +35,11 @@ public class DataService {
 
     public String getEndpointUrl() {
         return endpointUrl;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(Objects.hash(id, terms, endpointUrl));
     }
 
     @Override

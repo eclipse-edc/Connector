@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.catalog.spi;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.util.Objects;
 
 public class Distribution {
 

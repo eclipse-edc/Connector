@@ -52,7 +52,7 @@ public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransform
             var builder = Distribution.Builder.newInstance();
             visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
             return builder.build();
-        }else {
+        } else {
             context.reportProblem(format("Cannot transform type %s to Distribution", type));
             return null;
         }
