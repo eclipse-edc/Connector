@@ -64,7 +64,11 @@ public class CatalogRequestDelegate implements DspDispatcherDelegate<CatalogRequ
     
     private String toJson(CatalogRequestMessage message) {
         try {
-            return mapper.writeValueAsString(message);
+            var transformResult = transformerRegistry.transform(message, JsonObject.class);
+            if (transformResult.succeeded()) {
+                return mapper.writeValueAsString(transformResult.getContent());
+            }
+            throw new EdcException("Failed to write request.");
         } catch (JsonProcessingException e) {
             throw new EdcException("Failed to serialize catalog request", e);
         }
