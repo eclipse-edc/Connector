@@ -317,7 +317,7 @@ class ContractNegotiationIntegrationTest {
                 .consumer(URI.create("consumer"))
                 .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance()
-                        .type(PolicyType.CONTRACT)
+                        .type(PolicyType.AGREEMENT)
                         .assigner("assigner")
                         .assignee("assignee")
                         .duty(Duty.Builder.newInstance()

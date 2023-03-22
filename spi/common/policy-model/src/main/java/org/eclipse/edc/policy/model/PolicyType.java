@@ -16,7 +16,6 @@ package org.eclipse.edc.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
@@ -25,23 +24,22 @@ import java.util.Map;
  */
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum PolicyType {
-    SET("set"), OFFER("offer"), CONTRACT("contract");
+    SET("set"), OFFER("offer"), AGREEMENT("agreement");
 
-    @JsonProperty("@policytype")
     private String type;
 
-    PolicyType(@JsonProperty("@policytype") String type) {
+    PolicyType(String type) {
         this.type = type;
     }
 
     @JsonCreator
     public static PolicyType fromObject(Map<String, Object> object) {
-        if (SET.type.equals(object.get("@policytype"))) {
+        if (SET.type.equals(object.get("type"))) {
             return SET;
-        } else if (OFFER.type.equals(object.get("@policytype"))) {
+        } else if (OFFER.type.equals(object.get("type"))) {
             return OFFER;
-        } else if (CONTRACT.type.equals(object.get("@policytype"))) {
-            return CONTRACT;
+        } else if (AGREEMENT.type.equals(object.get("type"))) {
+            return AGREEMENT;
         }
         throw new IllegalArgumentException("Invalid policy type");
     }

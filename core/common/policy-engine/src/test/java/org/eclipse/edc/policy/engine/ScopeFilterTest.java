@@ -61,7 +61,7 @@ class ScopeFilterTest {
                 .assigner("assigner")
                 .target("target")
                 .inheritsFrom("test")
-                .type(PolicyType.CONTRACT)
+                .type(PolicyType.AGREEMENT)
                 .permission(permission)
                 .duty(duty)
                 .prohibition(prohibition)

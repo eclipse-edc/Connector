@@ -866,7 +866,7 @@ class MultipartControllerIntegrationTest {
         var permissionBuilder = Permission.Builder.newInstance();
         var actionBuilder = Action.Builder.newInstance();
 
-        policyBuilder.type(PolicyType.CONTRACT);
+        policyBuilder.type(PolicyType.AGREEMENT);
         actionBuilder.type("USE");
         permissionBuilder.target("1");
 
