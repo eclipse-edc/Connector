@@ -177,7 +177,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
             ruleBuilder.add("action", visitAction(rule.getAction()));
             if (rule.getConstraints() != null && !rule.getConstraints().isEmpty()) {
-                ruleBuilder.add("constraints", visitConstraints(rule));
+                ruleBuilder.add("constraint", visitConstraints(rule));
             }
 
             return ruleBuilder;

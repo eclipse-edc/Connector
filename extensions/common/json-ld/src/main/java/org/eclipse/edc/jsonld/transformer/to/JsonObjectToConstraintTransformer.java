@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.jsonld.transformer.to;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
@@ -69,6 +70,9 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
             var object = (JsonObject) value;
             var operand = new LiteralExpression(object.getString(VALUE));
             builderFunction.accept(operand);
+        } else if (value instanceof JsonArray) {
+            var array = (JsonArray) value;
+            transformOperand(array.getJsonObject(0), builderFunction, context);
         } else {
             context.reportProblem("Invalid operand property");
         }
@@ -79,6 +83,12 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
             var string = (JsonString) value;
             var operator = Operator.valueOf(string.getString());
             builder.operator(operator);
+        } else if (value instanceof JsonObject) {
+            var object = (JsonObject) value;
+            transformOperator(object.getJsonString(VALUE), builder, context);
+        } else if (value instanceof JsonArray) {
+            var array = (JsonArray) value;
+            transformOperator(array.getJsonObject(0), builder, context);
         } else {
             context.reportProblem("Invalid operator property");
         }

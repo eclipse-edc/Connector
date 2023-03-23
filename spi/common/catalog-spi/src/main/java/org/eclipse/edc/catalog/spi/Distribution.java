@@ -25,7 +25,7 @@ import java.util.Objects;
 @JsonDeserialize(builder = Distribution.Builder.class)
 public class Distribution {
 
-    private String format; //e.g. ids:s3+push
+    private String format;
     private DataService dataService;
     private String dataServiceId;
 

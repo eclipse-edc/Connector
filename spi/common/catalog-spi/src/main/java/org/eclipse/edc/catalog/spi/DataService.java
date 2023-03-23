@@ -24,7 +24,7 @@ import java.util.Objects;
 public class DataService {
 
     private String id;
-    private String terms; //"dct:terms": "ids:connector"
+    private String terms;
     private String endpointUrl;
 
     public String getId() {
