@@ -181,7 +181,7 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ContractOfferResolver.class, contractOfferResolver);
 
         var policyEquality = new PolicyEquality(typeManager);
-        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine, policyEquality);
+        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality, clock);
         context.registerService(ContractValidationService.class, validationService);
 
         var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);

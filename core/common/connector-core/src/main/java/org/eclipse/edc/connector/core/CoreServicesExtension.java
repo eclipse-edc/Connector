@@ -48,6 +48,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import java.security.PrivateKey;
 import java.time.Duration;
 
+import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
+
 @BaseExtension
 @Extension(value = CoreServicesExtension.NAME)
 public class CoreServicesExtension implements ServiceExtension {
@@ -62,6 +64,9 @@ public class CoreServicesExtension implements ServiceExtension {
     public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
     @Setting
     public static final String HOSTNAME_SETTING = "edc.hostname";
+    @Setting
+    public static final String IDENTITY_KEY = "edc.agent.identity.key";
+
     public static final String NAME = "Core Services";
     private static final long DEFAULT_DURATION = 60;
     private static final int DEFAULT_TP_SIZE = 3;
@@ -129,8 +134,9 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public ParticipantAgentService participantAgentService() {
-        return new ParticipantAgentServiceImpl();
+    public ParticipantAgentService participantAgentService(ServiceExtensionContext context) {
+        var identityKey = context.getSetting(IDENTITY_KEY, DEFAULT_IDENTITY_CLAIM_KEY);
+        return new ParticipantAgentServiceImpl(identityKey);
     }
 
     @Provider

@@ -20,22 +20,38 @@ import org.eclipse.edc.spi.agent.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static java.util.stream.Collectors.toMap;
+import static java.util.Objects.requireNonNull;
+import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 
 /**
  * Default implementation.
  */
 public class ParticipantAgentServiceImpl implements ParticipantAgentService {
+    private final String identityClaimKey;
     private final List<ParticipantAgentServiceExtension> extensions = new ArrayList<>();
+
+    public ParticipantAgentServiceImpl() {
+        identityClaimKey = DEFAULT_IDENTITY_CLAIM_KEY;
+    }
+
+    public ParticipantAgentServiceImpl(String key) {
+        requireNonNull(key, "key");
+        this.identityClaimKey = key;
+    }
 
     @Override
     public ParticipantAgent createFor(ClaimToken token) {
-        var attributes = extensions.stream().flatMap(extension -> extension.attributesFor(token).entrySet().stream())
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-
+        var attributes = new HashMap<String, String>();
+        extensions.stream().map(extension -> extension.attributesFor(token)).forEach(attributes::putAll);
+        if (!attributes.containsKey(PARTICIPANT_IDENTITY)) {
+            var claim = token.getClaim(identityClaimKey);
+            if (claim != null) {
+                attributes.put(PARTICIPANT_IDENTITY, claim.toString());
+            }
+        }
         return new ParticipantAgent(token.getClaims(), attributes);
     }
 

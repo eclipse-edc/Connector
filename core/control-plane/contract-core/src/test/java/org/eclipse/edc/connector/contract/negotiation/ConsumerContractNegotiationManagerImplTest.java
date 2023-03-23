@@ -114,19 +114,25 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void initiate_shouldSaveNewNegotiationInInitialState() {
         var contractOffer = contractOffer();
-        var request = ContractOfferRequest.Builder.newInstance().connectorId("connectorId").connectorAddress("connectorAddress").protocol("protocol").contractOffer(contractOffer).build();
+        var request = ContractOfferRequest.Builder.newInstance()
+                .connectorId("connectorId")
+                .connectorAddress("connectorAddress")
+                .protocol("protocol")
+                .contractOffer(contractOffer)
+                .build();
 
         var result = negotiationManager.initiate(request);
 
         assertThat(result.succeeded()).isTrue();
-        verify(store)
-                .save(argThat(negotiation -> negotiation.getState() == INITIAL.code() &&
+        verify(store).save(argThat(negotiation ->
+                negotiation.getState() == INITIAL.code() &&
                         negotiation.getCounterPartyId().equals(request.getConnectorId()) &&
                         negotiation.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
                         negotiation.getProtocol().equals(request.getProtocol()) &&
                         negotiation.getCorrelationId() == null &&
                         negotiation.getContractOffers().size() == 1 &&
-                        negotiation.getLastContractOffer().equals(contractOffer)));
+                        negotiation.getLastContractOffer().equals(contractOffer))
+        );
         verify(listener).initiated(any());
     }
 
@@ -151,48 +157,72 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(store.findById(negotiationConsumerRequested.getId())).thenReturn(negotiationConsumerRequested);
-        when(validationService.validateConfirmed(eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
+        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
 
         var result = negotiationManager.confirmed(token, negotiationConsumerRequested.getId(), contractAgreement, def.getPolicy());
 
         assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation -> negotiation.getState() == PROVIDER_AGREED.code() && negotiation.getContractAgreement() == contractAgreement));
-        verify(validationService).validateConfirmed(eq(contractAgreement), any(ContractOffer.class));
+        verify(store).save(argThat(negotiation ->
+                negotiation.getState() == PROVIDER_AGREED.code() &&
+                        negotiation.getContractAgreement() == contractAgreement
+        ));
+        verify(validationService).validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class));
         verify(listener).confirmed(any());
     }
 
     @Test
-    void confirmed_terminateAgreement() {
-        var negotiationConsumerOffered = createContractNegotiationConsumerRequested();
+    void confirmed_invalidCredentials() {
+        var negotiationConsumerRequested = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
         var policy = Policy.Builder.newInstance().build();
-        when(store.findById(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
-        when(validationService.validateConfirmed(eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
-        var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, policy);
+        when(store.findById(negotiationConsumerRequested.getId())).thenReturn(negotiationConsumerRequested);
+        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
 
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation -> negotiation.getState() == TERMINATING.code() && negotiation.getContractAgreement() == null));
-        verify(validationService).validateConfirmed(eq(contractAgreement), any(ContractOffer.class));
+        var result = negotiationManager.confirmed(token, negotiationConsumerRequested.getId(), contractAgreement, policy);
+
+        assertThat(result.succeeded()).isFalse();
+        verify(validationService).validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class));
     }
 
     @Test
     void finalized_shouldTransitToFinalizedState() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").state(CONSUMER_VERIFIED.code()).build();
+        var token = ClaimToken.Builder.newInstance().build();
+
         when(store.findById("negotiationId")).thenReturn(negotiation);
+        when(validationService.validateRequest(eq(token), eq(negotiation))).thenReturn(Result.success());
 
-        var result = negotiationManager.finalized("negotiationId");
+        var result = negotiationManager.finalized(token, "negotiationId");
 
-        assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent).satisfies(actual -> assertThat(actual.getState()).isEqualTo(PROVIDER_FINALIZED.code()));
+        assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent)
+                .satisfies(actual -> assertThat(actual.getState()).isEqualTo(PROVIDER_FINALIZED.code()));
         verify(store).save(argThat(n -> n.getState() == PROVIDER_FINALIZED.code()));
     }
 
     @Test
+    void finalized_invalidCredentials() {
+        var negotiation = contractNegotiationBuilder().id("negotiationId").state(CONSUMER_VERIFIED.code()).build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        when(store.findById("negotiationId")).thenReturn(negotiation);
+        when(validationService.validateRequest(eq(token), eq(negotiation))).thenReturn(Result.failure("failure"));
+
+        var result = negotiationManager.finalized(token, "negotiationId");
+
+        assertThat(result.failed()).isTrue();
+
+        verify(validationService).validateRequest(eq(token), eq(negotiation));
+    }
+
+    @Test
     void finalized_shouldFail_whenNegotiationDoesNotExist() {
+        var token = ClaimToken.Builder.newInstance().build();
+
         when(store.findById("negotiationId")).thenReturn(null);
 
-        var result = negotiationManager.finalized("negotiationId");
+        var result = negotiationManager.finalized(token, "negotiationId");
 
         assertThat(result).matches(StatusResult::failed);
     }
@@ -201,13 +231,29 @@ class ConsumerContractNegotiationManagerImplTest {
     void declined() {
         var negotiationConsumerOffered = createContractNegotiationConsumerRequested();
         var token = ClaimToken.Builder.newInstance().build();
+
         when(store.findById(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
+        when(validationService.validateRequest(eq(token), eq(negotiationConsumerOffered))).thenReturn(Result.success());
 
         var result = negotiationManager.declined(token, negotiationConsumerOffered.getId());
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation -> negotiation.getState() == TERMINATED.code()));
         verify(listener).terminated(any());
+    }
+
+    @Test
+    void declined_invalidCredentials() {
+        var negotiationConsumerOffered = createContractNegotiationConsumerRequested();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        when(store.findById(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
+        when(validationService.validateRequest(eq(token), eq(negotiationConsumerOffered))).thenReturn(Result.failure("failure"));
+
+        var result = negotiationManager.declined(token, negotiationConsumerOffered.getId());
+
+        assertThat(result.succeeded()).isFalse();
+        verify(validationService).validateRequest(eq(token), eq(negotiationConsumerOffered));
     }
 
     @Test
@@ -245,7 +291,6 @@ class ConsumerContractNegotiationManagerImplTest {
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
-
         negotiationManager.start();
 
         await().untilAsserted(() -> {
@@ -260,7 +305,6 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONSUMER_REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-
 
         negotiationManager.start();
 
@@ -293,7 +337,6 @@ class ConsumerContractNegotiationManagerImplTest {
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
-
         negotiationManager.start();
 
         await().untilAsserted(() -> {
@@ -308,7 +351,6 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONSUMER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-
 
         negotiationManager.start();
 
@@ -443,13 +485,14 @@ class ConsumerContractNegotiationManagerImplTest {
     private ContractNegotiation createContractNegotiationConsumerRequested() {
         var lastOffer = contractOffer();
 
-        return contractNegotiationBuilder().state(CONSUMER_REQUESTED.code()).contractOffer(lastOffer).build();
+        return contractNegotiationBuilder()
+                .state(CONSUMER_REQUESTED.code())
+                .contractOffer(lastOffer)
+                .build();
     }
 
     private ContractNegotiation.Builder contractNegotiationBuilder() {
-        return ContractNegotiation
-                .Builder
-                .newInstance()
+        return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId("correlationId")
                 .counterPartyId("connectorId")
@@ -459,7 +502,12 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     private ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance().id("id:id").policy(Policy.Builder.newInstance().build()).asset(Asset.Builder.newInstance().id("assetId").build()).contractStart(ZonedDateTime.now()).contractEnd(ZonedDateTime.now()).build();
+        return ContractOffer.Builder.newInstance().id("id:id")
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now())
+                .build();
     }
 
 }
