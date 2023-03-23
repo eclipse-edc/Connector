@@ -69,7 +69,8 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
 
         var result = registry.transform(negotiation, JsonObject.class);
         if (result.failed()) {
-            throw new EdcException("Response could not be created.");
+            var error = "Response could not be created.";
+            throw new EdcException(createNegotiationError("500", id, error));
         }
 
         return result.getContent();
@@ -77,17 +78,18 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
 
     @Override
     public JsonObject createNegotiation(JsonObject message) {
-        // TODO add validation of request id with process id in message
         var resultRequest = registry.transform(message, ContractOfferRequest.class);
         if (resultRequest.failed()) {
-            throw new InvalidRequestException("Request body was malformed.");
+            var error = "Request body was malformed.";
+            throw new InvalidRequestException(createNegotiationError("400", null, error));
         }
 
         var negotiation = contractNegotiationService.initiateNegotiation(resultRequest.getContent());
 
         var resultNegotiation = registry.transform(negotiation, JsonObject.class);
         if (resultRequest.failed()) {
-            throw new EdcException("Response could not be created.");
+            var error = "Response could not be created.";
+            throw new EdcException(createNegotiationError("500", null, error));
         }
 
         return resultNegotiation.getContent();
@@ -95,19 +97,18 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
 
     @Override
     public void consumerOffer(String id, JsonObject message) {
-        // TODO support additional offers by consumer/provider
-        throw new EdcException("Additional offers by consumer cannot be processed.");
+        validateId(message, id);
+
+        // TODO support additional offers by consumer/provider (not initiate)
+        var error = "Additional offers by consumer cannot be processed.";
+        throw new EdcException(createNegotiationError("500", id, error));
     }
 
     @Override
     public void processEvent(String id, JsonObject message) {
-        String eventType;
-        try {
-            eventType = message.getString("dspace:eventType");
-        } catch (NullPointerException e) {
-            throw new InvalidRequestException("Value dspace:eventType is missing or malformed.");
-        }
+        validateId(message, id);
 
+        var eventType = getValueByKey(message, "dspace:eventType");
         switch (eventType) {
             case ContractNegotiationEventType.FINALIZED:
                 finalizeAgreement(id);
@@ -116,34 +117,46 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
                 acceptCurrentOffer(id);
                 break;
             default:
-                throw new InvalidRequestException(String.format("Cannot process dspace:ContractNegotiationEventMessage with unexpected type: %s.",
-                        eventType));
+                var error = String.format("Cannot process dspace:ContractNegotiationEventMessage with unexpected type %s.", eventType);
+                throw new InvalidRequestException(createNegotiationError("400", id, error));
         }
     }
 
     @Override
     public void verifyAgreement(String id, JsonObject message) {
-        // TODO after https://github.com/eclipse-edc/Connector/pull/2601
+        validateId(message, id);
+
+        var result = providerNegotiationManager.verified(id);
+        if (result.failed()) {
+            var error = "Failed to process dspace:ContractAgreementVerificationMessage.";
+            throw new EdcException(createNegotiationError("500", id, error));
+        }
     }
 
     @Override
     public void terminateNegotiation(String id, JsonObject message) {
-        var processId = getValueByKey(message, "dspace:processId");
+        validateId(message, id);
 
-        var result = contractNegotiationService.cancel(processId); // TODO or decline?
+        var result = contractNegotiationService.cancel(id); // TODO or decline?
         if (result.failed()) {
-            throw new EdcException(String.format("Failed to cancel contract negotiation with id %s.", processId));
+            var error = String.format(String.format("Failed to cancel contract negotiation with id %s.", id));
+            throw new EdcException(createNegotiationError("500", id, error));
         }
     }
 
     @Override
     public void providerOffer(String id, JsonObject message) {
+        validateId(message, id);
+
         // TODO allow (counter) offers by provider
-        throw new EdcException("Consumer cannot handle (counter) offers by provider.");
+        var error = "Consumer cannot handle (counter) offers by provider.";
+        throw new EdcException(createNegotiationError("500", id, error));
     }
 
     @Override
     public void createAgreement(String id, JsonObject message) {
+        validateId(message, id);
+
         var processId = getValueByKey(message, "dspace:processId");
         var agreement = getObjectByKey(message, "dspace:agreement");
 
@@ -159,18 +172,21 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
     @Override
     public void acceptCurrentOffer(String id) {
         // NOTE: consumer cannot accept offer as (counter) offers by provider are not supported
-        throw new EdcException("Failed to process dspace:ContractNegotiationEventMessage with status ACCEPTED.");
+        var error = "Failed to process dspace:ContractNegotiationEventMessage with status ACCEPTED.";
+        throw new EdcException(createNegotiationError("500", id, error));
     }
 
     @Override
     public void finalizeAgreement(String id) {
-        // TODO after https://github.com/eclipse-edc/Connector/pull/2601
-        // Error: "Failed to process dspace:ContractNegotiationEventMessage with status FINALIZED."
+        var result = consumerNegotiationManager.finalized(id);
+        if (result.failed()) {
+            var error = "Failed to process dspace:ContractNegotiationEventMessage with status FINALIZED.";
+            throw new EdcException(createNegotiationError("500", id, error));
+        }
     }
 
     /**
      * Build a negotiation error that can be used as response body for codes 4xx and 5xx.
-     * TODO support ContractNegotiationError
      *
      * @param code      response code.
      * @param processId negotiation process id.
@@ -202,6 +218,13 @@ public class ContractNegotiationServiceImpl implements DspContractNegotiationSer
             return object.get(key).asJsonObject();
         } catch (NullPointerException e) {
             throw new InvalidRequestException(String.format("Value %s is missing.", key));
+        }
+    }
+
+    private void validateId(JsonObject message, String requestId) {
+        var processId = getValueByKey(message, "dspace:processId");
+        if (!requestId.equals(processId)) {
+            throw new InvalidRequestException(String.format("ProcessId %s is not matching the requestId %s.", processId, requestId));
         }
     }
 }
