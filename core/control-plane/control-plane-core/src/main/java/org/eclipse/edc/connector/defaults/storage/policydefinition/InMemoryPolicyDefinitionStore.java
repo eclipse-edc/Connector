@@ -62,7 +62,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
     }
 
     @Override
-    public StoreResult<PolicyDefinition> save(PolicyDefinition policy) {
+    public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
         try {
             return lockManager.writeLock(() -> {
                 var id = policy.getUid();
@@ -99,7 +99,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
     }
 
     @Override
-    public StoreResult<PolicyDefinition> deleteById(String policyId) {
+    public StoreResult<PolicyDefinition> delete(String policyId) {
         try {
             var previous = lockManager.writeLock(() -> policiesById.remove(policyId));
             return previous == null ?

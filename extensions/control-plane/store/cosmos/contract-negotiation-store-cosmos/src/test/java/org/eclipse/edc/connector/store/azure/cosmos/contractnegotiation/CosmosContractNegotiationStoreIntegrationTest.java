@@ -222,19 +222,19 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void save_leasedByOther_shouldRaiseException() {
-        var negotiation = createNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
+        var negotiation = createNegotiation("test-id", ContractNegotiationStates.PROVIDER_AGREED);
         var item = new ContractNegotiationDocument(negotiation, partitionKey);
         item.acquireLease("someone-else", clock);
         container.createItem(item);
 
-        negotiation.transitionError("test-error");
+        negotiation.transitionTerminating("test-error");
 
         assertThatThrownBy(() -> store.save(negotiation)).isInstanceOf(IllegalStateException.class).hasRootCauseInstanceOf(BadRequestException.class);
     }
 
     @Test
     void delete_leasedByOther_shouldRaiseException() {
-        var negotiation = createNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
+        var negotiation = createNegotiation("test-id", ContractNegotiationStates.PROVIDER_AGREED);
         var item = new ContractNegotiationDocument(negotiation, partitionKey);
         item.acquireLease("someone-else", clock);
         container.createItem(item);
@@ -244,7 +244,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState() {
-        var state = ContractNegotiationStates.CONFIRMED;
+        var state = ContractNegotiationStates.PROVIDER_AGREED;
         var n = TestFunctions.createNegotiation(state);
         container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
@@ -254,7 +254,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState_exceedsLimit() {
-        var state = ContractNegotiationStates.CONFIRMED;
+        var state = ContractNegotiationStates.PROVIDER_AGREED;
         var numElements = 10;
 
         var preparedNegotiations = IntStream.range(0, numElements)
@@ -268,7 +268,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState_noResult() {
-        var state = ContractNegotiationStates.CONFIRMED;
+        var state = ContractNegotiationStates.PROVIDER_AGREED;
         var n = TestFunctions.createNegotiation(state);
         container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
@@ -278,7 +278,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState_onlyReturnsFreeItems() {
-        var state = ContractNegotiationStates.CONFIRMED;
+        var state = ContractNegotiationStates.PROVIDER_AGREED;
         var n1 = TestFunctions.createNegotiation(state);
         var doc1 = new ContractNegotiationDocument(n1, partitionKey);
         container.createItem(doc1);
@@ -298,7 +298,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState_leasedBySelf() {
-        var state = ContractNegotiationStates.CONFIRMED;
+        var state = ContractNegotiationStates.PROVIDER_AGREED;
         var n = TestFunctions.createNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
@@ -316,7 +316,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState_leasedByAnotherExpired() {
-        var state = ContractNegotiationStates.CONFIRMED;
+        var state = ContractNegotiationStates.PROVIDER_AGREED;
         var n = TestFunctions.createNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         Duration leaseDuration = Duration.ofSeconds(10); // give it some time to compensate for TOF delays
@@ -339,12 +339,12 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     void nextForState_verifySaveClearsLease() {
-        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
+        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_REQUESTED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
         // verify nextForState sets the lease
-        var result = store.nextForState(ContractNegotiationStates.CONSUMER_OFFERED.code(), 5);
+        var result = store.nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 5);
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
         var storedDoc = readItem(n.getId());
         assertThat(storedDoc.getLease()).isNotNull();
@@ -352,7 +352,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         assertThat(storedDoc.getLease().getLeasedAt()).isGreaterThan(0);
         assertThat(storedDoc.getLease().getLeaseDuration()).isEqualTo(60000L);
 
-        n.transitionDeclining();
+        n.transitionTerminating();
         n.updateStateTimestamp();
         store.save(n);
 
@@ -365,12 +365,12 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     @Test
     @DisplayName("Verify that a leased entity can not be deleted")
     void nextForState_verifyDelete() {
-        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
+        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_REQUESTED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
         // verify nextForState sets the lease
-        var result = store.nextForState(ContractNegotiationStates.CONSUMER_OFFERED.code(), 5);
+        var result = store.nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 5);
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
 
         // verify entity can be deleted
@@ -559,7 +559,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .id("negotiation1")
                 .contractAgreement(null)
                 .correlationId("corr-negotiation1")
-                .state(ContractNegotiationStates.REQUESTED.code())
+                .state(ContractNegotiationStates.CONSUMER_REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .protocol("ids-multipart")

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.core.event;
 
 import org.eclipse.edc.spi.event.Event;
-import org.eclipse.edc.spi.event.EventPayload;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -44,32 +44,89 @@ class EventRouterImplTest {
         var syncSubscriber = mock(EventSubscriber.class);
         var subscriberA = mock(EventSubscriber.class);
         var subscriberB = mock(EventSubscriber.class);
-        eventRouter.registerSync(syncSubscriber);
-        eventRouter.register(subscriberA);
-        eventRouter.register(subscriberB);
 
-        eventRouter.publish(TestEvent.Builder.newInstance().at(clock.millis()).build());
+        eventRouter.registerSync(TestEvent.class, syncSubscriber);
+        eventRouter.register(TestEvent.class, subscriberA);
+        eventRouter.register(TestEvent.class, subscriberB);
+
+        var event = EventEnvelope.Builder.newInstance()
+                .at(clock.millis())
+                .payload(TestEvent.Builder.newInstance().build())
+                .build();
+
+        eventRouter.publish(event);
 
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(syncSubscriber).on(isA(TestEvent.class));
-            verify(subscriberA).on(isA(TestEvent.class));
-            verify(subscriberB).on(isA(TestEvent.class));
+            verify(syncSubscriber).on(eq(event));
+            verify(subscriberA).on(eq(event));
+            verify(subscriberB).on(eq(event));
         });
     }
+
+    @Test
+    void shouldPublishToSyncSubscribers() {
+        var syncSubscriber = mock(EventSubscriber.class);
+        var syncSubscriberAll = mock(EventSubscriber.class);
+        var syncSubscriberBase = mock(EventSubscriber.class);
+
+        eventRouter.registerSync(TestEvent.class, syncSubscriber);
+        eventRouter.registerSync(Event.class, syncSubscriberAll);
+        eventRouter.registerSync(TestEventBase.class, syncSubscriberBase);
+
+        var event = EventEnvelope.Builder.newInstance()
+                .at(clock.millis())
+                .payload(TestEvent.Builder.newInstance().build())
+                .build();
+
+        eventRouter.publish(event);
+
+        verify(syncSubscriber).on(eq(event));
+        verify(syncSubscriberAll).on(eq(event));
+        verify(syncSubscriberBase).on(eq(event));
+    }
+
+    @Test
+    void shouldPublishToAsyncSubscribers() {
+        var subscriber = mock(EventSubscriber.class);
+        var subscriberAll = mock(EventSubscriber.class);
+        var subscriberBase = mock(EventSubscriber.class);
+
+        eventRouter.register(TestEvent.class, subscriber);
+        eventRouter.register(Event.class, subscriberAll);
+        eventRouter.register(TestEventBase.class, subscriberBase);
+
+        var event = EventEnvelope.Builder.newInstance()
+                .at(clock.millis())
+                .payload(TestEvent.Builder.newInstance().build())
+                .build();
+
+        eventRouter.publish(event);
+
+        await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            verify(subscriber).on(eq(event));
+            verify(subscriberAll).on(eq(event));
+            verify(subscriberBase).on(eq(event));
+        });
+    }
+
 
     @Test
     void shouldNotInterruptPublishingWhenSubscriberThrowsException() {
         var subscriberA = mock(EventSubscriber.class);
         var subscriberB = mock(EventSubscriber.class);
         doThrow(new RuntimeException("unexpected exception")).when(subscriberA).on(any());
-        eventRouter.register(subscriberA);
-        eventRouter.register(subscriberB);
+        eventRouter.register(TestEvent.class, subscriberA);
+        eventRouter.register(TestEvent.class, subscriberB);
 
-        eventRouter.publish(TestEvent.Builder.newInstance().at(clock.millis()).build());
+        var event = EventEnvelope.Builder.newInstance()
+                .at(clock.millis())
+                .payload(TestEvent.Builder.newInstance().build())
+                .build();
+        eventRouter.publish(event);
 
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(subscriberA).on(isA(TestEvent.class));
-            verify(subscriberB).on(isA(TestEvent.class));
+            verify(subscriberA).on(eq(event));
+            verify(subscriberB).on(eq(event));
         });
     }
 
@@ -78,36 +135,40 @@ class EventRouterImplTest {
         var subscriberA = mock(EventSubscriber.class);
         var subscriberB = mock(EventSubscriber.class);
         doThrow(new RuntimeException("unexpected exception")).when(subscriberA).on(any());
-        eventRouter.registerSync(subscriberA);
-        eventRouter.register(subscriberB);
+        eventRouter.registerSync(TestEvent.class, subscriberA);
+        eventRouter.register(TestEvent.class, subscriberB);
 
-        assertThatThrownBy(() -> eventRouter.publish(TestEvent.Builder.newInstance().at(clock.millis()).build()))
+        var event = EventEnvelope.Builder.newInstance()
+                .at(clock.millis())
+                .payload(TestEvent.Builder.newInstance().build())
+                .build();
+
+        assertThatThrownBy(() -> eventRouter.publish(event))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("unexpected exception");
         verifyNoInteractions(subscriberB);
     }
 
-    private static class TestEvent extends Event<TestEvent.Payload> {
+    private abstract static class TestEventBase extends Event {
+    }
 
-        public static class Payload extends EventPayload {
+    private static class TestEvent extends TestEventBase {
 
-        }
+        public static class Builder {
 
-        public static class Builder extends Event.Builder<TestEvent, Payload, Builder> {
+            private final TestEvent event;
 
-            public static Builder newInstance() {
-                return new Builder();
+            public static TestEvent.Builder newInstance() {
+                return new TestEvent.Builder();
             }
 
             private Builder() {
-                super(new TestEvent(), new Payload());
+                event = new TestEvent();
             }
 
-            @Override
-            protected void validate() {
-
+            public TestEvent build() {
+                return event;
             }
         }
-
     }
 }

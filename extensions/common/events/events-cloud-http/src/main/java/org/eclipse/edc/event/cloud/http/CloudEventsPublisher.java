@@ -21,6 +21,7 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.spi.event.Event;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -37,7 +38,7 @@ import java.time.LocalDateTime;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 
-class CloudEventsPublisher implements EventSubscriber {
+class CloudEventsPublisher implements EventSubscriber<Event> {
     private static final String APPLICATION_JSON = "application/json";
 
     private final String endpoint;
@@ -57,14 +58,14 @@ class CloudEventsPublisher implements EventSubscriber {
     }
 
     @Override
-    public void on(Event<?> event) {
+    public void on(EventEnvelope<Event> event) {
         var json = typeManager.writeValueAsBytes(event.getPayload());
         var instant = Instant.ofEpochMilli(event.getAt());
         var localDateTime = LocalDateTime.ofInstant(instant, clock.getZone());
         var cloudEvent = new CloudEventBuilder()
                 .withId(event.getId())
                 .withSource(URI.create(hostname.get()))
-                .withType(event.getClass().getName())
+                .withType(event.getPayload().getClass().getName())
                 .withTime(localDateTime.atOffset(UTC))
                 .withDataContentType(APPLICATION_JSON)
                 .withData(json)

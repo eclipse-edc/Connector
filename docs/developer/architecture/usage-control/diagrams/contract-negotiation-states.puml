@@ -35,6 +35,10 @@ state Consumer {
   }
   state "PROVIDER_FINALIZED" as PROVIDER_FINALIZED_consumer {
   }
+  state "TERMINATING" as TERMINATING_consumer {
+  }
+  state "TERMINATED" as TERMINATED_consumer {
+  }
 
   [*] --> INITIAL_consumer
   INITIAL_consumer --> CONSUMER_REQUESTING_consumer
@@ -48,12 +52,16 @@ state Consumer {
   CONSUMER_AGREEING_consumer --> CONSUMER_AGREED_consumer
   CONSUMER_AGREEING_consumer -[dashed]-> CONSUMER_AGREED_provider : sends\n**ContractNegotiationEventMessage**
 
-  CONSUMER_AGREED_consumer --> CONSUMER_VERIFYING_consumer
+  CONSUMER_AGREED_consumer -[hidden]-> CONSUMER_VERIFYING_consumer : used for layout
   PROVIDER_AGREED_consumer --> CONSUMER_VERIFYING_consumer
   CONSUMER_VERIFYING_consumer --> CONSUMER_VERIFIED_consumer
   CONSUMER_VERIFYING_consumer -[dashed]-> CONSUMER_VERIFIED_provider : sends\n**ContractAgreementVerificationMessage**
 
   CONSUMER_VERIFIED_consumer -[hidden]-> PROVIDER_FINALIZED_consumer : used for layout
+
+  CONSUMER_VERIFIED_consumer -[hidden]-> TERMINATING_consumer : used for layout
+  TERMINATING_consumer -[dashed]-> TERMINATED_provider : sends\n**TransferTerminationMessage**\nmessage
+  TERMINATING_consumer --> TERMINATED_consumer
 }
 
 state Provider {
@@ -77,6 +85,10 @@ state Provider {
   }
   state "PROVIDER_FINALIZED" as PROVIDER_FINALIZED_provider {
   }
+  state "TERMINATING" as TERMINATING_provider {
+  }
+  state "TERMINATED" as TERMINATED_provider {
+  }
 
   [*] --> INITIAL_provider
   INITIAL_provider --> PROVIDER_OFFERING_provider
@@ -87,14 +99,18 @@ state Provider {
   PROVIDER_AGREEING_provider --> PROVIDER_AGREED_provider
   PROVIDER_AGREEING_provider -[dashed]-> PROVIDER_AGREED_consumer : sends\n**ContractAgreementMessage**
 
-  PROVIDER_OFFERING_provider -[hidden]-> CONSUMER_REQUESTED_provider : used for layout
-  PROVIDER_AGREEING_provider -[hidden]-> CONSUMER_AGREED_provider : used for layout
+  PROVIDER_OFFERED_provider -[hidden]-> CONSUMER_REQUESTED_provider : used for layout
   PROVIDER_AGREED_provider -[hidden]-> CONSUMER_VERIFIED_provider : used for layout
+  CONSUMER_REQUESTED_provider -[hidden]-> CONSUMER_AGREED_provider : used for layout
 
+  CONSUMER_AGREED_provider --> PROVIDER_AGREEING_provider
   CONSUMER_VERIFIED_provider --> PROVIDER_FINALIZING_provider
   PROVIDER_FINALIZING_provider --> PROVIDER_FINALIZED_provider
   PROVIDER_FINALIZING_provider -[dashed]-> PROVIDER_FINALIZED_consumer : sends\n**ContractNegotiationEventMessage**
 
+  PROVIDER_FINALIZING_provider -[hidden]-> TERMINATING_provider : used for layout
+  TERMINATING_provider -[dashed]-> TERMINATED_consumer : sends\n**TransferTerminationMessage**\nmessage
+  TERMINATING_provider --> TERMINATED_provider
 }
 
 

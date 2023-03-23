@@ -64,7 +64,7 @@ public class FileTransferExtension implements ServiceExtension {
         pipelineService.registerFactory(sinkFactory);
 
         var policy = createPolicy();
-        policyStore.save(policy);
+        policyStore.create(policy);
 
         registerDataEntries(context);
         registerContractDefinition(policy.getUid());

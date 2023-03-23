@@ -28,6 +28,7 @@ import java.time.Duration;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,14 +45,14 @@ class DeclineNegotiationCommandHandlerTest {
     }
 
     @Test
-    void handle_negotiationExists_declineNegotiation() {
+    void handle_negotiationExists_terminateNegotiation() {
         var negotiationId = "test";
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(negotiationId)
                 .counterPartyId("counter-party")
                 .counterPartyAddress("https://counter-party")
                 .protocol("test-protocol")
-                .state(ContractNegotiationStates.REQUESTED.code())
+                .state(ContractNegotiationStates.CONSUMER_REQUESTED.code())
                 .clock(future)
                 .updatedAt(now.millis())
                 .build();
@@ -62,7 +63,7 @@ class DeclineNegotiationCommandHandlerTest {
 
         commandHandler.handle(command);
 
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
+        assertThat(negotiation.getState()).isEqualTo(TERMINATING.code());
         assertThat(negotiation.getErrorDetail()).isNotBlank();
         assertThat(negotiation.getUpdatedAt()).isGreaterThan(originalTime);
     }

@@ -38,9 +38,19 @@ public class OutputStreamDataSinkFactory implements DataSinkFactory {
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
-        return canHandle(request) ? Result.success(true) :
-                Result.failure(String.format("%s: Cannot handle destination data address with type: %s",
-                        getClass().getSimpleName(), request.getDestinationDataAddress().getType()));
+        return validateRequest(request).map(it -> true);
+
+    }
+
+    @Override
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
+        if (!canHandle(request)) {
+
+            return Result.failure(String.format("%s: Cannot handle destination data address with type: %s",
+                    getClass().getSimpleName(), request.getDestinationDataAddress().getType()));
+        }
+
+        return Result.success();
     }
 
     @Override

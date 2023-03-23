@@ -75,7 +75,7 @@ class S3DataSinkFactoryTest {
         var destination = TestFunctions.s3DataAddressWithCredentials();
         var request = createRequest(destination);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -93,7 +93,7 @@ class S3DataSinkFactoryTest {
 
         var request = createRequest(destination);
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
 
         assertThat(result.failed()).isTrue();
     }

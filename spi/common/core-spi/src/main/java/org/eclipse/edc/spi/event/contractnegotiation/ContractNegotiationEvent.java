@@ -15,7 +15,6 @@
 package org.eclipse.edc.spi.event.contractnegotiation;
 
 import org.eclipse.edc.spi.event.Event;
-import org.eclipse.edc.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -23,32 +22,32 @@ import java.util.Objects;
  *  Class as organizational between level to catch events of type ContractNegotiation to catch them together in an Event Subscriber
  *  Contains data related to contract negotiations
  */
-public abstract class ContractNegotiationEvent<P extends ContractNegotiationEvent.Payload> extends Event<P> {
+public abstract class ContractNegotiationEvent extends Event {
 
-    public abstract static class Payload extends EventPayload {
-        protected String contractNegotiationId;
+    protected String contractNegotiationId;
 
-        public String getContractNegotiationId() {
-            return contractNegotiationId;
-        }
+    public String getContractNegotiationId() {
+        return contractNegotiationId;
     }
 
-    public static class Builder<E extends ContractNegotiationEvent<P>, P extends ContractNegotiationEvent.Payload, B extends Builder<E, P, B>> extends Event.Builder<E, P, B> {
+    public abstract static class Builder<T extends ContractNegotiationEvent, B extends ContractNegotiationEvent.Builder<T, B>> {
 
-        protected Builder(E event, P payload) {
-            super(event, payload);
+        protected final T event;
+
+        protected Builder(T event) {
+            this.event = event;
         }
 
-        @SuppressWarnings("unchecked")
+        public abstract B self();
+
         public B contractNegotiationId(String contractNegotiationId) {
-            event.payload.contractNegotiationId = contractNegotiationId;
-            return (B) this;
+            event.contractNegotiationId = contractNegotiationId;
+            return self();
         }
 
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.contractNegotiationId);
+        public T build() {
+            Objects.requireNonNull(event.contractNegotiationId);
+            return event;
         }
-
     }
 }

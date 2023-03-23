@@ -18,13 +18,13 @@ package org.eclipse.edc.protocol.ids.api.multipart.dispatcher;
 import org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.IdsMultipartSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
-import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartArtifactRequestSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartCatalogDescriptionRequestSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartContractAgreementSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartContractOfferSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartContractRejectionSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartDescriptionRequestSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartEndpointDataReferenceRequestSender;
+import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartTransferRequestSender;
 import org.eclipse.edc.protocol.ids.spi.service.DynamicAttributeTokenService;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -83,7 +83,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
 
         var sender = new IdsMultipartSender(monitor, httpClient, dynamicAttributeTokenService, objectMapper);
         var dispatcher = new IdsMultipartRemoteMessageDispatcher(sender);
-        dispatcher.register(new MultipartArtifactRequestSender(senderContext, vault));
+        dispatcher.register(new MultipartTransferRequestSender(senderContext, vault));
         dispatcher.register(new MultipartDescriptionRequestSender(senderContext));
         dispatcher.register(new MultipartContractOfferSender(senderContext));
         dispatcher.register(new MultipartContractAgreementSender(senderContext));

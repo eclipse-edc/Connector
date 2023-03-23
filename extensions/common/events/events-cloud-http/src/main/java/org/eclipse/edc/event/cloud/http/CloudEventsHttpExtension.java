@@ -17,6 +17,7 @@ package org.eclipse.edc.event.cloud.http;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.Hostname;
@@ -51,7 +52,7 @@ public class CloudEventsHttpExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var endpoint = context.getConfig().getString(EDC_EVENTS_CLOUDEVENTS_ENDPOINT);
 
-        eventRouter.register(new CloudEventsPublisher(endpoint, context.getMonitor(), typeManager, httpClient, clock, hostname));
+        eventRouter.register(Event.class, new CloudEventsPublisher(endpoint, context.getMonitor(), typeManager, httpClient, clock, hostname));
     }
 
 }

@@ -30,19 +30,19 @@ public interface EventRouter {
      *
      * @param subscriber that will receive every published event
      */
-    void registerSync(EventSubscriber subscriber);
+    <E extends Event> void registerSync(Class<E> eventKind, EventSubscriber<E> subscriber);
 
     /**
      * Register a new asynchronous subscriber to the events
      *
      * @param subscriber that will receive every published event
      */
-    void register(EventSubscriber subscriber);
+    <E extends Event> void register(Class<E> eventKind, EventSubscriber<E> subscriber);
 
     /**
      * Publish an event to all the subscribers
      *
      * @param event the event to be published
      */
-    void publish(Event event);
+    <E extends Event> void publish(EventEnvelope<E> event);
 }

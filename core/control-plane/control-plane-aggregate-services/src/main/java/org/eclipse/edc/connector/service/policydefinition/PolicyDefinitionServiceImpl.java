@@ -96,7 +96,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
                 }
             }
 
-            var deleted = policyStore.deleteById(policyId);
+            var deleted = policyStore.delete(policyId);
             deleted.onSuccess(pd -> observable.invokeForEach(l -> l.deleted(pd)));
             return ServiceResult.from(deleted);
         });
@@ -105,7 +105,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     @Override
     public @NotNull ServiceResult<PolicyDefinition> create(PolicyDefinition policyDefinition) {
         return transactionContext.execute(() -> {
-            var saveResult = policyStore.save(policyDefinition);
+            var saveResult = policyStore.create(policyDefinition);
             saveResult.onSuccess(v -> observable.invokeForEach(l -> l.created(policyDefinition)));
             return ServiceResult.from(saveResult);
         });

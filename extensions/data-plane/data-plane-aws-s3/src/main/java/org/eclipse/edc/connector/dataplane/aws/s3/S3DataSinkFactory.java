@@ -67,14 +67,19 @@ public class S3DataSinkFactory implements DataSinkFactory {
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+        return validateRequest(request).map(it -> true);
+    }
+
+    @Override
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var destination = request.getDestinationDataAddress();
 
-        return validation.apply(destination).map(it -> true);
+        return validation.apply(destination).map(it -> null);
     }
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        var validationResult = validate(request);
+        var validationResult = validateRequest(request);
         if (validationResult.failed()) {
             throw new EdcException(String.join(", ", validationResult.getFailureMessages()));
         }
@@ -94,14 +99,14 @@ public class S3DataSinkFactory implements DataSinkFactory {
         }
 
         return S3DataSink.Builder.newInstance()
-            .bucketName(destination.getProperty(BUCKET_NAME))
-            .keyName(destination.getKeyName())
-            .requestId(request.getId())
-            .executorService(executorService)
-            .monitor(monitor)
-            .client(client)
-            .chunkSizeBytes(CHUNK_SIZE_IN_BYTES)
-            .build();
+                .bucketName(destination.getProperty(BUCKET_NAME))
+                .keyName(destination.getKeyName())
+                .requestId(request.getId())
+                .executorService(executorService)
+                .monitor(monitor)
+                .client(client)
+                .chunkSizeBytes(CHUNK_SIZE_IN_BYTES)
+                .build();
     }
 
 }

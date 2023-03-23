@@ -1,6 +1,5 @@
 # Architecture
 
-- [Domain Model](domain-model.md)
 - [Key Principles](coding-principles.md)
 - [Terminology](terminology.md)
 - [Catalog](catalog/)

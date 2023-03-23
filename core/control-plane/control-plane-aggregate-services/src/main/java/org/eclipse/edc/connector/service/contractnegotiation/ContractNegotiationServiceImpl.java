@@ -106,7 +106,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
                     return ServiceResult.notFound(format("ContractNegotiation %s does not exist", negotiationId));
                 }
 
-                if (negotiation.canDecline()) {
+                if (negotiation.canBeTerminated()) {
                     manager.enqueueCommand(new DeclineNegotiationCommand(negotiationId));
                     return ServiceResult.success(negotiation);
                 } else {

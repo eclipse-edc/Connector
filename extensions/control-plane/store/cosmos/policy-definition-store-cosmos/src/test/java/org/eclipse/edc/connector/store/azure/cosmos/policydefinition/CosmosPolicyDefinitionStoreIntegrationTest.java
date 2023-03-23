@@ -143,7 +143,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
     @Test
     void save() {
         var policy = generatePolicy();
-        store.save(policy);
+        store.create(policy);
 
         var actual = container.readAllItems(new PartitionKey(TEST_PARTITION_KEY), Object.class);
         assertThat(actual).hasSize(1);
@@ -163,7 +163,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
         policyToUpdate.getPolicy().getObligations().add(Duty.Builder.newInstance().uid("test-obligation-id").build());
 
 
-        var saveResult = store.save(policyToUpdate);
+        var saveResult = store.create(policyToUpdate);
         assertThat(saveResult.succeeded()).isFalse();
         assertThat(saveResult.reason()).isEqualTo(ALREADY_EXISTS);
 
@@ -182,7 +182,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
         container.createItem(document);
 
         var policy = convert(document);
-        var deletedPolicy = store.deleteById(document.getId());
+        var deletedPolicy = store.delete(document.getId());
         assertThat(deletedPolicy.succeeded()).isTrue();
         assertThat(deletedPolicy.getContent()).isEqualTo(policy);
 

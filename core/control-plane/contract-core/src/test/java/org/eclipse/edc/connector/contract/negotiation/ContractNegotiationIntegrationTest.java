@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
@@ -40,7 +39,6 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.statemachine.retry.SendRetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +55,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONFIRMED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isA;
@@ -66,7 +64,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ComponentTest
+//@ComponentTest
 class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
@@ -82,15 +80,6 @@ class ContractNegotiationIntegrationTest {
     private ProviderContractNegotiationManagerImpl providerManager;
     private ConsumerContractNegotiationManagerImpl consumerManager;
 
-    @NotNull
-    private static CompletableFuture<?> toFuture(StatusResult<ContractNegotiation> result) {
-        if (result.succeeded()) {
-            return completedFuture("Success!");
-        } else {
-            return failedFuture(new Exception("Negotiation failed."));
-        }
-    }
-
     @BeforeEach
     void init() {
         var monitor = new ConsoleMonitor();
@@ -99,8 +88,6 @@ class ContractNegotiationIntegrationTest {
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
 
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
-
-        var sendRetryManager = mock(SendRetryManager.class);
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(providerDispatcherRegistry)
@@ -112,7 +99,6 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(providerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
-                .sendRetryManager(sendRetryManager)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -125,7 +111,6 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(consumerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
-                .sendRetryManager(sendRetryManager)
                 .build();
     }
 
@@ -154,7 +139,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-multipart")
                 .build();
 
         consumerManager.initiate(request);
@@ -172,10 +157,9 @@ class ContractNegotiationIntegrationTest {
                     assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(providerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
-                    assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
+                    assertThat(consumerNegotiation.getState()).isEqualTo(PROVIDER_FINALIZED.code());
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
                     assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
-
 
                     verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
                     verify(validationService, atLeastOnce()).validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class));
@@ -200,7 +184,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-multipart")
                 .build();
         consumerManager.initiate(request);
 
@@ -247,7 +231,7 @@ class ContractNegotiationIntegrationTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
-                .protocol("protocol")
+                .protocol("ids-multipart")
                 .build();
         consumerManager.initiate(request);
 
@@ -290,6 +274,15 @@ class ContractNegotiationIntegrationTest {
             var result = providerManager.declined(token, request.getCorrelationId());
             return toFuture(result);
         };
+    }
+
+    @NotNull
+    private CompletableFuture<?> toFuture(StatusResult<ContractNegotiation> result) {
+        if (result.succeeded()) {
+            return completedFuture("Success!");
+        } else {
+            return failedFuture(new Exception("Negotiation failed."));
+        }
     }
 
     @NotNull

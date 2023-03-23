@@ -77,7 +77,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
                 .build();
 
         var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy").policy(policy).build();
-        getPolicyDefinitionStore().save(policyDef1);
+        getPolicyDefinitionStore().create(policyDef1);
 
         // query by prohibition assignee
         assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(createQuery("notexist=foobar")))
@@ -88,7 +88,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     @Test
     void findAll_sorting_nonExistentProperty() {
 
-        IntStream.range(0, 10).mapToObj(i -> createPolicy("test-policy")).forEach((d) -> getPolicyDefinitionStore().save(d));
+        IntStream.range(0, 10).mapToObj(i -> createPolicy("test-policy")).forEach((d) -> getPolicyDefinitionStore().create(d));
 
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();

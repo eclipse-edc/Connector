@@ -14,32 +14,37 @@
 
 package org.eclipse.edc.spi.event.transferprocess;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * This event is raised when the TransferProcess has been cancelled.
  *
  * @deprecated this event is not thrown by anyone, please use {@link TransferProcessTerminated} instead
  */
 @Deprecated(since = "milestone9")
-public class TransferProcessCancelled extends TransferProcessEvent<TransferProcessCancelled.Payload> {
+@JsonDeserialize(builder = TransferProcessCancelled.Builder.class)
+public class TransferProcessCancelled extends TransferProcessEvent {
 
     private TransferProcessCancelled() {
     }
 
-    /**
-     * This class contains all event specific attributes of a TransferProcess Cancelled Event
-     */
-    public static class Payload extends TransferProcessEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessCancelled, Builder> {
 
-    public static class Builder extends TransferProcessEvent.Builder<TransferProcessCancelled, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new TransferProcessCancelled(), new Payload());
+            super(new TransferProcessCancelled());
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
     }
 }

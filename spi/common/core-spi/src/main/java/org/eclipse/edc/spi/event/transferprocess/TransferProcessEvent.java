@@ -15,7 +15,6 @@
 package org.eclipse.edc.spi.event.transferprocess;
 
 import org.eclipse.edc.spi.event.Event;
-import org.eclipse.edc.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -23,32 +22,34 @@ import java.util.Objects;
  *  Class as organizational between level to catch events of type TransferProcess to catch them together in an Event Subscriber
  *  Contains data related to transfer processes
  */
-public abstract class TransferProcessEvent<P extends TransferProcessEvent.Payload> extends Event<P> {
+public abstract class TransferProcessEvent extends Event {
 
-    public abstract static class Payload extends EventPayload {
-        protected String transferProcessId;
+    protected String transferProcessId;
 
-        public String getTransferProcessId() {
-            return transferProcessId;
-        }
+    public String getTransferProcessId() {
+        return transferProcessId;
     }
 
-    public static class Builder<E extends TransferProcessEvent<P>, P extends TransferProcessEvent.Payload, B extends Builder<E, P, B>> extends Event.Builder<E, P, B> {
+    public abstract static class Builder<T extends TransferProcessEvent, B extends TransferProcessEvent.Builder<T, B>> {
 
-        protected Builder(E event, P payload) {
-            super(event, payload);
+        protected final T event;
+
+        protected Builder(T event) {
+            this.event = event;
         }
 
-        @SuppressWarnings("unchecked")
         public B transferProcessId(String transferProcessId) {
-            event.payload.transferProcessId = transferProcessId;
+            event.transferProcessId = transferProcessId;
             return (B) this;
         }
 
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.transferProcessId);
+        public abstract B self();
+        
+        public T build() {
+            Objects.requireNonNull(event.transferProcessId);
+            return event;
         }
 
     }
+
 }

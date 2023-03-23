@@ -90,7 +90,7 @@ class CosmosPolicyDefinitionStoreTest {
         doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generatePolicy();
 
-        store.save(definition);
+        store.create(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
         verify(cosmosDbApiMock).createItem(captor.capture());
@@ -104,7 +104,7 @@ class CosmosPolicyDefinitionStoreTest {
 
         when(cosmosDbApiMock.queryItems(any(SqlQuerySpec.class))).thenReturn(IntStream.range(0, 1).mapToObj((i) -> captor.getValue()));
 
-        store.save(definition); //should write through the cache
+        store.create(definition); //should write through the cache
 
         var all = store.findAll(QuerySpec.none());
 
@@ -119,7 +119,7 @@ class CosmosPolicyDefinitionStoreTest {
         doNothing().when(cosmosDbApiMock).createItem(captor.capture());
         var definition = generatePolicy();
 
-        store.save(definition);
+        store.create(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
         verify(cosmosDbApiMock).createItem(captor.capture());
@@ -128,7 +128,7 @@ class CosmosPolicyDefinitionStoreTest {
     @Test
     void deleteById_whenMissing_returnsNull() {
         when(cosmosDbApiMock.deleteItem(any())).thenThrow(new NotFoundException());
-        var contractDefinition = store.deleteById("some-id");
+        var contractDefinition = store.delete("some-id");
         assertThat(contractDefinition).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
         verify(cosmosDbApiMock).deleteItem(notNull());
     }
@@ -139,7 +139,7 @@ class CosmosPolicyDefinitionStoreTest {
         var document = new PolicyDocument(contractDefinition, TEST_PART_KEY);
         when(cosmosDbApiMock.deleteItem(document.getId())).thenReturn(document);
 
-        var deletedDefinition = store.deleteById(document.getId());
+        var deletedDefinition = store.delete(document.getId());
         assertThat(deletedDefinition.succeeded()).isTrue();
         assertThat(deletedDefinition.getContent()).isEqualTo(contractDefinition);
     }
@@ -148,7 +148,7 @@ class CosmosPolicyDefinitionStoreTest {
     void delete_whenCosmoDbApiThrows_throws() {
         var id = "some-id";
         when(cosmosDbApiMock.deleteItem(id)).thenThrow(new EdcPersistenceException("Something went wrong"));
-        assertThatThrownBy(() -> store.deleteById(id)).isInstanceOf(EdcPersistenceException.class);
+        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(EdcPersistenceException.class);
     }
 
     @Test

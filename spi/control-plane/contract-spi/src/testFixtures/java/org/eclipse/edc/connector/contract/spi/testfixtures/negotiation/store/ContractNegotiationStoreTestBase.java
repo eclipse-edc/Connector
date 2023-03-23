@@ -258,7 +258,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .containsExactly(agreement);
 
         // cancel the agreement
-        updatedNegotiation.transitionError("Cancelled");
+        updatedNegotiation.transitionTerminating("Cancelled");
         getContractNegotiationStore().save(updatedNegotiation);
     }
 
@@ -471,7 +471,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .collect(Collectors.toList());
         negotiations.forEach(getContractNegotiationStore()::save);
 
-        var batch = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var batch = getContractNegotiationStore().nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 5);
 
         Assertions.assertThat(batch).hasSize(5).isSubsetOf(negotiations);
 
@@ -487,9 +487,9 @@ public abstract class ContractNegotiationStoreTestBase {
         negotiations.forEach(getContractNegotiationStore()::save);
 
         // mark a few as "leased"
-        getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        getContractNegotiationStore().nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 5);
 
-        var batch2 = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 10);
+        var batch2 = getContractNegotiationStore().nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 10);
         Assertions.assertThat(batch2)
                 .hasSize(5)
                 .isSubsetOf(negotiations)
@@ -513,7 +513,7 @@ public abstract class ContractNegotiationStoreTestBase {
         // let enough time pass
         Thread.sleep(50);
 
-        var leasedNegotiations = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var leasedNegotiations = getContractNegotiationStore().nextForState(ContractNegotiationStates.CONSUMER_REQUESTED.code(), 5);
         Assertions.assertThat(leasedNegotiations)
                 .hasSize(5)
                 .containsAll(negotiations);

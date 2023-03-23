@@ -15,29 +15,34 @@
 
 package org.eclipse.edc.spi.event.contractnegotiation;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * This event is raised when the ContractNegotiation has failed.
  */
-public class ContractNegotiationFailed extends ContractNegotiationEvent<ContractNegotiationFailed.Payload> {
+@JsonDeserialize(builder = ContractNegotiationFailed.Builder.class)
+public class ContractNegotiationFailed extends ContractNegotiationEvent {
 
     private ContractNegotiationFailed() {
     }
 
-    /**
-     * This class contains all event specific attributes of a ContractNegotiation Failed Event
-     *
-     */
-    public static class Payload extends ContractNegotiationEvent.Payload {
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationFailed, Builder> {
 
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationFailed, Payload, Builder> {
-
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new ContractNegotiationFailed(), new Payload());
+            super(new ContractNegotiationFailed());
+        }
+
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 

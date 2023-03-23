@@ -96,7 +96,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                                      AssetIndex assetIndex,
                                      TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
         negotiationStore.save(createContractNegotiation());
-        policyStore.save(createPolicyDefinition());
+        policyStore.create(createPolicyDefinition());
         assetIndex.accept(createAssetEntry());
 
         when(delegate.intercept(any()))

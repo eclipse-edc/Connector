@@ -47,7 +47,7 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
 
     @Test
     void deleteById_whenNonexistent() {
-        var result = store.deleteById("nonexistent");
+        var result = store.delete("nonexistent");
         assertThat(result).isNotNull();
         assertThat(result.succeeded()).isFalse();
     }
@@ -70,19 +70,19 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     void save_exceptionThrown() {
         doThrow(new RuntimeException()).when(manager).writeLock(any());
 
-        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.save(createPolicyDef()));
+        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.create(createPolicyDef()));
     }
 
     @Test
     void deleteById_exceptionThrown() {
         doThrow(new RuntimeException()).when(manager).writeLock(any());
 
-        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.deleteById("any-policy-id"));
+        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.delete("any-policy-id"));
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> createPolicy("test-id")).forEach(d -> getPolicyDefinitionStore().save(d));
+        IntStream.range(0, 10).mapToObj(i -> createPolicy("test-id")).forEach(d -> getPolicyDefinitionStore().create(d));
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
@@ -92,7 +92,7 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     @Test
     void update_throwsException() {
         var policy = createPolicy("test-id");
-        getPolicyDefinitionStore().save(policy);
+        getPolicyDefinitionStore().create(policy);
 
         doThrow(new RuntimeException()).when(manager).writeLock(any());
         assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.update(createPolicyDef()));

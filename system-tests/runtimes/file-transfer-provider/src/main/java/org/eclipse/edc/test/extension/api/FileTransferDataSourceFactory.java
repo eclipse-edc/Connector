@@ -30,13 +30,19 @@ class FileTransferDataSourceFactory implements DataSourceFactory {
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+        return validateRequest(request).map(it -> true);
+    }
+
+    @Override
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var source = getFile(request);
         if (!source.exists()) {
             return Result.failure("Source file " + source.getName() + " does not exist!");
         }
 
-        return Result.success(true);
+        return Result.success();
     }
+
 
     @Override
     public DataSource createSource(DataFlowRequest request) {

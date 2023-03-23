@@ -57,7 +57,7 @@ public interface PolicyDefinitionStore {
      * @return {@link StoreResult#success()} if it could be stored, {@link StoreResult#alreadyExists(String)} if a policy with the same ID already exists.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    StoreResult<PolicyDefinition> save(PolicyDefinition policy);
+    StoreResult<PolicyDefinition> create(PolicyDefinition policy);
 
     /**
      * Updates the policy.
@@ -75,7 +75,7 @@ public interface PolicyDefinitionStore {
      * @return {@link StoreResult#success()} if was deleted, {@link StoreResult#notFound(String)} if a policy with the same ID was not found.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    StoreResult<PolicyDefinition> deleteById(String policyId);
+    StoreResult<PolicyDefinition> delete(String policyId);
 
     /**
      * If the store implementation supports caching, this method triggers a cache-reload.

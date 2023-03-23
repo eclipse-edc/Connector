@@ -16,14 +16,17 @@ package org.eclipse.edc.connector.contract.listener;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationApproved;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConfirmed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationDeclined;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationOffered;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 
 import java.time.Clock;
 
@@ -40,69 +43,79 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void initiated(ContractNegotiation negotiation) {
         var event = ContractNegotiationInitiated.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
     }
 
     @Override
     public void requested(ContractNegotiation negotiation) {
         var event = ContractNegotiationRequested.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
     }
 
     @Override
     public void offered(ContractNegotiation negotiation) {
         var event = ContractNegotiationOffered.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
     }
 
     @Override
     public void approved(ContractNegotiation negotiation) {
         var event = ContractNegotiationApproved.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
+    }
+
+    @Override
+    public void terminated(ContractNegotiation negotiation) {
+        var event = ContractNegotiationTerminated.Builder.newInstance()
+                .contractNegotiationId(negotiation.getId())
+                .build();
+
+        publish(event);
     }
 
     @Override
     public void declined(ContractNegotiation negotiation) {
         var event = ContractNegotiationDeclined.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
     }
 
     @Override
     public void confirmed(ContractNegotiation negotiation) {
         var event = ContractNegotiationConfirmed.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
     }
 
     @Override
     public void failed(ContractNegotiation negotiation) {
         var event = ContractNegotiationFailed.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .at(clock.millis())
                 .build();
 
-        eventRouter.publish(event);
+        publish(event);
+    }
+
+    private void publish(ContractNegotiationEvent event) {
+        var envelope = EventEnvelope.Builder.newInstance()
+                .payload(event)
+                .at(clock.millis())
+                .build();
+        eventRouter.publish(envelope);
     }
 }

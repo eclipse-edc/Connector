@@ -61,12 +61,17 @@ public class HttpDataSinkFactory implements DataSinkFactory {
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+        return validateRequest(request).map(it -> true);
+    }
+
+    @Override
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         try {
             createSink(request);
         } catch (Exception e) {
             return Result.failure("Failed to build HttpDataSink: " + e.getMessage());
         }
-        return VALID;
+        return Result.success();
     }
 
     @Override

@@ -23,7 +23,14 @@ import java.util.Objects;
  *  Class as organizational between level to catch events of type Asset to catch them together in an Event Subscriber
  *  Contains data related to assets
  */
-public abstract class AssetEvent<P extends AssetEvent.Payload> extends Event<P> {
+public abstract class AssetEvent extends Event {
+
+    protected String assetId;
+
+    public String getAssetId() {
+        return assetId;
+    }
+
 
     public abstract static class Payload extends EventPayload {
         protected String assetId;
@@ -33,22 +40,24 @@ public abstract class AssetEvent<P extends AssetEvent.Payload> extends Event<P> 
         }
     }
 
-    public static class Builder<E extends AssetEvent<P>, P extends AssetEvent.Payload, B extends Builder<E, P, B>> extends Event.Builder<E, P, B> {
+    public abstract static class Builder<T extends AssetEvent, B extends AssetEvent.Builder<T, B>> {
 
-        protected Builder(E event, P payload) {
-            super(event, payload);
+        protected final T event;
+
+        protected Builder(T event) {
+            this.event = event;
         }
 
-        @SuppressWarnings("unchecked")
+        public abstract B self();
+
         public B assetId(String assetId) {
-            event.payload.assetId = assetId;
-            return (B) this;
+            event.assetId = assetId;
+            return self();
         }
 
-        @Override
-        protected void validate() {
-            Objects.requireNonNull(event.payload.assetId);
+        public T build() {
+            Objects.requireNonNull(event.assetId);
+            return event;
         }
-
     }
 }

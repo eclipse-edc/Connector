@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationOffered;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
@@ -54,15 +55,18 @@ class EventTest {
 
     @ParameterizedTest
     @ArgumentsSource(EventInstances.class)
-    void serdes(Event<?> event) {
-        var eventClass = event.getClass();
+    void serdes(EventEnvelope<?> event) {
+        var eventEnvelopeClass = event.getClass();
+        var eventClass = event.getPayload().getClass();
+
+        typeManager.registerTypes(new NamedType(eventEnvelopeClass, eventEnvelopeClass.getSimpleName()));
         typeManager.registerTypes(new NamedType(eventClass, eventClass.getSimpleName()));
 
         var json = typeManager.writeValueAsString(event);
-        var deserialized = typeManager.readValue(json, Event.class);
+        var deserialized = typeManager.readValue(json, EventEnvelope.class);
 
         assertThat(deserialized)
-                .isInstanceOf(eventClass)
+                .isInstanceOf(eventEnvelopeClass)
                 .usingRecursiveComparison().isEqualTo(event);
     }
 
@@ -71,30 +75,34 @@ class EventTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             var eventBuilders = Stream.of(
-                    AssetCreated.Builder.newInstance().assetId("id"),
-                    AssetDeleted.Builder.newInstance().assetId("id"),
-                    ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id"),
-                    ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id"),
-                    ContractNegotiationApproved.Builder.newInstance().contractNegotiationId("id"),
-                    ContractNegotiationConfirmed.Builder.newInstance().contractNegotiationId("id"),
-                    ContractNegotiationDeclined.Builder.newInstance().contractNegotiationId("id"),
-                    ContractNegotiationFailed.Builder.newInstance().contractNegotiationId("id"),
-                    ContractNegotiationInitiated.Builder.newInstance().contractNegotiationId("id"),
-                    ContractNegotiationOffered.Builder.newInstance().contractNegotiationId("id"),
-                    ContractNegotiationRequested.Builder.newInstance().contractNegotiationId("id"),
-                    PolicyDefinitionCreated.Builder.newInstance().policyDefinitionId("id"),
-                    PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id"),
-                    TransferProcessCompleted.Builder.newInstance().transferProcessId("id"),
-                    TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id"),
-                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id").reason("any reason"),
-                    TransferProcessFailed.Builder.newInstance().transferProcessId("id"),
-                    TransferProcessInitiated.Builder.newInstance().transferProcessId("id"),
-                    TransferProcessProvisioned.Builder.newInstance().transferProcessId("id"),
-                    TransferProcessRequested.Builder.newInstance().transferProcessId("id")
+                    AssetCreated.Builder.newInstance().assetId("id").build(),
+                    AssetDeleted.Builder.newInstance().assetId("id").build(),
+                    ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id").build(),
+                    ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id").build(),
+                    ContractNegotiationApproved.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationConfirmed.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationDeclined.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationFailed.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationInitiated.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationOffered.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationRequested.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationTerminated.Builder.newInstance().contractNegotiationId("id").build(),
+                    PolicyDefinitionCreated.Builder.newInstance().policyDefinitionId("id").build(),
+                    PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id").build(),
+                    TransferProcessCompleted.Builder.newInstance().transferProcessId("id").build(),
+                    TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id").build(),
+                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id").reason("any reason").build(),
+                    TransferProcessFailed.Builder.newInstance().transferProcessId("id").build(),
+                    TransferProcessInitiated.Builder.newInstance().transferProcessId("id").build(),
+                    TransferProcessProvisioned.Builder.newInstance().transferProcessId("id").build(),
+                    TransferProcessRequested.Builder.newInstance().transferProcessId("id").build()
             );
 
             return eventBuilders
-                    .map(it -> it.id(UUID.randomUUID().toString()).at(Clock.systemUTC().millis()).build())
+                    .map(it -> EventEnvelope.Builder.newInstance()
+                            .at(Clock.systemUTC().millis())
+                            .id(UUID.randomUUID().toString()).payload(it)
+                            .build())
                     .map(Arguments::of);
         }
     }

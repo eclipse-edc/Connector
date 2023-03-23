@@ -44,10 +44,10 @@ class OutputStreamDataSinkFactoryTest {
 
     @Test
     void validate() {
-        assertThat(factory.validate(createDataFlowRequest(OutputStreamDataSinkFactory.TYPE)))
+        assertThat(factory.validateRequest(createDataFlowRequest(OutputStreamDataSinkFactory.TYPE)))
                 .satisfies(result -> assertThat(result.succeeded()).isTrue());
 
-        assertThat(factory.validate(createDataFlowRequest("dummy")))
+        assertThat(factory.validateRequest(createDataFlowRequest("dummy")))
                 .satisfies(result -> {
                     assertThat(result.failed()).isTrue();
                     assertThat(result.getFailureMessages())

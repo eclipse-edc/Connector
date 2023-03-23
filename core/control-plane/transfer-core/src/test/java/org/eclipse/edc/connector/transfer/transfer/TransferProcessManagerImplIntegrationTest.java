@@ -84,15 +84,18 @@ class TransferProcessManagerImplIntegrationTest {
         var policyArchive = mock(PolicyArchive.class);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
 
+        var monitor = mock(Monitor.class);
+        var waitStrategy = mock(ExponentialWaitStrategy.class);
+        var clock = Clock.systemUTC();
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(mock(DataFlowManager.class))
-                .waitStrategy(mock(ExponentialWaitStrategy.class))
+                .waitStrategy(waitStrategy)
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .manifestGenerator(manifestGenerator)
-                .monitor(mock(Monitor.class))
-                .clock(Clock.systemUTC())
+                .monitor(monitor)
+                .clock(clock)
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
@@ -157,7 +160,6 @@ class TransferProcessManagerImplIntegrationTest {
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(TransferProcess.Type.CONSUMER)
                 .id("test-process-" + processId)
-                .state(INITIAL.code())
                 .dataRequest(dataRequest);
     }
 }
