@@ -37,10 +37,10 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(JsonLdKeywords.ID,transferProcess.getId());
-        builder.add(JsonLdKeywords.TYPE, DSPACE_PREFIX + "TransferProcess");
+        builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferProcess");
 
       //  builder.add(DSPACE_Prefix+"correlationId", transferProcess.); //TODO Find ID
-        builder.add(DSPACE_PREFIX+ "state", TransferProcessStates.from(transferProcess.getState()).name());
+        builder.add(DSPACE_SCHEMA+ "state", TransferProcessStates.from(transferProcess.getState()).name());
 
         return builder.build();
     }

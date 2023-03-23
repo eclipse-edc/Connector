@@ -6,12 +6,14 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.jsonld.transformer.JsonLdKeywords;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+import static org.eclipse.edc.protocol.dsp.transform.DspNamespaces.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.DspNamespaces.DSPACE_SCHEMA;
 
 public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJsonLdTransformer<TransferRequestMessage, JsonObject> {
@@ -39,10 +41,14 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         builder.add(JsonLdKeywords.TYPE,DSPACE_SCHEMA + "TransferRequestMessage");
 
         builder.add(DSPACE_SCHEMA + "agreementId", transferRequestMessage.getContractId());
-        //TODO dct:format add
-        builder.add(DSPACE_SCHEMA + "dataAdress", transferRequestMessage.getConnectorAddress());
+        builder.add(DCT_SCHEMA + "format", "dspace:AmazonS3+Push");
+        builder.add(DSPACE_SCHEMA + "dataAdress", transformDataAddress(transferRequestMessage.getDataDestination(),context));
 
 
         return builder.build();
+    }
+
+    private @Nullable JsonObject transformDataAddress(DataAddress address, TransformerContext context){
+        return context.transform(address, JsonObject.class);
     }
 }
