@@ -42,7 +42,9 @@ public class TransferCompletionMessage implements RemoteMessage {
         return connectorAddress;
     }
 
-    public String getCorrelationId(){return correlationId;}
+    public String getCorrelationId() {
+        return correlationId;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
@@ -67,7 +69,7 @@ public class TransferCompletionMessage implements RemoteMessage {
             return this;
         }
 
-        public Builder correlationId(String correlationId){
+        public Builder correlationId(String correlationId) {
             message.correlationId = correlationId;
             return this;
         }

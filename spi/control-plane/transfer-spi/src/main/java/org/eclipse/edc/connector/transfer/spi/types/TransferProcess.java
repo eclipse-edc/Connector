@@ -143,7 +143,9 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         contentDataAddress = dataAddress;
     }
 
-    public String getCorrelationId(){return correlationId;}
+    public String getCorrelationId() {
+        return correlationId;
+    }
 
     public void transitionProvisioning(ResourceManifest manifest) {
         transition(PROVISIONING, INITIAL, PROVISIONING);
@@ -429,7 +431,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
-        public Builder correlationId(String correlationId){
+        public Builder correlationId(String correlationId) {
             entity.correlationId = correlationId;
             return this;
         }
