@@ -459,8 +459,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 entity.transitionTo(INITIAL.code());
             }
 
-            Objects.requireNonNull(entity.correlationId, "The correlationID must be specified");
-
             return entity;
         }
 
