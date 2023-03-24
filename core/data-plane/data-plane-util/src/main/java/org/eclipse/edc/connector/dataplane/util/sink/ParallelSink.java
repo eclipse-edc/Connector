@@ -31,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
+import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
@@ -63,8 +64,9 @@ public abstract class ParallelSink implements DataSink {
                             .orElseGet(this::complete))
                     .exceptionally(throwable -> StatusResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
         } catch (Exception e) {
-            monitor.severe("Error processing data transfer request: " + requestId, e);
-            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, "Error processing data transfer request"));
+            var errorMessage = format("Error processing data transfer request - Request ID: %s", requestId);
+            monitor.severe(errorMessage, e);
+            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, errorMessage));
         }
     }
 

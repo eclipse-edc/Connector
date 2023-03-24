@@ -141,7 +141,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         }
 
         var stream = new ByteArrayOutputStream();
-        var sink = new OutputStreamDataSink(stream, executorService, monitor);
+        var sink = new OutputStreamDataSink(dataFlowRequest.getId(), stream, executorService, monitor);
 
         dataPlaneManager.transfer(sink, dataFlowRequest)
                 .whenComplete((result, throwable) -> {

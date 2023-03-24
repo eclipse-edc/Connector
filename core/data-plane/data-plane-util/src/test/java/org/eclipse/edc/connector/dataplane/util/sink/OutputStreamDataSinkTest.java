@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -38,7 +39,7 @@ class OutputStreamDataSinkTest {
         var dataSource = new InputStreamDataSource("foo", new ByteArrayInputStream(data));
 
         var stream = new ByteArrayOutputStream();
-        var dataSink = new OutputStreamDataSink(stream, executor, monitor);
+        var dataSink = new OutputStreamDataSink(randomUUID().toString(), stream, executor, monitor);
 
         dataSink.transfer(dataSource).get(30, SECONDS);
 
