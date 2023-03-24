@@ -38,7 +38,7 @@ public class TransferRequestDelegate implements DspDispatcherDelegate<TransferRe
 
     @Override
     public Request buildRequest(TransferRequestMessage message) {
-        var transferRequest = registry.transform(message,JsonObject.class); //TODO Write Transformer
+        var transferRequest = registry.transform(message,JsonObject.class);
 
         if (transferRequest.failed()){
             throw new EdcException("Failed to create request body for transfer request message");

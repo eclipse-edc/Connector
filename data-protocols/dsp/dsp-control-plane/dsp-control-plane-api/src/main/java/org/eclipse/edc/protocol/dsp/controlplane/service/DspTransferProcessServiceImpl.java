@@ -69,7 +69,19 @@ public class DspTransferProcessServiceImpl implements DspTransferProcessService 
 
         var value = transferProcessService.initiateTransfer(dataRequest.getContent()); //TODO get TransferProcess as Return Value
 
-        return null; //TODO RETURN Correct Value
+        if (value.failed()){
+            throw new EdcException("TransferProcess could not be initiated");
+        }
+
+        var transferprocess = transferProcessService.findById(value.getContent());
+
+        var result = registry.transform(transferprocess,JsonObject.class);
+
+        if (result.failed()){
+            throw new EdcException("Response could not be created");
+        }
+
+        return  result.getContent();
     }
 
     @Override

@@ -40,7 +40,7 @@ public class TransferProcessController {
     public TransferProcessController(Monitor monitor, DspTransferProcessService dspTransferProcessService, TypeManager typeManager) {
         this.monitor = monitor;
         this.dspTransferProcessService = dspTransferProcessService;
-        this.mapper = typeManager.getMapper("json-ld"); //TODO Use correct mapper
+        this.mapper = typeManager.getMapper("json-ld");
     }
 
     //Provider side
@@ -60,7 +60,8 @@ public class TransferProcessController {
 
         var document = expandDocument(jsonObject).getJsonObject(0);
         var result = dspTransferProcessService.initiateTransferProcess(document);
-        return null; //TODO Find correct way to get TransferProcessObject.
+
+        return result;
     }
 
     //both sides
