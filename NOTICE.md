@@ -29,24 +29,34 @@ The project maintains the following source code repositoriy:
 ## Third Party Content
 
 Atomikos Util
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
 * Maven Artifact: com.atomikos/atomikos-util/5.0.9
-* License: NOASSERTION
+* License: Apache-2.0
 
 Transactions API
+* * Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
 * Maven Artifact: com.atomikos/transactions-api/5.0.9
-* License: NOASSERTION
+* License: Apache-2.0
 
 Transactions JDBC
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
 * Maven Artifact: com.atomikos/transactions-jdbc/5.0.9
-* License: NOASSERTION
+* License: Apache-2.0
 
 Transactions JTA
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
 * Maven Artifact: com.atomikos/transactions-jta/5.0.9
-* License: NOASSERTION
+* License: Apache-2.0
 
 Transactions Core
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
 * Maven Artifact: com.atomikos/transactions/5.0.9
-* License: NOASSERTION
+* License: Apache-2.0
 
 Microsoft Azure SDK for App Platform Management
 * Project: https://github.com/Azure/azure-sdk-for-java
@@ -652,7 +662,7 @@ API Common
 
 API Common
 * Maven Artifact: com.google.api/api-common/2.6.2
-* License: NOASSERTION
+* License: BSD-3-Clause
 
 GAX (Google Api eXtensions) for Java
 * Project: https://github.com/googleapis/gax-java
@@ -662,7 +672,6 @@ GAX (Google Api eXtensions) for Java
 
 GAX (Google Api eXtensions) for Java (gRPC)
 * Maven Artifact: com.google.api/gax-grpc/2.23.2
-* License: NOASSERTION
 
 GAX (Google Api eXtensions) for Java
 * Project: https://github.com/googleapis/gax-java
@@ -682,7 +691,6 @@ GAX (Google Api eXtensions) for Java
 
 GAX (Google Api eXtensions) for Java (Core)
 * Maven Artifact: com.google.api/gax/2.23.2
-* License: NOASSERTION
 
 Cloud Storage JSON API v1-rev20220705-2.0.0
 * Maven Artifact: com.google.apis/google-api-services-storage/v1-rev20220705-2.0.0
@@ -1925,7 +1933,7 @@ Saxon-HE
 * Project: http://www.saxonica.com/
 * Source: scm:svn:https://dev.saxonica.com/repos/archive/opensource/
 * Maven Artifact: net.sf.saxon/Saxon-HE/10.6
-* License: NOASSERTION
+* License: MPL-2.0
 
 ANTLR 4 Runtime
 * Maven Artifact: org.antlr/antlr4-runtime/4.9.3
@@ -2289,7 +2297,7 @@ Jakarta Expression Language Implementation
 * Project: https://projects.eclipse.org/projects/ee4j.el
 * Source: scm:git:https://github.com/eclipse-ee4j/el-ri.git
 * Maven Artifact: org.glassfish/jakarta.el/4.0.2
-* License: NOASSERTION
+* License: EPL-2.0
 
 Hamcrest Core
 * Project: http://hamcrest.org/JavaHamcrest/
