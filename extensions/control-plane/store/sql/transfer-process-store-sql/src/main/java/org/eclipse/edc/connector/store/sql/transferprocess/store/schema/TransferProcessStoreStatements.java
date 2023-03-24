@@ -154,6 +154,10 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "deprovisioned_resources";
     }
 
+    default String getCorrelationIdColumn() {
+        return "correlation_id";
+    }
+
     default String getFormatAsJsonOperator() {
         return BaseSqlDialect.getJsonCastOperator();
     }

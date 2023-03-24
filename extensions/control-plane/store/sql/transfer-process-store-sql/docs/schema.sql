@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     lease_id                   VARCHAR
         CONSTRAINT transfer_process_lease_lease_id_fk
             REFERENCES edc_lease
-            ON DELETE SET NULL
+            ON DELETE SET NULL,
+    correlation_id             VARCHAR
 );
 
 COMMENT ON COLUMN edc_transfer_process.trace_context IS 'Java Map serialized as JSON';
