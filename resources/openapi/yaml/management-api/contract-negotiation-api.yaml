@@ -515,16 +515,24 @@ components:
         connectorId:
           type: string
           example: null
+        consumerId:
+          type: string
+          example: null
         offer:
           $ref: '#/components/schemas/ContractOfferDescription'
         protocol:
           type: string
           example: null
+        providerId:
+          type: string
+          example: null
       required:
       - connectorAddress
       - connectorId
+      - consumerId
       - offer
       - protocol
+      - providerId
     NegotiationState:
       type: object
       example: null
