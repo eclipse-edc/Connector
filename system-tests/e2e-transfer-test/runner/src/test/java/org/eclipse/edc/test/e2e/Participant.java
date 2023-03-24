@@ -128,6 +128,8 @@ public class Participant {
     public String negotiateContract(Participant provider, ContractOffer contractOffer) {
         var request = Map.of(
                 "connectorId", "provider",
+                "consumerId", connectorId.toString(),
+                "providerId", provider.connectorId.toString(),
                 "connectorAddress", provider.idsEndpoint() + "/api/v1/ids/data",
                 "protocol", "ids-multipart",
                 "offer", Map.of(

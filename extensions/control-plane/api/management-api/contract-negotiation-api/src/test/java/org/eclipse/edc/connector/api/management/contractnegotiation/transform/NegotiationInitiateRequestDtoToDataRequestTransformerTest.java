@@ -31,8 +31,8 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
-    private final TransformerContext context = mock(TransformerContext.class);
     private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer(clock);
+    private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
     void inputOutputType() {
@@ -46,6 +46,8 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
                 .connectorId("connectorId")
                 .connectorAddress("address")
                 .protocol("protocol")
+                .consumerId("test-consumer")
+                .providerId("test-provider")
                 .offer(createOffer("offerId", "assetId"))
                 .build();
 

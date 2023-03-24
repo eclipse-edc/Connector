@@ -26,6 +26,10 @@ public class NegotiationInitiateRequestDto {
     private String connectorId;
     @NotNull(message = "offer cannot be null")
     private ContractOfferDescription offer;
+    @NotNull(message = "provider ID cannot be null")
+    private String providerId;
+    @NotNull(message = "consumer ID cannot be null")
+    private String consumerId;
 
     private NegotiationInitiateRequestDto() {
 
@@ -45,6 +49,14 @@ public class NegotiationInitiateRequestDto {
 
     public ContractOfferDescription getOffer() {
         return offer;
+    }
+
+    public String getConsumerId() {
+        return consumerId;
+    }
+
+    public String getProviderId() {
+        return providerId;
     }
 
     public static final class Builder {
@@ -75,6 +87,16 @@ public class NegotiationInitiateRequestDto {
 
         public Builder offer(ContractOfferDescription offer) {
             dto.offer = offer;
+            return this;
+        }
+
+        public Builder consumerId(String consumerId) {
+            dto.consumerId = consumerId;
+            return this;
+        }
+
+        public Builder providerId(String providerId) {
+            dto.providerId = providerId;
             return this;
         }
 

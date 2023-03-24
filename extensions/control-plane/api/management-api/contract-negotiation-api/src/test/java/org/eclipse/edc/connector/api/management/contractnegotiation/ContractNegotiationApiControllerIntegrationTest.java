@@ -214,6 +214,8 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
                 .connectorAddress("connectorAddress")
                 .offer(TestFunctions.createOffer())
+                .consumerId("test-consumer")
+                .providerId("test-provider")
                 .build();
 
         baseRequest()

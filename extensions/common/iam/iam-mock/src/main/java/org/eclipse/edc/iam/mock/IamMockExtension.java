@@ -22,6 +22,9 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
+import java.util.Objects;
+import java.util.UUID;
+
 /**
  * An IAM provider mock used for testing.
  */
@@ -42,6 +45,7 @@ public class IamMockExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var region = context.getSetting("edc.mock.region", "eu");
-        context.registerService(IdentityService.class, new MockIdentityService(typeManager, region));
+        var idsId = Objects.requireNonNull(context.getSetting("edc.ids.id", UUID.randomUUID().toString()));
+        context.registerService(IdentityService.class, new MockIdentityService(typeManager, region, idsId));
     }
 }

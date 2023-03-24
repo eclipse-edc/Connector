@@ -56,6 +56,8 @@ class NegotiationInitiateRequestDtoValidationTest {
                 .connectorAddress("connectorAddress")
                 .connectorId("connectorId")
                 .protocol("protocol")
+                .consumerId("test-consumer")
+                .providerId("test-provider")
                 .offer(offerDescription)
                 .build();
 
