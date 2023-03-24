@@ -458,6 +458,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
                 .connectorAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? it shouldn't be for provider.
+                .correlationId(process.getCorrelationId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
@@ -526,6 +527,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
                 .connectorAddress(dataRequest.getConnectorAddress())
+                .correlationId(process.getCorrelationId())
                 .build();
 
         var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
@@ -556,6 +558,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferTerminationMessage.Builder.newInstance()
                 .connectorAddress(dataRequest.getConnectorAddress())
                 .protocol(dataRequest.getProtocol())
+                .correlationId(process.getCorrelationId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());

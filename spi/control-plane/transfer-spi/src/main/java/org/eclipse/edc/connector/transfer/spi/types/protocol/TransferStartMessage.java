@@ -28,6 +28,8 @@ public class TransferStartMessage implements RemoteMessage {
     private String connectorAddress;
     private String protocol;
 
+    private String correlationId;
+
     @Override
     public String getProtocol() {
         return protocol;
@@ -37,6 +39,8 @@ public class TransferStartMessage implements RemoteMessage {
     public String getConnectorAddress() {
         return connectorAddress;
     }
+
+    public String getCorrelationId(){return correlationId;}
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
@@ -61,9 +65,15 @@ public class TransferStartMessage implements RemoteMessage {
             return this;
         }
 
+        public Builder correlationId(String correlationId){
+            message.correlationId = correlationId;
+            return this;
+        }
+
         public TransferStartMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.connectorAddress, "The connectorAddress must be specified");
+            Objects.requireNonNull(message.correlationId, "The correlationID must be specified");
             return message;
         }
 

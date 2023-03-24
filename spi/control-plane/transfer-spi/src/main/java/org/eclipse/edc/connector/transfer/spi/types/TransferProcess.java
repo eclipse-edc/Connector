@@ -110,6 +110,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, String> properties = new HashMap<>();
 
+    private String correlationId;
+
     private TransferProcess() {
     }
 
@@ -140,6 +142,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public void setContentDataAddress(DataAddress dataAddress) {
         contentDataAddress = dataAddress;
     }
+
+    public String getCorrelationId(){return correlationId;}
 
     public void transitionProvisioning(ResourceManifest manifest) {
         transition(PROVISIONING, INITIAL, PROVISIONING);
@@ -425,6 +429,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
+        public Builder correlationId(String correlationId){
+            entity.correlationId = correlationId;
+            return this;
+        }
+
         @Override
         public Builder self() {
             return this;
@@ -449,6 +458,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             if (entity.state == 0) {
                 entity.transitionTo(INITIAL.code());
             }
+
+            Objects.requireNonNull(entity.correlationId, "The correlationID must be specified");
 
             return entity;
         }
