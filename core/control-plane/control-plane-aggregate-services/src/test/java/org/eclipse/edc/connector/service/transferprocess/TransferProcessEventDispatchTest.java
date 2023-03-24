@@ -123,6 +123,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
+                .id("dataRequestId")
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
@@ -146,6 +147,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
+                .id("dataRequestId")
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
