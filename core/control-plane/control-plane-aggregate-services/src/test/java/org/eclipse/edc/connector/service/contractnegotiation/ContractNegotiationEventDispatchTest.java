@@ -104,7 +104,7 @@ class ContractNegotiationEventDispatchTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
-        var result = manager.requested(token, createContractOfferRequest(policy));
+        manager.consumerRequested(token, createContractOfferRequest(policy));
 
         await().untilAsserted(() -> {
             //noinspection unchecked

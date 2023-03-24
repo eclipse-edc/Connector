@@ -28,7 +28,7 @@ import static java.util.Optional.of;
 /**
  * A generic result type.
  */
-public class Result<T> extends AbstractResult<T, Failure> {
+public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
 
     private Result(T content, Failure failure) {
         super(content, failure);
@@ -124,16 +124,6 @@ public class Result<T> extends AbstractResult<T, Failure> {
      */
     public <R> Result<R> mapTo(Class<R> clazz) {
         return mapTo();
-    }
-
-    /**
-     * Maps one result into another, applying the mapping function.
-     *
-     * @param mappingFunction a function converting this result into another
-     * @return the result of the mapping function
-     */
-    public <U> Result<U> flatMap(Function<Result<T>, Result<U>> mappingFunction) {
-        return mappingFunction.apply(this);
     }
 
     /**

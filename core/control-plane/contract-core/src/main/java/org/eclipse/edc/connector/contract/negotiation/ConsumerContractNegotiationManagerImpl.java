@@ -88,8 +88,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     @Override
     public StatusResult<ContractNegotiation> initiate(ContractOfferRequest contractOffer) {
+        var id = UUID.randomUUID().toString();
         var negotiation = ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(id)
+                .correlationId(id)
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getConnectorAddress())
@@ -116,8 +118,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     @Override
-    // TODO: should be renamed to agreed
-    public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
+    public StatusResult<ContractNegotiation> providerAgreed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
         var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));

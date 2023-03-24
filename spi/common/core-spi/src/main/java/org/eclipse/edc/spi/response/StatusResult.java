@@ -22,7 +22,7 @@ import java.util.List;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 
-public class StatusResult<T> extends AbstractResult<T, ResponseFailure> {
+public class StatusResult<T> extends AbstractResult<T, ResponseFailure, StatusResult<T>> {
 
     public static StatusResult<Void> success() {
         return new StatusResult<>(null, null);

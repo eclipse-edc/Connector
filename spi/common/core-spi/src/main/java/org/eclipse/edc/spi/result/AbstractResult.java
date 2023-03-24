@@ -29,7 +29,7 @@ import java.util.function.Function;
  * @param <F> The type of {@link Failure}.
  * @param <T> The type of the content
  */
-public abstract class AbstractResult<T, F extends Failure> {
+public abstract class AbstractResult<T, F extends Failure, R extends AbstractResult<T, F, R>> {
 
     private final T content;
     private final F failure;
@@ -74,7 +74,7 @@ public abstract class AbstractResult<T, F extends Failure> {
     /**
      * Executes a {@link Consumer} if this {@link Result} is successful
      */
-    public AbstractResult<T, F> onSuccess(Consumer<T> successAction) {
+    public AbstractResult<T, F, R> onSuccess(Consumer<T> successAction) {
         if (succeeded()) {
             successAction.accept(getContent());
         }
@@ -84,7 +84,7 @@ public abstract class AbstractResult<T, F extends Failure> {
     /**
      * Executes a {@link Consumer} if this {@link Result} failed. Passes the {@link Failure} to the consumer
      */
-    public AbstractResult<T, F> onFailure(Consumer<F> failureAction) {
+    public AbstractResult<T, F, R> onFailure(Consumer<F> failureAction) {
         if (failed()) {
             failureAction.accept(getFailure());
         }
@@ -94,7 +94,7 @@ public abstract class AbstractResult<T, F extends Failure> {
     /**
      * Alias for {@link AbstractResult#onFailure(Consumer)} to make code a bit more easily readable.
      */
-    public AbstractResult<T, F> orElse(Consumer<F> failureAction) {
+    public AbstractResult<T, F, R> orElse(Consumer<F> failureAction) {
         return onFailure(failureAction);
     }
 
@@ -124,6 +124,20 @@ public abstract class AbstractResult<T, F extends Failure> {
         } else {
             return getContent();
         }
+    }
+
+    /**
+     * Maps one result into another, applying the mapping function.
+     *
+     * @param mappingFunction a function converting this result into another
+     * @return the result of the mapping function
+     */
+    public <T2, F2 extends Failure, R2 extends AbstractResult<T2, F2, R2>> R2 flatMap(Function<R, R2> mappingFunction) {
+        return mappingFunction.apply(self());
+    }
+
+    public R self() {
+        return (R) this;
     }
 
 }

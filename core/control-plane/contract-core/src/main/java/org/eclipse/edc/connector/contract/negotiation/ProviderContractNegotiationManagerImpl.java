@@ -123,7 +123,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     @Override
-    public StatusResult<ContractNegotiation> requested(ClaimToken token, ContractOfferRequest request) {
+    public StatusResult<ContractNegotiation> consumerRequested(ClaimToken token, ContractOfferRequest request) {
         var offer = request.getContractOffer();
 
         var result = validationService.validateInitialOffer(token, offer);

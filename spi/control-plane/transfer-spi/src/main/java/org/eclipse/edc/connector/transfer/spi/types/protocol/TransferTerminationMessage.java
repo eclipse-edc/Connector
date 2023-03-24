@@ -29,6 +29,7 @@ public class TransferTerminationMessage implements RemoteMessage {
 
     private String connectorAddress;
     private String protocol;
+    private String processId;
 
     @Override
     public String getProtocol() {
@@ -38,6 +39,10 @@ public class TransferTerminationMessage implements RemoteMessage {
     @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getProcessId() {
+        return processId;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -60,6 +65,11 @@ public class TransferTerminationMessage implements RemoteMessage {
 
         public Builder protocol(String protocol) {
             message.protocol = protocol;
+            return this;
+        }
+
+        public Builder processId(String processId) {
+            message.processId = processId;
             return this;
         }
 

@@ -135,7 +135,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .correlationId("correlationId")
                 .build();
 
-        var result = negotiationManager.requested(token, request);
+        var result = negotiationManager.consumerRequested(token, request);
 
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
@@ -164,7 +164,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .correlationId("correlationId")
                 .build();
 
-        var result = negotiationManager.requested(token, request);
+        var result = negotiationManager.consumerRequested(token, request);
 
         assertThat(result.succeeded()).isFalse();
         verify(validationService).validateInitialOffer(token, contractOffer);

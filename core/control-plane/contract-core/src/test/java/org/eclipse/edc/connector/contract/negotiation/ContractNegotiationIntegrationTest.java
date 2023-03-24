@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
@@ -65,7 +66,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-//@ComponentTest
+@ComponentTest
 class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
@@ -246,7 +247,7 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractOfferRequest request = i.getArgument(1);
             consumerNegotiationId = request.getCorrelationId();
-            var result = providerManager.requested(token, request);
+            var result = providerManager.consumerRequested(token, request);
             return toFuture(result);
         };
     }
@@ -273,7 +274,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentAgreementRequest() {
         return i -> {
             ContractAgreementRequest request = i.getArgument(1);
-            var result = consumerManager.confirmed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
+            var result = consumerManager.providerAgreed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
             return toFuture(result);
         };
     }
