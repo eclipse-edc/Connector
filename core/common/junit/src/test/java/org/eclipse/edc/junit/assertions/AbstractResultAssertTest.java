@@ -1,0 +1,53 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.junit.assertions;
+
+import org.eclipse.edc.spi.result.Result;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+
+class AbstractResultAssertTest {
+
+    @Test
+    void isSucceeded() {
+        var result = Result.success(3);
+        assertThat(result).isSucceeded().isEqualTo(3);
+    }
+
+    @Test
+    void isFailed() {
+        var result = Result.failure(new ArrayList<>());
+        assertThat(result).isFailed();
+    }
+
+    @Test
+    void hasMessages() {
+        var result = Result.failure(new ArrayList<>() {{
+            add("failure");
+        }});
+        assertThat(result).isFailed().hasMessages("failure");
+    }
+
+    @Test
+    void hasMessagesContaining() {
+        var result = Result.failure(new ArrayList<>() {{
+            add("failure");
+        }});
+        assertThat(result).isFailed().hasMessagesContaining("fail");
+    }
+}
