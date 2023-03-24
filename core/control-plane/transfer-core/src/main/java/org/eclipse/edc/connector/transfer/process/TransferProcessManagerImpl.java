@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
@@ -35,6 +34,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
@@ -168,8 +168,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     @Override
-    public StatusResult<String> initiateConsumerRequest(DataRequest dataRequest) {
-        return initiateRequest(CONSUMER, dataRequest);
+    public StatusResult<String> initiateConsumerRequest(TransferRequest transferRequest) {
+        return initiateRequest(CONSUMER, transferRequest);
 
     }
 
@@ -178,8 +178,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     @Override
-    public StatusResult<String> initiateProviderRequest(DataRequest dataRequest) {
-        return initiateRequest(PROVIDER, dataRequest);
+    public StatusResult<String> initiateProviderRequest(TransferRequest transferRequest) {
+        return initiateRequest(PROVIDER, transferRequest);
     }
 
     @Override
@@ -257,8 +257,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         handleDeprovisionResponses(transferProcess, deprovisionResponses);
     }
 
-    private StatusResult<String> initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
+    private StatusResult<String> initiateRequest(TransferProcess.Type type, TransferRequest transferRequest) {
         // make the request idempotent: if the process exists, return
+        var dataRequest = transferRequest.getDataRequest();
         var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
         if (processId != null) {
             return StatusResult.success(processId);
@@ -340,12 +341,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var resources = process.getResourcesToProvision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
-                        .entityRetrieve(transferProcessStore::find)
-                        .onSuccess((t, content) -> handleProvisionResult(t.getId(), content))
-                        .onFailure((t, throwable) -> transitToProvisioning(t))
-                        .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
-                        .onDelay(this::breakLease)
-                        .execute("Provisioning");
+                .entityRetrieve(transferProcessStore::find)
+                .onSuccess((t, content) -> handleProvisionResult(t.getId(), content))
+                .onFailure((t, throwable) -> transitToProvisioning(t))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
+                .onDelay(this::breakLease)
+                .execute("Provisioning");
     }
 
     /**
@@ -389,7 +390,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .contractId(dataRequest.getContractId())
                 .build();
 
-        var description =  format("Send %s to %s", message.getClass().getSimpleName(), message.getConnectorAddress());
+        var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToRequested(t))
@@ -528,7 +529,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .connectorAddress(dataRequest.getConnectorAddress())
                 .build();
 
-        var description =  format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+        var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
                 .onSuccess((t, content) -> transitToCompleted(t))
@@ -741,7 +742,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void transitionToCompleting(TransferProcess process) {
         process.transitionCompleting();
-        updateTransferProcess(process, l -> { });
+        updateTransferProcess(process, l -> {
+        });
     }
 
     private void transitToCompleted(TransferProcess p) {

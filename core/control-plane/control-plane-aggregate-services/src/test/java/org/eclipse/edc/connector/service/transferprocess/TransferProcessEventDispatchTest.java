@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -77,6 +78,7 @@ public class TransferProcessEventDispatchTest {
         dispatcherRegistry.register(testDispatcher);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
+
         var dataRequest = DataRequest.Builder.newInstance()
                 .id("dataRequestId")
                 .assetId("assetId")
@@ -86,7 +88,11 @@ public class TransferProcessEventDispatchTest {
                 .connectorAddress("http://an/address")
                 .build();
 
-        var initiateResult = service.initiateTransfer(dataRequest);
+        var transferRequest = TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
+                .build();
+
+        var initiateResult = service.initiateTransfer(transferRequest);
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
@@ -130,13 +136,17 @@ public class TransferProcessEventDispatchTest {
                 .connectorAddress("http://an/address")
                 .build();
 
-        var initiateResult = service.initiateTransfer(dataRequest);
+        var transferRequest = TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
+                .build();
+
+        var initiateResult = service.initiateTransfer(transferRequest);
 
         service.terminate(initiateResult.getContent(), "any reason");
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }
-    
+
     @Test
     void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
@@ -153,7 +163,11 @@ public class TransferProcessEventDispatchTest {
                 .connectorAddress("http://an/address")
                 .build();
 
-        service.initiateTransfer(dataRequest);
+        var transferRequest = TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
+                .build();
+
+        service.initiateTransfer(transferRequest);
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }

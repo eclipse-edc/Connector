@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
@@ -139,12 +140,12 @@ class TransferProcessServiceImplTest {
 
     @Test
     void initiateTransfer() {
-        var dataRequest = dataRequest();
+        var transferRequest = transferRequest();
         String processId = "processId";
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-        when(manager.initiateConsumerRequest(dataRequest)).thenReturn(StatusResult.success(processId));
+        when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(processId));
 
-        var result = service.initiateTransfer(dataRequest);
+        var result = service.initiateTransfer(transferRequest);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo(processId);
@@ -155,17 +156,17 @@ class TransferProcessServiceImplTest {
     void initiateTransfer_consumer_invalidDestination_shouldNotInitiateTransfer() {
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
 
-        var result = service.initiateTransfer(dataRequest());
+        var result = service.initiateTransfer(transferRequest());
 
         assertThat(result).satisfies(ServiceResult::failed)
-                        .extracting(ServiceResult::reason)
-                        .isEqualTo(BAD_REQUEST);
+                .extracting(ServiceResult::reason)
+                .isEqualTo(BAD_REQUEST);
         verifyNoInteractions(manager);
     }
 
     @Test
     void initiateTransfer_provider_validAgreement_shouldInitiateTransfer() {
-        var dataRequest = dataRequest();
+        var transferRequest = transferRequest();
         var claimToken = claimToken();
         var processId = "processId";
 
@@ -174,22 +175,22 @@ class TransferProcessServiceImplTest {
         when(manager.initiateProviderRequest(any())).thenReturn(StatusResult.success(processId));
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
 
-        var result = service.initiateTransfer(dataRequest, claimToken);
+        var result = service.initiateTransfer(transferRequest, claimToken);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo(processId);
-        verify(manager).initiateProviderRequest(dataRequest);
+        verify(manager).initiateProviderRequest(transferRequest);
     }
 
     @Test
     void initiateTransfer_provider_invalidAgreement_shouldNotInitiateTransfer() {
-        var dataRequest = dataRequest();
+        var transferRequest = transferRequest();
         var claimToken = claimToken();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(), any())).thenReturn(Result.failure("error"));
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
 
-        var result = service.initiateTransfer(dataRequest, claimToken);
+        var result = service.initiateTransfer(transferRequest, claimToken);
 
         assertThat(result.succeeded()).isFalse();
         verifyNoInteractions(manager);
@@ -199,7 +200,7 @@ class TransferProcessServiceImplTest {
     void initiateTransfer_provider_invalidDestination_shouldNotInitiateTransfer() {
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
 
-        var result = service.initiateTransfer(dataRequest(), claimToken());
+        var result = service.initiateTransfer(transferRequest(), claimToken());
 
         assertThat(result).satisfies(ServiceResult::failed)
                 .extracting(ServiceResult::reason)
@@ -293,19 +294,25 @@ class TransferProcessServiceImplTest {
                 .id(id)
                 .build();
     }
-    
+
     private DataRequest dataRequest() {
         return DataRequest.Builder.newInstance()
                 .destinationType("type")
                 .build();
     }
-    
+
+    private TransferRequest transferRequest() {
+        return TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest())
+                .build();
+    }
+
     private ClaimToken claimToken() {
         return ClaimToken.Builder.newInstance()
                 .claim("key", "value")
                 .build();
     }
-    
+
     private ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id("agreementId")

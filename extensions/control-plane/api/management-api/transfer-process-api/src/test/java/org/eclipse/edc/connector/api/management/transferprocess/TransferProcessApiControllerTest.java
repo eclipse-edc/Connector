@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRe
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -263,27 +264,30 @@ class TransferProcessApiControllerTest {
 
     @Test
     void initiateTransfer() {
-        var transferReq = transferRequestDto();
+        var transferReqDto = transferRequestDto();
         var processId = "processId";
-        var request = dataRequest(transferReq);
-        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.success(request));
+        var tr = transferRequest(transferReqDto);
+        var dr = tr.getDataRequest();
+
+        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(TransferRequest.class))).thenReturn(Result.success(tr));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(processId));
 
-        var result = controller.initiateTransfer(transferReq);
+        var result = controller.initiateTransfer(transferReqDto);
 
-        var dataRequestCaptor = ArgumentCaptor.forClass(DataRequest.class);
+        var dataRequestCaptor = ArgumentCaptor.forClass(TransferRequest.class);
         verify(service).initiateTransfer(dataRequestCaptor.capture());
-        DataRequest dataRequest = dataRequestCaptor.getValue();
-        assertThat(dataRequest.getAssetId()).isEqualTo(request.getAssetId());
-        assertThat(dataRequest.getConnectorAddress()).isEqualTo(request.getConnectorAddress());
-        assertThat(dataRequest.getConnectorId()).isEqualTo(request.getConnectorId());
-        assertThat(dataRequest.getDataDestination()).isEqualTo(request.getDataDestination());
-        assertThat(dataRequest.getDestinationType()).isEqualTo(request.getDataDestination().getType());
-        assertThat(dataRequest.getContractId()).isEqualTo(request.getContractId());
-        assertThat(dataRequest.getProtocol()).isEqualTo(request.getProtocol());
-        assertThat(dataRequest.getProperties()).isEqualTo(request.getProperties());
-        assertThat(dataRequest.getTransferType()).isEqualTo(request.getTransferType());
-        assertThat(dataRequest.isManagedResources()).isEqualTo(request.isManagedResources());
+        TransferRequest transferRequest = dataRequestCaptor.getValue();
+        DataRequest dataRequest = transferRequest.getDataRequest();
+        assertThat(dataRequest.getAssetId()).isEqualTo(dr.getAssetId());
+        assertThat(dataRequest.getConnectorAddress()).isEqualTo(dr.getConnectorAddress());
+        assertThat(dataRequest.getConnectorId()).isEqualTo(dr.getConnectorId());
+        assertThat(dataRequest.getDataDestination()).isEqualTo(dr.getDataDestination());
+        assertThat(dataRequest.getDestinationType()).isEqualTo(dr.getDataDestination().getType());
+        assertThat(dataRequest.getContractId()).isEqualTo(dr.getContractId());
+        assertThat(dataRequest.getProtocol()).isEqualTo(dr.getProtocol());
+        assertThat(dataRequest.getProperties()).isEqualTo(dr.getProperties());
+        assertThat(dataRequest.getTransferType()).isEqualTo(dr.getTransferType());
+        assertThat(dataRequest.isManagedResources()).isEqualTo(dr.isManagedResources());
 
         assertThat(result.getId()).isEqualTo(processId);
         assertThat(result).isInstanceOf(IdResponseDto.class);
@@ -293,15 +297,15 @@ class TransferProcessApiControllerTest {
 
     @Test
     void initiateTransfer_failureTransformingRequest() {
-        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(TransferRequest.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.initiateTransfer(transferRequestDto())).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test
     void initiateTransfer_failure() {
-        var dataRequest = dataRequest();
-        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.success(dataRequest));
+        var transferRequest = transferRequest();
+        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.conflict("failure"));
 
         assertThatThrownBy(() -> controller.initiateTransfer(transferRequestDto())).isInstanceOf(EdcException.class);
@@ -310,7 +314,7 @@ class TransferProcessApiControllerTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidRequestParams.class)
     void initiateTransfer_invalidRequest(String connectorAddress, String contractId, String assetId, String protocol, DataAddress destination) {
-        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(TransferRequest.class))).thenReturn(Result.failure("failure"));
         var rq = TransferRequestDto.Builder.newInstance()
                 .connectorAddress(connectorAddress)
                 .contractId(contractId)
@@ -338,6 +342,19 @@ class TransferProcessApiControllerTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("dataaddress-type").build())
                 .build();
     }
+
+    private TransferRequest transferRequest() {
+        return TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest())
+                .build();
+    }
+
+    private TransferRequest transferRequest(TransferRequestDto dto) {
+        return TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest(dto))
+                .build();
+    }
+
 
     private TransferProcessDto transferProcessDto(TransferProcess transferProcess) {
         return TransferProcessDto.Builder.newInstance().id(transferProcess.getId()).build();

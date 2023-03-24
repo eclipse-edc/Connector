@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.spi;
 
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -28,12 +28,12 @@ public interface TransferProcessManager {
     /**
      * Initiates a data transfer process on the consumer.
      */
-    StatusResult<String> initiateConsumerRequest(DataRequest dataRequest);
+    StatusResult<String> initiateConsumerRequest(TransferRequest transferRequest);
 
     /**
      * Initiates a data transfer process on the provider.
      */
-    StatusResult<String> initiateProviderRequest(DataRequest dataRequest);
+    StatusResult<String> initiateProviderRequest(TransferRequest transferRequest);
 
     /**
      * Adds a single Command to the queue which is processed sequentially.

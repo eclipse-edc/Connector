@@ -15,10 +15,10 @@
 
 package org.eclipse.edc.connector.spi.transferprocess;
 
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -140,17 +140,17 @@ public interface TransferProcessService {
      * @return a result that is successful if the transfer process was initiated with id of created transferProcess.
      */
     @NotNull
-    ServiceResult<String> initiateTransfer(DataRequest request);
+    ServiceResult<String> initiateTransfer(TransferRequest request);
 
     /**
      * Initiate transfer request for type provider.
      *
-     * @param request for the transfer.
+     * @param transferRequest for the transfer.
      * @param claimToken of the requesting participant.
      * @return a result that is successful if the transfer process was initiated with id of created transferProcess.
      */
     @NotNull
-    ServiceResult<String> initiateTransfer(DataRequest request, ClaimToken claimToken);
+    ServiceResult<String> initiateTransfer(TransferRequest transferRequest, ClaimToken claimToken);
 
 
     /**
