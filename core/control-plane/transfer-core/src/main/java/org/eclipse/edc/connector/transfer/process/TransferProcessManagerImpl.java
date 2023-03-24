@@ -267,6 +267,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var process = TransferProcess.Builder.newInstance()
                 .id(id)
                 .dataRequest(dataRequest)
+                .correlationId(dataRequest.getId())
                 .type(type)
                 .clock(clock)
                 .properties(dataRequest.getProperties())
