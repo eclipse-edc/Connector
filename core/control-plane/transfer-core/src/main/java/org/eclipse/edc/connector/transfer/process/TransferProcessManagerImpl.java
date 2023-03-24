@@ -272,6 +272,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .clock(clock)
                 .properties(dataRequest.getProperties())
                 .traceContext(telemetry.getCurrentTraceContext())
+                .correlationId(dataRequest.getId())
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));

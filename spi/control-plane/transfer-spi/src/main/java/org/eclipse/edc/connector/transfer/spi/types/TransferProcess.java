@@ -346,6 +346,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .contentDataAddress(contentDataAddress)
                 .deprovisionedResources(deprovisionedResources)
                 .properties(properties)
+                .correlationId(correlationId)
                 .type(type);
         return copy(builder);
     }
