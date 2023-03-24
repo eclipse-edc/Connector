@@ -18,14 +18,13 @@ package org.eclipse.edc.protocol.dsp.controlplane.service;
 import jakarta.json.JsonObject;
 
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.controlplane.service.DspTransferProcessService;
 import org.eclipse.edc.spi.EdcException;
 
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 public class DspTransferProcessServiceImpl implements DspTransferProcessService {
@@ -61,13 +60,27 @@ public class DspTransferProcessServiceImpl implements DspTransferProcessService 
 
     @Override
     public JsonObject initiateTransferProcess(JsonObject jsonObject) {
-        var dataRequest = registry.transform(jsonObject, DataRequest.class); //TODO Write transformer
+        var transferRequestMessageResult = registry.transform(jsonObject, TransferRequestMessage.class); //TODO Write transformer
 
-        if (dataRequest.failed()){
-            throw new InvalidRequestException("Request body was malformed");
+        if (transferRequestMessageResult.failed()){
+            throw new EdcException("Failed to create request body for transfer request message");
         }
 
-        var value = transferProcessService.initiateTransfer(dataRequest.getContent()); //TODO get TransferProcess as Return Value
+        var transferRequestMessage = transferRequestMessageResult.getContent();
+
+
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(transferRequestMessage.getId())
+                .protocol(transferRequestMessage.getProtocol())
+                .connectorAddress(transferRequestMessage.getConnectorAddress())
+                .contractId(transferRequestMessage.getContractId())
+                .assetId(transferRequestMessage.getAssetId())
+                .dataDestination(transferRequestMessage.getDataDestination())
+                .properties(transferRequestMessage.getProperties())
+                .contractId(transferRequestMessage.getConnectorId())
+                .build();
+
+        var value = transferProcessService.initiateTransfer(dataRequest); //TODO get TransferProcess as Return Value
 
         if (value.failed()){
             throw new EdcException("TransferProcess could not be initiated");
