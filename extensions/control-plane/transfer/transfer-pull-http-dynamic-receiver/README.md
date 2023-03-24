@@ -7,7 +7,7 @@ and will be used by the consumer connector to dispatch the EDR
 
 ```json
 {
-  "edctype": "dataspaceconnector:datarequest",
+  "@type": "dataspaceconnector:datarequest",
   "protocol": "ids-multipart",
   "assetId": "test-document",
   "contractId": "1:8147d6d6-9734-4821-b93d-2832ea7892e4",

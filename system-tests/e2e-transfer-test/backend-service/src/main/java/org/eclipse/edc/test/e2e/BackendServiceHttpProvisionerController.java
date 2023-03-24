@@ -52,7 +52,7 @@ public class BackendServiceHttpProvisionerController {
         var completeUrl = format("%s/%s/provision", baseUrl, transferProcessId);
         monitor.info(format("Provision request received. Will now call the callback address %s to fake the provisioning", completeUrl));
         var requestBody = Map.of(
-                "edctype", "dataspaceconnector:provisioner-callback-request",
+                "@type", "dataspaceconnector:provisioner-callback-request",
                 "resourceDefinitionId", request.get("resourceDefinitionId"),
                 "assetId", request.get("assetId"),
                 "resourceName", "aName",

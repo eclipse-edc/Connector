@@ -245,7 +245,7 @@ public class Participant {
 
     public void registerDataPlane() {
         var body = Map.of(
-                "edctype", "dataspaceconnector:dataplaneinstance",
+                "@type", "dataspaceconnector:dataplaneinstance",
                 "id", UUID.randomUUID().toString(),
                 "url", dataPlaneControl + "/transfer",
                 "allowedSourceTypes", List.of("HttpData", "HttpProvision"),
