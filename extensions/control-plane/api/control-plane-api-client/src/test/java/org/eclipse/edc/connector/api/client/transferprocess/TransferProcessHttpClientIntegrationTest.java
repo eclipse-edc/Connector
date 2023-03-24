@@ -126,6 +126,7 @@ public class TransferProcessHttpClientIntegrationTest {
                 .id(id)
                 .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
+                .correlationId("TestId")
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("file")
                         .protocol("any")
