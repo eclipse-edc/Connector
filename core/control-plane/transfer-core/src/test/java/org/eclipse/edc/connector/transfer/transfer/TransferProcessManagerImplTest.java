@@ -918,6 +918,7 @@ class TransferProcessManagerImplTest {
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState, boolean managed) {
         var processId = UUID.randomUUID().toString();
         var dataRequest = createDataRequestBuilder()
+                .id("TestId")
                 .processId(processId)
                 .transferType(new TransferType())
                 .protocol("ids-protocol")
@@ -930,6 +931,7 @@ class TransferProcessManagerImplTest {
                 .type(CONSUMER)
                 .id("test-process-" + processId)
                 .state(inState.code())
+                .correlationId(dataRequest.getId())
                 .dataRequest(dataRequest);
     }
 
