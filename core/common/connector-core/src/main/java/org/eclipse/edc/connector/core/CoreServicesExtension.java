@@ -64,6 +64,10 @@ public class CoreServicesExtension implements ServiceExtension {
     public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
     @Setting
     public static final String HOSTNAME_SETTING = "edc.hostname";
+
+    /**
+     * The name of the claim key used to determine the participant identity.
+     */
     @Setting
     public static final String IDENTITY_KEY = "edc.agent.identity.key";
 
