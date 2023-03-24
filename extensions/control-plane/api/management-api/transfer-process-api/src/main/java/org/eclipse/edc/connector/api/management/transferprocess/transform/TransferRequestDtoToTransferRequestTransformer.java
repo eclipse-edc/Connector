@@ -22,6 +22,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+import java.util.UUID;
+
 public class TransferRequestDtoToTransferRequestTransformer implements DtoTransformer<TransferRequestDto, TransferRequest> {
 
     @Override
@@ -36,8 +39,26 @@ public class TransferRequestDtoToTransferRequestTransformer implements DtoTransf
 
     @Override
     public @Nullable TransferRequest transform(@NotNull TransferRequestDto object, @NotNull TransformerContext context) {
+        // Generate a DataRequest ID if none is provided (used for idempotency)
+        String id = Objects.requireNonNullElseGet(object.getId(), () -> UUID.randomUUID().toString());
+
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .assetId(object.getAssetId())
+                .connectorId(object.getConnectorId())
+                .dataDestination(object.getDataDestination())
+                .connectorAddress(object.getConnectorAddress())
+                .contractId(object.getContractId())
+                .transferType(object.getTransferType())
+                .destinationType(object.getDataDestination().getType())
+                .properties(object.getProperties())
+                .managedResources(object.isManagedResources())
+                .protocol(object.getProtocol())
+                .dataDestination(object.getDataDestination())
+                .build();
+
         return TransferRequest.Builder.newInstance()
-                .dataRequest(context.transform(object, DataRequest.class))
+                .dataRequest(dataRequest)
                 .build();
     }
 }

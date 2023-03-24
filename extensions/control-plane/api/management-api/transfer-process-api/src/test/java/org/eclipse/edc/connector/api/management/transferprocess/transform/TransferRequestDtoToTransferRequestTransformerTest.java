@@ -28,10 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class TransferRequestDtoToTransferRequestTransformerTest {
 
@@ -54,13 +51,26 @@ class TransferRequestDtoToTransferRequestTransformerTest {
         var transferReq = transferRequestDto()
                 .id(UUID.randomUUID().toString())
                 .build();
-        when(context.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(dataRequest(destinationType));
 
         var transferRequest = transformer.transform(transferReq, context);
         assertThat(transferRequest.getDataRequest())
                 .isNotNull()
                 .extracting(DataRequest::getDestinationType)
                 .isEqualTo(destinationType);
+
+        var dataRequest = transferRequest.getDataRequest();
+
+        assertThat(dataRequest.getId()).isEqualTo(transferReq.getId());
+        assertThat(dataRequest.getAssetId()).isEqualTo(transferReq.getAssetId());
+        assertThat(dataRequest.getConnectorAddress()).isEqualTo(transferReq.getConnectorAddress());
+        assertThat(dataRequest.getConnectorId()).isEqualTo(transferReq.getConnectorId());
+        assertThat(dataRequest.getDataDestination()).isEqualTo(transferReq.getDataDestination());
+        assertThat(dataRequest.getDestinationType()).isEqualTo(transferReq.getDataDestination().getType());
+        assertThat(dataRequest.getContractId()).isEqualTo(transferReq.getContractId());
+        assertThat(dataRequest.getProtocol()).isEqualTo(transferReq.getProtocol());
+        assertThat(dataRequest.getProperties()).isEqualTo(transferReq.getProperties());
+        assertThat(dataRequest.getTransferType()).isEqualTo(transferReq.getTransferType());
+        assertThat(dataRequest.isManagedResources()).isEqualTo(transferReq.isManagedResources());
     }
 
 
@@ -76,9 +86,5 @@ class TransferRequestDtoToTransferRequestTransformerTest {
                 .properties(Map.of("key1", "value1"));
     }
 
-
-    private DataRequest dataRequest(String destinationType) {
-        return DataRequest.Builder.newInstance().destinationType(destinationType).build();
-    }
 
 }
