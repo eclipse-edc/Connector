@@ -174,6 +174,7 @@ class TransferProcessControlApiControllerIntegrationTest {
                 .id("tp-id")
                 .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
+                .correlationId("testCorrelationId")
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("file")
                         .protocol("protocol")
