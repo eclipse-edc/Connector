@@ -39,6 +39,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.transformer.JsonLdKeywords.VOCAB;
@@ -79,25 +80,19 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
         @Override
         public JsonObject visitAndConstraint(AndConstraint andConstraint) {
-            for (var constraint : andConstraint.getConstraints()) {
-                var constraintObject = constraint.accept(this);
-            }
+            context.reportProblem(format("AtomicConstraint required, got: %s", andConstraint.getClass().getSimpleName()));
             return null;
         }
 
         @Override
         public JsonObject visitOrConstraint(OrConstraint orConstraint) {
-            for (var constraint : orConstraint.getConstraints()) {
-                var constraintObject = constraint.accept(this);
-            }
+            context.reportProblem(format("AtomicConstraint required, got: %s", orConstraint.getClass().getSimpleName()));
             return null;
         }
 
         @Override
         public JsonObject visitXoneConstraint(XoneConstraint xoneConstraint) {
-            for (var constraint : xoneConstraint.getConstraints()) {
-                var constraintObject = constraint.accept(this);
-            }
+            context.reportProblem(format("AtomicConstraint required, got: %s", xoneConstraint.getClass().getSimpleName()));
             return null;
         }
 
@@ -166,8 +161,11 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         @Override
         public JsonObject visitDuty(Duty duty) {
             var obligationBuilder = visitRule(duty);
-
-            //TODO consequence (duty), parentPermission?
+            
+            if (duty.getConsequence() != null) {
+                var consequence = visitDuty(duty.getConsequence());
+                obligationBuilder.add("consequence", consequence);
+            }
 
             return obligationBuilder.build();
         }
