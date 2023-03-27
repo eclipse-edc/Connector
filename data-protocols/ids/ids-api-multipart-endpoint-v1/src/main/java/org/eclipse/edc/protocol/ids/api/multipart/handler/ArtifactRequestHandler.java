@@ -20,6 +20,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
@@ -43,7 +44,7 @@ import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.malfo
 import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
-    
+
     private final IdsId connectorId;
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
@@ -157,8 +158,10 @@ public class ArtifactRequestHandler implements Handler {
                 .connectorAddress(idsWebhookAddress)
                 .build();
 
+        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
+
         // Initiate a transfer process for the request
-        var transferInitiateResult = transferProcessService.initiateTransfer(dataRequest, claimToken);
+        var transferInitiateResult = transferProcessService.initiateTransfer(transferRequest, claimToken);
 
         // Store secret if process initiated successfully
         if (transferInitiateResult.succeeded() && artifactRequestMessagePayload.getSecret() != null) {

@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.api.management.transferprocess.transform;
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -29,9 +30,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-class TransferRequestDtoToDataRequestTransformerTest {
+class TransferRequestDtoToTransferRequestTransformerTest {
 
-    private final DtoTransformer<TransferRequestDto, DataRequest> transformer = new TransferRequestDtoToDataRequestTransformer();
+    private final DtoTransformer<TransferRequestDto, TransferRequest> transformer = new TransferRequestDtoToTransferRequestTransformer();
 
     @Test
     void getInputType() {
@@ -40,16 +41,25 @@ class TransferRequestDtoToDataRequestTransformerTest {
 
     @Test
     void getOutputType() {
-        assertThat(transformer.getOutputType()).isEqualTo(DataRequest.class);
+        assertThat(transformer.getOutputType()).isEqualTo(TransferRequest.class);
     }
 
     @Test
     void transform() {
+        String destinationType = "test-type";
         var context = mock(TransformerContext.class);
         var transferReq = transferRequestDto()
                 .id(UUID.randomUUID().toString())
                 .build();
-        var dataRequest = transformer.transform(transferReq, context);
+
+        var transferRequest = transformer.transform(transferReq, context);
+        assertThat(transferRequest.getDataRequest())
+                .isNotNull()
+                .extracting(DataRequest::getDestinationType)
+                .isEqualTo(destinationType);
+
+        var dataRequest = transferRequest.getDataRequest();
+
         assertThat(dataRequest.getId()).isEqualTo(transferReq.getId());
         assertThat(dataRequest.getAssetId()).isEqualTo(transferReq.getAssetId());
         assertThat(dataRequest.getConnectorAddress()).isEqualTo(transferReq.getConnectorAddress());
@@ -63,14 +73,6 @@ class TransferRequestDtoToDataRequestTransformerTest {
         assertThat(dataRequest.isManagedResources()).isEqualTo(transferReq.isManagedResources());
     }
 
-    @Test
-    void transform_whenIdIsNull_generatesId() {
-        var context = mock(TransformerContext.class);
-        var transferReq = transferRequestDto().build();
-        var dataRequest = transformer.transform(transferReq, context);
-        assertThat(transferReq.getId()).isBlank();
-        assertThat(dataRequest.getId()).isNotBlank();
-    }
 
     @NotNull
     private TransferRequestDto.Builder transferRequestDto() {
@@ -83,5 +85,6 @@ class TransferRequestDtoToDataRequestTransformerTest {
                 .connectorId(UUID.randomUUID().toString())
                 .properties(Map.of("key1", "value1"));
     }
+
 
 }

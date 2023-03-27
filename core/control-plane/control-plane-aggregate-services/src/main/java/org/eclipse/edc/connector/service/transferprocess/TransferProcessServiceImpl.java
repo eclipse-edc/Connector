@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
@@ -30,6 +29,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationRe
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
@@ -101,9 +101,9 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     @Override
     public ServiceResult<TransferProcess> notifyStarted(String dataRequestId) {
         return transactionContext.execute(() -> Optional.of(dataRequestId)
-                        .map(transferProcessStore::processIdForDataRequestId)
-                        .map(id -> apply(id, this::startedImpl))
-                        .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", dataRequestId)))
+                .map(transferProcessStore::processIdForDataRequestId)
+                .map(id -> apply(id, this::startedImpl))
+                .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", dataRequestId)))
         );
     }
 
@@ -123,8 +123,8 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull ServiceResult<String> initiateTransfer(DataRequest request) {
-        var validDestination = dataAddressValidator.validate(request.getDataDestination());
+    public @NotNull ServiceResult<String> initiateTransfer(TransferRequest request) {
+        var validDestination = dataAddressValidator.validate(request.getDataRequest().getDataDestination());
         if (validDestination.failed()) {
             return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
         }
@@ -140,14 +140,14 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull ServiceResult<String> initiateTransfer(DataRequest request, ClaimToken claimToken) {
-        var validDestination = dataAddressValidator.validate(request.getDataDestination());
+    public @NotNull ServiceResult<String> initiateTransfer(TransferRequest request, ClaimToken claimToken) {
+        var validDestination = dataAddressValidator.validate(request.getDataRequest().getDataDestination());
         if (validDestination.failed()) {
             return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
         }
 
         return transactionContext.execute(() ->
-                Optional.ofNullable(negotiationStore.findContractAgreement(request.getContractId()))
+                Optional.ofNullable(negotiationStore.findContractAgreement(request.getDataRequest().getContractId()))
                         .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
                         .map(agreement -> manager.initiateProviderRequest(request))
                         .filter(AbstractResult::succeeded)

@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.transferprocess.transform;
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class TransferRequestDtoToDataRequestTransformer implements DtoTransformer<TransferRequestDto, DataRequest> {
+public class TransferRequestDtoToTransferRequestTransformer implements DtoTransformer<TransferRequestDto, TransferRequest> {
 
     @Override
     public Class<TransferRequestDto> getInputType() {
@@ -32,16 +33,16 @@ public class TransferRequestDtoToDataRequestTransformer implements DtoTransforme
     }
 
     @Override
-    public Class<DataRequest> getOutputType() {
-        return DataRequest.class;
+    public Class<TransferRequest> getOutputType() {
+        return TransferRequest.class;
     }
 
     @Override
-    public @Nullable DataRequest transform(@NotNull TransferRequestDto object, @NotNull TransformerContext context) {
+    public @Nullable TransferRequest transform(@NotNull TransferRequestDto object, @NotNull TransformerContext context) {
         // Generate a DataRequest ID if none is provided (used for idempotency)
         String id = Objects.requireNonNullElseGet(object.getId(), () -> UUID.randomUUID().toString());
 
-        return DataRequest.Builder.newInstance()
+        var dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .assetId(object.getAssetId())
                 .connectorId(object.getConnectorId())
@@ -54,6 +55,10 @@ public class TransferRequestDtoToDataRequestTransformer implements DtoTransforme
                 .managedResources(object.isManagedResources())
                 .protocol(object.getProtocol())
                 .dataDestination(object.getDataDestination())
+                .build();
+
+        return TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
                 .build();
     }
 }

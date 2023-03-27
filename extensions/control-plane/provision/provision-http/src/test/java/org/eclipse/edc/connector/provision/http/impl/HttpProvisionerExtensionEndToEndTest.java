@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -103,7 +104,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .thenAnswer(invocation -> createResponse(503, invocation))
                 .thenAnswer(invocation -> createResponse(200, invocation));
 
-        var result = processManager.initiateProviderRequest(createRequest());
+        var result = processManager.initiateProviderRequest(createTransferRequest());
 
         await().untilAsserted(() -> {
             var transferProcess = store.find(result.getContent());
@@ -143,6 +144,10 @@ public class HttpProvisionerExtensionEndToEndTest {
 
     private DataRequest createRequest() {
         return DataRequest.Builder.newInstance().destinationType("test").assetId(ASSET_ID).contractId(CONTRACT_ID).build();
+    }
+
+    private TransferRequest createTransferRequest() {
+        return TransferRequest.Builder.newInstance().dataRequest(createRequest()).build();
     }
 
     @Provides(HttpProvisionerWebhookUrl.class)

@@ -40,6 +40,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.SecretToken;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
@@ -158,10 +159,11 @@ class TransferProcessManagerImplTest {
     void verifyIdempotency() {
         when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
         var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
+        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
 
         manager.start();
-        manager.initiateProviderRequest(dataRequest);
-        manager.initiateProviderRequest(dataRequest); // repeat request
+        manager.initiateProviderRequest(transferRequest);
+        manager.initiateProviderRequest(transferRequest); // repeat request
         manager.stop();
 
         verify(transferProcessStore, times(RETRY_LIMIT)).save(isA(TransferProcess.class));
@@ -172,9 +174,10 @@ class TransferProcessManagerImplTest {
     void verifyCreatedTimestamp() {
         when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
         var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
+        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
 
         manager.start();
-        manager.initiateProviderRequest(dataRequest);
+        manager.initiateProviderRequest(transferRequest);
         manager.stop();
 
         verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getCreatedAt() > 0));
@@ -745,7 +748,7 @@ class TransferProcessManagerImplTest {
             verify(listener).terminated(process);
         });
     }
-    
+
     @Test
     void deprovisioning_shouldTransitionToDeprovisioned() {
         var manifest = ResourceManifest.Builder.newInstance()

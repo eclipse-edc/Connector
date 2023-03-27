@@ -32,8 +32,8 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TransferPr
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -129,7 +129,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     @POST
     @Override
     public IdResponseDto initiateTransfer(@Valid TransferRequestDto transferRequest) {
-        var transformResult = transformerRegistry.transform(transferRequest, DataRequest.class);
+        var transformResult = transformerRegistry.transform(transferRequest, TransferRequest.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
         }
