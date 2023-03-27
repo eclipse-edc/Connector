@@ -19,7 +19,6 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -49,15 +48,16 @@ class NegotiationInitiateRequestDtoValidationTest {
         }
     }
 
-    @Test
-    void validate_validDto() {
+    @ParameterizedTest
+    @ArgumentsSource(ProviderConsumerProvider.class)
+    void validate_validDto(String consumer, String provider) {
         var offerDescription = validOffer();
         var dto = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorAddress("connectorAddress")
                 .connectorId("connectorId")
                 .protocol("protocol")
-                .consumerId("test-consumer")
-                .providerId("test-provider")
+                .consumerId(consumer)
+                .providerId(provider)
                 .offer(offerDescription)
                 .build();
 
@@ -85,6 +85,20 @@ class NegotiationInitiateRequestDtoValidationTest {
                     Arguments.of("https://connector.com", "", "connector-id", validOffer()),
                     Arguments.of("https://connector.com", "ids-multipart", "connector-id", null),
                     Arguments.of("https://connector.com", "ids-multipart", "", validOffer())
+            );
+        }
+    }
+
+    private static class ProviderConsumerProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of("urn:connector:consumer", "urn:connector:provider"),
+                    Arguments.of("", "provider"),
+                    Arguments.of(null, "provider"),
+                    Arguments.of("consumer", "provider"),
+                    Arguments.of("consumer", ""),
+                    Arguments.of("consumer", null)
             );
         }
     }

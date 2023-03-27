@@ -69,6 +69,8 @@ public class FileTransferConfiguration implements TransferConfiguration {
 
         return NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("consumer")
+                .consumerId("urn:connector:consumer")
+                .providerId("urn:connector:provider")
                 .connectorAddress(providerIdsUrl)
                 .protocol("ids-multipart")
                 .offer(offerDescription)

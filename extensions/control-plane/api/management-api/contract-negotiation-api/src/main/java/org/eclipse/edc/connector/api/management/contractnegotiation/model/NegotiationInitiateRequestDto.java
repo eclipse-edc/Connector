@@ -26,9 +26,7 @@ public class NegotiationInitiateRequestDto {
     private String connectorId;
     @NotNull(message = "offer cannot be null")
     private ContractOfferDescription offer;
-    @NotNull(message = "provider ID cannot be null")
     private String providerId;
-    @NotNull(message = "consumer ID cannot be null")
     private String consumerId;
 
     private NegotiationInitiateRequestDto() {

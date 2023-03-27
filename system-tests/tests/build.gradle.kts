@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    
+
     testFixturesApi(project(":core:common:junit"))
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
     testFixturesApi(project(":spi:control-plane:contract-spi"))
@@ -43,11 +43,21 @@ dependencies {
     testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))
 }
 
+val otelDownloadUrl =
+    "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar"
+
+fun download(url: String, destFile: File) {
+    ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile))
+}
+
 tasks.withType<Test> {
-    val agent = rootDir.resolve("opentelemetry-javaagent.jar")
-    if (agent.exists()) {
-        jvmArgs("-javaagent:${agent.absolutePath}", "-Dotel.exporter.otlp.protocol=http/protobuf")
+    val otelFile = rootDir.resolve("opentelemetry-javaagent.jar")
+
+    if (!otelFile.exists()) {
+        logger.lifecycle("Downloading OpenTelemetry Agent")
+        download(otelDownloadUrl, otelFile)
     }
+    jvmArgs("-javaagent:${otelFile.absolutePath}", "-Dotel.exporter.otlp.protocol=http/protobuf")
 }
 
 tasks.getByName<Test>("test") {

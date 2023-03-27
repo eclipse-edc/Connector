@@ -265,8 +265,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
-      - name: Download opentelemetry javaagent
-        run: wget -q https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar
       - name: OpenTelemetry Integration Tests
         uses: ./.github/actions/run-tests
         with:

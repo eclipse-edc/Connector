@@ -30,9 +30,20 @@ import java.time.ZonedDateTime;
 public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractOfferRequest> {
 
     private final Clock clock;
+    private final String defaultConsumerId;
 
-    public NegotiationInitiateRequestDtoToDataRequestTransformer(Clock clock) {
+    /**
+     * Instantiates the NegotiationInitiateRequestDtoToDataRequestTransformer.
+     * <p>
+     * If the {@link NegotiationInitiateRequestDto#getConsumerId()} is null, the default consumer ID is used.
+     * IF the {@link NegotiationInitiateRequestDto#getProviderId()} is null, the connector address is used instead
+     *
+     * @param clock             the time base for the contract offer transformation
+     * @param defaultConsumerId The ID of the sending connector, in case the {@link NegotiationInitiateRequestDto#getConsumerId()} field is null
+     */
+    public NegotiationInitiateRequestDtoToDataRequestTransformer(Clock clock, String defaultConsumerId) {
         this.clock = clock;
+        this.defaultConsumerId = defaultConsumerId;
     }
 
     @Override
@@ -52,8 +63,8 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(object.getOffer().getOfferId())
                 .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
-                .consumer(URI.create(object.getConsumerId()))
-                .provider(URI.create(object.getProviderId()))
+                .consumer(createUri(object.getConsumerId(), defaultConsumerId))
+                .provider(createUri(object.getProviderId(), object.getConnectorAddress()))
                 .policy(object.getOffer().getPolicy())
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(object.getOffer().getValidity()))
@@ -65,5 +76,9 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .contractOffer(contractOffer)
                 .type(ContractOfferRequest.Type.INITIAL)
                 .build();
+    }
+
+    private URI createUri(String value, String defaultValue) {
+        return URI.create(value != null ? value : defaultValue);
     }
 }

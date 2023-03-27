@@ -29,9 +29,10 @@ import static org.mockito.Mockito.mock;
 
 class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
+    private static final String DEFAULT_CONSUMER_ID = "urn:connector:test-consumer";
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
-    private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer(clock);
+    private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer(clock, DEFAULT_CONSUMER_ID);
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
@@ -62,5 +63,40 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         assertThat(request.getContractOffer().getContractStart().toInstant()).isEqualTo(clock.instant());
         assertThat(request.getContractOffer().getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(dto.getOffer().getValidity()));
         assertThat(request.getContractOffer().getPolicy()).isNotNull();
+    }
+
+    @Test
+    void verify_transfor_withNoProviderId() {
+        var dto = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorId("connectorId")
+                .connectorAddress("address")
+                .protocol("protocol")
+                .consumerId("urn:connector:test-consumer")
+                // do not set provider ID
+                .offer(createOffer("offerId", "assetId"))
+                .build();
+
+        var request = transformer.transform(dto, context);
+
+        assertThat(request).isNotNull();
+        assertThat(request.getContractOffer().getProvider()).asString().isEqualTo(dto.getConnectorAddress());
+        assertThat(request.getContractOffer().getConsumer()).asString().isEqualTo("urn:connector:test-consumer");
+    }
+
+    @Test
+    void verify_transform_withNoConsumerId() {
+        var dto = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorId("connectorId")
+                .connectorAddress("address")
+                .protocol("protocol")
+                // do not set consumer ID
+                .providerId("urn:connector:test-provider")
+                .offer(createOffer("offerId", "assetId"))
+                .build();
+
+        var request = transformer.transform(dto, context);
+        assertThat(request).isNotNull();
+        assertThat(request.getContractOffer().getProvider()).asString().isEqualTo("urn:connector:test-provider");
+        assertThat(request.getContractOffer().getConsumer()).asString().isEqualTo(DEFAULT_CONSUMER_ID);
     }
 }

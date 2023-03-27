@@ -529,10 +529,8 @@ components:
       required:
       - connectorAddress
       - connectorId
-      - consumerId
       - offer
       - protocol
-      - providerId
     NegotiationState:
       type: object
       example: null

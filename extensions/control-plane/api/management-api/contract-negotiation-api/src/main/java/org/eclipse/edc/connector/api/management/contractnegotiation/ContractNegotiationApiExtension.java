@@ -55,9 +55,10 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var idsId = context.getSetting("edc.ids.id", null);
         transformerRegistry.register(new ContractNegotiationToContractNegotiationDtoTransformer());
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
-        transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer(clock));
+        transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer(clock, idsId));
 
         var monitor = context.getMonitor();
 

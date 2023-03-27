@@ -8,5 +8,6 @@ service:
 edc:
   env:
     IDS_WEBHOOK_ADDRESS: http://consumer-dataspace-connector:8282
+    EDC_IDS_ID: "urn:connector:consumer"
   envSecrets:
     EDC_API_CONTROL_AUTH_APIKEY_VALUE: password
