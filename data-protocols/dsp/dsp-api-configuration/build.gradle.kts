@@ -24,6 +24,8 @@ dependencies {
     api(project(":extensions:common:json-ld"))
 
     implementation(libs.jakarta.rsApi)
+
+    testImplementation(project(":core:common:junit"))
 }
 
 

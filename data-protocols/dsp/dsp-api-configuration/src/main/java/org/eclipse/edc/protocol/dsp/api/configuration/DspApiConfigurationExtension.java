@@ -37,11 +37,11 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
     
-    private static final String DEFAULT_DSP_WEBHOOK_ADDRESS = "http://localhost:8282/api/v1/dsp";
-    private static final String DSP_WEBHOOK_ADDRESS = "dsp.webhook.address";
+    public static final String DEFAULT_DSP_WEBHOOK_ADDRESS = "http://localhost:8282/api/v1/dsp";
+    public static final String DSP_WEBHOOK_ADDRESS = "dsp.webhook.address";
     
-    private static final int DEFAULT_PROTOCOL_PORT = 8282;
-    private static final String DEFAULT_PROTOCOL_API_PATH = "/api/v1/dsp";
+    public static final int DEFAULT_PROTOCOL_PORT = 8282;
+    public static final String DEFAULT_PROTOCOL_API_PATH = "/api/v1/dsp";
     
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey("web.http.protocol")
