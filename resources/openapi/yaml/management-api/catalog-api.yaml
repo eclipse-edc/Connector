@@ -241,8 +241,6 @@ components:
       example: null
       properties:
         dataService:
-          $ref: '#/components/schemas/DataService'
-        dataServiceId:
           type: string
           example: null
         format:
