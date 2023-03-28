@@ -20,11 +20,20 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
+/**
+ * Models the DataService class of the DCAT spec. A DataService is defined as a collection
+ * of operations that provide access to Datasets. A DataService specifies the endpoint for
+ * initiating a contract negotiation and transfer.
+ */
 @JsonDeserialize(builder = DataService.Builder.class)
 public class DataService {
 
     private String id;
+    
+    /** Type of access service, e.g. a connector. */
     private String terms;
+    
+    /** Endpoint for accessing associated Distributions. */
     private String endpointUrl;
 
     public String getId() {

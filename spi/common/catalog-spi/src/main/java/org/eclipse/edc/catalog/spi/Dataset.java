@@ -25,12 +25,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Models the Dataset class of the DCAT spec. A Dataset is defined as a collection of data
+ * available for access or download. The data described by a Dataset may be offered under
+ * different policies and may be available via different distributions.
+ */
 @JsonDeserialize(builder = Dataset.Builder.class)
 public class Dataset {
 
     private String id;
+    
+    /** Policies under which this Dataset is available. */
     private Map<String, Policy> offers = new HashMap<>();
+    
+    /** Representations of this Dataset. */
     private List<Distribution> distributions = new ArrayList<>();
+    
+    /** Properties for describing the Dataset. */
     private Map<String, Object> properties = new HashMap<>();
 
     public String getId() {

@@ -22,11 +22,21 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
+/**
+ * Models the Distribution class of the DCAT spec. A Distribution is defined as a specific
+ * representation of a Dataset. A Distribution contains a reference to the DataService, and thereby
+ * endpoint, via which the Distribution can be obtained.
+ */
 @JsonDeserialize(builder = Distribution.Builder.class)
 public class Distribution {
-
+    
+    /** Protocol/technology via which this Distribution is available. */
     private String format;
+    
+    /** DataService that contains access information for this Distribution. */
     private DataService dataService;
+    
+    /** Reference to the DataService that contains access information for this Distribution. */
     private String dataServiceId;
 
     public String getFormat() {
