@@ -43,11 +43,7 @@ public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<
     }
 
     @Override
-    public @Nullable JsonObject transform(@Nullable Catalog catalog, @NotNull TransformerContext context) {
-        if (catalog == null) {
-            return null;
-        }
-
+    public @Nullable JsonObject transform(@NotNull Catalog catalog, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, catalog.getId());
         objectBuilder.add(TYPE, DCAT_SCHEMA + "Catalog");

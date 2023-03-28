@@ -37,7 +37,7 @@ public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer
     }
 
     @Override
-    public Object transform(JsonValue value, @NotNull TransformerContext context) {
+    public Object transform(@NotNull JsonValue value, @NotNull TransformerContext context) {
         if (value instanceof JsonObject) {
             var object = (JsonObject) value;
             var valueField = object.get(VALUE);

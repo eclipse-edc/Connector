@@ -41,11 +41,7 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
     }
     
     @Override
-    public @Nullable Policy transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Policy transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Policy.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
         return builder.build();

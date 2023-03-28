@@ -40,11 +40,7 @@ public class JsonObjectFromDataServiceTransformer extends AbstractJsonLdTransfor
     }
 
     @Override
-    public @Nullable JsonObject transform(@Nullable DataService dataService, @NotNull TransformerContext context) {
-        if (dataService == null) {
-            return null;
-        }
-
+    public @Nullable JsonObject transform(@NotNull DataService dataService, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, dataService.getId());
         objectBuilder.add(TYPE, DCAT_SCHEMA + "DataService");

@@ -41,11 +41,7 @@ public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransforme
     }
 
     @Override
-    public @Nullable DataService transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable DataService transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var type = nodeType(object, context);
         if (DCAT_DATA_SERVICE_TYPE.equals(type)) {
             var builder = DataService.Builder.newInstance();

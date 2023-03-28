@@ -42,11 +42,7 @@ public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransform
     }
 
     @Override
-    public @Nullable Distribution transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Distribution transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var type = nodeType(object, context);
         if (DCAT_DISTRIBUTION_TYPE.equals(type)) {
             var builder = Distribution.Builder.newInstance();

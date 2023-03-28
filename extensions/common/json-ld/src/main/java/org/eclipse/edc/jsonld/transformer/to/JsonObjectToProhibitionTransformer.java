@@ -39,11 +39,7 @@ public class JsonObjectToProhibitionTransformer extends AbstractJsonLdTransforme
     }
     
     @Override
-    public @Nullable Prohibition transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-        
+    public @Nullable Prohibition transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Prohibition.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
         return builder.build();

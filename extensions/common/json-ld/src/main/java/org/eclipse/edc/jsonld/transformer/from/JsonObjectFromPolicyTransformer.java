@@ -59,10 +59,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     }
 
     @Override
-    public @Nullable JsonObject transform(@Nullable Policy policy, @NotNull TransformerContext context) {
-        if (policy == null) {
-            return null;
-        }
+    public @Nullable JsonObject transform(@NotNull Policy policy, @NotNull TransformerContext context) {
         return policy.accept(new Visitor(context, jsonFactory));
     }
 

@@ -44,11 +44,7 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
     }
 
     @Override
-    public @Nullable Constraint transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Constraint transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         //TODO check for type of constraint (atomic, and, or, ...)
         var builder = AtomicConstraint.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));

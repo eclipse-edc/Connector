@@ -40,11 +40,7 @@ public class JsonObjectToDutyTransformer extends AbstractJsonLdTransformer<JsonO
     }
     
     @Override
-    public @Nullable Duty transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-        
+    public @Nullable Duty transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Duty.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
         return builder.build();

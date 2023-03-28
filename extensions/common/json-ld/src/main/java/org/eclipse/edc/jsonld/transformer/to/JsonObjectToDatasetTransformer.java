@@ -44,11 +44,7 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
     }
 
     @Override
-    public @Nullable Dataset transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
-
+    public @Nullable Dataset transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var type = nodeType(object, context);
         if (DCAT_DATASET_TYPE.equals(type)) {
             var builder = Dataset.Builder.newInstance();

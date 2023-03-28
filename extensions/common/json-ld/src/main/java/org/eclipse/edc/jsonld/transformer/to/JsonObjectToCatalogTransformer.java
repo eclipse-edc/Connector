@@ -43,10 +43,7 @@ public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<Js
     }
 
     @Override
-    public @Nullable Catalog transform(@Nullable JsonObject object, @NotNull TransformerContext context) {
-        if (object == null) {
-            return null;
-        }
+    public @Nullable Catalog transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var type = nodeType(object, context);
         if (DCAT_CATALOG_TYPE.equals(type)) {
             var builder = Catalog.Builder.newInstance();
