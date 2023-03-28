@@ -158,6 +158,7 @@ class ContractValidationServiceImplTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getContractEnd()).isEqualTo(offer.getContractEnd());
     }
+
     @Test
     void validate_failsIfPolicyNotFound() {
         var originalPolicy = Policy.Builder.newInstance().build();
