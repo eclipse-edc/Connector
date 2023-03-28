@@ -56,9 +56,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration for transforming a Catalog (including Dataset, Distribution, DataService and Policy).
+ * Test for transforming a Catalog (including Dataset, Distribution, DataService and Policy).
  */
-class CatalogTransformationIntegrationTest {
+class CatalogTransformationTest {
     
     private static final String CATALOG_PROPERTY_KEY = "catalog:prop:key";
     private static final String DATASET_PROPERTY_KEY = "dataset:prop:key";
