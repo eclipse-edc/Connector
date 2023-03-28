@@ -149,7 +149,7 @@ time of this writing these are the committers of the project._
 
 To trigger a new release please follow these simple steps:
 
-- update `gradle.properties`: set the `defaultVersion` entry to the new version.
+- update `gradle.properties`: set the `version` entry to the new version.
 - trigger the actual release in GitHub:
     - on the `Actions` tab pick the `Create EDC Release` workflow
     - Select the `main` branch
