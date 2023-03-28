@@ -13,35 +13,17 @@
  */
 
 plugins {
-    // Apply the java-library plugin for API and implementation separation.
     `java-library`
 }
 
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
-
 dependencies {
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.13.4")
-    api("com.apicatalog:titanium-json-ld:1.3.1")
-    api("org.glassfish:jakarta.json:2.0.0")
+    api(libs.jacksonJsonP)
+    api(libs.titaniumJsonLd)
+    api(libs.jakartaJson)
 
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:transform-spi"))
-    api(project(":spi:control-plane:contract-spi"))
 
-    implementation("org.jetbrains:annotations:15.0")
-}
-
-testing {
-    suites {
-        // Configure the built-in test suite
-        val test by getting(JvmTestSuite::class) {
-            // Use JUnit Jupiter test framework
-            useJUnitJupiter("5.8.1")
-        }
-    }
+    testImplementation(project(":core:common:junit"))
 }
