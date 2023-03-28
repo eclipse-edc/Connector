@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       sovity GmbH - fix for binary data transfer
  *
  */
 
@@ -48,19 +49,19 @@ public class HttpDataSource implements DataSource {
         monitor.debug(() -> "HttpDataSource sends request: " + request.toString());
         try (var response = httpClient.execute(request)) {
             var body = response.body();
-            var stringBody = body != null ? body.string() : null;
-            if (stringBody == null) {
+            var bodyBytes = body != null ? body.bytes() : null;
+            if (bodyBytes == null) {
                 throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
             }
             if (response.isSuccessful()) {
-                return new HttpPart(name, stringBody.getBytes());
+                return new HttpPart(name, bodyBytes);
             } else {
-                throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s. %s", requestId, response.code(), response.message(), stringBody));
+                throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s. %s", requestId, response.code(), response.message(), new String(bodyBytes)));
             }
         } catch (IOException e) {
             throw new EdcException(e);
         }
-        
+
     }
 
     private HttpDataSource() {
