@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *
+ *       sovity GmbH - binary data transfer test
  */
 
 package org.eclipse.edc.connector.dataplane.http;
@@ -155,6 +155,42 @@ public class DataPlaneHttpToHttpIntegrationTests {
         // Verify HTTP Sink server called exactly once.
         httpSinkMockServer.verify(
                 postRequest(body),
+                VerificationTimes.once()
+        );
+    }
+
+    @Test
+    void transfer_binary_success(TypeManager typeManager) {
+        var binaryDataBody = new byte[256];
+        for (int i = 0; i < 256; i++) {
+            binaryDataBody[i] = (byte) i;
+        }
+
+        var processId = UUID.randomUUID().toString();
+        httpSourceMockServer.when(getRequest(), once())
+                .respond(successfulBinaryResponse(binaryDataBody));
+
+        // HTTP Sink Request & Response
+        httpSinkMockServer.when(postBinaryRequest(binaryDataBody), once())
+                .respond(successfulBinaryResponse(binaryDataBody));
+
+        // Act & Assert
+        // Initiate transfer
+        initiateTransfer(transferRequestPayload(processId, typeManager));
+
+        // Wait for transfer to be completed.
+        await().atMost(30, SECONDS).untilAsserted(() ->
+                fetchTransferState(processId)
+        );
+
+        // Verify HTTP Source server called exactly once.
+        httpSourceMockServer.verify(
+                getRequest(),
+                VerificationTimes.once()
+        );
+        // Verify HTTP Sink server called exactly once.
+        httpSinkMockServer.verify(
+                postBinaryRequest(binaryDataBody),
                 VerificationTimes.once()
         );
     }
@@ -457,6 +493,20 @@ public class DataPlaneHttpToHttpIntegrationTests {
     }
 
     /**
+     * Mock binary HTTP POST request for sink.
+     *
+     * @param byteResponseBody Request body.
+     * @return see {@link HttpRequest}
+     */
+    private HttpRequest postBinaryRequest(byte[] byteResponseBody) {
+        return request()
+                .withMethod(HttpMethod.POST.name())
+                .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
+                .withContentType(MediaType.APPLICATION_OCTET_STREAM)
+                .withBody(byteResponseBody);
+    }
+
+    /**
      * Mock http OK response from sink.
      *
      * @return see {@link HttpResponse}
@@ -476,6 +526,18 @@ public class DataPlaneHttpToHttpIntegrationTests {
         return successfulResponse()
                 .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.PLAIN_TEXT_UTF_8.toString())
                 .withBody(responseBody);
+    }
+
+    /**
+     * Mock binary response from source.
+     *
+     * @param byteResponseBody Response body.
+     * @return see {@link HttpResponse}
+     */
+    private HttpResponse successfulBinaryResponse(byte[] byteResponseBody) {
+        return successfulResponse()
+                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.APPLICATION_OCTET_STREAM.toString())
+                .withBody(byteResponseBody);
     }
 
     /**
