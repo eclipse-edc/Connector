@@ -62,7 +62,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public @Nullable ContractNegotiation find(String negotiationId) {
+    public @Nullable ContractNegotiation findById(String negotiationId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 return findInternal(connection, negotiationId);
@@ -117,7 +117,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     @Override
     public void delete(String negotiationId) {
         transactionContext.execute(() -> {
-            var existing = find(negotiationId);
+            var existing = findById(negotiationId);
 
             //if exists, attempt delete
             if (existing != null) {

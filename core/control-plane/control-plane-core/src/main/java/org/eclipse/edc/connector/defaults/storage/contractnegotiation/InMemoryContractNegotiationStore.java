@@ -54,7 +54,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public @Nullable ContractNegotiation find(String negotiationId) {
+    public @Nullable ContractNegotiation findById(String negotiationId) {
         return store.find(negotiationId);
     }
 

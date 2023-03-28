@@ -174,7 +174,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void verified_shouldTransitToVerifiedState() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").state(PROVIDER_AGREED.code()).build();
-        when(store.find("negotiationId")).thenReturn(negotiation);
+        when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = negotiationManager.verified("negotiationId");
 
@@ -185,7 +185,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void verified_shouldFail_whenNegotiationDoesNotExist() {
-        when(store.find("negotiationId")).thenReturn(null);
+        when(store.findById("negotiationId")).thenReturn(null);
 
         var result = negotiationManager.verified("negotiationId");
 
@@ -195,7 +195,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void declined() {
         var negotiation = createContractNegotiation();
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(store.findForCorrelationId(negotiation.getCorrelationId())).thenReturn(negotiation);
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -211,7 +211,7 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_OFFERING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         negotiationManager.start();
 
@@ -227,7 +227,8 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_OFFERING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+
 
         negotiationManager.start();
 
@@ -242,7 +243,8 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_OFFERING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+
 
         negotiationManager.start();
 
@@ -256,7 +258,7 @@ class ProviderContractNegotiationManagerImplTest {
     void consumerVerified_shouldTransitToFinalizing() {
         var negotiation = contractNegotiationBuilder().state(CONSUMER_VERIFIED.code()).build();
         when(store.nextForState(eq(CONSUMER_VERIFIED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         negotiationManager.start();
 
@@ -270,7 +272,7 @@ class ProviderContractNegotiationManagerImplTest {
     void providerFinalizing_shouldSendMessageAndTransitToFinalized() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_FINALIZING.code()).build();
         when(store.nextForState(eq(PROVIDER_FINALIZING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture("any"));
 
         negotiationManager.start();
@@ -285,7 +287,7 @@ class ProviderContractNegotiationManagerImplTest {
     void providerFinalizing_shouldKeepState_whenDispatchFails() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_FINALIZING.code()).stateCount(RETRIES_NOT_EXHAUSTED).build();
         when(store.nextForState(eq(PROVIDER_FINALIZING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
 
         negotiationManager.start();
@@ -300,7 +302,7 @@ class ProviderContractNegotiationManagerImplTest {
     void providerFinalizing_shouldTransitToTerminating_whenDispatchFailsAndRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_FINALIZING.code()).stateCount(RETRIES_EXHAUSTED).build();
         when(store.nextForState(eq(PROVIDER_FINALIZING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
 
         negotiationManager.start();
@@ -317,7 +319,7 @@ class ProviderContractNegotiationManagerImplTest {
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         negotiationManager.start();
 
@@ -334,7 +336,8 @@ class ProviderContractNegotiationManagerImplTest {
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+
 
         negotiationManager.start();
 
@@ -349,8 +352,9 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
+
 
         negotiationManager.start();
 
@@ -369,7 +373,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .build();
         when(store.nextForState(eq(PROVIDER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("policyId").build());
 
         negotiationManager.start();
@@ -389,7 +393,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .build();
         when(store.nextForState(eq(PROVIDER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         negotiationManager.start();
 
@@ -405,7 +409,8 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREEING.code()).stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+
 
         negotiationManager.start();
 
@@ -420,7 +425,8 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_AGREEING.code()).stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_AGREEING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+
 
         negotiationManager.start();
 

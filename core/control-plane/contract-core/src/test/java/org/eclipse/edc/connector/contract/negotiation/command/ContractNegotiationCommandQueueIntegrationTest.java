@@ -70,7 +70,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
         negotiation = getNegotiation(negotiationId);
         command = new TestCommand(negotiationId);
 
-        when(store.find(negotiationId)).thenReturn(negotiation);
+        when(store.findById(negotiationId)).thenReturn(negotiation);
     }
 
     @Test
@@ -102,7 +102,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
 
     @Test
     void submitTestCommand_consumerManager() {
-        when(store.find(negotiationId)).thenReturn(negotiation);
+        when(store.findById(negotiationId)).thenReturn(negotiation);
 
         // Create and start the negotiation manager
         var negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()

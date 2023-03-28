@@ -148,7 +148,7 @@ class ContractNegotiationIntegrationTest {
                 .pollInterval(DEFAULT_POLL_INTERVAL)
                 .untilAsserted(() -> {
                     assertThat(consumerNegotiationId).isNotNull();
-                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
                     var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
                     assertThat(consumerNegotiation).isNotNull();
                     assertThat(providerNegotiation).isNotNull();
@@ -193,7 +193,7 @@ class ContractNegotiationIntegrationTest {
                 .untilAsserted(() -> {
 
                     assertThat(consumerNegotiationId).isNotNull();
-                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
                     var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
                     assertThat(consumerNegotiation).isNotNull();
                     assertThat(providerNegotiation).isNotNull();
@@ -239,7 +239,7 @@ class ContractNegotiationIntegrationTest {
                 .pollInterval(DEFAULT_POLL_INTERVAL)
                 .untilAsserted(() -> {
                     assertThat(consumerNegotiationId).isNotNull();
-                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
                     var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
                     assertThat(consumerNegotiation).isNotNull();
                     assertThat(providerNegotiation).isNotNull();

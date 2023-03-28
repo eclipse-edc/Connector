@@ -68,13 +68,13 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
         store.save(negotiation);
 
-        ContractNegotiation found = store.find(id);
+        ContractNegotiation found = store.findById(id);
 
         assertNotNull(found);
         assertNotSame(found, negotiation); // enforce by-value
 
         store.delete(id);
-        assertNull(store.find(id));
+        assertNull(store.findById(id));
         assertNull(store.findContractAgreement("agreementId"));
     }
 
@@ -86,7 +86,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
         store.save(negotiation);
 
-        var found = store.find(id);
+        var found = store.findById(id);
         assertNotNull(store.findContractAgreement("agreementId"));
 
         assertEquals(INITIAL.code(), found.getState());
@@ -94,7 +94,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         negotiation.transitionRequesting();
 
         store.save(negotiation);
-        found = store.find(id);
+        found = store.findById(id);
         assertNotNull(found);
         assertEquals(CONSUMER_REQUESTING.code(), found.getState());
 
@@ -158,10 +158,10 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         store.save(negotiation2);
 
 
-        ContractNegotiation found1 = store.find(id1);
+        ContractNegotiation found1 = store.findById(id1);
         assertNotNull(found1);
 
-        ContractNegotiation found2 = store.find(id2);
+        ContractNegotiation found2 = store.findById(id2);
         assertNotNull(found2);
 
         var found = store.nextForState(INITIAL.code(), 3);

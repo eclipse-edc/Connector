@@ -46,7 +46,7 @@ public abstract class SingleContractNegotiationCommandHandler<T extends SingleCo
     @Override
     public void handle(SingleContractNegotiationCommand command) {
         var negotiationId = command.getNegotiationId();
-        var negotiation = store.find(negotiationId);
+        var negotiation = store.findById(negotiationId);
         if (negotiation == null) {
             throw new EdcException(format("Could not find ContractNegotiation with ID [%s]", negotiationId));
         } else {
