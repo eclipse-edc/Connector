@@ -7,7 +7,7 @@
     "stateTimestamp": 0,
     "errorDetail": null,
     "dataRequest": {
-      "@type": "dataspaceconnector:datarequest",
+      "edctype": "dataspaceconnector:datarequest",
       "id": "request-id",
       "processId": "process1",
       "connectorAddress": null,

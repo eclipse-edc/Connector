@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 /**
  * An expression that can be evaluated.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
 public abstract class Expression {
 
     public interface Visitor<R> {

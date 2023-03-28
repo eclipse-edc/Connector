@@ -48,7 +48,7 @@ public class TransferTypeTest {
         assertThat(map).hasSize(2);
         assertThat(map).containsKey("contentType");
         assertThat(map).containsKey("isFinite");
-        assertThat(map).doesNotContainKey("@type");
+        assertThat(map).doesNotContainKey("edctype");
     }
 
     @Test
