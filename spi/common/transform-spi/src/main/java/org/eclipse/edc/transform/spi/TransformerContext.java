@@ -49,4 +49,19 @@ public interface TransformerContext {
      * @return the transformed representation or null
      */
     @Nullable <INPUT, OUTPUT> OUTPUT transform(INPUT input, Class<OUTPUT> outputType);
+
+    /**
+     * Returns a registered type alias for the schema type.
+     */
+    @Nullable
+    default Class<?> typeAlias(String type) {
+        return null;
+    }
+
+    /**
+     * Returns a registered type alias for the schema type or the default alias if none is registered.
+     */
+    default Class<?> typeAlias(String type, Class<?> defaultType) {
+        return defaultType;
+    }
 }

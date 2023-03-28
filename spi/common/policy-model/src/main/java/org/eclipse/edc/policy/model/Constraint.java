@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 /**
  * An expression or set of expressions that refines a permission, prohibitions, or duty.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 public abstract class Constraint {
 
     public interface Visitor<R> {

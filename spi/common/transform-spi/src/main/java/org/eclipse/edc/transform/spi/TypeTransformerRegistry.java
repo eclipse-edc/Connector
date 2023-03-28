@@ -16,6 +16,7 @@ package org.eclipse.edc.transform.spi;
 
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generic registry to hold {@link TypeTransformer} objects
@@ -49,4 +50,19 @@ public interface TypeTransformerRegistry<T extends TypeTransformer<?, ?>> {
      * @return the transform result
      */
     <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType);
+
+    /**
+     * Returns a registered type alias for the schema type.
+     */
+    @Nullable
+    default Class<?> typeAlias(String type) {
+        return null;
+    }
+
+    /**
+     * Returns a registered type alias for the schema type or the default alias if none is registered.
+     */
+    default Class<?> typeAlias(String type, Class<?> defaultType) {
+        return defaultType;
+    }
 }
