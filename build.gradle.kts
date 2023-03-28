@@ -22,14 +22,8 @@ val edcScmConnection: String by project
 val edcWebsiteUrl: String by project
 val edcScmUrl: String by project
 val groupId: String by project
-val defaultVersion: String by project
 val annotationProcessorVersion: String by project
 val metaModelVersion: String by project
-
-var actualVersion: String = (project.findProperty("version") ?: defaultVersion) as String
-if (actualVersion == "unspecified") {
-    actualVersion = defaultVersion
-}
 
 buildscript {
     repositories {
@@ -53,9 +47,7 @@ allprojects {
     configure<org.eclipse.edc.plugins.edcbuild.extensions.BuildExtension> {
         versions {
             // override default dependency versions here
-            projectVersion.set(actualVersion)
             metaModel.set(metaModelVersion)
-
         }
         pom {
             projectName.set(project.name)
