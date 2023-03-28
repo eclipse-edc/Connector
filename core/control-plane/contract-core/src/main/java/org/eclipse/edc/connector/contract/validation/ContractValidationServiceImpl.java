@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
@@ -47,6 +48,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final Clock clock;
     private final PolicyEngine policyEngine;
     private final PolicyEquality policyEquality;
+    private static final long DEFAULT_VALIDITY = TimeUnit.DAYS.toSeconds(365);
 
     public ContractValidationServiceImpl(ParticipantAgentService agentService,
                                          ContractDefinitionService contractDefinitionService,
@@ -91,8 +93,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var offerValidity = ChronoUnit.SECONDS.between(offer.getContractStart(), offer.getContractEnd());
-        if (offerValidity != contractDefinition.getValidity()) {
-            return Result.failure(format("Offer validity %ss does not match contract definition validity %ss", offerValidity, contractDefinition.getValidity()));
+        if (offerValidity != DEFAULT_VALIDITY && offerValidity > contractDefinition.getValidity()) {
+            return Result.failure(format("Offer validity %ss must not be higher then contract definition validity %ss", offerValidity, contractDefinition.getValidity()));
         }
 
         if (!policyEquality.test(contractPolicyDef.getPolicy().withTarget(targetAsset.getId()), offer.getPolicy())) {
@@ -111,7 +113,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                 .provider(offer.getProvider())
                 .policy(contractPolicyDef.getPolicy())
                 .contractStart(offer.getContractStart())
-                .contractEnd(offer.getContractStart().plusSeconds(contractDefinition.getValidity()))
+                .contractEnd(offer.getContractStart().plusSeconds(Math.min(offerValidity, contractDefinition.getValidity())))
                 .build();
 
         return Result.success(validatedOffer);

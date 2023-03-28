@@ -113,7 +113,7 @@ class ContractValidationServiceImplTest {
     }
 
     @Test
-    void validate_failsIfValidityDiscrepancy() {
+    void validate_failsIfContractOfferValidityHigherThenContractDefinitionValidity() {
         var originalPolicy = Policy.Builder.newInstance().target("a").build();
         var newPolicy = Policy.Builder.newInstance().target("b").build();
         var asset = Asset.Builder.newInstance().id("1").build();
@@ -135,6 +135,29 @@ class ContractValidationServiceImplTest {
         assertThat(result.succeeded()).isFalse();
     }
 
+    @Test
+    void verify_rightContractEnd() {
+        var originalPolicy = Policy.Builder.newInstance().target("a").build();
+        var newPolicy = Policy.Builder.newInstance().target("b").build();
+        var asset = Asset.Builder.newInstance().id("1").build();
+        var contractDefinition = createContractDefinition();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+        when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
+        when(assetIndex.findById("1")).thenReturn(asset);
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
+        when(policyEquality.test(any(), any())).thenReturn(true);
+
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var offer = createContractOffer(asset, originalPolicy, contractDefinition.getValidity() - 1);
+
+        var result = validationService.validateInitialOffer(claimToken, offer);
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getContractEnd()).isEqualTo(offer.getContractEnd());
+    }
     @Test
     void validate_failsIfPolicyNotFound() {
         var originalPolicy = Policy.Builder.newInstance().build();
@@ -180,7 +203,6 @@ class ContractValidationServiceImplTest {
     @Test
     void verifyContractAgreementValidation() {
         var newPolicy = Policy.Builder.newInstance().build();
-        var contractDefinition = createContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
