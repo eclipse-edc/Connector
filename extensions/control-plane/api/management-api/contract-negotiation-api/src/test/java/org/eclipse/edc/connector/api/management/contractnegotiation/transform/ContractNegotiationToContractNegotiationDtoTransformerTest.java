@@ -18,9 +18,11 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +42,9 @@ class ContractNegotiationToContractNegotiationDtoTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
+        var callback = CallbackAddress.Builder.newInstance()
+                .uri("local://test")
+                .build();
         var contractNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("negotiationId")
                 .type(PROVIDER)
@@ -50,6 +55,7 @@ class ContractNegotiationToContractNegotiationDtoTransformerTest {
                 .contractAgreement(createContractAgreement("agreementId"))
                 .errorDetail("errorDetail")
                 .correlationId("correlationId")
+                .callbackAddresses(List.of(callback))
                 .build();
 
         var dto = transformer.transform(contractNegotiation, context);
@@ -63,6 +69,7 @@ class ContractNegotiationToContractNegotiationDtoTransformerTest {
         assertThat(dto.getErrorDetail()).isEqualTo("errorDetail");
         assertThat(dto.getUpdatedAt()).isEqualTo(contractNegotiation.getUpdatedAt());
         assertThat(dto.getCreatedAt()).isEqualTo(contractNegotiation.getCreatedAt());
+        assertThat(dto.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
     }
 
     private ContractAgreement createContractAgreement(String id) {

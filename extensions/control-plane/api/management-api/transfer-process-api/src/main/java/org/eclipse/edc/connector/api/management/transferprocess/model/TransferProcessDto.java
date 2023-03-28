@@ -18,8 +18,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.api.model.MutableDto;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @JsonDeserialize(builder = TransferProcessDto.Builder.class)
@@ -33,6 +36,7 @@ public class TransferProcessDto extends MutableDto {
     private DataAddressInformationDto dataDestination;
 
     private Map<String, String> properties = new HashMap<>();
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     private TransferProcessDto() {
     }
@@ -59,6 +63,10 @@ public class TransferProcessDto extends MutableDto {
 
     public DataRequestDto getDataRequest() {
         return dataRequest;
+    }
+
+    public List<CallbackAddress> getCallbackAddresses() {
+        return callbackAddresses;
     }
 
     public DataAddressInformationDto getDataDestination() {
@@ -114,6 +122,11 @@ public class TransferProcessDto extends MutableDto {
 
         public Builder properties(Map<String, String> properties) {
             dto.properties = properties;
+            return this;
+        }
+
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            dto.callbackAddresses = callbackAddresses;
             return this;
         }
 

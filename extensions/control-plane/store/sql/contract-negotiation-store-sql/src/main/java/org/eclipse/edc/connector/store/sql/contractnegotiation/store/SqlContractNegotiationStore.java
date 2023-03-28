@@ -202,6 +202,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 updatedValues.getStateTimestamp(),
                 updatedValues.getErrorDetail(),
                 toJson(updatedValues.getContractOffers()),
+                toJson(updatedValues.getCallbackAddresses()),
                 toJson(updatedValues.getTraceContext()),
                 ofNullable(updatedValues.getContractAgreement()).map(ContractAgreement::getId).orElse(null),
                 updatedValues.getUpdatedAt(),
@@ -230,6 +231,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 negotiation.getErrorDetail(),
                 agrId,
                 toJson(negotiation.getContractOffers()),
+                toJson(negotiation.getCallbackAddresses()),
                 toJson(negotiation.getTraceContext()),
                 negotiation.getCreatedAt(),
                 negotiation.getUpdatedAt());
@@ -314,6 +316,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .stateCount(resultSet.getInt(statements.getStateCountColumn()))
                 .stateTimestamp(resultSet.getLong(statements.getStateTimestampColumn()))
                 .contractOffers(fromJson(resultSet.getString(statements.getContractOffersColumn()), new TypeReference<>() {
+                }))
+                .callbackAddresses(fromJson(resultSet.getString(statements.getCallbackAddressesColumn()), new TypeReference<>() {
                 }))
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), new TypeReference<>() {

@@ -277,6 +277,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .type(type)
                 .clock(clock)
                 .properties(dataRequest.getProperties())
+                .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 

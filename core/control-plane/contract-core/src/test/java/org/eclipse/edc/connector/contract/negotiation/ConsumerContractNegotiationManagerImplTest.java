@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,12 +122,17 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void initiate_shouldSaveNewNegotiationInInitialState() {
         var contractOffer = contractOffer();
+
         var request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .build();
+
 
         var result = negotiationManager.initiate(request);
 
@@ -138,8 +144,9 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getProtocol().equals(request.getProtocol()) &&
                         negotiation.getCorrelationId().equals(negotiation.getId()) &&
                         negotiation.getContractOffers().size() == 1 &&
-                        negotiation.getLastContractOffer().equals(contractOffer))
-        );
+                        negotiation.getLastContractOffer().equals(contractOffer) &&
+                        negotiation.getCallbackAddresses().size() == 1));
+
         verify(listener).initiated(any());
     }
 
@@ -386,6 +393,34 @@ class ConsumerContractNegotiationManagerImplTest {
         });
     }
 
+    private ContractNegotiation createContractNegotiationRequested() {
+        var lastOffer = contractOffer();
+
+        return contractNegotiationBuilder()
+                .state(REQUESTED.code())
+                .contractOffer(lastOffer)
+                .build();
+    }
+
+    private ContractNegotiation.Builder contractNegotiationBuilder() {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .correlationId("correlationId")
+                .counterPartyId("connectorId")
+                .counterPartyAddress("connectorAddress")
+                .protocol("protocol")
+                .stateTimestamp(Instant.now().toEpochMilli());
+    }
+
+    private ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance().id("id:id")
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now())
+                .build();
+    }
+
     private static class DispatchFailureArguments implements ArgumentsProvider {
 
         private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
@@ -417,32 +452,5 @@ class ConsumerContractNegotiationManagerImplTest {
         }
     }
 
-    private ContractNegotiation createContractNegotiationRequested() {
-        var lastOffer = contractOffer();
-
-        return contractNegotiationBuilder()
-                .state(REQUESTED.code())
-                .contractOffer(lastOffer)
-                .build();
-    }
-
-    private ContractNegotiation.Builder contractNegotiationBuilder() {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .correlationId("correlationId")
-                .counterPartyId("connectorId")
-                .counterPartyAddress("connectorAddress")
-                .protocol("protocol")
-                .stateTimestamp(Instant.now().toEpochMilli());
-    }
-
-    private ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance().id("id:id")
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id("assetId").build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
-                .build();
-    }
 
 }

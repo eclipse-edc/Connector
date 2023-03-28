@@ -51,14 +51,16 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getInsertStatement() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?%s, ?%s, ?%s, ?, ?%s, ?%s);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?%s, ?%s, ?%s, ?, ?%s, ?%s, ?%s);",
                 // keys
                 getTransferProcessTableName(), getIdColumn(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
                 getCreatedAtColumn(), getUpdatedAtColumn(),
                 getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(),
-                getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(), getPropertiesColumn(),
+                getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(),
+                getPropertiesColumn(), getCallbackAddressesColumn(),
                 // values
-                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
+                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(),
+                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
     }
 
     @Override
@@ -86,11 +88,12 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getUpdateTransferProcessTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=? WHERE %s=?",
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=? WHERE %s=?",
                 getTransferProcessTableName(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
                 getTraceContextColumn(), getFormatAsJsonOperator(), getErrorDetailColumn(),
                 getResourceManifestColumn(), getFormatAsJsonOperator(), getProvisionedResourcesetColumn(), getFormatAsJsonOperator(),
-                getContentDataAddressColumn(), getFormatAsJsonOperator(), getDeprovisionedResourcesColumn(), getFormatAsJsonOperator(), getUpdatedAtColumn(), getIdColumn());
+                getContentDataAddressColumn(), getFormatAsJsonOperator(), getDeprovisionedResourcesColumn(), getFormatAsJsonOperator(),
+                getCallbackAddressesColumn(), getFormatAsJsonOperator(), getUpdatedAtColumn(), getIdColumn());
     }
 
     @Override

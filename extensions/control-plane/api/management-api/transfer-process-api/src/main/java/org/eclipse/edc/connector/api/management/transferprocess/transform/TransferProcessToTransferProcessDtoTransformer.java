@@ -48,6 +48,7 @@ public class TransferProcessToTransferProcessDtoTransformer implements DtoTransf
                 .updatedAt(object.getUpdatedAt())
                 .dataRequest(context.transform(object.getDataRequest(), DataRequestDto.class))
                 .properties(object.getProperties())
+                .callbackAddresses(object.getCallbackAddresses())
                 .dataDestination(
                         DataAddressInformationDto.Builder.newInstance()
                                 .properties(object.getDataRequest().getDataDestination().getProperties())

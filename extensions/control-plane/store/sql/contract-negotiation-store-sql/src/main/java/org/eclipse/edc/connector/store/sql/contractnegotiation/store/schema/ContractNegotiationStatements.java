@@ -144,6 +144,10 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "contract_offers";
     }
 
+    default String getCallbackAddressesColumn() {
+        return "callback_addresses";
+    }
+
     default String getErrorDetailColumn() {
         return "error_detail";
     }

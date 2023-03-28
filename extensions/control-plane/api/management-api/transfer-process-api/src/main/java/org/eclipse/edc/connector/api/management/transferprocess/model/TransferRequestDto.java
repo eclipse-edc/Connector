@@ -18,10 +18,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @JsonDeserialize(builder = TransferRequestDto.Builder.class)
@@ -44,6 +47,9 @@ public class TransferRequestDto {
     private String connectorId;
     @NotNull(message = "assetId cannot be null")
     private String assetId;
+
+    private List<CallbackAddressDto> callbackAddresses = new ArrayList<>();
+
 
     public String getConnectorAddress() {
         return connectorAddress;
@@ -83,6 +89,10 @@ public class TransferRequestDto {
 
     public String getAssetId() {
         return assetId;
+    }
+
+    public List<CallbackAddressDto> getCallbackAddresses() {
+        return callbackAddresses;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -145,6 +155,11 @@ public class TransferRequestDto {
 
         public Builder assetId(String assetId) {
             request.assetId = assetId;
+            return this;
+        }
+
+        public Builder callbackAddresses(List<CallbackAddressDto> callbackAddresses) {
+            request.callbackAddresses = callbackAddresses;
             return this;
         }
 

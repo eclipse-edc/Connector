@@ -348,6 +348,43 @@ components:
         type:
           type: string
           example: null
+    CallbackAddress:
+      type: object
+      example: null
+      properties:
+        events:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          uniqueItems: true
+        transactional:
+          type: boolean
+          example: null
+        uri:
+          type: string
+          example: null
+    CallbackAddressDto:
+      type: object
+      example: null
+      properties:
+        events:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          uniqueItems: true
+        transactional:
+          type: boolean
+          example: null
+        uri:
+          type: string
+          example: null
+      required:
+      - events
+      - uri
     Constraint:
       type: object
       discriminator:
@@ -399,6 +436,11 @@ components:
       type: object
       example: null
       properties:
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddress'
         contractAgreementId:
           type: string
           example: null
@@ -509,6 +551,11 @@ components:
       type: object
       example: null
       properties:
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddressDto'
         connectorAddress:
           type: string
           example: null
