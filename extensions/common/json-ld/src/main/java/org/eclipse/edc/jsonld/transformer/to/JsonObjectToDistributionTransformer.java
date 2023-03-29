@@ -24,12 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.transformer.JsonLdFunctions.nodeId;
-import static org.eclipse.edc.jsonld.transformer.JsonLdFunctions.nodeType;
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformString;
 
 public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransformer<JsonObject, Distribution> {
 

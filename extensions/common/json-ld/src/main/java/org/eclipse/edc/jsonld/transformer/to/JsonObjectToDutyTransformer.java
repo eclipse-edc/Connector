@@ -26,8 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.ODRL_SCHEMA;
-import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayOrObject;
-import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformObject;
 
 public class JsonObjectToDutyTransformer extends AbstractJsonLdTransformer<JsonObject, Duty> {
     

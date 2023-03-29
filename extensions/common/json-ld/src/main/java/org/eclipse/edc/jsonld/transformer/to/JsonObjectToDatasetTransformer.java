@@ -26,12 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.transformer.JsonLdFunctions.nodeId;
-import static org.eclipse.edc.jsonld.transformer.JsonLdFunctions.nodeType;
 import static org.eclipse.edc.jsonld.transformer.JsonLdNavigator.visitProperties;
 import static org.eclipse.edc.jsonld.transformer.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformArrayOrObject;
-import static org.eclipse.edc.jsonld.transformer.TransformerUtil.transformGenericProperty;
 
 public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<JsonObject, Dataset> {
 
