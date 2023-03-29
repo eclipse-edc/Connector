@@ -51,6 +51,7 @@ import java.util.Map;
 public class JsonLdExtension implements ServiceExtension {
     
     public static final String NAME = "JSON-LD Extension";
+    public static final String TYPE_MANAGER_CONTEXT_JSON_LD = "json-ld";
     
     @Inject
     private TypeManager typeManager;
@@ -65,7 +66,7 @@ public class JsonLdExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var mapper = getObjectMapper();
-        typeManager.registerContext("json-ld", mapper);
+        typeManager.registerContext(TYPE_MANAGER_CONTEXT_JSON_LD, mapper);
         
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
         registry = new JsonLdTransformerRegistryImpl();
