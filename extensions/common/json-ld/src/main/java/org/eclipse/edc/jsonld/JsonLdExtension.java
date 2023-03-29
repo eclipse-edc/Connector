@@ -40,7 +40,7 @@ import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -48,13 +48,14 @@ import org.eclipse.edc.spi.types.TypeManager;
 import java.util.Map;
 
 @Extension(value = JsonLdExtension.NAME)
-@Provides({JsonLdTransformerRegistry.class})
 public class JsonLdExtension implements ServiceExtension {
     
     public static final String NAME = "JSON-LD Extension";
     
     @Inject
     private TypeManager typeManager;
+    
+    private JsonLdTransformerRegistry registry;
     
     @Override
     public String name() {
@@ -67,8 +68,7 @@ public class JsonLdExtension implements ServiceExtension {
         typeManager.registerContext("json-ld", mapper);
         
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
-        
-        var registry = new JsonLdTransformerRegistryImpl();
+        registry = new JsonLdTransformerRegistryImpl();
         
         // EDC model to JSON-LD transformers
         registry.register(new JsonObjectFromCatalogTransformer(jsonBuilderFactory, mapper));
@@ -89,8 +89,11 @@ public class JsonLdExtension implements ServiceExtension {
         registry.register(new JsonObjectToActionTransformer());
         registry.register(new JsonObjectToConstraintTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(mapper));
-        
-        context.registerService(JsonLdTransformerRegistry.class, registry);
+    }
+    
+    @Provider
+    public JsonLdTransformerRegistry jsonLdTransformerRegistry() {
+        return registry;
     }
     
     private ObjectMapper getObjectMapper() {

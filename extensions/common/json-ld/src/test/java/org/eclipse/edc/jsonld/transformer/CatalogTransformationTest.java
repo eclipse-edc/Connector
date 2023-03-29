@@ -64,8 +64,10 @@ class CatalogTransformationTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(TypeManager.class, mock(TypeManager.class));
-        factory.constructInstance(JsonLdExtension.class).initialize(context);
-        transformerRegistry = context.getService(JsonLdTransformerRegistry.class);
+        
+        var extension = factory.constructInstance(JsonLdExtension.class);
+        extension.initialize(context);
+        transformerRegistry = extension.jsonLdTransformerRegistry();
     
         // create context for compacting JSON-LD document
         var jsonFactory = Json.createBuilderFactory(Map.of());
