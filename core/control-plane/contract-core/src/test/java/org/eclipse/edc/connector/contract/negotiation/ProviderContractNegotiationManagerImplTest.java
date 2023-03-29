@@ -210,7 +210,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void declined_invalid() {
         var negotiation = createContractNegotiation();
-        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(store.findForCorrelationId(negotiation.getCorrelationId())).thenReturn(negotiation);
         var token = ClaimToken.Builder.newInstance().build();
 
