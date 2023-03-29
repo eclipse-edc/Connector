@@ -17,47 +17,36 @@ package org.eclipse.edc.jsonld.transformer;
 import com.apicatalog.jsonld.JsonLd;
 import com.apicatalog.jsonld.JsonLdError;
 import com.apicatalog.jsonld.document.JsonDocument;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
-import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDataServiceTransformer;
-import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDatasetTransformer;
-import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDistributionTransformer;
-import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToActionTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToCatalogTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToConstraintTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataServiceTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDatasetTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDistributionTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDutyTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPermissionTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPolicyTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToProhibitionTransformer;
-import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.jsonld.JsonLdExtension;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test for transforming a Catalog (including Dataset, Distribution, DataService and Policy).
  */
+@ExtendWith(DependencyInjectionExtension.class)
 class CatalogTransformationTest {
     
     private static final String CATALOG_PROPERTY_KEY = "catalog:prop:key";
@@ -73,18 +62,11 @@ class CatalogTransformationTest {
     private Distribution distribution;
     
     @BeforeEach
-    void setUp() {
-        // create object mapper
-        var mapper = new ObjectMapper();
-        mapper.registerModule(new JSONPModule());
-        var module = new SimpleModule() {
-            @Override
-            public void setupModule(SetupContext context) {
-                super.setupModule(context);
-            }
-        };
-        mapper.registerModule(module);
-        
+    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+        context.registerService(TypeManager.class, mock(TypeManager.class));
+        factory.constructInstance(JsonLdExtension.class).initialize(context);
+        transformerRegistry = context.getService(JsonLdTransformerRegistry.class);
+    
         // create context for compacting JSON-LD document
         var jsonFactory = Json.createBuilderFactory(Map.of());
         var contextObject = jsonFactory
@@ -96,29 +78,6 @@ class CatalogTransformationTest {
         contextDocument = JsonDocument.of(jsonFactory.createObjectBuilder()
                 .add("@context", contextObject)
                 .build());
-        
-        // create transformer registry for JSON-LD transformers
-        transformerRegistry = new JsonLdTransformerRegistryImpl();
-        
-        // register JSON-LD from EDC model transformers
-        transformerRegistry.register(new JsonObjectFromCatalogTransformer(jsonFactory, mapper));
-        transformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonFactory, mapper));
-        transformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonFactory, mapper));
-        transformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory, mapper));
-        transformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory, mapper));
-    
-        // register JSON-LD to EDC model transformers
-        transformerRegistry.register(new JsonObjectToCatalogTransformer());
-        transformerRegistry.register(new JsonObjectToDataServiceTransformer());
-        transformerRegistry.register(new JsonObjectToDatasetTransformer());
-        transformerRegistry.register(new JsonObjectToDistributionTransformer());
-        transformerRegistry.register(new JsonObjectToPolicyTransformer());
-        transformerRegistry.register(new JsonObjectToPermissionTransformer());
-        transformerRegistry.register(new JsonObjectToProhibitionTransformer());
-        transformerRegistry.register(new JsonObjectToDutyTransformer());
-        transformerRegistry.register(new JsonObjectToActionTransformer());
-        transformerRegistry.register(new JsonObjectToConstraintTransformer());
-        transformerRegistry.register(new JsonValueToGenericTypeTransformer(mapper));
     
         // create catalog
         policy = getPolicy();
