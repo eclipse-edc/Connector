@@ -42,6 +42,9 @@ dependencyResolutionManagement {
             from("org.eclipse.edc:edc-versions:0.0.1-SNAPSHOT")
             // this is not part of the published EDC Version Catalog, so we'll just "amend" it
             library("dnsOverHttps", "com.squareup.okhttp3", "okhttp-dnsoverhttps").versionRef("okhttp")
+            library("titaniumJsonLd", "com.apicatalog", "titanium-json-ld").version("1.3.1")
+            library("jacksonJsonP", "com.fasterxml.jackson.datatype", "jackson-datatype-jakarta-jsonp").version("jackson")
+            library("jakartaJson", "org.glassfish", "jakarta.json").version("2.0.0")
         }
     }
 }
@@ -108,6 +111,7 @@ include(":extensions:common:iam:oauth2:oauth2-daps")
 include(":extensions:common:iam:oauth2:oauth2-core")
 include(":extensions:common:iam:oauth2:oauth2-client")
 include(":extensions:common:iam:oauth2:oauth2-service")
+include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
 include(":extensions:common:monitor:monitor-jdk-logger")
 include(":extensions:common:sql:sql-core")
