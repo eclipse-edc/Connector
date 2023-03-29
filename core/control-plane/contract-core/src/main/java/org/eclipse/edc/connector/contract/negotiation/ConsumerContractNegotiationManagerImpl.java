@@ -108,10 +108,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * contract agreement sent by the provider against the last contract offer and transitions the corresponding
      * {@link ContractNegotiation} to state AGREED or TERMINATING.
      *
-     * @param token         Claim token of the consumer that send the contract request.
+     * @param token Claim token of the provider that sent the contract request.
      * @param negotiationId Id of the ContractNegotiation.
-     * @param agreement     Agreement sent by provider.
-     * @param policy        the policy
+     * @param agreement Agreement sent by provider.
+     * @param policy the policy
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id or no last offer found for negotiation; OK otherwise
      */
     @WithSpan
@@ -129,12 +129,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             return StatusResult.failure(FATAL_ERROR);
         }
 
-        var result = validationService.validateConfirmed(agreement, latestOffer);
+        var result = validationService.validateConfirmed(token, agreement, latestOffer);
         if (result.failed()) {
             var message = "Contract agreement received. Validation failed: " + result.getFailureDetail();
             monitor.debug("[Consumer] " + message);
-            transitToTerminating(negotiation, message);
-            return StatusResult.success(negotiation);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
@@ -144,10 +143,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     @Override
-    public StatusResult<ContractNegotiation> finalized(String negotiationId) {
+    public StatusResult<ContractNegotiation> finalized(ClaimToken token, String negotiationId) {
         var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
+        }
+
+        var result = validationService.validateRequest(token, negotiation);
+        if (result.failed()) {
+            return StatusResult.failure(FATAL_ERROR, "Invalid provider credentials");
         }
 
         transitToFinalized(negotiation);
@@ -158,7 +162,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party. Transitions the
      * corresponding ContractNegotiation to state DECLINED.
      *
-     * @param token         Claim token of the consumer that sent the rejection.
+     * @param token Claim token of the consumer that sent the rejection.
      * @param negotiationId Id of the ContractNegotiation.
      * @return a {@link StatusResult}: OK, if successfully transitioned to declined; FATAL_ERROR, if no match found for id.
      */
@@ -168,6 +172,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var negotiation = findContractNegotiationById(negotiationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR);
+        }
+
+        var result = validationService.validateRequest(token, negotiation);
+        if (result.failed()) {
+            return StatusResult.failure(FATAL_ERROR, "Invalid provider credentials");
         }
 
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
@@ -365,7 +374,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * Builder for ConsumerContractNegotiationManagerImpl.
      */
     public static class Builder extends AbstractContractNegotiationManager.Builder<ConsumerContractNegotiationManagerImpl> {
-
 
         private Builder() {
             super(new ConsumerContractNegotiationManagerImpl());

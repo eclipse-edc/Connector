@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -30,6 +31,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 
@@ -44,21 +46,24 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final ContractDefinitionService contractDefinitionService;
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyStore;
-    private final Clock clock;
     private final PolicyEngine policyEngine;
     private final PolicyEquality policyEquality;
+    private final Clock clock;
 
     public ContractValidationServiceImpl(ParticipantAgentService agentService,
                                          ContractDefinitionService contractDefinitionService,
-                                         AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock,
-                                         PolicyEngine policyEngine, PolicyEquality policyEquality) {
+                                         AssetIndex assetIndex,
+                                         PolicyDefinitionStore policyStore,
+                                         PolicyEngine policyEngine,
+                                         PolicyEquality policyEquality,
+                                         Clock clock) {
         this.agentService = agentService;
         this.contractDefinitionService = contractDefinitionService;
         this.assetIndex = assetIndex;
         this.policyStore = policyStore;
-        this.clock = clock;
         this.policyEngine = policyEngine;
         this.policyEquality = policyEquality;
+        this.clock = clock;
     }
 
     @Override
@@ -74,6 +79,12 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var agent = agentService.createFor(token);
+
+        var consumerIdentity = agent.getIdentity();
+        if (consumerIdentity == null) {
+            return Result.failure("Invalid consumer identity");
+        }
+
         var contractDefinition = contractDefinitionService.definitionFor(agent, contractId.definitionPart());
         if (contractDefinition == null) {
             return Result.failure(
@@ -107,7 +118,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
                 .asset(targetAsset)
-                .consumer(offer.getConsumer())
+                .consumer(URI.create(consumerIdentity))   //m this must be set to the consumer identity
                 .provider(offer.getProvider())
                 .policy(contractPolicyDef.getPolicy())
                 .contractStart(offer.getContractStart())
@@ -118,6 +129,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
+    @NotNull
     public Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement) {
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
@@ -129,20 +141,38 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var agent = agentService.createFor(token);
+        var consumerIdentity = agent.getIdentity();
+        if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerAgentId())) {
+            return Result.failure("Invalid provider credentials");
+        }
+
         var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent);
         if (!policyResult.succeeded()) {
             return Result.failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));
         }
         return Result.success(agreement);
-        // TODO validate counter-party
     }
 
+    @Override
+    @NotNull
+    public Result<Void> validateRequest(ClaimToken token, ContractNegotiation negotiation) {
+        var agent = agentService.createFor(token);
+        var counterPartyIdentity = agent.getIdentity();
+        return counterPartyIdentity != null && counterPartyIdentity.equals(negotiation.getCounterPartyId()) ? Result.success() : Result.failure("Invalid counter-party identity");
+    }
 
     @Override
-    public Result<Void> validateConfirmed(ContractAgreement agreement, ContractOffer latestOffer) {
+    @NotNull
+    public Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
             return Result.failure(format("ContractId %s does not follow the expected schema.", agreement.getId()));
+        }
+
+        var agent = agentService.createFor(token);
+        var providerIdentity = agent.getIdentity();
+        if (providerIdentity == null || !providerIdentity.equals(agreement.getProviderAgentId())) {
+            return Result.failure("Invalid provider credentials");
         }
 
         if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAsset().getId()), latestOffer.getPolicy())) {

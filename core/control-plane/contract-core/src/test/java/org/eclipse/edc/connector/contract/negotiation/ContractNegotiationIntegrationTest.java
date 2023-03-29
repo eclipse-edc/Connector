@@ -58,6 +58,7 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -127,7 +128,7 @@ class ContractNegotiationIntegrationTest {
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
-        when(validationService.validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class)))
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class)))
                 .thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
@@ -162,7 +163,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
                     verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
-                    verify(validationService, atLeastOnce()).validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
                 });
     }
 
@@ -190,24 +191,7 @@ class ContractNegotiationIntegrationTest {
 
         await().atMost(DEFAULT_TEST_TIMEOUT)
                 .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> {
-
-                    assertThat(consumerNegotiationId).isNotNull();
-                    var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
-                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-                    assertThat(consumerNegotiation).isNotNull();
-                    assertThat(providerNegotiation).isNotNull();
-
-                    // Assert that provider and consumer have the same offers stored
-                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(providerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-
-                    // Assert that no agreement has been stored on either side
-                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
-                    assertThat(providerNegotiation.getContractAgreement()).isNull();
-                    verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
-                });
+                .untilAsserted(() -> verify(validationService, atLeastOnce()).validateInitialOffer(token, offer));
     }
 
     @Test
@@ -219,7 +203,7 @@ class ContractNegotiationIntegrationTest {
         var offer = getContractOffer();
 
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
-        when(validationService.validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class)))
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class)))
                 .thenReturn(Result.failure("error"));
 
         // Start provider and consumer negotiation managers
@@ -254,7 +238,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(providerNegotiation.getContractAgreement()).isNull();
 
                     verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
-                    verify(validationService, atLeastOnce()).validateConfirmed(any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
                 });
     }
 

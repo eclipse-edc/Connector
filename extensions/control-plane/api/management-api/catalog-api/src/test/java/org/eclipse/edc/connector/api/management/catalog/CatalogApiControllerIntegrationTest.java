@@ -65,6 +65,16 @@ class CatalogApiControllerIntegrationTest {
     private final String authKey = "123456";
     private final RemoteMessageDispatcher dispatcher = mock(RemoteMessageDispatcher.class);
 
+    private static ContractOffer createContractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .build();
+    }
+
     @BeforeEach
     void setUp(EdcExtension extension) {
         when(dispatcher.protocol()).thenReturn("ids-multipart");
@@ -75,7 +85,8 @@ class CatalogApiControllerIntegrationTest {
                 "web.http.path", "/api",
                 "web.http.management.port", String.valueOf(port),
                 "web.http.management.path", "/api/v1/management",
-                "edc.api.auth.key", authKey
+                "edc.api.auth.key", authKey,
+                "edc.ids.id", "test-ids-id"
         ));
     }
 
@@ -234,16 +245,6 @@ class CatalogApiControllerIntegrationTest {
                 .basePath("/api/v1/management")
                 .header("x-api-key", authKey)
                 .when();
-    }
-
-    private static ContractOffer createContractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
-                .build();
     }
 
     @Provides(ContractOfferResolver.class)

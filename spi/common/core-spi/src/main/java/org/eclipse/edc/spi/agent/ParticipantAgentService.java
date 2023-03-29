@@ -22,6 +22,11 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 public interface ParticipantAgentService {
 
     /**
+     * The name of the default identity claim.
+     */
+    String DEFAULT_IDENTITY_CLAIM_KEY = "client_id";
+
+    /**
      * Creates a participant agent.
      */
     ParticipantAgent createFor(ClaimToken token);

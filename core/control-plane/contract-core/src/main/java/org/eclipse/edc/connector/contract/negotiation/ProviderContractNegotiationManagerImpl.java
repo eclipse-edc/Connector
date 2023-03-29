@@ -80,7 +80,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * Tells this manager that a {@link ContractNegotiation} has been terminated by the counter-party. Transitions the
      * corresponding ContractNegotiation to state TERMINATED.
      *
-     * @param token         Claim token of the consumer that sent the rejection.
+     * @param token Claim token of the consumer that sent the rejection.
      * @param correlationId Id of the ContractNegotiation on consumer side.
      * @return a {@link StatusResult}: OK, if successfully transitioned to TERMINATED; FATAL_ERROR, if no match found for correlationId.
      */
@@ -90,6 +90,11 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var negotiation = findContractNegotiationById(correlationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR);
+        }
+
+        var result = validationService.validateRequest(token, negotiation);
+        if (!result.succeeded()) {
+            return StatusResult.failure(FATAL_ERROR, "Invalid client credentials");
         }
 
         monitor.debug("[Provider] Contract rejection received. Abort negotiation process.");
@@ -112,17 +117,25 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and persisted, which moves it to
      * state REQUESTED. It is then validated and transitioned to CONFIRMING, PROVIDER_OFFERING or TERMINATING.
      *
-     * @param token   Claim token of the consumer that send the contract request.
+     * @param token Claim token of the consumer that send the contract request.
      * @param request Container object containing all relevant request parameters.
      * @return a {@link StatusResult}: OK
      */
     @WithSpan
     @Override
     public StatusResult<ContractNegotiation> requested(ClaimToken token, ContractOfferRequest request) {
+        var offer = request.getContractOffer();
+
+        var result = validationService.validateInitialOffer(token, offer);
+        if (result.failed()) {
+            monitor.debug("[Provider] Contract offer rejected as invalid: " + result.getFailureDetail());
+            return StatusResult.failure(FATAL_ERROR);
+        }
+
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
-                .counterPartyId(request.getConnectorId())
+                .counterPartyId(result.getContent().getConsumer().toString())
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
                 .traceContext(telemetry.getCurrentTraceContext())
@@ -131,17 +144,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
         transitToRequested(negotiation);
 
-        var offer = request.getContractOffer();
-        var result = validationService.validateInitialOffer(token, offer);
-
         negotiation.addContractOffer(offer);
-
-        if (result.failed()) {
-            monitor.debug("[Provider] Contract offer received. Will be rejected: " + result.getFailureDetail());
-            negotiation.setErrorDetail(result.getFailureMessages().get(0));
-            transitToTerminating(negotiation);
-            return StatusResult.success(negotiation);
-        }
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
         transitToProviderAgreeing(negotiation);
@@ -150,10 +153,15 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     @Override
-    public StatusResult<ContractNegotiation> verified(String negotiationId) {
+    public StatusResult<ContractNegotiation> verified(ClaimToken token, String negotiationId) {
         var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
+        }
+
+        var result = validationService.validateRequest(token, negotiation);
+        if (!result.succeeded()) {
+            return StatusResult.failure(FATAL_ERROR, "Invalid client credentials");
         }
 
         transitToVerified(negotiation);

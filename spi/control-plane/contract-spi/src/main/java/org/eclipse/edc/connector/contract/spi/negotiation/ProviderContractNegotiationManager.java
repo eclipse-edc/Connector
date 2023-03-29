@@ -38,5 +38,5 @@ public interface ProviderContractNegotiationManager extends ContractNegotiationM
     /**
      * The negotiation has been verified by the consumer.
      */
-    StatusResult<ContractNegotiation> verified(String negotiationId);
+    StatusResult<ContractNegotiation> verified(ClaimToken token, String negotiationId);
 }

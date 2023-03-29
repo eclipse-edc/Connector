@@ -22,9 +22,9 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -32,7 +32,6 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConfirmed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -55,17 +54,21 @@ import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
 class ContractNegotiationEventDispatchTest {
+    private static final String CONSUMER = "consumer";
+    private static final String PROVIDER = "provider";
 
     private static final long CONTRACT_VALIDITY = TimeUnit.HOURS.toSeconds(1);
+
+    @SuppressWarnings("rawtypes")
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
-    private final ClaimToken token = ClaimToken.Builder.newInstance().build();
+
+    private final ClaimToken token = ClaimToken.Builder.newInstance().claim(ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY, CONSUMER).build();
 
     @BeforeEach
     void setUp(EdcExtension extension) {
@@ -79,10 +82,15 @@ class ContractNegotiationEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventsOnProviderContractNegotiationStateChanges(EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                                       ProviderContractNegotiationManager manager, ContractDefinitionStore contractDefinitionStore,
-                                                                       PolicyDefinitionStore policyDefinitionStore, AssetIndex assetIndex) {
+    void shouldDispatchEventsOnProviderContractNegotiationStateChanges(EventRouter eventRouter,
+                                                                       RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                                       ProviderContractNegotiationManager manager,
+                                                                       ContractDefinitionStore contractDefinitionStore,
+                                                                       PolicyDefinitionStore policyDefinitionStore,
+                                                                       AssetIndex assetIndex) {
         dispatcherRegistry.register(succeedingDispatcher());
+
+        //noinspection unchecked
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
         var contractDefinition = ContractDefinition.Builder.newInstance()
@@ -99,30 +107,10 @@ class ContractNegotiationEventDispatchTest {
         manager.requested(token, createContractOfferRequest(policy));
 
         await().untilAsserted(() -> {
+            //noinspection unchecked
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
+            //noinspection unchecked
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationConfirmed.class)));
-        });
-    }
-
-    @Test
-    void shouldDispatchEventsOnTerminatedContractNegotiation(ContractNegotiationService service, EventRouter eventRouter,
-                                                             RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                             ProviderContractNegotiationManager manager) {
-
-        dispatcherRegistry.register(succeedingDispatcher());
-        eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
-        var policy = Policy.Builder.newInstance().build();
-
-        var result = manager.requested(token, createContractOfferRequest(policy));
-
-        await().untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
-        });
-
-        service.cancel(result.getContent().getId());
-
-        await().untilAsserted(() -> {
-            verify(eventSubscriber, atLeastOnce()).on(argThat(isEnvelopeOf((ContractNegotiationTerminated.class))));
         });
     }
 
@@ -132,8 +120,8 @@ class ContractNegotiationEventDispatchTest {
                 .id("contractDefinitionId:" + UUID.randomUUID())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
                 .policy(policy)
-                .consumer(URI.create("http://any"))
-                .provider(URI.create("http://any"))
+                .consumer(URI.create(CONSUMER))
+                .provider(URI.create(PROVIDER))
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))
                 .build();
@@ -155,11 +143,4 @@ class ContractNegotiationEventDispatchTest {
         return testDispatcher;
     }
 
-    @NotNull
-    private RemoteMessageDispatcher failingDispatcher() {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("any")));
-        return testDispatcher;
-    }
 }
