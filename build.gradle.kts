@@ -77,11 +77,7 @@ allprojects {
             println(sourceSets["main"].runtimeClasspath.asPath)
         }
     }
-
-    dependencies {
-        testRuntimeOnly(platform("org.junit:junit-bom:5.9.2"))
-    }
-
+    
 }
 repositories {
     mavenCentral()
