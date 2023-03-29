@@ -24,13 +24,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_CONSEQUENCE_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 
 public class JsonObjectToDutyTransformer extends AbstractJsonLdTransformer<JsonObject, Duty> {
-    
-    private static final String ODRL_ACTION_PROPERTY = ODRL_SCHEMA + "action";
-    private static final String ODRL_CONSTRAINT_PROPERTY = ODRL_SCHEMA + "constraint";
-    private static final String ODRL_CONSEQUENCE_PROPERTY = ODRL_SCHEMA + "consequence";
     
     public JsonObjectToDutyTransformer() {
         super(JsonObject.class, Duty.class);
@@ -44,11 +42,11 @@ public class JsonObjectToDutyTransformer extends AbstractJsonLdTransformer<JsonO
     }
     
     private void transformProperties(String key, JsonValue value, Duty.Builder builder, TransformerContext context) {
-        if (ODRL_ACTION_PROPERTY.equals(key)) {
+        if (ODRL_ACTION_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Action.class, builder::action, context);
-        } else if (ODRL_CONSTRAINT_PROPERTY.equals(key)) {
+        } else if (ODRL_CONSTRAINT_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Constraint.class, builder::constraint, context);
-        } else if (ODRL_CONSEQUENCE_PROPERTY.equals(key)) {
+        } else if (ODRL_CONSEQUENCE_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Duty.class, builder::consequence, context);
         }
     }

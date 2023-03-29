@@ -72,9 +72,9 @@ public class DspTransformExtension implements ServiceExtension {
         // EDC model to JSON-LD transformers
         registry.register(new JsonObjectFromCatalogTransformer(jsonBuilderFactory, mapper));
         registry.register(new JsonObjectFromDatasetTransformer(jsonBuilderFactory, mapper));
-        registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, mapper));
-        registry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory, mapper));
-        registry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory, mapper));
+        registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory));
+        registry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory));
+        registry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory));
     
         // JSON-LD to EDC model transformers
         registry.register(new JsonObjectToCatalogTransformer());

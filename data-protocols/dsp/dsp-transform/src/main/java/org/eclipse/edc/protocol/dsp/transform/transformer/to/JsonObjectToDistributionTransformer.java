@@ -24,14 +24,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DISTRIBUTION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
 public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransformer<JsonObject, Distribution> {
-
-    private static final String DCAT_DISTRIBUTION_TYPE = DCAT_SCHEMA + "Distribution";
-    private static final String DCAT_ACCESS_SERVICE_PROPERTY = DCAT_SCHEMA + "accessService";
-    private static final String DCT_FORMAT = DCT_SCHEMA + "format";
 
     public JsonObjectToDistributionTransformer() {
         super(JsonObject.class, Distribution.class);
@@ -51,9 +48,9 @@ public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransform
     }
 
     private void transformProperties(String key, JsonValue value, Distribution.Builder builder, TransformerContext context) {
-        if (DCAT_ACCESS_SERVICE_PROPERTY.equals(key)) {
+        if (DCAT_ACCESS_SERVICE_ATTRIBUTE.equals(key)) {
             transformString(value, builder::dataServiceId, context);
-        } else if (DCT_FORMAT.equals(key)) {
+        } else if (DCT_FORMAT_ATTRIBUTE.equals(key)) {
             if (value instanceof JsonObject) {
                 var format = nodeId((JsonObject) value);
                 builder.format(format);

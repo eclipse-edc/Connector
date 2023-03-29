@@ -25,13 +25,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 
 public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<JsonObject, Policy> {
-    
-    private static final String ODRL_PERMISSION_PROPERTY = ODRL_SCHEMA + "permission";
-    private static final String ODRL_PROHIBITION_PROPERTY = ODRL_SCHEMA + "prohibition";
-    private static final String ODRL_OBLIGATION_PROPERTY = ODRL_SCHEMA + "obligation";
     
     public JsonObjectToPolicyTransformer() {
         super(JsonObject.class, Policy.class);
@@ -45,11 +43,11 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
     }
     
     private void transformProperties(String key, JsonValue value, Policy.Builder builder, TransformerContext context) {
-        if (ODRL_PERMISSION_PROPERTY.equals(key)) {
+        if (ODRL_PERMISSION_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Permission.class, builder::permission, context);
-        } else if (ODRL_PROHIBITION_PROPERTY.equals(key)) {
+        } else if (ODRL_PROHIBITION_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Prohibition.class, builder::prohibition, context);
-        } else if (ODRL_OBLIGATION_PROPERTY.equals(key)) {
+        } else if (ODRL_OBLIGATION_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Duty.class, builder::duty, context);
         } else {
             builder.extensibleProperty(key, transformGenericProperty(value, context));

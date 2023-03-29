@@ -23,14 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATA_SERVICE_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_ENDPOINT_URL_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_TERMS_ATTRIBUTE;
 
 public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransformer<JsonObject, DataService> {
-
-    private static final String DCAT_DATA_SERVICE_TYPE =  DCAT_SCHEMA + "DataService";
-    private static final String DCT_TERMS_PROPERTY = DCT_SCHEMA + "terms";
-    private static final String DCT_ENDPOINT_URL_PROPERTY = DCT_SCHEMA + "endpointUrl";
 
     public JsonObjectToDataServiceTransformer() {
         super(JsonObject.class, DataService.class);
@@ -53,9 +50,9 @@ public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransforme
     }
 
     private void transformProperties(String key, JsonValue value, DataService.Builder builder, TransformerContext context) {
-        if (DCT_TERMS_PROPERTY.equals(key)) {
+        if (DCT_TERMS_ATTRIBUTE.equals(key)) {
             transformString(value, builder::terms, context);
-        } else if (DCT_ENDPOINT_URL_PROPERTY.equals(key)) {
+        } else if (DCT_ENDPOINT_URL_ATTRIBUTE.equals(key)) {
             transformString(value, builder::endpointUrl, context);
         } else {
             context.reportProblem(format("Invalid property found for Distribution: %s", key));

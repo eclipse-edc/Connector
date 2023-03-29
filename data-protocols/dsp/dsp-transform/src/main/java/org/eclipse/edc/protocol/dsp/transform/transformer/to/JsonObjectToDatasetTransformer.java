@@ -26,13 +26,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATASET_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DISTRIBUTION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 
 public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<JsonObject, Dataset> {
-
-    private static final String DCAT_DATASET_TYPE = DCAT_SCHEMA + "Dataset";
-    private static final String DCAT_DISTRIBUTION_PROPERTY = DCAT_SCHEMA + "distribution";
-    private static final String DCAT_POLICY_PROPERTY = DCAT_SCHEMA + "hasPolicy";
 
     public JsonObjectToDatasetTransformer() {
         super(JsonObject.class, Dataset.class);
@@ -55,9 +53,9 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
     }
 
     private void transformProperties(String key, JsonValue value, Dataset.Builder builder, TransformerContext context) {
-        if (DCAT_POLICY_PROPERTY.equals(key)) {
+        if (ODRL_POLICY_ATTRIBUTE.equals(key)) {
             transformPolicies(value, builder, context);
-        } else if (DCAT_DISTRIBUTION_PROPERTY.equals(key)) {
+        } else if (DCAT_DISTRIBUTION_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Distribution.class, builder::distribution, context);
         } else {
             builder.property(key, transformGenericProperty(value, context));

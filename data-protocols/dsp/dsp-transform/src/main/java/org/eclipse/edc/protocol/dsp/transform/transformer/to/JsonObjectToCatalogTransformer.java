@@ -25,13 +25,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 
 public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
-
-    private static final String DCAT_CATALOG_TYPE = DCAT_SCHEMA + "Catalog";
-    private static final String DCAT_DATASET_PROPERTY = DCAT_SCHEMA + "dataset";
-    private static final String DCAT_DATA_SERVICE_PROPERTY = DCAT_SCHEMA + "DataService";
 
     public JsonObjectToCatalogTransformer() {
         super(JsonObject.class, Catalog.class);
@@ -54,9 +52,9 @@ public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<Js
     }
 
     private void transformProperties(String key, JsonValue value, Catalog.Builder builder, TransformerContext context) {
-        if (DCAT_DATASET_PROPERTY.equals(key)) {
+        if (DCAT_DATASET_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Dataset.class, builder::dataset, context);
-        } else if (DCAT_DATA_SERVICE_PROPERTY.equals(key)) {
+        } else if (DCAT_DATA_SERVICE_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, DataService.class, builder::dataService, context);
         } else {
             builder.property(key, transformGenericProperty(value, context));

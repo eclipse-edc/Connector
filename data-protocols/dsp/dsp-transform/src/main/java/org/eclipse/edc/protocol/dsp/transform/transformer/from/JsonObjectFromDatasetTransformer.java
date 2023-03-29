@@ -28,7 +28,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATASET_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DISTRIBUTION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 
 public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<Dataset, JsonObject> {
 
@@ -45,16 +47,16 @@ public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<
     public @Nullable JsonObject transform(@NotNull Dataset dataset, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, dataset.getId());
-        objectBuilder.add(TYPE, DCAT_SCHEMA + "Dataset");
+        objectBuilder.add(TYPE, DCAT_DATASET_TYPE);
 
         var policies = transformOffers(dataset, context);
-        objectBuilder.add(DCAT_SCHEMA + "hasPolicy", policies);
+        objectBuilder.add(ODRL_POLICY_ATTRIBUTE, policies);
 
         var distributions = dataset.getDistributions().stream()
                 .map(distribution -> context.transform(distribution, JsonObject.class))
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
-        objectBuilder.add(DCAT_SCHEMA + "distribution", distributions);
+        objectBuilder.add(DCAT_DISTRIBUTION_ATTRIBUTE, distributions);
 
         // transform properties, which are generic JSON values.
         dataset.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));

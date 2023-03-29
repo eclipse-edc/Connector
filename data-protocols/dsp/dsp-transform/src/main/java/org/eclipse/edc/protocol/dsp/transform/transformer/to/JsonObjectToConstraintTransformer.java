@@ -30,13 +30,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.VALUE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 
 public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer<JsonObject, Constraint> {
-
-    private static final String ODRL_LEFT_OPERAND_PROPERTY = ODRL_SCHEMA + "leftOperand";
-    private static final String ODRL_OPERATOR_PROPERTY = ODRL_SCHEMA + "operator";
-    private static final String ODRL_RIGHT_OPERAND_PROPERTY = ODRL_SCHEMA + "rightOperand";
 
     public JsonObjectToConstraintTransformer() {
         super(JsonObject.class, Constraint.class);
@@ -51,11 +49,11 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
     }
 
     private void transformProperties(String key, JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {
-        if (ODRL_LEFT_OPERAND_PROPERTY.equals(key)) {
+        if (ODRL_LEFT_OPERAND_ATTRIBUTE.equals(key)) {
             transformOperand(value, builder::leftExpression, context);
-        } else if (ODRL_OPERATOR_PROPERTY.equals(key)) {
+        } else if (ODRL_OPERATOR_ATTRIBUTE.equals(key)) {
             transformOperator(value, builder, context);
-        } else if (ODRL_RIGHT_OPERAND_PROPERTY.equals(key)) {
+        } else if (ODRL_RIGHT_OPERAND_ATTRIBUTE.equals(key)) {
             transformOperand(value, builder::rightExpression, context);
         }
     }

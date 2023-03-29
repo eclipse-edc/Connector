@@ -27,8 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
-
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 
 /**
  * Converts from a {@link Catalog} to a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form.
@@ -47,19 +48,19 @@ public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<
     public @Nullable JsonObject transform(@NotNull Catalog catalog, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, catalog.getId());
-        objectBuilder.add(TYPE, DCAT_SCHEMA + "Catalog");
+        objectBuilder.add(TYPE, DCAT_CATALOG_TYPE);
 
         var datasets = catalog.getDatasets().stream()
                 .map(offer -> context.transform(offer, JsonObject.class))
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
-        objectBuilder.add(DCAT_SCHEMA + "dataset", datasets);
+        objectBuilder.add(DCAT_DATASET_ATTRIBUTE, datasets);
 
         var dataServices = catalog.getDataServices().stream()
                 .map(service -> context.transform(service, JsonObject.class))
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
-        objectBuilder.add(DCAT_SCHEMA + "DataService", dataServices);
+        objectBuilder.add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServices);
 
         // transform properties, which are generic JSON values.
         catalog.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));

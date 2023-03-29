@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transform.transformer.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.DataService;
@@ -25,28 +24,27 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATA_SERVICE_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_ENDPOINT_URL_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_TERMS_ATTRIBUTE;
 
 public class JsonObjectFromDataServiceTransformer extends AbstractJsonLdTransformer<DataService, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
 
-    public JsonObjectFromDataServiceTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDataServiceTransformer(JsonBuilderFactory jsonFactory) {
         super(DataService.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull DataService dataService, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, dataService.getId());
-        objectBuilder.add(TYPE, DCAT_SCHEMA + "DataService");
+        objectBuilder.add(TYPE, DCAT_DATA_SERVICE_TYPE);
 
-        objectBuilder.add(DCT_SCHEMA + "terms", dataService.getTerms());
-        objectBuilder.add(DCT_SCHEMA + "endpointUrl", dataService.getEndpointUrl());
+        objectBuilder.add(DCT_TERMS_ATTRIBUTE, dataService.getTerms());
+        objectBuilder.add(DCT_ENDPOINT_URL_ATTRIBUTE, dataService.getEndpointUrl());
 
         return objectBuilder.build();
     }

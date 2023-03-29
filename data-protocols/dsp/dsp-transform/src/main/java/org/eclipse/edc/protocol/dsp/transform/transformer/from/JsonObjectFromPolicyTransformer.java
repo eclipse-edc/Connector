@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transform.transformer.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
@@ -41,21 +40,33 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.ID;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_CONSEQUENCE_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 
 /**
  * Transforms a {@link Policy} to an ODRL type as a {@link JsonObject} in expanded JSON-LD form.
  */
 public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
 
-    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory) {
         super(Policy.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
     }
 
     @Override
@@ -97,9 +108,9 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         public JsonObject visitAtomicConstraint(AtomicConstraint atomicConstraint) {
             var constraintBuilder = jsonFactory.createObjectBuilder();
 
-            constraintBuilder.add("leftOperand", atomicConstraint.getLeftExpression().accept(this));
-            constraintBuilder.add("operator", atomicConstraint.getOperator().name());
-            constraintBuilder.add("rightOperand", atomicConstraint.getRightExpression().accept(this));
+            constraintBuilder.add(ODRL_LEFT_OPERAND_ATTRIBUTE, atomicConstraint.getLeftExpression().accept(this));
+            constraintBuilder.add(ODRL_OPERATOR_ATTRIBUTE, atomicConstraint.getOperator().name());
+            constraintBuilder.add(ODRL_RIGHT_OPERAND_ATTRIBUTE, atomicConstraint.getRightExpression().accept(this));
 
             return constraintBuilder.build();
         }
@@ -107,7 +118,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         @Override
         public JsonObject visitLiteralExpression(LiteralExpression expression) {
             return jsonFactory.createObjectBuilder()
-                    .add("@value", Json.createValue(expression.getValue().toString()))
+                    .add(VALUE, Json.createValue(expression.getValue().toString()))
                     .build();
         }
 
@@ -123,13 +134,11 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
 
             return jsonFactory.createObjectBuilder()
-                    .add("@id", randomUUID().toString())
-                    .add("@type", ODRL_SCHEMA + getTypeAsString(policy.getType()))
-                    .add(CONTEXT, jsonFactory.createObjectBuilder()
-                            .add(VOCAB, ODRL_SCHEMA))
-                    .add("permission", permissionsBuilder)
-                    .add("prohibition", prohibitionsBuilder)
-                    .add("obligation", obligationsBuilder)
+                    .add(ID, randomUUID().toString())
+                    .add(TYPE, ODRL_SCHEMA + getTypeAsString(policy.getType()))
+                    .add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder)
+                    .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
+                    .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder)
                     .build();
         }
 
@@ -142,7 +151,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                 for (var duty : permission.getDuties()) {
                     dutiesBuilder.add(visitDuty(duty));
                 }
-                permissionBuilder.add("duties", dutiesBuilder.build());
+                permissionBuilder.add(ODRL_DUTY_ATTRIBUTE, dutiesBuilder.build());
             }
 
             return permissionBuilder.build();
@@ -161,7 +170,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             
             if (duty.getConsequence() != null) {
                 var consequence = visitDuty(duty.getConsequence());
-                obligationBuilder.add("consequence", consequence);
+                obligationBuilder.add(ODRL_CONSEQUENCE_ATTRIBUTE, consequence);
             }
 
             return obligationBuilder.build();
@@ -170,9 +179,9 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         private JsonObjectBuilder visitRule(Rule rule) {
             var ruleBuilder = jsonFactory.createObjectBuilder();
 
-            ruleBuilder.add("action", visitAction(rule.getAction()));
+            ruleBuilder.add(ODRL_ACTION_ATTRIBUTE, visitAction(rule.getAction()));
             if (rule.getConstraints() != null && !rule.getConstraints().isEmpty()) {
-                ruleBuilder.add("constraint", visitConstraints(rule));
+                ruleBuilder.add(ODRL_CONSTRAINT_ATTRIBUTE, visitConstraints(rule));
             }
 
             return ruleBuilder;
@@ -190,12 +199,12 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
         private JsonObject visitAction(Action action) {
             var actionBuilder = jsonFactory.createObjectBuilder();
-            actionBuilder.add("type", action.getType());
+            actionBuilder.add(ODRL_ACTION_TYPE_ATTRIBUTE, action.getType());
             if (action.getIncludedIn() != null) {
-                actionBuilder.add("includedIn", action.getIncludedIn());
+                actionBuilder.add(ODRL_INCLUDED_IN_ATTRIBUTE, action.getIncludedIn());
             }
             if (action.getConstraint() != null) {
-                actionBuilder.add("refinement", action.getConstraint().accept(this));
+                actionBuilder.add(ODRL_REFINEMENT_ATTRIBUTE, action.getConstraint().accept(this));
             }
             return actionBuilder.build();
         }

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transform.transformer.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Distribution;
@@ -23,31 +22,31 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DISTRIBUTION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
 public class JsonObjectFromDistributionTransformer extends AbstractJsonLdTransformer<Distribution, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
 
-    public JsonObjectFromDistributionTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDistributionTransformer(JsonBuilderFactory jsonFactory) {
         super(Distribution.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull Distribution distribution, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add(TYPE, DCAT_SCHEMA + "Distribution");
+        objectBuilder.add(TYPE, DCAT_DISTRIBUTION_TYPE);
 
-        objectBuilder.add(DCT_SCHEMA + "format", jsonFactory.createObjectBuilder()
-                .add("@id", distribution.getFormat())
+        objectBuilder.add(DCT_FORMAT_ATTRIBUTE, jsonFactory.createObjectBuilder()
+                .add(ID, distribution.getFormat())
                 .build());
 
-        objectBuilder.add(DCAT_SCHEMA + "accessService", distribution.getDataService().getId());
+        objectBuilder.add(DCAT_ACCESS_SERVICE_ATTRIBUTE, distribution.getDataService().getId());
 
         return objectBuilder.build();
     }

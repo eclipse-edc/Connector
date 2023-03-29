@@ -23,14 +23,12 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 
 
 public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<JsonObject, Action> {
-    
-    private static final String ODRL_TYPE_PROPERTY = ODRL_SCHEMA + "type";
-    private static final String ODRL_INCLUDED_IN_PROPERTY = ODRL_SCHEMA + "includedIn";
-    private static final String ODRL_REFINEMENT_PROPERTY = ODRL_SCHEMA + "refinement";
     
     public JsonObjectToActionTransformer() {
         super(JsonObject.class, Action.class);
@@ -44,11 +42,11 @@ public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<Jso
     }
     
     private void transformProperties(String key, JsonValue value, Action.Builder builder, TransformerContext context) {
-        if (ODRL_TYPE_PROPERTY.equals(key)) {
+        if (ODRL_ACTION_TYPE_ATTRIBUTE.equals(key)) {
             transformString(value, builder::type, context);
-        } else if (ODRL_INCLUDED_IN_PROPERTY.equals(key)) {
+        } else if (ODRL_INCLUDED_IN_ATTRIBUTE.equals(key)) {
             transformString(value, builder::includedIn, context);
-        } else if (ODRL_REFINEMENT_PROPERTY.equals(key)) {
+        } else if (ODRL_REFINEMENT_ATTRIBUTE.equals(key)) {
             transformArrayOrObject(value, Constraint.class, builder::constraint, context);
         }
     }
