@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - Initial implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add datasets
  *
  */
 
@@ -17,54 +18,116 @@ package org.eclipse.edc.catalog.spi;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * DTO representing catalog containing {@link ContractOffer}s.
  */
 @JsonDeserialize(builder = Catalog.Builder.class)
 public class Catalog {
-    private final String id;
-    private final List<ContractOffer> contractOffers;
-
-    private Catalog(@NotNull String id, @NotNull List<ContractOffer> contractOffers) {
-        this.id = Objects.requireNonNull(id);
-        this.contractOffers = Objects.requireNonNull(contractOffers);
-    }
-
+    private String id;
+    private List<ContractOffer> contractOffers;
+    private List<Dataset> datasets;
+    private List<DataService> dataServices;
+    private Map<String, Object> properties;
+    
     public String getId() {
         return id;
     }
-
+    
     public List<ContractOffer> getContractOffers() {
         return contractOffers;
     }
-
+    
+    public List<Dataset> getDatasets() {
+        return datasets;
+    }
+    
+    public List<DataService> getDataServices() {
+        return dataServices;
+    }
+    
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+    
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private String id;
-        private List<ContractOffer> contractOffers;
-
+        private Catalog catalog;
+        
+        private Builder() {
+            catalog = new Catalog();
+        }
+        
         public static Builder newInstance() {
             return new Builder();
         }
-
+        
         public Builder id(String id) {
-            this.id = id;
+            catalog.id = id;
             return this;
         }
-
+        
         public Builder contractOffers(List<ContractOffer> contractOffers) {
-            this.contractOffers = contractOffers;
+            catalog.contractOffers = contractOffers;
             return this;
         }
-
-        public Catalog build() {
-            return new Catalog(id, contractOffers);
+        
+        public Builder datasets(List<Dataset> datasets) {
+            catalog.datasets = datasets;
+            return this;
         }
-
+        
+        public Builder dataset(Dataset dataset) {
+            if (catalog.datasets == null) {
+                catalog.datasets = new ArrayList<>();
+            }
+            catalog.datasets.add(dataset);
+            return this;
+        }
+        
+        public Builder dataServices(List<DataService> dataServices) {
+            catalog.dataServices = dataServices;
+            return this;
+        }
+        
+        public Builder dataService(DataService dataService) {
+            if (catalog.dataServices == null) {
+                catalog.dataServices = new ArrayList<>();
+            }
+            catalog.dataServices.add(dataService);
+            return this;
+        }
+        
+        public Builder properties(Map<String, Object> properties) {
+            catalog.properties = properties;
+            return this;
+        }
+        
+        public Builder property(String key, Object value) {
+            if (catalog.properties == null) {
+                catalog.properties = new HashMap<>();
+            }
+            catalog.properties.put(key, value);
+            return this;
+        }
+        
+        public Catalog build() {
+            if (catalog.id == null) {
+                catalog.id = randomUUID().toString();
+            }
+            if (catalog.contractOffers == null && catalog.datasets == null) {
+                throw new NullPointerException("Either contractOffers or datasets required for catalog.");
+            }
+            
+            return catalog;
+        }
+        
     }
 }
