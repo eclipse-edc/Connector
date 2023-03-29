@@ -63,7 +63,7 @@ public class DspTransformExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-//        var mapper = typeManager.getMapper("json-ld"); //TODO once json-ld is merged
+        //var mapper = typeManager.getMapper("json-ld"); //TODO once json-ld is merged
         var mapper = getObjectMapper();
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
         
