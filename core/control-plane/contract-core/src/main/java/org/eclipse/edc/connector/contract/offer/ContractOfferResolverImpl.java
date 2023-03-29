@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -117,24 +118,23 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
-
-        var contractEndTime = calculateContractEnd(definition);
+        var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
+        var contractEndTime = calculateContractEnd(definition, now);
 
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
                 .policy(policy.withTarget(asset.getId()))
                 .asset(asset)
-                .contractStart(ZonedDateTime.now())
+                .contractStart(now)
                 .contractEnd(contractEndTime);
     }
 
     @NotNull
-    private ZonedDateTime calculateContractEnd(ContractDefinition definition) {
-
+    private ZonedDateTime calculateContractEnd(ContractDefinition definition, ZonedDateTime now) {
         var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(clock.getZone());
         try {
-            contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
-        } catch (ArithmeticException exception) {
+            contractEndTime = now.plusSeconds(definition.getValidity());
+        } catch (DateTimeException exception) {
             monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
                     "Changing contractEndTime to Maximum value possible in the ContractOffer");
         }
