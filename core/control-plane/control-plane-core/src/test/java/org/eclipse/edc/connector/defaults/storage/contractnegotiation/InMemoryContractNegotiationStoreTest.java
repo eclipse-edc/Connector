@@ -91,7 +91,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
         assertEquals(INITIAL.code(), found.getState());
 
-        negotiation.transitionRequesting();
+        negotiation.transitionConsumerRequesting();
 
         store.save(negotiation);
         found = store.findById(id);
@@ -108,10 +108,10 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation2 = requestingNegotiation();
         store.save(negotiation2);
 
-        negotiation2.transitionRequested();
+        negotiation2.transitionConsumerRequested();
         store.save(negotiation2);
         Thread.sleep(1);
-        negotiation1.transitionRequested();
+        negotiation1.transitionConsumerRequested();
         store.save(negotiation1);
 
         var requestingNegotiations = store.nextForState(CONSUMER_REQUESTING.code(), 1);
@@ -431,7 +431,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     private ContractNegotiation requestingNegotiation() {
         var negotiation = TestFunctions.createNegotiation(UUID.randomUUID().toString());
         negotiation.transitionInitial();
-        negotiation.transitionRequesting();
+        negotiation.transitionConsumerRequesting();
         return negotiation;
     }
 

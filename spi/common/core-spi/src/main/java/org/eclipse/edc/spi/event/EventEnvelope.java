@@ -56,7 +56,7 @@ public class EventEnvelope<E extends Event> {
         }
 
         public static Builder newInstance() {
-            return new Builder();
+            return new Builder<>();
         }
 
         public Builder<E> id(String id) {

@@ -19,7 +19,6 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
@@ -64,7 +63,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -195,6 +193,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
+        handleProvisionResult(transferProcess, responses);
+    }
+
+    private void handleProvisionResult(TransferProcess transferProcess, List<StatusResult<ProvisionResponse>> responses) {
         if (transferProcess.getState() == TERMINATED.code()) {
             monitor.severe(format("TransferProcessManager: transfer process %s is in TERMINATED state, so provisioning could not be completed", transferProcess.getId()));
             return;
@@ -231,11 +233,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
-        if (transferProcess.getState() == TERMINATED.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in TERMINATED state, so deprovisioning could not be processed", transferProcess.getId()));
-            return;
-        }
+        handleDeprovisionResult(transferProcess, responses);
+    }
 
+    private void handleDeprovisionResult(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> responses) {
         var validationResult = responses.stream()
                 .filter(AbstractResult::failed)
                 .map(this::toFatalError)
@@ -275,7 +276,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));
-        updateTransferProcess(process);
+        update(process);
         observable.invokeForEach(l -> l.initiated(process));
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
 
@@ -317,7 +318,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
 
         process.transitionProvisioning(manifest);
-        updateTransferProcess(process, l -> l.preProvisioning(process));
+        observable.invokeForEach(l -> l.preProvisioning(process));
+        update(process);
         return true;
     }
 
@@ -342,8 +344,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
                 .entityRetrieve(transferProcessStore::find)
-                .onSuccess((t, content) -> handleProvisionResult(t.getId(), content))
-                .onFailure((t, throwable) -> transitToProvisioning(t))
+                .onSuccess(this::handleProvisionResult)
+                .onFailure((t, throwable) -> transitionToProvisioning(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
                 .onDelay(this::breakLease)
                 .execute("Provisioning");
@@ -358,9 +360,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processProvisioned(TransferProcess process) {
         if (CONSUMER == process.getType()) {
-            transitToRequesting(process);
+            transitionToRequesting(process);
         } else {
-            transitToStarting(process);
+            transitionToStarting(process);
         }
         return true;
     }
@@ -393,9 +395,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
-                .onSuccess((t, content) -> transitToRequested(t))
+                .onSuccess((t, content) -> transitionToRequested(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .onFailure((t, throwable) -> transitToRequesting(t))
+                .onFailure((t, throwable) -> transitionToRequesting(t))
                 .onDelay(this::breakLease)
                 .execute(description);
     }
@@ -416,7 +418,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return false;
         }
         if (!dataRequest.isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-            transitToStarted(process);
+            transitionToStarted(process);
             return true;
         } else {
             monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED);
@@ -447,7 +449,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
                 .onSuccess((t, content) -> sendTransferStartMessage(t))
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
-                .onFailure((t, failure) -> transitToStarting(t))
+                .onFailure((t, failure) -> transitionToStarting(t))
                 .onRetryExhausted((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onDelay(this::breakLease)
                 .execute(description);
@@ -465,8 +467,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
-                .onSuccess((t, content) -> transitToStarted(t))
-                .onFailure((t, throwable) -> transitToStarting(t))
+                .onSuccess((t, content) -> transitionToStarted(t))
+                .onFailure((t, throwable) -> transitionToStarting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onDelay(this::breakLease)
                 .execute(description);
@@ -532,7 +534,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
-                .onSuccess((t, content) -> transitToCompleted(t))
+                .onSuccess((t, content) -> transitionToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onDelay(this::breakLease)
@@ -549,7 +551,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processTerminating(TransferProcess process) {
         if (process.getType() == CONSUMER && process.getState() < REQUESTED.code()) {
-            transitToTerminated(process);
+            transitionToTerminated(process);
             return true;
         }
 
@@ -562,9 +564,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.find(id))
-                .onSuccess((t, content) -> transitToTerminated(t))
+                .onSuccess((t, content) -> transitionToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .onRetryExhausted(this::transitToTerminated)
+                .onRetryExhausted(this::transitionToTerminated)
                 .onDelay(this::breakLease)
                 .execute(description);
     }
@@ -586,16 +588,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
-        provisionManager.deprovision(resourcesToDeprovision, policy)
-                .whenComplete((responses, throwable) -> {
-                    if (throwable == null) {
-                        handleDeprovisionResult(process.getId(), responses);
-                    } else {
-                        transitionToDeprovisioningError(process.getId(), throwable);
-                    }
-                });
-
-        return true;
+        return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
+                        .entityRetrieve(transferProcessStore::find)
+                        .onDelay(this::breakLease)
+                        .onSuccess(this::handleDeprovisionResult)
+                        .onFailure((t, throwable) -> transitionToDeprovisioning(t))
+                        .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
+                        .execute("deprovisioning");
     }
 
     private void handleProvisionResponses(TransferProcess transferProcess, List<ProvisionResponse> responses) {
@@ -629,14 +628,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
-            updateTransferProcess(transferProcess);
+            update(transferProcess);
             observable.invokeForEach(l -> l.provisioned(transferProcess));
         } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
             transferProcess.transitionProvisioningRequested();
-            updateTransferProcess(transferProcess);
+            update(transferProcess);
             observable.invokeForEach(l -> l.provisioningRequested(transferProcess));
         } else {
-            updateTransferProcess(transferProcess);
+            update(transferProcess);
         }
     }
 
@@ -660,14 +659,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
-            updateTransferProcess(transferProcess);
+            update(transferProcess);
             observable.invokeForEach(l -> l.deprovisioned(transferProcess));
         } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
             transferProcess.transitionDeprovisioningRequested();
-            updateTransferProcess(transferProcess);
+            update(transferProcess);
             observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
-            updateTransferProcess(transferProcess);
+            update(transferProcess);
         }
     }
 
@@ -713,87 +712,83 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
     }
 
-    private void transitToProvisioning(TransferProcess process) {
+    private void transitionToProvisioning(TransferProcess process) {
         process.transitionProvisioning(process.getResourceManifest());
-        updateTransferProcess(process, l -> l.preProvisioning(process));
+        observable.invokeForEach(l -> l.preProvisioning(process));
+        update(process);
     }
 
-    private void transitToRequesting(TransferProcess process) {
+    private void transitionToRequesting(TransferProcess process) {
         process.transitionRequesting();
-        updateTransferProcess(process, l -> l.preRequesting(process));
+        observable.invokeForEach(l -> l.preRequesting(process));
+        update(process);
     }
 
-    private void transitToRequested(TransferProcess transferProcess) {
+    private void transitionToRequested(TransferProcess transferProcess) {
         transferProcess.transitionRequested();
-        updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
+        observable.invokeForEach(l -> l.preRequested(transferProcess));
+        update(transferProcess);
         observable.invokeForEach(l -> l.requested(transferProcess));
     }
 
-    private void transitToStarting(TransferProcess t) {
-        t.transitionStarting();
-        updateTransferProcess(t);
+    private void transitionToStarting(TransferProcess transferProcess) {
+        transferProcess.transitionStarting();
+        update(transferProcess);
     }
 
-    private void transitToStarted(TransferProcess process) {
+    private void transitionToStarted(TransferProcess process) {
         process.transitionStarted();
-        updateTransferProcess(process, l -> l.preStarted(process));
+        observable.invokeForEach(l -> l.preStarted(process));
+        update(process);
         observable.invokeForEach(l -> l.started(process));
     }
 
     private void transitionToCompleting(TransferProcess process) {
         process.transitionCompleting();
-        updateTransferProcess(process, l -> {
-        });
+        update(process);
     }
 
-    private void transitToCompleted(TransferProcess p) {
-        p.transitionCompleted();
-        updateTransferProcess(p, l -> l.preCompleted(p));
-        observable.invokeForEach(l -> l.completed(p));
+    private void transitionToCompleted(TransferProcess transferProcess) {
+        transferProcess.transitionCompleted();
+        observable.invokeForEach(l -> l.preCompleted(transferProcess));
+        update(transferProcess);
+        observable.invokeForEach(l -> l.completed(transferProcess));
     }
 
     private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
         monitor.severe(message, errors);
         process.transitionTerminating(message);
-        updateTransferProcess(process);
+        update(process);
     }
 
-    private void transitToTerminated(TransferProcess process, Throwable throwable) {
+    private void transitionToTerminated(TransferProcess process, Throwable throwable) {
         process.setErrorDetail(throwable.getMessage());
-        transitToTerminated(process);
+        transitionToTerminated(process);
     }
 
-    private void transitToTerminated(TransferProcess process) {
+    private void transitionToTerminated(TransferProcess process) {
         process.transitionTerminated();
-        updateTransferProcess(process, l -> l.preTerminated(process));
+        observable.invokeForEach(l -> l.preTerminated(process));
+        update(process);
         observable.invokeForEach(l -> l.terminated(process));
     }
 
-    private void transitionToDeprovisioningError(String processId, Throwable throwable) {
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", processId));
-            return;
-        }
-
-        transitionToDeprovisioningError(transferProcess, throwable.getMessage());
+    private void transitionToDeprovisioning(TransferProcess process) {
+        process.transitionDeprovisioning();
+        update(process);
     }
 
     private void transitionToDeprovisioningError(TransferProcess transferProcess, String message) {
         monitor.severe(message);
         transferProcess.transitionDeprovisioned(message);
-        updateTransferProcess(transferProcess, l -> l.preDeprovisioned(transferProcess));
+        observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
+        update(transferProcess);
         observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
 
-    private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {
-        observable.invokeForEach(observe);
-        updateTransferProcess(transferProcess);
-    }
-
-    private void updateTransferProcess(TransferProcess transferProcess) {
+    private void update(TransferProcess transferProcess) {
         transferProcessStore.save(transferProcess);
-        monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
+        monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 
     private void breakLease(TransferProcess process) {

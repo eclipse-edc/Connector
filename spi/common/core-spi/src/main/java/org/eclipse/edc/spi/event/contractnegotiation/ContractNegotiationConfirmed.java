@@ -21,7 +21,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * This event is raised when the ContractNegotiation has been confirmed.
+ *
+ * @deprecated please use {@link ContractNegotiationProviderAgreed}
  */
+@Deprecated(since = "milestone9")
 @JsonDeserialize(builder = ContractNegotiationConfirmed.Builder.class)
 public class ContractNegotiationConfirmed extends ContractNegotiationEvent {
 

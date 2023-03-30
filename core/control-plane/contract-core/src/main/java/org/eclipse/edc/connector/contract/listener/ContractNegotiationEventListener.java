@@ -18,14 +18,16 @@ import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegoti
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationApproved;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConfirmed;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConsumerAgreed;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConsumerRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConsumerVerified;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationDeclined;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationOffered;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationProviderAgreed;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationProviderFinalized;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationProviderOffered;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 
 import java.time.Clock;
@@ -49,8 +51,8 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     }
 
     @Override
-    public void requested(ContractNegotiation negotiation) {
-        var event = ContractNegotiationRequested.Builder.newInstance()
+    public void consumerRequested(ContractNegotiation negotiation) {
+        var event = ContractNegotiationConsumerRequested.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
                 .build();
 
@@ -58,8 +60,8 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     }
 
     @Override
-    public void offered(ContractNegotiation negotiation) {
-        var event = ContractNegotiationOffered.Builder.newInstance()
+    public void providerOffered(ContractNegotiation negotiation) {
+        var event = ContractNegotiationProviderOffered.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
                 .build();
 
@@ -67,8 +69,8 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     }
 
     @Override
-    public void approved(ContractNegotiation negotiation) {
-        var event = ContractNegotiationApproved.Builder.newInstance()
+    public void consumerAgreed(ContractNegotiation negotiation) {
+        var event = ContractNegotiationConsumerAgreed.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
                 .build();
 
@@ -94,8 +96,26 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     }
 
     @Override
-    public void confirmed(ContractNegotiation negotiation) {
-        var event = ContractNegotiationConfirmed.Builder.newInstance()
+    public void providerAgreed(ContractNegotiation negotiation) {
+        var event = ContractNegotiationProviderAgreed.Builder.newInstance()
+                .contractNegotiationId(negotiation.getId())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void consumerVerified(ContractNegotiation negotiation) {
+        var event = ContractNegotiationConsumerVerified.Builder.newInstance()
+                .contractNegotiationId(negotiation.getId())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void providerFinalized(ContractNegotiation negotiation) {
+        var event = ContractNegotiationProviderFinalized.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
                 .build();
 

@@ -69,93 +69,95 @@ public abstract class AbstractContractNegotiationManager {
      */
     protected abstract String getType();
 
-    protected void transitToInitial(ContractNegotiation negotiation) {
+    protected void transitionToInitial(ContractNegotiation negotiation) {
         negotiation.transitionInitial();
         update(negotiation);
         observable.invokeForEach(l -> l.initiated(negotiation));
     }
 
-    protected void transitToRequesting(ContractNegotiation negotiation) {
-        negotiation.transitionRequesting();
+    protected void transitionToConsumerRequesting(ContractNegotiation negotiation) {
+        negotiation.transitionConsumerRequesting();
         update(negotiation);
     }
 
-    protected void transitToRequested(ContractNegotiation negotiation) {
-        negotiation.transitionRequested();
+    protected void transitionToConsumerRequested(ContractNegotiation negotiation) {
+        negotiation.transitionConsumerRequested();
         update(negotiation);
-        observable.invokeForEach(l -> l.requested(negotiation));
+        observable.invokeForEach(l -> l.consumerRequested(negotiation));
     }
 
-    protected void transitToProviderAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
-        negotiation.setContractAgreement(agreement);
-        negotiation.transitionProviderAgreed();
-        update(negotiation);
-        observable.invokeForEach(l -> l.confirmed(negotiation));
-    }
-
-    protected void transitToApproving(ContractNegotiation negotiation) {
-        negotiation.transitionApproving();
+    protected void transitionToConsumerAgreeing(ContractNegotiation negotiation) {
+        negotiation.transitionConsumerAgreeing();
         update(negotiation);
     }
 
-    protected void transitToApproved(ContractNegotiation negotiation) {
-        negotiation.transitionApproved();
+    protected void transitionToConsumerAgreed(ContractNegotiation negotiation) {
+        negotiation.transitionConsumerAgreed();
         update(negotiation);
-        observable.invokeForEach(l -> l.approved(negotiation));
+        observable.invokeForEach(l -> l.consumerAgreed(negotiation));
     }
 
-    protected void transitToOffering(ContractNegotiation negotiation) {
-        negotiation.transitionOffering();
+    protected void transitionToProviderOffering(ContractNegotiation negotiation) {
+        negotiation.transitionProviderOffering();
         update(negotiation);
     }
 
-    protected void transitToOffered(ContractNegotiation negotiation) {
-        negotiation.transitionOffered();
+    protected void transitionToProviderOffered(ContractNegotiation negotiation) {
+        negotiation.transitionProviderOffered();
         update(negotiation);
-        observable.invokeForEach(l -> l.offered(negotiation));
+        observable.invokeForEach(l -> l.providerOffered(negotiation));
     }
 
-    protected void transitToProviderAgreeing(ContractNegotiation negotiation) {
+    protected void transitionToProviderAgreeing(ContractNegotiation negotiation) {
         negotiation.transitionProviderAgreeing();
         update(negotiation);
     }
 
-    protected void transitToVerifying(ContractNegotiation negotiation) {
-        negotiation.transitionVerifying();
+    protected void transitionToProviderAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
+        negotiation.setContractAgreement(agreement);
+        negotiation.transitionProviderAgreed();
+        update(negotiation);
+        observable.invokeForEach(l -> l.providerAgreed(negotiation));
+    }
+
+    protected void transitionToConsumerVerifying(ContractNegotiation negotiation) {
+        negotiation.transitionConsumerVerifying();
         update(negotiation);
     }
 
-    protected void transitToVerified(ContractNegotiation negotiation) {
-        negotiation.transitionVerified();
+    protected void transitionToConsumerVerified(ContractNegotiation negotiation) {
+        negotiation.transitionConsumerVerified();
         update(negotiation);
+        observable.invokeForEach(l -> l.consumerVerified(negotiation));
     }
 
-    protected void transitToFinalizing(ContractNegotiation negotiation) {
+    protected void transitionToProviderFinalizing(ContractNegotiation negotiation) {
         negotiation.transitionProviderFinalizing();
         update(negotiation);
     }
 
-    protected void transitToFinalized(ContractNegotiation negotiation) {
+    protected void transitionToProviderFinalized(ContractNegotiation negotiation) {
         negotiation.transitionProviderFinalized();
         update(negotiation);
+        observable.invokeForEach(l -> l.providerFinalized(negotiation));
     }
 
-    protected void transitToTerminating(ContractNegotiation negotiation, String message) {
+    protected void transitionToTerminating(ContractNegotiation negotiation, String message) {
         negotiation.transitionTerminating(message);
         update(negotiation);
     }
 
-    protected void transitToTerminating(ContractNegotiation negotiation) {
+    protected void transitionToTerminating(ContractNegotiation negotiation) {
         negotiation.transitionTerminating();
         update(negotiation);
     }
 
-    protected void transitToTerminated(ContractNegotiation negotiation, String message) {
+    protected void transitionToTerminated(ContractNegotiation negotiation, String message) {
         negotiation.setErrorDetail(message);
-        transitToTerminated(negotiation);
+        transitionToTerminated(negotiation);
     }
 
-    protected void transitToTerminated(ContractNegotiation negotiation) {
+    protected void transitionToTerminated(ContractNegotiation negotiation) {
         negotiation.transitionTerminated();
         update(negotiation);
         observable.invokeForEach(l -> l.terminated(negotiation));
