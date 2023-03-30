@@ -17,7 +17,7 @@ package org.eclipse.edc.jsonld;
 import java.util.Set;
 
 /**
- * JSON-LD keywords as defined by {@see https://www.w3.org/TR/json-ld/#syntax-tokens-and-keywords}.
+ * JSON-LD keywords as defined by <a href="https://www.w3.org/TR/json-ld/#syntax-tokens-and-keywords">W3C</a>.
  */
 public interface JsonLdKeywords {
     
