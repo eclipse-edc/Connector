@@ -25,9 +25,6 @@ val annotationProcessorVersion: String by project
 val metaModelVersion: String by project
 
 buildscript {
-    repositories {
-        mavenLocal()
-    }
     dependencies {
         val edcGradlePluginsVersion: String by project
         classpath("org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin:${edcGradlePluginsVersion}")
@@ -70,7 +67,6 @@ allprojects {
         configDirectory.set(rootProject.file("resources"))
     }
 
-
     // EdcRuntimeExtension uses this to determine the runtime classpath of the module to run.
     tasks.register("printClasspath") {
         doLast {
@@ -78,15 +74,4 @@ allprojects {
         }
     }
     
-}
-repositories {
-    mavenCentral()
-}
-
-// Dependency analysis active if property "dependency.analysis" is set. Possible values are <'fail'|'warn'|'ignore'>.
-if (project.hasProperty("dependency.analysis")) {
-    apply(plugin = "org.eclipse.edc.dependency-rules")
-    configure<org.eclipse.edc.gradle.DependencyRulesPluginExtension> {
-        severity.set(project.property("dependency.analysis").toString())
-    }
 }
