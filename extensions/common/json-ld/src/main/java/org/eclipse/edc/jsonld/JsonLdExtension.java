@@ -17,14 +17,17 @@ package org.eclipse.edc.jsonld;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
+/**
+ * Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
+ * types through the TypeManager context {@link #TYPE_MANAGER_CONTEXT_JSON_LD} and provides functions
+ * for working with JSON-LD structures.
+ */
 @Extension(value = JsonLdExtension.NAME)
 public class JsonLdExtension implements ServiceExtension {
     
@@ -55,7 +58,6 @@ public class JsonLdExtension implements ServiceExtension {
             }
         };
         mapper.registerModule(module);
-        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
         return mapper;
     }
     
