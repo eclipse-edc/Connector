@@ -57,7 +57,7 @@ public class MonitorProvider implements SLF4JServiceProvider {
 
     @Override
     public String getRequestedApiVersion() {
-        return "1.8";
+        return "2.0";
     }
 
     @Override
