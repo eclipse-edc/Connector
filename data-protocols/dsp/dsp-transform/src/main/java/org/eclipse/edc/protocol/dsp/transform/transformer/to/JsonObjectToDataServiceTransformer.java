@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.transform.transformer.to;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +27,9 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndType
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_TERMS_ATTRIBUTE;
 
+/**
+ * Converts from a DCAT data service as a {@link JsonObject} in JSON-LD expanded form to a {@link DataService}.
+ */
 public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransformer<JsonObject, DataService> {
 
     public JsonObjectToDataServiceTransformer() {

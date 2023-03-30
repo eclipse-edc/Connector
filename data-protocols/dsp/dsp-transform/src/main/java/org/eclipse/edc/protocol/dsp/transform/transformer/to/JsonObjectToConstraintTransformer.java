@@ -18,22 +18,25 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 
+/**
+ * Converts from an ODRL constraint as a {@link JsonObject} in JSON-LD expanded form to a {@link Constraint}.
+ */
 public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer<JsonObject, Constraint> {
 
     public JsonObjectToConstraintTransformer() {

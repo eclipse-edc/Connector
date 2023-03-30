@@ -18,7 +18,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +28,9 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndType
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DISTRIBUTION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
+/**
+ * Converts from a DCAT distribution as a {@link JsonObject} in JSON-LD expanded form to a {@link Distribution}.
+ */
 public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransformer<JsonObject, Distribution> {
 
     public JsonObjectToDistributionTransformer() {

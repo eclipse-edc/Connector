@@ -16,11 +16,11 @@ package org.eclipse.edc.protocol.dsp.transform.transformer.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,9 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndType
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
 
-
+/**
+ * Converts from an ODRL permission as a {@link JsonObject} in JSON-LD expanded form to a {@link Permission}.
+ */
 public class JsonObjectToPermissionTransformer extends AbstractJsonLdTransformer<JsonObject, Permission> {
     
     public JsonObjectToPermissionTransformer() {

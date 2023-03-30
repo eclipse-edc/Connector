@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transform.transformer;
+package org.eclipse.edc.jsonld.transformer;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -26,9 +26,10 @@ import java.util.function.Consumer;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.KEYWORDS;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.KEYWORDS;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.VALUE;
 
 /**
  * Base JSON-LD transformer implementation.
@@ -131,7 +132,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first. For multiple types, {@see #nodeTypes}.
      */
     protected String nodeType(JsonObject object, TransformerContext context) {
-        var typeNode = object.get(JsonLdKeywords.TYPE);
+        var typeNode = object.get(TYPE);
         if (typeNode == null) {
             context.reportProblem("Property @type not found on JSON Object");
             return null;

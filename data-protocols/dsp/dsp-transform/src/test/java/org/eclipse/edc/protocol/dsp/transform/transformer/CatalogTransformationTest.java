@@ -14,16 +14,15 @@
 
 package org.eclipse.edc.protocol.dsp.transform.transformer;
 
-import com.apicatalog.jsonld.JsonLd;
-import com.apicatalog.jsonld.JsonLdError;
-import com.apicatalog.jsonld.document.JsonDocument;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.Distribution;
-//import org.eclipse.edc.jsonld.JsonLdExtension;
+import org.eclipse.edc.jsonld.JsonLdExtension;
+import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.util.JsonLdUtil;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -42,7 +41,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * Test for transforming a Catalog (including Dataset, Distribution, DataService and Policy).
@@ -54,7 +52,7 @@ class CatalogTransformationTest {
     private static final String DATASET_PROPERTY_KEY = "dataset:prop:key";
     
     private JsonLdTransformerRegistry transformerRegistry;
-    private JsonDocument contextDocument;
+    private JsonObject contextObject;
     
     private Catalog catalog;
     private DataService dataService;
@@ -64,29 +62,23 @@ class CatalogTransformationTest {
     
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        context.registerService(TypeManager.class, mock(TypeManager.class));
+        context.registerService(TypeManager.class, new TypeManager());
+
+        var jsonLdExtension = factory.constructInstance(JsonLdExtension.class);
+        jsonLdExtension.initialize(context);
+        transformerRegistry = jsonLdExtension.jsonLdTransformerRegistry();
+
+        context.registerService(JsonLdTransformerRegistry.class, transformerRegistry);
+        factory.constructInstance(DspTransformExtension.class).initialize(context);
         
-        //TODO replace once json-ld module is merged
-        var extension = factory.constructInstance(DspTransformExtension.class);
-        extension.initialize(context);
-        transformerRegistry = extension.jsonLdTransformerRegistry();
-    
-//        var extension = factory.constructInstance(JsonLdExtension.class);
-//        extension.initialize(context);
-//        transformerRegistry = extension.jsonLdTransformerRegistry();
-//        factory.constructInstance(DspTransformExtension.class).initialize(context);
-    
         // create context for compacting JSON-LD document
         var jsonFactory = Json.createBuilderFactory(Map.of());
-        var contextObject = jsonFactory
+        contextObject = jsonFactory
                 .createObjectBuilder()
                 .add(Namespaces.DCAT_PREFIX, Namespaces.DCAT_SCHEMA)
                 .add(Namespaces.ODRL_PREFIX, Namespaces.ODRL_SCHEMA)
                 .add(Namespaces.DCT_PREFIX, Namespaces.DCT_SCHEMA)
                 .build();
-        contextDocument = JsonDocument.of(jsonFactory.createObjectBuilder()
-                .add("@context", contextObject)
-                .build());
     
         // create catalog
         policy = getPolicy();
@@ -100,19 +92,17 @@ class CatalogTransformationTest {
      * Transforms the catalog to a JsonObject, uses the Titanium JSON-LD library to compact and
      * expand the JSON-LD, and then transforms it back to a catalog. Verifies that the
      * resulting catalog is equal to the initial one.
-     *
-     * @throws JsonLdError if compacting or expanding the document fails.
      */
     @Test
-    void transformCatalogToJsonObjectToCatalog() throws JsonLdError {
+    void transformCatalogToJsonObjectToCatalog() {
         var toJsonResult = transformerRegistry.transform(catalog, JsonObject.class);
         
         assertThat(toJsonResult.succeeded()).isTrue();
         var catalogJson = toJsonResult.getContent();
         assertThat(catalogJson).isNotNull();
         
-        var compacted = JsonLd.compact(JsonDocument.of(catalogJson), contextDocument).get();
-        var expanded = JsonLd.expand(JsonDocument.of(compacted)).get();
+        var compacted = JsonLdUtil.compact(catalogJson, contextObject);
+        var expanded = JsonLdUtil.expand(compacted);
         
         var fromJsonResult = transformerRegistry.transform(expanded.get(0), Catalog.class);
         

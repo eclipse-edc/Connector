@@ -16,11 +16,11 @@ package org.eclipse.edc.protocol.dsp.transform.transformer.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +29,9 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndType
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 
+/**
+ * Converts from an ODRL policy as a {@link JsonObject} in JSON-LD expanded form to a {@link Policy}.
+ */
 public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<JsonObject, Policy> {
     
     public JsonObjectToPolicyTransformer() {

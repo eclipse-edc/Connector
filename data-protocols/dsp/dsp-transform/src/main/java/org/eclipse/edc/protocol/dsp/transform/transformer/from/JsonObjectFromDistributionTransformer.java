@@ -17,17 +17,20 @@ package org.eclipse.edc.protocol.dsp.transform.transformer.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DISTRIBUTION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
+/**
+ * Converts from a {@link Distribution} to a DCAT distribution as a {@link JsonObject} in JSON-LD expanded form.
+ */
 public class JsonObjectFromDistributionTransformer extends AbstractJsonLdTransformer<Distribution, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;

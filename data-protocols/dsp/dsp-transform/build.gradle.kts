@@ -19,8 +19,8 @@ plugins {
 dependencies {
     api(libs.jakartaJson)
     api(libs.titaniumJsonLd)
-    api(libs.jacksonJsonP) //TODO remove once json-ld is merged
 
+    api(project(":extensions:common:json-ld"))
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:transform-spi"))

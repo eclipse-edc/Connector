@@ -16,9 +16,9 @@ package org.eclipse.edc.protocol.dsp.transform.transformer.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Constraint;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,9 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndType
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 
-
+/**
+ * Converts from an ODRL action as a {@link JsonObject} in JSON-LD expanded form to an {@link Action}.
+ */
 public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<JsonObject, Action> {
     
     public JsonObjectToActionTransformer() {

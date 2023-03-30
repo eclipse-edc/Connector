@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transform.transformer;
+package org.eclipse.edc.jsonld.transformer;
 
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 

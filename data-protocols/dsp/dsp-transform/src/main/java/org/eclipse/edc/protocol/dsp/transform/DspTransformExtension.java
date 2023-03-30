@@ -14,14 +14,10 @@
 
 package org.eclipse.edc.protocol.dsp.transform;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 import jakarta.json.Json;
+import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.protocol.dsp.transform.transformer.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.protocol.dsp.transform.transformer.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.protocol.dsp.transform.transformer.from.JsonObjectFromDatasetTransformer;
@@ -39,13 +35,18 @@ import org.eclipse.edc.protocol.dsp.transform.transformer.to.JsonObjectToPolicyT
 import org.eclipse.edc.protocol.dsp.transform.transformer.to.JsonObjectToProhibitionTransformer;
 import org.eclipse.edc.protocol.dsp.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.Map;
 
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+
+/**
+ * Provides support for transforming DCAT catalog and ODRL policy types to and from JSON-LD. The
+ * respective transformers are registered with the {@link JsonLdTransformerRegistry}.
+ */
 public class DspTransformExtension implements ServiceExtension {
     
     public static final String NAME = "Dataspace Protocol Transform Extension";
@@ -53,7 +54,7 @@ public class DspTransformExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     
-    //@Inject
+    @Inject
     private JsonLdTransformerRegistry registry;
     
     @Override
@@ -63,11 +64,10 @@ public class DspTransformExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-        //var mapper = typeManager.getMapper("json-ld"); //TODO once json-ld is merged
-        var mapper = getObjectMapper();
-        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
+        var mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
         
-        registry = new JsonLdTransformerRegistryImpl(); //TODO inject once json-ld is merged
+        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
     
         // EDC model to JSON-LD transformers
         registry.register(new JsonObjectFromCatalogTransformer(jsonBuilderFactory, mapper));
@@ -88,26 +88,5 @@ public class DspTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToActionTransformer());
         registry.register(new JsonObjectToConstraintTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(mapper));
-    }
-    
-    //TODO move once json-ld is merged
-    @Provider
-    public JsonLdTransformerRegistry jsonLdTransformerRegistry() {
-        return registry;
-    }
-    
-    //TODO remove once json-ld is merged
-    public ObjectMapper getObjectMapper() {
-        var mapper = new ObjectMapper();
-        mapper.registerModule(new JSONPModule());
-        var module = new SimpleModule() {
-            @Override
-            public void setupModule(SetupContext context) {
-                super.setupModule(context);
-            }
-        };
-        mapper.registerModule(module);
-        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
-        return mapper;
     }
 }

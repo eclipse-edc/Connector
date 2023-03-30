@@ -12,14 +12,9 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transform.transformer;
+package org.eclipse.edc.jsonld.transformer;
 
-import org.eclipse.edc.transform.spi.TypeTransformer;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistryImpl;
 
-/**
- * Base type for transformers that operate on JSON-LD types. JSON-LD types (input and output) must be expanded per the JSON-LD Processing Algorithms API.
- * <p>
- * {@see https://www.w3.org/TR/json-ld11-api/}
- */
-public interface JsonLdTransformer<INPUT, OUTPUT> extends TypeTransformer<INPUT, OUTPUT> {
+public class JsonLdTransformerRegistryImpl extends TypeTransformerRegistryImpl<JsonLdTransformer<?, ?>> implements JsonLdTransformerRegistry {
 }

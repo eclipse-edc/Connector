@@ -21,13 +21,16 @@ import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.protocol.dsp.transform.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.VALUE;
 
+/**
+ * Converts from a generic property as a {@link JsonObject} in JSON-LD expanded form to a Java Object.
+ */
 public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer<JsonValue, Object> {
     private final ObjectMapper mapper;
 
