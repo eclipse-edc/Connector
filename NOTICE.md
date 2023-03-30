@@ -470,22 +470,22 @@ Jackson datatype: JSR310
 
 Jackson Jakarta-RS: base
 * Maven Artifact: com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.14.2
-* License:
+* License:  Apache-2.0
 
 Jackson Jakarta-RS: JSON
 * Maven Artifact: com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.13.3
-* License:
+* License:  Apache-2.0
 
 Jackson Jakarta-RS: JSON
 * Maven Artifact: com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.14.2
-* License:
+* License:  Apache-2.0
 
 Jackson module: Afterburner
 * Project: https://github.com/FasterXML/jackson-modules-base
 * Maven Artifact: com.fasterxml.jackson.module/jackson-module-afterburner/2.13.3
 * License: Apache-2.0
 
-Jackson module: Afterburner
+Jackson module: AfterburnerJackson Jakarta-RS: base
 * Project: https://github.com/FasterXML/jackson-modules-base
 * Maven Artifact: com.fasterxml.jackson.module/jackson-module-afterburner/2.14.2
 * License: Apache-2.0
@@ -510,13 +510,13 @@ Jackson BOM
 * Project: https://github.com/FasterXML/jackson-bom
 * Source: scm:git:git@github.com:FasterXML/jackson-bom.git
 * Maven Artifact: com.fasterxml.jackson/jackson-bom/2.14.0
-* License:
+* License: Apache-2.0
 
 Jackson BOM
 * Project: https://github.com/FasterXML/jackson-bom
 * Source: scm:git:git@github.com:FasterXML/jackson-bom.git
 * Maven Artifact: com.fasterxml.jackson/jackson-bom/2.14.2
-* License:
+* License: Apache-2.0
 
 Java UUID Generator
 * Project: https://github.com/cowtowncoder/java-uuid-generator
@@ -558,7 +558,7 @@ jackson-coreutils
 * Project: https://github.com/java-json-tools/jackson-coreutils
 * Source: git@github.com:java-json-tools/jackson-coreutils.git
 * Maven Artifact: com.github.java-json-tools/jackson-coreutils/2.0
-* License:
+* License: Apache-2.0
 
 json-patch
 * Project: https://github.com/java-json-tools/json-patch
@@ -570,7 +570,7 @@ json-schema-core
 * Project: https://github.com/java-json-tools/json-schema-core
 * Source: git@github.com:java-json-tools/json-schema-core.git
 * Maven Artifact: com.github.java-json-tools/json-schema-core/1.2.14
-* License:
+* License: Apache-2.0
 
 json-schema-validator
 * Project: https://github.com/java-json-tools/json-schema-validator
@@ -582,7 +582,7 @@ msg-simple
 * Project: https://github.com/java-json-tools/msg-simple
 * Source: git@github.com:java-json-tools/msg-simple.git
 * Maven Artifact: com.github.java-json-tools/msg-simple/1.2
-* License:
+* License: Apache-2.0
 
 uri-template
 * Project: https://github.com/java-json-tools/uri-template
@@ -608,11 +608,11 @@ Google APIs Client Library for Java
 
 gapic-google-cloud-storage-v2
 * Maven Artifact: com.google.api.grpc/gapic-google-cloud-storage-v2/2.20.1-alpha
-* License:
+* License: Apache-2.0
 
 grpc-google-cloud-storage-v2
 * Maven Artifact: com.google.api.grpc/grpc-google-cloud-storage-v2/2.20.1-alpha
-* License:
+* License: Apache-2.0
 
 proto-google-cloud-iamcredentials-v1
 * Project: https://github.com/googleapis/java-iamcredentials/proto-google-cloud-iamcredentials-v1
@@ -622,7 +622,7 @@ proto-google-cloud-iamcredentials-v1
 
 proto-google-cloud-storage-v2
 * Maven Artifact: com.google.api.grpc/proto-google-cloud-storage-v2/2.20.1-alpha
-* License:
+* License: Apache-2.0
 
 proto-google-common-protos
 * Project: https://github.com/googleapis/gapic-generator-java
@@ -640,7 +640,7 @@ proto-google-iam-admin-v1
 * Project: https://github.com/googleapis/java-iam-admin/proto-google-iam-admin-v1
 * Source: scm:git:git@github.com:googleapis/java-iam-admin.git/proto-google-iam-admin-v1
 * Maven Artifact: com.google.api.grpc/proto-google-iam-admin-v1/1.2.5
-* License:
+* License: Apache-2.0
 
 proto-google-iam-v1
 * Project: https://github.com/googleapis/java-iam/proto-google-iam-v1
@@ -652,7 +652,7 @@ proto-google-iam-v1
 * Project: https://github.com/googleapis/gapic-generator-java
 * Source: scm:git:git@github.com:googleapis/gapic-generator-java.git
 * Maven Artifact: com.google.api.grpc/proto-google-iam-v1/1.9.2
-* License:
+* License: Apache-2.0
 
 API Common
 * Project: https://github.com/googleapis/api-common-java
@@ -734,37 +734,37 @@ Google Cloud Core gRPC
 * Project: https://github.com/googleapis/google-cloud-java
 * Source: scm:git:git@github.com:googleapis/google-cloud-java.git
 * Maven Artifact: com.google.cloud/google-cloud-core-grpc/2.12.0
-* License:
+* License: Apache-2.0
 
 Google Cloud Core HTTP
 * Project: https://github.com/googleapis/google-cloud-java
 * Source: scm:git:git@github.com:googleapis/google-cloud-java.git
 * Maven Artifact: com.google.cloud/google-cloud-core-http/2.12.0
-* License:
+* License: Apache-2.0
 
 Google Cloud Core
 * Project: https://github.com/googleapis/google-cloud-java
 * Source: scm:git:git@github.com:googleapis/google-cloud-java.git
 * Maven Artifact: com.google.cloud/google-cloud-core/2.12.0
-* License:
+* License: Apache-2.0
 
 Google Cloud IAM Service Account Credentials
 * Project: https://github.com/googleapis/java-iamcredentials
 * Source: scm:git:git@github.com:googleapis/java-iamcredentials.git/google-cloud-iamcredentials
 * Maven Artifact: com.google.cloud/google-cloud-iamcredentials/2.3.5
-* License:
+* License: Apache-2.0
 
 Google Cloud Storage
 * Project: https://github.com/googleapis/java-storage
 * Source: scm:git:git@github.com:googleapis/java-storage.git/google-cloud-storage
 * Maven Artifact: com.google.cloud/google-cloud-storage/2.20.1
-* License:
+* License: Apache-2.0
 
 Google IAM Admin API
 * Project: https://github.com/googleapis/java-iam-admin
 * Source: scm:git:git@github.com:googleapis/java-iam-admin.git/google-iam-admin
 * Maven Artifact: com.google.cloud/google-iam-admin/1.2.5
-* License:
+* License: Apache-2.0
 
 FindBugs-jsr305
 * Project: http://findbugs.sourceforge.net/
@@ -903,7 +903,7 @@ H2 Database Engine
 * Project: https://h2database.com
 * Source: scm:git:https://github.com/h2database/h2database
 * Maven Artifact: com.h2database/h2/2.1.210
-* License: (EPL-1.0
+* License: EPL-1.0
 
 project ':json-path'
 * Project: https://github.com/jayway/JsonPath
@@ -1687,15 +1687,15 @@ swagger-models
 
 swagger-parser
 * Maven Artifact: io.swagger.parser.v3/swagger-parser-core/2.1.10
-* License:
+* License: Apache-2.0
 
 swagger-parser-v2-converter
 * Maven Artifact: io.swagger.parser.v3/swagger-parser-v2-converter/2.1.10
-* License:
+* License: Apache-2.0
 
 swagger-parser-v3
 * Maven Artifact: io.swagger.parser.v3/swagger-parser-v3/2.1.10
-* License:
+* License: Apache-2.0
 
 swagger-parser
 * Maven Artifact: io.swagger.parser.v3/swagger-parser/2.1.10
@@ -1755,7 +1755,7 @@ Jakarta Dependency Injection
 * Maven Artifact: jakarta.inject/jakarta.inject-api/2.0.1
 * License: Apache-2.0
 
-${extension.name} API
+Jakarta Transaction API
 * Project: https://projects.eclipse.org/projects/ee4j.jta
 * Source: scm:git:https://github.com/eclipse-ee4j/jta-api.git
 * Maven Artifact: jakarta.transaction/jakarta.transaction-api/2.0.0
@@ -1803,7 +1803,7 @@ Jakarta XML Binding API
 * Maven Artifact: jakarta.xml.bind/jakarta.xml.bind-api/4.0.0
 * License: BSD-3-Clause
 
-${extension.name} API
+Java Annotation API
 * Project: http://jcp.org/en/jsr/detail?id=250
 * Source: scm:git:https://github.com/javaee/javax.annotation.git
 * Maven Artifact: javax.annotation/javax.annotation-api/1.3.2
@@ -1813,15 +1813,15 @@ Java Servlet API
 * Project: http://servlet-spec.java.net
 * Source: scm:svn:https://svn.java.net/svn/glassfish~svn/tags/javax.servlet-api-3.1.0
 * Maven Artifact: javax.servlet/javax.servlet-api/3.1.0
-* License: (CDDL-1.1
+* License: CDDL-1.1
 
 Java Servlet API
 * Project: https://javaee.github.io/servlet-spec/
 * Source: scm:git:https://github.com/javaee/servlet-spec.git
 * Maven Artifact: javax.servlet/javax.servlet-api/4.0.1
-* License: (CDDL-1.1
+* License: CDDL-1.1
 
-${extension.name} API
+Javax Transaction API
 * Project: http://jta-spec.java.net
 * Source: scm:git:https://github.com/javaee/javax.transaction.git
 * Maven Artifact: javax.transaction/javax.transaction-api/1.3
@@ -1837,7 +1837,7 @@ javax.ws.rs-api
 * Project: http://jax-rs-spec.java.net
 * Source: scm:git:https://github.com/jax-rs/api.git
 * Maven Artifact: javax.ws.rs/javax.ws.rs-api/2.1
-* License:
+* License: CDDL-1.1
 
 Joda-Time
 * Project: https://www.joda.org/joda-time/
@@ -2430,7 +2430,7 @@ IntelliJ IDEA Annotations
 junit-pioneer
 * Project: https://junit-pioneer.org/
 * Maven Artifact: org.junit-pioneer/junit-pioneer/2.0.0
-* License:
+* License: EPL-2.0
 
 JUnit Jupiter API
 * Project: https://junit.org/junit5/
@@ -2530,7 +2530,7 @@ MockServer Java Client
 MockServer Core
 * Project: https://www.mock-server.com
 * Maven Artifact: org.mock-server/mockserver-core/5.15.0
-* License:
+* License: Apache-2.0
 
 MockServer &amp; Proxy Netty
 * Project: https://www.mock-server.com
@@ -2540,12 +2540,12 @@ MockServer &amp; Proxy Netty
 mockito-core
 * Project: https://github.com/mockito/mockito
 * Maven Artifact: org.mockito/mockito-core/5.2.0
-* License:
+* License: Apache-2.0
 
 mockito-inline
 * Project: https://github.com/mockito/mockito
 * Maven Artifact: org.mockito/mockito-inline/5.2.0
-* License:
+* License: MIT
 
 Mozilla Rhino
 * Project: https://developer.mozilla.org/en/Rhino
@@ -2732,7 +2732,7 @@ AWS Java SDK :: Arns
 AWS Java SDK :: Auth
 * Project: https://aws.amazon.com/sdkforjava
 * Maven Artifact: software.amazon.awssdk/auth/2.19.26
-* License:
+* License: Apache-2.0
 
 AWS Java SDK :: AWS Core
 * Project: https://aws.amazon.com/sdkforjava
@@ -2828,4 +2828,6 @@ AWS Event Stream
 * Maven Artifact: software.amazon.eventstream/eventstream/1.0.1
 * License: Apache-2.0
 
+## Cryptography
 
+Content may contain encryption software. The country in which you are currently may have restrictions on the import, possession, and use, and/or re-export to another country, of encryption software. BEFORE using any encryption software, please check the country's laws, regulations and policies concerning the import, possession, or use, and re-export of encryption software, to see if this is permitted.
