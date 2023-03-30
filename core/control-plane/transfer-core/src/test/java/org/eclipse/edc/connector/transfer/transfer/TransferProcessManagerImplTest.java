@@ -42,6 +42,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
+import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -79,6 +80,7 @@ import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
@@ -131,6 +133,8 @@ class TransferProcessManagerImplTest {
     private final Vault vault = mock(Vault.class);
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
+    private final CommandQueue<TransferProcessCommand> commandQueue = mock(CommandQueue.class);
+    private final CommandRunner<TransferProcessCommand> commandRunner = mock(CommandRunner.class);
 
     private TransferProcessManagerImpl manager;
 
@@ -148,8 +152,8 @@ class TransferProcessManagerImplTest {
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .commandQueue(mock(CommandQueue.class))
-                .commandRunner(mock(CommandRunner.class))
+                .commandQueue(commandQueue)
+                .commandRunner(commandRunner)
                 .typeManager(new TypeManager())
                 .clock(clock)
                 .statusCheckerRegistry(statusCheckerRegistry)
@@ -835,6 +839,26 @@ class TransferProcessManagerImplTest {
             verify(transferProcessStore).save(argThat(p -> p.getState() == ending.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
         });
+    }
+
+    @Test
+    void enqueueCommand_willEnqueueCommandOnCommandQueue() {
+        var command = new TransferProcessCommand() {};
+
+        manager.enqueueCommand(command);
+
+        verify(commandQueue).enqueue(command);
+    }
+
+    @Test
+    void runCommand_willRunCommandAndReturnResult() {
+        var command = new TransferProcessCommand() {};
+        when(commandRunner.runCommand(command)).thenReturn(Result.success());
+
+        var result = manager.runCommand(command);
+
+        assertThat(result).matches(Result::succeeded);
+        verify(commandRunner).runCommand(command);
     }
 
     private static class DispatchFailureArguments implements ArgumentsProvider {

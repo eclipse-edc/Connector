@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +25,7 @@ import java.util.Objects;
 /**
  * The {@link TransferRequestMessage} is sent by a consumer to initiate a transfer process.
  */
-public class TransferRequestMessage implements RemoteMessage {
+public class TransferRequestMessage implements TransferRemoteMessage {
 
     private String connectorAddress;
     private String protocol;
@@ -45,6 +44,11 @@ public class TransferRequestMessage implements RemoteMessage {
     @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    @Override
+    public String getProcessId() {
+        return id;
     }
 
     public String getAssetId() {

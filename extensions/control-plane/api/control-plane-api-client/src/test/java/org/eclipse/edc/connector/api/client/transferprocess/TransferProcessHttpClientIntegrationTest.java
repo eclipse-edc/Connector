@@ -40,9 +40,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -80,7 +80,9 @@ public class TransferProcessHttpClientIntegrationTest {
         when(service.transfer(any())).thenReturn(completedFuture(StatusResult.success()));
         var id = "tp-id";
         store.save(createTransferProcess(id));
-        manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
+        var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
+
+        manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.find("tp-id");
@@ -94,7 +96,9 @@ public class TransferProcessHttpClientIntegrationTest {
         when(service.transfer(any())).thenReturn(completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error")));
         var id = "tp-id";
         store.save(createTransferProcess(id));
-        manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
+        var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
+
+        manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.find("tp-id");
@@ -107,10 +111,12 @@ public class TransferProcessHttpClientIntegrationTest {
 
     @Test
     void shouldCallTransferProcessApiWithException(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
-        when(service.transfer(any())).thenReturn(CompletableFuture.failedFuture(new EdcException("error")));
+        when(service.transfer(any())).thenReturn(failedFuture(new EdcException("error")));
         var id = "tp-id";
         store.save(createTransferProcess(id));
-        manager.initiateTransfer(createDataFlowRequest(id, callbackUrl.get()));
+        var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
+
+        manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
             var transferProcess = store.find("tp-id");
@@ -127,6 +133,7 @@ public class TransferProcessHttpClientIntegrationTest {
                 .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
                 .dataRequest(DataRequest.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
                         .destinationType("file")
                         .protocol("any")
                         .connectorAddress("http://an/address")
@@ -147,6 +154,7 @@ public class TransferProcessHttpClientIntegrationTest {
     private static class TransferServiceMockExtension implements ServiceExtension {
 
         private final TransferService transferService;
+
         @Inject
         private TransferServiceRegistry registry;
 
@@ -159,4 +167,5 @@ public class TransferProcessHttpClientIntegrationTest {
             registry.registerTransferService(transferService);
         }
     }
+
 }

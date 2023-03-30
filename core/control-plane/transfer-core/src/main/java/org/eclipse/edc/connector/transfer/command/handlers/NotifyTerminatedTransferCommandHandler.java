@@ -17,32 +17,30 @@ package org.eclipse.edc.connector.transfer.command.handlers;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransfer;
-
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import org.eclipse.edc.connector.transfer.spi.types.command.NotifyTerminatedTransfer;
 
 /**
- * Puts a TransferProcess in the STARTED state as the counter-party actually started the transfer.
+ * Puts a TransferProcess in the TERMINATED state as the counter-party actually completed the transfer.
  */
-public class NotifyStartedTransferCommandHandler extends SingleTransferProcessCommandHandler<NotifyStartedTransfer> {
+public class NotifyTerminatedTransferCommandHandler extends SingleTransferProcessCommandHandler<NotifyTerminatedTransfer> {
 
     private final TransferProcessObservable observable;
 
-    public NotifyStartedTransferCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
+    public NotifyTerminatedTransferCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
         super(store);
         this.observable = observable;
     }
 
     @Override
-    public Class<NotifyStartedTransfer> getType() {
-        return NotifyStartedTransfer.class;
+    public Class<NotifyTerminatedTransfer> getType() {
+        return NotifyTerminatedTransfer.class;
     }
 
     @Override
-    protected boolean modify(TransferProcess process, NotifyStartedTransfer command) {
-        if (process.getType() == CONSUMER && process.canBeStartedConsumer()) {
-            observable.invokeForEach(l -> l.preStarted(process));
-            process.transitionStarted();
+    protected boolean modify(TransferProcess process, NotifyTerminatedTransfer command) {
+        if (process.canBeTerminated()) {
+            observable.invokeForEach(l -> l.preTerminated(process));
+            process.transitionTerminated();
             return true;
         }
 
@@ -51,6 +49,6 @@ public class NotifyStartedTransferCommandHandler extends SingleTransferProcessCo
 
     @Override
     protected void postAction(TransferProcess process) {
-        observable.invokeForEach(l -> l.started(process));
+        observable.invokeForEach(l -> l.terminated(process));
     }
 }

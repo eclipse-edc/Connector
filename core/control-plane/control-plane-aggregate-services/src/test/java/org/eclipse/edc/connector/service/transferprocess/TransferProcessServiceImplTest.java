@@ -26,8 +26,14 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
-import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransferCommand;
+import org.eclipse.edc.connector.transfer.spi.types.command.NotifyCompletedTransfer;
+import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransfer;
+import org.eclipse.edc.connector.transfer.spi.types.command.NotifyTerminatedTransfer;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
@@ -35,6 +41,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
@@ -49,7 +56,10 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
@@ -164,50 +174,6 @@ class TransferProcessServiceImplTest {
         verifyNoInteractions(manager);
     }
 
-    @Test
-    void initiateTransfer_provider_validAgreement_shouldInitiateTransfer() {
-        var transferRequest = transferRequest();
-        var claimToken = claimToken();
-        var processId = "processId";
-
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
-        when(manager.initiateProviderRequest(any())).thenReturn(StatusResult.success(processId));
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-
-        var result = service.initiateTransfer(transferRequest, claimToken);
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).isEqualTo(processId);
-        verify(manager).initiateProviderRequest(transferRequest);
-    }
-
-    @Test
-    void initiateTransfer_provider_invalidAgreement_shouldNotInitiateTransfer() {
-        var transferRequest = transferRequest();
-        var claimToken = claimToken();
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(), any())).thenReturn(Result.failure("error"));
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-
-        var result = service.initiateTransfer(transferRequest, claimToken);
-
-        assertThat(result.succeeded()).isFalse();
-        verifyNoInteractions(manager);
-    }
-
-    @Test
-    void initiateTransfer_provider_invalidDestination_shouldNotInitiateTransfer() {
-        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
-
-        var result = service.initiateTransfer(transferRequest(), claimToken());
-
-        assertThat(result).satisfies(ServiceResult::failed)
-                .extracting(ServiceResult::reason)
-                .isEqualTo(BAD_REQUEST);
-        verifyNoInteractions(manager);
-    }
-
     @ParameterizedTest
     @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "TERMINATED" })
     void deprovision(TransferProcessStates state) {
@@ -233,7 +199,7 @@ class TransferProcessServiceImplTest {
         var result = service.deprovision(id);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + process.getId() + " cannot be deprovisioned as it is in state " + state);
+        assertThat(result.getFailureMessages()).containsExactly("Cannot DeprovisionRequest because TransferProcess " + process.getId() + " is in state " + state);
         verifyNoInteractions(manager);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -243,43 +209,231 @@ class TransferProcessServiceImplTest {
         var result = service.deprovision(id);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
+        assertThat(result.getFailureMessages()).containsExactly("TransferProcess with id " + id + " not found");
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
-    void started_shouldEnqueueCommand() {
+    void notifyRequested_validAgreement_shouldInitiateTransfer() {
+        var message = TransferRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .build();
+        var claimToken = claimToken();
+        var processId = "processId";
+
+        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        when(manager.initiateProviderRequest(any())).thenReturn(StatusResult.success(processId));
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+
+        var result = service.notifyRequested(message, claimToken);
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).isEqualTo(processId);
+        verify(manager).initiateProviderRequest(any());
+    }
+
+    @Test
+    void notifyRequested_invalidAgreement_shouldNotInitiateTransfer() {
+        var message = TransferRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .build();
+        var claimToken = claimToken();
+        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(validationService.validateAgreement(any(), any())).thenReturn(Result.failure("error"));
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+
+        var result = service.notifyRequested(message, claimToken);
+
+        assertThat(result.succeeded()).isFalse();
+        verifyNoInteractions(manager);
+    }
+
+    @Test
+    void notifyRequested_invalidDestination_shouldNotInitiateTransfer() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
+
+        var result = service.notifyRequested(TransferRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .build(), claimToken());
+
+        assertThat(result).satisfies(ServiceResult::failed)
+                .extracting(ServiceResult::reason)
+                .isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(manager);
+    }
+
+    @Test
+    void notifyStarted_shouldSucceed_whenCommandSucceeds() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
         when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+        when(manager.runCommand(isA(NotifyStartedTransfer.class))).thenReturn(Result.success());
+        var message = TransferStartMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyStarted("dataRequestId");
+        var result = service.notifyStarted(message, token);
 
         assertThat(result).matches(ServiceResult::succeeded);
-        verify(manager).enqueueCommand(isA(NotifyStartedTransferCommand.class));
+        verify(manager).runCommand(isA(NotifyStartedTransfer.class));
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
-    void started_shouldNotEnqueueCommandIfProcessIsNotFound() {
+    void notifyStarted_shouldFail_whenTransferProcessNotFound() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
         when(store.find("processId")).thenReturn(null);
+        var message = TransferStartMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyStarted("dataRequestId");
+        var result = service.notifyStarted(message, token);
 
         assertThat(result).matches(ServiceResult::failed);
-        verify(manager, never()).enqueueCommand(any());
+        verify(manager, never()).runCommand(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
-    void started_shouldNotEnqueueCommandIfIsNotConsumerAndStateIsNotValid() {
+    void notifyStarted_shouldFail_whenCommandFails() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
         when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
+        when(manager.runCommand(isA(NotifyStartedTransfer.class))).thenReturn(Result.failure("an error"));
+        var message = TransferStartMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyStarted("dataRequestId");
+        var result = service.notifyStarted(message, token);
 
         assertThat(result).matches(ServiceResult::failed);
-        verify(manager, never()).enqueueCommand(any());
+        verify(manager).runCommand(isA(NotifyStartedTransfer.class));
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void notifyCompleted_shouldSucceed_whenCommandSucceeds() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("transferProcessId");
+        when(store.find("transferProcessId")).thenReturn(transferProcess(STARTED, "transferProcessId"));
+        when(manager.runCommand(isA(NotifyCompletedTransfer.class))).thenReturn(Result.success());
+        var message = TransferCompletionMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = service.notifyCompleted(message, token);
+
+        assertThat(result).matches(ServiceResult::succeeded);
+        verify(manager).runCommand(isA(NotifyCompletedTransfer.class));
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void notifyCompleted_shouldFail_whenTransferProcessNotFound() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(null);
+        var message = TransferCompletionMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = service.notifyCompleted(message, token);
+
+        assertThat(result).matches(ServiceResult::failed);
+        verifyNoInteractions(manager);
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void notifyCompleted_shouldFail_whenCommandFails() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build());
+        when(manager.runCommand(isA(NotifyCompletedTransfer.class))).thenReturn(Result.failure("an error"));
+        var message = TransferCompletionMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = service.notifyCompleted(message, token);
+
+        assertThat(result).matches(ServiceResult::failed);
+        verify(manager).runCommand(isA(NotifyCompletedTransfer.class));
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void notifyTerminated_shouldSucceed_whenCommandSucceeds() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("transferProcessId");
+        when(store.find("transferProcessId")).thenReturn(transferProcess(COMPLETING, "transferProcessId"));
+        when(manager.runCommand(isA(NotifyTerminatedTransfer.class))).thenReturn(Result.success());
+        var message = TransferTerminationMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = service.notifyTerminated(message, token);
+
+        assertThat(result).matches(ServiceResult::succeeded);
+        verify(manager).runCommand(isA(NotifyTerminatedTransfer.class));
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void notifyTerminated_shouldFail_whenTransferProcessNotFound() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(null);
+        var message = TransferTerminationMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = service.notifyTerminated(message, token);
+
+        assertThat(result).matches(ServiceResult::failed);
+        verifyNoInteractions(manager);
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @Test
+    void notifyTerminated_shouldFail_whenCommandFails() {
+        when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
+        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build());
+        when(manager.runCommand(isA(NotifyTerminatedTransfer.class))).thenReturn(Result.failure("an error"));
+        var message = TransferTerminationMessage.Builder.newInstance()
+                .protocol("protocol")
+                .connectorAddress("http://any")
+                .processId("dataRequestId")
+                .build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = service.notifyTerminated(message, token);
+
+        assertThat(result).matches(ServiceResult::failed);
+        verify(manager).runCommand(isA(NotifyTerminatedTransfer.class));
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 

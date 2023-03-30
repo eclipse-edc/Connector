@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
@@ -25,10 +24,11 @@ import java.util.Objects;
  * that some data plane implementations may optimize completion notification by performing it as part of its wire
  * protocol. In those cases, a {@link TransferCompletionMessage} message does not need to be sent.
  */
-public class TransferCompletionMessage implements RemoteMessage {
+public class TransferCompletionMessage implements TransferRemoteMessage {
 
     private String connectorAddress;
     private String protocol;
+    private String processId;
 
     @Override
     public String getProtocol() {
@@ -38,6 +38,10 @@ public class TransferCompletionMessage implements RemoteMessage {
     @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getProcessId() {
+        return processId;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -63,9 +67,15 @@ public class TransferCompletionMessage implements RemoteMessage {
             return this;
         }
 
+        public Builder processId(String processId) {
+            message.processId = processId;
+            return this;
+        }
+
         public TransferCompletionMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.connectorAddress, "The connectorAddress must be specified");
+            Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;
         }
 
