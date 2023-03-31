@@ -55,4 +55,4 @@
 - [2023-03-02 Entity Store Refactoring](2023-03-02_entity_store_refactoring)
 - [2023-03-09-Event Framework Refactoring](2023-03-09-event-framework-refactoring)
 - [2023-03-15-Repository_Split](2023-03-15_repository_split/)
-
+- [2023-03-31-Version Catalog per Component](2023-03-31-version-catalog-per-component)
