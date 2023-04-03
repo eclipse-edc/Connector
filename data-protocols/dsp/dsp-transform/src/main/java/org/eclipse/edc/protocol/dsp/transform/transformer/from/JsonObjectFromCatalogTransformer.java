@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -61,9 +60,8 @@ public class JsonObjectFromCatalogTransformer extends AbstractJsonLdTransformer<
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
         objectBuilder.add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServices);
-
-        // transform properties, which are generic JSON values.
-        catalog.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));
+    
+        transformProperties(catalog.getProperties(), objectBuilder, mapper, context);
 
         return objectBuilder.build();
     }

@@ -44,8 +44,8 @@ public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransforme
 
             builder.id(nodeId(object));
             visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-
-            return builder.build();
+    
+            return builderResult(builder::build, context);
         } else {
             context.reportProblem(format("Cannot transform type %s to DataService", type));
             return null;
@@ -57,8 +57,6 @@ public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransforme
             transformString(value, builder::terms, context);
         } else if (DCT_ENDPOINT_URL_ATTRIBUTE.equals(key)) {
             transformString(value, builder::endpointUrl, context);
-        } else {
-            context.reportProblem(format("Invalid property found for Distribution: %s", key));
         }
     }
 }

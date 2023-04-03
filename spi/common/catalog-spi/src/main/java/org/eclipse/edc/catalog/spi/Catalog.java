@@ -122,9 +122,6 @@ public class Catalog {
             if (catalog.id == null) {
                 catalog.id = randomUUID().toString();
             }
-            if (catalog.contractOffers == null && catalog.datasets == null) {
-                throw new NullPointerException("Either contractOffers or datasets required for catalog.");
-            }
             
             return catalog;
         }

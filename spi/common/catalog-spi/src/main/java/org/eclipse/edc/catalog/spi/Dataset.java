@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * Models the Dataset class of the DCAT spec. A Dataset is defined as a collection of data
@@ -36,10 +39,10 @@ public class Dataset {
     private String id;
     
     /** Policies under which this Dataset is available. */
-    private Map<String, Policy> offers = new HashMap<>();
+    private Map<String, Policy> offers;
     
     /** Representations of this Dataset. */
-    private List<Distribution> distributions = new ArrayList<>();
+    private List<Distribution> distributions;
     
     /** Properties for describing the Dataset. */
     private Map<String, Object> properties = new HashMap<>();
@@ -84,16 +87,17 @@ public class Dataset {
         }
 
         public Builder offer(String offerId, Policy policy) {
+            if (dataset.offers == null) {
+                dataset.offers = new HashMap<>();
+            }
             dataset.offers.put(offerId, policy);
             return this;
         }
 
-        public Builder distributions(List<Distribution> distributions) {
-            dataset.distributions = distributions;
-            return this;
-        }
-
         public Builder distribution(Distribution distribution) {
+            if (dataset.distributions == null) {
+                dataset.distributions = new ArrayList<>();
+            }
             dataset.distributions.add(distribution);
             return this;
         }
@@ -109,6 +113,13 @@ public class Dataset {
         }
 
         public Dataset build() {
+            if (dataset.id == null) {
+                dataset.id = randomUUID().toString();
+            }
+    
+            Objects.requireNonNull(dataset.offers, "At least one offer required for Dataset.");
+            Objects.requireNonNull(dataset.distributions, "At least one Distribution required for Dataset.");
+            
             return dataset;
         }
     }

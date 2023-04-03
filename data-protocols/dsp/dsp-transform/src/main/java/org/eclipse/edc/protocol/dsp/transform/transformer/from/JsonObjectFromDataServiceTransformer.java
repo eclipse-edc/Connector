@@ -46,8 +46,13 @@ public class JsonObjectFromDataServiceTransformer extends AbstractJsonLdTransfor
         objectBuilder.add(ID, dataService.getId());
         objectBuilder.add(TYPE, DCAT_DATA_SERVICE_TYPE);
 
-        objectBuilder.add(DCT_TERMS_ATTRIBUTE, dataService.getTerms());
-        objectBuilder.add(DCT_ENDPOINT_URL_ATTRIBUTE, dataService.getEndpointUrl());
+        if (dataService.getTerms() != null) {
+            objectBuilder.add(DCT_TERMS_ATTRIBUTE, dataService.getTerms());
+        }
+        
+        if (dataService.getEndpointUrl() != null) {
+            objectBuilder.add(DCT_ENDPOINT_URL_ATTRIBUTE, dataService.getEndpointUrl());
+        }
 
         return objectBuilder.build();
     }

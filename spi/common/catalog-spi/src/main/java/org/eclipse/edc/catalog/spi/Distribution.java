@@ -16,7 +16,6 @@ package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -35,9 +34,6 @@ public class Distribution {
     
     /** DataService that contains access information for this Distribution. */
     private DataService dataService;
-    
-    /** Reference to the DataService. When mapping to DCAT, only the DataService ID is referenced. */
-    private String dataServiceId;
 
     public String getFormat() {
         return format;
@@ -46,11 +42,6 @@ public class Distribution {
     @JsonIgnore
     public DataService getDataService() {
         return dataService;
-    }
-    
-    @JsonProperty("dataService")
-    public String getDataServiceId() {
-        return dataServiceId;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -76,18 +67,10 @@ public class Distribution {
             return this;
         }
 
-        public Builder dataServiceId(String dataServiceId) {
-            distribution.dataServiceId = dataServiceId;
-            return this;
-        }
-
         public Distribution build() {
-            if (distribution.dataServiceId == null) {
-                Objects.requireNonNull(distribution.dataService, "DataService must not be null.");
-            }
-
-            Objects.requireNonNull(distribution.format, "Format must not be null.");
-
+            Objects.requireNonNull(distribution.dataService, "DataService must not be null");
+            Objects.requireNonNull(distribution.format, "Format must not be null");
+            
             return distribution;
         }
     }

@@ -40,7 +40,7 @@ public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<Jso
     public @Nullable Action transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Action.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-        return builder.build();
+        return builderResult(builder::build, context);
     }
     
     private void transformProperties(String key, JsonValue value, Action.Builder builder, TransformerContext context) {

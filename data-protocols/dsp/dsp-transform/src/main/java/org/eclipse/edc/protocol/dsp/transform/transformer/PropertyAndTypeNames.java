@@ -38,6 +38,10 @@ public interface PropertyAndTypeNames {
     String DCT_TERMS_ATTRIBUTE = DCT_SCHEMA + "terms";
     String DCT_ENDPOINT_URL_ATTRIBUTE = DCT_SCHEMA + "endpointUrl";
     
+    String ODRL_POLICY_TYPE_SET = ODRL_SCHEMA + "Set";
+    String ODRL_POLICY_TYPE_OFFER = ODRL_SCHEMA + "Offer";
+    String ODRL_POLICY_TYPE_AGREEMENT = ODRL_SCHEMA + "Agreement";
+    
     String ODRL_PERMISSION_ATTRIBUTE = ODRL_SCHEMA + "permission";
     String ODRL_PROHIBITION_ATTRIBUTE = ODRL_SCHEMA + "prohibition";
     String ODRL_OBLIGATION_ATTRIBUTE = ODRL_SCHEMA + "obligation";

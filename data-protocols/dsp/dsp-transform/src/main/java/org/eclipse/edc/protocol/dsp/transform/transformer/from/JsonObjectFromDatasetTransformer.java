@@ -60,9 +60,8 @@ public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
         objectBuilder.add(DCAT_DISTRIBUTION_ATTRIBUTE, distributions);
-
-        // transform properties, which are generic JSON values.
-        dataset.getProperties().forEach((k, v) -> objectBuilder.add(k, mapper.convertValue(v, JsonValue.class)));
+    
+        transformProperties(dataset.getProperties(), objectBuilder, mapper, context);
 
         return objectBuilder.build();
     }

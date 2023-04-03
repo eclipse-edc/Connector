@@ -25,6 +25,7 @@ import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.VALUE;
 
@@ -46,7 +47,7 @@ public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer
             var valueField = object.get(VALUE);
             if (valueField == null) {
                 // parse it as a generic object type
-                return toJavaType(object);
+                return toJavaType(object, context);
             }
             return transform(valueField, context);
         } else if (value instanceof JsonArray) {
@@ -60,11 +61,12 @@ public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer
         return null;
     }
 
-    private Object toJavaType(JsonObject object) {
+    private Object toJavaType(JsonObject object, TransformerContext context) {
         try {
             return mapper.readValue(object.toString(), Object.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);   // TODO
+            context.reportProblem(format("Failed to read value: %s", e.getMessage()));
+            return null;
         }
     }
 

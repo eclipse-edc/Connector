@@ -25,8 +25,12 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 
 /**
@@ -40,9 +44,15 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
     
     @Override
     public @Nullable Policy transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var builder = Policy.Builder.newInstance();
-        visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-        return builder.build();
+        var type = nodeType(object, context);
+        if (isValidPolicyType(type)) {
+            var builder = Policy.Builder.newInstance();
+            visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
+            return builderResult(builder::build, context);
+        } else {
+            context.reportProblem(format("Cannot transform type %s to Policy", type));
+            return null;
+        }
     }
     
     private void transformProperties(String key, JsonValue value, Policy.Builder builder, TransformerContext context) {
@@ -55,5 +65,9 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
         } else {
             builder.extensibleProperty(key, transformGenericProperty(value, context));
         }
+    }
+    
+    private boolean isValidPolicyType(String type) {
+        return ODRL_POLICY_TYPE_SET.equals(type) || ODRL_POLICY_TYPE_OFFER.equals(type) || ODRL_POLICY_TYPE_AGREEMENT.equals(type);
     }
 }

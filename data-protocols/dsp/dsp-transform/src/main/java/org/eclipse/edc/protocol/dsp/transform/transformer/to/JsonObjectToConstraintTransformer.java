@@ -48,7 +48,7 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
         //TODO check for type of constraint (atomic, and, or, ...)
         var builder = AtomicConstraint.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-        return builder.build();
+        return builderResult(builder::build, context);
     }
 
     private void transformProperties(String key, JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {

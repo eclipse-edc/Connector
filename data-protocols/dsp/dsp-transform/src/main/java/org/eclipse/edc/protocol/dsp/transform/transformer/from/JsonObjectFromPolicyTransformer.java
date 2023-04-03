@@ -38,6 +38,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.ID;
@@ -191,7 +193,9 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             var constraintsBuilder = jsonFactory.createArrayBuilder();
 
             for (Constraint constraint : rule.getConstraints()) {
-                constraintsBuilder.add(constraint.accept(this));
+                Optional.of(constraint)
+                        .map(c -> c.accept(this))
+                        .ifPresent(constraintsBuilder::add);
             }
 
             return constraintsBuilder.build();

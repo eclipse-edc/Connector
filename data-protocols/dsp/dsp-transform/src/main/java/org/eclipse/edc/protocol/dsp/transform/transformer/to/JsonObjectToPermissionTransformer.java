@@ -42,7 +42,7 @@ public class JsonObjectToPermissionTransformer extends AbstractJsonLdTransformer
     public @Nullable Permission transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Permission.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-        return builder.build();
+        return builderResult(builder::build, context);
     }
     
     private void transformProperties(String key, JsonValue value, Permission.Builder builder, TransformerContext context) {

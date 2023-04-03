@@ -14,15 +14,19 @@
 
 package org.eclipse.edc.jsonld.transformer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -51,6 +55,24 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     @Override
     public Class<OUTPUT> getOutputType() {
         return output;
+    }
+    
+    /**
+     * Transforms properties of a Java type. The properties are mapped to generic JSON values.
+     *
+     * @param properties the properties to map
+     * @param builder the builder on which to set the properties
+     * @param mapper the mapper for converting the properties
+     * @param context the transformer context
+     */
+    protected void transformProperties(Map<String, Object> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
+        properties.forEach((k, v) ->  {
+            try {
+                builder.add(k, mapper.convertValue(v, JsonValue.class));
+            } catch (IllegalArgumentException e) {
+                context.reportProblem(format("Failed to transform property: %s", e.getMessage()));
+            }
+        });
     }
     
     protected void visitProperties(JsonObject object, BiConsumer<String, JsonValue> consumer) {
@@ -89,7 +111,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         } else if (value instanceof JsonArray) {
             transformString(((JsonArray) value).get(0), resultFunction, context);
         } else {
-            context.reportProblem(format("Invalid property. Expected JsonString but got %s",
+            context.reportProblem(format("Invalid property. Expected JsonString, JsonObject or JsonArray but got %s",
                     value.getClass().getSimpleName()));
         }
     }
@@ -169,5 +191,23 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return null;
         }
         return array;
+    }
+    
+    /**
+     * Tries to return the instance given by a supplier (a builder's build method). If this fails
+     * due to validation errors, e.g. a required property is missing, reports a problem to the
+     * context.
+     *
+     * @param builder the supplier
+     * @param context the context
+     * @return the instance or null
+     */
+    protected <T> T builderResult(Supplier<T> builder, TransformerContext context) {
+        try {
+            return builder.get();
+        } catch (Exception e) {
+            context.reportProblem(format("Failed to construct instance: %s", e.getMessage()));
+            return null;
+        }
     }
 }

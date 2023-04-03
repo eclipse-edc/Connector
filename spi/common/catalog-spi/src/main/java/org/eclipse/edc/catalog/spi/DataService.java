@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
+import static java.util.UUID.randomUUID;
+
 /**
  * Models the DataService class of the DCAT spec. A DataService is defined as a collection
  * of operations that provide access to Datasets. A DataService specifies the endpoint for
@@ -95,9 +97,10 @@ public class DataService {
         }
 
         public DataService build() {
-            Objects.requireNonNull(dataService.id, "Id must not be null.");
-            Objects.requireNonNull(dataService.terms, "Terms must not be null.");
-            Objects.requireNonNull(dataService.endpointUrl, "EndpointUrl must not be null.");
+            if (dataService.id == null) {
+                dataService.id = randomUUID().toString();
+            }
+            
             return dataService;
         }
     }
