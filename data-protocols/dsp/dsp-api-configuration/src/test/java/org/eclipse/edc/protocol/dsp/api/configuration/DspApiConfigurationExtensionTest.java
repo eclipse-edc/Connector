@@ -14,12 +14,9 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
-import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -28,37 +25,29 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurerImpl;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DEFAULT_PROTOCOL_API_PATH;
-import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DEFAULT_PROTOCOL_PORT;
+import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.CONTEXT_ALIAS;
+import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DEFAULT_DSP_WEBHOOK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DSP_WEBHOOK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.SETTINGS;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DspApiConfigurationExtensionTest {
     
     private DspApiConfigurationExtension extension;
-    private WebServiceConfigurer configurer = spy(WebServiceConfigurerImpl.class);
+    private WebServiceConfigurer configurer = mock(WebServiceConfigurerImpl.class);
     private WebServer webServer = mock(WebServer.class);
-    private final Monitor monitor = mock(Monitor.class);
-    
-    private ResultCaptor captor;
     
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
@@ -69,58 +58,44 @@ class DspApiConfigurationExtensionTest {
         context.registerService(IdentityService.class, mock(IdentityService.class));
         extension = factory.constructInstance(DspApiConfigurationExtension.class);
         
-        captor = new ResultCaptor();
-        doAnswer(captor).when(configurer).configure(any(), any(), any());
+        var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
+                .contextAlias(CONTEXT_ALIAS)
+                .path("/path")
+                .port(1234)
+                .build();
+        when(configurer.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
     }
     
     @Test
-    void initialize_noSettingsProvided_useDspDefault() {
-        var context = contextWithConfig(ConfigFactory.empty());
+    void initialize_noSettingsProvided_useDspDefault(ServiceExtensionContext context) {
+        var spyContext = spy(context);
+        when(spyContext.getConfig()).thenReturn(ConfigFactory.empty());
+        when(spyContext.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS)).thenReturn(DEFAULT_DSP_WEBHOOK_ADDRESS);
         
-        extension.initialize(context);
+        extension.initialize(spyContext);
         
-        verify(webServer).addPortMapping("protocol", DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_API_PATH);
-        var apiConfig = captor.getConfiguration();
-        assertThat(apiConfig.getPort()).isEqualTo(DEFAULT_PROTOCOL_PORT);
-        assertThat(apiConfig.getPath()).isEqualTo(DEFAULT_PROTOCOL_API_PATH);
+        verify(configurer).configure(spyContext, webServer, SETTINGS);
+        var apiConfig = spyContext.getService(DspApiConfiguration.class);
+        assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
+        assertThat(apiConfig.getDspWebhookAddress()).isEqualTo(DEFAULT_DSP_WEBHOOK_ADDRESS);
     }
     
     @Test
-    void initialize_settingsProvided_useSettings() {
-        var port = 9292;
-        var path = "/path";
-        var config = Map.of("web.http.protocol.port", String.valueOf(port), "web.http.protocol.path", path);
-        var context = contextWithConfig(ConfigFactory.fromMap(config));
+    void initialize_settingsProvided_useSettings(ServiceExtensionContext context) {
+        var webhookAddress = "http://webhook";
         
-        extension.initialize(context);
+        var spyContext = spy(context);
+        when(spyContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                "web.http.protocol.port", String.valueOf(1234),
+                "web.http.protocol.path", "/path"))
+        );
+        when(spyContext.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS)).thenReturn(webhookAddress);
         
-        verify(webServer, never()).addPortMapping(anyString(), anyInt(), anyString());
-        var apiConfig = captor.getConfiguration();
-        assertThat(apiConfig.getPort()).isEqualTo(port);
-        assertThat(apiConfig.getPath()).isEqualTo(path);
-    }
+        extension.initialize(spyContext);
     
-    @NotNull
-    private DefaultServiceExtensionContext contextWithConfig(Config config) {
-        var context = new DefaultServiceExtensionContext(monitor, List.of(() -> config));
-        context.initialize();
-        return context;
-    }
-    
-    /**
-     * Captures the WebServiceConfiguration returned by the WebServiceConfigurator.
-     */
-    private static class ResultCaptor implements Answer<WebServiceConfiguration> {
-        private WebServiceConfiguration configuration;
-        
-        public WebServiceConfiguration getConfiguration() {
-            return configuration;
-        }
-        
-        @Override
-        public WebServiceConfiguration answer(InvocationOnMock invocation) throws Throwable {
-            configuration = (WebServiceConfiguration) invocation.callRealMethod();
-            return configuration;
-        }
+        verify(configurer).configure(spyContext, webServer, SETTINGS);
+        var apiConfig = spyContext.getService(DspApiConfiguration.class);
+        assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
+        assertThat(apiConfig.getDspWebhookAddress()).isEqualTo(webhookAddress);
     }
 }

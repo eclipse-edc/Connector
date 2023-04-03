@@ -20,6 +20,7 @@ import org.eclipse.edc.protocol.dsp.api.configuration.serdes.ObjectMapperProvide
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+//import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -36,6 +37,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
     
+    public static final String CONTEXT_ALIAS = "protocol";
+    
     public static final String DEFAULT_DSP_WEBHOOK_ADDRESS = "http://localhost:8282/api/v1/dsp";
     public static final String DSP_WEBHOOK_ADDRESS = "dsp.webhook.address";
     
@@ -44,7 +47,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey("web.http.protocol")
-            .contextAlias("protocol")
+            .contextAlias(CONTEXT_ALIAS)
             .defaultPath(DEFAULT_PROTOCOL_API_PATH)
             .defaultPort(DEFAULT_PROTOCOL_PORT)
             .name("Protocol API")
