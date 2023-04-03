@@ -2699,8 +2699,7 @@ components:
       type: object
       properties:
         dataService:
-          type: string
-          example: null
+          $ref: '#/components/schemas/DataService'
         format:
           type: string
           example: null

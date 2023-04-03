@@ -15,7 +15,6 @@
 package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -38,8 +37,7 @@ public class Distribution {
     public String getFormat() {
         return format;
     }
-
-    @JsonIgnore
+    
     public DataService getDataService() {
         return dataService;
     }
