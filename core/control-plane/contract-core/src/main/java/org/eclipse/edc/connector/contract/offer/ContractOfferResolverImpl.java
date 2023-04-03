@@ -136,7 +136,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
             contractEndTime = now.plusSeconds(definition.getValidity());
         } catch (DateTimeException exception) {
             monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
-                    "Changing contractEndTime to Maximum value possible in the ContractOffer");
+                    "Changing contractEndTime to Maximum value possible in the ContractOffer", exception);
         }
         return contractEndTime;
     }
