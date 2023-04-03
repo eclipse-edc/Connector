@@ -27,9 +27,9 @@ dependencies {
     implementation(project(":extensions:common:sql:sql-lease"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.assertj)
-    testImplementation(libs.awaitility)
-    testImplementation(libs.postgres)
+    testImplementation(root.assertj)
+    testImplementation(root.awaitility)
+    testImplementation(root.postgres)
     testImplementation(testFixtures(project(":spi:control-plane:transfer-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))

@@ -22,8 +22,8 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
 
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(root.mockserver.netty)
+    testImplementation(root.mockserver.client)
 }
 
 

@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":extensions:common:aws:aws-s3-core"))
 
-    implementation(libs.failsafe.core)
+    implementation(root.failsafe.core)
 
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(testFixtures(project(":extensions:common:aws:aws-s3-test")))

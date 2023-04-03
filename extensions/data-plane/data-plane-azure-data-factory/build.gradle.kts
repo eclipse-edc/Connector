@@ -20,12 +20,12 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":extensions:common:azure:azure-blob-core"))
     implementation(project(":core:common:util"))
-    implementation(libs.azure.identity)
-    implementation(libs.azure.resourcemanager.datafactory)
-    implementation(libs.azure.resourcemanager.storage)
-    implementation(libs.azure.resourcemanager.keyvault)
-    implementation(libs.azure.resourcemanager)
-    implementation(libs.azure.resourcemanager.authorization)
+    implementation(root.azure.identity)
+    implementation(root.azure.resourcemanager.datafactory)
+    implementation(root.azure.resourcemanager.storage)
+    implementation(root.azure.resourcemanager.keyvault)
+    implementation(root.azure.resourcemanager)
+    implementation(root.azure.resourcemanager.authorization)
 
     testImplementation(project(":extensions:common:configuration:configuration-filesystem"))
     testImplementation(project(":core:data-plane:data-plane-core"))
@@ -34,8 +34,8 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-blob-core")))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.awaitility)
-    testImplementation(libs.bouncyCastle.bcprovJdk18on)
+    testImplementation(root.awaitility)
+    testImplementation(root.bouncyCastle.bcprovJdk18on)
 }
 
 

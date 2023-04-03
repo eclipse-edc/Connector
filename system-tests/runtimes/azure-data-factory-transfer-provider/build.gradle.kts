@@ -16,7 +16,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -38,13 +38,13 @@ dependencies {
     implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":data-protocols:ids"))
 
-    implementation(libs.jakarta.rsApi)
-    implementation(libs.azure.identity)
-    implementation(libs.azure.resourcemanager.datafactory)
-    implementation(libs.azure.resourcemanager.storage)
-    implementation(libs.azure.resourcemanager.keyvault)
-    implementation(libs.azure.resourcemanager)
-    implementation(libs.azure.resourcemanager.authorization)
+    implementation(root.jakarta.rsApi)
+    implementation(root.azure.identity)
+    implementation(root.azure.resourcemanager.datafactory)
+    implementation(root.azure.resourcemanager.storage)
+    implementation(root.azure.resourcemanager.keyvault)
+    implementation(root.azure.resourcemanager)
+    implementation(root.azure.resourcemanager.authorization)
 }
 
 application {

@@ -20,9 +20,9 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 
-    implementation(libs.googlecloud.iam.admin)
-    implementation(libs.googlecloud.storage)
-    implementation(libs.googlecloud.iam.credentials)
+    implementation(root.googlecloud.iam.admin)
+    implementation(root.googlecloud.storage)
+    implementation(root.googlecloud.iam.credentials)
 }
 
 

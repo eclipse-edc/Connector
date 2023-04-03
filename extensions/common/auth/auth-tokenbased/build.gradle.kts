@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:auth-spi"))
-    implementation(libs.jakarta.rsApi)
+    implementation(root.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
 }

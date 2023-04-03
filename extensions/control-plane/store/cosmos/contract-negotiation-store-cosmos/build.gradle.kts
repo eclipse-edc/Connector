@@ -21,12 +21,12 @@ dependencies {
     api(project(":core:common:util"))
     api(project(":extensions:common:azure:azure-cosmos-core"))
 
-    implementation(libs.azure.cosmos)
-    implementation(libs.failsafe.core)
+    implementation(root.azure.cosmos)
+    implementation(root.failsafe.core)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-cosmos-core")))
-    testImplementation(libs.awaitility)
+    testImplementation(root.awaitility)
 
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
 

@@ -15,7 +15,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -34,7 +34,7 @@ dependencies {
     implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":core:common:util"))
 
-    api(libs.jakarta.rsApi)
+    api(root.jakarta.rsApi)
 }
 
 application {

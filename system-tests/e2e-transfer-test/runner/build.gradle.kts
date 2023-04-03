@@ -26,11 +26,11 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(project(":core:common:junit"))
 
-    testImplementation(libs.postgres)
-    testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
-    testImplementation(libs.awaitility)
-    testImplementation(libs.junit.jupiter.api)
+    testImplementation(root.postgres)
+    testImplementation(root.restAssured)
+    testImplementation(root.assertj)
+    testImplementation(root.awaitility)
+    testImplementation(root.junit.jupiter.api)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:backend-service"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))

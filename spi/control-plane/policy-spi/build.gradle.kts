@@ -21,8 +21,8 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
-    testFixturesImplementation(libs.bundles.jupiter)
-    testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(root.bundles.jupiter)
+    testFixturesImplementation(root.assertj)
 }
 
 

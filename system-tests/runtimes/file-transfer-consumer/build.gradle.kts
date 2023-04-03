@@ -16,7 +16,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:common:iam:iam-mock"))
 
-    api(libs.jakarta.rsApi)
+    api(root.jakarta.rsApi)
 }
 
 application {

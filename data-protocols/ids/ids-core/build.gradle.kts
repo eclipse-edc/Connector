@@ -22,9 +22,9 @@ dependencies {
     api(project(":core:common:util"))
     api(project(":data-protocols:ids:ids-spi"))
 
-    api(libs.fraunhofer.infomodel)
+    api(root.fraunhofer.infomodel)
 
-    implementation(libs.jakarta.rsApi)
+    implementation(root.jakarta.rsApi)
     implementation(project(":data-protocols:ids:ids-jsonld-serdes"))
 }
 
