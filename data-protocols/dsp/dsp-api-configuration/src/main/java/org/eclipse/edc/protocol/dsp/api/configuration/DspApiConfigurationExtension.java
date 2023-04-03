@@ -30,6 +30,15 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+
+/**
+ * Provides the configuration for the Dataspace Protocol API context. Creates the API context
+ * using {@link #DEFAULT_PROTOCOL_PORT} and {@link #DEFAULT_PROTOCOL_API_PATH}, if no respective
+ * settings are provided. Configures the API context to allow Jakarta JSON-API types as endpoint
+ * parameters and registers a filter that validates the authorization header using the
+ * IdentityService.
+ */
 @Extension(value = DspApiConfigurationExtension.NAME)
 @Provides({ DspApiConfiguration.class })
 //@Requires({ JsonLdTransformerRegistry.class })
@@ -75,7 +84,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var dspWebhookAddress = context.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS);
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
         
-        var jsonLdMapper = typeManager.getMapper("json-ld");
+        var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
         webService.registerResource(config.getContextAlias(), new ClaimTokenRequestFilter(identityService, jsonLdMapper, dspWebhookAddress));
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
     }

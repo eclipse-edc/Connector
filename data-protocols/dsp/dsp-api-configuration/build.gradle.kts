@@ -19,9 +19,9 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":extensions:common:http"))
-//    api(project(":extensions:common:json-ld"))
+    api(project(":extensions:common:json-ld"))
 
-    implementation(libs.jakarta.rsApi)
+    implementation(root.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
 }
