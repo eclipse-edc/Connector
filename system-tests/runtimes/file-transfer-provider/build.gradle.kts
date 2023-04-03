@@ -16,7 +16,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -30,8 +30,8 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    implementation(libs.jakarta.rsApi)
-    implementation(libs.opentelemetry.annotations)
+    implementation(root.jakarta.rsApi)
+    implementation(root.opentelemetry.annotations)
 
     implementation(project(":extensions:common:api:api-observability"))
 

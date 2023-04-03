@@ -19,11 +19,11 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
 
-    api(libs.failsafe.core)
+    api(root.failsafe.core)
 
-    api(libs.aws.iam)
-    api(libs.aws.s3)
-    api(libs.aws.sts)
+    api(root.aws.iam)
+    api(root.aws.s3)
+    api(root.aws.sts)
 }
 
 

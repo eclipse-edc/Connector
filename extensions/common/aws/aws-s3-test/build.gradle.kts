@@ -22,11 +22,11 @@ dependencies {
     testFixturesApi(project(":core:common:junit"))
     testFixturesImplementation(project(":extensions:common:aws:aws-s3-core"))
 
-    testFixturesImplementation(libs.awaitility)
-    testFixturesImplementation(libs.assertj)
-    testFixturesImplementation(libs.junit.jupiter.api)
-    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
-    testFixturesApi(libs.aws.s3)
+    testFixturesImplementation(root.awaitility)
+    testFixturesImplementation(root.assertj)
+    testFixturesImplementation(root.junit.jupiter.api)
+    testFixturesRuntimeOnly(root.junit.jupiter.engine)
+    testFixturesApi(root.aws.s3)
 }
 
 

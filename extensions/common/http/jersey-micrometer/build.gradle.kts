@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:http:jersey-core"))
-    implementation(libs.micrometer)
+    implementation(root.micrometer)
 }
 
 

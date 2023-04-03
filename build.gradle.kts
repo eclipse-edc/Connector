@@ -15,6 +15,8 @@
 
 plugins {
     `java-library`
+    `maven-publish`
+    `version-catalog`
 }
 
 val javaVersion: String by project
@@ -74,4 +76,13 @@ allprojects {
         }
     }
     
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("connector-version-catalog") {
+            from(components["versionCatalog"])
+            artifactId = "connector-versions"
+        }
+    }
 }

@@ -24,7 +24,7 @@ To do this, create a new gradle project with a `build.gradle.kts` file in it:
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.0.0"
+    alias(libs.plugins.shadow)
 }
 
 repositories {

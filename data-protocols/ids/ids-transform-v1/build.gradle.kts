@@ -22,9 +22,9 @@ dependencies {
     implementation(project(":core:common:util"))
     api(project(":data-protocols:ids:ids-core"))
 
-    api(libs.fraunhofer.infomodel)
+    api(root.fraunhofer.infomodel)
 
-    implementation(libs.jakarta.rsApi)
+    implementation(root.jakarta.rsApi)
     testImplementation(project(":core:common:junit"))
 
 }

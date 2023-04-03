@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:api:management-api-configuration"))
     implementation(project(":extensions:common:api:api-core")) //for the exception mapper
-    implementation(libs.jakarta.rsApi)
+    implementation(root.jakarta.rsApi)
 
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))

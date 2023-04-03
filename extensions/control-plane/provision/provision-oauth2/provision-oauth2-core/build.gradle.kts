@@ -24,14 +24,14 @@ dependencies {
     implementation(project(":core:common:jwt-core"))
     implementation(project(":extensions:common:api:api-core"))
 
-    implementation(libs.jakarta.rsApi)
+    implementation(root.jakarta.rsApi)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.restAssured)
-    testImplementation(libs.awaitility)
-    testImplementation(libs.mockserver.netty)
+    testImplementation(root.restAssured)
+    testImplementation(root.awaitility)
+    testImplementation(root.mockserver.netty)
 }
 
 

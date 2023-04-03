@@ -6,7 +6,7 @@ plugins {
 dependencies {
 
     // newer Nimbus versions create a version conflict with the MSAL library which uses this version as a transitive dependency
-    testFixturesApi(libs.nimbus.jwt)
+    testFixturesApi(root.nimbus.jwt)
 
 }
 

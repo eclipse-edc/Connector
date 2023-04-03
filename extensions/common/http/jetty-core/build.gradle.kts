@@ -19,13 +19,13 @@ plugins {
 
 
 dependencies {
-    implementation(libs.jetty.websocket)
+    implementation(root.jetty.websocket)
 
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
 
-    testImplementation(libs.bundles.jersey.core)
-    testImplementation(libs.restAssured)
+    testImplementation(root.bundles.jersey.core)
+    testImplementation(root.restAssured)
     testImplementation(project(":core:common:junit"))
 }
 

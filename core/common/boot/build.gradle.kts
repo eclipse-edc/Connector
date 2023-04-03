@@ -19,10 +19,10 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(libs.slf4j.api)
+    api(root.slf4j.api)
 
-    implementation(libs.opentelemetry.api)
-    testImplementation(libs.junit.jupiter.api)
+    implementation(root.opentelemetry.api)
+    testImplementation(root.junit.jupiter.api)
 }
 
 
