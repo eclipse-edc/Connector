@@ -46,7 +46,7 @@ class ClaimTokenRequestFilterTest {
     private static final String AUTH_HEADER = "auth";
     
     private IdentityService identityService = mock(IdentityService.class);
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper = mock(ObjectMapper.class);
     private ContainerRequestContext requestContext = mock(ContainerRequestContext.class);
     private MultivaluedMap<String, String> headers = mock(MultivaluedMap.class);
     
@@ -63,12 +63,15 @@ class ClaimTokenRequestFilterTest {
     @Test
     void filter_authenticationSuccessful_addClaimTokenHeader() throws IOException {
         var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
+        var claimTokenString = "{\"key\": \"value\"}";
+        
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+        when(mapper.writeValueAsString(claimToken)).thenReturn(claimTokenString);
         
         claimTokenRequestFilter.filter(requestContext);
         
         verify(identityService).verifyJwtToken(argThat(tr -> tr.getToken().equals(AUTH_HEADER)), eq(WEBHOOK_ADDRESS));
-        verify(headers).add(eq(CLAIM_TOKEN_HEADER), eq(mapper.writeValueAsString(claimToken)));
+        verify(headers).add(CLAIM_TOKEN_HEADER, claimTokenString);
     }
     
     @Test
