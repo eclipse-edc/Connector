@@ -122,7 +122,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                 .provider(offer.getProvider())
                 .policy(contractPolicyDef.getPolicy())
                 .contractStart(offer.getContractStart())
-                .contractEnd(offer.getContractStart().plusSeconds(contractDefinition.getValidity()))
+                .contractEnd(offer.getContractEnd())
                 .build();
 
         return Result.success(validatedOffer);

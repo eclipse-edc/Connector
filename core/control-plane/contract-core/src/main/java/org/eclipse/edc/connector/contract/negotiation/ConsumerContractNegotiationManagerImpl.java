@@ -12,6 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
+ *       ZF Friedrichshafen AG - fixed contract validity issue
  *
  */
 
@@ -259,7 +260,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var policy = lastOffer.getPolicy();
         var agreement = ContractAgreement.Builder.newInstance()
                 .id(ContractId.createContractId(definitionId))
-                .contractStartDate(clock.instant().getEpochSecond())
+                .contractStartDate(lastOffer.getContractStart().toEpochSecond())
                 .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
                 .contractSigningDate(clock.instant().getEpochSecond())
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))

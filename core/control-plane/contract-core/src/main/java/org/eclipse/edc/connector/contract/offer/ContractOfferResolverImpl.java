@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -118,22 +119,25 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
 
-        var contractEndTime = calculateContractEnd(definition);
+        var start = clock.instant();
+        var zone = clock.getZone();
+        var contractEndTime = calculateContractEnd(definition, start, zone);
+        var contractStartTime = ZonedDateTime.ofInstant(start, zone);
 
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
                 .policy(policy.withTarget(asset.getId()))
                 .asset(asset)
-                .contractStart(ZonedDateTime.now())
+                .contractStart(contractStartTime)
                 .contractEnd(contractEndTime);
     }
 
     @NotNull
-    private ZonedDateTime calculateContractEnd(ContractDefinition definition) {
+    private ZonedDateTime calculateContractEnd(ContractDefinition definition, Instant start, ZoneId zone) {
 
-        var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(clock.getZone());
+        var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(zone);
         try {
-            contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
+            contractEndTime = ZonedDateTime.ofInstant(start.plusSeconds(definition.getValidity()), zone);
         } catch (ArithmeticException exception) {
             monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
                     "Changing contractEndTime to Maximum value possible in the ContractOffer");
