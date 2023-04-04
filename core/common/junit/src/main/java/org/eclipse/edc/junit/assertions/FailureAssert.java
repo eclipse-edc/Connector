@@ -19,6 +19,12 @@ import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.StringAssert;
 import org.eclipse.edc.spi.result.Failure;
 
+/**
+ * AssertJ's assertions for {@link Failure}.
+ *
+ * @param <SELF> self type
+ * @param <F> the failure type
+ */
 public class FailureAssert<F extends Failure, SELF extends FailureAssert<F, SELF>> extends AbstractAssert<SELF, F> {
 
     protected FailureAssert(F object, Class selfType) {
