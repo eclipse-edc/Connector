@@ -21,19 +21,19 @@ package org.eclipse.edc.protocol.dsp.api.configuration;
 public class DspApiConfiguration {
     
     private final String contextAlias;
-    private final String dspWebhookAddress;
+    private final String dspCallbackAddress;
     
-    public DspApiConfiguration(String contextAlias, String dspWebhookAddress) {
+    public DspApiConfiguration(String contextAlias, String dspCallbackAddress) {
         this.contextAlias = contextAlias;
-        this.dspWebhookAddress = dspWebhookAddress;
+        this.dspCallbackAddress = dspCallbackAddress;
     }
     
     public String getContextAlias() {
         return contextAlias;
     }
     
-    public String getDspWebhookAddress() {
-        return dspWebhookAddress;
+    public String getDspCallbackAddress() {
+        return dspCallbackAddress;
     }
     
 }

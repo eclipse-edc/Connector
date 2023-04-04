@@ -77,7 +77,7 @@ class DspApiConfigurationExtensionTest {
         verify(configurer).configure(spyContext, webServer, SETTINGS);
         var apiConfig = spyContext.getService(DspApiConfiguration.class);
         assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
-        assertThat(apiConfig.getDspWebhookAddress()).isEqualTo(DEFAULT_DSP_CALLBACK_ADDRESS);
+        assertThat(apiConfig.getDspCallbackAddress()).isEqualTo(DEFAULT_DSP_CALLBACK_ADDRESS);
     }
     
     @Test
@@ -96,6 +96,6 @@ class DspApiConfigurationExtensionTest {
         verify(configurer).configure(spyContext, webServer, SETTINGS);
         var apiConfig = spyContext.getService(DspApiConfiguration.class);
         assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
-        assertThat(apiConfig.getDspWebhookAddress()).isEqualTo(webhookAddress);
+        assertThat(apiConfig.getDspCallbackAddress()).isEqualTo(webhookAddress);
     }
 }
