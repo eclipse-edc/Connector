@@ -15,11 +15,11 @@
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
 /**
- * Notifies that a Transfer has been started on the counter-party side
+ * Notifies that a TransferProcess has been terminated by the counter-party
  */
-public class NotifyStartedTransferCommand extends SingleTransferProcessCommand {
+public class NotifyTerminatedTransfer extends SingleTransferProcessCommand {
 
-    public NotifyStartedTransferCommand(String transferProcessId) {
+    public NotifyTerminatedTransfer(String transferProcessId) {
         super(transferProcessId);
     }
 }

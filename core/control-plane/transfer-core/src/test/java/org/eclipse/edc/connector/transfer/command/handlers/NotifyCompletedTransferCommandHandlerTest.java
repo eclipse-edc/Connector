@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransfer;
+import org.eclipse.edc.connector.transfer.spi.types.command.NotifyCompletedTransfer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,42 +36,42 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class NotifyStartedTransferCommandHandlerTest {
+class NotifyCompletedTransferCommandHandlerTest {
 
     private final TransferProcessStore store = mock(TransferProcessStore.class);
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
-    private NotifyStartedTransferCommandHandler handler;
+    private NotifyCompletedTransferCommandHandler handler;
 
     @BeforeEach
     void setup() {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
-        handler = new NotifyStartedTransferCommandHandler(store, observable);
+        handler = new NotifyCompletedTransferCommandHandler(store, observable);
     }
 
     @Test
     void type() {
-        assertThat(handler.getType()).isEqualTo(NotifyStartedTransfer.class);
+        assertThat(handler.getType()).isEqualTo(NotifyCompletedTransfer.class);
     }
 
     @Test
-    void shouldTransitionStateToStarted() {
+    void shouldTransitionStateToCompleted() {
+        var process = TransferProcess.Builder.newInstance().id("processId").type(CONSUMER).state(STARTED.code()).build();
+        when(store.find(process.getId())).thenReturn(process);
+
+        handler.handle(new NotifyCompletedTransfer("processId"));
+
+        verify(store).save(argThat(p -> p.currentStateIsOneOf(COMPLETED) && p.getId().equals("processId")));
+        verify(listener).completed(isA(TransferProcess.class));
+    }
+
+    @Test
+    void shouldNotTransitionToCompleted_whenItInAnInvalidState() {
         var process = TransferProcess.Builder.newInstance().id("processId").type(CONSUMER).state(REQUESTED.code()).build();
         when(store.find(process.getId())).thenReturn(process);
 
-        handler.handle(new NotifyStartedTransfer("processId"));
-
-        verify(store).save(argThat(p -> p.currentStateIsOneOf(STARTED) && p.getId().equals("processId")));
-        verify(listener).started(isA(TransferProcess.class));
-    }
-
-    @Test
-    void shouldNotTransitionToStarted_whenItInAnInvalidState() {
-        var process = TransferProcess.Builder.newInstance().id("processId").type(CONSUMER).state(COMPLETED.code()).build();
-        when(store.find(process.getId())).thenReturn(process);
-
-        handler.handle(new NotifyStartedTransfer("processId"));
+        handler.handle(new NotifyCompletedTransfer("processId"));
 
         verify(store, never()).save(any());
         verifyNoInteractions(listener);

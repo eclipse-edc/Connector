@@ -19,6 +19,10 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -57,15 +61,6 @@ public interface TransferProcessService {
      */
     @Nullable
     String getState(String transferProcessId);
-
-    /**
-     * Notifies the TransferProcess that it has been STARTED by the counter-part.
-     * Only callable on CONSUMER TransferProcess
-     *
-     * @param dataRequestId the dataRequestId
-     * @return a succeeded result if the operation was successful, a failed one otherwise
-     */
-    ServiceResult<TransferProcess> notifyStarted(String dataRequestId);
 
     /**
      * Asynchronously requests cancellation of the transfer process.
@@ -143,17 +138,6 @@ public interface TransferProcessService {
     ServiceResult<String> initiateTransfer(TransferRequest request);
 
     /**
-     * Initiate transfer request for type provider.
-     *
-     * @param transferRequest for the transfer.
-     * @param claimToken of the requesting participant.
-     * @return a result that is successful if the transfer process was initiated with id of created transferProcess.
-     */
-    @NotNull
-    ServiceResult<String> initiateTransfer(TransferRequest transferRequest, ClaimToken claimToken);
-
-
-    /**
      * Asynchronously informs the system that the {@link DeprovisionedResource} has been provisioned
      *
      * @param transferProcessId The transfer process id
@@ -170,5 +154,42 @@ public interface TransferProcessService {
      * @return a result that is successful if the transfer process was found
      */
     ServiceResult<TransferProcess> addProvisionedResource(String transferProcessId, ProvisionResponse response);
+
+    /**
+     * Notifies the TransferProcess that it has been requested by the counter-part.
+     *
+     * @param message the incoming message
+     * @param claimToken the counter-party claim token
+     * @return a succeeded result if the operation was successful, a failed one otherwise
+     */
+    @NotNull
+    ServiceResult<String> notifyRequested(TransferRequestMessage message, ClaimToken claimToken);
+
+    /**
+     * Notifies the TransferProcess that it has been started by the counter-part.
+     *
+     * @param message the incoming message
+     * @param claimToken the counter-party claim token
+     * @return a succeeded result if the operation was successful, a failed one otherwise
+     */
+    ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, ClaimToken claimToken);
+
+    /**
+     * Notifies the TransferProcess that it has been completed by the counter-part.
+     *
+     * @param message the incoming message
+     * @param claimToken the counter-party claim token
+     * @return a succeeded result if the operation was successful, a failed one otherwise
+     */
+    ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, ClaimToken claimToken);
+
+    /**
+     * Notifies the TransferProcess that it has been terminated by the counter-part.
+     *
+     * @param message the incoming message
+     * @param claimToken the counter-party claim token
+     * @return a succeeded result if the operation was successful, a failed one otherwise
+     */
+    ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken);
 
 }

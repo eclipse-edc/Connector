@@ -19,8 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
@@ -144,24 +143,19 @@ public class ArtifactRequestHandler implements Handler {
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
-        // NB: DO NOT use the asset id provided by the client as that can open aan attack vector where a client references an artifact that
-        //     is different from the one specified by the contract
-
-        var dataRequest = DataRequest.Builder.newInstance()
+        var requestMessage = TransferRequestMessage.Builder.newInstance()
                 .id(message.getId().toString())
                 .protocol(MessageProtocol.IDS_MULTIPART)
-                .dataDestination(dataDestination)
                 .connectorId(connectorId.toString())
+                .connectorAddress(idsWebhookAddress)
+                .dataDestination(dataDestination)
+                .properties(props)
                 .assetId(contractAgreement.getAssetId())
                 .contractId(contractAgreement.getId())
-                .properties(props)
-                .connectorAddress(idsWebhookAddress)
                 .build();
 
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
-
         // Initiate a transfer process for the request
-        var transferInitiateResult = transferProcessService.initiateTransfer(transferRequest, claimToken);
+        var transferInitiateResult = transferProcessService.notifyRequested(requestMessage, claimToken);
 
         // Store secret if process initiated successfully
         if (transferInitiateResult.succeeded() && artifactRequestMessagePayload.getSecret() != null) {

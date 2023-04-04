@@ -16,17 +16,17 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
 /**
  * The {@link TransferStartMessage} is sent by the provider to indicate the asset transfer has been initiated.
  */
-public class TransferStartMessage implements RemoteMessage {
+public class TransferStartMessage implements TransferRemoteMessage {
 
     private String connectorAddress;
     private String protocol;
+    private String processId;
 
     @Override
     public String getProtocol() {
@@ -36,6 +36,11 @@ public class TransferStartMessage implements RemoteMessage {
     @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -61,9 +66,15 @@ public class TransferStartMessage implements RemoteMessage {
             return this;
         }
 
+        public Builder processId(String processId) {
+            message.processId = processId;
+            return this;
+        }
+
         public TransferStartMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.connectorAddress, "The connectorAddress must be specified");
+            Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;
         }
 

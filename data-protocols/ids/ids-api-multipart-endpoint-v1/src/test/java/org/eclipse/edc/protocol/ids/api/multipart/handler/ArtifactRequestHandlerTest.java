@@ -24,7 +24,7 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.serialization.IdsTypeManagerUtil;
@@ -99,23 +99,23 @@ class ArtifactRequestHandlerTest {
         var multipartRequest = createMultipartRequest(destination, artifactRequestId, assetId, contractId, claimToken);
         var header = (ArtifactRequestMessage) multipartRequest.getHeader();
 
-        var trCapture = ArgumentCaptor.forClass(TransferRequest.class);
-        when(transferProcessService.initiateTransfer(trCapture.capture(), eq(claimToken))).thenReturn(ServiceResult.success("Transfer success"));
+        var trCapture = ArgumentCaptor.forClass(TransferRequestMessage.class);
+        when(transferProcessService.notifyRequested(trCapture.capture(), eq(claimToken))).thenReturn(ServiceResult.success("Transfer success"));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
 
         handler.handleRequest(multipartRequest);
 
-        verify(transferProcessService).initiateTransfer(trCapture.capture(), eq(claimToken));
+        verify(transferProcessService).notifyRequested(trCapture.capture(), eq(claimToken));
 
-        var dataRequest = trCapture.getValue().getDataRequest();
+        var requestMessage = trCapture.getValue();
 
-        assertThat(dataRequest.getId()).hasToString(artifactRequestId);
-        assertThat(dataRequest.getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
-        assertThat(dataRequest.getConnectorId()).isEqualTo(connectorId.toString());
-        assertThat(dataRequest.getAssetId()).isEqualTo(agreement.getAssetId());
-        assertThat(dataRequest.getContractId()).isEqualTo(agreement.getId());
-        assertThat(dataRequest.getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
-        assertThat(dataRequest.getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
+        assertThat(requestMessage.getId()).hasToString(artifactRequestId);
+        assertThat(requestMessage.getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
+        assertThat(requestMessage.getConnectorId()).isEqualTo(connectorId.toString());
+        assertThat(requestMessage.getAssetId()).isEqualTo(agreement.getAssetId());
+        assertThat(requestMessage.getContractId()).isEqualTo(agreement.getId());
+        assertThat(requestMessage.getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
+        assertThat(requestMessage.getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
     }
 
     @Test

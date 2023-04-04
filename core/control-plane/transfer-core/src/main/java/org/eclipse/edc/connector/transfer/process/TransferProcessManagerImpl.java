@@ -186,6 +186,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @Override
+    public Result<Void> runCommand(TransferProcessCommand command) {
+        return commandRunner.runCommand(command);
+    }
+
+    @Override
     public void handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
@@ -384,8 +389,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferRequestMessage.Builder.newInstance()
                 .id(dataRequest.getId())
                 .protocol(dataRequest.getProtocol())
-                .connectorAddress(dataRequest.getConnectorAddress())
                 .connectorId(dataRequest.getConnectorId())
+                .connectorAddress(dataRequest.getConnectorAddress())
                 .dataDestination(dataRequest.getDataDestination())
                 .properties(dataRequest.getProperties())
                 .assetId(dataRequest.getAssetId())
@@ -461,6 +466,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
                 .connectorAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? it shouldn't be for provider.
+                .processId(dataRequest.getId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
@@ -529,6 +535,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
                 .connectorAddress(dataRequest.getConnectorAddress())
+                .processId(dataRequest.getId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
@@ -559,6 +566,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferTerminationMessage.Builder.newInstance()
                 .connectorAddress(dataRequest.getConnectorAddress())
                 .protocol(dataRequest.getProtocol())
+                .processId(dataRequest.getId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());

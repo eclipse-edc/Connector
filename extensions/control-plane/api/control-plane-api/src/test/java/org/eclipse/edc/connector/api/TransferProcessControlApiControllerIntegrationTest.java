@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static io.restassured.RestAssured.given;
@@ -175,6 +176,7 @@ class TransferProcessControlApiControllerIntegrationTest {
                 .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.PROVIDER)
                 .dataRequest(DataRequest.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
                         .destinationType("file")
                         .protocol("protocol")
                         .connectorAddress("http://an/address")
