@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
@@ -20,23 +19,24 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been approved.
+ * This event is raised when the ContractNegotiation has been verified by consumer.
  */
-@JsonDeserialize(builder = ContractNegotiationConsumerAgreed.Builder.class)
-public class ContractNegotiationConsumerAgreed extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationVerified.Builder.class)
+public class ContractNegotiationVerified extends ContractNegotiationEvent {
 
-    private ContractNegotiationConsumerAgreed() {
+    private ContractNegotiationVerified() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationConsumerAgreed, Builder> {
-        @JsonCreator
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationVerified, Builder> {
+
         public static Builder newInstance() {
             return new Builder();
         }
 
+        @JsonCreator
         private Builder() {
-            super(new ContractNegotiationConsumerAgreed());
+            super(new ContractNegotiationVerified());
         }
 
         @Override
@@ -44,5 +44,4 @@ public class ContractNegotiationConsumerAgreed extends ContractNegotiationEvent 
             return this;
         }
     }
-
 }

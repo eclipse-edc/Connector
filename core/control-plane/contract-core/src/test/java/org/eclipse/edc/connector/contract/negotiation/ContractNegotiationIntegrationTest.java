@@ -56,7 +56,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -159,7 +159,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(providerNegotiation.getContractOffers()).hasSize(1);
                     assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
-                    assertThat(consumerNegotiation.getState()).isEqualTo(PROVIDER_FINALIZED.code());
+                    assertThat(consumerNegotiation.getState()).isEqualTo(FINALIZED.code());
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
                     assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
@@ -247,7 +247,7 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractOfferRequest request = i.getArgument(1);
             consumerNegotiationId = request.getCorrelationId();
-            var result = providerManager.consumerRequested(token, request);
+            var result = providerManager.requested(token, request);
             return toFuture(result);
         };
     }
@@ -274,7 +274,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentAgreementRequest() {
         return i -> {
             ContractAgreementRequest request = i.getArgument(1);
-            var result = consumerManager.providerAgreed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
+            var result = consumerManager.agreed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
             return toFuture(result);
         };
     }

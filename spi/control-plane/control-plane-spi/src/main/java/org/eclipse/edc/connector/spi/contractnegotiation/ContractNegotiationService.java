@@ -94,7 +94,7 @@ public interface ContractNegotiationService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<ContractNegotiation> notifyConsumerRequested(ContractOfferRequest message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyRequested(ContractOfferRequest message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been offered by the provider.
@@ -104,17 +104,17 @@ public interface ContractNegotiationService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<ContractNegotiation> notifyProviderOffered(ContractOfferRequest message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyOffered(ContractOfferRequest message, ClaimToken claimToken);
 
     /**
-     * Notifies the ContractNegotiation that it has been agreed by the consumer.
+     * Notifies the ContractNegotiation that it has been agreed by the accepted.
      * Only callable on provider ContractNegotiation.
      *
      * @param message the incoming message
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<ContractNegotiation> notifyConsumerAgreed(ContractNegotiationEventMessage message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyAccepted(ContractNegotiationEventMessage message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been agreed by the provider.
@@ -124,7 +124,7 @@ public interface ContractNegotiationService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<ContractNegotiation> notifyProviderAgreed(ContractAgreementRequest message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementRequest message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been verified by the consumer.
@@ -134,7 +134,7 @@ public interface ContractNegotiationService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<ContractNegotiation> notifyConsumerVerified(ContractAgreementVerificationMessage message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyVerified(ContractAgreementVerificationMessage message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been finalized by the provider.
@@ -144,7 +144,7 @@ public interface ContractNegotiationService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
-    ServiceResult<ContractNegotiation> notifyProviderFinalized(ContractNegotiationEventMessage message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyFinalized(ContractNegotiationEventMessage message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been terminated by the counter-part.

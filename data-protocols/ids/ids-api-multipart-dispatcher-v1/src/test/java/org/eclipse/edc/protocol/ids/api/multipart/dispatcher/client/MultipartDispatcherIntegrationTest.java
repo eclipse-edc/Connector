@@ -175,7 +175,7 @@ class MultipartDispatcherIntegrationTest {
     void testSendContractRequestMessage(RemoteMessageDispatcherRegistry dispatcher, AssetIndex assetIndex) {
         var contractOffer = contractOffer("id:someId");
         assetIndex.accept(Asset.Builder.newInstance().id("1").build(), DataAddress.Builder.newInstance().type("any").build());
-        when(negotiationService.notifyConsumerRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
+        when(negotiationService.notifyRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
         when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(contractOffer));
@@ -208,7 +208,7 @@ class MultipartDispatcherIntegrationTest {
                 .thenReturn(Result.success(getIdsContractAgreement()));
         when(transformerRegistry.transform(any(), eq(ContractAgreementTransformerOutput.class)))
                 .thenReturn(Result.success(ContractAgreementTransformerOutput.Builder.newInstance().contractAgreement(contractAgreement).policy(policy).build()));
-        when(negotiationService.notifyProviderAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
+        when(negotiationService.notifyAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
 
         var request = ContractAgreementRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)

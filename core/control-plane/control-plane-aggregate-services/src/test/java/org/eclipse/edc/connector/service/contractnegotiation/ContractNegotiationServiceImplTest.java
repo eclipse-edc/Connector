@@ -49,7 +49,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.response.StatusResult.failure;
@@ -134,13 +134,13 @@ class ContractNegotiationServiceImplTest {
     @Test
     void getState_returnsStringRepresentation() {
         var negotiation = createContractNegotiationBuilder("negotiationId")
-                .state(CONSUMER_REQUESTED.code())
+                .state(REQUESTED.code())
                 .build();
         when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.getState("negotiationId");
 
-        assertThat(result).isEqualTo(CONSUMER_REQUESTED.name());
+        assertThat(result).isEqualTo(REQUESTED.name());
     }
 
     @Test
@@ -238,7 +238,7 @@ class ContractNegotiationServiceImplTest {
 
     @Test
     void decline_shouldSucceedIfManagerIsBeingAbleToDeclineIt() {
-        var negotiation = createContractNegotiationBuilder("negotiationId").state(CONSUMER_REQUESTED.code()).build();
+        var negotiation = createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build();
         when(store.findById("negotiationId")).thenReturn(negotiation);
 
         var result = service.decline("negotiationId");
@@ -260,8 +260,8 @@ class ContractNegotiationServiceImplTest {
     }
 
     @Test
-    void notifyConsumerRequested_shouldSucceedIfManagerSucceeds() {
-        when(providerManager.consumerRequested(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
+    void notifyRequested_shouldSucceedIfManagerSucceeds() {
+        when(providerManager.requested(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
         var message = ContractOfferRequest.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
@@ -270,15 +270,15 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyConsumerRequested(message, token);
+        var result = service.notifyRequested(message, token);
 
         assertThat(result).matches(ServiceResult::succeeded);
-        verify(providerManager).consumerRequested(token, message);
+        verify(providerManager).requested(token, message);
     }
 
     @Test
-    void notifyConsumerRequested_shouldFailIfManagerFails() {
-        when(providerManager.consumerRequested(any(), any())).thenReturn(failure(FATAL_ERROR));
+    void notifyRequested_shouldFailIfManagerFails() {
+        when(providerManager.requested(any(), any())).thenReturn(failure(FATAL_ERROR));
         var message = ContractOfferRequest.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
@@ -287,14 +287,14 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyConsumerRequested(message, token);
+        var result = service.notifyRequested(message, token);
 
         assertThat(result).matches(ServiceResult::failed);
     }
 
     @Test
-    void notifyProviderAgreed_shouldSucceedIfManagerSucceeds() {
-        when(consumerManager.providerAgreed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
+    void notifyAgreed_shouldSucceedIfManagerSucceeds() {
+        when(consumerManager.agreed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
         var contractAgreement = createContractAgreement("agreementId");
         var policy = Policy.Builder.newInstance().build();
         var message = ContractAgreementRequest.Builder.newInstance()
@@ -307,15 +307,15 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyProviderAgreed(message, token);
+        var result = service.notifyAgreed(message, token);
 
         assertThat(result).matches(ServiceResult::succeeded);
-        verify(consumerManager).providerAgreed(token, "correlationId", contractAgreement, policy);
+        verify(consumerManager).agreed(token, "correlationId", contractAgreement, policy);
     }
 
     @Test
-    void notifyProviderAgreed_shouldFailIfManagerFails() {
-        when(consumerManager.providerAgreed(any(), any(), any(), any())).thenReturn(failure(FATAL_ERROR));
+    void notifyAgreed_shouldFailIfManagerFails() {
+        when(consumerManager.agreed(any(), any(), any(), any())).thenReturn(failure(FATAL_ERROR));
         var contractAgreement = createContractAgreement("agreementId");
         var policy = Policy.Builder.newInstance().build();
         var message = ContractAgreementRequest.Builder.newInstance()
@@ -328,13 +328,13 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyProviderAgreed(message, token);
+        var result = service.notifyAgreed(message, token);
 
         assertThat(result).matches(ServiceResult::failed);
     }
 
     @Test
-    void notifyConsumerVerified_shouldSucceedIfManagerSucceeds() {
+    void notifyVerified_shouldSucceedIfManagerSucceeds() {
         when(providerManager.verified(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -343,14 +343,14 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyConsumerVerified(message, token);
+        var result = service.notifyVerified(message, token);
 
         assertThat(result).matches(ServiceResult::succeeded);
         verify(providerManager).verified(token, "correlationId");
     }
 
     @Test
-    void notifyConsumerFailed_shouldFailIfManagerFails() {
+    void notifyFailed_shouldFailIfManagerFails() {
         when(providerManager.verified(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -359,13 +359,13 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyConsumerVerified(message, token);
+        var result = service.notifyVerified(message, token);
 
         assertThat(result).matches(ServiceResult::failed);
     }
 
     @Test
-    void notifyProviderFinalized_shouldSucceedIfManagerSucceeds() {
+    void notifyFinalized_shouldSucceedIfManagerSucceeds() {
         when(consumerManager.finalized(any(), eq("correlationId"))).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
@@ -375,14 +375,14 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyProviderFinalized(message, token);
+        var result = service.notifyFinalized(message, token);
 
         assertThat(result).matches(ServiceResult::succeeded);
         verify(consumerManager).finalized(token, "correlationId");
     }
 
     @Test
-    void notifyProviderFinalized_shouldFailIfManagerFails() {
+    void notifyFinalized_shouldFailIfManagerFails() {
         when(consumerManager.finalized(any(), eq("correlationId"))).thenReturn(StatusResult.failure(FATAL_ERROR));
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
@@ -392,7 +392,7 @@ class ContractNegotiationServiceImplTest {
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var result = service.notifyProviderFinalized(message, token);
+        var result = service.notifyFinalized(message, token);
 
         assertThat(result).matches(ServiceResult::failed);
         verify(consumerManager).finalized(token, "correlationId");

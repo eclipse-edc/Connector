@@ -23,45 +23,45 @@ The goals of the Dataspace Protocol support are:
 The IDS Specification Contract Negotiation states are:
 
 - INITIALIZED,
-- CONSUMER_REQUESTED,
-- PROVIDER_OFFERED,
-- CONSUMER_AGREED,
-- PROVIDER_AGREED,
-- CONSUMER_VERIFIED,
-- PROVIDER_FINALIZED,
+- REQUESTED,
+- OFFERED,
+- ACCEPTED,
+- AGREED,
+- VERIFIED,
+- FINALIZED,
 - TERMINATED
 
 The following table defines the mapping between existing EDC states, the corresponding new EDC states, and the IDS specification states.
 
-| EDC Existing       | EDC New               | IDS                | Transition Function      | Notes                    |
-|--------------------|-----------------------|--------------------|--------------------------|--------------------------|
-| UNSAVED            | (remove)              | N/A                |                          | This state is not needed |
-| INITIAL            | INITIAL               | N/A                |                          |                          |
-|                    |                       |                    |                          |                          |
-| REQUESTING         | CONSUMER_REQUESTING   | N/A                |                          |                          |
-| REQUESTED          | CONSUMER_REQUESTED    | CONSUMER_REQUESTED | Provider (new & counter) |                          |
-|                    |                       |                    |                          |                          |
-| PROVIDER_OFFERING  | PROVIDER_OFFERING     | N/A                |                          |                          |
-| PROVIDER_OFFERED   | PROVIDER_OFFERED      | PROVIDER_OFFERED   | Consumer                 |                          |
-| CONSUMER_OFFERING  | (CONSUMER_REQUESTING) |                    |                          |                          |
-| CONSUMER_OFFERED   | (CONSUMER_REQUESTED)  |                    |                          |                          |
-|                    |                       |                    |                          |                          |
-| CONSUMER_APPROVING | CONSUMER_AGREEING     | N/A                |                          |                          |
-| CONSUMER_APPROVED  | CONSUMER_AGREED       | CONSUMER_AGREED    | Provider                 |                          |
-|                    |                       |                    |                          |                          |
-| DECLINING          | (TERMINATING)         |                    |                          |                          |
-| DECLINED           | (TERMINATED)          |                    |                          |                          |
-|                    |                       |                    |                          |                          |
-| CONFIRMING         | PROVIDER_AGREEING     | N/A                |                          |                          |
-| CONFIRMED          | PROVIDER_AGREED       | PROVIDER_AGREED    | Consumer                 |                          |
-|                    | CONSUMER_VERIFYING    | N/A                |                          |                          |
-|                    | CONSUMER_VERIFIED     | CONSUMER_VERIFIED  | Provider                 |                          |
-|                    | PROVIDER_FINALIZING   | N/A                |                          |                          |
-|                    | PROVIDER_FINALIZED    | PROVIDER_FINALIZED | Consumer                 |                          |
-|                    | TERMINATING           | N/A                |                          |                          |
-|                    | TERMINATED            | TERMINATED         | P & C                    |                          |
-|                    |                       |                    |                          |                          |
-| ERROR              | (TERMINATED)          |                    |                          |                          |
+| EDC Existing       | EDC New       | IDS        | Transition Function      | Notes                    |
+|--------------------|---------------|------------|--------------------------|--------------------------|
+| UNSAVED            | (remove)      | N/A        |                          | This state is not needed |
+| INITIAL            | INITIAL       | N/A        |                          |                          |
+|                    |               |            |                          |                          |
+| REQUESTING         | REQUESTING    | N/A        |                          |                          |
+| REQUESTED          | REQUESTED     | REQUESTED  | Provider (new & counter) |                          |
+|                    |               |            |                          |                          |
+| PROVIDER_OFFERING  | OFFERING      | N/A        |                          |                          |
+| PROVIDER_OFFERED   | OFFERED       | OFFERED    | Consumer                 |                          |
+| CONSUMER_OFFERING  | (REQUESTING)  |            |                          |                          |
+| CONSUMER_OFFERED   | (REQUESTED)   |            |                          |                          |
+|                    |               |            |                          |                          |
+| CONSUMER_APPROVING | ACCEPTING     | N/A        |                          |                          |
+| CONSUMER_APPROVED  | ACCEPTED      | ACCEPTED   | Provider                 |                          |
+|                    |               |            |                          |                          |
+| DECLINING          | (TERMINATING) |            |                          |                          |
+| DECLINED           | (TERMINATED)  |            |                          |                          |
+|                    |               |            |                          |                          |
+| CONFIRMING         | AGREEING      | N/A        |                          |                          |
+| CONFIRMED          | AGREED        | AGREED     | Consumer                 |                          |
+|                    | VERIFYING     | N/A        |                          |                          |
+|                    | VERIFIED      | VERIFIED   | Provider                 |                          |
+|                    | FINALIZING    | N/A        |                          |                          |
+|                    | FINALIZED     | FINALIZED  | Consumer                 |                          |
+|                    | TERMINATING   | N/A        |                          |                          |
+|                    | TERMINATED    | TERMINATED | P & C                    |                          |
+|                    |               |            |                          |                          |
+| ERROR              | (TERMINATED)  |            |                          |                          |
 
 # State Transition Functions
 
@@ -86,7 +86,7 @@ The `Result<Boolean>` response indicates if the `ContractNegotiation` has been u
 re-persisting `ContractNegotiation` instances if they have not changed.
 
 End users will be able to register their own `StateTransitionFunction` implementations to provide custom contract negotiation workflows. For example, a `StateTransitionFunction`
-implementation can be registered to be invoked when a consumer request is received (CONSUMER_REQUESTED) to support manual approval. The function will be called by
+implementation can be registered to be invoked when a consumer request is received (REQUESTED) to support manual approval. The function will be called by
 the `ConsumerContractNegotiationManager` during its processing loop. If the request initiates a new negotiation, the function implementation could trigger a process in an external
 approval system. In a subsequent processing loop, the `StateTransitionFunction` could check for the completion of the external approval process (e.g. by querying a column in a
 table) and updating the `ContractNegotition`.
@@ -97,25 +97,25 @@ The following tabled define the default `StateTransitionFunction`s to use if one
 
 ## Consumer Default StateTransitionFunctions
 
-| State              | Default StateTransitionFunction                                         |
-|--------------------|-------------------------------------------------------------------------|
-| PROVIDER_OFFERED   | Transition to CONSUMER_AGREEING if offer matches the original requested |
-| PROVIDER_AGREED    | Transition to CONSUMER_VERIFYING                                        |
-| PROVIDER_FINALIZED | No-op                                                                   |
-|                    |                                                                         |
-|                    |                                                                         |
-|                    |                                                                         |
+| State     | Default StateTransitionFunction                                 |
+|-----------|-----------------------------------------------------------------|
+| OFFERED   | Transition to ACCEPTING if offer matches the original requested |
+| AGREED    | Transition to VERIFYING                                         |
+| FINALIZED | No-op                                                           |
+|           |                                                                 |
+|           |                                                                 |
+|           |                                                                 |
 
 ## Provider Default StateTransitionFunctions
 
-| State              | Default StateTransitionFunction                                                     |
-|--------------------|-------------------------------------------------------------------------------------|
-| CONSUMER_REQUESTED | For the initial request transition to PROVIDER_AGREED if the offer corresponds to a |
-|                    | provider offer and the consumer evaluates successfully against the offer policy.    |
-|                    |                                                                                     |
-| CONSUMER_AGREED    | Transition to PROVIDER_AGREEING                                                     |
-| CONSUMER_VERIFIED  | Transition to PROVIDER_FINALIZING                                                   |
-| TERMINATED         | No-op                                                                               |
+| State      | Default StateTransitionFunction                                                  |
+|------------|----------------------------------------------------------------------------------|
+| REQUESTED  | For the initial request transition to AGREED if the offer corresponds to a       |
+|            | provider offer and the consumer evaluates successfully against the offer policy. |
+|            |                                                                                  |
+| ACCEPTED   | Transition to AGREEING                                                           |
+| VERIFIED   | Transition to FINALIZING                                                         |
+| TERMINATED | No-op                                                                            |
 
 # HTTP Transition Functions (Phase II)
 

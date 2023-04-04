@@ -21,14 +21,14 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 /**
  * This event is raised when the ContractNegotiation has been finalized by provider.
  */
-@JsonDeserialize(builder = ContractNegotiationProviderFinalized.Builder.class)
-public class ContractNegotiationProviderFinalized extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationFinalized.Builder.class)
+public class ContractNegotiationFinalized extends ContractNegotiationEvent {
 
-    private ContractNegotiationProviderFinalized() {
+    private ContractNegotiationFinalized() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationProviderFinalized, Builder> {
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationFinalized, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -36,7 +36,7 @@ public class ContractNegotiationProviderFinalized extends ContractNegotiationEve
 
         @JsonCreator
         private Builder() {
-            super(new ContractNegotiationProviderFinalized());
+            super(new ContractNegotiationFinalized());
         }
 
         @Override

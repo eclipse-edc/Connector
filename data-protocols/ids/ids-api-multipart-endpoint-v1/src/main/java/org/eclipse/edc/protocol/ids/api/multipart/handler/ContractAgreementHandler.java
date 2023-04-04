@@ -96,7 +96,7 @@ public class ContractAgreementHandler implements Handler {
                 .policy(output.getPolicy())
                 .build();
 
-        var negotiationConfirmResult = contractNegotiationService.notifyProviderAgreed(request, claimToken);
+        var negotiationConfirmResult = contractNegotiationService.notifyAgreed(request, claimToken);
 
         return createMultipartResponse(processedFromServiceResult(negotiationConfirmResult, message, connectorId));
     }

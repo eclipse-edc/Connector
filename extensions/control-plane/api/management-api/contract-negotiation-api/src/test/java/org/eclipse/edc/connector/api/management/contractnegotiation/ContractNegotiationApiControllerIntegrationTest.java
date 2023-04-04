@@ -45,7 +45,7 @@ import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.emptyString;
@@ -171,7 +171,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getSingleContractNegotationState(ContractNegotiationStore store) {
-        store.save(createContractNegotiationBuilder("negotiationId").state(CONSUMER_REQUESTED.code()).build());
+        store.save(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
 
         var state = baseRequest()
                 .get("/contractnegotiations/negotiationId/state")
@@ -180,7 +180,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .contentType(JSON)
                 .extract().as(Map.class);
 
-        assertThat(state).containsEntry("state", "CONSUMER_REQUESTED");
+        assertThat(state).containsEntry("state", "REQUESTED");
     }
 
     @Test
@@ -266,7 +266,7 @@ class ContractNegotiationApiControllerIntegrationTest {
         registry.register(dispatcher);
         when(dispatcher.send(any(), any())).thenReturn(completedFuture(null));
         var negotiation = createContractNegotiationBuilder("negotiationId")
-                .state(CONSUMER_REQUESTED.code())
+                .state(REQUESTED.code())
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         store.save(negotiation);
