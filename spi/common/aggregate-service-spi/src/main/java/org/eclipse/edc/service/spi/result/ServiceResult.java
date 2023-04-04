@@ -23,7 +23,7 @@ import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUE
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 
-public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
+public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceResult<T>> {
 
     protected ServiceResult(T content, ServiceFailure failure) {
         super(content, failure);

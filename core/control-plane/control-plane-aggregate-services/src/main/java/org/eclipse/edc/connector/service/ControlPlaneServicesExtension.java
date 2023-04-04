@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.service;
 
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -83,6 +84,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ConsumerContractNegotiationManager consumerContractNegotiationManager;
 
     @Inject
+    private ProviderContractNegotiationManager providerContractNegotiationManager;
+
+    @Inject
     private PolicyDefinitionStore policyDefinitionStore;
 
     @Inject
@@ -128,7 +132,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public ContractNegotiationService contractNegotiationService() {
-        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, transactionContext);
+        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, providerContractNegotiationManager, transactionContext);
     }
 
     @Provider

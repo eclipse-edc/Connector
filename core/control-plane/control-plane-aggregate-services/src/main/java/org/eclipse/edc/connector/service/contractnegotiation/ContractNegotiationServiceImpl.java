@@ -15,8 +15,12 @@
 package org.eclipse.edc.connector.service.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -24,9 +28,13 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -37,13 +45,16 @@ import static java.util.Optional.ofNullable;
 public class ContractNegotiationServiceImpl implements ContractNegotiationService {
 
     private final ContractNegotiationStore store;
-    private final ConsumerContractNegotiationManager manager;
+    private final ConsumerContractNegotiationManager consumerManager;
+    private final ProviderContractNegotiationManager providerManager;
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
 
-    public ContractNegotiationServiceImpl(ContractNegotiationStore store, ConsumerContractNegotiationManager manager, TransactionContext transactionContext) {
+    public ContractNegotiationServiceImpl(ContractNegotiationStore store, ConsumerContractNegotiationManager consumerManager,
+                                          ProviderContractNegotiationManager providerManager, TransactionContext transactionContext) {
         this.store = store;
-        this.manager = manager;
+        this.consumerManager = consumerManager;
+        this.providerManager = providerManager;
         this.transactionContext = transactionContext;
         queryValidator = new QueryValidator(ContractNegotiation.class);
     }
@@ -81,7 +92,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public ContractNegotiation initiateNegotiation(ContractOfferRequest request) {
-        return transactionContext.execute(() -> manager.initiate(request).getContent());
+        return transactionContext.execute(() -> consumerManager.initiate(request).getContent());
     }
 
     @Override
@@ -91,7 +102,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
             if (negotiation == null) {
                 return ServiceResult.notFound(format("ContractNegotiation %s does not exist", negotiationId));
             } else {
-                manager.enqueueCommand(new CancelNegotiationCommand(negotiationId));
+                consumerManager.enqueueCommand(new CancelNegotiationCommand(negotiationId));
                 return ServiceResult.success(negotiation);
             }
         });
@@ -107,7 +118,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
                 }
 
                 if (negotiation.canBeTerminated()) {
-                    manager.enqueueCommand(new DeclineNegotiationCommand(negotiationId));
+                    consumerManager.enqueueCommand(new DeclineNegotiationCommand(negotiationId));
                     return ServiceResult.success(negotiation);
                 } else {
                     return ServiceResult.conflict(format("Cannot decline ContractNegotiation %s as it is in state %s", negotiationId, ContractNegotiationStates.from(negotiation.getState())));
@@ -118,4 +129,64 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
             }
         });
     }
+
+    @Override
+    public ServiceResult<ContractNegotiation> notifyConsumerRequested(ContractOfferRequest message, ClaimToken claimToken) {
+        return providerManager.consumerRequested(claimToken, message) // TODO: currently the manager method always succeed
+                .flatMap(this::toServiceResult);
+    }
+
+    @Override
+    public ServiceResult<ContractNegotiation> notifyProviderOffered(ContractOfferRequest message, ClaimToken claimToken) {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public ServiceResult<ContractNegotiation> notifyConsumerAgreed(ContractNegotiationEventMessage message, ClaimToken claimToken) {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public ServiceResult<ContractNegotiation> notifyProviderAgreed(ContractAgreementRequest message, ClaimToken claimToken) {
+        return consumerManager.providerAgreed(claimToken, message.getCorrelationId(), message.getContractAgreement(), message.getPolicy())
+                .flatMap(this::toServiceResult);
+    }
+
+    @Override
+    public ServiceResult<ContractNegotiation> notifyConsumerVerified(ContractAgreementVerificationMessage message, ClaimToken claimToken) {
+        return providerManager.verified(claimToken, message.getCorrelationId())
+                .flatMap(this::toServiceResult);
+    }
+
+    @Override
+    public ServiceResult<ContractNegotiation> notifyProviderFinalized(ContractNegotiationEventMessage message, ClaimToken claimToken) {
+        return consumerManager.finalized(claimToken, message.getCorrelationId())
+                .flatMap(this::toServiceResult);
+    }
+
+    @Override
+    public ServiceResult<ContractNegotiation> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken) {
+        var negotiation = store.findForCorrelationId(message.getProcessId());
+        if (negotiation != null) {
+            if (negotiation.getType() == ContractNegotiation.Type.CONSUMER) {
+                return consumerManager.declined(claimToken, negotiation.getId())
+                        .flatMap(this::toServiceResult);
+            } else {
+                return providerManager.declined(claimToken, negotiation.getId())
+                        .flatMap(this::toServiceResult);
+            }
+        }
+
+        return ServiceResult.notFound(format("Contract negotiation %s not found", message.getProcessId()));
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> toServiceResult(StatusResult<ContractNegotiation> result) {
+        if (result.succeeded()) {
+            return ServiceResult.success(result.getContent());
+        } else {
+            return ServiceResult.conflict(result.getFailureDetail());
+        }
+    }
+
 }

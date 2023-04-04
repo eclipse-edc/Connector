@@ -136,7 +136,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getCounterPartyId().equals(request.getConnectorId()) &&
                         negotiation.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
                         negotiation.getProtocol().equals(request.getProtocol()) &&
-                        negotiation.getCorrelationId() == null &&
+                        negotiation.getCorrelationId().equals(negotiation.getId()) &&
                         negotiation.getContractOffers().size() == 1 &&
                         negotiation.getLastContractOffer().equals(contractOffer))
         );
@@ -149,7 +149,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         var policy = Policy.Builder.newInstance().build();
 
-        var result = negotiationManager.confirmed(token, "not a valid id", contractAgreement, policy);
+        var result = negotiationManager.providerAgreed(token, "not a valid id", contractAgreement, policy);
 
         assertThat(result.fatalError()).isTrue();
         verify(policyStore, never()).create(any());
@@ -166,7 +166,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.findById(negotiationConsumerRequested.getId())).thenReturn(negotiationConsumerRequested);
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
 
-        var result = negotiationManager.confirmed(token, negotiationConsumerRequested.getId(), contractAgreement, def.getPolicy());
+        var result = negotiationManager.providerAgreed(token, negotiationConsumerRequested.getId(), contractAgreement, def.getPolicy());
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
@@ -187,7 +187,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.findById(negotiationConsumerRequested.getId())).thenReturn(negotiationConsumerRequested);
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
 
-        var result = negotiationManager.confirmed(token, negotiationConsumerRequested.getId(), contractAgreement, policy);
+        var result = negotiationManager.providerAgreed(token, negotiationConsumerRequested.getId(), contractAgreement, policy);
 
         assertThat(result.succeeded()).isFalse();
         verify(validationService).validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class));

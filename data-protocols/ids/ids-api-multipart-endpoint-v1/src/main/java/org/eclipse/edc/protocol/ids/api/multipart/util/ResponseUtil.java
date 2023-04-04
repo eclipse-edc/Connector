@@ -220,6 +220,31 @@ public class ResponseUtil {
     }
 
     /**
+     * Creates a response message depending on the status result of a previously executed action.
+     * Returns a MessageProcessedNotificationMessage, if the result is succeeded and a rejection message otherwise.
+     * The rejection reason is BAD_PARAMETERS if the action can be retried and INTERNAL_RECIPIENT_ERROR
+     * for a fatal error.
+     *
+     * @param statusResult the status result.
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the response message depending on the status result.
+     */
+    public static Message processedFromServiceResult(@NotNull ServiceResult<?> statusResult,
+                                                    @NotNull Message correlationMessage,
+                                                    @NotNull IdsId connectorId) {
+        if (statusResult.succeeded()) {
+            return messageProcessedNotification(correlationMessage, connectorId);
+        } else {
+            if (statusResult.reason() == ServiceFailure.Reason.BAD_REQUEST) {
+                return badParameters(correlationMessage, connectorId);
+            } else {
+                return internalRecipientError(correlationMessage, connectorId);
+            }
+        }
+    }
+
+    /**
      * Creates a rejection message with reason NOT_FOUND.
      *
      * @param correlationMessage the request.

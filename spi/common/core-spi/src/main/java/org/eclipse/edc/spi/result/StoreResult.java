@@ -24,7 +24,7 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  *
  * @param <T> The type of content
  */
-public class StoreResult<T> extends AbstractResult<T, StoreFailure> {
+public class StoreResult<T> extends AbstractResult<T, StoreFailure, StoreResult<T>> {
 
     protected StoreResult(T content, StoreFailure failure) {
         super(content, failure);
