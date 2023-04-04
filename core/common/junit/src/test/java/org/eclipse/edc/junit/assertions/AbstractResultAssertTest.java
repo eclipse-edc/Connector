@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.junit.assertions;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
@@ -24,30 +25,17 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 class AbstractResultAssertTest {
 
     @Test
-    void isSucceeded() {
+    void isSucceeded_shouldReturnAssertOnContent() {
         var result = Result.success(3);
+
         assertThat(result).isSucceeded().isEqualTo(3);
     }
 
     @Test
-    void isFailed() {
+    void isFailed_shouldReturnAssertOnFailure() {
         var result = Result.failure(new ArrayList<>());
-        assertThat(result).isFailed();
-    }
 
-    @Test
-    void hasMessages() {
-        var result = Result.failure(new ArrayList<>() {{
-            add("failure");
-        }});
-        assertThat(result).isFailed().hasMessages("failure");
-    }
-
-    @Test
-    void hasMessagesContaining() {
-        var result = Result.failure(new ArrayList<>() {{
-            add("failure");
-        }});
-        assertThat(result).isFailed().hasMessagesContaining("fail");
+        var failureAssert = assertThat(result).isFailed();
+        Assertions.assertThat(failureAssert).isInstanceOf(FailureAssert.class);
     }
 }
