@@ -17,11 +17,12 @@ plugins {
 }
 
 dependencies {
-    api(libs.jacksonJsonP)
-    api(libs.titaniumJsonLd)
     api(libs.jakartaJson)
+    api(libs.titaniumJsonLd)
 
+    api(project(":extensions:common:json-ld"))
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:transform-spi"))
 
     testImplementation(project(":core:common:junit"))

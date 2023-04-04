@@ -37,6 +37,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: limit
         in: query
         required: false
@@ -45,6 +46,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: filter
         in: query
         required: false
@@ -52,6 +54,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: sort
         in: query
         required: false
@@ -59,6 +62,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
@@ -69,12 +73,14 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/AssetResponseDto'
         "400":
@@ -83,6 +89,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
       deprecated: true
@@ -110,6 +117,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "409":
@@ -119,6 +127,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /assets/request:
@@ -138,6 +147,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/AssetResponseDto'
         "400":
@@ -146,6 +156,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /assets/{assetId}:
@@ -155,7 +166,7 @@ paths:
       description: "Updates an asset with the given ID if it exists. If the asset\
         \ is not found, no further action is taken. DANGER ZONE: Note that updating\
         \ assets can have unexpected results, especially for contract offers that\
-        \ have been sent out or ongoing or contract negotiations."
+        \ have been sent out or are ongoing in contract negotiations."
       operationId: updateAsset
       parameters:
       - name: assetId
@@ -165,6 +176,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -179,17 +191,16 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
-          description: "Asset could not be updated, because it does not exist. Asset\
-            \ need to be created together with DataAddresses."
+          description: "Asset could not be updated, because it does not exist."
   /assets/{assetId}/dataaddress:
     put:
       tags:
       - Asset
-      description: "Updates a DataAddress for an asset with the given ID. If the asset\
-        \ is not found, no further action is taken"
+      description: Updates a DataAddress for an asset with the given ID.
       operationId: updateDataAddress
       parameters:
       - name: assetId
@@ -199,6 +210,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -213,6 +225,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -221,6 +234,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /assets/{id}:
@@ -237,6 +251,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The asset
@@ -250,6 +265,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -258,6 +274,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
     delete:
@@ -277,6 +294,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Asset was deleted successfully
@@ -286,6 +304,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -294,6 +313,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "409":
@@ -303,6 +323,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /assets/{id}/address:
@@ -319,6 +340,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The data address
@@ -332,6 +354,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -340,6 +363,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /callback/{processId}/deprovision:
@@ -355,6 +379,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -378,6 +403,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -401,6 +427,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: offset
         in: query
         required: false
@@ -409,6 +436,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: limit
         in: query
         required: false
@@ -417,6 +445,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: filter
         in: query
         required: false
@@ -424,6 +453,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: sort
         in: query
         required: false
@@ -431,6 +461,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
@@ -441,6 +472,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       responses:
         default:
           description: Gets contract offers (=catalog) of a single connector
@@ -480,6 +512,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
   /check/liveness:
@@ -495,6 +528,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
   /check/readiness:
@@ -510,6 +544,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
   /check/startup:
@@ -525,6 +560,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
   /contractagreements:
@@ -542,6 +578,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: limit
         in: query
         required: false
@@ -550,6 +587,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: filter
         in: query
         required: false
@@ -557,6 +595,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: sort
         in: query
         required: false
@@ -564,6 +603,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
@@ -574,12 +614,14 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractAgreementDto'
         "400":
@@ -588,6 +630,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
       deprecated: true
@@ -608,6 +651,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractAgreementDto'
         "400":
@@ -616,6 +660,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractagreements/{id}:
@@ -632,6 +677,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The contract agreement
@@ -645,6 +691,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -653,6 +700,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractdefinitions:
@@ -670,6 +718,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: limit
         in: query
         required: false
@@ -678,6 +727,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: filter
         in: query
         required: false
@@ -685,6 +735,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: sort
         in: query
         required: false
@@ -692,6 +743,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
@@ -702,12 +754,14 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractDefinitionResponseDto'
         "400":
@@ -716,6 +770,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
       deprecated: true
@@ -743,6 +798,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "409":
@@ -752,6 +808,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractdefinitions/request:
@@ -771,6 +828,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractDefinitionResponseDto'
         "400":
@@ -779,6 +837,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractdefinitions/{contractDefinitionId}:
@@ -795,6 +854,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           '*/*':
@@ -809,6 +869,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -817,6 +878,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractdefinitions/{id}:
@@ -833,6 +895,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The contract definition
@@ -846,6 +909,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -854,6 +918,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
     delete:
@@ -872,6 +937,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Contract definition was deleted successfully
@@ -881,6 +947,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -889,6 +956,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractnegotiations:
@@ -906,6 +974,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: limit
         in: query
         required: false
@@ -914,6 +983,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: filter
         in: query
         required: false
@@ -921,6 +991,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: sort
         in: query
         required: false
@@ -928,6 +999,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
@@ -938,12 +1010,14 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
         "400":
@@ -952,6 +1026,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
       deprecated: true
@@ -987,6 +1062,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractnegotiations/request:
@@ -1006,6 +1082,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
         "400":
@@ -1014,6 +1091,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractnegotiations/{id}:
@@ -1030,6 +1108,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The contract negotiation
@@ -1043,6 +1122,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1051,6 +1131,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractnegotiations/{id}/agreement:
@@ -1068,6 +1149,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: "The contract agreement that is attached to the negotiation,\
@@ -1082,6 +1164,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1090,6 +1173,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractnegotiations/{id}/cancel:
@@ -1109,6 +1193,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to cancel the Contract negotiation was successfully
@@ -1122,6 +1207,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1130,6 +1216,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractnegotiations/{id}/decline:
@@ -1149,6 +1236,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to decline the Contract negotiation was successfully
@@ -1162,6 +1250,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1170,6 +1259,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /contractnegotiations/{id}/state:
@@ -1186,6 +1276,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The contract negotiation's state
@@ -1199,6 +1290,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1207,6 +1299,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /instances:
@@ -1221,6 +1314,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/DataPlaneInstance'
     post:
@@ -1269,6 +1363,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: limit
         in: query
         required: false
@@ -1277,6 +1372,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: filter
         in: query
         required: false
@@ -1284,6 +1380,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: sort
         in: query
         required: false
@@ -1291,6 +1388,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
@@ -1301,12 +1399,14 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/PolicyDefinitionResponseDto'
         "400":
@@ -1315,6 +1415,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
       deprecated: true
@@ -1342,6 +1443,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "409":
@@ -1351,6 +1453,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /policydefinitions/request:
@@ -1370,6 +1473,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/PolicyDefinitionResponseDto'
         "400":
@@ -1378,6 +1482,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /policydefinitions/{id}:
@@ -1394,6 +1499,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The  policy definition
@@ -1407,6 +1513,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1415,6 +1522,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
     delete:
@@ -1434,6 +1542,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Policy definition was deleted successfully
@@ -1443,6 +1552,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1451,6 +1561,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "409":
@@ -1460,6 +1571,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /policydefinitions/{policyId}:
@@ -1477,6 +1589,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -1492,6 +1605,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1517,6 +1631,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Token is valid
@@ -1555,6 +1670,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Missing access token
@@ -1573,6 +1689,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: limit
         in: query
         required: false
@@ -1581,6 +1698,7 @@ paths:
         schema:
           type: integer
           format: int32
+          example: null
       - name: filter
         in: query
         required: false
@@ -1588,6 +1706,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       - name: sort
         in: query
         required: false
@@ -1595,6 +1714,7 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
@@ -1605,12 +1725,14 @@ paths:
         explode: true
         schema:
           type: string
+          example: null
       responses:
         "200":
           content:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
         "400":
@@ -1619,6 +1741,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
       deprecated: true
@@ -1653,6 +1776,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /transferprocess/request:
@@ -1672,6 +1796,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
         "400":
@@ -1680,6 +1805,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /transferprocess/{id}:
@@ -1696,6 +1822,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The transfer process
@@ -1709,6 +1836,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1717,6 +1845,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /transferprocess/{id}/cancel:
@@ -1736,6 +1865,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to cancel the transfer process was successfully received
@@ -1748,6 +1878,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1756,6 +1887,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
       deprecated: true
@@ -1777,6 +1909,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: Request to deprovision the transfer process was successfully
@@ -1790,6 +1923,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1798,6 +1932,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /transferprocess/{id}/state:
@@ -1814,6 +1949,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "200":
           description: The  transfer process's state
@@ -1827,6 +1963,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1835,6 +1972,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /transferprocess/{id}/terminate:
@@ -1854,6 +1992,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -1871,6 +2010,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
@@ -1879,6 +2019,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "409":
@@ -1888,6 +2029,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /transferprocess/{processId}/complete:
@@ -1906,6 +2048,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       responses:
         "400":
           description: "Request was malformed, e.g. id was null"
@@ -1913,6 +2056,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /transferprocess/{processId}/fail:
@@ -1931,6 +2075,7 @@ paths:
         explode: false
         schema:
           type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -1944,6 +2089,7 @@ paths:
             application/json:
               schema:
                 type: array
+                example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
   /{any}:
@@ -2016,31 +2162,44 @@ components:
           $ref: '#/components/schemas/Constraint'
         includedIn:
           type: string
+          example: null
         type:
           type: string
+          example: null
+      example: null
     ApiErrorDetail:
       type: object
       properties:
         invalidValue:
           type: string
+          example: null
         message:
           type: string
+          example: null
         path:
           type: string
+          example: null
         type:
           type: string
+          example: null
+      example: null
     Asset:
       type: object
       properties:
         createdAt:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
         properties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
+      example: null
     AssetCreationRequestDto:
       required:
       - properties
@@ -2048,10 +2207,14 @@ components:
       properties:
         id:
           type: string
+          example: null
         properties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
+      example: null
     AssetEntryDto:
       required:
       - asset
@@ -2062,18 +2225,24 @@ components:
           $ref: '#/components/schemas/AssetCreationRequestDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
+      example: null
     AssetResponseDto:
       type: object
       properties:
         createdAt:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
         properties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
+      example: null
     AssetUpdateRequestDto:
       required:
       - properties
@@ -2083,15 +2252,37 @@ components:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
+      example: null
     Catalog:
       type: object
       properties:
         contractOffers:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/ContractOffer'
+        dataServices:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/DataService'
+        datasets:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Dataset'
         id:
           type: string
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+      example: null
     CatalogRequestDto:
       required:
       - providerUrl
@@ -2099,8 +2290,10 @@ components:
       properties:
         providerUrl:
           type: string
+          example: null
         querySpec:
           $ref: '#/components/schemas/QuerySpecDto'
+      example: null
     Constraint:
       required:
       - edctype
@@ -2108,6 +2301,8 @@ components:
       properties:
         edctype:
           type: string
+          example: null
+      example: null
       discriminator:
         propertyName: edctype
     ContractAgreementDto:
@@ -2121,23 +2316,31 @@ components:
       properties:
         assetId:
           type: string
+          example: null
         consumerAgentId:
           type: string
+          example: null
         contractEndDate:
           type: integer
           format: int64
+          example: null
         contractSigningDate:
           type: integer
           format: int64
+          example: null
         contractStartDate:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
+          example: null
+      example: null
     ContractDefinitionCreateDto:
       required:
       - accessPolicyId
@@ -2147,36 +2350,49 @@ components:
       properties:
         accessPolicyId:
           type: string
+          example: null
         contractPolicyId:
           type: string
+          example: null
         criteria:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
         id:
           type: string
+          example: null
         validity:
           type: integer
           format: int64
+          example: null
+      example: null
     ContractDefinitionResponseDto:
       type: object
       properties:
         accessPolicyId:
           type: string
+          example: null
         contractPolicyId:
           type: string
+          example: null
         createdAt:
           type: integer
           format: int64
+          example: null
         criteria:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
         id:
           type: string
+          example: null
         validity:
           type: integer
           format: int64
+          example: null
+      example: null
     ContractDefinitionUpdateDto:
       required:
       - accessPolicyId
@@ -2186,41 +2402,56 @@ components:
       properties:
         accessPolicyId:
           type: string
+          example: null
         contractPolicyId:
           type: string
+          example: null
         criteria:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
         validity:
           type: integer
           format: int64
+          example: null
+      example: null
     ContractNegotiationDto:
       type: object
       properties:
         contractAgreementId:
           type: string
+          example: null
         counterPartyAddress:
           type: string
+          example: null
         createdAt:
           type: integer
           format: int64
+          example: null
         errorDetail:
           type: string
+          example: null
         id:
           type: string
+          example: null
         protocol:
           type: string
+          example: null
         state:
           type: string
+          example: null
         type:
           type: string
+          example: null
           enum:
           - CONSUMER
           - PROVIDER
         updatedAt:
           type: integer
           format: int64
+          example: null
+      example: null
     ContractOffer:
       type: object
       properties:
@@ -2229,25 +2460,33 @@ components:
         consumer:
           type: string
           format: uri
+          example: null
         contractEnd:
           type: string
           format: date-time
+          example: null
         contractStart:
           type: string
           format: date-time
+          example: null
         id:
           type: string
+          example: null
         offerEnd:
           type: string
           format: date-time
+          example: null
         offerStart:
           type: string
           format: date-time
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
         provider:
           type: string
           format: uri
+          example: null
+      example: null
     ContractOfferDescription:
       required:
       - assetId
@@ -2257,13 +2496,17 @@ components:
       properties:
         assetId:
           type: string
+          example: null
         offerId:
           type: string
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
         validity:
           type: integer
           format: int64
+          example: null
+      example: null
     CriterionDto:
       required:
       - operandLeft
@@ -2272,10 +2515,14 @@ components:
       properties:
         operandLeft:
           type: object
+          example: null
         operandRight:
           type: object
+          example: null
         operator:
           type: string
+          example: null
+      example: null
     DataAddress:
       type: object
       properties:
@@ -2283,6 +2530,9 @@ components:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
+      example: null
     DataAddressDto:
       required:
       - properties
@@ -2292,6 +2542,9 @@ components:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
+      example: null
     DataAddressInformationDto:
       type: object
       properties:
@@ -2299,80 +2552,158 @@ components:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
+      example: null
     DataFlowRequest:
       type: object
       properties:
         callbackAddress:
           type: string
           format: url
+          example: null
         destinationDataAddress:
           $ref: '#/components/schemas/DataAddress'
         id:
           type: string
+          example: null
         processId:
           type: string
+          example: null
         properties:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
         sourceDataAddress:
           $ref: '#/components/schemas/DataAddress'
         traceContext:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
         trackable:
           type: boolean
+          example: null
+      example: null
     DataPlaneInstance:
       type: object
       properties:
         allowedDestTypes:
           uniqueItems: true
           type: array
+          example: null
           items:
             type: string
+            example: null
         allowedSourceTypes:
           uniqueItems: true
           type: array
+          example: null
           items:
             type: string
+            example: null
         id:
           type: string
+          example: null
         lastActive:
           type: integer
           format: int64
+          example: null
         properties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
         turnCount:
           type: integer
           format: int32
+          example: null
         url:
           type: string
           format: url
+          example: null
+      example: null
     DataRequestDto:
       type: object
       properties:
         assetId:
           type: string
+          example: null
         connectorId:
           type: string
+          example: null
         contractId:
           type: string
+          example: null
         id:
           type: string
+          example: null
+      example: null
+    DataService:
+      type: object
+      properties:
+        endpointUrl:
+          type: string
+          example: null
+        id:
+          type: string
+          example: null
+        terms:
+          type: string
+          example: null
+      example: null
+    Dataset:
+      type: object
+      properties:
+        distributions:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/Distribution'
+        id:
+          type: string
+          example: null
+        offers:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Policy'
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+      example: null
     DeprovisionedResource:
       type: object
       properties:
         error:
           type: boolean
+          example: null
         errorMessage:
           type: string
+          example: null
         inProcess:
           type: boolean
+          example: null
         provisionedResourceId:
           type: string
+          example: null
+      example: null
+    Distribution:
+      type: object
+      properties:
+        dataService:
+          $ref: '#/components/schemas/DataService'
+        format:
+          type: string
+          example: null
+      example: null
     Duty:
       type: object
       properties:
@@ -2380,55 +2711,74 @@ components:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         consequence:
           $ref: '#/components/schemas/Duty'
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         parentPermission:
           $ref: '#/components/schemas/Permission'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
+      example: null
     Failure:
       type: object
       properties:
         failureDetail:
           type: string
+          example: null
         messages:
           type: array
+          example: null
           items:
             type: string
+            example: null
+      example: null
     HealthCheckResult:
       type: object
       properties:
         component:
           type: string
+          example: null
         failure:
           $ref: '#/components/schemas/Failure'
         isHealthy:
           type: boolean
+          example: null
+      example: null
     HealthStatus:
       type: object
       properties:
         componentResults:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/HealthCheckResult'
         isSystemHealthy:
           type: boolean
+          example: null
+      example: null
     IdResponseDto:
       type: object
       properties:
         createdAt:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
+      example: null
     NegotiationInitiateRequestDto:
       required:
       - connectorAddress
@@ -2439,17 +2789,29 @@ components:
       properties:
         connectorAddress:
           type: string
+          example: null
         connectorId:
           type: string
+          example: null
+        consumerId:
+          type: string
+          example: null
         offer:
           $ref: '#/components/schemas/ContractOfferDescription'
         protocol:
           type: string
+          example: null
+        providerId:
+          type: string
+          example: null
+      example: null
     NegotiationState:
       type: object
       properties:
         state:
           type: string
+          example: null
+      example: null
     Permission:
       type: object
       properties:
@@ -2457,53 +2819,71 @@ components:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         duties:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Duty'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
+      example: null
     Policy:
       type: object
       properties:
         '@type':
           type: string
+          example: null
           enum:
           - SET
           - OFFER
           - CONTRACT
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         extensibleProperties:
           type: object
           additionalProperties:
             type: object
+            example: null
+          example: null
         inheritsFrom:
           type: string
+          example: null
         obligations:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Duty'
         permissions:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Permission'
         prohibitions:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
+          example: null
+      example: null
     PolicyDefinitionRequestDto:
       required:
       - policy
@@ -2511,8 +2891,10 @@ components:
       properties:
         id:
           type: string
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
+      example: null
     PolicyDefinitionResponseDto:
       required:
       - policy
@@ -2521,10 +2903,13 @@ components:
         createdAt:
           type: integer
           format: int64
+          example: null
         id:
           type: string
+          example: null
         policy:
           $ref: '#/components/schemas/Policy'
+      example: null
     PolicyDefinitionUpdateDto:
       required:
       - policy
@@ -2532,6 +2917,7 @@ components:
       properties:
         policy:
           $ref: '#/components/schemas/Policy'
+      example: null
     Prohibition:
       type: object
       properties:
@@ -2539,16 +2925,22 @@ components:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
+          example: null
         assigner:
           type: string
+          example: null
         constraints:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/Constraint'
         target:
           type: string
+          example: null
         uid:
           type: string
+          example: null
+      example: null
     ProvisionerWebhookRequest:
       required:
       - apiKeyJwt
@@ -2560,38 +2952,51 @@ components:
       properties:
         apiKeyJwt:
           type: string
+          example: null
         assetId:
           type: string
+          example: null
         contentDataAddress:
           $ref: '#/components/schemas/DataAddress'
         hasToken:
           type: boolean
+          example: null
         resourceDefinitionId:
           type: string
+          example: null
         resourceName:
           type: string
+          example: null
+      example: null
     QuerySpecDto:
       type: object
       properties:
         filter:
           type: string
+          example: null
         filterExpression:
           type: array
+          example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
         limit:
           type: integer
           format: int32
+          example: null
         offset:
           type: integer
           format: int32
+          example: null
         sortField:
           type: string
+          example: null
         sortOrder:
           type: string
+          example: null
           enum:
           - ASC
           - DESC
+      example: null
     SelectionRequest:
       type: object
       properties:
@@ -2601,6 +3006,8 @@ components:
           $ref: '#/components/schemas/DataAddress'
         strategy:
           type: string
+          example: null
+      example: null
     TerminateTransferDto:
       required:
       - reason
@@ -2608,30 +3015,40 @@ components:
       properties:
         reason:
           type: string
+          example: null
+      example: null
     TransferProcessDto:
       type: object
       properties:
         createdAt:
           type: integer
           format: int64
+          example: null
         dataDestination:
           $ref: '#/components/schemas/DataAddressInformationDto'
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
         errorDetail:
           type: string
+          example: null
         id:
           type: string
+          example: null
         state:
           type: string
+          example: null
         stateTimestamp:
           type: integer
           format: int64
+          example: null
         type:
           type: string
+          example: null
         updatedAt:
           type: integer
           format: int64
+          example: null
+      example: null
     TransferProcessFailStateDto:
       required:
       - errorMessage
@@ -2639,6 +3056,8 @@ components:
       properties:
         errorMessage:
           type: string
+          example: null
+      example: null
     TransferRequestDto:
       required:
       - assetId
@@ -2652,35 +3071,50 @@ components:
       properties:
         assetId:
           type: string
+          example: null
         connectorAddress:
           type: string
+          example: null
         connectorId:
           type: string
+          example: null
         contractId:
           type: string
+          example: null
         dataDestination:
           $ref: '#/components/schemas/DataAddress'
         id:
           type: string
+          example: null
         managedResources:
           type: boolean
+          example: null
         properties:
           type: object
           additionalProperties:
             type: string
+            example: null
+          example: null
         protocol:
           type: string
+          example: null
         transferType:
           $ref: '#/components/schemas/TransferType'
+      example: null
     TransferState:
       type: object
       properties:
         state:
           type: string
+          example: null
+      example: null
     TransferType:
       type: object
       properties:
         contentType:
           type: string
+          example: null
         isFinite:
           type: boolean
+          example: null
+      example: null
