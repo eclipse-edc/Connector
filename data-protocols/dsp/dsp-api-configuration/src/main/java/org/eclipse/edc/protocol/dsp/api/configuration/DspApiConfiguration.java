@@ -14,6 +14,10 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
+/**
+ * Holds configuration information for the Dataspace Protocol API context. This is includes the
+ * context alias used for registering resources as well as the callback address.
+ */
 public class DspApiConfiguration {
     
     private final String contextAlias;

@@ -33,8 +33,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.CONTEXT_ALIAS;
-import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DEFAULT_DSP_WEBHOOK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DSP_WEBHOOK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DEFAULT_DSP_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DSP_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.SETTINGS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -70,14 +70,14 @@ class DspApiConfigurationExtensionTest {
     void initialize_noSettingsProvided_useDspDefault(ServiceExtensionContext context) {
         var spyContext = spy(context);
         when(spyContext.getConfig()).thenReturn(ConfigFactory.empty());
-        when(spyContext.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS)).thenReturn(DEFAULT_DSP_WEBHOOK_ADDRESS);
+        when(spyContext.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS)).thenReturn(DEFAULT_DSP_CALLBACK_ADDRESS);
         
         extension.initialize(spyContext);
         
         verify(configurer).configure(spyContext, webServer, SETTINGS);
         var apiConfig = spyContext.getService(DspApiConfiguration.class);
         assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
-        assertThat(apiConfig.getDspWebhookAddress()).isEqualTo(DEFAULT_DSP_WEBHOOK_ADDRESS);
+        assertThat(apiConfig.getDspWebhookAddress()).isEqualTo(DEFAULT_DSP_CALLBACK_ADDRESS);
     }
     
     @Test
@@ -89,7 +89,7 @@ class DspApiConfigurationExtensionTest {
                 "web.http.protocol.port", String.valueOf(1234),
                 "web.http.protocol.path", "/path"))
         );
-        when(spyContext.getSetting(DSP_WEBHOOK_ADDRESS, DEFAULT_DSP_WEBHOOK_ADDRESS)).thenReturn(webhookAddress);
+        when(spyContext.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS)).thenReturn(webhookAddress);
         
         extension.initialize(spyContext);
     
