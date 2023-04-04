@@ -151,7 +151,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
     
     /**
-     * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first. For multiple types, {@see #nodeTypes}.
+     * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first.
      */
     protected String nodeType(JsonObject object, TransformerContext context) {
         var typeNode = object.get(TYPE);
