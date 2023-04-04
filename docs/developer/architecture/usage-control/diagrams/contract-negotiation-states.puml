@@ -17,23 +17,23 @@
 state Consumer {
   state "INITIAL" as INITIAL_consumer {
   }
-  state "CONSUMER_REQUESTING" as CONSUMER_REQUESTING_consumer {
+  state "REQUESTING" as REQUESTING_consumer {
   }
-  state "CONSUMER_REQUESTED" as CONSUMER_REQUESTED_consumer {
+  state "REQUESTED" as REQUESTED_consumer {
   }
-  state "PROVIDER_OFFERED" as PROVIDER_OFFERED_consumer {
+  state "OFFERED" as OFFERED_consumer {
   }
-  state "CONSUMER_AGREEING" as CONSUMER_AGREEING_consumer {
+  state "ACCEPTING" as ACCEPTING_consumer {
   }
-  state "CONSUMER_AGREED" as CONSUMER_AGREED_consumer {
+  state "ACCEPTED" as ACCEPTED_consumer {
   }
-  state "PROVIDER_AGREED" as PROVIDER_AGREED_consumer {
+  state "AGREED" as AGREED_consumer {
   }
-  state "CONSUMER_VERIFYING" as CONSUMER_VERIFYING_consumer {
+  state "VERIFYING" as VERIFYING_consumer {
   }
-  state "CONSUMER_VERIFIED" as CONSUMER_VERIFIED_consumer {
+  state "VERIFIED" as VERIFIED_consumer {
   }
-  state "PROVIDER_FINALIZED" as PROVIDER_FINALIZED_consumer {
+  state "FINALIZED" as FINALIZED_consumer {
   }
   state "TERMINATING" as TERMINATING_consumer {
   }
@@ -41,25 +41,25 @@ state Consumer {
   }
 
   [*] --> INITIAL_consumer
-  INITIAL_consumer --> CONSUMER_REQUESTING_consumer
-  CONSUMER_REQUESTING_consumer --> CONSUMER_REQUESTED_consumer
-  CONSUMER_REQUESTING_consumer -[dashed]-> CONSUMER_REQUESTED_provider : sends\n**ContractRequestMessage**
+  INITIAL_consumer --> REQUESTING_consumer
+  REQUESTING_consumer --> REQUESTED_consumer
+  REQUESTING_consumer -[dashed]-> REQUESTED_provider : sends\n**ContractRequestMessage**
 
-  CONSUMER_REQUESTED_consumer -[hidden]-> PROVIDER_OFFERED_consumer : used for layout
+  REQUESTED_consumer -[hidden]-> OFFERED_consumer : used for layout
 
-  PROVIDER_OFFERED_consumer --> CONSUMER_AGREEING_consumer
-  PROVIDER_OFFERED_consumer --> CONSUMER_REQUESTING_consumer : counter offer
-  CONSUMER_AGREEING_consumer --> CONSUMER_AGREED_consumer
-  CONSUMER_AGREEING_consumer -[dashed]-> CONSUMER_AGREED_provider : sends\n**ContractNegotiationEventMessage**
+  OFFERED_consumer --> ACCEPTING_consumer
+  OFFERED_consumer --> REQUESTING_consumer : counter offer
+  ACCEPTING_consumer --> ACCEPTED_consumer
+  ACCEPTING_consumer -[dashed]-> ACCEPTED_provider : sends\n**ContractNegotiationEventMessage**
 
-  CONSUMER_AGREED_consumer -[hidden]-> CONSUMER_VERIFYING_consumer : used for layout
-  PROVIDER_AGREED_consumer --> CONSUMER_VERIFYING_consumer
-  CONSUMER_VERIFYING_consumer --> CONSUMER_VERIFIED_consumer
-  CONSUMER_VERIFYING_consumer -[dashed]-> CONSUMER_VERIFIED_provider : sends\n**ContractAgreementVerificationMessage**
+  ACCEPTED_consumer -[hidden]-> VERIFYING_consumer : used for layout
+  AGREED_consumer --> VERIFYING_consumer
+  VERIFYING_consumer --> VERIFIED_consumer
+  VERIFYING_consumer -[dashed]-> VERIFIED_provider : sends\n**ContractAgreementVerificationMessage**
 
-  CONSUMER_VERIFIED_consumer -[hidden]-> PROVIDER_FINALIZED_consumer : used for layout
+  VERIFIED_consumer -[hidden]-> FINALIZED_consumer : used for layout
 
-  CONSUMER_VERIFIED_consumer -[hidden]-> TERMINATING_consumer : used for layout
+  VERIFIED_consumer -[hidden]-> TERMINATING_consumer : used for layout
   TERMINATING_consumer -[dashed]-> TERMINATED_provider : sends\n**TransferTerminationMessage**\nmessage
   TERMINATING_consumer --> TERMINATED_consumer
 }
@@ -67,23 +67,23 @@ state Consumer {
 state Provider {
   state "INITIAL" as INITIAL_provider {
   }
-  state "CONSUMER_REQUESTED" as CONSUMER_REQUESTED_provider {
+  state "REQUESTED" as REQUESTED_provider {
   }
-  state "PROVIDER_OFFERING" as PROVIDER_OFFERING_provider {
+  state "OFFERING" as OFFERING_provider {
   }
-  state "PROVIDER_OFFERED" as PROVIDER_OFFERED_provider {
+  state "OFFERED" as OFFERED_provider {
   }
-  state "PROVIDER_AGREEING" as PROVIDER_AGREEING_provider {
+  state "AGREEING" as AGREEING_provider {
   }
-  state "PROVIDER_AGREED" as PROVIDER_AGREED_provider {
+  state "AGREED" as AGREED_provider {
   }
-  state "CONSUMER_AGREED" as CONSUMER_AGREED_provider {
+  state "ACCEPTED" as ACCEPTED_provider {
   }
-  state "CONSUMER_VERIFIED" as CONSUMER_VERIFIED_provider {
+  state "VERIFIED" as VERIFIED_provider {
   }
-  state "PROVIDER_FINALIZING" as PROVIDER_FINALIZING_provider {
+  state "FINALIZING" as FINALIZING_provider {
   }
-  state "PROVIDER_FINALIZED" as PROVIDER_FINALIZED_provider {
+  state "FINALIZED" as FINALIZED_provider {
   }
   state "TERMINATING" as TERMINATING_provider {
   }
@@ -91,24 +91,24 @@ state Provider {
   }
 
   [*] --> INITIAL_provider
-  INITIAL_provider --> PROVIDER_OFFERING_provider
-  PROVIDER_OFFERING_provider --> PROVIDER_OFFERED_provider
-  PROVIDER_OFFERING_provider -[dashed]-> PROVIDER_OFFERED_consumer : sends\n**ContractOfferMessage**
-  CONSUMER_REQUESTED_provider --> PROVIDER_AGREEING_provider
-  CONSUMER_REQUESTED_provider --> PROVIDER_OFFERING_provider : counter offer
-  PROVIDER_AGREEING_provider --> PROVIDER_AGREED_provider
-  PROVIDER_AGREEING_provider -[dashed]-> PROVIDER_AGREED_consumer : sends\n**ContractAgreementMessage**
+  INITIAL_provider --> OFFERING_provider
+  OFFERING_provider --> OFFERED_provider
+  OFFERING_provider -[dashed]-> OFFERED_consumer : sends\n**ContractOfferMessage**
+  REQUESTED_provider --> AGREEING_provider
+  REQUESTED_provider --> OFFERING_provider : counter offer
+  AGREEING_provider --> AGREED_provider
+  AGREEING_provider -[dashed]-> AGREED_consumer : sends\n**ContractAgreementMessage**
 
-  PROVIDER_OFFERED_provider -[hidden]-> CONSUMER_REQUESTED_provider : used for layout
-  PROVIDER_AGREED_provider -[hidden]-> CONSUMER_VERIFIED_provider : used for layout
-  CONSUMER_REQUESTED_provider -[hidden]-> CONSUMER_AGREED_provider : used for layout
+  OFFERED_provider -[hidden]-> REQUESTED_provider : used for layout
+  AGREED_provider -[hidden]-> VERIFIED_provider : used for layout
+  REQUESTED_provider -[hidden]-> ACCEPTED_provider : used for layout
 
-  CONSUMER_AGREED_provider --> PROVIDER_AGREEING_provider
-  CONSUMER_VERIFIED_provider --> PROVIDER_FINALIZING_provider
-  PROVIDER_FINALIZING_provider --> PROVIDER_FINALIZED_provider
-  PROVIDER_FINALIZING_provider -[dashed]-> PROVIDER_FINALIZED_consumer : sends\n**ContractNegotiationEventMessage**
+  ACCEPTED_provider --> AGREEING_provider
+  VERIFIED_provider --> FINALIZING_provider
+  FINALIZING_provider --> FINALIZED_provider
+  FINALIZING_provider -[dashed]-> FINALIZED_consumer : sends\n**ContractNegotiationEventMessage**
 
-  PROVIDER_FINALIZING_provider -[hidden]-> TERMINATING_provider : used for layout
+  FINALIZING_provider -[hidden]-> TERMINATING_provider : used for layout
   TERMINATING_provider -[dashed]-> TERMINATED_consumer : sends\n**TransferTerminationMessage**\nmessage
   TERMINATING_provider --> TERMINATED_provider
 }

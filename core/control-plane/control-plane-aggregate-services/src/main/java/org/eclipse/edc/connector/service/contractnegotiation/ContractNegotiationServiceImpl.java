@@ -131,35 +131,35 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     }
 
     @Override
-    public ServiceResult<ContractNegotiation> notifyConsumerRequested(ContractOfferRequest message, ClaimToken claimToken) {
-        return providerManager.consumerRequested(claimToken, message) // TODO: currently the manager method always succeed
+    public ServiceResult<ContractNegotiation> notifyRequested(ContractOfferRequest message, ClaimToken claimToken) {
+        return providerManager.requested(claimToken, message) // TODO: currently the manager method always succeed
                 .flatMap(this::toServiceResult);
     }
 
     @Override
-    public ServiceResult<ContractNegotiation> notifyProviderOffered(ContractOfferRequest message, ClaimToken claimToken) {
+    public ServiceResult<ContractNegotiation> notifyOffered(ContractOfferRequest message, ClaimToken claimToken) {
         throw new UnsupportedOperationException("not implemented");
     }
 
     @Override
-    public ServiceResult<ContractNegotiation> notifyConsumerAgreed(ContractNegotiationEventMessage message, ClaimToken claimToken) {
+    public ServiceResult<ContractNegotiation> notifyAccepted(ContractNegotiationEventMessage message, ClaimToken claimToken) {
         throw new UnsupportedOperationException("not implemented");
     }
 
     @Override
-    public ServiceResult<ContractNegotiation> notifyProviderAgreed(ContractAgreementRequest message, ClaimToken claimToken) {
-        return consumerManager.providerAgreed(claimToken, message.getCorrelationId(), message.getContractAgreement(), message.getPolicy())
+    public ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementRequest message, ClaimToken claimToken) {
+        return consumerManager.agreed(claimToken, message.getCorrelationId(), message.getContractAgreement(), message.getPolicy())
                 .flatMap(this::toServiceResult);
     }
 
     @Override
-    public ServiceResult<ContractNegotiation> notifyConsumerVerified(ContractAgreementVerificationMessage message, ClaimToken claimToken) {
+    public ServiceResult<ContractNegotiation> notifyVerified(ContractAgreementVerificationMessage message, ClaimToken claimToken) {
         return providerManager.verified(claimToken, message.getCorrelationId())
                 .flatMap(this::toServiceResult);
     }
 
     @Override
-    public ServiceResult<ContractNegotiation> notifyProviderFinalized(ContractNegotiationEventMessage message, ClaimToken claimToken) {
+    public ServiceResult<ContractNegotiation> notifyFinalized(ContractNegotiationEventMessage message, ClaimToken claimToken) {
         return consumerManager.finalized(claimToken, message.getCorrelationId())
                 .flatMap(this::toServiceResult);
     }

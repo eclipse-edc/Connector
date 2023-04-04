@@ -596,7 +596,7 @@ class MultipartControllerIntegrationTest {
 
     @Test
     void testHandleContractRequest(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
-        when(service.notifyConsumerRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("id")));
+        when(service.notifyRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("id")));
         var assetId = "1234";
         var request = createRequestWithPayload(getContractRequestMessage(),
                 new ContractRequestBuilder(URI.create("urn:contractrequest:2345"))
@@ -657,7 +657,7 @@ class MultipartControllerIntegrationTest {
                         .build());
         var asset = Asset.Builder.newInstance().id(assetId).build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
-        when(service.notifyProviderAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("id")));
+        when(service.notifyAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("id")));
 
         var response = httpClient.execute(request);
 
@@ -689,7 +689,7 @@ class MultipartControllerIntegrationTest {
         });
         jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
         jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        verify(service).notifyProviderAgreed(argThat(message -> assetId.equals(message.getContractAgreement().getAssetId())), any());
+        verify(service).notifyAgreed(argThat(message -> assetId.equals(message.getContractAgreement().getAssetId())), any());
     }
 
     @Test

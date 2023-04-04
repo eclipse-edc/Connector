@@ -43,9 +43,9 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -91,12 +91,12 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
         assertEquals(INITIAL.code(), found.getState());
 
-        negotiation.transitionConsumerRequesting();
+        negotiation.transitionRequesting();
 
         store.save(negotiation);
         found = store.findById(id);
         assertNotNull(found);
-        assertEquals(CONSUMER_REQUESTING.code(), found.getState());
+        assertEquals(REQUESTING.code(), found.getState());
 
         assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class);
     }
@@ -108,20 +108,20 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation2 = requestingNegotiation();
         store.save(negotiation2);
 
-        negotiation2.transitionConsumerRequested();
+        negotiation2.transitionRequested();
         store.save(negotiation2);
         Thread.sleep(1);
-        negotiation1.transitionConsumerRequested();
+        negotiation1.transitionRequested();
         store.save(negotiation1);
 
-        var requestingNegotiations = store.nextForState(CONSUMER_REQUESTING.code(), 1);
+        var requestingNegotiations = store.nextForState(REQUESTING.code(), 1);
         assertThat(requestingNegotiations).isEmpty();
 
-        var found = store.nextForState(CONSUMER_REQUESTED.code(), 1);
+        var found = store.nextForState(REQUESTED.code(), 1);
         assertEquals(1, found.size());
         assertEquals(negotiation2, found.get(0));
 
-        found = store.nextForState(CONSUMER_REQUESTED.code(), 3);
+        found = store.nextForState(REQUESTED.code(), 3);
         assertEquals(1, found.size());
         assertEquals(negotiation1, found.get(0));
     }
@@ -340,7 +340,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                 .id("negotiation1")
                 .contractAgreement(null)
                 .correlationId("corr-negotiation1")
-                .state(ContractNegotiationStates.CONSUMER_REQUESTED.code())
+                .state(ContractNegotiationStates.REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .protocol("ids-multipart")
@@ -431,7 +431,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     private ContractNegotiation requestingNegotiation() {
         var negotiation = TestFunctions.createNegotiation(UUID.randomUUID().toString());
         negotiation.transitionInitial();
-        negotiation.transitionConsumerRequesting();
+        negotiation.transitionRequesting();
         return negotiation;
     }
 

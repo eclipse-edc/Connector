@@ -20,24 +20,23 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been requested.
+ * This event is raised when the ContractNegotiation has been approved.
  */
-@JsonDeserialize(builder = ContractNegotiationConsumerRequested.Builder.class)
-public class ContractNegotiationConsumerRequested extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationAccepted.Builder.class)
+public class ContractNegotiationAccepted extends ContractNegotiationEvent {
 
-    private ContractNegotiationConsumerRequested() {
+    private ContractNegotiationAccepted() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationConsumerRequested, Builder> {
-
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationAccepted, Builder> {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new ContractNegotiationConsumerRequested());
+            super(new ContractNegotiationAccepted());
         }
 
         @Override

@@ -33,7 +33,7 @@ public interface ProviderContractNegotiationManager extends ContractNegotiationM
     /**
      * A contract negotiation has been requested by the consumer represented with the given claims.
      */
-    StatusResult<ContractNegotiation> consumerRequested(ClaimToken token, ContractOfferRequest request);
+    StatusResult<ContractNegotiation> requested(ClaimToken token, ContractOfferRequest request);
 
     /**
      * The negotiation has been verified by the consumer.

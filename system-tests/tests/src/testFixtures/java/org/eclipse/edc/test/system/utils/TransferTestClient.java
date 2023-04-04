@@ -78,7 +78,7 @@ public class TransferTestClient {
         await().atMost(30, SECONDS).untilAsserted(() ->
                 fetchNegotiatedAgreement(contractNegotiationRequestId)
                         .body("id", equalTo(contractNegotiationRequestId))
-                        .body("state", equalTo(ContractNegotiationStates.PROVIDER_FINALIZED.name()))
+                        .body("state", equalTo(ContractNegotiationStates.FINALIZED.name()))
                         .body("contractAgreementId", notNullValue()));
 
         return fetchNegotiatedAgreement(contractNegotiationRequestId)

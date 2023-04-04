@@ -39,7 +39,7 @@ public interface ConsumerContractNegotiationManager extends ContractNegotiationM
     /**
      * The negotiation has been agreed by the provider.
      */
-    StatusResult<ContractNegotiation> providerAgreed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy);
+    StatusResult<ContractNegotiation> agreed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy);
 
     /**
      * The negotiation has been finalized by the provider.

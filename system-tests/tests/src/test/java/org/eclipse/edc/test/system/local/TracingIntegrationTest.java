@@ -66,8 +66,8 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
 
     List<String> contractNegotiationSpanNames = List.of(
             "ConsumerContractNegotiationManagerImpl.initiate", // initial API request
-            "ProviderContractNegotiationManagerImpl.consumerRequested", // verify context propagation in ProviderContractNegotiationManagerImpl
-            "ConsumerContractNegotiationManagerImpl.providerAgreed" // verify context propagation in ConsumerContractNegotiationManagerImpl
+            "ProviderContractNegotiationManagerImpl.requested", // verify context propagation in ProviderContractNegotiationManagerImpl
+            "ConsumerContractNegotiationManagerImpl.agreed" // verify context propagation in ConsumerContractNegotiationManagerImpl
     );
 
     List<String> transferProcessSpanNames = List.of(

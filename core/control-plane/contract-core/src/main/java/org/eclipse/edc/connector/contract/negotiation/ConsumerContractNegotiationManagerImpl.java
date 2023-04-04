@@ -39,12 +39,12 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFYING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -52,7 +52,6 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class ConsumerContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ConsumerContractNegotiationManager {
 
-    private static final String TYPE = "Consumer";
     private StateMachineManager stateMachineManager;
 
     private ConsumerContractNegotiationManagerImpl() {
@@ -61,10 +60,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
-                .processor(processNegotiationsInState(CONSUMER_REQUESTING, this::processRequesting))
-                .processor(processNegotiationsInState(CONSUMER_AGREEING, this::processConsumerApproving))
-                .processor(processNegotiationsInState(PROVIDER_AGREED, this::processProviderAgreed))
-                .processor(processNegotiationsInState(CONSUMER_VERIFYING, this::processConsumerVerifying))
+                .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
+                .processor(processNegotiationsInState(ACCEPTING, this::processAccepting))
+                .processor(processNegotiationsInState(AGREED, this::processAgreed))
+                .processor(processNegotiationsInState(VERIFYING, this::processVerifying))
                 .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
                 .processor(onCommands(this::processCommand))
                 .build();
@@ -118,7 +117,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     @Override
-    public StatusResult<ContractNegotiation> providerAgreed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
+    public StatusResult<ContractNegotiation> agreed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
         var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
             return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
@@ -138,7 +137,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
 
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
-        transitionToProviderAgreed(negotiation, agreement);
+        transitionToAgreed(negotiation, agreement);
 
         return StatusResult.success(negotiation);
     }
@@ -155,7 +154,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             return StatusResult.failure(FATAL_ERROR, "Invalid provider credentials");
         }
 
-        transitionToProviderFinalized(negotiation);
+        transitionToFinalized(negotiation);
         return StatusResult.success(negotiation);
     }
 
@@ -190,11 +189,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         commandQueue.enqueue(command);
     }
 
-    @Override
-    protected String getType() {
-        return TYPE;
-    }
-
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
         var negotiation = negotiationStore.findById(negotiationId);
         if (negotiation == null) {
@@ -211,7 +205,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processInitial(ContractNegotiation negotiation) {
-        transitionToConsumerRequesting(negotiation);
+        transitionToRequesting(negotiation);
         return true;
     }
 
@@ -237,22 +231,22 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
-                .onSuccess((n, result) -> transitionToConsumerRequested(n))
-                .onFailure((n, throwable) -> transitionToConsumerRequesting(n))
+                .onSuccess((n, result) -> transitionToRequested(n))
+                .onFailure((n, throwable) -> transitionToRequesting(n))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to provider: %s", request.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Consumer] Send ContractRequestMessage message");
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state CONSUMER_APPROVING. Tries to send a dummy contract agreement to
+     * Processes {@link ContractNegotiation} in state ACCEPTING. Tries to send a dummy contract agreement to
      * the respective provider in order to approve the last offer sent by the provider. If this succeeds, the
-     * ContractNegotiation is transitioned to state CONSUMER_APPROVED. Else, it is transitioned to CONSUMER_APPROVING
+     * ContractNegotiation is transitioned to state ACCEPTED. Else, it is transitioned to ACCEPTING
      * for a retry.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processConsumerApproving(ContractNegotiation negotiation) {
+    private boolean processAccepting(ContractNegotiation negotiation) {
         var lastOffer = negotiation.getLastContractOffer();
 
         var contractId = ContractId.parse(lastOffer.getId());
@@ -286,38 +280,38 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
-                .onSuccess((n, result) -> transitionToConsumerAgreed(n))
-                .onFailure((n, throwable) -> transitionToConsumerAgreeing(n))
+                .onSuccess((n, result) -> transitionToAccepted(n))
+                .onFailure((n, throwable) -> transitionToAccepting(n))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to provider: %s", request.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[consumer] send agreement");
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state PROVIDER_AGREED. For the deprecated ids-protocol, it's transitioned
-     * to PROVIDER_FINALIZED, otherwise to CONSUMER_VERIFYING to make the verification process start.
+     * Processes {@link ContractNegotiation} in state AGREED. For the deprecated ids-protocol, it's transitioned
+     * to FINALIZED, otherwise to VERIFYING to make the verification process start.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processProviderAgreed(ContractNegotiation negotiation) {
+    private boolean processAgreed(ContractNegotiation negotiation) {
         if ("ids-multipart".equals(negotiation.getProtocol())) {
-            transitionToProviderFinalized(negotiation);
+            transitionToFinalized(negotiation);
             return true;
         }
 
-        transitionToConsumerVerifying(negotiation);
+        transitionToVerifying(negotiation);
         return true;
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state CONSUMER_VERIFYING. Verifies the Agreement and send the
-     * {@link ContractAgreementVerificationMessage} to the provider and transition the negotiation to the CONSUMER_VERIFIED
+     * Processes {@link ContractNegotiation} in state VERIFYING. Verifies the Agreement and send the
+     * {@link ContractAgreementVerificationMessage} to the provider and transition the negotiation to the VERIFIED
      * state.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processConsumerVerifying(ContractNegotiation negotiation) {
+    private boolean processVerifying(ContractNegotiation negotiation) {
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorAddress(negotiation.getCounterPartyAddress())
@@ -327,8 +321,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
-                .onSuccess((n, result) -> transitionToConsumerVerified(n))
-                .onFailure((n, throwable) -> transitionToConsumerVerifying(n))
+                .onSuccess((n, result) -> transitionToVerified(n))
+                .onFailure((n, throwable) -> transitionToVerifying(n))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to provider: %s", message.getClass().getSimpleName(), throwable.getMessage())))
                 .execute(format("[consumer] send %s", message.getClass().getSimpleName()));
     }

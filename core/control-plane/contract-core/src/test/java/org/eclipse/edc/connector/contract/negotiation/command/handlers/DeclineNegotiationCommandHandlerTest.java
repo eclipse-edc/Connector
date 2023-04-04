@@ -52,7 +52,7 @@ class DeclineNegotiationCommandHandlerTest {
                 .counterPartyId("counter-party")
                 .counterPartyAddress("https://counter-party")
                 .protocol("test-protocol")
-                .state(ContractNegotiationStates.CONSUMER_REQUESTED.code())
+                .state(ContractNegotiationStates.REQUESTED.code())
                 .clock(future)
                 .updatedAt(now.millis())
                 .build();

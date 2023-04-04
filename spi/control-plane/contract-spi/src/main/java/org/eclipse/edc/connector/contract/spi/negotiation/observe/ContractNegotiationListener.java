@@ -41,7 +41,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been requested.
      */
-    default void consumerRequested(ContractNegotiation negotiation) {
+    default void requested(ContractNegotiation negotiation) {
 
     }
 
@@ -50,7 +50,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been offered.
      */
-    default void providerOffered(ContractNegotiation negotiation) {
+    default void offered(ContractNegotiation negotiation) {
 
     }
 
@@ -59,7 +59,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been approved.
      */
-    default void consumerAgreed(ContractNegotiation negotiation) {
+    default void accepted(ContractNegotiation negotiation) {
 
     }
 
@@ -99,7 +99,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been confirmed.
      */
-    default void providerAgreed(ContractNegotiation negotiation) {
+    default void agreed(ContractNegotiation negotiation) {
 
     }
 
@@ -108,7 +108,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been verified.
      */
-    default void consumerVerified(ContractNegotiation negotiation) {
+    default void verified(ContractNegotiation negotiation) {
 
     }
 
@@ -117,7 +117,7 @@ public interface ContractNegotiationListener {
      *
      * @param negotiation the contract negotiation that has been finalized.
      */
-    default void providerFinalized(ContractNegotiation negotiation) {
+    default void finalized(ContractNegotiation negotiation) {
 
     }
 }
