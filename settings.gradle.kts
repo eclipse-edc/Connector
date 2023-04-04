@@ -223,3 +223,5 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
+
+include(":version-catalog")
