@@ -89,8 +89,8 @@ class ContractOfferResolverImplClockSkewTest {
                 .provider(URI.create("urn:connector:edc-provider"))
                 .consumer(URI.create("urn:connector:edc-consumer"))
                 .build();
-
         var offers = contractOfferResolver.queryContractOffers(query);
+
         assertThat(offers)
                 .hasSize(1)
                 .allSatisfy(contractOffer -> assertThat(ChronoUnit.SECONDS.between(
