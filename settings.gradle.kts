@@ -183,6 +183,8 @@ include(":extensions:data-plane-selector:store:cosmos:data-plane-instance-store-
 include(":launchers:data-plane-server")
 include(":launchers:dpf-selector")
 include(":launchers:ids-connector")
+include(":launchers:data-factory-sample:provider")
+include(":launchers:data-factory-sample:consumer")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:auth-spi")
@@ -228,3 +230,5 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
+include("extensions:common:azure:ms-dataverse")
+findProject(":extensions:common:azure:ms-dataverse")?.name = "ms-dataverse"

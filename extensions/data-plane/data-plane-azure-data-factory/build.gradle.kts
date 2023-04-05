@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
+    implementation(project(":extensions:common:azure:ms-dataverse"))
     implementation(project(":extensions:common:azure:azure-blob-core"))
     implementation(project(":core:common:util"))
     implementation(libs.azure.identity)

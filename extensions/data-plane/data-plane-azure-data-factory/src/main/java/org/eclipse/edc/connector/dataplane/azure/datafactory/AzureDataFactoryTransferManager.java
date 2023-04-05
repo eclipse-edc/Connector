@@ -19,9 +19,11 @@ import com.azure.resourcemanager.datafactory.models.PipelineResource;
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
 import org.eclipse.edc.azure.blob.AzureSasToken;
 import org.eclipse.edc.azure.blob.api.BlobStoreApi;
+import org.eclipse.edc.ms.dataverse.MicrosoftDataverseSchema;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -80,16 +82,9 @@ public class AzureDataFactoryTransferManager {
      * @return a {@link CompletableFuture} that completes when the data transfer completes.
      */
     public CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request) {
-
         PipelineResource pipeline = pipelineFactory.createPipeline(request);
-
         // Destination
         var dataAddress = request.getDestinationDataAddress();
-        var secret = keyVaultClient.getSecret(dataAddress.getKeyName());
-        var token = typeManager.readValue(secret.getValue(), AzureSasToken.class);
-        var accountName = dataAddress.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME);
-        var containerName = dataAddress.getProperty(AzureBlobStoreSchema.CONTAINER_NAME);
-
         var runId = client.runPipeline(pipeline).runId();
 
         monitor.debug("Created ADF pipeline for " + request.getProcessId() + ". Run id is " + runId);
@@ -97,7 +92,7 @@ public class AzureDataFactoryTransferManager {
         return awaitRunCompletion(runId)
                 .thenApply(result -> {
                     if (result.succeeded()) {
-                        return complete(accountName, containerName, token.getSas());
+                        return complete(dataAddress);
                     }
                     return result;
                 })
@@ -145,14 +140,26 @@ public class AzureDataFactoryTransferManager {
         return completedFuture(StatusResult.failure(ERROR_RETRY, "ADF run timed out"));
     }
 
-    private StatusResult<Void> complete(String accountName, String containerName, String sharedAccessSignature) {
-        try {
-            // Write an empty blob to indicate completion
-            blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, new AzureSasCredential(sharedAccessSignature))
-                    .getOutputStream().close();
-            return StatusResult.success();
-        } catch (IOException e) {
-            return StatusResult.failure(ERROR_RETRY, format("Error creating blob %s on account %s", COMPLETE_BLOB_NAME, accountName));
+    private StatusResult<Void> complete(DataAddress dataAddress) {
+        switch (dataAddress.getType())
+        {
+            case AzureBlobStoreSchema.TYPE:
+                var token = typeManager.readValue(keyVaultClient.getSecret(dataAddress.getKeyName()).getValue(), AzureSasToken.class);
+                var accountName = dataAddress.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME);
+                var containerName = dataAddress.getProperty(AzureBlobStoreSchema.CONTAINER_NAME);
+
+                try {
+                    // Write an empty blob to indicate completion
+                    blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, new AzureSasCredential(token.getSas()))
+                            .getOutputStream().close();
+                    return StatusResult.success();
+                } catch (IOException e) {
+                    return StatusResult.failure(ERROR_RETRY, format("Error creating blob %s on account %s", COMPLETE_BLOB_NAME, accountName));
+                }
+            case MicrosoftDataverseSchema.TYPE:
+                return StatusResult.success();
+            default:
+                return StatusResult.failure(ERROR_RETRY, "Unsupported destination type: " + dataAddress.getType());
         }
     }
 

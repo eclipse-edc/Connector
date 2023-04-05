@@ -53,3 +53,4 @@ launchers/demo-e2e/edc-config.properties
 .env
 runtime_settings.properties
 generated_backend.tf
+launchers/data-factory-sample
