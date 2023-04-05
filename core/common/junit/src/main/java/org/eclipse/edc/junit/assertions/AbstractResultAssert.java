@@ -28,15 +28,16 @@ import org.eclipse.edc.spi.result.Failure;
  * @param <C> the content type
  * @param <F> the failure type
  */
-public class AbstractResultAssert<SELF extends AbstractAssert<SELF, RESULT>, RESULT extends AbstractResult<C, F>, C, F extends Failure>
+public class AbstractResultAssert<SELF extends AbstractAssert<SELF, RESULT>, RESULT extends AbstractResult<C, F, RESULT>, C, F extends Failure>
         extends AbstractAssert<SELF, RESULT> {
 
     protected AbstractResultAssert(RESULT tfAbstractResult) {
         super(tfAbstractResult, AbstractResultAssert.class);
     }
 
-    public static AbstractResultAssert<?, ?, ?, ?> assertThat(AbstractResult<?, ?> actual) {
-        return new AbstractResultAssert<>(actual);
+    @SuppressWarnings("unchecked")
+    public static <SELF extends AbstractResultAssert<SELF, RESULT, C, F>, RESULT extends AbstractResult<C, F, RESULT>, C, F extends Failure> SELF assertThat(RESULT actual) {
+        return (SELF) new AbstractResultAssert<>(actual);
     }
 
     public ObjectAssert<C> isSucceeded() {
