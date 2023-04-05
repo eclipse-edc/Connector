@@ -24,19 +24,20 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
-import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
+import java.util.ArrayList;
 import java.util.Map;
 
-import static java.util.UUID.randomUUID;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
+import static java.lang.String.format;
+import static java.lang.String.join;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
@@ -49,9 +50,6 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
@@ -78,25 +76,28 @@ public class CatalogController {
     @Path(CATALOG_REQUEST)
     public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         var expanded = expand(jsonObject).getJsonObject(0); //expanding returns a JsonArray of size 1
-        var transformResult = transformerRegistry.transform(expanded, CatalogRequestMessage.class);
-        if (transformResult.failed()) {
+        var messageResult = transformerRegistry.transform(expanded, CatalogRequestMessage.class);
+        if (messageResult.failed()) {
             throw new InvalidRequestException("Request body was malformed.");
         }
-
-        //TODO use request and token to build catalog, replace empty catalog below
-        var request = transformResult.getContent();
-        var claimToken = readToken(token);
-        var catalog = Json.createObjectBuilder()
-                .add(ID, randomUUID().toString())
-                .add(TYPE, DCAT_CATALOG_TYPE)
-                .add(DCAT_DATASET_ATTRIBUTE, Json.createArrayBuilder().build())
-                .add(DCAT_DATA_SERVICE_ATTRIBUTE, Json.createArrayBuilder().build())
+    
+        checkAuthToken(token);
+        
+        //TODO use request and claim token to build catalog, replace empty catalog below
+        var catalog = Catalog.Builder.newInstance()
+                .datasets(new ArrayList<>())
+                .dataServices(new ArrayList<>())
                 .build();
         
-        return mapper.convertValue(compact(catalog, jsonLdContext()), Map.class);
+        var catalogResult = transformerRegistry.transform(catalog, JsonObject.class);
+        if (catalogResult.failed()) {
+            throw new EdcException(format("Failed to build response: %s", join(", ", catalogResult.getFailureMessages())));
+        }
+        
+        return mapper.convertValue(compact(catalogResult.getContent(), jsonLdContext()), Map.class);
     }
     
-    private ClaimToken readToken(String token) {
+    private void checkAuthToken(String token) {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
@@ -105,8 +106,6 @@ public class CatalogController {
         if (result.failed()) {
             throw new AuthenticationFailedException();
         }
-
-        return result.getContent();
     }
     
     private JsonObject jsonLdContext() {

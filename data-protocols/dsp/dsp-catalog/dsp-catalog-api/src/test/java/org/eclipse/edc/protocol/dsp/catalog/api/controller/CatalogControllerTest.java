@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -69,9 +70,11 @@ class CatalogControllerTest {
         
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.success(requestMessage));
+        when(transformerRegistry.transform(any(Catalog.class), eq(JsonObject.class)))
+                .thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
-        when(mapper.convertValue(any(), eq(Map.class))).thenReturn(responseMap);
+        when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenReturn(responseMap);
 
         var response = controller.getCatalog(request, authHeader);
 
