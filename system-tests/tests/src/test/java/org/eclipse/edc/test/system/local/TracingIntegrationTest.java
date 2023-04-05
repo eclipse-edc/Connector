@@ -73,8 +73,8 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
     List<String> transferProcessSpanNames = List.of(
             "TransferProcessManagerImpl.initiateConsumerRequest", // initial API request
             "TransferProcessManagerImpl.processInitial", // verify context propagation in TransferProcessManagerImpl
-            "TransferProcessManagerImpl.initiateProviderRequest", // verify context propagation in TransferProcessManagerImpl
             "TransferProcessManagerImpl.processProvisioned", // verify context propagation in TransferProcessManagerImpl
+            "TransferProcessProtocolServiceImpl.notifyRequested", // verify context propagation in TransferProcessManagerImpl
             "EmbeddedDataPlaneClient.transfer", // DPF call
             "PipelineServiceImpl.transfer", // verify context propagation in DataPlaneManagerImpl
             "FileTransferDataSink.transferParts" // verify context propagation in ParallelSink

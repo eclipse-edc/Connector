@@ -170,38 +170,6 @@ class TransferProcessManagerImplTest {
                 .build();
     }
 
-    /**
-     * All creations operations must be idempotent in order to support reliability (e.g. messages/requests may be delivered more than once).
-     */
-    @Test
-    void verifyIdempotency() {
-        when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
-        var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
-
-        manager.start();
-        manager.initiateProviderRequest(transferRequest);
-        manager.initiateProviderRequest(transferRequest); // repeat request
-        manager.stop();
-
-        verify(transferProcessStore, times(RETRY_LIMIT)).save(isA(TransferProcess.class));
-        verify(transferProcessStore, times(2)).processIdForDataRequestId(anyString());
-    }
-
-    @Test
-    void verifyCreatedTimestamp() {
-        when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
-        var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
-
-        manager.start();
-        manager.initiateProviderRequest(transferRequest);
-        manager.stop();
-
-        verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getCreatedAt() > 0));
-        verify(listener).initiated(any());
-    }
-
     @Test
     void verifyCallbacks() {
         when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");

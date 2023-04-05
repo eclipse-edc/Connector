@@ -76,7 +76,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @Override
     @WithSpan
-    public @NotNull ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
+    @NotNull
+    public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
         var validDestination = dataAddressValidator.validate(message.getDataDestination());
         if (validDestination.failed()) {
             return ServiceResult.badRequest(validDestination.getFailureMessages());
@@ -91,18 +92,21 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @Override
     @WithSpan
+    @NotNull
     public ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, ClaimToken claimToken) {
         return onMessageDo(message, transferProcess -> startedAction(message, transferProcess));
     }
 
     @Override
     @WithSpan
+    @NotNull
     public ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, ClaimToken claimToken) {
         return onMessageDo(message, transferProcess -> completedAction(message, transferProcess));
     }
 
     @Override
     @WithSpan
+    @NotNull
     public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken) {
         return onMessageDo(message, transferProcess -> terminatedAction(message, transferProcess));
     }
@@ -133,9 +137,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 
-        observable.invokeForEach(l -> l.preRequested(process));
+        observable.invokeForEach(l -> l.preCreated(process));
         update(process);
-        observable.invokeForEach(l -> l.requested(process));
+        observable.invokeForEach(l -> l.initiated(process));
         return ServiceResult.success(process);
     }
 
@@ -178,7 +182,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         }
     }
 
-    private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, TransferProcessAction action) {
+    private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, Function<TransferProcess, ServiceResult<TransferProcess>> action) {
         return transactionContext.execute(() -> Optional.of(message.getProcessId())
                 .map(transferProcessStore::processIdForDataRequestId)
                 .map(transferProcessStore::find)
@@ -191,5 +195,4 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 
-    private interface TransferProcessAction extends Function<TransferProcess, ServiceResult<TransferProcess>> { }
 }

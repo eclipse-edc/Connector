@@ -106,9 +106,9 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyRequested(message, claimToken());
 
         assertThat(result).isSucceeded().extracting(TransferProcess::getCorrelationId).isEqualTo("correlationId");
-        verify(listener).preRequested(any());
+        verify(listener).preCreated(any());
         verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
-        verify(listener).requested(any());
+        verify(listener).initiated(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 

@@ -45,6 +45,7 @@ public interface TransferProcessProtocolService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
+    @NotNull
     ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, ClaimToken claimToken);
 
     /**
@@ -54,6 +55,7 @@ public interface TransferProcessProtocolService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
+    @NotNull
     ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, ClaimToken claimToken);
 
     /**
@@ -63,6 +65,7 @@ public interface TransferProcessProtocolService {
      * @param claimToken the counter-party claim token
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
+    @NotNull
     ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken);
 
 }
