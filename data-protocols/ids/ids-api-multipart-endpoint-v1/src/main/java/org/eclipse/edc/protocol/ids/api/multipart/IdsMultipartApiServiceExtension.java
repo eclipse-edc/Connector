@@ -21,7 +21,7 @@ package org.eclipse.edc.protocol.ids.api.multipart;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfiguration;
@@ -98,7 +98,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private Vault vault;
     
     @Inject
-    private TransferProcessService transferProcessService;
+    private TransferProcessProtocolService transferProcessService;
 
     @Inject
     private TypeManager typeManager;

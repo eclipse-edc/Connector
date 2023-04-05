@@ -15,13 +15,10 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
@@ -34,23 +31,13 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
-import org.eclipse.edc.connector.transfer.spi.types.command.NotifyCompletedTransfer;
-import org.eclipse.edc.connector.transfer.spi.types.command.NotifyStartedTransfer;
-import org.eclipse.edc.connector.transfer.spi.types.command.NotifyTerminatedTransfer;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -70,19 +56,14 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessManager manager;
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
-    private final ContractNegotiationStore negotiationStore;
-    private final ContractValidationService contractValidationService;
     private final DataAddressValidator dataAddressValidator;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
-                                      TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
-                                      ContractValidationService contractValidationService,
+                                      TransactionContext transactionContext,
                                       DataAddressValidator dataAddressValidator) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
-        this.negotiationStore = negotiationStore;
-        this.contractValidationService = contractValidationService;
         this.dataAddressValidator = dataAddressValidator;
         queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
@@ -152,60 +133,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         return transactionContext.execute(() -> runAsync(new AddProvisionedResourceCommand(transferProcessId, response)));
     }
 
-    @Override
-    public @NotNull ServiceResult<String> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
-        var validDestination = dataAddressValidator.validate(message.getDataDestination());
-        if (validDestination.failed()) {
-            return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
-        }
-
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(message.getId())
-                .protocol(message.getProtocol())
-                .connectorId(message.getConnectorId())
-                .connectorAddress(message.getConnectorAddress())
-                .dataDestination(message.getDataDestination())
-                .properties(message.getProperties())
-                .assetId(message.getAssetId())
-                .contractId(message.getContractId())
-                .build();
-
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
-
-        return transactionContext.execute(() ->
-                Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
-                        .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
-                        .map(agreement -> manager.initiateProviderRequest(transferRequest))
-                        .filter(AbstractResult::succeeded)
-                        .map(AbstractResult::getContent)
-                        .map(ServiceResult::success)
-                        .orElse(ServiceResult.conflict("Request couldn't be initialised.")));
-    }
-
-    @Override
-    public ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, ClaimToken claimToken) {
-        return transactionContext.execute(() -> handleRemoteMessage(message));
-    }
-
-    @Override
-    public ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, ClaimToken claimToken) {
-        return transactionContext.execute(() -> handleRemoteMessage(message));
-    }
-
-    @Override
-    public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken) {
-        return transactionContext.execute(() -> handleRemoteMessage(message));
-    }
-
-    @NotNull
-    private ServiceResult<TransferProcess> handleRemoteMessage(TransferRemoteMessage message) {
-        return Optional.of(message.getProcessId())
-                .map(transferProcessStore::processIdForDataRequestId)
-                .map(id -> messageToCommandFactories.get(message.getClass()).apply(id))
-                .map(this::runSync)
-                .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", message.getProcessId())));
-    }
-
     private ServiceResult<TransferProcess> runAsync(SingleTransferProcessCommand command) {
         return Optional.of(command.getTransferProcessId())
                 .map(transferProcessStore::find)
@@ -222,32 +149,12 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                 .orElse(ServiceResult.notFound(format("TransferProcess with id %s not found", command.getTransferProcessId())));
     }
 
-    private ServiceResult<TransferProcess> runSync(SingleTransferProcessCommand command) {
-        return Optional.of(command.getTransferProcessId())
-                .map(transferProcessStore::find)
-                .map(transferProcess -> {
-                    var commandResult = manager.runCommand(command);
-                    if (commandResult.succeeded()) {
-                        return ServiceResult.success(transferProcess);
-                    } else {
-                        return ServiceResult.<TransferProcess>conflict(format("Cannot %s because %s", command.getClass().getSimpleName(), commandResult.getFailureDetail()));
-                    }
-                })
-                .orElse(ServiceResult.notFound(format("TransferProcess with id %s not found", command.getTransferProcessId())));
-    }
-
     private Map<Class<?>, List<Class<?>>> getSubtypes() {
         return Map.of(
                 ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
                 ProvisionedDataAddressResource.class, List.of(ProvisionedDataDestinationResource.class, ProvisionedContentResource.class)
         );
     }
-
-    private final Map<Class<? extends RemoteMessage>, MessageToCommandFactory> messageToCommandFactories = Map.of(
-            TransferStartMessage.class, NotifyStartedTransfer::new,
-            TransferCompletionMessage.class, NotifyCompletedTransfer::new,
-            TransferTerminationMessage.class, NotifyTerminatedTransfer::new
-    );
 
     private final Map<Class<? extends SingleTransferProcessCommand>, CommandValidator> asyncCommandValidators = Map.of(
             TerminateTransferCommand.class,
@@ -269,8 +176,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
             AddProvisionedResourceCommand.class, (command, transferProcess) -> Result.success()
     );
-
-    private interface MessageToCommandFactory extends Function<String, SingleTransferProcessCommand> { }
 
     private interface CommandValidator extends BiFunction<SingleTransferProcessCommand, TransferProcess, Result<Void>> {}
 }

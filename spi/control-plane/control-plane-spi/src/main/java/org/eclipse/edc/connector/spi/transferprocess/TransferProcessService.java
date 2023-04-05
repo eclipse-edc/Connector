@@ -19,12 +19,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,42 +149,5 @@ public interface TransferProcessService {
      * @return a result that is successful if the transfer process was found
      */
     ServiceResult<TransferProcess> addProvisionedResource(String transferProcessId, ProvisionResponse response);
-
-    /**
-     * Notifies the TransferProcess that it has been requested by the counter-part.
-     *
-     * @param message the incoming message
-     * @param claimToken the counter-party claim token
-     * @return a succeeded result if the operation was successful, a failed one otherwise
-     */
-    @NotNull
-    ServiceResult<String> notifyRequested(TransferRequestMessage message, ClaimToken claimToken);
-
-    /**
-     * Notifies the TransferProcess that it has been started by the counter-part.
-     *
-     * @param message the incoming message
-     * @param claimToken the counter-party claim token
-     * @return a succeeded result if the operation was successful, a failed one otherwise
-     */
-    ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, ClaimToken claimToken);
-
-    /**
-     * Notifies the TransferProcess that it has been completed by the counter-part.
-     *
-     * @param message the incoming message
-     * @param claimToken the counter-party claim token
-     * @return a succeeded result if the operation was successful, a failed one otherwise
-     */
-    ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, ClaimToken claimToken);
-
-    /**
-     * Notifies the TransferProcess that it has been terminated by the counter-part.
-     *
-     * @param message the incoming message
-     * @param claimToken the counter-party claim token
-     * @return a succeeded result if the operation was successful, a failed one otherwise
-     */
-    ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken);
 
 }
