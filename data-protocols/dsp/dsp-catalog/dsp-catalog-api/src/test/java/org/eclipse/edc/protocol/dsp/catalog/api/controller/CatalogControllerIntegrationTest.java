@@ -50,8 +50,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 class CatalogControllerIntegrationTest {
 
-    private final int DSP_API_PORT = getFreePort();
-    private final String DSP_API_PATH = "/api/v1/dsp";
+    private final int dspApiPort = getFreePort();
+    private final String dspApiPath = "/api/v1/dsp";
     private String callbackAddress = "http://callback";
     private String authHeader = "auth";
     private IdentityService identityService = mock(IdentityService.class);
@@ -63,8 +63,8 @@ class CatalogControllerIntegrationTest {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
-                "web.http.protocol.port", String.valueOf(DSP_API_PORT),
-                "web.http.protocol.path", DSP_API_PATH,
+                "web.http.protocol.port", String.valueOf(dspApiPort),
+                "web.http.protocol.path", dspApiPath,
                 "edc.dsp.callback.address", callbackAddress
         ));
         extension.registerServiceMock(IdentityService.class, identityService);
@@ -123,8 +123,8 @@ class CatalogControllerIntegrationTest {
     
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + DSP_API_PORT)
-                .basePath(DSP_API_PATH)
+                .baseUri("http://localhost:" + dspApiPort)
+                .basePath(dspApiPath)
                 .header(HttpHeaders.AUTHORIZATION, authHeader)
                 .when();
     }
