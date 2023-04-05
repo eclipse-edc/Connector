@@ -154,6 +154,10 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "deprovisioned_resources";
     }
 
+    default String getCallbackAddressesColumn() {
+        return "callback_addresses";
+    }
+    
     default String getFormatAsJsonOperator() {
         return BaseSqlDialect.getJsonCastOperator();
     }

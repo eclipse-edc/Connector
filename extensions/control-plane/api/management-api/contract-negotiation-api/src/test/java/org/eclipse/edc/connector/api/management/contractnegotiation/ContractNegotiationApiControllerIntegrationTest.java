@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -310,6 +311,9 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .id(negotiationId)
                 .counterPartyId(UUID.randomUUID().toString())
                 .counterPartyAddress("address")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .protocol(protocol);
     }
 

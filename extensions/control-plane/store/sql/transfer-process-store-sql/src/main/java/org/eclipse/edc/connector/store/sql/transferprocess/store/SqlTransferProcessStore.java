@@ -197,6 +197,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getProvisionedResourceSet()),
                 toJson(process.getContentDataAddress()),
                 toJson(process.getDeprovisionedResources()),
+                toJson(process.getCallbackAddresses()),
                 process.getUpdatedAt(),
                 process.getId());
 
@@ -254,7 +255,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getContentDataAddress()),
                 process.getType().toString(),
                 toJson(process.getDeprovisionedResources()),
-                toJson(process.getProperties()));
+                toJson(process.getProperties()),
+                toJson(process.getCallbackAddresses()));
 
         //insert DataRequest
         var dr = process.getDataRequest();
@@ -296,6 +298,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .dataRequest(mapDataRequest(resultSet))
                 .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
                 .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), new TypeReference<>() {
+                }))
+                .callbackAddresses(fromJson(resultSet.getString(statements.getCallbackAddressesColumn()), new TypeReference<>() {
                 }))
                 .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
                 .build();

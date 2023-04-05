@@ -61,6 +61,7 @@ import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,9 +70,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -114,6 +117,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
 
 class TransferProcessManagerImplTest {
 
@@ -196,6 +200,29 @@ class TransferProcessManagerImplTest {
 
         verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getCreatedAt() > 0));
         verify(listener).initiated(any());
+    }
+
+    @Test
+    void verifyCallbacks() {
+        when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
+        var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
+        var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
+
+        var transferRequest = TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
+                .callbackAddresses(List.of(callback))
+                .build();
+
+        var captor = ArgumentCaptor.forClass(TransferProcess.class);
+
+        manager.start();
+        manager.initiateConsumerRequest(transferRequest);
+        manager.stop();
+
+        verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
+        assertThat(captor.getValue().getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
+        verify(listener).initiated(any());
+
     }
 
     @Test
@@ -843,7 +870,8 @@ class TransferProcessManagerImplTest {
 
     @Test
     void enqueueCommand_willEnqueueCommandOnCommandQueue() {
-        var command = new TransferProcessCommand() {};
+        var command = new TransferProcessCommand() {
+        };
 
         manager.enqueueCommand(command);
 
@@ -852,36 +880,14 @@ class TransferProcessManagerImplTest {
 
     @Test
     void runCommand_willRunCommandAndReturnResult() {
-        var command = new TransferProcessCommand() {};
+        var command = new TransferProcessCommand() {
+        };
         when(commandRunner.runCommand(command)).thenReturn(Result.success());
 
         var result = manager.runCommand(command);
 
         assertThat(result).matches(Result::succeeded);
         verify(commandRunner).runCommand(command);
-    }
-
-    private static class DispatchFailureArguments implements ArgumentsProvider {
-
-        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
-        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            return Stream.of(
-                    // retries not exhausted
-                    new DispatchFailure(REQUESTING, REQUESTING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, STARTING, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, COMPLETING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    // retries exhausted
-                    new DispatchFailure(REQUESTING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED))
-            );
-        }
-
     }
 
     private TestProvisionedContentResource createTestProvisionedContentResource(String resourceDefinitionId) {
@@ -932,6 +938,30 @@ class TransferProcessManagerImplTest {
     private ProvisionedDataDestinationResource provisionedDataDestinationResource() {
         return new TestProvisionedDataDestinationResource("test-resource", PROVISIONED_RESOURCE_ID);
     }
+
+    private static class DispatchFailureArguments implements ArgumentsProvider {
+
+        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
+        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return Stream.of(
+                    // retries not exhausted
+                    new DispatchFailure(REQUESTING, REQUESTING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, STARTING, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, COMPLETING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    // retries exhausted
+                    new DispatchFailure(REQUESTING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED))
+            );
+        }
+
+    }
+
 
     @JsonTypeName("dataspaceconnector:testprovisioneddcontentresource")
     @JsonDeserialize(builder = TestProvisionedContentResource.Builder.class)

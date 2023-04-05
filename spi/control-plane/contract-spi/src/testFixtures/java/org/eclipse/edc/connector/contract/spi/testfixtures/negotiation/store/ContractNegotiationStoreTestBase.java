@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +30,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -126,6 +128,27 @@ public abstract class ContractNegotiationStoreTestBase {
         Assertions.assertThat(getContractNegotiationStore().findById(negotiation.getId()))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation);
+    }
+
+    @Test
+    @DisplayName("Verify that entity is stored with callbacks")
+    void save_verifyCallbacks() {
+        var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
+
+        var negotiation = createNegotiationBuilder("test-id1")
+                .type(ContractNegotiation.Type.CONSUMER)
+                .callbackAddresses(callbacks)
+                .build();
+
+        getContractNegotiationStore().save(negotiation);
+
+        var contract = getContractNegotiationStore().findById(negotiation.getId());
+
+        assertThat(contract)
+                .usingRecursiveComparison()
+                .isEqualTo(negotiation);
+
+        assertThat(contract.getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
     }
 
     @Test
@@ -239,6 +262,24 @@ public abstract class ContractNegotiationStoreTestBase {
                 .containsExactly(agreement);
 
         Assertions.assertThat(Objects.requireNonNull(getContractNegotiationStore().findById(negotiationId)).getContractAgreement()).usingRecursiveComparison().isEqualTo(agreement);
+    }
+
+    @Test
+    @DisplayName("Should persist update the callbacks if changed")
+    void update_changeCallbacks() {
+        var negotiationId = "test-cn1";
+        var negotiation = createNegotiation(negotiationId);
+        getContractNegotiationStore().save(negotiation);
+
+        // one callback
+        Assertions.assertThat(Objects.requireNonNull(getContractNegotiationStore().findById(negotiationId)).getCallbackAddresses()).hasSize(1);
+
+        // remove callbacks
+        var updatedNegotiation = createNegotiationBuilder(negotiationId).callbackAddresses(List.of()).build();
+
+        getContractNegotiationStore().save(updatedNegotiation); //should perform an update + insert
+
+        Assertions.assertThat(Objects.requireNonNull(getContractNegotiationStore().findById(negotiationId)).getCallbackAddresses()).isEmpty();
     }
 
     @Test

@@ -24,9 +24,12 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class TestFunctions {
@@ -71,6 +74,10 @@ public class TestFunctions {
                 .state(ContractNegotiationStates.REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .events(Set.of("contract.negotiation.initiated"))
+                        .build()))
                 .protocol("ids-multipart");
     }
 

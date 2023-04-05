@@ -16,6 +16,10 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.CallbackAddressDto;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class NegotiationInitiateRequestDto {
     @NotBlank(message = "connectorAddress is mandatory")
@@ -28,6 +32,8 @@ public class NegotiationInitiateRequestDto {
     private ContractOfferDescription offer;
     private String providerId;
     private String consumerId;
+
+    private List<CallbackAddressDto> callbackAddresses = new ArrayList<>();
 
     private NegotiationInitiateRequestDto() {
 
@@ -49,12 +55,17 @@ public class NegotiationInitiateRequestDto {
         return offer;
     }
 
+
     public String getConsumerId() {
         return consumerId;
     }
 
     public String getProviderId() {
         return providerId;
+    }
+
+    public List<CallbackAddressDto> getCallbackAddresses() {
+        return callbackAddresses;
     }
 
     public static final class Builder {
@@ -95,6 +106,11 @@ public class NegotiationInitiateRequestDto {
 
         public Builder providerId(String providerId) {
             dto.providerId = providerId;
+            return this;
+        }
+
+        public Builder callbackAddresses(List<CallbackAddressDto> callbackAddresses) {
+            dto.callbackAddresses = callbackAddresses;
             return this;
         }
 

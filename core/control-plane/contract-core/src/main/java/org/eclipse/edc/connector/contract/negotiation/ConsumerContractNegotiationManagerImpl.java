@@ -94,6 +94,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getConnectorAddress())
+                .callbackAddresses(contractOffer.getCallbackAddress())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
                 .build();

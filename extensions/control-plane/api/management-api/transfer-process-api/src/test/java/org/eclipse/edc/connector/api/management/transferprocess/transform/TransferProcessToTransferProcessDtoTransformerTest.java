@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -95,6 +96,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
                 .state(INITIAL.code())
                 .stateTimestamp(data.stateTimestamp)
                 .createdAt(data.createdTimestamp)
+                .callbackAddresses(List.of(data.callbackAddress))
                 .dataRequest(data.dataRequest);
         data.dto
                 .dataDestination(

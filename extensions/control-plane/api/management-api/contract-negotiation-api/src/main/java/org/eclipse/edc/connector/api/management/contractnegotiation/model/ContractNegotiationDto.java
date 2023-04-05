@@ -19,6 +19,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.api.model.MutableDto;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @JsonDeserialize(builder = ContractNegotiationDto.Builder.class)
 public class ContractNegotiationDto extends MutableDto {
@@ -29,6 +33,9 @@ public class ContractNegotiationDto extends MutableDto {
     private String protocol = "ids-multipart";
     private String state;
     private Type type = Type.CONSUMER;
+
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
+
 
     private ContractNegotiationDto() {
     }
@@ -59,6 +66,10 @@ public class ContractNegotiationDto extends MutableDto {
 
     public String getContractAgreementId() {
         return contractAgreementId;
+    }
+
+    public List<CallbackAddress> getCallbackAddresses() {
+        return callbackAddresses;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -102,6 +113,12 @@ public class ContractNegotiationDto extends MutableDto {
             dto.contractAgreementId = contractAgreementId;
             return this;
         }
+
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            dto.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
 
         public Builder type(Type type) {
             dto.type = type;

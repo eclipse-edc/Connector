@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
+import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
@@ -33,6 +34,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
@@ -45,6 +47,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -188,6 +191,9 @@ class ContractNegotiationApiControllerTest {
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
                 .offer(TestFunctions.createOffer("offerId"))
+                .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .build();
 
         var negotiationId = controller.initiateContractNegotiation(request);
@@ -302,6 +308,9 @@ class ContractNegotiationApiControllerTest {
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .build();
     }
 

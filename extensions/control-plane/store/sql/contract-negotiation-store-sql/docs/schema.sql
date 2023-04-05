@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
         CONSTRAINT contract_negotiation_contract_agreement_id_fk
             REFERENCES edc_contract_agreement,
     contract_offers      JSON,
+    callback_addresses   JSON,
     trace_context        JSON,
     lease_id             VARCHAR
         CONSTRAINT contract_negotiation_lease_lease_id_fk

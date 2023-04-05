@@ -23,11 +23,13 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -60,6 +62,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
@@ -104,6 +107,15 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public List<ContractOffer> getContractOffers() {
         return contractOffers;
+    }
+
+    /**
+     * Returns all callback addresses configured for the negotiation process.
+     *
+     * @return The callback addresses.
+     */
+    public List<CallbackAddress> getCallbackAddresses() {
+        return Collections.unmodifiableList(callbackAddresses);
     }
 
     /**
@@ -322,7 +334,8 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
                 .protocol(protocol)
                 .type(type)
                 .contractAgreement(contractAgreement)
-                .contractOffers(contractOffers);
+                .contractOffers(contractOffers)
+                .callbackAddresses(callbackAddresses);
         return copy(builder);
     }
 
@@ -373,7 +386,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     public enum Type {
-        CONSUMER, PROVIDER;
+        CONSUMER, PROVIDER
     }
 
     /**
@@ -423,6 +436,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             return this;
         }
 
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            entity.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
         public Builder contractOffer(ContractOffer contractOffer) {
             entity.contractOffers.add(contractOffer);
             return this;
@@ -450,6 +468,9 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             }
             if (entity.state == 0) {
                 entity.transitionTo(INITIAL.code());
+            }
+            if (entity.callbackAddresses == null) {
+                entity.callbackAddresses = new ArrayList<>();
             }
             return entity;
         }

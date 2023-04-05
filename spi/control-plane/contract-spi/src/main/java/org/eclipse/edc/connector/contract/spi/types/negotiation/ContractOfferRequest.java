@@ -15,8 +15,11 @@
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -31,6 +34,8 @@ public class ContractOfferRequest implements RemoteMessage {
     private String connectorAddress;
     private String correlationId;
     private ContractOffer contractOffer;
+
+    private List<CallbackAddress> callbackAddress = new ArrayList<>();
 
     @Override
     public String getProtocol() {
@@ -58,11 +63,20 @@ public class ContractOfferRequest implements RemoteMessage {
         return contractOffer;
     }
 
+    public List<CallbackAddress> getCallbackAddress() {
+        return callbackAddress;
+    }
+
+    public enum Type {
+        INITIAL,
+        COUNTER_OFFER
+    }
+
     public static class Builder {
         private final ContractOfferRequest contractOfferRequest;
 
         private Builder() {
-            this.contractOfferRequest = new ContractOfferRequest();
+            contractOfferRequest = new ContractOfferRequest();
         }
 
         public static Builder newInstance() {
@@ -70,32 +84,37 @@ public class ContractOfferRequest implements RemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.contractOfferRequest.protocol = protocol;
+            contractOfferRequest.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            this.contractOfferRequest.connectorId = connectorId;
+            contractOfferRequest.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.contractOfferRequest.connectorAddress = connectorAddress;
+            contractOfferRequest.connectorAddress = connectorAddress;
             return this;
         }
 
         public Builder correlationId(String correlationId) {
-            this.contractOfferRequest.correlationId = correlationId;
+            contractOfferRequest.correlationId = correlationId;
+            return this;
+        }
+
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            contractOfferRequest.callbackAddress = callbackAddresses;
             return this;
         }
 
         public Builder contractOffer(ContractOffer contractOffer) {
-            this.contractOfferRequest.contractOffer = contractOffer;
+            contractOfferRequest.contractOffer = contractOffer;
             return this;
         }
 
         public Builder type(Type type) {
-            this.contractOfferRequest.type = type;
+            contractOfferRequest.type = type;
             return this;
         }
 
@@ -106,10 +125,5 @@ public class ContractOfferRequest implements RemoteMessage {
             Objects.requireNonNull(contractOfferRequest.contractOffer, "contractOffer");
             return contractOfferRequest;
         }
-    }
-
-    public enum Type {
-        INITIAL,
-        COUNTER_OFFER
     }
 }
