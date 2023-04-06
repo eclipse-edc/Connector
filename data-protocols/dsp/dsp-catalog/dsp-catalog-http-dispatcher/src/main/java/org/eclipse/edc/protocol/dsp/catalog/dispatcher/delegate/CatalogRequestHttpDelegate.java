@@ -36,7 +36,7 @@ import java.util.function.Function;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 
 /**
- * Delegate for dispatching catalog requests as defined in the dataspace protocol implementation.
+ * Delegate for dispatching catalog requests as defined in the dataspace protocol specification.
  */
 public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<CatalogRequest, Catalog> {
     
