@@ -23,7 +23,8 @@ import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
@@ -57,11 +58,12 @@ import static org.mockito.Mockito.when;
 
 class ArtifactRequestHandlerTest {
 
-    private ArtifactRequestHandler handler;
 
-    private TransferProcessService transferProcessService;
+    private final TransferProcessProtocolService service = mock(TransferProcessProtocolService.class);
+    private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private IdsId connectorId;
-    private ContractNegotiationStore contractNegotiationStore;
+
+    private ArtifactRequestHandler handler;
 
     private static URI createUri(IdsType type, String value) {
         return URI.create("urn:" + type.getValue() + ":" + value);
@@ -79,13 +81,11 @@ class ArtifactRequestHandlerTest {
 
     @BeforeEach
     public void setUp() {
-        transferProcessService = mock(TransferProcessService.class);
         connectorId = IdsId.from("urn:connector:" + UUID.randomUUID()).getContent();
-        Monitor monitor = mock(Monitor.class);
-        contractNegotiationStore = mock(ContractNegotiationStore.class);
-        Vault vault = mock(Vault.class);
+        var monitor = mock(Monitor.class);
+        var vault = mock(Vault.class);
 
-        handler = new ArtifactRequestHandler(monitor, connectorId, getCustomizedObjectMapper(), contractNegotiationStore, vault, transferProcessService);
+        handler = new ArtifactRequestHandler(monitor, connectorId, getCustomizedObjectMapper(), contractNegotiationStore, vault, service);
     }
 
     @Test
@@ -100,12 +100,12 @@ class ArtifactRequestHandlerTest {
         var header = (ArtifactRequestMessage) multipartRequest.getHeader();
 
         var trCapture = ArgumentCaptor.forClass(TransferRequestMessage.class);
-        when(transferProcessService.notifyRequested(trCapture.capture(), eq(claimToken))).thenReturn(ServiceResult.success("Transfer success"));
+        when(service.notifyRequested(trCapture.capture(), eq(claimToken))).thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build()));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
 
         handler.handleRequest(multipartRequest);
 
-        verify(transferProcessService).notifyRequested(trCapture.capture(), eq(claimToken));
+        verify(service).notifyRequested(trCapture.capture(), eq(claimToken));
 
         var requestMessage = trCapture.getValue();
 
@@ -136,7 +136,7 @@ class ArtifactRequestHandlerTest {
         var response = handler.handleRequest(multipartRequest);
 
         // Verify the request is rejected as the client sent a contract id with a different asset id
-        verifyNoInteractions(transferProcessService);
+        verifyNoInteractions(service);
         assertThat(response).isNotNull();
         assertThat(response.getHeader()).isInstanceOf(RejectionMessage.class);
 

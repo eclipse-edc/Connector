@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -73,7 +74,8 @@ public class TransferProcessEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service, TransferProcessProtocolService protocolService,
+                                                           EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
@@ -104,7 +106,7 @@ public class TransferProcessEventDispatchTest {
         });
 
         var startMessage = TransferStartMessage.Builder.newInstance().processId("dataRequestId").protocol("any").connectorAddress("http://any").build();
-        service.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
+        protocolService.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessStarted.class)));

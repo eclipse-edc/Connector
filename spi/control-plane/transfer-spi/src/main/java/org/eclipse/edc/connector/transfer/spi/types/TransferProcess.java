@@ -319,6 +319,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return Arrays.stream(states).map(TransferProcessStates::code).anyMatch(code -> code == state);
     }
 
+    @JsonIgnore
+    public String getCorrelationId() {
+        return dataRequest.getId();
+    }
+
     @Override
     public TransferProcess copy() {
         var builder = Builder.newInstance()

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.junit.assertions;
 
-import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.StringAssert;
 import org.eclipse.edc.spi.result.Failure;
@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.result.Failure;
  * @param <SELF> self type
  * @param <F> the failure type
  */
-public class FailureAssert<F extends Failure, SELF extends FailureAssert<F, SELF>> extends AbstractAssert<SELF, F> {
+public class FailureAssert<F extends Failure, SELF extends FailureAssert<F, SELF>> extends AbstractObjectAssert<SELF, F> {
 
     protected FailureAssert(F object, Class selfType) {
         super(object, selfType);

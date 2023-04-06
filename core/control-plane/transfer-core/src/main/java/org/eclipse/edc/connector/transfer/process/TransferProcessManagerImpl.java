@@ -168,16 +168,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @Override
     public StatusResult<String> initiateConsumerRequest(TransferRequest transferRequest) {
         return initiateRequest(CONSUMER, transferRequest);
-
-    }
-
-    /**
-     * Initiate a provider request TransferProcess.
-     */
-    @WithSpan
-    @Override
-    public StatusResult<String> initiateProviderRequest(TransferRequest transferRequest) {
-        return initiateRequest(PROVIDER, transferRequest);
     }
 
     @Override

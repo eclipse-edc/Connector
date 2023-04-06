@@ -18,7 +18,7 @@ package org.eclipse.edc.protocol.ids.api.multipart.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
@@ -49,7 +49,7 @@ public class ArtifactRequestHandler implements Handler {
     private final ObjectMapper objectMapper;
     private final ContractNegotiationStore contractNegotiationStore;
     private final Vault vault;
-    private final TransferProcessService transferProcessService;
+    private final TransferProcessProtocolService service;
 
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
@@ -57,13 +57,13 @@ public class ArtifactRequestHandler implements Handler {
             @NotNull ObjectMapper objectMapper,
             @NotNull ContractNegotiationStore contractNegotiationStore,
             @NotNull Vault vault,
-            @NotNull TransferProcessService transferProcessService) {
+            @NotNull TransferProcessProtocolService service) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.objectMapper = objectMapper;
         this.contractNegotiationStore = contractNegotiationStore;
         this.vault = vault;
-        this.transferProcessService = transferProcessService;
+        this.service = service;
     }
 
     @Override
@@ -155,7 +155,7 @@ public class ArtifactRequestHandler implements Handler {
                 .build();
 
         // Initiate a transfer process for the request
-        var transferInitiateResult = transferProcessService.notifyRequested(requestMessage, claimToken);
+        var transferInitiateResult = service.notifyRequested(requestMessage, claimToken);
 
         // Store secret if process initiated successfully
         if (transferInitiateResult.succeeded() && artifactRequestMessagePayload.getSecret() != null) {

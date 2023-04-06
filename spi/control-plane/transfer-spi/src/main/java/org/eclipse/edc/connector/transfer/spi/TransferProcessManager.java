@@ -32,11 +32,6 @@ public interface TransferProcessManager {
     StatusResult<String> initiateConsumerRequest(TransferRequest transferRequest);
 
     /**
-     * Initiates a data transfer process on the provider.
-     */
-    StatusResult<String> initiateProviderRequest(TransferRequest transferRequest);
-
-    /**
      * Adds a single Command to the queue which is processed sequentially.
      */
     void enqueueCommand(TransferProcessCommand command);
