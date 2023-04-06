@@ -67,6 +67,9 @@ include(":core:data-plane-selector:data-plane-selector-core")
 
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:dsp:dsp-api-configuration")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-api")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-spi")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform")
 include(":data-protocols:dsp:dsp-http-core")
 include(":data-protocols:dsp:dsp-http-spi")
 include(":data-protocols:dsp:dsp-transform")

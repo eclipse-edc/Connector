@@ -66,6 +66,10 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param context the transformer context
      */
     protected void transformProperties(Map<String, Object> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
+        if (properties == null) {
+            return;
+        }
+        
         properties.forEach((k, v) ->  {
             try {
                 builder.add(k, mapper.convertValue(v, JsonValue.class));
