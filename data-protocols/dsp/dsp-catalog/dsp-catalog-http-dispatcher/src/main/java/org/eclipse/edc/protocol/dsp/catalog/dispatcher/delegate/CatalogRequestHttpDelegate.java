@@ -14,10 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -26,14 +24,16 @@ import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.io.IOException;
 import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
+import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.CATALOG_REQUEST;
 
 /**
  * Delegate for dispatching catalog requests as defined in the dataspace protocol specification.
@@ -41,10 +41,6 @@ import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<CatalogRequest, Catalog> {
     
     private static final String APPLICATION_JSON = "application/json";
-    
-    //TODO to be removed once #2685 is merged
-    static final String BASE_PATH = "/catalog";
-    static final String CATALOG_REQUEST = "/request";
     
     private ObjectMapper mapper;
     private JsonLdTransformerRegistry transformerRegistry;
@@ -118,37 +114,5 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
                 throw new EdcException("Failed to read response body.", e);
             }
         };
-    }
-    
-    //TODO to be removed once #2685 is merged
-    static class CatalogRequestMessage {
-        private QuerySpec filter;
-    
-        public QuerySpec getFilter() {
-            return filter;
-        }
-    
-        @JsonPOJOBuilder(withPrefix = "")
-        public static class Builder {
-            private final CatalogRequestMessage request;
-        
-            private Builder() {
-                request = new CatalogRequestMessage();
-            }
-        
-            @JsonCreator
-            public static Builder newInstance() {
-                return new Builder();
-            }
-        
-            public Builder filter(QuerySpec filter) {
-                request.filter = filter;
-                return this;
-            }
-        
-            public CatalogRequestMessage build() {
-                return request;
-            }
-        }
     }
 }
