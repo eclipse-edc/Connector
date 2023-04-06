@@ -20,7 +20,7 @@ import de.fraunhofer.iais.eis.ContractRequest;
 import de.fraunhofer.iais.eis.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.transform.ContractTransformerInput;
@@ -48,18 +48,18 @@ public class ContractRequestHandler implements Handler {
     private final IdsId connectorId;
     private final IdsTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
-    private final ContractNegotiationService contractNegotiationService;
+    private final ContractNegotiationProtocolService service;
 
     public ContractRequestHandler(
             Monitor monitor, IdsId connectorId, ObjectMapper objectMapper,
             IdsTransformerRegistry transformerRegistry,
-            AssetIndex assetIndex, ContractNegotiationService contractNegotiationService) {
+            AssetIndex assetIndex, ContractNegotiationProtocolService service) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.objectMapper = objectMapper;
         this.transformerRegistry = transformerRegistry;
         this.assetIndex = assetIndex;
-        this.contractNegotiationService = contractNegotiationService;
+        this.service = service;
     }
 
     @Override
@@ -136,7 +136,7 @@ public class ContractRequestHandler implements Handler {
                 .contractOffer(contractOffer)
                 .build();
 
-        var negotiationInitiateResult = contractNegotiationService.notifyRequested(requestObj, claimToken);
+        var negotiationInitiateResult = service.notifyRequested(requestObj, claimToken);
 
         return createMultipartResponse(inProcessFromServiceResult(negotiationInitiateResult, message, connectorId));
     }

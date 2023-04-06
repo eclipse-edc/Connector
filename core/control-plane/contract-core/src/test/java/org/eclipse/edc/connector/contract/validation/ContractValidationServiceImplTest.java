@@ -58,6 +58,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.NEGOTIATION_SCOPE;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -306,6 +307,17 @@ class ContractValidationServiceImplTest {
         assertThat(result.succeeded()).isTrue();
 
         verify(agentService).createFor(isA(ClaimToken.class));
+    }
+
+    @Test
+    void validateConfirmed_failsIfOfferIsNull() {
+        var agreement = createContractAgreement().id("1:2").build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = validationService.validateConfirmed(token, agreement, null);
+
+        assertThat(result).isFailed();
+        verify(agentService, times(0)).createFor(eq(token));
     }
 
     @ParameterizedTest

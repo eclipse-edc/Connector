@@ -74,21 +74,21 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
     /**
      * Executes a {@link Consumer} if this {@link Result} is successful
      */
-    public AbstractResult<T, F, R> onSuccess(Consumer<T> successAction) {
+    public R onSuccess(Consumer<T> successAction) {
         if (succeeded()) {
             successAction.accept(getContent());
         }
-        return this;
+        return self();
     }
 
     /**
      * Executes a {@link Consumer} if this {@link Result} failed. Passes the {@link Failure} to the consumer
      */
-    public AbstractResult<T, F, R> onFailure(Consumer<F> failureAction) {
+    public R onFailure(Consumer<F> failureAction) {
         if (failed()) {
             failureAction.accept(getFailure());
         }
-        return this;
+        return self();
     }
 
     /**

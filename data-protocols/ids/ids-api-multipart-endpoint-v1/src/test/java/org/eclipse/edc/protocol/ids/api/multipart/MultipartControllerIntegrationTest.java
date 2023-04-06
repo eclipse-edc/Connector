@@ -45,7 +45,7 @@ import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Action;
@@ -106,7 +106,7 @@ class MultipartControllerIntegrationTest {
     private final ObjectMapper objectMapper = getCustomizedObjectMapper();
 
     private final ContractOfferResolver contractOfferResolver = mock(ContractOfferResolver.class);
-    private final ContractNegotiationService service = mock(ContractNegotiationService.class);
+    private final ContractNegotiationProtocolService service = mock(ContractNegotiationProtocolService.class);
 
     @BeforeEach
     void init(EdcExtension extension) {
@@ -121,7 +121,7 @@ class MultipartControllerIntegrationTest {
 
         extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
         extension.registerServiceMock(ContractOfferResolver.class, contractOfferResolver);
-        extension.registerServiceMock(ContractNegotiationService.class, service);
+        extension.registerServiceMock(ContractNegotiationProtocolService.class, service);
     }
 
     @Test

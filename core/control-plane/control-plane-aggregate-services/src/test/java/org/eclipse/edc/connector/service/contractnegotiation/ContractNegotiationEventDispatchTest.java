@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.service.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrategy;
-import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
@@ -84,7 +84,7 @@ class ContractNegotiationEventDispatchTest {
     @Test
     void shouldDispatchEventsOnProviderContractNegotiationStateChanges(EventRouter eventRouter,
                                                                        RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                                       ProviderContractNegotiationManager manager,
+                                                                       ContractNegotiationProtocolService service,
                                                                        ContractDefinitionStore contractDefinitionStore,
                                                                        PolicyDefinitionStore policyDefinitionStore,
                                                                        AssetIndex assetIndex) {
@@ -104,7 +104,7 @@ class ContractNegotiationEventDispatchTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
-        manager.requested(token, createContractOfferRequest(policy));
+        service.notifyRequested(createContractOfferRequest(policy), token);
 
         await().untilAsserted(() -> {
             //noinspection unchecked

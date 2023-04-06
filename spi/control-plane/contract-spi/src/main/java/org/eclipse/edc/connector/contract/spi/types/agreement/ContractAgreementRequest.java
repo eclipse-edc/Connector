@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.contract.spi.types.agreement;
 
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
-public class ContractAgreementRequest implements RemoteMessage {
+public class ContractAgreementRequest implements ContractRemoteMessage {
 
     private String protocol;
     private String connectorId;
@@ -52,6 +52,11 @@ public class ContractAgreementRequest implements RemoteMessage {
 
     public Policy getPolicy() {
         return policy;
+    }
+
+    @Override
+    public String getProcessId() {
+        return getCorrelationId();
     }
 
     public static class Builder {

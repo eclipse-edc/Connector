@@ -30,22 +30,17 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferReq
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 
-import java.util.UUID;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
-import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
@@ -76,105 +71,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
     }
 
-    /**
-     * Tells this manager that a {@link ContractNegotiation} has been terminated by the counter-party. Transitions the
-     * corresponding ContractNegotiation to state TERMINATED.
-     *
-     * @param token Claim token of the consumer that sent the rejection.
-     * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @return a {@link StatusResult}: OK, if successfully transitioned to TERMINATED; FATAL_ERROR, if no match found for correlationId.
-     */
-    @WithSpan
-    @Override
-    public StatusResult<ContractNegotiation> declined(ClaimToken token, String correlationId) {
-        var negotiation = findContractNegotiationById(correlationId);
-        if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR);
-        }
-
-        var result = validationService.validateRequest(token, negotiation);
-        if (!result.succeeded()) {
-            return StatusResult.failure(FATAL_ERROR, "Invalid client credentials");
-        }
-
-        monitor.debug("[Provider] Contract rejection received. Abort negotiation process.");
-
-        // Remove agreement if present
-        if (negotiation.getContractAgreement() != null) {
-            negotiation.setContractAgreement(null);
-        }
-        transitionToTerminated(negotiation);
-
-        return StatusResult.success(negotiation);
-    }
-
     @Override
     public void enqueueCommand(ContractNegotiationCommand command) {
         commandQueue.enqueue(command);
-    }
-
-    /**
-     * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and persisted, which moves it to
-     * state REQUESTED. It is then validated and transitioned to CONFIRMING, OFFERING or TERMINATING.
-     *
-     * @param token Claim token of the consumer that send the contract request.
-     * @param request Container object containing all relevant request parameters.
-     * @return a {@link StatusResult}: OK
-     */
-    @WithSpan
-    @Override
-    public StatusResult<ContractNegotiation> requested(ClaimToken token, ContractOfferRequest request) {
-        var offer = request.getContractOffer();
-
-        var result = validationService.validateInitialOffer(token, offer);
-        if (result.failed()) {
-            monitor.debug("[Provider] Contract offer rejected as invalid: " + result.getFailureDetail());
-            return StatusResult.failure(FATAL_ERROR);
-        }
-
-        var negotiation = ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .correlationId(request.getCorrelationId())
-                .counterPartyId(result.getContent().getConsumer().toString())
-                .counterPartyAddress(request.getConnectorAddress())
-                .protocol(request.getProtocol())
-                .traceContext(telemetry.getCurrentTraceContext())
-                .type(PROVIDER)
-                .build();
-
-        transitionToRequested(negotiation);
-
-        negotiation.addContractOffer(offer);
-
-        monitor.debug("[Provider] Contract offer received. Will be approved.");
-        transitionToAgreeing(negotiation);
-
-        return StatusResult.success(negotiation);
-    }
-
-    @Override
-    public StatusResult<ContractNegotiation> verified(ClaimToken token, String negotiationId) {
-        var negotiation = negotiationStore.findById(negotiationId);
-        if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
-        }
-
-        var result = validationService.validateRequest(token, negotiation);
-        if (!result.succeeded()) {
-            return StatusResult.failure(FATAL_ERROR, "Invalid client credentials");
-        }
-
-        transitionToVerified(negotiation);
-        return StatusResult.success(negotiation);
-    }
-
-    private ContractNegotiation findContractNegotiationById(String negotiationId) {
-        var negotiation = negotiationStore.findById(negotiationId);
-        if (negotiation == null) {
-            negotiation = negotiationStore.findForCorrelationId(negotiationId);
-        }
-
-        return negotiation;
     }
 
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
