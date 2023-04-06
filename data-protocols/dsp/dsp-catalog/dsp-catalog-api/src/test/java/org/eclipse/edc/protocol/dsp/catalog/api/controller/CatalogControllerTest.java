@@ -83,6 +83,8 @@ class CatalogControllerTest {
 
     @Test
     void getCatalog_transformingRequestFails_throwException() {
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
+                .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.failure("error"));
 
@@ -91,8 +93,6 @@ class CatalogControllerTest {
 
     @Test
     void getCatalog_authenticationFails_throwException() {
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
-                .thenReturn(Result.success(requestMessage));
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
 

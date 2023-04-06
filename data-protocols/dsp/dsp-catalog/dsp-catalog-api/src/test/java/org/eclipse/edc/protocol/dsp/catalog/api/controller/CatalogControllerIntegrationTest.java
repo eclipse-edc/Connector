@@ -106,6 +106,9 @@ class CatalogControllerIntegrationTest {
     
     @Test
     void catalogRequest_requestTransformationFailed_returnBadRequest() {
+        when(identityService.verifyJwtToken(any(), any()))
+                .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
+        
         var invalidRequest = Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder()
                         .add(DSPACE_PREFIX, DSPACE_SCHEMA)
