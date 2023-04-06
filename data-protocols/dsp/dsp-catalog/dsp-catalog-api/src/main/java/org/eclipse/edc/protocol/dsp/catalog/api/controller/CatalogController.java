@@ -75,13 +75,13 @@ public class CatalogController {
     @POST
     @Path(CATALOG_REQUEST)
     public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+        checkAuthToken(token);
+        
         var expanded = expand(jsonObject).getJsonObject(0); //expanding returns a JsonArray of size 1
         var messageResult = transformerRegistry.transform(expanded, CatalogRequestMessage.class);
         if (messageResult.failed()) {
             throw new InvalidRequestException("Request body was malformed.");
         }
-    
-        checkAuthToken(token);
         
         //TODO use request and claim token to build catalog, replace empty catalog below
         var catalog = Catalog.Builder.newInstance()
