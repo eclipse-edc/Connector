@@ -18,7 +18,6 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.List;
-import java.util.function.Function;
 
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
@@ -86,25 +85,10 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
         return getFailure().getReason();
     }
 
-    /**
-     * If the result is successful maps the content into a {@link ServiceResult} applying the mapping function, otherwise do nothing.
-     *
-     * @param mappingFunction a function converting this result into another
-     * @return the result of the mapping function
-     */
-    public <U> ServiceResult<U> compose(Function<T, ServiceResult<U>> mappingFunction) {
-        if (succeeded()) {
-            return mappingFunction.apply(getContent());
-        } else {
-            return new ServiceResult<>(null, getFailure());
-        }
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R1 extends AbstractResult<C1, ServiceFailure, R1>, C1> R1 newInstance(C1 content, ServiceFailure failure) {
+        return (R1) new ServiceResult<>(content, failure);
     }
 
-    public <R> ServiceResult<R> map(Function<T, R> mapFunction) {
-        if (succeeded()) {
-            return ServiceResult.success(mapFunction.apply(getContent()));
-        } else {
-            return new ServiceResult<>(null, getFailure());
-        }
-    }
 }

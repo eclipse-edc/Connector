@@ -22,9 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-
 /**
  * A generic result type.
  */
@@ -61,6 +58,12 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
         return opt.map(Result::success).orElse(Result.failure("Empty optional"));
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R1 extends AbstractResult<C1, Failure, R1>, C1> R1 newInstance(C1 content, Failure failure) {
+        return (R1) new Result<>(content, failure);
+    }
+
     /**
      * Merges this result with another one. If both Results are successful, a new one is created with no content. If
      * either this result or {@code other} is a failure, the merged result will be a {@code failure()} and will contain
@@ -75,14 +78,6 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
             messages.addAll(Optional.ofNullable(getFailure()).map(Failure::getMessages).orElse(Collections.emptyList()));
             messages.addAll(Optional.ofNullable(other.getFailure()).map(Failure::getMessages).orElse(Collections.emptyList()));
             return Result.failure(messages);
-        }
-    }
-
-    public <R> Result<R> map(Function<T, R> mapFunction) {
-        if (succeeded()) {
-            return Result.success(mapFunction.apply(getContent()));
-        } else {
-            return Result.failure(getFailureMessages());
         }
     }
 
@@ -108,7 +103,6 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
         }
     }
 
-
     /**
      * Maps this {@link Result} into another, maintaining the basic semantics (failed vs success). If this
      * {@link Result} is successful, the content is discarded. If this {@link Result} failed, the failures are carried
@@ -127,26 +121,13 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
     }
 
     /**
-     * If the result is successful maps the content into a Result applying the mapping function, otherwise do nothing.
-     *
-     * @param mappingFunction a function converting this result into another
-     * @return the result of the mapping function
-     */
-    public <U> Result<U> compose(Function<T, Result<U>> mappingFunction) {
-        if (succeeded()) {
-            return mappingFunction.apply(getContent());
-        } else {
-            return mapTo();
-        }
-    }
-
-    /**
      * Converts this result into an {@link Optional}. When this result is failed, or there is no content,
      * {@link Optional#isEmpty()} is returned, otherwise the content is the {@link Optional}'s value
      *
      * @return {@link Optional#empty()} if failed, or no content, {@link Optional#of(Object)} otherwise.
      */
     public Optional<T> asOptional() {
-        return succeeded() && getContent() != null ? of(getContent()) : empty();
+        return succeeded() && getContent() != null ? Optional.of(getContent()) : Optional.empty();
     }
+
 }
