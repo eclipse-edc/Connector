@@ -28,18 +28,22 @@ public class ContractDefinitionDeleted extends ContractDefinitionEvent {
     private ContractDefinitionDeleted() {
     }
 
+    @Override
+    public String name() {
+        return "contract.definition.deleted";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionDeleted, Builder> {
-
-        @JsonCreator
-        public static Builder newInstance() {
-            return new Builder();
-        }
 
         private Builder() {
             super(new ContractDefinitionDeleted());
         }
 
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
 
         @Override
         public Builder self() {

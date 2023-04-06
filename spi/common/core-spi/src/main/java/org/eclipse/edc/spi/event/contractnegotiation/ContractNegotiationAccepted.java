@@ -28,15 +28,20 @@ public class ContractNegotiationAccepted extends ContractNegotiationEvent {
     private ContractNegotiationAccepted() {
     }
 
+    @Override
+    public String name() {
+        return "contract.negotiation.accepted";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationAccepted, Builder> {
+        private Builder() {
+            super(new ContractNegotiationAccepted());
+        }
+
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new ContractNegotiationAccepted());
         }
 
         @Override
@@ -44,5 +49,4 @@ public class ContractNegotiationAccepted extends ContractNegotiationEvent {
             return this;
         }
     }
-
 }

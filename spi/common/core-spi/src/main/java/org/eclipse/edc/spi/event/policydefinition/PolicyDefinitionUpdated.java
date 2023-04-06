@@ -27,16 +27,21 @@ public class PolicyDefinitionUpdated extends PolicyDefinitionEvent {
     private PolicyDefinitionUpdated() {
     }
 
+    @Override
+    public String name() {
+        return "policy.definition.updated";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionUpdated, Builder> {
+
+        private Builder() {
+            super(new PolicyDefinitionUpdated());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new PolicyDefinitionUpdated());
         }
 
         @Override

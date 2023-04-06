@@ -45,6 +45,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void initiated(ContractNegotiation negotiation) {
         var event = ContractNegotiationInitiated.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -54,6 +55,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void requested(ContractNegotiation negotiation) {
         var event = ContractNegotiationRequested.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -63,6 +65,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void offered(ContractNegotiation negotiation) {
         var event = ContractNegotiationOffered.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -72,6 +75,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void accepted(ContractNegotiation negotiation) {
         var event = ContractNegotiationAccepted.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -81,6 +85,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void terminated(ContractNegotiation negotiation) {
         var event = ContractNegotiationTerminated.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -90,33 +95,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void declined(ContractNegotiation negotiation) {
         var event = ContractNegotiationDeclined.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
-                .build();
-
-        publish(event);
-    }
-
-    @Override
-    public void agreed(ContractNegotiation negotiation) {
-        var event = ContractNegotiationAgreed.Builder.newInstance()
-                .contractNegotiationId(negotiation.getId())
-                .build();
-
-        publish(event);
-    }
-
-    @Override
-    public void verified(ContractNegotiation negotiation) {
-        var event = ContractNegotiationVerified.Builder.newInstance()
-                .contractNegotiationId(negotiation.getId())
-                .build();
-
-        publish(event);
-    }
-
-    @Override
-    public void finalized(ContractNegotiation negotiation) {
-        var event = ContractNegotiationFinalized.Builder.newInstance()
-                .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -126,6 +105,37 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     public void failed(ContractNegotiation negotiation) {
         var event = ContractNegotiationFailed.Builder.newInstance()
                 .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void agreed(ContractNegotiation negotiation) {
+        var event = ContractNegotiationAgreed.Builder.newInstance()
+                .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void verified(ContractNegotiation negotiation) {
+        var event = ContractNegotiationVerified.Builder.newInstance()
+                .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void finalized(ContractNegotiation negotiation) {
+        var event = ContractNegotiationFinalized.Builder.newInstance()
+                .contractNegotiationId(negotiation.getId())
+                .callbackAddresses(negotiation.getCallbackAddresses())
                 .build();
 
         publish(event);

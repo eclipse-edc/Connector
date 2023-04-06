@@ -30,16 +30,21 @@ public class TransferProcessEnded extends TransferProcessEvent {
     private TransferProcessEnded() {
     }
 
+    @Override
+    public String name() {
+        return "transfer.process.ended";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends TransferProcessEvent.Builder<TransferProcessEnded, Builder> {
+
+        private Builder() {
+            super(new TransferProcessEnded());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new TransferProcessEnded());
         }
 
         @Override

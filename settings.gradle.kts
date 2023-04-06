@@ -163,6 +163,9 @@ include(":extensions:control-plane:store:sql:contract-negotiation-store-sql")
 include(":extensions:control-plane:store:sql:control-plane-sql")
 include(":extensions:control-plane:store:sql:policy-definition-store-sql")
 include(":extensions:control-plane:store:sql:transfer-process-store-sql")
+include(":extensions:control-plane:callback:callback-event-dispatcher")
+include(":extensions:control-plane:callback:callback-http-dispatcher")
+
 
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:data-plane-client")
@@ -182,6 +185,7 @@ include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
 include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql")
 include(":extensions:data-plane-selector:store:cosmos:data-plane-instance-store-cosmos")
+
 
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")

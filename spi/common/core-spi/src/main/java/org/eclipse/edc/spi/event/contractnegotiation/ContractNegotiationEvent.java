@@ -15,7 +15,10 @@
 package org.eclipse.edc.spi.event.contractnegotiation;
 
 import org.eclipse.edc.spi.event.Event;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -26,8 +29,15 @@ public abstract class ContractNegotiationEvent extends Event {
 
     protected String contractNegotiationId;
 
+    protected List<CallbackAddress> callbackAddresses = new ArrayList<>();
+
     public String getContractNegotiationId() {
         return contractNegotiationId;
+    }
+
+    @Override
+    public List<CallbackAddress> getCallbackAddresses() {
+        return callbackAddresses;
     }
 
     public abstract static class Builder<T extends ContractNegotiationEvent, B extends ContractNegotiationEvent.Builder<T, B>> {
@@ -42,6 +52,11 @@ public abstract class ContractNegotiationEvent extends Event {
 
         public B contractNegotiationId(String contractNegotiationId) {
             event.contractNegotiationId = contractNegotiationId;
+            return self();
+        }
+
+        public B callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            event.callbackAddresses = callbackAddresses;
             return self();
         }
 
