@@ -72,21 +72,8 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
         
         return new Request.Builder()
                 .url(message.getConnectorAddress() + BASE_PATH + CATALOG_REQUEST)
-                .header("Content-Type", APPLICATION_JSON)
                 .post(requestBody)
                 .build();
-    }
-    
-    private String toJson(CatalogRequestMessage message) {
-        try {
-            var transformResult = transformerRegistry.transform(message, JsonObject.class);
-            if (transformResult.succeeded()) {
-                return mapper.writeValueAsString(transformResult.getContent());
-            }
-            throw new EdcException("Failed to write request.");
-        } catch (JsonProcessingException e) {
-            throw new EdcException("Failed to serialize catalog request", e);
-        }
     }
     
     /**
@@ -114,5 +101,17 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
                 throw new EdcException("Failed to read response body.", e);
             }
         };
+    }
+    
+    private String toJson(CatalogRequestMessage message) {
+        try {
+            var transformResult = transformerRegistry.transform(message, JsonObject.class);
+            if (transformResult.succeeded()) {
+                return mapper.writeValueAsString(transformResult.getContent());
+            }
+            throw new EdcException("Failed to write request.");
+        } catch (JsonProcessingException e) {
+            throw new EdcException("Failed to serialize catalog request", e);
+        }
     }
 }
