@@ -43,13 +43,12 @@ public class CallbackEventDispatcher<T extends Event> implements EventSubscriber
         this.monitor = monitor;
     }
 
-
     @Override
     public void on(EventEnvelope<T> eventEnvelope) {
         var callbacks = eventEnvelope.getPayload().getCallbackAddresses()
                 .stream().filter(cb -> cb.isTransactional() == transactional)
                 .collect(Collectors.toList());
-        
+
         var eventName = eventEnvelope.getPayload().name();
 
         for (var callback : callbacks) {

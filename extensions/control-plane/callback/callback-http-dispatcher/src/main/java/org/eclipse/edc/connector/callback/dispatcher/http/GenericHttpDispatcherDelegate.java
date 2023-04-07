@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import java.util.function.Function;
 
 /**
- * Generic Http dispatcher delegate that handle a single type of message
+ * A delegate that dispatches HTTP requests for a message type.
  */
 public interface GenericHttpDispatcherDelegate<M extends RemoteMessage, R> {
 

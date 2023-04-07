@@ -45,8 +45,7 @@ public class CallbackEventDispatcherExtensionTest {
 
         extension = factory.constructInstance(CallbackEventDispatcherExtension.class);
     }
-
-
+    
     @Test
     void initialize_shouldRegisterBothListeners(ServiceExtensionContext context) {
 

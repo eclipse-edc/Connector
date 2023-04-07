@@ -21,8 +21,7 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
  * Generic HTTP Remote dispatcher
  */
 public interface GenericHttpRemoteDispatcher extends RemoteMessageDispatcher {
-
-
+    
     /**
      * Registers a {@link GenericHttpDispatcherDelegate} for supporting a specific type of remote message.
      *

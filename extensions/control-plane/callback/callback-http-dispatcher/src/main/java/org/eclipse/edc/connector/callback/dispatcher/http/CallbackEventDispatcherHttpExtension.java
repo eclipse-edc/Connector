@@ -24,8 +24,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 
 @Extension(value = CallbackEventDispatcherHttpExtension.NAME)
 public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
-
-
+    
     public static final String NAME = "Callback dispatcher http extension";
     @Inject
     RemoteMessageDispatcherRegistry registry;

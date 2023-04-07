@@ -61,7 +61,7 @@ public class CallbackEventRemoteMessageDispatcher implements GenericHttpDispatch
             if (response.isSuccessful()) {
                 return null;
             } else {
-                throw new EdcException(String.format("Received error code %s when calling the callback endpoint  at uri: %s", response.code(), response.request().url().url().toString()));
+                throw new EdcException(String.format("Received error code %s when calling the callback endpoint at uri: %s", response.code(), response.request().url().url().toString()));
             }
         };
     }
