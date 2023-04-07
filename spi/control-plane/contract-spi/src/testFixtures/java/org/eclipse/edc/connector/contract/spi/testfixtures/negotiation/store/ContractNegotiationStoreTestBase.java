@@ -563,6 +563,23 @@ public abstract class ContractNegotiationStoreTestBase {
     }
 
     @Test
+    @DisplayName("Verify that nextForState returns the agreement")
+    void nextForState_withAgreement() {
+        var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+        var negotiation = createNegotiationBuilder(UUID.randomUUID().toString())
+                .contractAgreement(contractAgreement)
+                .state(ContractNegotiationStates.AGREED.code())
+                .build();
+
+        getContractNegotiationStore().save(negotiation);
+
+        var batch = getContractNegotiationStore().nextForState(ContractNegotiationStates.AGREED.code(), 1);
+
+        Assertions.assertThat(batch).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(negotiation);
+
+    }
+
+    @Test
     void queryAgreements_noQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
             var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
