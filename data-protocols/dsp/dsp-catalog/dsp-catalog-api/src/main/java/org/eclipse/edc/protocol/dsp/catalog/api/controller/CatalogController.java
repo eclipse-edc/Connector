@@ -22,20 +22,20 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
-import java.util.ArrayList;
 import java.util.Map;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
@@ -50,6 +50,7 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
@@ -59,36 +60,43 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL
 @Path(BASE_PATH)
 public class CatalogController {
     
-    private ObjectMapper mapper;
-    private IdentityService identityService;
-    private JsonLdTransformerRegistry transformerRegistry;
-    private String dspCallbackAddress;
-    
+    private final ObjectMapper mapper;
+    private final IdentityService identityService;
+    private final JsonLdTransformerRegistry transformerRegistry;
+    private final String dspCallbackAddress;
+    private final CatalogProtocolService service;
+
     public CatalogController(ObjectMapper mapper, IdentityService identityService,
-                             JsonLdTransformerRegistry transformerRegistry, String dspCallbackAddress) {
+                             JsonLdTransformerRegistry transformerRegistry, String dspCallbackAddress,
+                             CatalogProtocolService service) {
         this.mapper = mapper;
         this.identityService = identityService;
         this.transformerRegistry = transformerRegistry;
         this.dspCallbackAddress = dspCallbackAddress;
+        this.service = service;
     }
     
     @POST
     @Path(CATALOG_REQUEST)
-    public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
-        checkAuthToken(token);
-        
+    public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                .token(token)
+                .build();
+
+        var identityResult = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress);
+        if (identityResult.failed()) {
+            throw new AuthenticationFailedException();
+        }
+
         var expanded = expand(jsonObject).getJsonObject(0); //expanding returns a JsonArray of size 1
         var messageResult = transformerRegistry.transform(expanded, CatalogRequestMessage.class);
         if (messageResult.failed()) {
             throw new InvalidRequestException("Request body was malformed.");
         }
         
-        //TODO use request and claim token to build catalog, replace empty catalog below
-        var catalog = Catalog.Builder.newInstance()
-                .datasets(new ArrayList<>())
-                .dataServices(new ArrayList<>())
-                .build();
-        
+        var catalog = service.getCatalog(messageResult.getContent(), identityResult.getContent())
+                .orElseThrow(exceptionMapper(Catalog.class));
+
         var catalogResult = transformerRegistry.transform(catalog, JsonObject.class);
         if (catalogResult.failed()) {
             throw new EdcException(format("Failed to build response: %s", join(", ", catalogResult.getFailureMessages())));
@@ -96,18 +104,7 @@ public class CatalogController {
         
         return mapper.convertValue(compact(catalogResult.getContent(), jsonLdContext()), Map.class);
     }
-    
-    private void checkAuthToken(String token) {
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
-                .token(token)
-                .build();
 
-        var result = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress);
-        if (result.failed()) {
-            throw new AuthenticationFailedException();
-        }
-    }
-    
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
                 .add(DCAT_PREFIX, DCAT_SCHEMA)

@@ -1,0 +1,76 @@
+/*
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.service.catalog;
+
+import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.Dataset;
+import org.eclipse.edc.catalog.spi.Distribution;
+import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.connector.spi.catalog.DatasetResolver;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.spi.agent.ParticipantAgentService;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class CatalogProtocolServiceImplTest {
+
+    private final DatasetResolver datasetResolver = mock(DatasetResolver.class);
+    private final ParticipantAgentService participantAgentService = mock(ParticipantAgentService.class);
+
+    private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver, participantAgentService);
+
+    @Test
+    void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
+        var querySpec = QuerySpec.none();
+        var message = CatalogRequestMessage.Builder.newInstance().filter(querySpec).build();
+        var token = ClaimToken.Builder.newInstance().build();
+        var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
+        when(datasetResolver.query(any(), any(), any())).thenReturn(Stream.of(createDataset()));
+        when(participantAgentService.createFor(any())).thenReturn(participantAgent);
+
+        var result = service.getCatalog(message, token);
+
+        assertThat(result).isSucceeded().satisfies(catalog -> {
+            assertThat(catalog.getDataServices()).hasSize(1);
+            assertThat(catalog.getDatasets()).hasSize(1);
+        });
+        verify(datasetResolver).query(eq(participantAgent), eq(querySpec), isA(DataService.class));
+        verify(participantAgentService).createFor(token);
+    }
+
+    private static Dataset createDataset() {
+        var dataService = DataService.Builder.newInstance().build();
+        var distribution = Distribution.Builder.newInstance().dataService(dataService).format("any").build();
+        return Dataset.Builder.newInstance()
+                .offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build())
+                .distribution(distribution)
+                .build();
+    }
+}

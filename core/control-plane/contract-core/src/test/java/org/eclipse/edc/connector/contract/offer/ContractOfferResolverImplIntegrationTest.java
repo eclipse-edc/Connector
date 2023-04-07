@@ -15,7 +15,7 @@
 
 package org.eclipse.edc.connector.contract.offer;
 
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -71,7 +71,7 @@ class ContractOfferResolverImplIntegrationTest {
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
-    private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
+    private final ContractDefinitionResolver contractDefinitionResolver = mock(ContractDefinitionResolver.class);
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Monitor monitor = mock(Monitor.class);
@@ -81,7 +81,7 @@ class ContractOfferResolverImplIntegrationTest {
     @BeforeEach
     void setUp() {
         assetIndex = new InMemoryAssetIndex();
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore, clock, monitor);
+        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
     }
 
     @Test
@@ -99,7 +99,7 @@ class ContractOfferResolverImplIntegrationTest {
         var def3 = getContractDefBuilder("def3").selectorExpression(selectorFrom(assets3)).build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2, def3));
+        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2, def3));
 
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
@@ -110,7 +110,7 @@ class ContractOfferResolverImplIntegrationTest {
 
         assertThat(contractOfferResolver.queryContractOffers(query)).hasSize(to - from);
         verify(agentService).createFor(isA(ClaimToken.class));
-        verify(contractDefinitionService, times(1)).definitionsFor(isA(ParticipantAgent.class));
+        verify(contractDefinitionResolver, times(1)).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore).findById("contract");
     }
 
@@ -132,7 +132,7 @@ class ContractOfferResolverImplIntegrationTest {
                 .selectorExpression(selectorFrom(assets2)).build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(contractDefinition1, contractDefinition2));
+        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(contractDefinition1, contractDefinition2));
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
         var query = ContractOfferQuery.builder().range(new Range(from, to)).claimToken(ClaimToken.Builder.newInstance().build()).build();
@@ -151,7 +151,7 @@ class ContractOfferResolverImplIntegrationTest {
         var def2 = getContractDefBuilder("def2").selectorExpression(selectorFrom(assets2)).build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2));
+        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2));
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
         var from = 14;
@@ -161,7 +161,7 @@ class ContractOfferResolverImplIntegrationTest {
         // 4 definitions, 10 assets each = 40 offers total -> offset 20 ==> result = 20
         assertThat(contractOfferResolver.queryContractOffers(query)).hasSize(4);
         verify(agentService).createFor(isA(ClaimToken.class));
-        verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
+        verify(contractDefinitionResolver).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore, atLeastOnce()).findById("contract");
     }
 
@@ -171,7 +171,7 @@ class ContractOfferResolverImplIntegrationTest {
                 .build());
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
+        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> contractDefinition);
 
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
@@ -182,7 +182,7 @@ class ContractOfferResolverImplIntegrationTest {
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
         assertThat(contractOfferResolver.queryContractOffers(query)).isEmpty();
         verify(agentService).createFor(isA(ClaimToken.class));
-        verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
+        verify(contractDefinitionResolver).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore, never()).findById("contract");
     }
 

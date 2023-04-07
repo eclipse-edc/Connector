@@ -18,13 +18,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.web.spi.exception.EdcApiException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,28 +38,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.service.spi.result.ServiceResult.badRequest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CatalogControllerTest {
 
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private IdentityService identityService = mock(IdentityService.class);
-    private JsonLdTransformerRegistry transformerRegistry = mock(JsonLdTransformerRegistry.class);
-    private String callbackAddress = "http://callback";
+    private final ObjectMapper mapper = mock(ObjectMapper.class);
+    private final IdentityService identityService = mock(IdentityService.class);
+    private final JsonLdTransformerRegistry transformerRegistry = mock(JsonLdTransformerRegistry.class);
+    private final CatalogProtocolService service = mock(CatalogProtocolService.class);
+    private final String callbackAddress = "http://callback";
+    private final String authHeader = "auth";
 
     private JsonObject request;
     private CatalogRequestMessage requestMessage;
-    private String authHeader = "auth";
 
     private CatalogController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new CatalogController(mapper, identityService, transformerRegistry, callbackAddress);
+        controller = new CatalogController(mapper, identityService, transformerRegistry, callbackAddress, service);
 
         request = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
@@ -67,24 +73,27 @@ class CatalogControllerTest {
     @Test
     void getCatalog_returnCatalog() {
         var responseMap = Map.of("type", "catalog");
-        
+        var token = createToken();
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.success(requestMessage));
         when(transformerRegistry.transform(any(Catalog.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
-                .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
+                .thenReturn(Result.success(token));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenReturn(responseMap);
+        when(service.getCatalog(any(), any()))
+                .thenReturn(ServiceResult.success(Catalog.Builder.newInstance().build()));
 
         var response = controller.getCatalog(request, authHeader);
 
         assertThat(response).isEqualTo(responseMap);
+        verify(service).getCatalog(requestMessage, token);
     }
 
     @Test
     void getCatalog_transformingRequestFails_throwException() {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
-                .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
+                .thenReturn(Result.success(createToken()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.failure("error"));
 
@@ -99,4 +108,19 @@ class CatalogControllerTest {
         assertThatThrownBy(() -> controller.getCatalog(request, authHeader)).isInstanceOf(AuthenticationFailedException.class);
     }
 
+    @Test
+    void getCatalog_shouldThrowException_whenServiceCallFails() {
+        when(service.getCatalog(any(), any())).thenReturn(badRequest("error"));
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
+                .thenReturn(Result.success(createToken()));
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
+                .thenReturn(Result.success(requestMessage));
+
+        assertThatThrownBy(() -> controller.getCatalog(request, authHeader)).isInstanceOf(EdcApiException.class);
+        verify(service).getCatalog(any(), any());
+    }
+
+    private static ClaimToken createToken() {
+        return ClaimToken.Builder.newInstance().build();
+    }
 }

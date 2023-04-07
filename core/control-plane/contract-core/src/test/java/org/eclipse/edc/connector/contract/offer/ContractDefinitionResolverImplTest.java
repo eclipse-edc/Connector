@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService.CATALOGING_SCOPE;
+import static org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver.CATALOGING_SCOPE;
 import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,17 +43,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ContractDefinitionServiceImplTest {
+class ContractDefinitionResolverImplTest {
 
     private final PolicyEngine policyEngine = mock(PolicyEngine.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractDefinitionStore definitionStore = mock(ContractDefinitionStore.class);
 
-    private ContractDefinitionServiceImpl definitionService;
+    private ContractDefinitionResolverImpl definitionService;
 
     @BeforeEach
     void setUp() {
-        definitionService = new ContractDefinitionServiceImpl(mock(Monitor.class), definitionStore, policyEngine, policyStore);
+        definitionService = new ContractDefinitionResolverImpl(mock(Monitor.class), definitionStore, policyEngine, policyStore);
     }
 
     @Test

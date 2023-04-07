@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.contract.offer;
 
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -57,7 +57,7 @@ class ContractOfferResolverImplClockSkewTest {
 
     private final Clock clock = new SkewedClock();
 
-    private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
+    private final ContractDefinitionResolver contractDefinitionResolver = mock(ContractDefinitionResolver.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
@@ -67,7 +67,7 @@ class ContractOfferResolverImplClockSkewTest {
 
     @BeforeEach
     void setUp() {
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionService, assetIndex, policyStore, clock, monitor);
+        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
     }
 
     /**
@@ -79,7 +79,7 @@ class ContractOfferResolverImplClockSkewTest {
         var contractDefinition = getContractDefBuilder().validity(VALIDITY).build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
+        when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(assetStream);
