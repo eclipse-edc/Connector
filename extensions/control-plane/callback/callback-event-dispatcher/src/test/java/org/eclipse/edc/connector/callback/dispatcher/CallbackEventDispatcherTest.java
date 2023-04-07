@@ -41,10 +41,8 @@ import static org.mockito.Mockito.when;
 
 public class CallbackEventDispatcherTest {
 
-
     CallbackEventDispatcher<Event> dispatcher;
     RemoteMessageDispatcherRegistry registry = mock(RemoteMessageDispatcherRegistry.class);
-
     Monitor monitor = mock(Monitor.class);
 
     @Test
@@ -57,7 +55,6 @@ public class CallbackEventDispatcherTest {
         verifyNoInteractions(registry);
 
     }
-
 
     @Test
     void verifyDispatchShouldThrowException() {
@@ -78,7 +75,6 @@ public class CallbackEventDispatcherTest {
                 .build();
 
         assertThatThrownBy(() -> dispatcher.on(envelope(event))).isInstanceOf(EdcException.class);
-
 
     }
 
@@ -136,8 +132,7 @@ public class CallbackEventDispatcherTest {
         dispatcher.on(envelope(event));
 
         verifyNoInteractions(registry);
-
-
+        
     }
 
     @SuppressWarnings("unchecked")

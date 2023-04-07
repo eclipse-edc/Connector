@@ -34,8 +34,7 @@ import static org.mockito.Mockito.verify;
 public class CallbackEventDispatcherExtensionTest {
 
     EventRouter router = mock(EventRouter.class);
-
-
+    
     private CallbackEventDispatcherExtension extension;
 
     @BeforeEach
@@ -45,7 +44,7 @@ public class CallbackEventDispatcherExtensionTest {
 
         extension = factory.constructInstance(CallbackEventDispatcherExtension.class);
     }
-    
+
     @Test
     void initialize_shouldRegisterBothListeners(ServiceExtensionContext context) {
 
