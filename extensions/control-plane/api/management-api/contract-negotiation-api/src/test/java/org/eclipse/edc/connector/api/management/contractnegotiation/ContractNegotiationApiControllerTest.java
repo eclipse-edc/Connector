@@ -242,7 +242,7 @@ class ContractNegotiationApiControllerTest {
 
         assertThatThrownBy(() -> controller.cancelNegotiation("negotiationId"))
                 .isInstanceOf(ObjectNotFoundException.class)
-                .hasMessage("Object of type ContractNegotiation with ID=negotiationId was not found");;
+                .hasMessage("Object of type ContractNegotiation with ID=negotiationId was not found");
     }
 
     @Test
