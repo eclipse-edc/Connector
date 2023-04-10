@@ -89,7 +89,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
                 .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
-                .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
+                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id));
     }
 
     @GET
