@@ -16,6 +16,10 @@ plugins {
     `java-library`
 }
 
+repositories {
+    mavenCentral()
+}
+
 
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
@@ -23,5 +27,8 @@ dependencies {
     api(project(":extensions:common:json-ld"))
 
     implementation("jakarta.json:jakarta.json-api:2.1.1")
+    implementation("org.eclipse.parsson:parsson:1.1.1")
+
     implementation(libs.dnsOverHttps)
 }
+

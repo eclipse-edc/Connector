@@ -14,9 +14,11 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
@@ -56,13 +58,35 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferRequestMessage");
 
         builder.add(DSPACE_SCHEMA + "agreementId", transferRequestMessage.getContractId());
-        builder.add(DCT_SCHEMA + "format", "dspace:AmazonS3+Push");
-        builder.add(DSPACE_SCHEMA + "dataAdress", transformDataAddress(transferRequestMessage.getDataDestination(), context));
+        builder.add(DCT_SCHEMA + "format", "dspace:AmazonS3+Push"); //TODO fix value
+        builder.add(DSPACE_SCHEMA + "dataAddress", transformDataAddress(transferRequestMessage.getDataDestination(), context));
 
         return builder.build();
     }
 
+    //TODO Improve Code and check if properties are shown correct
+
     private @Nullable JsonObject transformDataAddress(DataAddress address, TransformerContext context) {
-        return context.transform(address, JsonObject.class);
+        var builder = jsonBuilderFactory.createObjectBuilder();
+
+        if (address == null) {
+            return builder.build();
+        }
+        if (address.getKeyName() != null) {
+            builder.add("keyName", address.getKeyName());
+        }
+
+        if (address.getType() != null) {
+            builder.add("type", address.getType());
+        }
+
+        try {
+            var properties = mapper.writeValueAsString(address.getProperties());
+            builder.add("properties", properties);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return builder.build();
     }
 }
