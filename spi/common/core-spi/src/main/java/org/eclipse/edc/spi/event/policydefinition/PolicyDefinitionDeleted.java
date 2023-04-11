@@ -28,16 +28,21 @@ public class PolicyDefinitionDeleted extends PolicyDefinitionEvent {
     private PolicyDefinitionDeleted() {
     }
 
+    @Override
+    public String name() {
+        return "policy.definition.deleted";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionDeleted, Builder> {
+
+        private Builder() {
+            super(new PolicyDefinitionDeleted());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new PolicyDefinitionDeleted());
         }
 
         @Override

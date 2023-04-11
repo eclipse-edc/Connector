@@ -29,12 +29,21 @@ public class TransferProcessTerminated extends TransferProcessEvent {
     private TransferProcessTerminated() {
     }
 
+    @Override
+    public String name() {
+        return "transfer.process.terminated";
+    }
+
     public String getReason() {
         return reason;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends TransferProcessEvent.Builder<TransferProcessTerminated, Builder> {
+
+        private Builder() {
+            super(new TransferProcessTerminated());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -44,10 +53,6 @@ public class TransferProcessTerminated extends TransferProcessEvent {
         public Builder reason(String reason) {
             event.reason = reason;
             return this;
-        }
-
-        private Builder() {
-            super(new TransferProcessTerminated());
         }
 
         @Override

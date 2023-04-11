@@ -27,16 +27,21 @@ public class TransferProcessRequested extends TransferProcessEvent {
     private TransferProcessRequested() {
     }
 
+    @Override
+    public String name() {
+        return "transfer.process.requested";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends TransferProcessEvent.Builder<TransferProcessRequested, Builder> {
+
+        private Builder() {
+            super(new TransferProcessRequested());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new TransferProcessRequested());
         }
 
         @Override

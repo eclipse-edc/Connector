@@ -27,16 +27,21 @@ public class TransferProcessFailed extends TransferProcessEvent {
     private TransferProcessFailed() {
     }
 
+    @Override
+    public String name() {
+        return "transfer.process.failed";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends TransferProcessEvent.Builder<TransferProcessFailed, Builder> {
+
+        private Builder() {
+            super(new TransferProcessFailed());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new TransferProcessFailed());
         }
 
         @Override

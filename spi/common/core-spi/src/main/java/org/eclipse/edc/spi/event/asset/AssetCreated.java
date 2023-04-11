@@ -28,16 +28,21 @@ public class AssetCreated extends AssetEvent {
     private AssetCreated() {
     }
 
+    @Override
+    public String name() {
+        return "asset.created";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends AssetEvent.Builder<AssetCreated, Builder> {
+
+        private Builder() {
+            super(new AssetCreated());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new AssetCreated());
         }
 
         @Override
@@ -45,5 +50,4 @@ public class AssetCreated extends AssetEvent {
             return this;
         }
     }
-
 }
