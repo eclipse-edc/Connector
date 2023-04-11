@@ -39,7 +39,7 @@ public class CallbackEventDispatcher<T extends Event> implements EventSubscriber
     private final boolean transactional;
     private final Monitor monitor;
 
-    private CallbackProtocolResolverRegistry resolverRegistry;
+    private final CallbackProtocolResolverRegistry resolverRegistry;
 
     public CallbackEventDispatcher(RemoteMessageDispatcherRegistry dispatcher, CallbackProtocolResolverRegistry resolveRegistry, boolean transactional, Monitor monitor) {
         this.dispatcher = dispatcher;
