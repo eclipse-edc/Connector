@@ -130,7 +130,7 @@ public class HttpDataSource implements DataSource {
 
         @Override
         public long size() {
-            return -1;
+            return SIZE_UNKNOWN;
         }
 
         @Override
