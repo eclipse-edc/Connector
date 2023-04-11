@@ -45,7 +45,9 @@ public class HttpDataSource implements DataSource {
     private HttpPart getPart() {
         var request = requestFactory.toRequest(params);
         monitor.debug(() -> "HttpDataSource sends request: " + request.toString());
-        try (var response = httpClient.execute(request)) {
+        try  {
+            // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
+            var response = httpClient.execute(request);
             if (response.isSuccessful()) {
                 var body = response.body();
                 if (body == null) {
