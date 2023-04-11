@@ -148,7 +148,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         return transactionContext.execute(() -> {
             try {
                 var statement = statements.createNegotiationsQuery(querySpec);
-                return executeQuery(getConnection(), true, this.contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters());
+                return executeQuery(getConnection(), true, contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -173,7 +173,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
             var stmt = statements.getNextForStateTemplate();
             try (
                     var connection = getConnection();
-                    var stream = executeQuery(connection, true, this.contractNegotiationWithAgreementMapper(connection), stmt, state, clock.millis(), max)
+                    var stream = executeQuery(connection, true, contractNegotiationWithAgreementMapper(connection), stmt, state, clock.millis(), max)
             ) {
                 var negotiations = stream.collect(Collectors.toList());
                 negotiations.forEach(cn -> leaseContext.withConnection(connection).acquireLease(cn.getId()));
@@ -191,7 +191,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
     private @Nullable ContractNegotiation findInternal(Connection connection, String id) {
         var sql = statements.getFindTemplate();
-        return executeQuerySingle(connection, false, this.contractNegotiationMapper(), sql, id);
+        return executeQuerySingle(connection, false, contractNegotiationMapper(), sql, id);
     }
 
     private void update(Connection connection, String negotiationId, ContractNegotiation updatedValues) {
@@ -310,7 +310,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     private ResultSetMapper<ContractNegotiation> contractNegotiationMapper() {
-        return (resultSet -> mapContractNegotiation(resultSet, this::extractContractAgreement));
+        return resultSet -> mapContractNegotiation(resultSet, this::extractContractAgreement);
     }
 
     private ResultSetMapper<ContractNegotiation> contractNegotiationWithAgreementMapper(Connection connection) {

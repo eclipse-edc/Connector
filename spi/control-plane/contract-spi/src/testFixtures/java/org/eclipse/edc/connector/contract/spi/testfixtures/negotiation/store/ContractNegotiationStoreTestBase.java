@@ -575,7 +575,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
         var batch = getContractNegotiationStore().nextForState(ContractNegotiationStates.AGREED.code(), 1);
 
-        Assertions.assertThat(batch).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(negotiation);
+        assertThat(batch).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(negotiation);
 
     }
 
