@@ -12,16 +12,17 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 
+/**
+ * Dataspace protocol types and attributes for catalog request.
+ */
+public interface DspCatalogPropertyAndTypeNames {
+    
+    String DSPACE_PREFIX = "dspace";
+    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
 
-dependencies {
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":extensions:common:json-ld"))
-
-    implementation("jakarta.json:jakarta.json-api:2.1.1")
-    implementation(libs.dnsOverHttps)
+    String DCT_PREFIX = "dct";
+    String DCT_SCHEMA = "https://purl.org/dc/terms/";
+    
 }
