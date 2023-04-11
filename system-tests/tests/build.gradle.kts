@@ -35,7 +35,7 @@ dependencies {
     testFixturesImplementation(root.awaitility)
 
     testImplementation(root.opentelemetry.api)
-    testImplementation("io.opentelemetry.proto:opentelemetry-proto:0.14.0-alpha")
+    testImplementation(libs.opentelemetry.proto)
     testImplementation(root.awaitility)
     testImplementation(root.mockserver.netty)
 

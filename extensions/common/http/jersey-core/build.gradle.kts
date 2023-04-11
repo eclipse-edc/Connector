@@ -21,7 +21,7 @@ dependencies {
     api(project(":extensions:common:http:jetty-core"))
 
     implementation(root.bundles.jersey.core)
-    implementation("org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2")
+    implementation(libs.jetty.jakarta.servlet.api)
 
     testImplementation(project(":core:common:junit"))
 
