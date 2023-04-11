@@ -73,6 +73,7 @@ include(":data-protocols:dsp:dsp-transform")
 include(":data-protocols:dsp:dsp-transfer-process:api")
 include(":data-protocols:dsp:dsp-transfer-process:dispatcher")
 include(":data-protocols:dsp:dsp-transfer-process:transformer")
+include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-spi")
 
 include(":data-protocols:ids:ids-api-configuration")
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
