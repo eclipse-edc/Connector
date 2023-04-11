@@ -25,7 +25,7 @@ dependencies {
     implementation(root.azure.identity)
     implementation(root.jakarta.rsApi)
 
-    testImplementation("com.microsoft.azure:azure-mgmt-resources:1.41.4")
+    testImplementation(libs.azure.mgmt.resources)
     testImplementation(root.azure.resourcemanager)
     testImplementation(root.azure.resourcemanager.keyvault)
 

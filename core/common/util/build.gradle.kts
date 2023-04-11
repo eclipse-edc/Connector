@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation("org.junit-pioneer:junit-pioneer:2.0.0")
+    testImplementation(libs.junit.pioneer)
 }
 
 

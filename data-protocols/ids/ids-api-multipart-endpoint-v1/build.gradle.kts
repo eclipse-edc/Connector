@@ -28,9 +28,9 @@ dependencies {
     implementation(root.jakarta.rsApi)
     implementation(root.jersey.multipart)
 
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.37.0")
-    testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.37.0")
-    testImplementation("net.javacrumbs.json-unit:json-unit:2.37.0")
+    testImplementation(libs.json.unit)
+    testImplementation(libs.json.unit.assertj)
+    testImplementation(libs.json.unit.json.path)
 
     testImplementation(project(":core:common:junit"))
 
