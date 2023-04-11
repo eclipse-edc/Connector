@@ -16,11 +16,14 @@ package org.eclipse.edc.connector.callback.dispatcher.http;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+
+import static org.eclipse.edc.connector.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
 
 @Extension(value = CallbackEventDispatcherHttpExtension.NAME)
 public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
@@ -33,6 +36,9 @@ public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private CallbackProtocolResolverRegistry resolverRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -41,10 +47,19 @@ public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
+        resolverRegistry.registerResolver(this::resolveScheme);
+
         var baseDispatcher = new GenericHttpRemoteDispatcherImpl(client);
         baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper()));
 
-        registry.register(new GenericHttpRemoteDispatcherWrapper(baseDispatcher, "http"));
-        registry.register(new GenericHttpRemoteDispatcherWrapper(baseDispatcher, "https"));
+        registry.register(baseDispatcher);
+    }
+
+
+    private String resolveScheme(String scheme) {
+        if (scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("http")) {
+            return CALLBACK_EVENT_HTTP;
+        }
+        return null;
     }
 }

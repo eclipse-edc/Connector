@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.callback.dispatcher;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.callback.CallbackEventRemoteMessage;
+import org.eclipse.edc.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
@@ -43,11 +44,15 @@ public class CallbackEventDispatcherTest {
 
     CallbackEventDispatcher<Event> dispatcher;
     RemoteMessageDispatcherRegistry registry = mock(RemoteMessageDispatcherRegistry.class);
+
+    CallbackProtocolResolverRegistry resolverRegistry = mock(CallbackProtocolResolverRegistry.class);
     Monitor monitor = mock(Monitor.class);
 
     @Test
     void verifyShouldNotDispatch() {
-        dispatcher = new CallbackEventDispatcher<>(registry, true, monitor);
+        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, true, monitor);
+        when(resolverRegistry.resolve("local")).thenReturn("local");
+
 
         var event = TransferProcessCompleted.Builder.newInstance().transferProcessId("id").build();
         dispatcher.on(envelope(event));
@@ -58,7 +63,8 @@ public class CallbackEventDispatcherTest {
 
     @Test
     void verifyDispatchShouldThrowException() {
-        dispatcher = new CallbackEventDispatcher<>(registry, true, monitor);
+        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, true, monitor);
+        when(resolverRegistry.resolve("local")).thenReturn("local");
 
         when(registry.send(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Test")));
 
@@ -82,12 +88,13 @@ public class CallbackEventDispatcherTest {
     @ValueSource(booleans = { true, false })
     void verifyShouldDispatchWithSameTransactionalConfiguration(boolean transactional) {
 
+        when(resolverRegistry.resolve("local")).thenReturn("local");
         when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
 
-        dispatcher = new CallbackEventDispatcher<>(registry, transactional, monitor);
+        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, transactional, monitor);
 
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("local://test")
@@ -115,7 +122,9 @@ public class CallbackEventDispatcherTest {
     @ValueSource(booleans = { true, false })
     void verifyShouldNotDispatchWithDifferentTransactionalConfiguration(boolean transactional) {
 
-        dispatcher = new CallbackEventDispatcher<>(registry, transactional, monitor);
+        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, transactional, monitor);
+        when(resolverRegistry.resolve("local")).thenReturn("local");
+
 
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("local://test")

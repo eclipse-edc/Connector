@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.callback.dispatcher;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.callback.CallbackEventRemoteMessage;
+import org.eclipse.edc.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -23,6 +24,7 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
+import java.net.URI;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -37,9 +39,12 @@ public class CallbackEventDispatcher<T extends Event> implements EventSubscriber
     private final boolean transactional;
     private final Monitor monitor;
 
-    public CallbackEventDispatcher(RemoteMessageDispatcherRegistry dispatcher, boolean transactional, Monitor monitor) {
+    private CallbackProtocolResolverRegistry resolverRegistry;
+
+    public CallbackEventDispatcher(RemoteMessageDispatcherRegistry dispatcher, CallbackProtocolResolverRegistry resolveRegistry, boolean transactional, Monitor monitor) {
         this.dispatcher = dispatcher;
         this.transactional = transactional;
+        this.resolverRegistry = resolveRegistry;
         this.monitor = monitor;
     }
 
@@ -54,7 +59,12 @@ public class CallbackEventDispatcher<T extends Event> implements EventSubscriber
         for (var callback : callbacks) {
             if (matches(eventName, callback)) {
                 try {
-                    dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, eventEnvelope)).get();
+                    var protocol = resolverRegistry.resolve(URI.create(callback.getUri()).getScheme());
+                    if (protocol != null) {
+                        dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, eventEnvelope, protocol)).get();
+                    } else {
+                        monitor.warning(format("Failed to resolve protocol for URI %s", callback.getUri()));
+                    }
                 } catch (Exception e) {
                     monitor.severe(format("Failed to invoke callback at URI: %s", callback.getUri()), e);
                     throw new EdcException(e);

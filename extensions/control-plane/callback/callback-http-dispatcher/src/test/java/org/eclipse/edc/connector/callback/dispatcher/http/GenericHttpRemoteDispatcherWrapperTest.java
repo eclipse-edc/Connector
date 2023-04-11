@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,7 +90,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
         receiverEndpointServer.when(request).respond(successfulResponse());
 
 
-        dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event)).get();
+        dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
 
         verify(httpClient, atMostOnce()).execute(any());
 
@@ -116,7 +117,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
         receiverEndpointServer.when(request).respond(failedResponse());
 
 
-        assertThatThrownBy(() -> dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event)).get())
+        assertThatThrownBy(() -> dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get())
                 .cause()
                 .isInstanceOf(EdcException.class);
 
@@ -128,7 +129,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
     private RemoteMessageDispatcher createDispatcher() {
         var baseDispatcher = new GenericHttpRemoteDispatcherImpl(httpClient);
         baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper()));
-        return new GenericHttpRemoteDispatcherWrapper(baseDispatcher, "http");
+        return baseDispatcher;
     }
 
     private HttpResponse successfulResponse() {

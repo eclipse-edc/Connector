@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 
+import static org.eclipse.edc.connector.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -49,11 +50,10 @@ public class GenericHttpRemoteDispatcherWrapperExtensionTest {
     void initialize_shouldRegisterBothDispatcher(ServiceExtensionContext context) {
 
         extension.initialize(context);
-        verify(registry).register(argThat(dispatcher("https")));
-        verify(registry).register(argThat(dispatcher("http")));
+        verify(registry).register(argThat(dispatcher(CALLBACK_EVENT_HTTP)));
     }
 
-    private ArgumentMatcher<GenericHttpRemoteDispatcherWrapper> dispatcher(String scheme) {
+    private ArgumentMatcher<GenericHttpRemoteDispatcherImpl> dispatcher(String scheme) {
         return dispatcher -> dispatcher.protocol().equals(scheme);
     }
 }

@@ -29,6 +29,7 @@ import static java.lang.String.format;
  */
 public class GenericHttpRemoteDispatcherImpl implements GenericHttpRemoteDispatcher {
 
+    public static final String CALLBACK_EVENT_HTTP = "callback-event-http";
     private final EdcHttpClient httpClient;
     private Map<Class<? extends RemoteMessage>, GenericHttpDispatcherDelegate> delegates = new HashMap<>();
 
@@ -39,7 +40,7 @@ public class GenericHttpRemoteDispatcherImpl implements GenericHttpRemoteDispatc
 
     @Override
     public String protocol() {
-        return "http";
+        return CALLBACK_EVENT_HTTP;
     }
 
     @Override

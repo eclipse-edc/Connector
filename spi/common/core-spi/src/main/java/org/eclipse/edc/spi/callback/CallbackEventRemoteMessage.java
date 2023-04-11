@@ -20,8 +20,6 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
-import java.net.URI;
-
 /**
  * Envelope for implementors {@link Event} for sending event to external systems via {@link RemoteMessageDispatcherRegistry}
  */
@@ -32,9 +30,9 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
 
     private final EventEnvelope<T> envelope;
 
-    public CallbackEventRemoteMessage(CallbackAddress callbackAddress, EventEnvelope<T> envelope) {
+    public CallbackEventRemoteMessage(CallbackAddress callbackAddress, EventEnvelope<T> envelope, String protocol) {
         this.connectorAddress = callbackAddress.getUri();
-        this.protocol = URI.create(callbackAddress.getUri()).getScheme();
+        this.protocol = protocol;
         this.envelope = envelope;
     }
 
