@@ -45,7 +45,7 @@ public class CallbackEventRemoteMessageDispatcher implements GenericHttpDispatch
     @Override
     public Request buildRequest(CallbackEventRemoteMessage message) {
         try {
-            var body = mapper.writeValueAsString(((CallbackEventRemoteMessage<?>) message).getEvent());
+            var body = mapper.writeValueAsString(((CallbackEventRemoteMessage<?>) message).getEventEnvelope());
             return new Request.Builder()
                     .url(message.getConnectorAddress())
                     .post((RequestBody.create(body, MediaType.get(APPLICATION_JSON))))

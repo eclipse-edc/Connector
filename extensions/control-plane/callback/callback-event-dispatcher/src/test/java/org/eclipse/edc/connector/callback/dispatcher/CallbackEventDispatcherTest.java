@@ -105,7 +105,7 @@ public class CallbackEventDispatcherTest {
 
         verify(registry).send(any(), captor.capture());
 
-        assertThat(captor.getValue().getEvent().getPayload().getCallbackAddresses())
+        assertThat(captor.getValue().getEventEnvelope().getPayload().getCallbackAddresses())
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(callback);
 
@@ -132,7 +132,7 @@ public class CallbackEventDispatcherTest {
         dispatcher.on(envelope(event));
 
         verifyNoInteractions(registry);
-        
+
     }
 
     @SuppressWarnings("unchecked")

@@ -48,9 +48,9 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
         return connectorAddress;
     }
 
-    public EventEnvelope<T> getEvent() {
+    public EventEnvelope<T> getEventEnvelope() {
         return envelope;
     }
-    
+
 
 }
