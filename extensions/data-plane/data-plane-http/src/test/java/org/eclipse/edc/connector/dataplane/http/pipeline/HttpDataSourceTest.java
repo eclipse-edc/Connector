@@ -96,7 +96,7 @@ class HttpDataSourceTest {
 
         assertThatExceptionOfType(EdcException.class)
                 .isThrownBy(source::openPartStream)
-                .withMessage("Received code transferring HTTP data for request %s: %d - %s. %s", requestId, 400, message, body);
+                .withMessage("Received code transferring HTTP data for request %s: %d - %s.", requestId, 400, message);
 
         verify(requestFactory).toRequest(any());
     }
