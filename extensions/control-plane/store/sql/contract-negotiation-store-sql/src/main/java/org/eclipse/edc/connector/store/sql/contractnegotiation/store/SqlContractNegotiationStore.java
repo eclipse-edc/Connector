@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.Cont
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
@@ -86,9 +87,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     @Override
     public @Nullable ContractAgreement findContractAgreement(String contractId) {
         return transactionContext.execute(() -> {
-            var stmt = statements.getFindContractAgreementTemplate();
-            try {
-                return executeQuerySingle(getConnection(), true, this::mapContractAgreement, stmt, contractId);
+            try (var connection = getConnection()) {
+                return findContractAgreementInternal(connection, contractId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -148,7 +148,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         return transactionContext.execute(() -> {
             try {
                 var statement = statements.createNegotiationsQuery(querySpec);
-                return executeQuery(getConnection(), true, this::mapContractNegotiation, statement.getQueryAsString(), statement.getParameters());
+                return executeQuery(getConnection(), true, contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -173,7 +173,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
             var stmt = statements.getNextForStateTemplate();
             try (
                     var connection = getConnection();
-                    var stream = executeQuery(connection, true, this::mapContractNegotiation, stmt, state, clock.millis(), max)
+                    var stream = executeQuery(connection, true, contractNegotiationWithAgreementMapper(connection), stmt, state, clock.millis(), max)
             ) {
                 var negotiations = stream.collect(Collectors.toList());
                 negotiations.forEach(cn -> leaseContext.withConnection(connection).acquireLease(cn.getId()));
@@ -184,9 +184,14 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         });
     }
 
+    private ContractAgreement findContractAgreementInternal(Connection connection, String contractId) {
+        var stmt = statements.getFindContractAgreementTemplate();
+        return executeQuerySingle(connection, false, this::mapContractAgreement, stmt, contractId);
+    }
+
     private @Nullable ContractNegotiation findInternal(Connection connection, String id) {
         var sql = statements.getFindTemplate();
-        return executeQuerySingle(connection, false, this::mapContractNegotiation, sql, id);
+        return executeQuerySingle(connection, false, contractNegotiationMapper(), sql, id);
     }
 
     private void update(Connection connection, String negotiationId, ContractNegotiation updatedValues) {
@@ -304,14 +309,29 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         return format("Expected to find %d items, but found %d", expectedSize, actualSize);
     }
 
-    private ContractNegotiation mapContractNegotiation(ResultSet resultSet) throws SQLException {
+    private ResultSetMapper<ContractNegotiation> contractNegotiationMapper() {
+        return resultSet -> mapContractNegotiation(resultSet, this::extractContractAgreement);
+    }
+
+    private ResultSetMapper<ContractNegotiation> contractNegotiationWithAgreementMapper(Connection connection) {
+        return (resultSet -> mapContractNegotiation(resultSet, rs -> {
+            var agreementId = rs.getString(statements.getContractAgreementIdFkColumn());
+            if (agreementId == null) {
+                return null;
+            } else {
+                return findContractAgreementInternal(connection, agreementId);
+            }
+        }));
+    }
+
+    private ContractNegotiation mapContractNegotiation(ResultSet resultSet, ResultSetMapper<ContractAgreement> agreementMapper) throws Exception {
         return ContractNegotiation.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
                 .counterPartyId(resultSet.getString(statements.getCounterPartyIdColumn()))
                 .counterPartyAddress(resultSet.getString(statements.getCounterPartyAddressColumn()))
                 .protocol(resultSet.getString(statements.getProtocolColumn()))
                 .correlationId(resultSet.getString(statements.getCorrelationIdColumn()))
-                .contractAgreement(extractContractAgreement(resultSet))
+                .contractAgreement(agreementMapper.mapResultSet(resultSet))
                 .state(resultSet.getInt(statements.getStateColumn()))
                 .stateCount(resultSet.getInt(statements.getStateCountColumn()))
                 .stateTimestamp(resultSet.getLong(statements.getStateTimestampColumn()))
