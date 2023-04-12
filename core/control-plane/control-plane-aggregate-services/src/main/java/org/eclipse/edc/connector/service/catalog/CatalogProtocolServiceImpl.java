@@ -44,7 +44,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ClaimToken token) {
         var dataService = DataService.Builder.newInstance()
                 .id(randomUUID().toString())
-                .terms("dspace:connector")
+                .terms("connector")
                 .endpointUrl("https://localhost:8282") // TODO get connector address. Should it be dswWebhookAddress?
                 .build();
 
