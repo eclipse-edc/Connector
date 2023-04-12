@@ -15,6 +15,8 @@
 package org.eclipse.edc.spi.result;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -149,7 +151,8 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
      * @param <C1> the new content type.
      * @return a new result instance
      */
-    public <R1 extends AbstractResult<C1, F, R1>, C1> R1 newInstance(C1 content, F failure) {
+    @NotNull
+    protected <R1 extends AbstractResult<C1, F, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable F failure) {
         throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 

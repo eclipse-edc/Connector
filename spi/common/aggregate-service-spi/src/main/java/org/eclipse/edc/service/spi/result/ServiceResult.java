@@ -16,6 +16,8 @@ package org.eclipse.edc.service.spi.result;
 
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -87,7 +89,8 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R1 extends AbstractResult<C1, ServiceFailure, R1>, C1> R1 newInstance(C1 content, ServiceFailure failure) {
+    @NotNull
+    protected <R1 extends AbstractResult<C1, ServiceFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable ServiceFailure failure) {
         return (R1) new ServiceResult<>(content, failure);
     }
 

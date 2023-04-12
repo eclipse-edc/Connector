@@ -15,6 +15,7 @@
 package org.eclipse.edc.spi.result;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,7 +61,8 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R1 extends AbstractResult<C1, Failure, R1>, C1> R1 newInstance(C1 content, Failure failure) {
+    @NotNull
+    protected <R1 extends AbstractResult<C1, Failure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable Failure failure) {
         return (R1) new Result<>(content, failure);
     }
 
