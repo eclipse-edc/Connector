@@ -25,16 +25,16 @@ dependencies {
     api(project(":spi:common:auth-spi"))
     implementation(project(":extensions:common:api:control-api-configuration"))
 
-    implementation(libs.jakarta.rsApi)
-    implementation(libs.jakarta.validation)
-    implementation(libs.jersey.beanvalidation) //for validation
+    implementation(root.jakarta.rsApi)
+    implementation(root.jakarta.validation)
+    implementation(root.jersey.beanvalidation) //for validation
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
-    testImplementation(libs.restAssured)
-    testImplementation(libs.awaitility)
+    testImplementation(root.restAssured)
+    testImplementation(root.awaitility)
 }
 
 edcBuild {

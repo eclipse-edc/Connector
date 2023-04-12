@@ -29,12 +29,12 @@ dependencies {
     implementation(project(":core:common:util"))
 
     implementation(libs.dnsOverHttps)
-    implementation(libs.bouncyCastle.bcpkixJdk18on)
+    implementation(root.bouncyCastle.bcpkixJdk18on)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.awaitility)
-    testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.mockserver.netty)
+    testImplementation(root.awaitility)
+    testImplementation(root.junit.jupiter.api)
+    testImplementation(root.mockserver.netty)
 }
 
 

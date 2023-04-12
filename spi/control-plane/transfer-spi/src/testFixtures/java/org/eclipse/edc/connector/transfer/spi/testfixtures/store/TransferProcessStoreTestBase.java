@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -74,6 +76,20 @@ public abstract class TransferProcessStoreTestBase {
         assertThat(all).containsExactly(t);
         assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
         assertThat(all).allSatisfy(tr -> assertThat(tr.getCreatedAt()).isNotEqualTo(0L));
+    }
+
+    @Test
+    void create_verifyCallbacks() {
+
+        var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
+
+        var t = TestFunctions.createTransferProcessBuilder("test-id").properties(Map.of("key", "value")).callbackAddresses(callbacks).build();
+        getTransferProcessStore().save(t);
+
+        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+        assertThat(all).containsExactly(t);
+        assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
+        assertThat(all.get(0).getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
     }
 
     @Test

@@ -23,10 +23,10 @@ dependencies {
     implementation(project(":core:common:util"))
 
     implementation(libs.okhttp)
-    implementation(libs.failsafe.core)
+    implementation(root.failsafe.core)
 
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(root.mockserver.netty)
+    testImplementation(root.mockserver.client)
     testImplementation(project(":core:common:junit"))
 
 

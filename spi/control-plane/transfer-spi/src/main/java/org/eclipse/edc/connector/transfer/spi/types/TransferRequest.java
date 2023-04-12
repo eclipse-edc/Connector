@@ -15,7 +15,10 @@
 package org.eclipse.edc.connector.transfer.spi.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -24,6 +27,8 @@ import java.util.Objects;
  * go here and not in of the {@link DataRequest}
  */
 public class TransferRequest {
+
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     private DataRequest dataRequest;
 
@@ -40,6 +45,15 @@ public class TransferRequest {
         return dataRequest;
     }
 
+    /**
+     * Get the list of associated {@link CallbackAddress}
+     *
+     * @return The callbacks
+     */
+    public List<CallbackAddress> getCallbackAddresses() {
+        return callbackAddresses;
+    }
+
     public static class Builder {
         private final TransferRequest request;
 
@@ -54,6 +68,11 @@ public class TransferRequest {
 
         public Builder dataRequest(DataRequest dataRequest) {
             request.dataRequest = dataRequest;
+            return this;
+        }
+
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            request.callbackAddresses = callbackAddresses;
             return this;
         }
 

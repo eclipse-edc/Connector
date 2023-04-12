@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,15 +56,6 @@ public interface TransferProcessService {
      */
     @Nullable
     String getState(String transferProcessId);
-
-    /**
-     * Notifies the TransferProcess that it has been STARTED by the counter-part.
-     * Only callable on CONSUMER TransferProcess
-     *
-     * @param dataRequestId the dataRequestId
-     * @return a succeeded result if the operation was successful, a failed one otherwise
-     */
-    ServiceResult<TransferProcess> notifyStarted(String dataRequestId);
 
     /**
      * Asynchronously requests cancellation of the transfer process.
@@ -141,17 +131,6 @@ public interface TransferProcessService {
      */
     @NotNull
     ServiceResult<String> initiateTransfer(TransferRequest request);
-
-    /**
-     * Initiate transfer request for type provider.
-     *
-     * @param transferRequest for the transfer.
-     * @param claimToken of the requesting participant.
-     * @return a result that is successful if the transfer process was initiated with id of created transferProcess.
-     */
-    @NotNull
-    ServiceResult<String> initiateTransfer(TransferRequest transferRequest, ClaimToken claimToken);
-
 
     /**
      * Asynchronously informs the system that the {@link DeprovisionedResource} has been provisioned

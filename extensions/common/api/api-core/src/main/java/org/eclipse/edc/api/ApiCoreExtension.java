@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.api;
 
+import org.eclipse.edc.api.transformer.CallbackAddressDtoToCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.CriterionDtoToCriterionTransformer;
 import org.eclipse.edc.api.transformer.CriterionToCriterionDtoTransformer;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
@@ -39,6 +40,7 @@ public class ApiCoreExtension implements ServiceExtension {
         transformerRegistry.register(new QuerySpecDtoToQuerySpecTransformer());
         transformerRegistry.register(new CriterionToCriterionDtoTransformer());
         transformerRegistry.register(new CriterionDtoToCriterionTransformer());
+        transformerRegistry.register(new CallbackAddressDtoToCallbackAddressTransformer());
         return transformerRegistry;
     }
 }

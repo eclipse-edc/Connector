@@ -153,7 +153,7 @@ class CosmosContractNegotiationStoreTest {
 
     @Test
     void nextForState() {
-        var state = ContractNegotiationStates.PROVIDER_AGREED;
+        var state = ContractNegotiationStates.AGREED;
         when(cosmosDbApi.invokeStoredProcedure("nextForState", PARTITION_KEY, state.code(), 100, "test-connector"))
                 .thenReturn("[]");
 

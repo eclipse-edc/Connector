@@ -19,13 +19,13 @@ import org.eclipse.edc.spi.event.asset.AssetCreated;
 import org.eclipse.edc.spi.event.asset.AssetDeleted;
 import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionDeleted;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationAccepted;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConfirmed;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConsumerAgreed;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConsumerRequested;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationDeclined;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationProviderOffered;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationOffered;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -44,6 +45,8 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.time.Clock;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -74,28 +77,30 @@ class EventTest {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+
+            var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("http://local").events(Set.of("test")).build());
             var eventBuilders = Stream.of(
                     AssetCreated.Builder.newInstance().assetId("id").build(),
                     AssetDeleted.Builder.newInstance().assetId("id").build(),
                     ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id").build(),
                     ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id").build(),
-                    ContractNegotiationConsumerAgreed.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationConfirmed.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationDeclined.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationFailed.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationInitiated.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationProviderOffered.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationConsumerRequested.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationTerminated.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationAccepted.Builder.newInstance().contractNegotiationId("id").build(),
+                    ContractNegotiationConfirmed.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
+                    ContractNegotiationDeclined.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
+                    ContractNegotiationFailed.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
+                    ContractNegotiationInitiated.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
+                    ContractNegotiationOffered.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
+                    ContractNegotiationRequested.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
+                    ContractNegotiationTerminated.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
                     PolicyDefinitionCreated.Builder.newInstance().policyDefinitionId("id").build(),
                     PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id").build(),
-                    TransferProcessCompleted.Builder.newInstance().transferProcessId("id").build(),
-                    TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id").build(),
-                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id").reason("any reason").build(),
-                    TransferProcessFailed.Builder.newInstance().transferProcessId("id").build(),
-                    TransferProcessInitiated.Builder.newInstance().transferProcessId("id").build(),
-                    TransferProcessProvisioned.Builder.newInstance().transferProcessId("id").build(),
-                    TransferProcessRequested.Builder.newInstance().transferProcessId("id").build()
+                    TransferProcessCompleted.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
+                    TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
+                    TransferProcessTerminated.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).reason("any reason").build(),
+                    TransferProcessFailed.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
+                    TransferProcessInitiated.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
+                    TransferProcessProvisioned.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
+                    TransferProcessRequested.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build()
             );
 
             return eventBuilders

@@ -154,16 +154,21 @@ class EventRouterImplTest {
 
     private static class TestEvent extends TestEventBase {
 
+        @Override
+        public String name() {
+            return "test";
+        }
+
         public static class Builder {
 
             private final TestEvent event;
 
-            public static TestEvent.Builder newInstance() {
-                return new TestEvent.Builder();
-            }
-
             private Builder() {
                 event = new TestEvent();
+            }
+
+            public static TestEvent.Builder newInstance() {
+                return new TestEvent.Builder();
             }
 
             public TestEvent build() {

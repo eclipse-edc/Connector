@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,6 +110,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private ProvisionedResourceSet provisionedResourceSet;
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, String> properties = new HashMap<>();
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     private TransferProcess() {
     }
@@ -209,6 +211,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public Map<String, String> getProperties() {
         return Collections.unmodifiableMap(properties);
+    }
+
+    public List<CallbackAddress> getCallbackAddresses() {
+        return Collections.unmodifiableList(callbackAddresses);
     }
 
     public boolean deprovisionComplete() {
@@ -313,22 +319,9 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return Arrays.stream(states).map(TransferProcessStates::code).anyMatch(code -> code == state);
     }
 
-    private void transition(TransferProcessStates end, TransferProcessStates... starts) {
-        transition(end, (state) -> Arrays.stream(starts).anyMatch(s -> s == state));
-    }
-
-    /**
-     * Transition to a given end state if the passed predicate test correctly. Increases the
-     * state count if transitioned to the same state and updates the state timestamp.
-     *
-     * @param end          The desired state.
-     * @param canTransitTo Tells if the negotiation can transit to that state.
-     */
-    private void transition(TransferProcessStates end, Predicate<TransferProcessStates> canTransitTo) {
-        if (!canTransitTo.test(TransferProcessStates.from(state))) {
-            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
-        }
-        transitionTo(end.code());
+    @JsonIgnore
+    public String getCorrelationId() {
+        return dataRequest.getId();
     }
 
     @Override
@@ -340,6 +333,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .contentDataAddress(contentDataAddress)
                 .deprovisionedResources(deprovisionedResources)
                 .properties(properties)
+                .callbackAddresses(callbackAddresses)
                 .type(type);
         return copy(builder);
     }
@@ -372,6 +366,24 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 ", state=" + TransferProcessStates.from(state) +
                 ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
                 '}';
+    }
+
+    private void transition(TransferProcessStates end, TransferProcessStates... starts) {
+        transition(end, (state) -> Arrays.stream(starts).anyMatch(s -> s == state));
+    }
+
+    /**
+     * Transition to a given end state if the passed predicate test correctly. Increases the
+     * state count if transitioned to the same state and updates the state timestamp.
+     *
+     * @param end          The desired state.
+     * @param canTransitTo Tells if the negotiation can transit to that state.
+     */
+    private void transition(TransferProcessStates end, Predicate<TransferProcessStates> canTransitTo) {
+        if (!canTransitTo.test(TransferProcessStates.from(state))) {
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
+        }
+        transitionTo(end.code());
     }
 
     public enum Type {
@@ -425,6 +437,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            entity.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
         @Override
         public Builder self() {
             return this;
@@ -448,6 +465,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
             if (entity.state == 0) {
                 entity.transitionTo(INITIAL.code());
+            }
+
+            if (entity.callbackAddresses == null) {
+                entity.callbackAddresses = new ArrayList<>();
             }
 
             return entity;

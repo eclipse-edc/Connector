@@ -38,13 +38,8 @@ dependencyResolutionManagement {
         mavenCentral()
     }
     versionCatalogs {
-        create("libs") {
+        create("root") {
             from("org.eclipse.edc:edc-versions:0.0.1-SNAPSHOT")
-            // this is not part of the published EDC Version Catalog, so we'll just "amend" it
-            library("dnsOverHttps", "com.squareup.okhttp3", "okhttp-dnsoverhttps").versionRef("okhttp")
-            library("titaniumJsonLd", "com.apicatalog", "titanium-json-ld").version("1.3.1")
-            library("jacksonJsonP", "com.fasterxml.jackson.datatype", "jackson-datatype-jakarta-jsonp").version("jackson")
-            library("jakartaJson", "org.glassfish", "jakarta.json").version("2.0.0")
         }
     }
 }
@@ -71,6 +66,15 @@ include(":core:data-plane:data-plane-framework")
 include(":core:data-plane-selector:data-plane-selector-core")
 
 // modules that provide implementations for data ingress/egress ------------------------------------
+include(":data-protocols:dsp:dsp-api-configuration")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-api")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-spi")
+include(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform")
+include(":data-protocols:dsp:dsp-http-core")
+include(":data-protocols:dsp:dsp-http-spi")
+include(":data-protocols:dsp:dsp-transform")
+
 include(":data-protocols:ids:ids-api-configuration")
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
 include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
@@ -92,6 +96,7 @@ include(":extensions:common:azure:azure-resource-manager")
 include(":extensions:common:azure:azure-test")
 include(":extensions:common:azure:azure-blob-core")
 include(":extensions:common:azure:azure-cosmos-core")
+include(":extensions:common:azure:ms-dataverse")
 include(":extensions:common:configuration:configuration-filesystem")
 include(":extensions:common:events:events-cloud-http")
 include(":extensions:common:gcp:gcp-core")
@@ -159,6 +164,9 @@ include(":extensions:control-plane:store:sql:contract-negotiation-store-sql")
 include(":extensions:control-plane:store:sql:control-plane-sql")
 include(":extensions:control-plane:store:sql:policy-definition-store-sql")
 include(":extensions:control-plane:store:sql:transfer-process-store-sql")
+include(":extensions:control-plane:callback:callback-event-dispatcher")
+include(":extensions:control-plane:callback:callback-http-dispatcher")
+
 
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:data-plane-client")
@@ -178,6 +186,7 @@ include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
 include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql")
 include(":extensions:data-plane-selector:store:cosmos:data-plane-instance-store-cosmos")
+
 
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
@@ -230,5 +239,5 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
-include("extensions:common:azure:ms-dataverse")
-findProject(":extensions:common:azure:ms-dataverse")?.name = "ms-dataverse"
+
+include(":version-catalog")

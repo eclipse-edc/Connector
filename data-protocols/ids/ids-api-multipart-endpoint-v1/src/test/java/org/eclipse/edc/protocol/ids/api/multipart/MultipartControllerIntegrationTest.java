@@ -42,11 +42,10 @@ import okhttp3.MultipartReader;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Action;
@@ -59,12 +58,12 @@ import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
 import org.eclipse.edc.protocol.ids.util.CalendarUtil;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -107,10 +106,7 @@ class MultipartControllerIntegrationTest {
     private final ObjectMapper objectMapper = getCustomizedObjectMapper();
 
     private final ContractOfferResolver contractOfferResolver = mock(ContractOfferResolver.class);
-    private final ConsumerContractNegotiationManager consumerContractNegotiationManager =
-            mock(ConsumerContractNegotiationManager.class);
-    private final ProviderContractNegotiationManager providerContractNegotiationManager =
-            mock(ProviderContractNegotiationManager.class);
+    private final ContractNegotiationService service = mock(ContractNegotiationService.class);
 
     @BeforeEach
     void init(EdcExtension extension) {
@@ -125,8 +121,7 @@ class MultipartControllerIntegrationTest {
 
         extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
         extension.registerServiceMock(ContractOfferResolver.class, contractOfferResolver);
-        extension.registerServiceMock(ProviderContractNegotiationManager.class, providerContractNegotiationManager);
-        extension.registerServiceMock(ConsumerContractNegotiationManager.class, consumerContractNegotiationManager);
+        extension.registerServiceMock(ContractNegotiationService.class, service);
     }
 
     @Test
@@ -601,7 +596,7 @@ class MultipartControllerIntegrationTest {
 
     @Test
     void testHandleContractRequest(EdcHttpClient httpClient, AssetIndex assetIndex) throws Exception {
-        when(providerContractNegotiationManager.requested(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
+        when(service.notifyRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("id")));
         var assetId = "1234";
         var request = createRequestWithPayload(getContractRequestMessage(),
                 new ContractRequestBuilder(URI.create("urn:contractrequest:2345"))
@@ -662,7 +657,7 @@ class MultipartControllerIntegrationTest {
                         .build());
         var asset = Asset.Builder.newInstance().id(assetId).build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
-        when(consumerContractNegotiationManager.confirmed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
+        when(service.notifyAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("id")));
 
         var response = httpClient.execute(request);
 
@@ -694,12 +689,12 @@ class MultipartControllerIntegrationTest {
         });
         jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
         jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        verify(consumerContractNegotiationManager).confirmed(any(), any(), argThat(agreement -> assetId.equals(agreement.getAssetId())), any());
+        verify(service).notifyAgreed(argThat(message -> assetId.equals(message.getContractAgreement().getAssetId())), any());
     }
 
     @Test
     void testHandleContractRejection(EdcHttpClient httpClient) throws Exception {
-        when(providerContractNegotiationManager.declined(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("id")));
+        when(service.notifyTerminated(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("id")));
         var request = createRequest(getContractRejectionMessage());
 
         var response = httpClient.execute(request);

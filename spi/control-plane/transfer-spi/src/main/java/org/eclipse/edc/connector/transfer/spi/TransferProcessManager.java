@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
@@ -31,13 +32,13 @@ public interface TransferProcessManager {
     StatusResult<String> initiateConsumerRequest(TransferRequest transferRequest);
 
     /**
-     * Initiates a data transfer process on the provider.
-     */
-    StatusResult<String> initiateProviderRequest(TransferRequest transferRequest);
-
-    /**
      * Adds a single Command to the queue which is processed sequentially.
      */
     void enqueueCommand(TransferProcessCommand command);
+
+    /**
+     * Run a command syncronously
+     */
+    Result<Void> runCommand(TransferProcessCommand command);
 
 }

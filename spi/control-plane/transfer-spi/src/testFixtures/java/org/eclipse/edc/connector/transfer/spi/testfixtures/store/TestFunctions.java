@@ -26,9 +26,11 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.util.List;
 import java.util.UUID;
 
 public class TestFunctions {
@@ -88,6 +90,7 @@ public class TestFunctions {
                 .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(createDataRequest())
                 .contentDataAddress(createDataAddressBuilder("any").build())
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
                 .resourceManifest(createManifest());
     }
 

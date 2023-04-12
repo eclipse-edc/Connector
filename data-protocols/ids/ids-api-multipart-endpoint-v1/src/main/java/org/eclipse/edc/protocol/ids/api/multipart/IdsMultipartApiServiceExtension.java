@@ -18,11 +18,10 @@
 
 package org.eclipse.edc.protocol.ids.api.multipart;
 
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.protocol.ids.api.configuration.IdsApiConfiguration;
@@ -87,12 +86,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private ContractNegotiationStore contractNegotiationStore;
 
     @Inject
-    private ConsumerContractNegotiationManager consumerNegotiationManager;
-
-    @Inject
-    private ProviderContractNegotiationManager providerNegotiationManager;
-
-    @Inject
     private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
 
     @Inject
@@ -105,10 +98,13 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private Vault vault;
     
     @Inject
-    private TransferProcessService transferProcessService;
+    private TransferProcessProtocolService transferProcessService;
 
     @Inject
     private TypeManager typeManager;
+
+    @Inject
+    private ContractNegotiationService contractNegotiationService;
 
     @Override
     public String name() {
@@ -125,16 +121,14 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         var objectMapper = typeManager.getMapper("ids");
 
-        // create request handlers
         var handlers = new LinkedList<Handler>();
         handlers.add(new DescriptionRequestHandler(monitor, connectorId, transformerRegistry, assetIndex, dataCatalogService, contractOfferResolver, connectorService, objectMapper));
         handlers.add(new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, vault, transferProcessService));
         handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, typeManager));
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
-        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
-        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, transformerRegistry, assetIndex, contractNegotiationService));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, transformerRegistry, contractNegotiationService));
+        handlers.add(new ContractRejectionHandler(monitor, connectorId, contractNegotiationService));
 
-        // create & register controller
         var multipartController = new MultipartController(monitor, connectorId, objectMapper, dynamicAttributeTokenService, handlers, idsApiConfiguration.getIdsWebhookAddress());
         webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }

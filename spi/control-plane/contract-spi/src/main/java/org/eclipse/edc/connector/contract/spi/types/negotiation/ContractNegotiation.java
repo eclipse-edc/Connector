@@ -23,11 +23,13 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -35,36 +37,32 @@ import java.util.function.Predicate;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_AGREEING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFIED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_VERIFYING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_AGREEING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_FINALIZING;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 
 /**
  * Represents a contract negotiation.
  * <p>
  * Note: This class implements the negotiation process that is started by a consumer. For some use
  * cases, it may be interesting to initiate the contract negotiation as a provider.
- *
- * <p>
- * TODO: This is only placeholder
- * TODO: Implement state transitions
- * TODO: Add error details
  */
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
@@ -112,6 +110,15 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     /**
+     * Returns all callback addresses configured for the negotiation process.
+     *
+     * @return The callback addresses.
+     */
+    public List<CallbackAddress> getCallbackAddresses() {
+        return Collections.unmodifiableList(callbackAddresses);
+    }
+
+    /**
      * Adds a new contract offer to this negotiation.
      *
      * @param offer The offer to add.
@@ -152,128 +159,128 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state INITIAL.
      */
     public void transitionInitial() {
-        transition(INITIAL, CONSUMER_REQUESTING, INITIAL);
+        transition(INITIAL, REQUESTING, INITIAL);
     }
 
     /**
-     * Transition to state CONSUMER_REQUESTING (type consumer only).
+     * Transition to state REQUESTING (type consumer only).
      */
-    public void transitionConsumerRequesting() {
+    public void transitionRequesting() {
         if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no CONSUMER_REQUESTING state");
+            throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(CONSUMER_REQUESTING, CONSUMER_REQUESTING, INITIAL);
+        transition(REQUESTING, REQUESTING, INITIAL);
     }
 
     /**
-     * Transition to state CONSUMER_REQUESTED.
+     * Transition to state REQUESTED.
      */
-    public void transitionConsumerRequested() {
+    public void transitionRequested() {
         if (Type.PROVIDER == type) {
-            transition(CONSUMER_REQUESTED, INITIAL);
+            transition(REQUESTED, INITIAL);
         } else {
-            transition(CONSUMER_REQUESTED, CONSUMER_REQUESTED, CONSUMER_REQUESTING);
+            transition(REQUESTED, REQUESTED, REQUESTING);
         }
     }
 
     /**
-     * Transition to state PROVIDER_OFFERING (type provider only).
+     * Transition to state OFFERING (type provider only).
      */
-    public void transitionProviderOffering() {
+    public void transitionOffering() {
         if (CONSUMER == type) {
-            throw new IllegalStateException("Provider processes have no PROVIDER_OFFERING state");
+            throw new IllegalStateException("Provider processes have no OFFERING state");
         }
 
-        transition(PROVIDER_OFFERING, PROVIDER_OFFERING, PROVIDER_OFFERED, CONSUMER_REQUESTED);
+        transition(OFFERING, OFFERING, OFFERED, REQUESTED);
     }
 
     /**
-     * Transition to state PROVIDER_OFFERED.
+     * Transition to state OFFERED.
      */
-    public void transitionProviderOffered() {
+    public void transitionOffered() {
         if (CONSUMER == type) {
-            transition(PROVIDER_OFFERED, PROVIDER_OFFERED, CONSUMER_REQUESTED);
+            transition(OFFERED, OFFERED, REQUESTED);
         } else {
-            transition(PROVIDER_OFFERED, PROVIDER_OFFERED, PROVIDER_OFFERING);
+            transition(OFFERED, OFFERED, OFFERING);
         }
     }
 
     /**
-     * Transition to state CONSUMER_APPROVING (type consumer only).
+     * Transition to state ACCEPTING (type consumer only).
      */
-    public void transitionConsumerAgreeing() {
+    public void transitionAccepting() {
         if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
+            throw new IllegalStateException("Provider processes have no ACCEPTING state");
         }
-        transition(CONSUMER_AGREEING, CONSUMER_AGREEING, CONSUMER_REQUESTED);
+        transition(ACCEPTING, ACCEPTING, REQUESTED);
     }
 
     /**
-     * Transition to state CONSUMER_AGREED.
+     * Transition to state ACCEPTED.
      */
-    public void transitionConsumerAgreed() {
-        transition(CONSUMER_AGREED, CONSUMER_AGREED, CONSUMER_AGREEING, PROVIDER_OFFERED);
+    public void transitionAccepted() {
+        transition(ACCEPTED, ACCEPTED, ACCEPTING, OFFERED);
     }
 
     /**
-     * Transition to state PROVIDER_AGREEING (type provider only).
+     * Transition to state AGREEING (type provider only).
      */
-    public void transitionProviderAgreeing() {
+    public void transitionAgreeing() {
         if (CONSUMER == type) {
-            throw new IllegalStateException("Consumer processes have no PROVIDER_AGREEING state");
+            throw new IllegalStateException("Consumer processes have no AGREEING state");
         }
-        transition(PROVIDER_AGREEING, PROVIDER_AGREEING, CONSUMER_REQUESTED, PROVIDER_OFFERED);
+        transition(AGREEING, AGREEING, REQUESTED, OFFERED);
     }
 
     /**
-     * Transition to state PROVIDER_AGREED.
+     * Transition to state AGREED.
      */
-    public void transitionProviderAgreed() {
+    public void transitionAgreed() {
         if (CONSUMER == type) {
-            transition(PROVIDER_AGREED, PROVIDER_AGREEING, CONSUMER_AGREED, CONSUMER_REQUESTED, PROVIDER_AGREED);
+            transition(AGREED, AGREEING, ACCEPTED, REQUESTED, AGREED);
         } else {
-            transition(PROVIDER_AGREED, PROVIDER_AGREEING);
+            transition(AGREED, AGREEING);
         }
     }
 
     /**
-     * Transition to state CONSUMER_VERIFYING.
+     * Transition to state VERIFYING.
      */
-    public void transitionConsumerVerifying() {
+    public void transitionVerifying() {
         if (PROVIDER == type) {
-            throw new IllegalStateException("Consumer processes have no CONSUMER_VERIFYING state");
+            throw new IllegalStateException("Consumer processes have no VERIFYING state");
         }
 
-        transition(CONSUMER_VERIFYING, CONSUMER_VERIFYING, PROVIDER_AGREED, CONSUMER_AGREED);
+        transition(VERIFYING, VERIFYING, AGREED, ACCEPTED);
     }
 
     /**
-     * Transition to state CONSUMER_VERIFIED.
+     * Transition to state VERIFIED.
      */
-    public void transitionConsumerVerified() {
+    public void transitionVerified() {
         if (type == CONSUMER) {
-            transition(CONSUMER_VERIFIED, CONSUMER_VERIFIED, CONSUMER_VERIFYING);
+            transition(VERIFIED, VERIFIED, VERIFYING);
         } else {
-            transition(CONSUMER_VERIFIED, CONSUMER_VERIFIED, CONSUMER_AGREED, PROVIDER_AGREED);
+            transition(VERIFIED, VERIFIED, ACCEPTED, AGREED);
         }
     }
 
     /**
-     * Transition to state PROVIDER_FINALIZING.
+     * Transition to state FINALIZING.
      */
-    public void transitionProviderFinalizing() {
+    public void transitionFinalizing() {
         if (CONSUMER == type) {
-            throw new IllegalStateException("Consumer processes have no PROVIDER_FINALIZING state");
+            throw new IllegalStateException("Consumer processes have no FINALIZING state");
         }
 
-        transition(PROVIDER_FINALIZING, PROVIDER_FINALIZING, CONSUMER_VERIFIED);
+        transition(FINALIZING, FINALIZING, VERIFIED);
     }
 
     /**
-     * Transition to state PROVIDER_FINALIZED.
+     * Transition to state FINALIZED.
      */
-    public void transitionProviderFinalized() {
-        transition(PROVIDER_FINALIZED, PROVIDER_FINALIZED, PROVIDER_FINALIZING, PROVIDER_AGREED, CONSUMER_VERIFIED);
+    public void transitionFinalized() {
+        transition(FINALIZED, FINALIZED, FINALIZING, AGREED, VERIFIED);
     }
 
     /**
@@ -307,9 +314,9 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionTerminated() {
         if (CONSUMER == type) {
-            transition(TERMINATED, TERMINATING, CONSUMER_REQUESTED);
+            transition(TERMINATED, TERMINATING, REQUESTED);
         } else {
-            transition(TERMINATED, TERMINATING, PROVIDER_OFFERED, PROVIDER_AGREEING, PROVIDER_AGREED, CONSUMER_REQUESTED);
+            transition(TERMINATED, TERMINATING, OFFERED, AGREEING, AGREED, REQUESTED);
         }
     }
 
@@ -327,7 +334,8 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
                 .protocol(protocol)
                 .type(type)
                 .contractAgreement(contractAgreement)
-                .contractOffers(contractOffers);
+                .contractOffers(contractOffers)
+                .callbackAddresses(callbackAddresses);
         return copy(builder);
     }
 
@@ -378,7 +386,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     public enum Type {
-        CONSUMER, PROVIDER;
+        CONSUMER, PROVIDER
     }
 
     /**
@@ -428,6 +436,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             return this;
         }
 
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            entity.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
         public Builder contractOffer(ContractOffer contractOffer) {
             entity.contractOffers.add(contractOffer);
             return this;
@@ -455,6 +468,9 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
             }
             if (entity.state == 0) {
                 entity.transitionTo(INITIAL.code());
+            }
+            if (entity.callbackAddresses == null) {
+                entity.callbackAddresses = new ArrayList<>();
             }
             return entity;
         }

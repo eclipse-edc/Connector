@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.emptyString;
@@ -171,7 +172,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @Test
     void getSingleContractNegotationState(ContractNegotiationStore store) {
-        store.save(createContractNegotiationBuilder("negotiationId").state(CONSUMER_REQUESTED.code()).build());
+        store.save(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
 
         var state = baseRequest()
                 .get("/contractnegotiations/negotiationId/state")
@@ -180,7 +181,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .contentType(JSON)
                 .extract().as(Map.class);
 
-        assertThat(state).containsEntry("state", "CONSUMER_REQUESTED");
+        assertThat(state).containsEntry("state", "REQUESTED");
     }
 
     @Test
@@ -266,7 +267,7 @@ class ContractNegotiationApiControllerIntegrationTest {
         registry.register(dispatcher);
         when(dispatcher.send(any(), any())).thenReturn(completedFuture(null));
         var negotiation = createContractNegotiationBuilder("negotiationId")
-                .state(CONSUMER_REQUESTED.code())
+                .state(REQUESTED.code())
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         store.save(negotiation);
@@ -310,6 +311,9 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .id(negotiationId)
                 .counterPartyId(UUID.randomUUID().toString())
                 .counterPartyAddress("address")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .protocol(protocol);
     }
 

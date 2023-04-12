@@ -29,9 +29,9 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConsumerRequested;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationAgreed;
 import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationEvent;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationProviderAgreed;
+import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -104,13 +104,13 @@ class ContractNegotiationEventDispatchTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.accept(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
-        var result = manager.requested(token, createContractOfferRequest(policy));
+        manager.requested(token, createContractOfferRequest(policy));
 
         await().untilAsserted(() -> {
             //noinspection unchecked
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationConsumerRequested.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
             //noinspection unchecked
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationProviderAgreed.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationAgreed.class)));
         });
     }
 

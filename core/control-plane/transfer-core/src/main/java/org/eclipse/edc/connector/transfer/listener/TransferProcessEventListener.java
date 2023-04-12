@@ -48,6 +48,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void initiated(TransferProcess process) {
         var event = TransferProcessInitiated.Builder.newInstance()
                 .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -57,6 +58,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void provisioningRequested(TransferProcess process) {
         var event = TransferProcessProvisioningRequested.Builder.newInstance()
                 .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -66,6 +68,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void provisioned(TransferProcess process) {
         var event = TransferProcessProvisioned.Builder.newInstance()
                 .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -75,6 +78,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void requested(TransferProcess process) {
         var event = TransferProcessRequested.Builder.newInstance()
                 .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -84,6 +88,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void started(TransferProcess process) {
         var event = TransferProcessStarted.Builder.newInstance()
                 .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -93,24 +98,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void completed(TransferProcess process) {
         var event = TransferProcessCompleted.Builder.newInstance()
                 .transferProcessId(process.getId())
-                .build();
-
-        publish(event);
-    }
-
-    @Override
-    public void deprovisioningRequested(TransferProcess process) {
-        var event = TransferProcessDeprovisioningRequested.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .build();
-
-        publish(event);
-    }
-
-    @Override
-    public void deprovisioned(TransferProcess process) {
-        var event = TransferProcessDeprovisioned.Builder.newInstance()
-                .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -121,6 +109,27 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = TransferProcessTerminated.Builder.newInstance()
                 .reason(process.getErrorDetail())
                 .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void deprovisioningRequested(TransferProcess process) {
+        var event = TransferProcessDeprovisioningRequested.Builder.newInstance()
+                .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
+                .build();
+
+        publish(event);
+    }
+
+    @Override
+    public void deprovisioned(TransferProcess process) {
+        var event = TransferProcessDeprovisioned.Builder.newInstance()
+                .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);
@@ -130,6 +139,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void failed(TransferProcess process) {
         var event = TransferProcessFailed.Builder.newInstance()
                 .transferProcessId(process.getId())
+                .callbackAddresses(process.getCallbackAddresses())
                 .build();
 
         publish(event);

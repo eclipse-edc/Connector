@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
@@ -25,10 +24,11 @@ import java.util.Objects;
  * indicate the data transfer process should stop and be placed in a terminal state. If the termination was due to an
  * error, the sender may include error information.
  */
-public class TransferTerminationMessage implements RemoteMessage {
+public class TransferTerminationMessage implements TransferRemoteMessage {
 
     private String connectorAddress;
     private String protocol;
+    private String processId;
 
     @Override
     public String getProtocol() {
@@ -38,6 +38,11 @@ public class TransferTerminationMessage implements RemoteMessage {
     @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -63,11 +68,15 @@ public class TransferTerminationMessage implements RemoteMessage {
             return this;
         }
 
+        public Builder processId(String processId) {
+            message.processId = processId;
+            return this;
+        }
+
         public TransferTerminationMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.connectorAddress, "The connectorAddress must be specified");
             return message;
         }
-
     }
 }

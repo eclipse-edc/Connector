@@ -31,16 +31,21 @@ public class ContractNegotiationFailed extends ContractNegotiationEvent {
     private ContractNegotiationFailed() {
     }
 
+    @Override
+    public String name() {
+        return "contract.negotiation.failed";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationFailed, Builder> {
+
+        private Builder() {
+            super(new ContractNegotiationFailed());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new ContractNegotiationFailed());
         }
 
         @Override

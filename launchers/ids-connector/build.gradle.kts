@@ -16,7 +16,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -32,8 +32,8 @@ dependencies {
 
     implementation(project(":extensions:control-plane:api:management-api"))
 
-    testImplementation(libs.junit.jupiter.api)
-    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(root.junit.jupiter.api)
+    testRuntimeOnly(root.junit.jupiter.engine)
 }
 
 application {

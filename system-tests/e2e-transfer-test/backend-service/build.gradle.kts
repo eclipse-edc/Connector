@@ -21,8 +21,8 @@ dependencies {
     implementation(project(":core:common:boot"))
     implementation(project(":core:common:connector-core"))
 
-    implementation(libs.nimbus.jwt)
-    implementation(libs.jakarta.rsApi)
+    implementation(root.nimbus.jwt)
+    implementation(root.jakarta.rsApi)
 }
 
 edcBuild {

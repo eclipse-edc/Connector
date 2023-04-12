@@ -44,6 +44,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,9 +119,10 @@ class TransferProcessManagerImplIntegrationTest {
         )));
 
         var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+        var callback = CallbackAddress.Builder.newInstance().uri("local://test").build();
         var processes = IntStream.range(0, numProcesses)
                 .mapToObj(i -> provisionedResourceSet())
-                .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
+                .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).callbackAddresses(List.of(callback)).provisionedResourceSet(resourceSet).build())
                 .peek(store::save)
                 .collect(Collectors.toList());
 
@@ -131,9 +133,12 @@ class TransferProcessManagerImplIntegrationTest {
                     .allSatisfy(process -> {
                         var id = process.getId();
                         var storedProcess = store.find(id);
+
                         assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore")
                                 .isNotNull().extracting(StatefulEntity::getState).asInstanceOf(comparable(Integer.class))
                                 .isGreaterThan(INITIAL.code());
+
+                        assertThat(storedProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
                     });
             verify(provisionManager, times(numProcesses)).provision(any(), any());
         });

@@ -28,16 +28,21 @@ public class ContractDefinitionCreated extends ContractDefinitionEvent {
     private ContractDefinitionCreated() {
     }
 
+    @Override
+    public String name() {
+        return "contract.definition.created";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionCreated, Builder> {
+
+        private Builder() {
+            super(new ContractDefinitionCreated());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new ContractDefinitionCreated());
         }
 
         @Override

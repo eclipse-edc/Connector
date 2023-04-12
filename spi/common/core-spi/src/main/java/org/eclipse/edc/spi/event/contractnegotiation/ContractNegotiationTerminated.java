@@ -28,16 +28,22 @@ public class ContractNegotiationTerminated extends ContractNegotiationEvent {
     private ContractNegotiationTerminated() {
     }
 
+    @Override
+    public String name() {
+        return "contract.negotiation.terminated";
+    }
+
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationTerminated, Builder> {
+
+        private Builder() {
+            super(new ContractNegotiationTerminated());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new ContractNegotiationTerminated());
         }
 
         @Override

@@ -20,7 +20,6 @@ import de.fraunhofer.iais.eis.BaseConnectorBuilder;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.PermissionBuilder;
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
@@ -29,6 +28,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferReq
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
@@ -38,15 +38,13 @@ import org.eclipse.edc.protocol.ids.spi.transform.ContractAgreementTransformerOu
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.MessageProtocol;
 import org.eclipse.edc.protocol.ids.util.CalendarUtil;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.metadata.MetadataRequest;
@@ -83,12 +81,10 @@ class MultipartDispatcherIntegrationTest {
     private final IdsTransformerRegistry transformerRegistry = mock(IdsTransformerRegistry.class);
     private final ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
-    private final ConsumerContractNegotiationManager consumerContractNegotiationManager = mock(ConsumerContractNegotiationManager.class);
+    private final ContractNegotiationService negotiationService = mock(ContractNegotiationService.class);
 
     @BeforeEach
     void init(EdcExtension extension) {
-        extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
-
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(PORT),
                 "web.http.path", "/api",
@@ -98,10 +94,17 @@ class MultipartDispatcherIntegrationTest {
                 "ids.webhook.address", "http://webhook"
         ));
 
+        var identityService = mock(IdentityService.class);
+        var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
+        var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
+        when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
+        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+        extension.registerServiceMock(IdentityService.class, identityService);
+
         extension.registerServiceMock(IdsTransformerRegistry.class, transformerRegistry);
         extension.registerServiceMock(ContractNegotiationStore.class, negotiationStore);
         extension.registerServiceMock(ContractValidationService.class, validationService);
-        extension.registerServiceMock(ConsumerContractNegotiationManager.class, consumerContractNegotiationManager);
+        extension.registerServiceMock(ContractNegotiationService.class, negotiationService);
     }
 
     @Test
@@ -172,6 +175,7 @@ class MultipartDispatcherIntegrationTest {
     void testSendContractRequestMessage(RemoteMessageDispatcherRegistry dispatcher, AssetIndex assetIndex) {
         var contractOffer = contractOffer("id:someId");
         assetIndex.accept(Asset.Builder.newInstance().id("1").build(), DataAddress.Builder.newInstance().type("any").build());
+        when(negotiationService.notifyRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
         when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(contractOffer));
@@ -194,16 +198,17 @@ class MultipartDispatcherIntegrationTest {
 
     @Test
     void testSendContractAgreementMessage(RemoteMessageDispatcherRegistry dispatcher) {
+        var policy = Policy.Builder.newInstance().build();
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
-                .policy(Policy.Builder.newInstance().build())
+                .policy(policy)
                 .assetId(UUID.randomUUID().toString())
                 .build();
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
                 .thenReturn(Result.success(getIdsContractAgreement()));
         when(transformerRegistry.transform(any(), eq(ContractAgreementTransformerOutput.class)))
-                .thenReturn(Result.success(ContractAgreementTransformerOutput.Builder.newInstance().build()));
-        when(consumerContractNegotiationManager.confirmed(any(), any(), any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
+                .thenReturn(Result.success(ContractAgreementTransformerOutput.Builder.newInstance().contractAgreement(contractAgreement).policy(policy).build()));
+        when(negotiationService.notifyAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
 
         var request = ContractAgreementRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
@@ -211,7 +216,7 @@ class MultipartDispatcherIntegrationTest {
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
                 .correlationId("1")
-                .policy(Policy.Builder.newInstance().build())
+                .policy(policy)
                 .build();
 
         var future = dispatcher.send(null, request);
@@ -223,7 +228,7 @@ class MultipartDispatcherIntegrationTest {
     @Disabled("Proper test data and setup is needed")
     @Test
     void testSendContractRejectionMessage(RemoteMessageDispatcherRegistry dispatcher) {
-        when(consumerContractNegotiationManager.declined(any(), any())).thenReturn(StatusResult.success(createContractNegotiation("negotiationId")));
+        when(negotiationService.notifyTerminated(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
         var rejection = ContractRejection.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
@@ -291,15 +296,4 @@ class MultipartDispatcherIntegrationTest {
                 .build();
     }
 
-    public static class TestExtension implements ServiceExtension {
-        @Provider
-        public IdentityService identityService() {
-            var identityService = mock(IdentityService.class);
-            var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
-            var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").claim("client_id", "some-client").build();
-            when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
-            when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
-            return identityService;
-        }
-    }
 }

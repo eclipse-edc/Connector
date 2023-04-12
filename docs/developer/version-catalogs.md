@@ -45,7 +45,7 @@ separators.
 Utilizing a dependency is easy, simply refer to it in the dependency configuration:
 
 ```kotlin
-implementation(libs.jackson.annotation) // resolves to "com.fasterxml.jackson.core:jackson-annotations"
+implementation(root.jackson.annotation) // resolves to "com.fasterxml.jackson.core:jackson-annotations"
 ```
 
 ### Using bundles
@@ -54,9 +54,9 @@ In the context of version catalogs a `bundle` is a set of versions grouped toget
 in build files is just as easy as with "normal" dependencies:
 
 ```kotlin
-implementation(libs.bundles.jersey.core)
+implementation(root.bundles.jersey.core)
 
-testFixturesImplementation(libs.bundles.jupiter)   
+testFixturesImplementation(root.bundles.jupiter)   
 ```
 
 ## Modifying the version catalog

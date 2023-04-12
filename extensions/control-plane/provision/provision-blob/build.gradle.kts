@@ -20,8 +20,8 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":extensions:common:azure:azure-blob-core"))
 
-    implementation(libs.azure.storageblob)
-    implementation(libs.failsafe.core)
+    implementation(root.azure.storageblob)
+    implementation(root.failsafe.core)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 }

@@ -19,18 +19,18 @@ plugins {
 }
 
 dependencies {
-    api(libs.bundles.jackson)
+    api(root.bundles.jackson)
     api(project(":spi:common:policy-model"))
 
-    implementation(libs.opentelemetry.api)
+    implementation(root.opentelemetry.api)
 
     testImplementation(project(":core:common:junit"))
 
     // needed by the abstract test spec located in testFixtures
-    testFixturesImplementation(libs.bundles.jupiter)
-    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
-    testFixturesImplementation(libs.mockito.core)
-    testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(root.bundles.jupiter)
+    testFixturesRuntimeOnly(root.junit.jupiter.engine)
+    testFixturesImplementation(root.mockito.core)
+    testFixturesImplementation(root.assertj)
 }
 
 

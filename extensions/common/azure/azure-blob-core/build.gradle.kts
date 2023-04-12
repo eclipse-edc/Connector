@@ -20,14 +20,14 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
-    implementation(libs.azure.storageblob)
+    implementation(root.azure.storageblob)
     implementation(project(":core:common:util"))
 
     testFixturesApi(project(":extensions:common:azure:azure-blob-core"))
     testFixturesImplementation(project(":core:common:util"))
 
-    testFixturesImplementation(libs.junit.jupiter.api)
-    testFixturesRuntimeOnly(libs.junit.jupiter.engine)
+    testFixturesImplementation(root.junit.jupiter.api)
+    testFixturesRuntimeOnly(root.junit.jupiter.engine)
 }
 
 

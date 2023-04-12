@@ -27,17 +27,22 @@ public class AssetDeleted extends AssetEvent {
 
     private AssetDeleted() {
     }
-    
+
+    @Override
+    public String name() {
+        return "asset.deleted";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends AssetEvent.Builder<AssetDeleted, Builder> {
+
+        private Builder() {
+            super(new AssetDeleted());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new AssetDeleted());
         }
 
         @Override

@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
+import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
@@ -33,6 +34,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
@@ -45,12 +47,13 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.CONSUMER_REQUESTED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -128,7 +131,9 @@ class ContractNegotiationApiControllerTest {
     void getContractNegotiation_notFound() {
         when(service.findbyId("negotiationId")).thenReturn(null);
 
-        assertThatThrownBy(() -> controller.getNegotiation("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
+        assertThatThrownBy(() -> controller.getNegotiation("nonExistingId"))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessage("Object of type ContractNegotiation with ID=nonExistingId was not found");
         verifyNoInteractions(transformerRegistry);
     }
 
@@ -138,23 +143,27 @@ class ContractNegotiationApiControllerTest {
         when(service.findbyId("negotiationId")).thenReturn(contractNegotiation);
         when(transformerRegistry.transform(isA(ContractNegotiation.class), eq(ContractNegotiationDto.class))).thenReturn(Result.failure("failure"));
 
-        assertThatThrownBy(() -> controller.getNegotiation("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
+        assertThatThrownBy(() -> controller.getNegotiation("nonExistingId"))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessage("Object of type ContractNegotiation with ID=nonExistingId was not found");
     }
 
     @Test
     void getContractNegotiationState_found() {
-        when(service.getState("negotiationId")).thenReturn("CONSUMER_REQUESTED");
+        when(service.getState("negotiationId")).thenReturn("REQUESTED");
 
         var state = controller.getNegotiationState("negotiationId");
 
-        assertThat(state.getState()).isEqualTo(CONSUMER_REQUESTED.name());
+        assertThat(state.getState()).isEqualTo(REQUESTED.name());
     }
 
     @Test
     void getContractNegotiationState_notFound() {
         when(service.getState("negotiationId")).thenReturn(null);
 
-        assertThatThrownBy(() -> controller.getNegotiationState("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
+        assertThatThrownBy(() -> controller.getNegotiationState("nonExistingId"))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessage("Object of type ContractNegotiation with ID=nonExistingId was not found");
     }
 
     @Test
@@ -174,7 +183,9 @@ class ContractNegotiationApiControllerTest {
     void getAgreementForNegotiation_negotiationNotExist() {
         when(service.getForNegotiation(any())).thenReturn(null);
 
-        assertThatThrownBy(() -> controller.getAgreementForNegotiation("negotiationId")).isInstanceOf(ObjectNotFoundException.class);
+        assertThatThrownBy(() -> controller.getAgreementForNegotiation("negotiationId"))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessage("Object of type ContractNegotiation with ID=negotiationId was not found");
         verifyNoInteractions(transformerRegistry);
     }
 
@@ -188,6 +199,9 @@ class ContractNegotiationApiControllerTest {
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
                 .offer(TestFunctions.createOffer("offerId"))
+                .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .build();
 
         var negotiationId = controller.initiateContractNegotiation(request);
@@ -226,7 +240,9 @@ class ContractNegotiationApiControllerTest {
     void cancel_notFound() {
         when(service.cancel("negotiationId")).thenReturn(ServiceResult.notFound("not found"));
 
-        assertThatThrownBy(() -> controller.cancelNegotiation("negotiationId")).isInstanceOf(ObjectNotFoundException.class);
+        assertThatThrownBy(() -> controller.cancelNegotiation("negotiationId"))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessage("Object of type ContractNegotiation with ID=negotiationId was not found");
     }
 
     @Test
@@ -250,7 +266,9 @@ class ContractNegotiationApiControllerTest {
     void decline_notFound() {
         when(service.decline("negotiationId")).thenReturn(ServiceResult.notFound("not found"));
 
-        assertThatThrownBy(() -> controller.declineNegotiation("negotiationId")).isInstanceOf(ObjectNotFoundException.class);
+        assertThatThrownBy(() -> controller.declineNegotiation("negotiationId"))
+                .isInstanceOf(ObjectNotFoundException.class)
+                .hasMessage("Object of type ContractNegotiation with ID=negotiationId was not found");
     }
 
     @Test
@@ -302,6 +320,9 @@ class ContractNegotiationApiControllerTest {
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .build();
     }
 

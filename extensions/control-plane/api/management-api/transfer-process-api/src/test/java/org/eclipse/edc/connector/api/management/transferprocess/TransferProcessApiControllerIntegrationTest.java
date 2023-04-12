@@ -44,10 +44,10 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.startsWith;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
@@ -204,7 +204,7 @@ class TransferProcessApiControllerIntegrationTest {
                 .post("/transferprocess/" + PROCESS_ID + "/cancel")
                 .then()
                 .statusCode(409)
-                .body("[0].message", startsWith(format("TransferProcess %s cannot be terminated as it is in state", PROCESS_ID)));
+                .body("[0].message", endsWith(format("because TransferProcess %s is in state COMPLETED", PROCESS_ID)));
     }
 
     @Test
@@ -252,7 +252,7 @@ class TransferProcessApiControllerIntegrationTest {
                 .post("/transferprocess/" + PROCESS_ID + "/terminate")
                 .then()
                 .statusCode(409)
-                .body("[0].message", startsWith(format("TransferProcess %s cannot be terminated as it is in state", PROCESS_ID)));
+                .body("[0].message", endsWith(format("because TransferProcess %s is in state COMPLETED", PROCESS_ID)));
     }
 
     @Test
@@ -284,7 +284,7 @@ class TransferProcessApiControllerIntegrationTest {
                 .post("/transferprocess/" + PROCESS_ID + "/deprovision")
                 .then()
                 .statusCode(409)
-                .body("[0].message", startsWith(format("TransferProcess %s cannot be deprovisioned as it is in state", PROCESS_ID)));
+                .body("[0].message", endsWith(format("because TransferProcess %s is in state INITIAL", PROCESS_ID)));
     }
 
     @Test

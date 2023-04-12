@@ -42,6 +42,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
+import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -60,6 +61,7 @@ import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,9 +70,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -79,6 +83,7 @@ import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
@@ -113,6 +118,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+
 class TransferProcessManagerImplTest {
 
     private static final String DESTINATION_TYPE = "test-type";
@@ -131,6 +137,8 @@ class TransferProcessManagerImplTest {
     private final Vault vault = mock(Vault.class);
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
+    private final CommandQueue<TransferProcessCommand> commandQueue = mock(CommandQueue.class);
+    private final CommandRunner<TransferProcessCommand> commandRunner = mock(CommandRunner.class);
 
     private TransferProcessManagerImpl manager;
 
@@ -148,8 +156,8 @@ class TransferProcessManagerImplTest {
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .commandQueue(mock(CommandQueue.class))
-                .commandRunner(mock(CommandRunner.class))
+                .commandQueue(commandQueue)
+                .commandRunner(commandRunner)
                 .typeManager(new TypeManager())
                 .clock(clock)
                 .statusCheckerRegistry(statusCheckerRegistry)
@@ -162,36 +170,27 @@ class TransferProcessManagerImplTest {
                 .build();
     }
 
-    /**
-     * All creations operations must be idempotent in order to support reliability (e.g. messages/requests may be delivered more than once).
-     */
     @Test
-    void verifyIdempotency() {
+    void verifyCallbacks() {
         when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
+        var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
         var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
+
+        var transferRequest = TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
+                .callbackAddresses(List.of(callback))
+                .build();
+
+        var captor = ArgumentCaptor.forClass(TransferProcess.class);
 
         manager.start();
-        manager.initiateProviderRequest(transferRequest);
-        manager.initiateProviderRequest(transferRequest); // repeat request
+        manager.initiateConsumerRequest(transferRequest);
         manager.stop();
 
-        verify(transferProcessStore, times(RETRY_LIMIT)).save(isA(TransferProcess.class));
-        verify(transferProcessStore, times(2)).processIdForDataRequestId(anyString());
-    }
-
-    @Test
-    void verifyCreatedTimestamp() {
-        when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
-        var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(dataRequest).build();
-
-        manager.start();
-        manager.initiateProviderRequest(transferRequest);
-        manager.stop();
-
-        verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getCreatedAt() > 0));
+        verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
+        assertThat(captor.getValue().getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
         verify(listener).initiated(any());
+
     }
 
     @Test
@@ -837,27 +836,26 @@ class TransferProcessManagerImplTest {
         });
     }
 
-    private static class DispatchFailureArguments implements ArgumentsProvider {
+    @Test
+    void enqueueCommand_willEnqueueCommandOnCommandQueue() {
+        var command = new TransferProcessCommand() {
+        };
 
-        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
-        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
+        manager.enqueueCommand(command);
 
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            return Stream.of(
-                    // retries not exhausted
-                    new DispatchFailure(REQUESTING, REQUESTING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, STARTING, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, COMPLETING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    // retries exhausted
-                    new DispatchFailure(REQUESTING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED))
-            );
-        }
+        verify(commandQueue).enqueue(command);
+    }
 
+    @Test
+    void runCommand_willRunCommandAndReturnResult() {
+        var command = new TransferProcessCommand() {
+        };
+        when(commandRunner.runCommand(command)).thenReturn(Result.success());
+
+        var result = manager.runCommand(command);
+
+        assertThat(result).matches(Result::succeeded);
+        verify(commandRunner).runCommand(command);
     }
 
     private TestProvisionedContentResource createTestProvisionedContentResource(String resourceDefinitionId) {
@@ -908,6 +906,30 @@ class TransferProcessManagerImplTest {
     private ProvisionedDataDestinationResource provisionedDataDestinationResource() {
         return new TestProvisionedDataDestinationResource("test-resource", PROVISIONED_RESOURCE_ID);
     }
+
+    private static class DispatchFailureArguments implements ArgumentsProvider {
+
+        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
+        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return Stream.of(
+                    // retries not exhausted
+                    new DispatchFailure(REQUESTING, REQUESTING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, STARTING, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, COMPLETING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    // retries exhausted
+                    new DispatchFailure(REQUESTING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED))
+            );
+        }
+
+    }
+
 
     @JsonTypeName("dataspaceconnector:testprovisioneddcontentresource")
     @JsonDeserialize(builder = TestProvisionedContentResource.Builder.class)

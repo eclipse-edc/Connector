@@ -17,12 +17,14 @@ package org.eclipse.edc.protocol.ids.api.multipart.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.transform.ContractAgreementTransformerOutput;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
+import org.eclipse.edc.protocol.ids.spi.types.MessageProtocol;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +32,7 @@ import java.io.IOException;
 
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
-import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.processedFromStatusResult;
+import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.processedFromServiceResult;
 
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
@@ -40,20 +42,17 @@ public class ContractAgreementHandler implements Handler {
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final IdsId connectorId;
-    private final ConsumerContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
+    private final ContractNegotiationService contractNegotiationService;
 
     public ContractAgreementHandler(
-            @NotNull Monitor monitor,
-            @NotNull IdsId connectorId,
-            @NotNull ObjectMapper objectMapper,
-            @NotNull ConsumerContractNegotiationManager negotiationManager,
-            @NotNull IdsTransformerRegistry transformerRegistry) {
+            Monitor monitor, IdsId connectorId, ObjectMapper objectMapper,
+            IdsTransformerRegistry transformerRegistry, ContractNegotiationService contractNegotiationService) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.objectMapper = objectMapper;
-        this.negotiationManager = negotiationManager;
         this.transformerRegistry = transformerRegistry;
+        this.contractNegotiationService = contractNegotiationService;
     }
 
     @Override
@@ -74,7 +73,6 @@ public class ContractAgreementHandler implements Handler {
             return createMultipartResponse(badParameters(message, connectorId));
         }
 
-        // extract target from contract request
         var permission = contractAgreement.getPermission().get(0);
         if (permission == null) {
             monitor.debug("ContractAgreementHandler: Contract Agreement is invalid");
@@ -87,13 +85,20 @@ public class ContractAgreementHandler implements Handler {
             return createMultipartResponse(badParameters(message, connectorId));
         }
 
-        // TODO get hash from message
         var output = result.getContent();
-        var processId = message.getTransferContract();
-        var negotiationConfirmResult = negotiationManager.confirmed(claimToken,
-                String.valueOf(processId), output.getContractAgreement(), output.getPolicy());
 
-        return createMultipartResponse(processedFromStatusResult(negotiationConfirmResult, message, connectorId));
+        var request = ContractAgreementRequest.Builder.newInstance()
+                .protocol(MessageProtocol.IDS_MULTIPART)
+                .connectorId(String.valueOf(message.getIssuerConnector()))
+                .connectorAddress("") // this will be used by DSP
+                .contractAgreement(output.getContractAgreement())
+                .correlationId(String.valueOf(message.getTransferContract()))
+                .policy(output.getPolicy())
+                .build();
+
+        var negotiationConfirmResult = contractNegotiationService.notifyAgreed(request, claimToken);
+
+        return createMultipartResponse(processedFromServiceResult(negotiationConfirmResult, message, connectorId));
     }
 
 }

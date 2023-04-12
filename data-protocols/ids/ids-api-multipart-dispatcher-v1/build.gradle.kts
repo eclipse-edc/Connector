@@ -24,8 +24,8 @@ dependencies {
     api(project(":data-protocols:ids:ids-transform-v1"))
     implementation(project(":data-protocols:ids:ids-api-configuration"))
 
-    implementation(libs.jakarta.rsApi)
-    implementation(libs.jersey.multipart)
+    implementation(root.jakarta.rsApi)
+    implementation(root.jersey.multipart)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))

@@ -22,12 +22,12 @@ dependencies {
     implementation(project(":extensions:common:iam:oauth2:oauth2-client"))
     implementation(project(":core:common:jwt-core"))
 
-    implementation(libs.nimbus.jwt)
+    implementation(root.nimbus.jwt)
 
     testImplementation(project(":core:common:junit"))
 
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(root.mockserver.netty)
+    testImplementation(root.mockserver.client)
 }
 
 

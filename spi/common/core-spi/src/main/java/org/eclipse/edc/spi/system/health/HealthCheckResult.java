@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 /**
  * Represents the result of one single health check, like a heartbeat to a database or to a messaging service.
  */
-public class HealthCheckResult extends AbstractResult<Boolean, Failure> {
+public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCheckResult> {
     private String component;
 
     private HealthCheckResult(boolean successful, Failure failure) {

@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 
+import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +34,9 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
     private static final String DEFAULT_CONSUMER_ID = "urn:connector:test-consumer";
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
+
     private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer(clock, DEFAULT_CONSUMER_ID);
+
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
@@ -43,6 +47,9 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
     @Test
     void verify_transform() {
+        var callback = CallbackAddressDto.Builder.newInstance()
+                .uri("local://test")
+                .build();
         var dto = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("address")
@@ -50,6 +57,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
                 .consumerId("test-consumer")
                 .providerId("test-provider")
                 .offer(createOffer("offerId", "assetId"))
+                .callbackAddresses(List.of(callback))
                 .build();
 
         var request = transformer.transform(dto, context);
@@ -63,6 +71,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         assertThat(request.getContractOffer().getContractStart().toInstant()).isEqualTo(clock.instant());
         assertThat(request.getContractOffer().getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(dto.getOffer().getValidity()));
         assertThat(request.getContractOffer().getPolicy()).isNotNull();
+        assertThat(request.getCallbackAddress()).hasSize(1);
     }
 
     @Test

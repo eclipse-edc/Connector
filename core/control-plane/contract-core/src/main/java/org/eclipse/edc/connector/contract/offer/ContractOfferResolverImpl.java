@@ -118,27 +118,29 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
 
-        var contractEndTime = calculateContractEnd(definition);
+        var start = clock.instant();
+        var zone = clock.getZone();
+        var contractEndTime = ZonedDateTime.ofInstant(calculateContractEnd(definition, start), zone);
+        var contractStartTime = ZonedDateTime.ofInstant(start, zone);
 
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
                 .policy(policy.withTarget(asset.getId()))
                 .asset(asset)
-                .contractStart(ZonedDateTime.now())
+                .contractStart(contractStartTime)
                 .contractEnd(contractEndTime);
     }
 
     @NotNull
-    private ZonedDateTime calculateContractEnd(ContractDefinition definition) {
+    private Instant calculateContractEnd(ContractDefinition definition, Instant start) {
 
-        var contractEndTime = Instant.ofEpochMilli(Long.MAX_VALUE).atZone(clock.getZone());
         try {
-            contractEndTime = ZonedDateTime.ofInstant(clock.instant().plusSeconds(definition.getValidity()), clock.getZone());
+            return start.plusSeconds(definition.getValidity());
         } catch (ArithmeticException exception) {
             monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
                     "Changing contractEndTime to Maximum value possible in the ContractOffer");
+            return Instant.ofEpochMilli(Long.MAX_VALUE);
         }
-        return contractEndTime;
     }
 
 }

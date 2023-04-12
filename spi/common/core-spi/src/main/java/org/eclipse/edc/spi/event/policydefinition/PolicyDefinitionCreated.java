@@ -28,16 +28,21 @@ public class PolicyDefinitionCreated extends PolicyDefinitionEvent {
     private PolicyDefinitionCreated() {
     }
 
+    @Override
+    public String name() {
+        return "policy.definition.created";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends PolicyDefinitionEvent.Builder<PolicyDefinitionCreated, Builder> {
+
+        private Builder() {
+            super(new PolicyDefinitionCreated());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
-            super(new PolicyDefinitionCreated());
         }
 
         @Override

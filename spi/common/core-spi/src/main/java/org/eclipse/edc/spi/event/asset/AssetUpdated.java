@@ -28,6 +28,11 @@ public class AssetUpdated extends AssetEvent {
     private AssetUpdated() {
     }
 
+    @Override
+    public String name() {
+        return "asset.updated";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends AssetEvent.Builder<AssetUpdated, Builder> {
 

@@ -21,21 +21,23 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TransferProcessTransformerTestData {
 
+    public CallbackAddress callbackAddress = CallbackAddress.Builder.newInstance().uri("local://test").build();
     String id = UUID.randomUUID().toString();
     TransferProcess.Type type = TransferProcess.Type.CONSUMER;
     TransferProcessStates state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];
     long stateTimestamp = System.currentTimeMillis();
     long createdTimestamp = ThreadLocalRandom.current().nextLong();
     String errorDetail = "test error detail";
-
     Map<String, String> dataDestinationProperties = Map.of("key1", "value1");
     String dataDestinationType = "test-destination-type";
     DataAddress.Builder dataDestination = DataAddress.Builder.newInstance().type(dataDestinationType).properties(dataDestinationProperties);
@@ -49,7 +51,8 @@ public class TransferProcessTransformerTestData {
             .stateTimestamp(stateTimestamp)
             .createdAt(createdTimestamp)
             .errorDetail(errorDetail)
-            .dataRequest(dataRequest);
+            .dataRequest(dataRequest)
+            .callbackAddresses(List.of(callbackAddress));
     DataRequestDto dataRequestDto = DataRequestDto.Builder.newInstance().build();
     TransferProcessDto.Builder dto = TransferProcessDto.Builder.newInstance()
             .id(id)
@@ -60,6 +63,7 @@ public class TransferProcessTransformerTestData {
             .dataRequest(dataRequestDto)
             .createdAt(createdTimestamp)
             .updatedAt(createdTimestamp)
+            .callbackAddresses(List.of(callbackAddress))
             .dataDestination(
                     DataAddressInformationDto.Builder.newInstance()
                             .properties(mapWith(dataDestinationProperties, "type", dataDestinationType))

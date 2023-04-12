@@ -20,13 +20,13 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":extensions:common:http:jetty-core"))
 
-    implementation(libs.bundles.jersey.core)
-    implementation("org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2")
+    implementation(root.bundles.jersey.core)
+    implementation(libs.jetty.jakarta.servlet.api)
 
     testImplementation(project(":core:common:junit"))
 
-    testImplementation(libs.restAssured)
-    testImplementation(libs.jersey.beanvalidation) //for validation
+    testImplementation(root.restAssured)
+    testImplementation(root.jersey.beanvalidation) //for validation
 }
 
 

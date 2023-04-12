@@ -24,12 +24,12 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
 
-    implementation(libs.opentelemetry.annotations)
+    implementation(root.opentelemetry.annotations)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.restAssured)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(root.restAssured)
+    testImplementation(root.mockserver.netty)
+    testImplementation(root.mockserver.client)
 }
 
 

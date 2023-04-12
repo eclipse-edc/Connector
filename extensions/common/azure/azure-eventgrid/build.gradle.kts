@@ -20,7 +20,7 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":core:common:util"))
 
-    implementation(libs.azure.eventgrid)
+    implementation(root.azure.eventgrid)
 }
 
 

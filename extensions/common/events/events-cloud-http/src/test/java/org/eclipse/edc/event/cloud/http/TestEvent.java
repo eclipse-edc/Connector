@@ -27,17 +27,22 @@ class TestEvent extends Event {
         this.data = data;
     }
 
+    @Override
+    public String name() {
+        return "test";
+    }
+
 
     public static class Builder {
 
         private final TestEvent event;
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private Builder() {
             event = new TestEvent();
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder data(String data) {
