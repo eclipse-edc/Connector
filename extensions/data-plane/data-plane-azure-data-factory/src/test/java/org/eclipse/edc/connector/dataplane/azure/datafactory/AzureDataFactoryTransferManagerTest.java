@@ -63,7 +63,7 @@ class AzureDataFactoryTransferManagerTest {
     private final KeyVaultClient keyVaultClient = mock(KeyVaultClient.class);
     private final KeyVaultSecret keyVaultSecret = mock(KeyVaultSecret.class);
     private final BlobAdapter blobAdapter = mock(BlobAdapter.class);
-    private final DataFlowRequest request = TestFunctions.createFlowRequest();
+    private final DataFlowRequest request = TestFunctions.createBlobToBlobRequest();
     private final PipelineResource pipeline = mock(PipelineResource.class);
     private final CreateRunResponse runResponse = mock(CreateRunResponse.class);
     private final String runId = UUID.randomUUID().toString();

@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.azure.datafactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.azure.resourcemanager.datafactory.models.*;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import org.eclipse.edc.azure.blob.AzureSasToken;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -39,20 +42,19 @@ class DataFactoryPipelineFactoryTest {
     private final AzureSasToken azureSasToken = new AzureSasToken("test-wo-sas", new Random().nextLong());
     private final KeyVaultSecret writeOnlySasSecret = new KeyVaultSecret("wo-sas-name", typeManager.writeValueAsString(azureSasToken));
     private final KeyVaultSecret destinationSecret = new KeyVaultSecret("test-secret-name", "test-dest-secret");
-
-    private final DataFlowRequest request = TestFunctions.createFlowRequest();
-
+    private final DataFlowRequest blobToBlobRequest = TestFunctions.createBlobToBlobRequest();
+    private final DataFlowRequest blobToDataverseRequest = TestFunctions.createBlobToDataverseRequest();
     private final String keyVaultLinkedService = "test-linked-service";
     private final DataFactoryPipelineFactory factory = new DataFactoryPipelineFactory(keyVaultLinkedService, keyVaultClient, client, typeManager);
 
     @Test
-    void createPipeline() {
-        when(keyVaultClient.getSecret(request.getDestinationDataAddress().getKeyName()))
+    void createBlobToBlobPipeline() {
+        when(keyVaultClient.getSecret(blobToBlobRequest.getDestinationDataAddress().getKeyName()))
                 .thenReturn(writeOnlySasSecret);
         when(keyVaultClient.setSecret(any(), eq(azureSasToken.getSas())))
                 .thenReturn(destinationSecret);
 
-        factory.createPipeline(request);
+        factory.createPipeline(blobToBlobRequest);
 
         verify(client).definePipeline(any());
         verify(client, times(2)).defineDataset(any());
@@ -62,5 +64,15 @@ class DataFactoryPipelineFactoryTest {
         verify(keyVaultClient, times(1)).getSecret(any());
         verify(keyVaultClient, times(1)).setSecret(any(), any());
         verifyNoMoreInteractions(keyVaultClient);
+    }
+
+    @Test
+    void createBlobToDataversePipeline() {
+        factory.createPipeline(blobToDataverseRequest);
+
+        verify(client).definePipeline(any());
+        verify(client, times(2)).defineDataset(any());
+        verify(client, times(2)).defineLinkedService(any());
+        verifyNoMoreInteractions(client);
     }
 }
