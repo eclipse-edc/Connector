@@ -17,12 +17,12 @@ plugins {
 }
 
 dependencies {
-    testImplementation(root.bundles.jupiter)
-    testImplementation(root.restAssured)
-    testImplementation(root.assertj)
-    testImplementation(root.awaitility)
-    testImplementation(root.mockserver.netty)
-    testImplementation(root.mockserver.client)
+    testImplementation(libs.bundles.jupiter)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.assertj)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))

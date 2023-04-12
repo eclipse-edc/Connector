@@ -21,12 +21,12 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:http-spi"))
 
-    implementation(root.cloudEvents)
-    implementation(root.failsafe.core)
+    implementation(libs.cloudEvents)
+    implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":core:common:junit")))
-    testImplementation(root.mockserver.netty)
-    testImplementation(root.awaitility)
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.awaitility)
 }
 
 

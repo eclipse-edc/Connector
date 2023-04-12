@@ -23,13 +23,13 @@ dependencies {
     api(project(":spi:common:transaction-datasource-spi"))
     api(project(":extensions:common:sql:sql-core"))
 
-    implementation(root.apache.commons.pool)
+    implementation(libs.apache.commons.pool)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 
     // required for statically mocking the JDBC DriverManager
-    testImplementation(root.mockito.inline)
+    testImplementation(libs.mockito.inline)
 }
 
 

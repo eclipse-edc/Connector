@@ -34,7 +34,7 @@ dependencies {
     implementation(project(":extensions:common:vault:vault-azure"))
     implementation(project(":core:common:util"))
 
-    api(root.jakarta.rsApi)
+    api(libs.jakarta.rsApi)
 }
 
 application {

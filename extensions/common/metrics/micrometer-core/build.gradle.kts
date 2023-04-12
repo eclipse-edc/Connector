@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(root.micrometer)
+    api(libs.micrometer)
     api(libs.okhttp)
 
     testImplementation(project(":extensions:common:api:api-observability"))

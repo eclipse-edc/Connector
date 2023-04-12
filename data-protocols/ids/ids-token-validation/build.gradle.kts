@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:common:oauth2-spi"))
     api(project(":spi:common:jwt-spi"))
 
-    api(root.fraunhofer.infomodel)
+    api(libs.fraunhofer.infomodel)
 }
 
 

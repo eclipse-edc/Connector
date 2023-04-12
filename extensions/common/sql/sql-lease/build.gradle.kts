@@ -28,8 +28,8 @@ dependencies {
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-lease")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
-    testImplementation(root.postgres)
-    testImplementation(root.assertj)
+    testImplementation(libs.postgres)
+    testImplementation(libs.assertj)
 }
 
 

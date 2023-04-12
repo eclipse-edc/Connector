@@ -32,8 +32,8 @@ dependencies {
 
     implementation(project(":extensions:control-plane:api:management-api"))
 
-    testImplementation(root.junit.jupiter.api)
-    testRuntimeOnly(root.junit.jupiter.engine)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 application {

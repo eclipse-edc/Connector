@@ -26,8 +26,8 @@ dependencies {
     api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.restAssured)
+    testImplementation(libs.restAssured)
 }

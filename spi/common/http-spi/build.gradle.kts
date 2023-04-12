@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
 
     api(libs.okhttp)
-    api(root.failsafe.okhttp)
+    api(libs.failsafe.okhttp)
 }
 
 

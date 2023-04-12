@@ -37,11 +37,6 @@ dependencyResolutionManagement {
         }
         mavenCentral()
     }
-    versionCatalogs {
-        create("root") {
-            from("org.eclipse.edc:edc-versions:0.0.1-SNAPSHOT")
-        }
-    }
 }
 
 // EDC core modules --------------------------------------------------------------------------------

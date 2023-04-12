@@ -16,4 +16,8 @@ plugins {
     `java-library`
 }
 
+dependencies {
+    api(libs.edc.runtime.metamodel)
+}
+
 

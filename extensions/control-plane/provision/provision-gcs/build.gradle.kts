@@ -21,10 +21,10 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:gcp:gcp-core"))
 
-    implementation(root.failsafe.core)
-    implementation(root.googlecloud.storage)
-    implementation(root.googlecloud.iam.admin)
-    implementation(root.googlecloud.iam.credentials)
+    implementation(libs.failsafe.core)
+    implementation(libs.googlecloud.storage)
+    implementation(libs.googlecloud.iam.admin)
+    implementation(libs.googlecloud.iam.credentials)
 }
 
 

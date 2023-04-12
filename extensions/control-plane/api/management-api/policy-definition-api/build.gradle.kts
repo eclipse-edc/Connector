@@ -28,14 +28,14 @@ dependencies {
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:management-api-configuration"))
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.awaitility)
-    testImplementation(root.restAssured)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.restAssured)
 }
 
 edcBuild {

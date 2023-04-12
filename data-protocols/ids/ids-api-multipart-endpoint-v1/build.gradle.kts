@@ -25,8 +25,8 @@ dependencies {
 
     implementation(project(":data-protocols:ids:ids-api-configuration"))
 
-    implementation(root.jakarta.rsApi)
-    implementation(root.jersey.multipart)
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jersey.multipart)
 
     testImplementation(libs.json.unit)
     testImplementation(libs.json.unit.assertj)

@@ -28,9 +28,9 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testFixturesImplementation(testFixtures(project(":system-tests:tests")))
     testFixturesImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
-    testFixturesImplementation(root.assertj)
-    testImplementation(root.azure.storageblob)
-    testFixturesImplementation(root.restAssured)
+    testFixturesImplementation(libs.assertj)
+    testImplementation(libs.azure.storageblob)
+    testFixturesImplementation(libs.restAssured)
 
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))

@@ -26,14 +26,14 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":extensions:common:api:control-api-configuration"))
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.jersey.multipart)
-    testImplementation(root.restAssured)
-    testImplementation(root.mockserver.netty)
-    testImplementation(root.mockserver.client)
+    testImplementation(libs.jersey.multipart)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
 }
 edcBuild {
     swagger {

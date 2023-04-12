@@ -22,8 +22,8 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     implementation(project(":core:common:util"))
 
-    testImplementation(root.mockserver.netty)
-    testImplementation(root.mockserver.client)
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
     testImplementation(project(":core:common:junit"))
 }
 

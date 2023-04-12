@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:common:iam:iam-mock"))
 
-    api(root.jakarta.rsApi)
+    api(libs.jakarta.rsApi)
 }
 
 application {

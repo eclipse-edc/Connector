@@ -22,8 +22,8 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":core:common:util"))
 
-    implementation(root.azure.storageblob)
-    implementation(root.failsafe.core)
+    implementation(libs.azure.storageblob)
+    implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-blob-core")))

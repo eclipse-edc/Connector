@@ -335,13 +335,6 @@ jobs:
   #          command: |
   #            ./gradlew -p extensions/data-plane/data-plane-azure-data-factory test -DincludeTags="AzureDataFactoryIntegrationTest"
   #            ./gradlew -p system-tests/azure-data-factory-tests test -DincludeTags="AzureDataFactoryIntegrationTest"
-  #
-  #      - name: "Publish Gatling report"
-  #        uses: actions/upload-artifact@v3
-  #        if: always()
-  #        with:
-  #          name: Gatling reports
-  #          path: '**/build/reports/gatling/**'
 
   Upload-Test-Report:
     needs:

@@ -26,11 +26,11 @@ dependencies {
     implementation(project(":spi:common:transaction-datasource-spi"))
 
 
-    testImplementation(root.h2)
-    testFixturesImplementation(root.postgres)
-    testFixturesImplementation(root.junit.jupiter.api)
+    testImplementation(libs.h2)
+    testFixturesImplementation(libs.postgres)
+    testFixturesImplementation(libs.junit.jupiter.api)
     testFixturesImplementation(project(":spi:common:transaction-datasource-spi"))
-    testFixturesImplementation(root.mockito.core)
+    testFixturesImplementation(libs.mockito.core)
 
 }
 

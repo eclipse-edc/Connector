@@ -19,11 +19,11 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     implementation(project(":core:common:util"))
-    implementation(root.bouncyCastle.bcpkixJdk18on)
+    implementation(libs.bouncyCastle.bcpkixJdk18on)
 
     testImplementation(project(":extensions:common:iam:decentralized-identity:identity-did-crypto"))
-    testImplementation(root.nimbus.jwt)
-    testImplementation(root.bouncyCastle.bcprovJdk18on)
+    testImplementation(libs.nimbus.jwt)
+    testImplementation(libs.bouncyCastle.bcprovJdk18on)
 }
 
 

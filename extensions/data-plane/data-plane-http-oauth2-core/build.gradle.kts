@@ -22,8 +22,8 @@ dependencies {
     api(project(":core:common:jwt-core"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.restAssured)
-    testImplementation(root.mockserver.netty)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.mockserver.netty)
 }
 
 

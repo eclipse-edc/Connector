@@ -21,7 +21,7 @@ dependencies {
     implementation(project(":extensions:control-plane:store:sql:control-plane-sql"))
     implementation(project(":extensions:common:sql:sql-pool:sql-pool-apache-commons"))
     implementation(project(":extensions:common:transaction:transaction-local"))
-    implementation(root.postgres)
+    implementation(libs.postgres)
 }
 
 edcBuild {

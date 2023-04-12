@@ -31,14 +31,14 @@ dependencies {
     implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(project(":core:common:jwt-core"))
 
-    api(root.jakarta.rsApi)
-    api(root.nimbus.jwt)
+    api(libs.jakarta.rsApi)
+    api(libs.nimbus.jwt)
     // Note: nimbus requires bouncycastle as mentioned in documentation:
     // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
-    api(root.bouncyCastle.bcpkixJdk18on)
+    api(libs.bouncyCastle.bcpkixJdk18on)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.jersey.multipart)
+    testImplementation(libs.jersey.multipart)
 }
 
 edcBuild {

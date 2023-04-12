@@ -24,10 +24,10 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":core:common:util"))
 
-    implementation(root.opentelemetry.annotations)
+    implementation(libs.opentelemetry.annotations)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.awaitility)
+    testImplementation(libs.awaitility)
     testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))
 }
 

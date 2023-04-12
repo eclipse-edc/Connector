@@ -24,10 +24,10 @@ dependencies {
     api(project(":core:common:connector-core"))
     api(project(":core:common:util"))
 
-    implementation(root.mockito.core)
-    implementation(root.assertj)
-    implementation(root.junit.jupiter.api)
-    runtimeOnly(root.junit.jupiter.engine)
+    implementation(libs.mockito.core)
+    implementation(libs.assertj)
+    implementation(libs.junit.jupiter.api)
+    runtimeOnly(libs.junit.jupiter.engine)
 
     implementation(libs.junit.pioneer)
 }
