@@ -45,7 +45,7 @@ public class HttpDataSource implements DataSource {
     private HttpPart getPart() {
         var request = requestFactory.toRequest(params);
         monitor.debug(() -> "HttpDataSource sends request: " + request.toString());
-        try  {
+        try {
             // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
             var response = httpClient.execute(request);
             if (response.isSuccessful()) {
@@ -55,6 +55,11 @@ public class HttpDataSource implements DataSource {
                 }
                 return new HttpPart(name, body.byteStream());
             } else {
+                try {
+                    response.close();
+                } catch (Exception e) {
+                    monitor.info("Error closing failed response", e);
+                }
                 throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s.", requestId, response.code(), response.message()));
             }
         } catch (IOException e) {
