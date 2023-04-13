@@ -24,5 +24,18 @@ public interface DspCatalogPropertyAndTypeNames {
 
     String DCT_PREFIX = "dct";
     String DCT_SCHEMA = "https://purl.org/dc/terms/";
-    
+
+    String DSPACE_TRANSFERPROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferProcessRequestMessage";
+
+    String DSPACE_TRANSFER_START_TYPE = DSPACE_SCHEMA + "TransferStartMessage";
+
+    String DSPACE_TRANSFER_COMPLETION_TYPE = DSPACE_SCHEMA + "TransferCompletionMessage";
+
+    String DSPACE_TRANSFER_SUSPENSION_TYPE = DSPACE_SCHEMA + "TransferSuspensionMessage";
+
+    String DSPACE_TRANSFER_TERMINATION_TYPE = DSPACE_SCHEMA + "TransferTerminationMessage";
+
+    String DSPACE_CONTRACTAGREEMENT_TYPE = DSPACE_SCHEMA + "agreementId";
+
+    String DSPACE_CALLBACKADDRESS_TYPE = DSPACE_SCHEMA + "callbackAddress";
 }

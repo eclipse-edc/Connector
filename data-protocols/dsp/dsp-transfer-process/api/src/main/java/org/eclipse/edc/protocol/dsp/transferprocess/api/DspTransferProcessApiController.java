@@ -117,7 +117,7 @@ public class DspTransferProcessApiController {
     @POST
     @Path("/{id}/start")
     public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject) {
-        monitor.debug(format("DSP: Incoming TransferStartMessage for transfer process %s"));
+        monitor.debug(format("DSP: Incoming TransferStartMessage for transfer process %s", id));
 
         //TODO Add Start transferProcess method in Service
     }
@@ -126,7 +126,7 @@ public class DspTransferProcessApiController {
     @POST
     @Path("/{id}/completion")
     public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject) {
-        monitor.debug(format("DSP: Incoming TransferCompletionMessage for transfer process %s"));
+        monitor.debug(format("DSP: Incoming TransferCompletionMessage for transfer process %s", id));
 
         transferProcessService.complete(id);
     }
@@ -135,7 +135,7 @@ public class DspTransferProcessApiController {
     @POST
     @Path("/{id}/termination")
     public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject) {
-        monitor.debug(format("DSP: Incoming TransferTerminationMessage for transfer process %s"));
+        monitor.debug(format("DSP: Incoming TransferTerminationMessage for transfer process %s", id));
 
         transferProcessService.terminate(id, "API-Call");
     }
@@ -144,22 +144,24 @@ public class DspTransferProcessApiController {
     @POST
     @Path("/{id}/suspension")
     public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject) {
-        monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s"));
+        monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
 
         //TODO Add Suspension transferProcess method in Service
     }
 
     private TransferRequest createTransferRequest(TransferRequestMessage transferRequestMessage) {
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(transferRequestMessage.getId())
-                .protocol(transferRequestMessage.getProtocol())
-                .connectorAddress(transferRequestMessage.getConnectorAddress())
-                .contractId(transferRequestMessage.getContractId())
-                .assetId(transferRequestMessage.getAssetId())
-                .dataDestination(transferRequestMessage.getDataDestination())
-                .properties(transferRequestMessage.getProperties())
-                .connectorId(transferRequestMessage.getConnectorId())
-                .build();
+//        var dataRequest = DataRequest.Builder.newInstance()
+//                .id(transferRequestMessage.getId())
+//                .protocol(transferRequestMessage.getProtocol())
+//                .connectorAddress(transferRequestMessage.getConnectorAddress())
+//                .contractId(transferRequestMessage.getContractId())
+//                .assetId(transferRequestMessage.getAssetId())
+//                .dataDestination(transferRequestMessage.getDataDestination())
+//                .properties(transferRequestMessage.getProperties())
+//                .connectorId(transferRequestMessage.getConnectorId())
+//                .build();
+
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("dspace:s3+push").build();
 
         return TransferRequest.Builder.newInstance()
                 .dataRequest(dataRequest)

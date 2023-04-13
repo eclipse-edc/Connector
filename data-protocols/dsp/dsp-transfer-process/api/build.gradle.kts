@@ -22,8 +22,11 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
-
     api(project(":data-protocols:dsp:dsp-api-configuration"))
+
+    implementation(project(":extensions:common:json-ld"))
+    implementation(project(":data-protocols:dsp:dsp-transform"))
+    implementation(project(":data-protocols:dsp:dsp-transfer-process:transformer"))
 
     implementation("com.apicatalog:titanium-json-ld:1.3.1")
     implementation("jakarta.json:jakarta.json-api:2.1.1")
@@ -36,8 +39,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:iam:iam-mock"))
-    implementation(project(":extensions:common:json-ld"))
-    implementation(project(":data-protocols:dsp:dsp-transform"))
 
     testImplementation(root.restAssured)
 }
