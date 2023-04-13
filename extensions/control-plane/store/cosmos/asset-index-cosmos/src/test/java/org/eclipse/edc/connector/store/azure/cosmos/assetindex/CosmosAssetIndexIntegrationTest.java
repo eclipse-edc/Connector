@@ -24,7 +24,6 @@ import org.eclipse.edc.azure.testfixtures.CosmosTestClient;
 import org.eclipse.edc.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
 import org.eclipse.edc.connector.store.azure.cosmos.assetindex.model.AssetDocument;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -39,14 +38,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.Mockito.mock;
 
@@ -99,60 +94,6 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
     }
 
     @Test
-    void queryAssets_selectAll() {
-        Asset asset1 = createAssetWithProperty("123", "hello", "world");
-
-        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
-
-        List<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(Collectors.toList());
-
-        assertThat(assets).hasSize(2)
-                .anyMatch(asset -> asset.getProperties().equals(asset1.getProperties()))
-                .anyMatch(asset -> asset.getProperties().equals(asset2.getProperties()));
-    }
-
-    @Test
-    void queryAssets_filterOnProperty() {
-        Asset asset1 = createAssetWithProperty("123", "test", "world");
-
-        Asset asset2 = createAssetWithProperty("456", "test", "bar");
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
-
-        AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals(Asset.PROPERTY_ID, "456")
-                .build();
-
-        List<Asset> assets = assetIndex.queryAssets(expression).collect(Collectors.toList());
-
-        assertThat(assets).hasSize(1)
-                .allSatisfy(asset -> assertThat(asset.getId()).isEqualTo("456"));
-    }
-
-    @Test
-    void queryAssets_filterOnPropertyContainingIllegalArgs() {
-        Asset asset1 = createAssetWithProperty("123", "test:value", "world");
-
-        Asset asset2 = createAssetWithProperty("456", "test:value", "bar");
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
-
-        AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals("test:value", "bar")
-                .build();
-
-        List<Asset> assets = assetIndex.queryAssets(expression).collect(Collectors.toList());
-
-        assertThat(assets).hasSize(1)
-                .allSatisfy(asset -> assertThat(asset.getId()).isEqualTo("456"));
-    }
-
-    @Test
     void findById() {
         Asset asset1 = createAssetWithProperty("123", "test", "world");
 
@@ -165,88 +106,6 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
         assertThat(asset).isNotNull();
         assertThat(asset.getProperties()).isEqualTo(asset2.getProperties());
-    }
-
-    @Test
-    void queryAssets_operatorIn() {
-        Asset asset1 = createAssetWithProperty("123", "hello", "world");
-
-        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
-
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", List.of(asset1.getId(), asset2.getId()))
-                .build();
-
-        List<Asset> assets = assetIndex.queryAssets(selector).collect(Collectors.toList());
-
-        assertThat(assets).hasSize(2)
-                .anyMatch(asset -> asset.getProperties().equals(asset1.getProperties()))
-                .anyMatch(asset -> asset.getProperties().equals(asset2.getProperties()));
-    }
-
-    @Test
-    void queryAssets_operatorIn_notList_throwsException() {
-        Asset asset1 = createAssetWithProperty("123", "hello", "world");
-
-        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
-
-        var inExpr = format("'%s', '%s'", asset1.getId(), asset2.getId());
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        // collecting is necessary, otherwise the cosmos query is not executed
-        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Cannot build WHERE clause, reason: The \"in\" operator requires the right-hand operand to be of type interface java.lang.Iterable but was actually class java.lang.String");
-
-    }
-
-    @Test
-    void queryAssets_operatorIn_syntaxError_throwsException() {
-        Asset asset1 = createAssetWithProperty("123", "hello", "world");
-
-        Asset asset2 = createAssetWithProperty("456", "foo", "bar");
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
-
-        var inExpr = format("('%s' ; '%s')", asset1.getId(), asset2.getId());
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN foobar", List.of(asset1.getId(), asset2.getId()))
-                .build();
-
-        // collecting is necessary, otherwise the cosmos query is not executed
-        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Cannot build WHERE clause, reason: unsupported operator IN foobar");
-    }
-
-    @Test
-    void queryAssets_operatorIn_notFound() {
-
-        var inExpr = List.of("not-exist1", "not-exist2");
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        List<Asset> assets = assetIndex.queryAssets(selector).collect(Collectors.toList());
-
-        assertThat(assets).isEmpty();
-    }
-
-    @Test
-    void findAll_noQuerySpec() {
-        Asset asset1 = createAssetWithProperty("123", "test", "world");
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-
-        var all = assetIndex.queryAssets(QuerySpec.none());
-        assertThat(all).hasSize(1).extracting(Asset::getId).containsExactly(asset1.getId());
-
     }
 
     @Test
@@ -288,48 +147,6 @@ class CosmosAssetIndexIntegrationTest extends AssetIndexTestBase {
 
         var all = assetIndex.queryAssets(limitQuery);
         assertThat(all).hasSize(3).extracting(Asset::getId).containsExactly("id2", "id3", "id4");
-    }
-
-    @Test
-    void findAll_withFiltering() {
-        IntStream.range(0, 5).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
-                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
-
-        var filterQuery = QuerySpec.Builder.newInstance()
-                .equalsAsContains(false)
-                .filter("foo=bar4")
-                .build();
-
-        var all = assetIndex.queryAssets(filterQuery);
-        assertThat(all).hasSize(1).extracting(a -> a.getProperty("foo")).containsOnly("bar4");
-    }
-
-    @Test
-    void findAll_withInvalidFilter_throwsException() {
-        IntStream.range(0, 5).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
-                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
-
-        var filterQuery = QuerySpec.Builder.newInstance()
-                .equalsAsContains(false)
-                .filter("foo STARTSWITH bar4")
-                .build();
-
-        assertThatThrownBy(() -> assetIndex.queryAssets(filterQuery)).isInstanceOf(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator STARTSWITH");
-    }
-
-    @Test
-    void findAll_withFilteringOperatorIn_limitExceedsResultSize() {
-        IntStream.range(0, 5).mapToObj(i -> createAssetWithProperty("id" + i, "foo", "bar" + i))
-                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
-
-        var filterQuery = QuerySpec.Builder.newInstance()
-                .equalsAsContains(false)
-                .filter("foo IN [\"bar4\", \"bar3\", \"bar2\", \"bar1\"]")
-                .limit(10)
-                .build();
-
-        var all = assetIndex.queryAssets(filterQuery);
-        assertThat(all).hasSize(4).extracting(Asset::getId).containsExactlyInAnyOrder("id4", "id3", "id2", "id1");
     }
 
     @Test

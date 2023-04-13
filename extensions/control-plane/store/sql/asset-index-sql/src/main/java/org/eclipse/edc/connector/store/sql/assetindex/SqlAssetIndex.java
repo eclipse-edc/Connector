@@ -15,12 +15,10 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.AssetStatements;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -53,18 +51,6 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     public SqlAssetIndex(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, AssetStatements assetStatements) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
         this.assetStatements = Objects.requireNonNull(assetStatements);
-    }
-
-    @Override
-    public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-        Objects.requireNonNull(expression);
-
-        var criteria = expression.getCriteria();
-        var querySpec = QuerySpec.Builder.newInstance().filter(criteria)
-                .offset(0)
-                .limit(Integer.MAX_VALUE) // means effectively no limit
-                .build();
-        return queryAssets(querySpec);
     }
 
     @Override
@@ -256,7 +242,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         return resultSet.getInt(assetStatements.getCountVariableName());
     }
 
-    private AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException, JsonProcessingException {
+    private AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException {
         var name = resultSet.getString(assetStatements.getAssetPropertyColumnName());
         var value = resultSet.getString(assetStatements.getAssetPropertyColumnValue());
         var type = resultSet.getString(assetStatements.getAssetPropertyColumnType());
@@ -285,7 +271,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
 
-    private DataAddress mapDataAddress(ResultSet resultSet) throws SQLException, JsonProcessingException {
+    private DataAddress mapDataAddress(ResultSet resultSet) throws SQLException {
         return DataAddress.Builder.newInstance()
                 .properties(fromJson(resultSet.getString(assetStatements.getDataAddressPropertiesColumn()), new TypeReference<>() {
                 }))

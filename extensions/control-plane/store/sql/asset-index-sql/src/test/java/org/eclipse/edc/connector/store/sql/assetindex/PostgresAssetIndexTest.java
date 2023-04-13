@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.store.sql.assetindex.schema.BaseSqlDialectState
 import org.eclipse.edc.connector.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.eclipse.edc.spi.testfixtures.asset.TestObject;
@@ -102,8 +102,8 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         asset.getProperties().put("testobj", new TestObject("test123", 42, false));
         sqlAssetIndex.accept(asset, TestFunctions.createDataAddress("test-type"));
 
-        var assetsFound = sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .constraint("testobj", "like", "%test1%")
+        var assetsFound = sqlAssetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                .filter(new Criterion("testobj", "like", "%test1%"))
                 .build());
 
         assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);

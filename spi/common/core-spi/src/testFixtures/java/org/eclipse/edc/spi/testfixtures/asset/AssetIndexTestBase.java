@@ -17,7 +17,6 @@ package org.eclipse.edc.spi.testfixtures.asset;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -30,16 +29,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.time.Clock;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchException;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
@@ -244,149 +245,163 @@ public abstract class AssetIndexTestBase {
     }
 
     @Test
-    @DisplayName("Query assets with selector expression using the IN operator")
-    void queryAsset_selectorExpression_in() {
-        var asset1 = getAsset("id1");
-        getAssetIndex().accept(asset1, getDataAddress());
-        var asset2 = getAsset("id2");
-        getAssetIndex().accept(asset2, getDataAddress());
-
-        var assetsFound = getAssetIndex().queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "in", List.of("id1", "id2"))
-                .build());
-
-        assertThat(assetsFound).isNotNull().hasSize(2);
-    }
-
-    @Test
-    @DisplayName("Query assets with selector expression using the IN operator, invalid righ-operand")
-    void queryAsset_selectorExpression_invalidOperand() {
-        var asset1 = getAsset("id1");
-        getAssetIndex().accept(asset1, getDataAddress());
-        var asset2 = getAsset("id2");
-        getAssetIndex().accept(asset2, getDataAddress());
-
-        var exception = catchException(() -> getAssetIndex().queryAssets(AssetSelectorExpression.Builder.newInstance().constraint(Asset.PROPERTY_ID, "in", "(id1, id2)").build())
-                .collect(Collectors.toList())); // must collect, otherwise the stream may not get materialized
-
-        assertThat(exception).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    @DisplayName("Query assets with selector expression using the LIKE operator")
-    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
-    void queryAsset_selectorExpression_like() {
-        var asset1 = getAsset("id1");
-        getAssetIndex().accept(asset1, getDataAddress());
-        var asset2 = getAsset("id2");
-        getAssetIndex().accept(asset2, getDataAddress());
-
-        var assetsFound = getAssetIndex().queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "LIKE", "id%")
-                .build());
-
-        assertThat(assetsFound).isNotNull().hasSize(2);
-    }
-
-    @Test
-    @DisplayName("Query assets with selector expression using the LIKE operator on a json value")
-    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
-    void queryAsset_selectorExpression_likeJson() throws JsonProcessingException {
-        var asset = getAsset("id1");
-        asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
-        getAssetIndex().accept(asset, getDataAddress());
-
-        var assetsFound = getAssetIndex().queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .constraint("myjson", "LIKE", "%test123%")
-                .build());
-
-        assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);
-    }
-
-    @Test
     @DisplayName("Query assets with query spec")
-    void queryAsset_querySpec() {
+    void queryAsset_limit() {
         for (var i = 1; i <= 10; i++) {
             var asset = getAsset("id" + i);
             getAssetIndex().accept(asset, getDataAddress());
         }
+        var querySpec = QuerySpec.Builder.newInstance().limit(3).offset(2).build();
 
-        var assetsFound = getAssetIndex().queryAssets(getQuerySpec());
+        var assetsFound = getAssetIndex().queryAssets(querySpec);
 
         assertThat(assetsFound).isNotNull().hasSize(3);
     }
 
     @Test
-    @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
-    void queryAsset_querySpec_nonExistProperty() {
-        var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
-
-        var qs = QuerySpec.Builder
-                .newInstance()
-                .filter(List.of(new Criterion("noexist", "=", "42")))
-                .build();
-        assertThat(getAssetIndex().queryAssets(qs)).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Query assets with selector expression using the LIKE operator on a json value")
-    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
-    void queryAsset_querySpec_likeJson() throws JsonProcessingException {
-        var asset = getAsset("id1");
-        asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
-        getAssetIndex().accept(asset, getDataAddress());
-
-        var assetsFound = getAssetIndex().queryAssets(QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("myjson", "LIKE", "%test123%")))
-                .build());
-
-        assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);
-    }
-
-    @Test
-    @DisplayName("Query assets with query spec where the value (=rightOperand) does not exist")
-    void queryAsset_querySpec_nonExistValue() {
-        var asset = getAsset("id1");
-        asset.getProperties().put("someprop", "someval");
-        getAssetIndex().accept(asset, getDataAddress());
-
-        var qs = QuerySpec.Builder
-                .newInstance()
-                .filter(List.of(new Criterion("someprop", "=", "some-other-val")))
-                .build();
-        assertThat(getAssetIndex().queryAssets(qs)).isEmpty();
-    }
-
-    @Test
     @DisplayName("Query assets with query spec and short asset count")
-    void queryAsset_querySpecShortCount() {
+    void queryAsset_shortCount() {
         range(1, 5).forEach((item) -> {
             var asset = getAsset("id" + item);
             getAssetIndex().accept(asset, getDataAddress());
         });
+        var querySpec = QuerySpec.Builder.newInstance()
+                .limit(3)
+                .offset(2)
+                .build();
 
-        var assetsFound = getAssetIndex().queryAssets(getQuerySpec());
+        var assetsFound = getAssetIndex().queryAssets(querySpec);
 
         assertThat(assetsFound).isNotNull().hasSize(2);
     }
 
     @Test
+    @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
+    void queryAsset_shouldThrowException_whenUnsupportedOperator() {
+        var asset = getAsset("id1");
+        getAssetIndex().accept(asset, getDataAddress());
+        var unsupportedOperator = new Criterion(Asset.PROPERTY_ID, "unsupported", "42");
+
+        assertThatThrownBy(() -> getAssetIndex().queryAssets(filter(unsupportedOperator)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
+    void queryAsset_nonExistProperty() {
+        var asset = getAsset("id1");
+        getAssetIndex().accept(asset, getDataAddress());
+        var notExistingProperty = new Criterion("noexist", "=", "42");
+
+        var assets = getAssetIndex().queryAssets(filter(notExistingProperty));
+
+        assertThat(assets).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Query assets with query spec where the value (=rightOperand) does not exist")
+    void queryAsset_nonExistValue() {
+        var asset = getAsset("id1");
+        asset.getProperties().put("someprop", "someval");
+        getAssetIndex().accept(asset, getDataAddress());
+        var notExistingValue = new Criterion("someprop", "=", "some-other-val");
+
+        var assets = getAssetIndex().queryAssets(filter(notExistingValue));
+
+        assertThat(assets).isEmpty();
+    }
+
+    @Test
     @DisplayName("Verifies an asset query, that contains a filter expression")
     void queryAsset_withFilterExpression() {
-        var qs = QuerySpec.Builder.newInstance().filter(List.of(
+        var expected = createAssetBuilder("id1").property("version", "2.0").property("contenttype", "whatever").build();
+        var differentVersion = createAssetBuilder("id2").property("version", "2.1").property("contenttype", "whatever").build();
+        var differentContentType = createAssetBuilder("id3").property("version", "2.0").property("contenttype", "different").build();
+        getAssetIndex().accept(expected, getDataAddress());
+        getAssetIndex().accept(differentVersion, getDataAddress());
+        getAssetIndex().accept(differentContentType, getDataAddress());
+        var filter = filter(
                 new Criterion("version", "=", "2.0"),
                 new Criterion("contenttype", "=", "whatever")
-        ));
+        );
 
+        var assets = getAssetIndex().queryAssets(filter);
+
+        assertThat(assets).usingRecursiveFieldByFieldElementComparator().containsOnly(expected);
+    }
+
+    @Test
+    void queryAssets_multipleFound() {
+        var testAsset1 = createAsset("foobar");
+        var testAsset2 = createAsset("barbaz");
+        var testAsset3 = createAsset("barbaz");
+        getAssetIndex().accept(testAsset1, createDataAddress(testAsset1));
+        getAssetIndex().accept(testAsset2, createDataAddress(testAsset2));
+        getAssetIndex().accept(testAsset3, createDataAddress(testAsset3));
+        var criterion = new Criterion(Asset.PROPERTY_NAME, "=", "barbaz");
+
+        var assets = getAssetIndex().queryAssets(filter(criterion));
+
+        assertThat(assets).hasSize(2).map(Asset::getId).containsExactlyInAnyOrder(testAsset2.getId(), testAsset3.getId());
+    }
+
+    @Test
+    @DisplayName("Query assets using the IN operator")
+    void queryAsset_in() {
+        var asset1 = getAsset("id1");
+        getAssetIndex().accept(asset1, getDataAddress());
+        var asset2 = getAsset("id2");
+        getAssetIndex().accept(asset2, getDataAddress());
+        var criterion = new Criterion(Asset.PROPERTY_ID, "in", List.of("id1", "id2"));
+
+        var assetsFound = getAssetIndex().queryAssets(filter(criterion));
+
+        assertThat(assetsFound).isNotNull().hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Query assets using the IN operator, invalid righ-operand")
+    void queryAsset_in_shouldThrowException_whenInvalidRightOperand() {
+        var asset1 = getAsset("id1");
+        getAssetIndex().accept(asset1, getDataAddress());
+        var asset2 = getAsset("id2");
+        getAssetIndex().accept(asset2, getDataAddress());
+        var invalidRightOperand = new Criterion(Asset.PROPERTY_ID, "in", "(id1, id2)");
+
+        var exception = catchException(() -> getAssetIndex()
+                .queryAssets(filter(invalidRightOperand))
+                .collect(toList())); // must collect, otherwise the stream may not get materialized
+
+        assertThat(exception).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Query assets using the LIKE operator")
+    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
+    void queryAsset_like() {
+        var asset1 = getAsset("id1");
+        getAssetIndex().accept(asset1, getDataAddress());
+        var asset2 = getAsset("id2");
+        getAssetIndex().accept(asset2, getDataAddress());
+        var criterion = new Criterion(Asset.PROPERTY_ID, "LIKE", "id%");
+
+        var assetsFound = getAssetIndex().queryAssets(filter(criterion));
+
+        assertThat(assetsFound).isNotNull().hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Query assets using the LIKE operator on a json value")
+    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
+    void queryAsset_likeJson() throws JsonProcessingException {
         var asset = getAsset("id1");
-        asset.getProperties().put("version", "2.0");
-        asset.getProperties().put("contenttype", "whatever");
+        asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
         getAssetIndex().accept(asset, getDataAddress());
+        var criterion = new Criterion("myjson", "LIKE", "%test123%");
 
-        var result = getAssetIndex().queryAssets(qs.build());
-        assertThat(result).usingRecursiveFieldByFieldElementComparator().containsOnly(asset);
+        var assetsFound = getAssetIndex().queryAssets(filter(criterion));
 
+        assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);
     }
 
     @Test
@@ -621,13 +636,21 @@ public abstract class AssetIndexTestBase {
                 .build();
     }
 
+    private QuerySpec filter(Criterion... criteria) {
+        return QuerySpec.Builder.newInstance().filter(Arrays.asList(criteria)).build();
+    }
+
     private Asset getAsset(String id) {
+        return createAssetBuilder(id)
+                .build();
+    }
+
+    private Asset.Builder createAssetBuilder(String id) {
         return Asset.Builder.newInstance()
                 .id(id)
                 .createdAt(Clock.systemUTC().millis())
                 .property("key" + id, "value" + id)
-                .contentType("type")
-                .build();
+                .contentType("type");
     }
 
     private DataAddress getDataAddress() {
@@ -637,11 +660,5 @@ public abstract class AssetIndexTestBase {
                 .build();
     }
 
-    private QuerySpec getQuerySpec() {
-        return QuerySpec.Builder.newInstance()
-                .limit(3)
-                .offset(2)
-                .build();
-    }
 }
 
