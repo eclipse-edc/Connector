@@ -32,6 +32,7 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.aws.s3.AwsClientProviderConfiguration.DEFAULT_AWS_ASYNC_CLIENT_THREAD_POOL_SIZE;
+import static org.eclipse.edc.aws.s3.AwsClientProviderConfiguration.DEFAULT_AWS_PATH_STYLE_ACCESS_ENABLED;
 
 @Extension(value = S3CoreExtension.NAME)
 public class S3CoreExtension implements ServiceExtension {
@@ -67,7 +68,7 @@ public class S3CoreExtension implements ServiceExtension {
 
         var threadPoolSize = context.getSetting(AWS_ASYNC_CLIENT_THREAD_POOL_SIZE, DEFAULT_AWS_ASYNC_CLIENT_THREAD_POOL_SIZE);
 
-        var pathStyleAccessEnabled = context.getSetting(AWS_PATH_STYLE_ACCESS_ENABLED, true);
+        var pathStyleAccessEnabled = context.getSetting(AWS_PATH_STYLE_ACCESS_ENABLED, DEFAULT_AWS_PATH_STYLE_ACCESS_ENABLED);
 
         var configuration = AwsClientProviderConfiguration.Builder.newInstance()
                 .credentialsProvider(createCredentialsProvider(context))

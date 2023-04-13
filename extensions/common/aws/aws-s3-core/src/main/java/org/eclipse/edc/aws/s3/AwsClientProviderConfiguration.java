@@ -22,11 +22,12 @@ import java.util.Objects;
 public class AwsClientProviderConfiguration {
 
     static final int DEFAULT_AWS_ASYNC_CLIENT_THREAD_POOL_SIZE = 50;
+    static final boolean DEFAULT_AWS_PATH_STYLE_ACCESS_ENABLED = false;
 
     private AwsCredentialsProvider credentialsProvider;
     private URI endpointOverride;
     private int threadPoolSize = DEFAULT_AWS_ASYNC_CLIENT_THREAD_POOL_SIZE;
-    private boolean pathStyleAccessEnabled = false;
+    private boolean pathStyleAccessEnabled = DEFAULT_AWS_PATH_STYLE_ACCESS_ENABLED;
 
     private AwsClientProviderConfiguration() {
 
