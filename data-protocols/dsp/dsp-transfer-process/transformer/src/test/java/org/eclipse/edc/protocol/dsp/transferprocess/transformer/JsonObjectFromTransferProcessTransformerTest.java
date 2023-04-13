@@ -85,7 +85,6 @@ class JsonObjectFromTransferProcessTransformerTest {
         registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory, mapper));
         registry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory, mapper));
         registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, mapper));
-
     }
 
     @Test //TODO Improve Test
