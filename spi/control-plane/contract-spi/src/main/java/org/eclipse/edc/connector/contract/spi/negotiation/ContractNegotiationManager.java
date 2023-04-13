@@ -15,10 +15,7 @@
 
 package org.eclipse.edc.connector.contract.spi.negotiation;
 
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.response.StatusResult;
 
 /**
  * Manages contract negotiations on a consumer or provider. Subtypes define consumer- and provider-specific operations.
@@ -26,11 +23,6 @@ import org.eclipse.edc.spi.response.StatusResult;
  * All operations are idempotent.
  */
 public interface ContractNegotiationManager {
-
-    /**
-     * A negotiation was declined by the counter-party represented by the claim token.
-     */
-    StatusResult<ContractNegotiation> declined(ClaimToken token, String negotiationId);
 
     void enqueueCommand(ContractNegotiationCommand command);
 }

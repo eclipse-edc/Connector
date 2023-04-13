@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.contract.spi.types.agreement;
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 
 import java.util.Objects;
 
-public class ContractAgreementVerificationMessage implements RemoteMessage {
+public class ContractAgreementVerificationMessage implements ContractRemoteMessage {
 
     private String protocol;
     private String connectorAddress;
@@ -36,6 +36,11 @@ public class ContractAgreementVerificationMessage implements RemoteMessage {
 
     public String getCorrelationId() {
         return correlationId;
+    }
+
+    @Override
+    public String getProcessId() {
+        return getCorrelationId();
     }
 
     public static class Builder {

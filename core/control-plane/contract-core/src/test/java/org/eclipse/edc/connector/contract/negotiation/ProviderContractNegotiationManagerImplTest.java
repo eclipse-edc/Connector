@@ -27,22 +27,17 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -63,7 +58,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
@@ -80,7 +74,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
@@ -93,7 +86,6 @@ class ProviderContractNegotiationManagerImplTest {
 
     private static final int RETRY_LIMIT = 1;
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
-    private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
@@ -109,7 +101,6 @@ class ProviderContractNegotiationManagerImplTest {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .commandQueue(queue)
@@ -119,114 +110,6 @@ class ProviderContractNegotiationManagerImplTest {
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .build();
-    }
-
-    @Test
-    void requested_confirmOffer() {
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-        when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(contractOffer));
-
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
-                .connectorId(CONSUMER_ID)
-                .connectorAddress("connectorAddress")
-                .protocol("protocol")
-                .contractOffer(contractOffer)
-                .correlationId("correlationId")
-                .build();
-
-        var result = negotiationManager.requested(token, request);
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store, atLeastOnce()).save(argThat(n ->
-                n.getState() == ContractNegotiationStates.AGREEING.code() &&
-                        n.getCounterPartyId().equals(request.getConnectorId()) &&
-                        n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
-                        n.getProtocol().equals(request.getProtocol()) &&
-                        n.getCorrelationId().equals(request.getCorrelationId()) &&
-                        n.getContractOffers().size() == 1 &&
-                        n.getLastContractOffer().equals(contractOffer)
-        ));
-        verify(validationService).validateInitialOffer(token, contractOffer);
-    }
-
-    @Test
-    void requested_invalid() {
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = contractOffer();
-        when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.failure("error"));
-
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
-                .connectorId(CONSUMER_ID)
-                .connectorAddress("connectorAddress")
-                .protocol("protocol")
-                .contractOffer(contractOffer)
-                .correlationId("correlationId")
-                .build();
-
-        var result = negotiationManager.requested(token, request);
-
-        assertThat(result.succeeded()).isFalse();
-        verify(validationService).validateInitialOffer(token, contractOffer);
-    }
-
-    @Test
-    void verified_shouldTransitToVerifiedState() {
-        var token = ClaimToken.Builder.newInstance().build();
-        var negotiation = contractNegotiationBuilder().id("negotiationId").state(AGREED.code()).build();
-
-        when(store.findById("negotiationId")).thenReturn(negotiation);
-        when(validationService.validateRequest(eq(token), eq(negotiation))).thenReturn(Result.success());
-
-        var result = negotiationManager.verified(token, "negotiationId");
-
-        assertThat(result.succeeded()).isTrue();
-
-        assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent)
-                .satisfies(actual -> assertThat(actual.getState()).isEqualTo(VERIFIED.code()));
-        verify(store).save(argThat(n -> n.getState() == VERIFIED.code()));
-        verify(listener).verified(negotiation);
-    }
-
-    @Test
-    void verified_shouldFail_whenNegotiationDoesNotExist() {
-        when(store.findById("negotiationId")).thenReturn(null);
-
-        var result = negotiationManager.verified(null, "negotiationId");
-
-        assertThat(result).matches(StatusResult::failed);
-    }
-
-    @Test
-    void declined() {
-        var negotiation = createContractNegotiation();
-        when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(store.findForCorrelationId(negotiation.getCorrelationId())).thenReturn(negotiation);
-        var token = ClaimToken.Builder.newInstance().build();
-
-        when(validationService.validateRequest(eq(token), eq(negotiation))).thenReturn(Result.success());
-
-        var result = negotiationManager.declined(token, negotiation.getCorrelationId());
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store, atLeastOnce()).save(argThat(n -> n.getState() == TERMINATED.code()));
-        verify(listener).terminated(any());
-    }
-
-    @Test
-    void declined_invalid() {
-        var negotiation = createContractNegotiation();
-        when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(store.findForCorrelationId(negotiation.getCorrelationId())).thenReturn(negotiation);
-        var token = ClaimToken.Builder.newInstance().build();
-
-        when(validationService.validateRequest(eq(token), eq(negotiation))).thenReturn(Result.failure("failure"));
-
-        var result = negotiationManager.declined(token, negotiation.getCorrelationId());
-
-        assertThat(result.succeeded()).isFalse();
-
-        verify(validationService).validateRequest(eq(token), eq(negotiation));
     }
 
     @Test
@@ -358,13 +241,6 @@ class ProviderContractNegotiationManagerImplTest {
                     .contractEnd(ZonedDateTime.now())
                     .build();
         }
-    }
-
-    @NotNull
-    private ContractNegotiation createContractNegotiation() {
-        return contractNegotiationBuilder()
-                .contractOffer(contractOffer())
-                .build();
     }
 
     private ContractNegotiation.Builder contractNegotiationBuilder() {

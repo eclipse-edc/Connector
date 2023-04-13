@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.service;
 
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.service.catalog.CatalogServiceImpl;
 import org.eclipse.edc.connector.service.contractagreement.ContractAgreementServiceImpl;
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionEventListener;
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionServiceImpl;
+import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationServiceImpl;
 import org.eclipse.edc.connector.service.dataaddress.DataAddressValidatorImpl;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionEventListener;
@@ -38,6 +39,7 @@ import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
@@ -92,9 +94,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ConsumerContractNegotiationManager consumerContractNegotiationManager;
 
     @Inject
-    private ProviderContractNegotiationManager providerContractNegotiationManager;
-
-    @Inject
     private PolicyDefinitionStore policyDefinitionStore;
 
     @Inject
@@ -108,6 +107,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     
     @Inject
     private ContractValidationService contractValidationService;
+
+    @Inject
+    private ContractNegotiationObservable contractNegotiationObservable;
 
     @Inject
     private TransferProcessObservable transferProcessObservable;
@@ -146,7 +148,14 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public ContractNegotiationService contractNegotiationService() {
-        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, providerContractNegotiationManager, transactionContext);
+        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, transactionContext);
+    }
+
+    @Provider
+    public ContractNegotiationProtocolService contractNegotiationProtocolService() {
+        return new ContractNegotiationProtocolServiceImpl(contractNegotiationStore,
+                transactionContext, contractValidationService, contractNegotiationObservable,
+                monitor, telemetry);
     }
 
     @Provider

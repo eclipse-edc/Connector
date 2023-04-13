@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 
 import java.util.Objects;
 
-public class ContractRejection implements RemoteMessage {
+public class ContractRejection implements ContractRemoteMessage {
 
     private String protocol;
     private String connectorId;
@@ -46,6 +46,11 @@ public class ContractRejection implements RemoteMessage {
 
     public String getRejectionReason() {
         return rejectionReason;
+    }
+
+    @Override
+    public String getProcessId() {
+        return getCorrelationId();
     }
 
     public static class Builder {
@@ -86,7 +91,6 @@ public class ContractRejection implements RemoteMessage {
 
         public ContractRejection build() {
             Objects.requireNonNull(contractRejection.protocol, "protocol");
-            Objects.requireNonNull(contractRejection.connectorId, "connectorId");
             Objects.requireNonNull(contractRejection.connectorAddress, "connectorAddress");
             Objects.requireNonNull(contractRejection.correlationId, "correlationId");
             Objects.requireNonNull(contractRejection.rejectionReason, "rejectionReason");

@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.command.SingleContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.command.BoundedCommandQueue;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
@@ -42,7 +41,6 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationCommandQueueIntegrationTest {
 
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
-    private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final ContractNegotiationObservable observable = mock(ContractNegotiationObservable.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
@@ -77,7 +75,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
     void submitTestCommand_providerManager() {
         var negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .monitor(monitor)
-                .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
@@ -107,7 +104,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
         // Create and start the negotiation manager
         var negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .monitor(monitor)
-                .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)

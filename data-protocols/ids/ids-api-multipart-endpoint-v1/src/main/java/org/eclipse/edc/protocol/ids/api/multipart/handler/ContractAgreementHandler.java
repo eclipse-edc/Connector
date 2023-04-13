@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.transform.ContractAgreementTransformerOutput;
@@ -43,16 +43,16 @@ public class ContractAgreementHandler implements Handler {
     private final ObjectMapper objectMapper;
     private final IdsId connectorId;
     private final IdsTransformerRegistry transformerRegistry;
-    private final ContractNegotiationService contractNegotiationService;
+    private final ContractNegotiationProtocolService service;
 
     public ContractAgreementHandler(
             Monitor monitor, IdsId connectorId, ObjectMapper objectMapper,
-            IdsTransformerRegistry transformerRegistry, ContractNegotiationService contractNegotiationService) {
+            IdsTransformerRegistry transformerRegistry, ContractNegotiationProtocolService service) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.objectMapper = objectMapper;
         this.transformerRegistry = transformerRegistry;
-        this.contractNegotiationService = contractNegotiationService;
+        this.service = service;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class ContractAgreementHandler implements Handler {
                 .policy(output.getPolicy())
                 .build();
 
-        var negotiationConfirmResult = contractNegotiationService.notifyAgreed(request, claimToken);
+        var negotiationConfirmResult = service.notifyAgreed(request, claimToken);
 
         return createMultipartResponse(processedFromServiceResult(negotiationConfirmResult, message, connectorId));
     }

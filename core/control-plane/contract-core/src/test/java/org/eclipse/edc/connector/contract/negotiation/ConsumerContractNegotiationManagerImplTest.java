@@ -18,25 +18,19 @@ package org.eclipse.edc.connector.contract.negotiation;
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -79,7 +73,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -89,7 +82,6 @@ class ConsumerContractNegotiationManagerImplTest {
 
     private static final int RETRY_LIMIT = 1;
 
-    private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
@@ -107,7 +99,6 @@ class ConsumerContractNegotiationManagerImplTest {
         observable.registerListener(listener);
 
         negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .commandQueue(queue)
@@ -148,127 +139,6 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getCallbackAddresses().size() == 1));
 
         verify(listener).initiated(any());
-    }
-
-    @Test
-    void confirmed_invalidId() {
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractAgreement = mock(ContractAgreement.class);
-        var policy = Policy.Builder.newInstance().build();
-
-        var result = negotiationManager.agreed(token, "not a valid id", contractAgreement, policy);
-
-        assertThat(result.fatalError()).isTrue();
-        verify(policyStore, never()).create(any());
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
-    }
-
-    @Test
-    void confirmed_shouldTransitionToAgreed() {
-        var negotiationConsumerRequested = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractAgreement = mock(ContractAgreement.class);
-        var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
-        when(store.findById(negotiationConsumerRequested.getId())).thenReturn(negotiationConsumerRequested);
-        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
-
-        var result = negotiationManager.agreed(token, negotiationConsumerRequested.getId(), contractAgreement, def.getPolicy());
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation ->
-                negotiation.getState() == AGREED.code() &&
-                        negotiation.getContractAgreement() == contractAgreement
-        ));
-        verify(validationService).validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class));
-        verify(listener).agreed(any());
-    }
-
-    @Test
-    void confirmed_invalidCredentials() {
-        var negotiationConsumerRequested = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-        var contractAgreement = mock(ContractAgreement.class);
-        var policy = Policy.Builder.newInstance().build();
-
-        when(store.findById(negotiationConsumerRequested.getId())).thenReturn(negotiationConsumerRequested);
-        when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
-
-        var result = negotiationManager.agreed(token, negotiationConsumerRequested.getId(), contractAgreement, policy);
-
-        assertThat(result.succeeded()).isFalse();
-        verify(validationService).validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class));
-    }
-
-    @Test
-    void finalized_shouldTransitionToFinalizedState() {
-        var negotiation = contractNegotiationBuilder().id("negotiationId").state(VERIFIED.code()).build();
-        var token = ClaimToken.Builder.newInstance().build();
-
-        when(store.findById("negotiationId")).thenReturn(negotiation);
-        when(validationService.validateRequest(eq(token), eq(negotiation))).thenReturn(Result.success());
-
-        var result = negotiationManager.finalized(token, "negotiationId");
-
-        assertThat(result).matches(StatusResult::succeeded).extracting(StatusResult::getContent)
-                .satisfies(actual -> assertThat(actual.getState()).isEqualTo(FINALIZED.code()));
-        verify(store).save(argThat(n -> n.getState() == FINALIZED.code()));
-        verify(listener).finalized(negotiation);
-    }
-
-    @Test
-    void finalized_invalidCredentials() {
-        var negotiation = contractNegotiationBuilder().id("negotiationId").state(VERIFIED.code()).build();
-        var token = ClaimToken.Builder.newInstance().build();
-
-        when(store.findById("negotiationId")).thenReturn(negotiation);
-        when(validationService.validateRequest(eq(token), eq(negotiation))).thenReturn(Result.failure("failure"));
-
-        var result = negotiationManager.finalized(token, "negotiationId");
-
-        assertThat(result.failed()).isTrue();
-
-        verify(validationService).validateRequest(eq(token), eq(negotiation));
-    }
-
-    @Test
-    void finalized_shouldFail_whenNegotiationDoesNotExist() {
-        var token = ClaimToken.Builder.newInstance().build();
-
-        when(store.findById("negotiationId")).thenReturn(null);
-
-        var result = negotiationManager.finalized(token, "negotiationId");
-
-        assertThat(result).matches(StatusResult::failed);
-    }
-
-    @Test
-    void declined() {
-        var negotiationConsumerOffered = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-
-        when(store.findById(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
-        when(validationService.validateRequest(eq(token), eq(negotiationConsumerOffered))).thenReturn(Result.success());
-
-        var result = negotiationManager.declined(token, negotiationConsumerOffered.getId());
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation -> negotiation.getState() == TERMINATED.code()));
-        verify(listener).terminated(any());
-    }
-
-    @Test
-    void declined_invalidCredentials() {
-        var negotiationConsumerOffered = createContractNegotiationRequested();
-        var token = ClaimToken.Builder.newInstance().build();
-
-        when(store.findById(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
-        when(validationService.validateRequest(eq(token), eq(negotiationConsumerOffered))).thenReturn(Result.failure("failure"));
-
-        var result = negotiationManager.declined(token, negotiationConsumerOffered.getId());
-
-        assertThat(result.succeeded()).isFalse();
-        verify(validationService).validateRequest(eq(token), eq(negotiationConsumerOffered));
     }
 
     @Test
@@ -391,15 +261,6 @@ class ConsumerContractNegotiationManagerImplTest {
             verify(store).save(argThat(p -> p.getState() == ending.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
         });
-    }
-
-    private ContractNegotiation createContractNegotiationRequested() {
-        var lastOffer = contractOffer();
-
-        return contractNegotiationBuilder()
-                .state(REQUESTED.code())
-                .contractOffer(lastOffer)
-                .build();
     }
 
     private ContractNegotiation.Builder contractNegotiationBuilder() {

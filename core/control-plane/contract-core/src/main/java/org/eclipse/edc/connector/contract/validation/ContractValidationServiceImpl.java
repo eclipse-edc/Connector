@@ -164,6 +164,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     @Override
     @NotNull
     public Result<Void> validateConfirmed(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
+        if (latestOffer == null) {
+            return Result.failure("No offer found");
+        }
+
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
             return Result.failure(format("ContractId %s does not follow the expected schema.", agreement.getId()));

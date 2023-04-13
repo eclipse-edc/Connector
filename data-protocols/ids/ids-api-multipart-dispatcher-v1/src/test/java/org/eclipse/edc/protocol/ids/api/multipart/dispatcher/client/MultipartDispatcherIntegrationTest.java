@@ -28,7 +28,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferReq
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
@@ -81,7 +81,7 @@ class MultipartDispatcherIntegrationTest {
     private final IdsTransformerRegistry transformerRegistry = mock(IdsTransformerRegistry.class);
     private final ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
-    private final ContractNegotiationService negotiationService = mock(ContractNegotiationService.class);
+    private final ContractNegotiationProtocolService negotiationService = mock(ContractNegotiationProtocolService.class);
 
     @BeforeEach
     void init(EdcExtension extension) {
@@ -104,7 +104,7 @@ class MultipartDispatcherIntegrationTest {
         extension.registerServiceMock(IdsTransformerRegistry.class, transformerRegistry);
         extension.registerServiceMock(ContractNegotiationStore.class, negotiationStore);
         extension.registerServiceMock(ContractValidationService.class, validationService);
-        extension.registerServiceMock(ContractNegotiationService.class, negotiationService);
+        extension.registerServiceMock(ContractNegotiationProtocolService.class, negotiationService);
     }
 
     @Test

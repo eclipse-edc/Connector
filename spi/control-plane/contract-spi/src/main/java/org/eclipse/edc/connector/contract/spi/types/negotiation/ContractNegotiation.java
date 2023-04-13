@@ -313,11 +313,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state TERMINATED.
      */
     public void transitionTerminated() {
-        if (CONSUMER == type) {
-            transition(TERMINATED, TERMINATING, REQUESTED);
-        } else {
-            transition(TERMINATED, TERMINATING, OFFERED, AGREEING, AGREED, REQUESTED);
-        }
+        transition(TERMINATED, TERMINATED, TERMINATING, VERIFIED, OFFERED, AGREEING, AGREED, REQUESTED);
     }
 
     /**

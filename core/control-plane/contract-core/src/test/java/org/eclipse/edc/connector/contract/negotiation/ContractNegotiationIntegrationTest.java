@@ -27,20 +27,24 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,6 +87,8 @@ class ContractNegotiationIntegrationTest {
 
     private ProviderContractNegotiationManagerImpl providerManager;
     private ConsumerContractNegotiationManagerImpl consumerManager;
+    private ContractNegotiationProtocolService consumerService;
+    private ContractNegotiationProtocolService providerService;
 
     @BeforeEach
     void init() {
@@ -96,7 +102,6 @@ class ContractNegotiationIntegrationTest {
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(providerDispatcherRegistry)
                 .monitor(monitor)
-                .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .commandQueue(queue)
                 .commandRunner(runner)
@@ -108,7 +113,6 @@ class ContractNegotiationIntegrationTest {
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(consumerDispatcherRegistry)
                 .monitor(monitor)
-                .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .commandQueue(queue)
                 .commandRunner(runner)
@@ -116,6 +120,9 @@ class ContractNegotiationIntegrationTest {
                 .store(consumerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
                 .build();
+
+        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, new ContractNegotiationObservableImpl(), monitor, mock(Telemetry.class));
+        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, new ContractNegotiationObservableImpl(), monitor, mock(Telemetry.class));
     }
 
     @AfterEach
@@ -266,7 +273,7 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractOfferRequest request = i.getArgument(1);
             consumerNegotiationId = request.getCorrelationId();
-            var result = providerManager.requested(token, request);
+            var result = providerService.notifyRequested(request, token);
             return toFuture(result);
         };
     }
@@ -275,25 +282,16 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onConsumerSentRejection() {
         return i -> {
             ContractRejection request = i.getArgument(1);
-            var result = providerManager.declined(token, request.getCorrelationId());
+            var result = providerService.notifyTerminated(request, token);
             return toFuture(result);
         };
-    }
-
-    @NotNull
-    private CompletableFuture<?> toFuture(StatusResult<ContractNegotiation> result) {
-        if (result.succeeded()) {
-            return completedFuture("Success!");
-        } else {
-            return failedFuture(new Exception("Negotiation failed."));
-        }
     }
 
     @NotNull
     private Answer<Object> onProviderSentAgreementRequest() {
         return i -> {
             ContractAgreementRequest request = i.getArgument(1);
-            var result = consumerManager.agreed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
+            var result = consumerService.notifyAgreed(request, token);
             return toFuture(result);
         };
     }
@@ -302,9 +300,18 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentRejection() {
         return i -> {
             ContractRejection request = i.getArgument(1);
-            var result = consumerManager.declined(token, request.getCorrelationId());
+            var result = consumerService.notifyTerminated(request, token);
             return toFuture(result);
         };
+    }
+
+    @NotNull
+    private CompletableFuture<?> toFuture(ServiceResult<ContractNegotiation> result) {
+        if (result.succeeded()) {
+            return completedFuture("Success!");
+        } else {
+            return failedFuture(new Exception("Negotiation failed."));
+        }
     }
 
     /**
