@@ -87,7 +87,7 @@ class JsonObjectFromTransferProcessTransformerTest {
         registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, mapper));
     }
 
-    @Test //TODO Improve Test
+    @Test
     void transformTransferProcess() throws JsonLdError {
         var dataAddress = DataAddress.Builder.newInstance()
                 .keyName("dataAddressId")
@@ -105,7 +105,7 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .dataRequest(dataRequest)
                 .type(TransferProcess.Type.PROVIDER)
                 .contentDataAddress(dataAddress)
-                .build(); //TODO Look for missing fields
+                .build();
 
         var result = registry.transform(transferProcess, JsonObject.class);
 

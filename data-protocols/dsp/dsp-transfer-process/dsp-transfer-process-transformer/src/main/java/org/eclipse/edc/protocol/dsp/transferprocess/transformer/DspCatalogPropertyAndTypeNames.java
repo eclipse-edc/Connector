@@ -38,4 +38,6 @@ public interface DspCatalogPropertyAndTypeNames {
     String DSPACE_CONTRACTAGREEMENT_TYPE = DSPACE_SCHEMA + "agreementId";
 
     String DSPACE_CALLBACKADDRESS_TYPE = DSPACE_SCHEMA + "callbackAddress";
+
+    String DSPACE_PROCESSID_TYPE = DSPACE_SCHEMA + "processId";
 }

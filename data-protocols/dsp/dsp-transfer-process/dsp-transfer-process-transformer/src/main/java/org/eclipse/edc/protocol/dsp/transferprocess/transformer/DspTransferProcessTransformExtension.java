@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferProcessTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferStartMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessage;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -53,6 +54,7 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
 
         registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory, mapper));
         registry.register(new JsonObjectToTransferRequestMessage());
+        registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, mapper));
 
     }
 }

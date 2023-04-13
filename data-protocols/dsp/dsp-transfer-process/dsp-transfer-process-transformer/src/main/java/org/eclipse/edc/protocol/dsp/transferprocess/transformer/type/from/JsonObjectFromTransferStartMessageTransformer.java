@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
 public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonLdTransformer<TransferStartMessage, JsonObject> {
@@ -50,8 +51,7 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
 
         builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
         builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferStartMessage");
-
-        //TODO ADD More fields after Model is evolved
+        builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
 
         return builder.build();
     }
