@@ -26,7 +26,7 @@ dependencies {
 
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":data-protocols:dsp:dsp-transform"))
-    implementation(project(":data-protocols:dsp:dsp-transfer-process:transformer"))
+    implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transformer"))
 
     implementation("com.apicatalog:titanium-json-ld:1.3.1")
     implementation("jakarta.json:jakarta.json-api:2.1.1")
