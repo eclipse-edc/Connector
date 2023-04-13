@@ -46,7 +46,7 @@ public class S3CoreExtension implements ServiceExtension {
     private static final String AWS_ENDPOINT_OVERRIDE = "edc.aws.endpoint.override";
     @Setting(value = "The size of the thread pool used for the async clients")
     private static final String AWS_ASYNC_CLIENT_THREAD_POOL_SIZE = "edc.aws.client.async.thread-pool-size";
-    @Setting(value = "If true, path style addressing is used instead of virtual-hosted style")
+    @Setting(value = "If true, path style addressing is used instead of virtual-hosted style", type = "boolean", defaultValue = DEFAULT_AWS_PATH_STYLE_ACCESS_ENABLED + "")
     private static final String AWS_PATH_STYLE_ACCESS_ENABLED = "edc.aws.path.style.access.enabled";
     @Inject
     private Vault vault;

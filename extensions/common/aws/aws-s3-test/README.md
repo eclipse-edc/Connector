@@ -32,3 +32,18 @@ $ IT_AWS_ENDPOINT=https://s3.us-east-1.amazonaws.com/ \
 [named profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
 referring your own credential.
 You can also use access key and secret access key by `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`.
+
+
+## Test using virtual-hosted style addressing
+
+Tests uses path style addressing by default since it is assumed to be run against local MinIO.
+You can run tests against AWS S3 or other compatible storages using virtual-host style addressing by
+specifying `IT_AWS_PATH_STYLE_ACCESS_ENABLED=false`
+
+```
+$ IT_AWS_ENDPOINT=https://s3.us-east-1.amazonaws.com/ \
+  IT_AWS_REGION=us-east-1 \
+  IT_AWS_PROFILE=myprofie \
+  IT_AWS_PATH_STYLE_ACCESS_ENABLED=false \
+  ./gradlew clean test -DincludeTags="AwsS3IntegrationTest" --tests '*S3StatusCheckerIntegrationTest'
+```
