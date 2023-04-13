@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -25,7 +24,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,18 +48,6 @@ public class InMemoryAssetIndex implements AssetIndex {
         predicateFactory = new AssetPredicateConverter();
         // fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
-    }
-
-    @Override
-    public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-        Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
-
-        // select everything ONLY if the special constant is used
-        if (expression == AssetSelectorExpression.SELECT_ALL) {
-            return queryAssets(QuerySpec.none());
-        }
-
-        return queryAssets(QuerySpec.Builder.newInstance().filter(expression.getCriteria()).build());
     }
 
     @Override
@@ -178,14 +164,6 @@ public class InMemoryAssetIndex implements AssetIndex {
         } finally {
             lock.readLock().unlock();
         }
-    }
-
-    public Map<String, Asset> getAssets() {
-        return Collections.unmodifiableMap(cache);
-    }
-
-    public Map<String, DataAddress> getDataAddresses() {
-        return Collections.unmodifiableMap(dataAddresses);
     }
 
     private Stream<Asset> filterBy(List<Criterion> criteria) {

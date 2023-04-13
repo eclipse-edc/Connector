@@ -16,12 +16,10 @@ package org.eclipse.edc.connector.store.azure.cosmos.assetindex;
 
 import com.azure.cosmos.implementation.ConflictException;
 import com.azure.cosmos.implementation.NotFoundException;
-import com.azure.cosmos.models.SqlQuerySpec;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApi;
 import org.eclipse.edc.connector.store.azure.cosmos.assetindex.model.AssetDocument;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -65,21 +63,6 @@ public class CosmosAssetIndex implements AssetIndex {
         this.retryPolicy = Objects.requireNonNull(retryPolicy);
         this.monitor = monitor;
         queryBuilder = new CosmosAssetQueryBuilder();
-    }
-
-    @Override
-    public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-        Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
-
-        if (expression.equals(AssetSelectorExpression.SELECT_ALL)) {
-            return queryAssets(QuerySpec.none());
-        }
-
-        SqlQuerySpec query = queryBuilder.from(expression.getCriteria());
-
-        var response = with(retryPolicy).get(() -> assetDb.queryItems(query));
-        return response.map(this::convertObject)
-                .map(AssetDocument::getWrappedAsset);
     }
 
     @Override

@@ -76,23 +76,6 @@ class QuerySpecDtoToQuerySpecTransformerTest {
     }
 
     @Test
-    void transform_shouldPrioritizeFilterExpression() {
-        var context = mock(TransformerContext.class);
-        var expected = new Criterion("foo", "=", "bar");
-        when(context.transform(isA(CriterionDto.class), eq(Criterion.class)))
-                .thenReturn(expected);
-
-        var querySpecDto = QuerySpecDto.Builder.newInstance()
-                .filterExpression(List.of(CriterionDto.from("foo", "=", "bar")))
-                .filter("bar < baz")
-                .build();
-
-        var spec = transformer.transform(querySpecDto, context);
-        assertThat(spec).isNotNull();
-        assertThat(spec.getFilterExpression()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(expected);
-    }
-
-    @Test
     void transform_shouldReturnNull_whenCriterionNotTransforable() {
         var context = mock(TransformerContext.class);
         when(context.transform(isA(CriterionDto.class), eq(Criterion.class)))

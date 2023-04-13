@@ -25,9 +25,11 @@ import org.eclipse.edc.connector.spi.catalog.DatasetResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -35,6 +37,7 @@ import java.util.stream.Stream;
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class DatasetResolverImpl implements DatasetResolver {
@@ -55,7 +58,9 @@ public class DatasetResolverImpl implements DatasetResolver {
         return contractDefinitionResolver
                 .definitionsFor(agent)
                 .flatMap(definition -> {
-                    var assetQuery = QuerySpec.Builder.newInstance().filter(definition.getSelectorExpression().getCriteria()).build();
+                    var definitionCriteria = definition.getSelectorExpression().getCriteria();
+                    var filterCriteria = querySpec.getFilterExpression();
+                    var assetQuery = QuerySpec.Builder.newInstance().filter(concat(definitionCriteria, filterCriteria)).build();
                     return assetIndex.queryAssets(assetQuery)
                             .map(asset -> {
                                 var offer = createOffer(definition);
@@ -78,6 +83,11 @@ public class DatasetResolverImpl implements DatasetResolver {
 
                     return datasetBuilder.build();
                 });
+    }
+
+    @NotNull
+    private List<Criterion> concat(List<Criterion> list1, List<Criterion> list2) {
+        return Stream.concat(list1.stream(), list2.stream()).collect(toList());
     }
 
     private Distribution createDistribution(DataService dataService) {
