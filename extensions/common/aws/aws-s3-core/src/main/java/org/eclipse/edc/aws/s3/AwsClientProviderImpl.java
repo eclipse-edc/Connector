@@ -104,10 +104,10 @@ public class AwsClientProviderImpl implements AwsClientProvider {
         var credentialsProvider = StaticCredentialsProvider.create(credentials);
         var builder = S3Client.builder()
                 .credentialsProvider(credentialsProvider)
-                .region(Region.of(region));
+                .region(Region.of(region))
+                .serviceConfiguration(createS3Configuration());
 
         handleBaseEndpointOverride(builder);
-        handlePathStyleEnabled(builder);
 
         return builder.build();
     }
@@ -115,10 +115,10 @@ public class AwsClientProviderImpl implements AwsClientProvider {
     private S3Client createS3Client(String region) {
         S3ClientBuilder builder = S3Client.builder()
                 .credentialsProvider(credentialsProvider)
-                .region(Region.of(region));
+                .region(Region.of(region))
+                .serviceConfiguration(createS3Configuration());
 
         handleBaseEndpointOverride(builder);
-        handlePathStyleEnabled(builder);
 
         return builder.build();
     }
@@ -127,10 +127,10 @@ public class AwsClientProviderImpl implements AwsClientProvider {
         var builder = S3AsyncClient.builder()
                 .asyncConfiguration(b -> b.advancedOption(FUTURE_COMPLETION_EXECUTOR, executor))
                 .credentialsProvider(credentialsProvider)
-                .region(Region.of(region));
+                .region(Region.of(region))
+                .serviceConfiguration(createS3Configuration());
 
         handleBaseEndpointOverride(builder);
-        handlePathStyleEnabled(builder);
 
         return builder.build();
     }
@@ -171,7 +171,7 @@ public class AwsClientProviderImpl implements AwsClientProvider {
         }
     }
 
-    private void handlePathStyleEnabled(S3BaseClientBuilder<?, ?> builder) {
-        builder.serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(configuration.getPathStyleAccessEnabled()).build());
+    private S3Configuration createS3Configuration() {
+        return S3Configuration.builder().pathStyleAccessEnabled(configuration.getPathStyleAccessEnabled()).build();
     }
 }
