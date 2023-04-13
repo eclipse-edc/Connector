@@ -31,6 +31,8 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
 public class TransferStartDelegate implements DspHttpDispatcherDelegate<TransferStartMessage, JsonObject> {
 
@@ -55,11 +57,11 @@ public class TransferStartDelegate implements DspHttpDispatcherDelegate<Transfer
             throw new EdcException("Failed to create request body for transfer start message.");
         }
 
-        var content = mapper.convertValue(compact(start.getContent(), jsonLdContext()), JsonObject.class);
+        var content = compact(start.getContent(), jsonLdContext());
         var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH) //TODO FIND CorrelationID
+                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + "/start") //TODO FIND CorrelationID
                 .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
@@ -80,7 +82,8 @@ public class TransferStartDelegate implements DspHttpDispatcherDelegate<Transfer
 
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
-                ////TODO ADD CONTEXTFIELDS
+                .add(DCT_PREFIX, DCT_SCHEMA)
+                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();
     }
 }

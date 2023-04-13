@@ -31,6 +31,8 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
 public class TransferTerminationDelegate implements DspHttpDispatcherDelegate<TransferTerminationMessage, JsonObject> {
 
@@ -59,7 +61,7 @@ public class TransferTerminationDelegate implements DspHttpDispatcherDelegate<Tr
         var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH)
+                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + "/termination")
                 .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
@@ -80,7 +82,8 @@ public class TransferTerminationDelegate implements DspHttpDispatcherDelegate<Tr
 
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
-                ////TODO ADD CONTEXTFIELDS
+                .add(DCT_PREFIX, DCT_SCHEMA)
+                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();
     }
 }

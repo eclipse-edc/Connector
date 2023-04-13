@@ -34,6 +34,7 @@ import java.util.function.Function;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
 
 public class TransferRequestDelegate implements DspHttpDispatcherDelegate<TransferRequestMessage, TransferProcess> {
 
@@ -98,7 +99,8 @@ public class TransferRequestDelegate implements DspHttpDispatcherDelegate<Transf
 
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
-                //TODO
+                .add(DCT_PREFIX, DCT_SCHEMA)
+                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();
     }
 }

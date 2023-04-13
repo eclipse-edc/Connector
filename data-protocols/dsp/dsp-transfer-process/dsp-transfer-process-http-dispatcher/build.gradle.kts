@@ -24,6 +24,7 @@ dependencies {
 
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-spi"))
+    implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transformer"))
     implementation(project(":extensions:common:json-ld"))
 
     implementation("jakarta.json:jakarta.json-api:2.1.1")
