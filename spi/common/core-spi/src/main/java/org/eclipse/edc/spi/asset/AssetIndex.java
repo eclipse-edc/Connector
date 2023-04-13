@@ -41,17 +41,6 @@ public interface AssetIndex extends DataAddressResolver {
     String DATAADDRESS_NOT_FOUND_TEMPLATE = "DataAddress with ID %s not found";
 
     /**
-     * Returns all {@link Asset} objects that are selected by a certain expression
-     *
-     * @param expression An object containing a structured query to asset objects. If the expression contains no criteria,
-     *                   {@code Stream.empty()} is returned. If {@link AssetSelectorExpression#SELECT_ALL} is passed in, all
-     *                   Assets in the index are returned.
-     * @return A {@code Stream} that contains all assets that are selected by the expression. Might be empty, never null.
-     * @throws NullPointerException if the {@code AssetSelectorExpression} is null
-     */
-    Stream<Asset> queryAssets(AssetSelectorExpression expression);
-
-    /**
      * Finds all assets that are covered by a specific {@link QuerySpec}. Results are always sorted. If no {@link QuerySpec#getSortField()}
      * is specified, results are not explicitly sorted.
      * <p>

@@ -20,7 +20,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Requires;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -68,8 +67,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     private WebServer webServer;
     @Inject
     private WebServiceConfigurer configurator;
-    @Inject
-    private IdentityService identityService;
     
     @Override
     public String name() {

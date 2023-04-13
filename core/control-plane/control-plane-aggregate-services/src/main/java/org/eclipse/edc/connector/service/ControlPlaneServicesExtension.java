@@ -16,18 +16,22 @@ package org.eclipse.edc.connector.service;
 
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservableImpl;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.asset.AssetEventListener;
 import org.eclipse.edc.connector.service.asset.AssetServiceImpl;
+import org.eclipse.edc.connector.service.catalog.CatalogProtocolServiceImpl;
 import org.eclipse.edc.connector.service.catalog.CatalogServiceImpl;
+import org.eclipse.edc.connector.service.catalog.DatasetResolverImpl;
 import org.eclipse.edc.connector.service.contractagreement.ContractAgreementServiceImpl;
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionEventListener;
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionServiceImpl;
+import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationServiceImpl;
 import org.eclipse.edc.connector.service.dataaddress.DataAddressValidatorImpl;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionEventListener;
@@ -35,9 +39,11 @@ import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionServic
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessProtocolServiceImpl;
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
@@ -48,6 +54,7 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -92,9 +99,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ConsumerContractNegotiationManager consumerContractNegotiationManager;
 
     @Inject
-    private ProviderContractNegotiationManager providerContractNegotiationManager;
-
-    @Inject
     private PolicyDefinitionStore policyDefinitionStore;
 
     @Inject
@@ -110,10 +114,19 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ContractValidationService contractValidationService;
 
     @Inject
+    private ContractNegotiationObservable contractNegotiationObservable;
+
+    @Inject
     private TransferProcessObservable transferProcessObservable;
 
     @Inject
     private Telemetry telemetry;
+
+    @Inject
+    private ParticipantAgentService participantAgentService;
+
+    @Inject
+    private ContractDefinitionResolver contractDefinitionResolver;
 
     @Override
     public String name() {
@@ -133,6 +146,12 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     }
 
     @Provider
+    public CatalogProtocolService catalogProtocolService() {
+        var datasetResolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyDefinitionStore);
+        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService);
+    }
+
+    @Provider
     public ContractAgreementService contractAgreementService() {
         return new ContractAgreementServiceImpl(contractNegotiationStore, transactionContext);
     }
@@ -146,7 +165,14 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public ContractNegotiationService contractNegotiationService() {
-        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, providerContractNegotiationManager, transactionContext);
+        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, transactionContext);
+    }
+
+    @Provider
+    public ContractNegotiationProtocolService contractNegotiationProtocolService() {
+        return new ContractNegotiationProtocolServiceImpl(contractNegotiationStore,
+                transactionContext, contractValidationService, contractNegotiationObservable,
+                monitor, telemetry);
     }
 
     @Provider

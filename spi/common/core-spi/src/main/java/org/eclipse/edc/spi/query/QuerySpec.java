@@ -157,19 +157,14 @@ public class QuerySpec {
             return this;
         }
 
-        public QuerySpec build() {
-            if (querySpec.offset < 0) {
-                throw new IllegalArgumentException("offset");
-            }
-            if (querySpec.limit <= 0) {
-                throw new IllegalArgumentException("limit");
-            }
-            return querySpec;
+        public Builder filter(Criterion criterion) {
+            querySpec.filterExpression.add(criterion);
+            return this;
         }
 
         public Builder filter(List<Criterion> criteria) {
             if (criteria != null) {
-                querySpec.filterExpression = criteria;
+                querySpec.filterExpression.addAll(criteria);
             }
             return this;
         }
@@ -200,6 +195,16 @@ public class QuerySpec {
             }
 
             return this;
+        }
+
+        public QuerySpec build() {
+            if (querySpec.offset < 0) {
+                throw new IllegalArgumentException("offset");
+            }
+            if (querySpec.limit <= 0) {
+                throw new IllegalArgumentException("limit");
+            }
+            return querySpec;
         }
 
 

@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -74,7 +73,6 @@ import static org.mockito.Mockito.when;
 class TransferProcessProtocolServiceImplTest {
 
     private final TransferProcessStore store = mock(TransferProcessStore.class);
-    private final TransferProcessManager manager = mock(TransferProcessManager.class);
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
@@ -284,7 +282,6 @@ class TransferProcessProtocolServiceImplTest {
         var result = methodCall.call(service, message, claimToken());
 
         assertThat(result).matches(ServiceResult::failed);
-        verifyNoInteractions(manager);
         verify(store, never()).save(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -292,7 +289,7 @@ class TransferProcessProtocolServiceImplTest {
     private static class NotFoundArguments implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             MethodCall<TransferStartMessage> started = TransferProcessProtocolService::notifyStarted;
             MethodCall<TransferCompletionMessage> completed = TransferProcessProtocolService::notifyCompleted;
             MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;

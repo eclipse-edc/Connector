@@ -20,7 +20,7 @@ package org.eclipse.edc.protocol.ids.api.multipart;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
@@ -104,7 +104,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     @Inject
-    private ContractNegotiationService contractNegotiationService;
+    private ContractNegotiationProtocolService contractNegotiationService;
 
     @Override
     public String name() {

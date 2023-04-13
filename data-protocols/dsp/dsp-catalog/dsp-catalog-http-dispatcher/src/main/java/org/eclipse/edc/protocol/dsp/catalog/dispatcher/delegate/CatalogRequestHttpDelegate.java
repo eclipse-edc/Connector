@@ -23,8 +23,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
 
@@ -42,8 +42,8 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
     
     private static final String APPLICATION_JSON = "application/json";
     
-    private ObjectMapper mapper;
-    private JsonLdTransformerRegistry transformerRegistry;
+    private final ObjectMapper mapper;
+    private final JsonLdTransformerRegistry transformerRegistry;
     
     public CatalogRequestHttpDelegate(ObjectMapper mapper, JsonLdTransformerRegistry transformerRegistry) {
         this.mapper = mapper;

@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.defaults.storage.assetindex;
 
 
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 class InMemoryAssetIndexTest extends AssetIndexTestBase {
@@ -41,64 +39,6 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     @BeforeEach
     void setUp() {
         index = new InMemoryAssetIndex();
-    }
-
-    @Test
-    void queryAssets() {
-        var testAsset = createAsset("foobar");
-        index.accept(testAsset, createDataAddress(testAsset));
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "foobar").build());
-
-        assertThat(assets).hasSize(1).containsExactly(testAsset);
-    }
-
-    @Test
-    void queryAssets_notFound() {
-        var testAsset = createAsset("foobar");
-        index.accept(testAsset, createDataAddress(testAsset));
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "barbaz").build());
-
-        assertThat(assets).isEmpty();
-    }
-
-    @Test
-    void queryAssets_fieldNull() {
-        var testAsset = createAsset("foobar");
-        index.accept(testAsset, createDataAddress(testAsset));
-
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("description", "barbaz").build());
-
-        assertThat(assets).isEmpty();
-    }
-
-    @Test
-    void queryAssets_multipleFound() {
-        var testAsset1 = createAsset("foobar");
-        var testAsset2 = createAsset("barbaz");
-        var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, createDataAddress(testAsset1));
-        index.accept(testAsset2, createDataAddress(testAsset2));
-        index.accept(testAsset3, createDataAddress(testAsset3));
-
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .whenEquals(Asset.PROPERTY_NAME, "barbaz")
-                .whenEquals(Asset.PROPERTY_VERSION, "1")
-                .build());
-
-        assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset2, testAsset3);
-    }
-
-    @Test
-    void queryAssets_selectAll_shouldReturnAll() {
-        var testAsset1 = createAsset("barbaz");
-        index.accept(testAsset1, createDataAddress(testAsset1));
-
-        var testAsset2 = createAsset("foobar");
-        index.accept(testAsset2, createDataAddress(testAsset2));
-
-        var results = index.queryAssets(SELECT_ALL);
-
-        assertThat(results).containsExactlyInAnyOrder(testAsset1, testAsset2);
     }
 
     @Test
@@ -112,7 +52,6 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         assertThat(result).isNotNull().isEqualTo(testAsset);
     }
 
-
     @Test
     void findById_notfound() {
         String id = UUID.randomUUID().toString();
@@ -122,82 +61,6 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         var result = index.findById("not-exist");
 
         assertThat(result).isNull();
-    }
-
-    @Test
-    void queryAsset_operatorIn() {
-        var testAsset1 = createAsset("foobar");
-        var testAsset2 = createAsset("barbaz");
-        var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, createDataAddress(testAsset1));
-        index.accept(testAsset2, createDataAddress(testAsset2));
-        index.accept(testAsset3, createDataAddress(testAsset3));
-
-        var inExpr = List.of(testAsset1.getId(), testAsset2.getId());
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        var assets = index.queryAssets(selector);
-
-        assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset1, testAsset2);
-    }
-
-    @Test
-    void queryAsset_operatorIn_notIn() {
-        var testAsset1 = createAsset("foobar");
-        var testAsset2 = createAsset("barbaz");
-        var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, createDataAddress(testAsset1));
-        index.accept(testAsset2, createDataAddress(testAsset2));
-        index.accept(testAsset3, createDataAddress(testAsset3));
-
-        var inExpr = List.of("test-id1", "test-id2");
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        var assets = index.queryAssets(selector);
-
-        assertThat(assets).isEmpty();
-    }
-
-    @Test
-    void queryAsset_operatorIn_noBrackets() {
-        var testAsset1 = createAsset("foobar");
-        var testAsset2 = createAsset("barbaz");
-        var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, createDataAddress(testAsset1));
-        index.accept(testAsset2, createDataAddress(testAsset2));
-        index.accept(testAsset3, createDataAddress(testAsset3));
-
-        var inExpr = List.of(testAsset1.getId(), testAsset2.getId());
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        var assets = index.queryAssets(selector);
-
-        assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset1, testAsset2);
-    }
-
-    @Test
-    void queryAsset_operatorIn_noBracketsNoSpaces() {
-        var testAsset1 = createAsset("foobar");
-        var testAsset2 = createAsset("barbaz");
-        var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, createDataAddress(testAsset1));
-        index.accept(testAsset2, createDataAddress(testAsset2));
-        index.accept(testAsset3, createDataAddress(testAsset3));
-
-        var inExpr = List.of(testAsset1.getId(), testAsset2.getId());
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        var assets = index.queryAssets(selector);
-
-        assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset1, testAsset2);
     }
 
     @Test
@@ -266,19 +129,6 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
 
         var spec = QuerySpec.Builder.newInstance().sortField(Asset.PROPERTY_ID).sortOrder(SortOrder.ASC).build();
         assertThat(index.queryAssets(spec)).containsAll(assets);
-    }
-
-    @Test
-    void deleteById_whenExists_deletes() {
-        var asset = createAsset("foobar");
-        index.accept(asset, createDataAddress(asset));
-        var deletedAsset = index.deleteById(asset.getId());
-
-        assertThat(deletedAsset.succeeded()).isTrue();
-        assertThat(deletedAsset.getContent()).isEqualTo(asset);
-        var assetSelector = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, asset.getName()).build();
-        var assets = index.queryAssets(assetSelector);
-        assertThat(assets).isEmpty();
     }
 
     @Test

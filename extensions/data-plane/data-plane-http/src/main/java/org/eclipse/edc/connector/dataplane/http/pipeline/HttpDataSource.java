@@ -22,7 +22,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
@@ -46,21 +45,27 @@ public class HttpDataSource implements DataSource {
     private HttpPart getPart() {
         var request = requestFactory.toRequest(params);
         monitor.debug(() -> "HttpDataSource sends request: " + request.toString());
-        try (var response = httpClient.execute(request)) {
-            var body = response.body();
-            var stringBody = body != null ? body.string() : null;
-            if (stringBody == null) {
-                throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
-            }
+        try {
+            // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
+            var response = httpClient.execute(request);
             if (response.isSuccessful()) {
-                return new HttpPart(name, stringBody.getBytes());
+                var body = response.body();
+                if (body == null) {
+                    throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
+                }
+                return new HttpPart(name, body.byteStream());
             } else {
-                throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s. %s", requestId, response.code(), response.message(), stringBody));
+                try {
+                    response.close();
+                } catch (Exception e) {
+                    monitor.info("Error closing failed response", e);
+                }
+                throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s.", requestId, response.code(), response.message()));
             }
         } catch (IOException e) {
             throw new EdcException(e);
         }
-        
+
     }
 
     private HttpDataSource() {
@@ -118,9 +123,9 @@ public class HttpDataSource implements DataSource {
 
     private static class HttpPart implements Part {
         private final String name;
-        private final byte[] content;
+        private final InputStream content;
 
-        HttpPart(String name, byte[] content) {
+        HttpPart(String name, InputStream content) {
             this.name = name;
             this.content = content;
         }
@@ -132,12 +137,12 @@ public class HttpDataSource implements DataSource {
 
         @Override
         public long size() {
-            return content.length;
+            return SIZE_UNKNOWN;
         }
 
         @Override
         public InputStream openStream() {
-            return new ByteArrayInputStream(content);
+            return content;
         }
 
     }

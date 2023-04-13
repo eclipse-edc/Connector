@@ -16,7 +16,7 @@
 
 package org.eclipse.edc.connector.contract.offer;
 
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -39,13 +39,13 @@ import static java.lang.String.format;
  * usage policies associated with a set of assets as defined by {@link ContractDefinition}s. On the distinction between
  * access control and usage policy, see {@link ContractDefinition}.
  */
-public class ContractDefinitionServiceImpl implements ContractDefinitionService {
+public class ContractDefinitionResolverImpl implements ContractDefinitionResolver {
     private final PolicyEngine policyEngine;
     private final PolicyDefinitionStore policyStore;
     private final Monitor monitor;
     private final ContractDefinitionStore definitionStore;
 
-    public ContractDefinitionServiceImpl(Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine, PolicyDefinitionStore policyStore) {
+    public ContractDefinitionResolverImpl(Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine, PolicyDefinitionStore policyStore) {
         this.monitor = monitor;
         definitionStore = contractDefinitionStore;
         this.policyEngine = policyEngine;

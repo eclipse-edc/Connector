@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.catalog.spi.types;
+package org.eclipse.edc.catalog.spi.protocol;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CatalogRequestMessageTest {
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
     
     @Test
     void serialize() throws JsonProcessingException {

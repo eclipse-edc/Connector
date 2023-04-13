@@ -18,7 +18,7 @@
 package org.eclipse.edc.connector.contract.validation;
 
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -58,6 +58,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.NEGOTIATION_SCOPE;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -75,7 +76,7 @@ class ContractValidationServiceImplTest {
     private final Instant now = Instant.now();
 
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
-    private final ContractDefinitionService definitionService = mock(ContractDefinitionService.class);
+    private final ContractDefinitionResolver definitionService = mock(ContractDefinitionResolver.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Clock clock = Clock.fixed(now, UTC);
@@ -306,6 +307,17 @@ class ContractValidationServiceImplTest {
         assertThat(result.succeeded()).isTrue();
 
         verify(agentService).createFor(isA(ClaimToken.class));
+    }
+
+    @Test
+    void validateConfirmed_failsIfOfferIsNull() {
+        var agreement = createContractAgreement().id("1:2").build();
+        var token = ClaimToken.Builder.newInstance().build();
+
+        var result = validationService.validateConfirmed(token, agreement, null);
+
+        assertThat(result).isFailed();
+        verify(agentService, times(0)).createFor(eq(token));
     }
 
     @ParameterizedTest

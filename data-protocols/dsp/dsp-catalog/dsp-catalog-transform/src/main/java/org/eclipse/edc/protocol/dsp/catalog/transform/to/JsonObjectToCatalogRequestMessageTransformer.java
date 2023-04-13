@@ -18,8 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyA
  */
 public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequestMessage> {
     
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
     
     public JsonObjectToCatalogRequestMessageTransformer(ObjectMapper mapper) {
         super(JsonObject.class, CatalogRequestMessage.class);

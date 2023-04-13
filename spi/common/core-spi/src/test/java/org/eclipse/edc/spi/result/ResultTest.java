@@ -30,7 +30,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 class ResultTest {
 
-
     @Test
     void verifyFailureMessages_whenSucceeded() {
         var r = Result.success("Foobar");

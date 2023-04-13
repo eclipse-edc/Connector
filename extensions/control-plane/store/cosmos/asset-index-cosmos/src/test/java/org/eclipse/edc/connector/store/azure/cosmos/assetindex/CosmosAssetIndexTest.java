@@ -21,8 +21,6 @@ import org.eclipse.edc.azure.cosmos.CosmosDbApi;
 import org.eclipse.edc.connector.store.azure.cosmos.assetindex.model.AssetDocument;
 import org.eclipse.edc.junit.matchers.PredicateMatcher;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -32,10 +30,8 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -121,63 +117,6 @@ class CosmosAssetIndexTest {
 
         assertThat(actualAsset).isNull();
         verify(api).queryItemById(eq(id));
-        verifyNoMoreInteractions(api);
-    }
-
-    @Test
-    void queryAssets() {
-        String id1 = UUID.randomUUID().toString();
-        String id2 = UUID.randomUUID().toString();
-        when(api.queryItems(any(SqlQuerySpec.class))).thenReturn(Stream.of(createDocument(id1), createDocument(id2)));
-
-        List<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(Collectors.toList());
-
-        assertThat(assets)
-                .anyMatch(asset -> asset.getId().equals(id1))
-                .anyMatch(asset -> asset.getId().equals(id2));
-        verify(api).queryItems(any(SqlQuerySpec.class));
-        verifyNoMoreInteractions(api);
-    }
-
-    @Test
-    void queryAssets_operatorIn() {
-        String id1 = UUID.randomUUID().toString();
-        String id2 = UUID.randomUUID().toString();
-        var queryCapture = ArgumentCaptor.forClass(SqlQuerySpec.class);
-        when(api.queryItems(queryCapture.capture())).thenReturn(Stream.of(createDocument(id1), createDocument(id2)));
-
-        var inExpr = List.of(id1, id2);
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        var assets = assetIndex.queryAssets(selector);
-
-        assertThat(assets).hasSize(2)
-                .anyMatch(asset -> asset.getId().equals(id1))
-                .anyMatch(asset -> asset.getId().equals(id2));
-        assertThat(queryCapture.getValue().getQueryText()).contains("WHERE AssetDocument.wrappedInstance.asset_prop_id IN (@asset_prop_id0, @asset_prop_id1)");
-        verify(api).queryItems(queryCapture.capture());
-        verifyNoMoreInteractions(api);
-    }
-
-    @Test
-    void queryAssets_withSelection() {
-        String id1 = UUID.randomUUID().toString();
-        String id2 = UUID.randomUUID().toString();
-        // let's verify that the query actually contains the proper WHERE clause
-        var queryCapture = ArgumentCaptor.forClass(SqlQuerySpec.class);
-        when(api.queryItems(queryCapture.capture())).thenReturn(Stream.of(createDocument(id1), createDocument(id2)));
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy, mock(ConsoleMonitor.class));
-        var selectByName = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "somename").build();
-
-        var assets = assetIndex.queryAssets(selectByName);
-
-        assertThat(assets)
-                .anyMatch(asset -> asset.getId().equals(id1))
-                .anyMatch(asset -> asset.getId().equals(id2));
-        assertThat(queryCapture.getValue().getQueryText()).matches(".*WHERE AssetDocument.* = @asset_prop_name");
-        verify(api).queryItems(queryCapture.capture());
         verifyNoMoreInteractions(api);
     }
 

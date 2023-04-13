@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.command.CommandProcessor;
 import org.eclipse.edc.spi.command.CommandQueue;
@@ -46,7 +45,6 @@ import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_S
 public abstract class AbstractContractNegotiationManager {
 
     protected ContractNegotiationStore negotiationStore;
-    protected ContractValidationService validationService;
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
     protected CommandQueue<ContractNegotiationCommand> commandQueue;
@@ -173,11 +171,6 @@ public abstract class AbstractContractNegotiationManager {
             this.manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
         }
 
-        public Builder<T> validationService(ContractValidationService validationService) {
-            manager.validationService = validationService;
-            return this;
-        }
-
         public Builder<T> monitor(Monitor monitor) {
             manager.monitor = monitor;
             return this;
@@ -244,7 +237,6 @@ public abstract class AbstractContractNegotiationManager {
         }
 
         public T build() {
-            Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.commandQueue, "commandQueue");

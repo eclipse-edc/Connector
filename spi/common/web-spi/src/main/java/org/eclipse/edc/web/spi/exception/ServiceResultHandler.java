@@ -65,6 +65,16 @@ public class ServiceResultHandler {
         }
     }
 
+    /**
+     * Convenience method to avoid specify the id when it does not exist.
+     *
+     * @param clazz The type in whose context the failure occurred. Must not be null.
+     * @return The mapper {@link Function}
+     */
+
+    public static Function<ServiceFailure, EdcException> exceptionMapper(@NotNull Class<?> clazz) {
+        return (serviceFailure -> mapToException(serviceFailure, clazz, null));
+    }
 
     /**
      * Returns a function that can be use as mapper for handling exception in context like {@link  ServiceResult#orElseThrow(Function)}

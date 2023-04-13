@@ -23,6 +23,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-transform"))
 
     api(project(":spi:common:core-spi"))
+    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
 

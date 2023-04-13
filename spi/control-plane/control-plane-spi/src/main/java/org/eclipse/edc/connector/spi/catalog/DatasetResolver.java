@@ -1,0 +1,40 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.spi.catalog;
+
+import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.Dataset;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.stream.Stream;
+
+/**
+ * Resolves {@link Dataset}s for the {@link CatalogProtocolService}
+ */
+public interface DatasetResolver {
+
+    /**
+     * Resolves {@link Dataset}s given the {@link ParticipantAgent}, a {@link QuerySpec} and a {@link DataService}
+     *
+     * @param agent the participant agent that requested the dataset.
+     * @param querySpec the query spec for filtering and pagination.
+     * @param dataService the data service to be associated to the datasets.
+     * @return a stream of datasets.
+     */
+    @NotNull
+    Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, DataService dataService);
+}
