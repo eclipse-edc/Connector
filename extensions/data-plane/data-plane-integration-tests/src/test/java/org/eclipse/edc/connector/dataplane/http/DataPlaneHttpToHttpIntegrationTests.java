@@ -69,6 +69,10 @@ import static org.mockserver.stop.Stop.stopQuietly;
 
 /**
  * System Test for Data Plane HTTP extension.
+ * <p/>
+ * Note that {@link #transfer_sourceTemporaryDropConnection_success} verifies retry attempts are made if the source connection is temporarily dropped when the connection is
+ * established. However, sink retry attempts are not supported since the source is streamed and would need a rewind mechanism to replay the source stream when a new sink connection
+ * is established. In this case, it is more efficient to simply retry the transfer or use a wire protocol that natively supports resume-on-failure.
  */
 @ComponentTest
 public class DataPlaneHttpToHttpIntegrationTests {
@@ -280,48 +284,6 @@ public class DataPlaneHttpToHttpIntegrationTests {
     }
 
     /**
-     * Validate if intermittently sink is dropping connection than DPF server will retry to deliver data.
-     */
-    @Test
-    void transfer_sinkTemporaryDropsConnection_retry(TypeManager typeManager) {
-        // Arrange
-        // HTTP Source Request & Response
-        var body = UUID.randomUUID().toString();
-        var processId = UUID.randomUUID().toString();
-        httpSourceMockServer.when(getRequest(), once())
-                .respond(successfulResponse(body));
-
-        // First two calls to HTTP sink drops the connection.
-        httpSinkMockServer.when(postRequest(body), exactly(2))
-                .error(withDropConnection());
-        // Next call to HTTP sink returns a valid response.
-        httpSinkMockServer.when(postRequest(body), once())
-                .respond(successfulResponse());
-
-        // Act & Assert
-        // Initiate transfer
-        initiateTransfer(transferRequestPayload(processId, typeManager));
-
-        // Wait for transfer to be completed.
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchTransferState(processId)
-        );
-
-        // Verify HTTP Source server called exactly once.
-        httpSourceMockServer.verify(
-                getRequest(),
-                VerificationTimes.once()
-        );
-
-        // Verify HTTP Sink server called exactly three times.
-        // One extra call to sink is done because internally okhttp client by default retires on connection failure.
-        httpSinkMockServer.verify(
-                postRequest(body),
-                VerificationTimes.exactly(3)
-        );
-    }
-
-    /**
      * Request payload to initiate DPF transfer.
      *
      * @param processId ProcessID of transfer.See {@link DataFlowRequest}
@@ -334,7 +296,7 @@ public class DataPlaneHttpToHttpIntegrationTests {
     /**
      * Request payload with query params to initiate DPF transfer.
      *
-     * @param processId   ProcessID of transfer.See {@link DataFlowRequest}
+     * @param processId ProcessID of transfer.See {@link DataFlowRequest}
      * @param queryParams Query params name and value as key-value entries.
      * @return JSON object. see {@link ObjectNode}.
      */
