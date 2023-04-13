@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  * A runtime extension may implement custom logic to determine which contract definitions are returned.
  */
 @ExtensionPoint
-public interface ContractDefinitionService {
+public interface ContractDefinitionResolver {
 
     @PolicyScope
     String CATALOGING_SCOPE = "contract.cataloging";

@@ -19,7 +19,7 @@
 package org.eclipse.edc.connector.contract.offer;
 
 import org.eclipse.edc.connector.contract.spi.ContractId;
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferQuery;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -50,13 +50,13 @@ import static java.util.stream.Stream.concat;
  */
 public class ContractOfferResolverImpl implements ContractOfferResolver {
     private final ParticipantAgentService agentService;
-    private final ContractDefinitionService definitionService;
+    private final ContractDefinitionResolver definitionService;
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyStore;
     private final Clock clock;
     private final Monitor monitor;
 
-    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock, Monitor monitor) {
+    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionResolver definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock, Monitor monitor) {
         this.agentService = agentService;
         this.definitionService = definitionService;
         this.assetIndex = assetIndex;

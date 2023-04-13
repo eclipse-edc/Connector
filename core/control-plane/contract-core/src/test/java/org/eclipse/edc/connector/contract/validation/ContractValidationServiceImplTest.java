@@ -18,7 +18,7 @@
 package org.eclipse.edc.connector.contract.validation;
 
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -76,7 +76,7 @@ class ContractValidationServiceImplTest {
     private final Instant now = Instant.now();
 
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
-    private final ContractDefinitionService definitionService = mock(ContractDefinitionService.class);
+    private final ContractDefinitionResolver definitionService = mock(ContractDefinitionResolver.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Clock clock = Clock.fixed(now, UTC);

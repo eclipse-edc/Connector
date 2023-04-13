@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.contract.listener.ContractNegotiationEventListe
 import org.eclipse.edc.connector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.edc.connector.contract.offer.ContractDefinitionServiceImpl;
+import org.eclipse.edc.connector.contract.offer.ContractDefinitionResolverImpl;
 import org.eclipse.edc.connector.contract.offer.ContractOfferResolverImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyArchiveImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
@@ -30,7 +30,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrateg
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionService;
+import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -68,7 +68,7 @@ import java.time.Clock;
 @Provides({
         ContractOfferResolver.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
         PolicyArchive.class, ProviderContractNegotiationManager.class, ContractNegotiationObservable.class,
-        ContractDefinitionService.class
+        ContractDefinitionResolver.class
 })
 @CoreExtension
 @Extension(value = ContractCoreExtension.NAME)
@@ -174,8 +174,8 @@ public class ContractCoreExtension implements ServiceExtension {
     }
 
     private void registerServices(ServiceExtensionContext context) {
-        var definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine, policyStore);
-        context.registerService(ContractDefinitionService.class, definitionService);
+        var definitionService = new ContractDefinitionResolverImpl(monitor, contractDefinitionStore, policyEngine, policyStore);
+        context.registerService(ContractDefinitionResolver.class, definitionService);
 
         var contractOfferResolver = new ContractOfferResolverImpl(agentService, definitionService, assetIndex, policyStore, clock, monitor);
         context.registerService(ContractOfferResolver.class, contractOfferResolver);

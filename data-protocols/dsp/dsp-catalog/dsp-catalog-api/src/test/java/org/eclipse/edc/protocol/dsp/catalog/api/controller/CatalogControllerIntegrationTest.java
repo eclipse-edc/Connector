@@ -19,8 +19,11 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
@@ -31,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static java.util.Collections.emptyList;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
@@ -52,10 +56,11 @@ class CatalogControllerIntegrationTest {
 
     private final int dspApiPort = getFreePort();
     private final String dspApiPath = "/api/v1/dsp";
-    private String callbackAddress = "http://callback";
-    private String authHeader = "auth";
-    private IdentityService identityService = mock(IdentityService.class);
-    
+    private final String callbackAddress = "http://callback";
+    private final String authHeader = "auth";
+    private final IdentityService identityService = mock(IdentityService.class);
+    private final CatalogProtocolService service = mock(CatalogProtocolService.class);
+
     private JsonObject request;
     
     @BeforeEach
@@ -67,7 +72,10 @@ class CatalogControllerIntegrationTest {
                 "web.http.protocol.path", dspApiPath,
                 "edc.dsp.callback.address", callbackAddress
         ));
+        when(service.getCatalog(any(), any())).thenReturn(ServiceResult.success(createCatalog()));
+
         extension.registerServiceMock(IdentityService.class, identityService);
+        extension.registerServiceMock(CatalogProtocolService.class, service);
         
         request = Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder()
@@ -76,12 +84,12 @@ class CatalogControllerIntegrationTest {
                 .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
                 .build();
     }
-    
+
     @Test
     void catalogRequest() {
         when(identityService.verifyJwtToken(any(), any()))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
-        
+
         baseRequest()
                 .body(request)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -91,11 +99,11 @@ class CatalogControllerIntegrationTest {
                 .body(CONTEXT, notNullValue())
                 .body(TYPE, is(DCAT_PREFIX + ":Catalog"));
     }
-    
+
     @Test
     void catalogRequest_authenticationFailed_returnUnauthorized() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("error"));
-    
+
         baseRequest()
                 .body(request)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -103,19 +111,19 @@ class CatalogControllerIntegrationTest {
                 .then()
                 .statusCode(401);
     }
-    
+
     @Test
     void catalogRequest_requestTransformationFailed_returnBadRequest() {
         when(identityService.verifyJwtToken(any(), any()))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
-        
+
         var invalidRequest = Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder()
                         .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                         .build())
                 .add(TYPE, "not-a-catalog-request-message")
                 .build();
-        
+
         baseRequest()
                 .body(invalidRequest)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -123,12 +131,19 @@ class CatalogControllerIntegrationTest {
                 .then()
                 .statusCode(400);
     }
-    
+
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + dspApiPort)
                 .basePath(dspApiPath)
                 .header(HttpHeaders.AUTHORIZATION, authHeader)
                 .when();
+    }
+
+    private Catalog createCatalog() {
+        return Catalog.Builder.newInstance()
+                .datasets(emptyList())
+                .dataServices(emptyList())
+                .build();
     }
 }

@@ -23,8 +23,8 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -49,8 +49,8 @@ import static org.mockito.Mockito.when;
 
 class CatalogRequestHttpDelegateTest {
     
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
+    private final ObjectMapper mapper = mock(ObjectMapper.class);
+    private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
     
     private CatalogRequestHttpDelegate delegate;
     

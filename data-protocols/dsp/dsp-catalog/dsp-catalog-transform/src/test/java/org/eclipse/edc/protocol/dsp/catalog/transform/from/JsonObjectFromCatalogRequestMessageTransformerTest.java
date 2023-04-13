@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.protocol.dsp.catalog.spi.types.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,9 +38,9 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromCatalogRequestMessageTransformerTest {
     
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final ObjectMapper mapper = mock(ObjectMapper.class);
+    private final TransformerContext context = mock(TransformerContext.class);
     
     private JsonObjectFromCatalogRequestMessageTransformer transformer;
     
