@@ -22,14 +22,14 @@ dependencies {
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:management-api-configuration"))
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:iam:iam-mock"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(root.restAssured)
+    testImplementation(libs.restAssured)
 }
 
 edcBuild {

@@ -19,9 +19,9 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
-    api(root.fraunhofer.infomodel)
+    api(libs.fraunhofer.infomodel)
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 }
 
 

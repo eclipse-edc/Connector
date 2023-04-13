@@ -23,9 +23,9 @@ dependencies {
 
     testFixturesApi(project(":core:common:util"))
     testFixturesApi(project(":core:common:junit"))
-    testFixturesApi(root.azure.cosmos)
-    testFixturesApi(root.azure.storageblob)
-    testFixturesApi(root.junit.jupiter.api)
+    testFixturesApi(libs.azure.cosmos)
+    testFixturesApi(libs.azure.storageblob)
+    testFixturesApi(libs.junit.jupiter.api)
 }
 
 

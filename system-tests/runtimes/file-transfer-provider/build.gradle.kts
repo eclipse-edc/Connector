@@ -30,8 +30,8 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 
-    implementation(root.jakarta.rsApi)
-    implementation(root.opentelemetry.annotations)
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.opentelemetry.annotations)
 
     implementation(project(":extensions:common:api:api-observability"))
 

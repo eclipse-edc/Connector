@@ -17,4 +17,9 @@ plugins {
     `java-library`
 }
 
+dependencies {
+    api(libs.jackson.annotations)
+    api(libs.jackson.databind)
+}
+
 

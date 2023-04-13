@@ -19,9 +19,9 @@ plugins {
 dependencies {
     implementation(project(":extensions:common:azure:azure-blob-core"))
     implementation(project(":core:common:util"))
-    implementation(root.azure.identity)
-    implementation(root.azure.resourcemanager)
-    implementation(root.azure.resourcemanager.authorization)
+    implementation(libs.azure.identity)
+    implementation(libs.azure.resourcemanager)
+    implementation(libs.azure.resourcemanager.authorization)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
 

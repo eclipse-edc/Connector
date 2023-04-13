@@ -26,10 +26,10 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":spi:common:policy-model"))
-    testImplementation(root.assertj)
+    testImplementation(libs.assertj)
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
-    testImplementation(root.postgres)
+    testImplementation(libs.postgres)
 }
 
 

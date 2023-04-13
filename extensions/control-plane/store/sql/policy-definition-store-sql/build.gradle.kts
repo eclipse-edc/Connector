@@ -26,7 +26,7 @@ dependencies {
 
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.postgres)
+    testImplementation(libs.postgres)
     testImplementation(testFixtures(project(":spi:control-plane:policy-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 }

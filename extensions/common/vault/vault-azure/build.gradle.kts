@@ -21,15 +21,15 @@ dependencies {
     api(project(":spi:common:core-spi"))
 
     implementation(project(":core:common:util"))
-    implementation(root.azure.keyvault)
-    implementation(root.azure.identity)
-    implementation(root.jakarta.rsApi)
+    implementation(libs.azure.keyvault)
+    implementation(libs.azure.identity)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(libs.azure.mgmt.resources)
-    testImplementation(root.azure.resourcemanager)
-    testImplementation(root.azure.resourcemanager.keyvault)
+    testImplementation(libs.azure.resourcemanager)
+    testImplementation(libs.azure.resourcemanager.keyvault)
 
-    testImplementation(root.mockito.inline)
+    testImplementation(libs.mockito.inline)
 }
 
 

@@ -22,12 +22,12 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
 
     implementation(project(":core:common:state-machine"))
-    implementation(root.opentelemetry.annotations)
+    implementation(libs.opentelemetry.annotations)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:control-plane:control-plane-aggregate-services"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(root.awaitility)
+    testImplementation(libs.awaitility)
 }
 
 

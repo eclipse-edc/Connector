@@ -35,7 +35,7 @@ dependencies {
 
     implementation(project(":core:common:util"))
 
-    api(root.jakarta.rsApi)
+    api(libs.jakarta.rsApi)
 }
 
 application {

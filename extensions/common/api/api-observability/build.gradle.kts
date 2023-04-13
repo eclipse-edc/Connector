@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":extensions:common:api:management-api-configuration"))
     testImplementation(project(":data-protocols:ids"))
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
     testImplementation(project(":core:common:junit"))
 }
 

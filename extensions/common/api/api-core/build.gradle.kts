@@ -23,12 +23,12 @@ dependencies {
     api(project(":spi:common:web-spi"))
 
     implementation(project(":core:common:util"))
-    implementation(root.jakarta.rsApi)
-    implementation(root.jakarta.validation)
-    implementation(root.jersey.beanvalidation) //for validation
+    implementation(libs.jakarta.rsApi)
+    implementation(libs.jakarta.validation)
+    implementation(libs.jersey.beanvalidation) //for validation
 
-    testImplementation(root.jersey.common)
-    testImplementation(root.jersey.server)
+    testImplementation(libs.jersey.common)
+    testImplementation(libs.jersey.server)
 
     testImplementation(project(":core:common:junit"))
 }

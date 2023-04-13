@@ -21,8 +21,8 @@ dependencies {
     api(project(":core:common:util"))
     api(project(":extensions:common:azure:azure-cosmos-core"))
 
-    implementation(root.azure.cosmos)
-    implementation(root.failsafe.core)
+    implementation(libs.azure.cosmos)
+    implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))
     testImplementation(testFixtures(project(":spi:common:core-spi")))

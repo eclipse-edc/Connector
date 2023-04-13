@@ -41,7 +41,7 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 }
 
 application {

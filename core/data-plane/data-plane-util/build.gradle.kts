@@ -21,7 +21,7 @@ dependencies {
 
     implementation(project(":core:common:util"))
 
-    implementation(root.opentelemetry.annotations)
+    implementation(libs.opentelemetry.annotations)
 }
 
 

@@ -18,6 +18,8 @@ plugins {
 }
 
 dependencies {
+    implementation(libs.bundles.jackson)
+
     testImplementation(project(":data-protocols:ids:ids-core"))
 }
 

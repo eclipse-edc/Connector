@@ -9,8 +9,8 @@ dependencies {
     api(project(":spi:common:http-spi"))
 
 
-    testImplementation(root.mockserver.netty)
-    testImplementation(root.mockserver.client)
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
     testImplementation(project(":core:common:junit"))
 
 }

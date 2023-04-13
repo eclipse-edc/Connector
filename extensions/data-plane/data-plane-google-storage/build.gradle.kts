@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":extensions:common:gcp:gcp-core"))
     implementation(project(":core:data-plane:data-plane-util"))
 
-    implementation(root.googlecloud.storage)
+    implementation(libs.googlecloud.storage)
 
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":core:common:junit"))

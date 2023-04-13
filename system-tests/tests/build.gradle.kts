@@ -28,16 +28,16 @@ dependencies {
     testFixturesApi(project(":extensions:control-plane:api:management-api:transfer-process-api"))
 
 
-    testFixturesApi(root.junit.jupiter.api)
+    testFixturesApi(libs.junit.jupiter.api)
 
-    testFixturesImplementation(root.assertj)
-    testFixturesImplementation(root.restAssured)
-    testFixturesImplementation(root.awaitility)
+    testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(libs.restAssured)
+    testFixturesImplementation(libs.awaitility)
 
-    testImplementation(root.opentelemetry.api)
+    testImplementation(libs.opentelemetry.api)
     testImplementation(libs.opentelemetry.proto)
-    testImplementation(root.awaitility)
-    testImplementation(root.mockserver.netty)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.mockserver.netty)
 
     testCompileOnly(project(":system-tests:runtimes:file-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))

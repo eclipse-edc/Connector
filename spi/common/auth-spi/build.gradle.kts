@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:common:web-spi"))
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 }
 
 

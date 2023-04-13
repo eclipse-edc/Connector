@@ -22,11 +22,11 @@ dependencies {
     api(project(":spi:common:transaction-datasource-spi"))
 
     implementation(project(":core:common:util"))
-    implementation(root.jta)
-    implementation(root.atomikos.jta)
-    implementation(root.atomikos.jdbc)
+    implementation(libs.jta)
+    implementation(libs.atomikos.jta)
+    implementation(libs.atomikos.jdbc)
 
-    testImplementation(root.h2)
+    testImplementation(libs.h2)
 }
 
 
