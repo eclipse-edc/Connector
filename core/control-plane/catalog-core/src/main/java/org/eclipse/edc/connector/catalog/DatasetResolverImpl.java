@@ -12,16 +12,15 @@
  *
  */
 
-package org.eclipse.edc.connector.service.catalog;
+package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.catalog.spi.Distribution;
+import org.eclipse.edc.catalog.spi.DatasetResolver;
+import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.spi.catalog.DatasetResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
@@ -46,16 +45,21 @@ public class DatasetResolverImpl implements DatasetResolver {
     private final ContractDefinitionResolver contractDefinitionResolver;
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyDefinitionStore;
+    private final DistributionResolver distributionResolver;
 
-    public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex, PolicyDefinitionStore policyDefinitionStore) {
+    public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex,
+                               PolicyDefinitionStore policyDefinitionStore, DistributionResolver distributionResolver) {
         this.contractDefinitionResolver = contractDefinitionResolver;
         this.assetIndex = assetIndex;
         this.policyDefinitionStore = policyDefinitionStore;
+        this.distributionResolver = distributionResolver;
     }
 
     @Override
     @NotNull
-    public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, DataService dataService) {
+    public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
+        var distributions = distributionResolver.getDistributions();
+
         return contractDefinitionResolver
                 .definitionsFor(agent)
                 .flatMap(definition -> {
@@ -79,7 +83,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                 .limit(querySpec.getLimit())
                 .map(entry -> {
                     var datasetBuilder = Dataset.Builder.newInstance()
-                            .distribution(createDistribution(dataService))
+                            .distributions(distributions)
                             .properties(entry.getKey());
 
                     entry.getValue().forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
@@ -91,13 +95,6 @@ public class DatasetResolverImpl implements DatasetResolver {
     @NotNull
     private List<Criterion> concat(List<Criterion> list1, List<Criterion> list2) {
         return Stream.concat(list1.stream(), list2.stream()).collect(toList());
-    }
-
-    private Distribution createDistribution(DataService dataService) {
-        return Distribution.Builder.newInstance()
-                .dataService(dataService)
-                .format("any") // TODO: should it represent the allowedDestTypes of the associated dataplanes?
-                .build();
     }
 
     private Offer createOffer(ContractDefinition definition) {

@@ -102,6 +102,14 @@ public class Dataset {
             return this;
         }
 
+        public Builder distributions(List<Distribution> distributions) {
+            if (dataset.distributions == null) {
+                dataset.distributions = new ArrayList<>();
+            }
+            dataset.distributions.addAll(distributions);
+            return this;
+        }
+
         public Builder properties(Map<String, Object> properties) {
             dataset.properties = properties;
             return this;
@@ -116,10 +124,10 @@ public class Dataset {
             if (dataset.id == null) {
                 dataset.id = randomUUID().toString();
             }
-    
+
             Objects.requireNonNull(dataset.offers, "At least one offer required for Dataset.");
             Objects.requireNonNull(dataset.distributions, "At least one Distribution required for Dataset.");
-            
+
             return dataset;
         }
     }

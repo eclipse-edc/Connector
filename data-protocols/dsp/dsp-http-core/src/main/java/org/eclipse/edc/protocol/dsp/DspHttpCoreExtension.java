@@ -18,12 +18,11 @@ import org.eclipse.edc.protocol.dsp.dispatcher.DspHttpRemoteMessageDispatcherImp
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 /**
  * Provides an implementation of {@link DspHttpRemoteMessageDispatcher} to support sending dataspace
@@ -31,7 +30,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  * specific message types.
  */
 @Extension(value = DspHttpCoreExtension.NAME)
-@Provides({DspHttpRemoteMessageDispatcher.class})
 public class DspHttpCoreExtension implements ServiceExtension {
     
     public static final String NAME = "Dataspace Protocol Core Extension";
@@ -47,11 +45,12 @@ public class DspHttpCoreExtension implements ServiceExtension {
     public String name() {
         return NAME;
     }
-    
-    @Override
-    public void initialize(ServiceExtensionContext context) {
+
+    @Provider
+    public DspHttpRemoteMessageDispatcher dspHttpRemoteMessageDispatcher() {
         var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService);
         dispatcherRegistry.register(dispatcher);
-        context.registerService(DspHttpRemoteMessageDispatcher.class, dispatcher);
+        return dispatcher;
     }
+
 }

@@ -17,7 +17,9 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:core-spi"))
+    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
 

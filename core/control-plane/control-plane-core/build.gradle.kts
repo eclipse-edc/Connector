@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":core:common:connector-core"))
     implementation(project(":core:common:boot"))
     implementation(project(":core:common:policy-engine"))
+    implementation(project(":core:control-plane:catalog-core"))
     implementation(project(":core:control-plane:contract-core"))
     implementation(project(":core:control-plane:transfer-core"))
     implementation(project(":core:control-plane:control-plane-aggregate-services"))

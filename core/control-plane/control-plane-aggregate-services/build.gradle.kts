@@ -22,6 +22,7 @@ dependencies {
 
     implementation(libs.opentelemetry.annotations)
 
+    testImplementation(project(":core:control-plane:catalog-core"))
     testImplementation(project(":core:control-plane:contract-core"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:control-plane:transfer-core"))
