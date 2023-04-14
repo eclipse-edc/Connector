@@ -19,6 +19,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.junit.extensions.EdcExtension;
@@ -29,8 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.*;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
 
@@ -60,8 +60,13 @@ public class DspTransferProcessApiIntegrationTest {
 
     @Test
     public void getTransferProcess(TransferProcessStore transferProcessStore) {
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id("TestID")
+                .destinationType("dspace:s3+push").build();
+
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("testId")
+                .dataRequest(dataRequest)
                 .build();
 
         transferProcessStore.save(transferProcess);
@@ -141,9 +146,11 @@ public class DspTransferProcessApiIntegrationTest {
                 .add(CONTEXT, Json.createObjectBuilder()
                         .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                         .build())
+                .add(ID, "TESTID")
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
                 .add(DSPACE_CONTRACTAGREEMENT_TYPE, "testType")
                 .add("dataAddress", "{}")
+                .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callbackAddress")
                 .build();
     }
 

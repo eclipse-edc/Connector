@@ -20,13 +20,18 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
-import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.*;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessage;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
@@ -70,4 +75,41 @@ public class JsonObjectToTransferProcessTransformerTest {
 
     }
 
+    @Test
+    void jsonObjectToTransferRequest() {
+        var json = createJsonTransferRequestWithoutDataAddress();
+
+        var result = registry.transform(json, TransferRequestMessage.class);
+
+        Assertions.assertNotNull(result.getContent());
+
+    }
+
+
+
+    private JsonObject createJsonTransferRequestWithoutDataAddress() {
+        return  Json.createObjectBuilder()
+                .add(CONTEXT, DSPACE_SCHEMA)
+                .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
+                .add(DSPACE_CONTRACTAGREEMENT_TYPE, "TESTID")
+                .add(DCT_FORMAT, "dspace:s3+push")
+                .add("dataAddress", Json.createObjectBuilder().build())
+                .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callback")
+                .build();
+    }
+
+    private JsonObject createJsonTransferRequestWithDataAddress() {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, DSPACE_SCHEMA)
+                .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
+                .add(DSPACE_CONTRACTAGREEMENT_TYPE, "TESTID")
+                .add("dataAddress", createDataAddress())
+                .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callback")
+                .build();
+    }
+
+    private JsonObject createDataAddress() {
+        return Json.createObjectBuilder()
+                .build();
+    }
 }
