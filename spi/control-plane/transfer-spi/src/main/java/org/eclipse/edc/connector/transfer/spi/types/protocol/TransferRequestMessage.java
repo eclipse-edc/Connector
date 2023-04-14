@@ -31,9 +31,9 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     private String protocol;
     private String id;
     private String contractId;
-    private String assetId;
+    private String assetId; // TODO remove when removing ids module
     private DataAddress dataDestination;
-    private String connectorId;
+    private String connectorId; // TODO remove when removing ids module
     private Map<String, String> properties = new HashMap<>();
 
     @Override
@@ -51,6 +51,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         return id;
     }
 
+    @Deprecated
     public String getAssetId() {
         return assetId;
     }
@@ -63,6 +64,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         return id;
     }
 
+    @Deprecated
     public String getConnectorId() {
         return connectorId;
     }
@@ -108,6 +110,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
             return this;
         }
 
+        @Deprecated
         public Builder assetId(String assetId) {
             message.assetId = assetId;
             return this;
@@ -118,6 +121,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
             return this;
         }
 
+        @Deprecated
         public Builder connectorId(String connectorId) {
             message.connectorId = connectorId;
             return this;
