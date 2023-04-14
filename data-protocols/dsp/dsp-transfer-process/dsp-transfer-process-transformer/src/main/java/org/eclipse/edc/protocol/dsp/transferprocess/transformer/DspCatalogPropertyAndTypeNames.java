@@ -25,7 +25,7 @@ public interface DspCatalogPropertyAndTypeNames {
     String DCT_PREFIX = "dct";
     String DCT_SCHEMA = "https://purl.org/dc/terms/";
 
-    String DSPACE_TRANSFERPROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferProcessRequestMessage";
+    String DSPACE_TRANSFERPROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferRequestMessage";
 
     String DSPACE_TRANSFER_START_TYPE = DSPACE_SCHEMA + "TransferStartMessage";
 
@@ -40,4 +40,6 @@ public interface DspCatalogPropertyAndTypeNames {
     String DSPACE_CALLBACKADDRESS_TYPE = DSPACE_SCHEMA + "callbackAddress";
 
     String DSPACE_PROCESSID_TYPE = DSPACE_SCHEMA + "processId";
+
+    String DCT_FORMAT = DCT_SCHEMA + "format";
 }

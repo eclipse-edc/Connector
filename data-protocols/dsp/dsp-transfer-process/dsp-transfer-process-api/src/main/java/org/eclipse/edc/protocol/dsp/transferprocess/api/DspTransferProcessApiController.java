@@ -33,6 +33,7 @@ import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import static java.lang.String.format;
@@ -150,21 +151,28 @@ public class DspTransferProcessApiController {
     }
 
     private TransferRequest createTransferRequest(TransferRequestMessage transferRequestMessage) {
-//        var dataRequest = DataRequest.Builder.newInstance()
-//                .id(transferRequestMessage.getId())
-//                .protocol(transferRequestMessage.getProtocol())
-//                .connectorAddress(transferRequestMessage.getConnectorAddress())
-//                .contractId(transferRequestMessage.getContractId())
-//                .assetId(transferRequestMessage.getAssetId())
-//                .dataDestination(transferRequestMessage.getDataDestination())
-//                .properties(transferRequestMessage.getProperties())
-//                .connectorId(transferRequestMessage.getConnectorId())
-//                .build();
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(transferRequestMessage.getId())
+                .protocol(transferRequestMessage.getProtocol())
+                .connectorAddress(transferRequestMessage.getConnectorAddress())
+                .contractId(transferRequestMessage.getContractId())
+                .assetId(transferRequestMessage.getAssetId())
+                .properties(transferRequestMessage.getProperties())
+                .connectorId(transferRequestMessage.getConnectorId());
 
-        var dataRequest = DataRequest.Builder.newInstance().destinationType("dspace:s3+push").build();
+        if (!transferRequestMessage.getDataDestination().getType().isEmpty()) {
+            dataRequest.destinationType(transferRequestMessage.getDataDestination().getType());
+        }
+
+        if (transferRequestMessage.getDataDestination() != null) {
+            var dataDestination = DataAddress.Builder.newInstance()
+                    .properties(transferRequestMessage.getProperties())
+                    .build();
+            dataRequest.dataDestination(dataDestination);
+        }
 
         return TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
+                .dataRequest(dataRequest.build())
                 .build(); //TODO Check if Callback Address is needed
     }
 
