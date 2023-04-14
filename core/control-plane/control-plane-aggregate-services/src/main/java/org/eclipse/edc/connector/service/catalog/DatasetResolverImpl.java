@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,9 +72,11 @@ public class DatasetResolverImpl implements DatasetResolver {
                             })
                             .filter(Objects::nonNull);
                 })
-                .collect(groupingBy(Map.Entry::getKey, mapping(Map.Entry::getValue, toSet())))
+                .collect(groupingBy(Map.Entry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toSet())))
                 .entrySet().stream()
                 .filter(it -> !it.getValue().isEmpty())
+                .skip(querySpec.getOffset())
+                .limit(querySpec.getLimit())
                 .map(entry -> {
                     var datasetBuilder = Dataset.Builder.newInstance()
                             .distribution(createDistribution(dataService))
@@ -115,5 +118,4 @@ public class DatasetResolverImpl implements DatasetResolver {
             this.policy = policy;
         }
     }
-
 }
