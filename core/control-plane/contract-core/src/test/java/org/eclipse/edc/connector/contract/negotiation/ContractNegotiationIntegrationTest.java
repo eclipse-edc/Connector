@@ -20,8 +20,8 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -186,7 +186,7 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferDeclined() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractRejection.class))).then(onProviderSentRejection());
+        when(providerDispatcherRegistry.send(any(), isA(ContractNegotiationTerminationMessage.class))).then(onProviderSentRejection());
         when(consumerDispatcherRegistry.send(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
         consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
@@ -218,7 +218,7 @@ class ContractNegotiationIntegrationTest {
     void testNegotiation_agreementDeclined() {
         when(providerDispatcherRegistry.send(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
         when(consumerDispatcherRegistry.send(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractRejection.class))).then(onConsumerSentRejection());
+        when(consumerDispatcherRegistry.send(any(), isA(ContractNegotiationTerminationMessage.class))).then(onConsumerSentRejection());
         consumerNegotiationId = null;
         var offer = getContractOffer();
 
@@ -281,7 +281,7 @@ class ContractNegotiationIntegrationTest {
     @NotNull
     private Answer<Object> onConsumerSentRejection() {
         return i -> {
-            ContractRejection request = i.getArgument(1);
+            ContractNegotiationTerminationMessage request = i.getArgument(1);
             var result = providerService.notifyTerminated(request, token);
             return toFuture(result);
         };
@@ -299,7 +299,7 @@ class ContractNegotiationIntegrationTest {
     @NotNull
     private Answer<Object> onProviderSentRejection() {
         return i -> {
-            ContractRejection request = i.getArgument(1);
+            ContractNegotiationTerminationMessage request = i.getArgument(1);
             var result = consumerService.notifyTerminated(request, token);
             return toFuture(result);
         };

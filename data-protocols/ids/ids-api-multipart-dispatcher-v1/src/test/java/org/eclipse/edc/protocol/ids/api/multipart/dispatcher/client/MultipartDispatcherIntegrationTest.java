@@ -24,8 +24,8 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
@@ -229,7 +229,7 @@ class MultipartDispatcherIntegrationTest {
     @Test
     void testSendContractRejectionMessage(RemoteMessageDispatcherRegistry dispatcher) {
         when(negotiationService.notifyTerminated(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
-        var rejection = ContractRejection.Builder.newInstance()
+        var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)

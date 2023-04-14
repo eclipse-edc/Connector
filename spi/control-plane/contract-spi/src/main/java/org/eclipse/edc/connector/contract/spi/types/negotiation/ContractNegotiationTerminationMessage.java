@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 
 import java.util.Objects;
 
-public class ContractRejection implements ContractRemoteMessage {
+public class ContractNegotiationTerminationMessage implements ContractRemoteMessage {
 
     private String protocol;
     private String connectorId;
@@ -54,10 +54,10 @@ public class ContractRejection implements ContractRemoteMessage {
     }
 
     public static class Builder {
-        private final ContractRejection contractRejection;
+        private final ContractNegotiationTerminationMessage contractNegotiationTerminationMessage;
 
         private Builder() {
-            this.contractRejection = new ContractRejection();
+            this.contractNegotiationTerminationMessage = new ContractNegotiationTerminationMessage();
         }
 
         public static Builder newInstance() {
@@ -65,36 +65,36 @@ public class ContractRejection implements ContractRemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.contractRejection.protocol = protocol;
+            this.contractNegotiationTerminationMessage.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            this.contractRejection.connectorId = connectorId;
+            this.contractNegotiationTerminationMessage.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.contractRejection.connectorAddress = connectorAddress;
+            this.contractNegotiationTerminationMessage.connectorAddress = connectorAddress;
             return this;
         }
 
         public Builder correlationId(String correlationId) {
-            this.contractRejection.correlationId = correlationId;
+            this.contractNegotiationTerminationMessage.correlationId = correlationId;
             return this;
         }
 
         public Builder rejectionReason(String rejectionReason) {
-            this.contractRejection.rejectionReason = rejectionReason;
+            this.contractNegotiationTerminationMessage.rejectionReason = rejectionReason;
             return this;
         }
 
-        public ContractRejection build() {
-            Objects.requireNonNull(contractRejection.protocol, "protocol");
-            Objects.requireNonNull(contractRejection.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractRejection.correlationId, "correlationId");
-            Objects.requireNonNull(contractRejection.rejectionReason, "rejectionReason");
-            return contractRejection;
+        public ContractNegotiationTerminationMessage build() {
+            Objects.requireNonNull(contractNegotiationTerminationMessage.protocol, "protocol");
+            Objects.requireNonNull(contractNegotiationTerminationMessage.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractNegotiationTerminationMessage.correlationId, "correlationId");
+            Objects.requireNonNull(contractNegotiationTerminationMessage.rejectionReason, "rejectionReason");
+            return contractNegotiationTerminationMessage;
         }
     }
 }

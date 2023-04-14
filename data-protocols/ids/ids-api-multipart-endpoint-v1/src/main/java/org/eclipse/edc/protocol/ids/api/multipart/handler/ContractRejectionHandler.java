@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.ids.api.multipart.handler;
 
 import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
@@ -62,7 +62,7 @@ public class ContractRejectionHandler implements Handler {
                 "message %s. Negotiation process: %s. Rejection Reason: %s", correlationMessageId,
                 correlationId, rejectionReason));
 
-        var rejectionMessage = ContractRejection.Builder.newInstance()
+        var rejectionMessage = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .correlationId(String.valueOf(correlationId))
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .connectorAddress("") // this will be used by DSP implementation
