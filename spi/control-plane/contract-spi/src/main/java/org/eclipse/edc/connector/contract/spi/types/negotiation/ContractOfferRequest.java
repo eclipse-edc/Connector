@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.Objects;
  * Object that wraps the contract offer and provides additional information about e.g. protocol
  * and recipient.
  */
-public class ContractOfferRequest implements RemoteMessage {
+public class ContractOfferRequest implements ContractRemoteMessage {
 
     private Type type = Type.COUNTER_OFFER;
     private String protocol;
@@ -65,6 +65,11 @@ public class ContractOfferRequest implements RemoteMessage {
 
     public List<CallbackAddress> getCallbackAddress() {
         return callbackAddress;
+    }
+
+    @Override
+    public String getProcessId() {
+        return getCorrelationId();
     }
 
     public enum Type {
