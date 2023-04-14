@@ -17,12 +17,8 @@ package org.eclipse.edc.protocol.dsp.transferprocess.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -31,9 +27,12 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import static java.lang.String.format;
@@ -54,18 +53,27 @@ public class DspTransferProcessApiController {
 
     private ObjectMapper mapper;
 
-    public DspTransferProcessApiController(Monitor monitor, TypeManager typeManager, JsonLdTransformerRegistry registry, TransferProcessService transferProcessService) {
+    private IdentityService identityService;
+
+    private String dspCallbackAddress;
+
+    public DspTransferProcessApiController(Monitor monitor, TypeManager typeManager, JsonLdTransformerRegistry registry, TransferProcessService transferProcessService,
+                                           IdentityService identityService, String dspCallbackAddress) {
         this.monitor = monitor;
         this.transferProcessService = transferProcessService;
         this.registry = registry;
         this.mapper = typeManager.getMapper("json-ld");
+        this.identityService = identityService;
+        this.dspCallbackAddress = dspCallbackAddress;
     }
 
     //Provider side
     @GET
     @Path("/{id}")
-    public JsonObject getTransferProcess(@PathParam("id") String id) {
+    public JsonObject getTransferProcess(@PathParam("id") String id, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming request for transfer process with id %s", id));
+
+        checkAuthToken(token);
 
         var transferProcess = transferProcessService.findById(id);
 
@@ -85,8 +93,10 @@ public class DspTransferProcessApiController {
     //Provider side
     @POST
     @Path("/request")
-    public JsonObject initiateTransferProcess(JsonObject jsonObject) {
+    public JsonObject initiateTransferProcess(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug("DSP: Incoming TransferRequestMessage for initiating a transfer process");
+
+        checkAuthToken(token);
 
         var transferRequestMessageResult = registry.transform(expand(jsonObject).getJsonObject(0), TransferRequestMessage.class);
 
@@ -117,8 +127,10 @@ public class DspTransferProcessApiController {
     //both sides
     @POST
     @Path("/{id}/start")
-    public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject) {
+    public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferStartMessage for transfer process %s", id));
+
+        checkAuthToken(token);
 
         //TODO Add Start transferProcess method in Service
     }
@@ -126,8 +138,10 @@ public class DspTransferProcessApiController {
     //both sides
     @POST
     @Path("/{id}/completion")
-    public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject) {
+    public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferCompletionMessage for transfer process %s", id));
+
+        checkAuthToken(token);
 
         transferProcessService.complete(id);
     }
@@ -135,8 +149,10 @@ public class DspTransferProcessApiController {
     //both sides
     @POST
     @Path("/{id}/termination")
-    public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject) {
+    public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferTerminationMessage for transfer process %s", id));
+
+        checkAuthToken(token);
 
         transferProcessService.terminate(id, "API-Call");
     }
@@ -144,8 +160,10 @@ public class DspTransferProcessApiController {
     //both sides
     @POST
     @Path("/{id}/suspension")
-    public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject) {
+    public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
+
+        checkAuthToken(token);
 
         //TODO Add Suspension transferProcess method in Service
     }
@@ -174,6 +192,17 @@ public class DspTransferProcessApiController {
         return TransferRequest.Builder.newInstance()
                 .dataRequest(dataRequest.build())
                 .build(); //TODO Check if Callback Address is needed
+    }
+
+    private void checkAuthToken(String token) {
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                .token(token)
+                .build();
+
+        var result = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress);
+        if (result.failed()) {
+            throw new AuthenticationFailedException();
+        }
     }
 
     private JsonObject jsonLdContext() {
