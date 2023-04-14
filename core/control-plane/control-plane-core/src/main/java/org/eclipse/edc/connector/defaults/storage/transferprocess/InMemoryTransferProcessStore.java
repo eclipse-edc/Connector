@@ -46,7 +46,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
 
     @Nullable
     @Override
-    public TransferProcess find(String id) {
+    public TransferProcess findById(String id) {
         return store.find(id);
     }
 
@@ -61,7 +61,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void save(TransferProcess process) {
+    public void updateOrCreate(TransferProcess process) {
         store.upsert(process);
     }
 

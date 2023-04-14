@@ -189,7 +189,7 @@ class TransferProcessManagerImplTest {
         manager.initiateConsumerRequest(transferRequest);
         manager.stop();
 
-        verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
+        verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(captor.capture());
         assertThat(captor.getValue().getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
         verify(listener).initiated(any());
 
@@ -210,7 +210,7 @@ class TransferProcessManagerImplTest {
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verifyNoInteractions(provisionManager);
-            verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == PROVISIONING.code()));
         });
     }
 
@@ -228,7 +228,7 @@ class TransferProcessManagerImplTest {
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verifyNoInteractions(provisionManager);
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
@@ -260,13 +260,13 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONED.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == PROVISIONED.code()));
             verify(listener).provisioned(process);
         });
     }
@@ -289,13 +289,13 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONED.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == PROVISIONED.code()));
             verify(vault).storeSecret(any(), any());
             verify(listener).provisioned(process);
         });
@@ -314,12 +314,12 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONING_REQUESTED.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == PROVISIONING_REQUESTED.code()));
             verify(listener).provisioningRequested(any());
         });
     }
@@ -333,13 +333,13 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
@@ -353,13 +353,13 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
@@ -373,13 +373,13 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == PROVISIONING.code()));
         });
     }
 
@@ -392,7 +392,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferProcessStore, atLeastOnce()).nextForState(eq(PROVISIONED.code()), anyInt());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == REQUESTING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == REQUESTING.code()));
         });
     }
 
@@ -404,7 +404,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == STARTING.code()));
         });
     }
 
@@ -413,13 +413,13 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(REQUESTING);
         when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(eq(Object.class), isA(TransferRequestMessage.class));
-            verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
+            verify(transferProcessStore, times(1)).updateOrCreate(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
         });
     }
@@ -437,7 +437,7 @@ class TransferProcessManagerImplTest {
 
         manager.start();
 
-        await().pollDelay(RETRY_LIMIT, SECONDS).untilAsserted(() -> verify(transferProcessStore, never()).save(any()));
+        await().pollDelay(RETRY_LIMIT, SECONDS).untilAsserted(() -> verify(transferProcessStore, never()).updateOrCreate(any()));
     }
 
     @Test
@@ -455,7 +455,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == STARTED.code()));
         });
     }
 
@@ -468,12 +468,12 @@ class TransferProcessManagerImplTest {
                 .dataRequest(dataRequest).build();
         when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(transferProcessStore).save(process);
+                .when(transferProcessStore).updateOrCreate(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, never()).save(any());
+            verify(transferProcessStore, never()).updateOrCreate(any());
         });
     }
 
@@ -483,7 +483,7 @@ class TransferProcessManagerImplTest {
         var dataFlowResponse = createDataFlowResponse();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
         when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture("any"));
 
@@ -494,7 +494,7 @@ class TransferProcessManagerImplTest {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verify(dispatcherRegistry).send(any(), captor.capture());
             assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == STARTED.code()));
             verify(listener).started(eq(process), any());
         });
     }
@@ -504,12 +504,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
+        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == STARTING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(argThat(p -> p.getState() == STARTING.code()));
         });
     }
 
@@ -523,7 +523,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
@@ -532,12 +532,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 
@@ -546,13 +546,13 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(2).stateTimestamp(clock.millis() + 1000L).build();
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
+        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
 
         manager.start();
 
         await().untilAsserted(() -> {
             verifyNoInteractions(dataFlowManager);
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == STARTING.code()));
         });
     }
 
@@ -569,7 +569,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == COMPLETING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
 
@@ -588,7 +588,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == COMPLETING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
 
@@ -604,7 +604,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == STARTED.code()));
         });
     }
 
@@ -615,12 +615,12 @@ class TransferProcessManagerImplTest {
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         when(transferProcessStore.nextForState(eq(STARTED.code()), anyInt())).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(transferProcessStore).save(process);
+                .when(transferProcessStore).updateOrCreate(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, never()).save(any());
+            verify(transferProcessStore, never()).updateOrCreate(any());
         });
     }
 
@@ -639,7 +639,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == COMPLETING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
 
@@ -647,14 +647,14 @@ class TransferProcessManagerImplTest {
     void completing_shouldTransitionToCompleted_whenSendingMessageSucceed() {
         var process = createTransferProcess(COMPLETING);
         when(transferProcessStore.nextForState(eq(COMPLETING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
+        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
         when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class));
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == COMPLETED.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(argThat(p -> p.getState() == COMPLETED.code()));
             verify(listener).completed(process);
         });
     }
@@ -663,14 +663,14 @@ class TransferProcessManagerImplTest {
     void terminating_shouldTransitionToTerminated_whenMessageSentCorrectly() {
         var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
         when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
         when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
     }
@@ -679,13 +679,13 @@ class TransferProcessManagerImplTest {
     void terminating_shouldTransitionToTerminatedWithoutSendingMessage_whenConsumerAndIsNotRequestedYet() {
         var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).state(REQUESTING.code()).build();
         when(transferProcessStore.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
+        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
 
         manager.start();
 
         await().untilAsserted(() -> {
             verifyNoInteractions(dispatcherRegistry);
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
+            verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
     }
@@ -713,14 +713,14 @@ class TransferProcessManagerImplTest {
         when(vault.deleteSecret(any())).thenReturn(Result.success());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).find(process.getId());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == DEPROVISIONED.code()));
+            verify(transferProcessStore).findById(process.getId());
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == DEPROVISIONED.code()));
             verify(vault).deleteSecret(any());
             verify(listener).deprovisioned(process);
         });
@@ -750,12 +750,12 @@ class TransferProcessManagerImplTest {
         when(vault.deleteSecret(any())).thenReturn(Result.success());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(StatusResult.success(deprovisionedResponse))));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == DEPROVISIONING_REQUESTED.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == DEPROVISIONING_REQUESTED.code()));
             verify(listener).deprovisioningRequested(any());
         });
     }
@@ -780,13 +780,13 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == DEPROVISIONED.code() && p.getErrorDetail() != null));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == DEPROVISIONED.code() && p.getErrorDetail() != null));
             verify(listener).deprovisioned(process);
         });
     }
@@ -811,12 +811,12 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == DEPROVISIONING.code()));
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         });
     }
@@ -830,13 +830,13 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process);
+        when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == DEPROVISIONED.code() && p.getErrorDetail() != null));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == DEPROVISIONED.code() && p.getErrorDetail() != null));
             verify(listener).deprovisioned(process);
         });
     }
@@ -847,12 +847,12 @@ class TransferProcessManagerImplTest {
         var negotiation = builderEnricher.apply(createTransferProcessBuilder(starting).state(starting.code())).build();
         when(transferProcessStore.nextForState(eq(starting.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        when(transferProcessStore.find(negotiation.getId())).thenReturn(negotiation);
+        when(transferProcessStore.findById(negotiation.getId())).thenReturn(negotiation);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == ending.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == ending.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
         });
     }

@@ -185,7 +185,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @Override
     public void handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
             return;
@@ -348,7 +348,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var resources = process.getResourcesToProvision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
-                .entityRetrieve(transferProcessStore::find)
+                .entityRetrieve(transferProcessStore::findById)
                 .onSuccess(this::handleProvisionResult)
                 .onFailure((t, throwable) -> transitionToProvisioning(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
@@ -399,7 +399,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCallbackAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToRequested(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onFailure((t, throwable) -> transitionToRequesting(t))
@@ -473,7 +473,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
 
         entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToStarted(t))
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -541,7 +541,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -572,7 +572,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onRetryExhausted(this::transitionToTerminated)
@@ -598,12 +598,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
-                .entityRetrieve(transferProcessStore::find)
-                .onDelay(this::breakLease)
-                .onSuccess(this::handleDeprovisionResult)
-                .onFailure((t, throwable) -> transitionToDeprovisioning(t))
-                .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
-                .execute("deprovisioning");
+                        .entityRetrieve(transferProcessStore::findById)
+                        .onDelay(this::breakLease)
+                        .onSuccess(this::handleDeprovisionResult)
+                        .onFailure((t, throwable) -> transitionToDeprovisioning(t))
+                        .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
+                        .execute("deprovisioning");
     }
 
     private void handleProvisionResponses(TransferProcess transferProcess, List<ProvisionResponse> responses) {
@@ -796,12 +796,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void update(TransferProcess transferProcess) {
-        transferProcessStore.save(transferProcess);
+        transferProcessStore.updateOrCreate(transferProcess);
         monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 
     private void breakLease(TransferProcess process) {
-        transferProcessStore.save(process);
+        transferProcessStore.updateOrCreate(process);
     }
 
     @NotNull

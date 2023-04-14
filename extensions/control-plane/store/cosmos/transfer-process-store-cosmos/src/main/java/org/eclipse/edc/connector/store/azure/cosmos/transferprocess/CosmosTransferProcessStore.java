@@ -98,7 +98,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public TransferProcess find(String id) {
+    public TransferProcess findById(String id) {
         // we need to read the TransferProcessDocument as Object, because no custom JSON deserialization can be registered
         // with the CosmosDB SDK, so it would not know about subtypes, etc.
         Object obj = findByIdInternal(id);
@@ -118,7 +118,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void save(TransferProcess process) {
+    public void updateOrCreate(TransferProcess process) {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         try {
             leaseContext.acquireLease(process.getId());
