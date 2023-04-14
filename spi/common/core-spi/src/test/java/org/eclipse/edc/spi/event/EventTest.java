@@ -17,16 +17,6 @@ package org.eclipse.edc.spi.event;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.spi.event.asset.AssetCreated;
 import org.eclipse.edc.spi.event.asset.AssetDeleted;
-import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionCreated;
-import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionDeleted;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationAccepted;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationConfirmed;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationDeclined;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationFailed;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationInitiated;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationOffered;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationRequested;
-import org.eclipse.edc.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
@@ -82,16 +72,6 @@ class EventTest {
             var eventBuilders = Stream.of(
                     AssetCreated.Builder.newInstance().assetId("id").build(),
                     AssetDeleted.Builder.newInstance().assetId("id").build(),
-                    ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id").build(),
-                    ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id").build(),
-                    ContractNegotiationAccepted.Builder.newInstance().contractNegotiationId("id").build(),
-                    ContractNegotiationConfirmed.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
-                    ContractNegotiationDeclined.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
-                    ContractNegotiationFailed.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
-                    ContractNegotiationInitiated.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
-                    ContractNegotiationOffered.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
-                    ContractNegotiationRequested.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
-                    ContractNegotiationTerminated.Builder.newInstance().contractNegotiationId("id").callbackAddresses(callbacks).build(),
                     PolicyDefinitionCreated.Builder.newInstance().policyDefinitionId("id").build(),
                     PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id").build(),
                     TransferProcessCompleted.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),

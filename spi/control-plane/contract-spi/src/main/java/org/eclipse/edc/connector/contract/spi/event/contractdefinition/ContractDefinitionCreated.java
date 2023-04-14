@@ -13,32 +13,31 @@
  *
  */
 
-package org.eclipse.edc.spi.event.contractnegotiation;
+package org.eclipse.edc.connector.contract.spi.event.contractdefinition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been terminated.
+ * Describe a new ContractDefinition creation, after this has emitted, a ContractDefinition with a certain id will be available.
  */
-@JsonDeserialize(builder = ContractNegotiationTerminated.Builder.class)
-public class ContractNegotiationTerminated extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractDefinitionCreated.Builder.class)
+public class ContractDefinitionCreated extends ContractDefinitionEvent {
 
-    private ContractNegotiationTerminated() {
+    private ContractDefinitionCreated() {
     }
 
     @Override
     public String name() {
-        return "contract.negotiation.terminated";
+        return "contract.definition.created";
     }
 
-
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationTerminated, Builder> {
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionCreated, Builder> {
 
         private Builder() {
-            super(new ContractNegotiationTerminated());
+            super(new ContractDefinitionCreated());
         }
 
         @JsonCreator

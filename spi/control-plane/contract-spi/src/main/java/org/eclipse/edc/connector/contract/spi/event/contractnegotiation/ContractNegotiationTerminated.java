@@ -13,37 +13,35 @@
  *
  */
 
-package org.eclipse.edc.spi.event.contractnegotiation;
+package org.eclipse.edc.connector.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been confirmed.
- *
- * @deprecated please use {@link ContractNegotiationAgreed}
+ * This event is raised when the ContractNegotiation has been terminated.
  */
-@Deprecated(since = "milestone9")
-@JsonDeserialize(builder = ContractNegotiationConfirmed.Builder.class)
-public class ContractNegotiationConfirmed extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationTerminated.Builder.class)
+public class ContractNegotiationTerminated extends ContractNegotiationEvent {
 
-    private ContractNegotiationConfirmed() {
+    private ContractNegotiationTerminated() {
     }
 
     @Override
     public String name() {
-        return "contract.negotiation.confirmed";
+        return "contract.negotiation.terminated";
     }
 
-    @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationConfirmed, Builder> {
 
-        @JsonCreator
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationTerminated, Builder> {
+
         private Builder() {
-            super(new ContractNegotiationConfirmed());
+            super(new ContractNegotiationTerminated());
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
@@ -53,4 +51,5 @@ public class ContractNegotiationConfirmed extends ContractNegotiationEvent {
             return this;
         }
     }
+
 }

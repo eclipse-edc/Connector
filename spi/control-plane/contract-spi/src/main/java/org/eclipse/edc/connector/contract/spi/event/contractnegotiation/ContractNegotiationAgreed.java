@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,38 +9,37 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
-package org.eclipse.edc.spi.event.contractnegotiation;
+package org.eclipse.edc.connector.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been requested.
+ * This event is raised when the ContractNegotiation has been agreed by provider.
  */
-@JsonDeserialize(builder = ContractNegotiationRequested.Builder.class)
-public class ContractNegotiationRequested extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationAgreed.Builder.class)
+public class ContractNegotiationAgreed extends ContractNegotiationEvent {
 
-    private ContractNegotiationRequested() {
+    private ContractNegotiationAgreed() {
     }
 
     @Override
     public String name() {
-        return "contract.negotiation.requested";
+        return "contract.negotiation.agreed";
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationRequested, Builder> {
-
-        private Builder() {
-            super(new ContractNegotiationRequested());
-        }
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationAgreed, Builder> {
 
         @JsonCreator
+        private Builder() {
+            super(new ContractNegotiationAgreed());
+        }
+
         public static Builder newInstance() {
             return new Builder();
         }
@@ -50,5 +49,4 @@ public class ContractNegotiationRequested extends ContractNegotiationEvent {
             return this;
         }
     }
-
 }

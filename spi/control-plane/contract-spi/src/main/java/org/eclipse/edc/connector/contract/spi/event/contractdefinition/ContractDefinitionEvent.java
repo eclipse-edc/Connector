@@ -9,10 +9,11 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
-package org.eclipse.edc.spi.event.contractdefinition;
+package org.eclipse.edc.connector.contract.spi.event.contractdefinition;
 
 import org.eclipse.edc.spi.event.Event;
 

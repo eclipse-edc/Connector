@@ -13,31 +13,30 @@
  *
  */
 
-package org.eclipse.edc.spi.event.contractnegotiation;
+package org.eclipse.edc.connector.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been inititated.
+ * This event is raised when the ContractNegotiation has been approved.
  */
-@JsonDeserialize(builder = ContractNegotiationInitiated.Builder.class)
-public class ContractNegotiationInitiated extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationAccepted.Builder.class)
+public class ContractNegotiationAccepted extends ContractNegotiationEvent {
 
-    private ContractNegotiationInitiated() {
+    private ContractNegotiationAccepted() {
     }
 
     @Override
     public String name() {
-        return "contract.negotiation.initiated";
+        return "contract.negotiation.accepted";
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationInitiated, Builder> {
-
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationAccepted, Builder> {
         private Builder() {
-            super(new ContractNegotiationInitiated());
+            super(new ContractNegotiationAccepted());
         }
 
         @JsonCreator
@@ -50,5 +49,4 @@ public class ContractNegotiationInitiated extends ContractNegotiationEvent {
             return this;
         }
     }
-
 }

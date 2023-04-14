@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,35 +9,34 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
-package org.eclipse.edc.spi.event.contractdefinition;
+package org.eclipse.edc.connector.contract.spi.event.contractdefinition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * Describe a new ContractDefinition creation, after this has emitted, a ContractDefinition with a certain id will be available.
+ * Describe a ContractDefinition modification.
  */
-@JsonDeserialize(builder = ContractDefinitionCreated.Builder.class)
-public class ContractDefinitionCreated extends ContractDefinitionEvent {
+@JsonDeserialize(builder = ContractDefinitionUpdated.Builder.class)
+public class ContractDefinitionUpdated extends ContractDefinitionEvent {
 
-    private ContractDefinitionCreated() {
+    private ContractDefinitionUpdated() {
     }
 
     @Override
     public String name() {
-        return "contract.definition.created";
+        return "contract.definition.updated";
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionCreated, Builder> {
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionUpdated, Builder> {
 
         private Builder() {
-            super(new ContractDefinitionCreated());
+            super(new ContractDefinitionUpdated());
         }
 
         @JsonCreator
@@ -49,6 +48,7 @@ public class ContractDefinitionCreated extends ContractDefinitionEvent {
         public Builder self() {
             return this;
         }
+
     }
 
 }
