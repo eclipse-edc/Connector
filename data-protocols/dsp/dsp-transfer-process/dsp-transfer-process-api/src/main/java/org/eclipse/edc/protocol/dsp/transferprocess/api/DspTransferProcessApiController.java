@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.transferprocess.spi.type.TransferError;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -34,6 +35,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
@@ -214,5 +217,19 @@ public class DspTransferProcessApiController {
                 .add(DCT_PREFIX, DCT_SCHEMA)
                 .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();
+    }
+
+    private String createTransferProcessError(String code, String processId, String correlationId, String reason) {
+        var error = TransferError.Builder.newInstance()
+                .code(code)
+                .processId(processId)
+                .reason(List.of(reason));
+        if (correlationId != null) {
+            error.correlationId(correlationId);
+        }
+
+        var result = registry.transform(error.build(), JsonObject.class);
+
+        return mapper.convertValue(compact(result.getContent(), jsonLdContext()), JsonObject.class).toString();
     }
 }
