@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.util.RdfResource;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.model.Action;
@@ -89,7 +89,7 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(Connector.class, de.fraunhofer.iais.eis.Connector.class),
                     Arguments.arguments(Constraint.class, de.fraunhofer.iais.eis.Constraint.class),
                     Arguments.arguments(ContractOffer.class, de.fraunhofer.iais.eis.ContractOffer.class),
-                    Arguments.arguments(ContractAgreementRequest.class, de.fraunhofer.iais.eis.ContractAgreement.class),
+                    Arguments.arguments(ContractAgreementMessage.class, de.fraunhofer.iais.eis.ContractAgreement.class),
                     Arguments.arguments(Catalog.class, ResourceCatalog.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Constraint.class, Constraint.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Permission.class, Permission.class),

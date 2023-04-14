@@ -16,8 +16,7 @@ package org.eclipse.edc.protocol.ids.api.multipart.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractAgreement;
-import de.fraunhofer.iais.eis.ContractAgreementMessage;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
@@ -35,7 +34,7 @@ import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.creat
 import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.processedFromServiceResult;
 
 /**
- * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
+ * This class handles and processes incoming IDS {@link de.fraunhofer.iais.eis.ContractAgreementMessage}s.
  */
 public class ContractAgreementHandler implements Handler {
 
@@ -57,13 +56,13 @@ public class ContractAgreementHandler implements Handler {
 
     @Override
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
-        return multipartRequest.getHeader() instanceof ContractAgreementMessage;
+        return multipartRequest.getHeader() instanceof de.fraunhofer.iais.eis.ContractAgreementMessage;
     }
 
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         var claimToken = multipartRequest.getClaimToken();
-        var message = (ContractAgreementMessage) multipartRequest.getHeader();
+        var message = (de.fraunhofer.iais.eis.ContractAgreementMessage) multipartRequest.getHeader();
 
         ContractAgreement contractAgreement;
         try {
@@ -87,7 +86,7 @@ public class ContractAgreementHandler implements Handler {
 
         var output = result.getContent();
 
-        var request = ContractAgreementRequest.Builder.newInstance()
+        var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .connectorId(String.valueOf(message.getIssuerConnector()))
                 .connectorAddress("") // this will be used by DSP

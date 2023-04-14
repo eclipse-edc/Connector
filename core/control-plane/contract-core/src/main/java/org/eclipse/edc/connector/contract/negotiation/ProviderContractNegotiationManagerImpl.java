@@ -22,7 +22,7 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
@@ -182,7 +182,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             policy = agreement.getPolicy();
         }
 
-        var request = ContractAgreementRequest.Builder.newInstance() // TODO: should be renamed to ContractAgreementMessage
+        var request = ContractAgreementMessage.Builder.newInstance() // TODO: should be renamed to ContractAgreementMessage
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())

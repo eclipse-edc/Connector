@@ -20,7 +20,7 @@ import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.Duty;
 import de.fraunhofer.iais.eis.Permission;
 import de.fraunhofer.iais.eis.Prohibition;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
@@ -37,11 +37,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
 
-public class ContractAgreementToIdsContractAgreementTransformer implements IdsTypeTransformer<ContractAgreementRequest, de.fraunhofer.iais.eis.ContractAgreement> {
+public class ContractAgreementToIdsContractAgreementTransformer implements IdsTypeTransformer<ContractAgreementMessage, de.fraunhofer.iais.eis.ContractAgreement> {
 
     @Override
-    public Class<ContractAgreementRequest> getInputType() {
-        return ContractAgreementRequest.class;
+    public Class<ContractAgreementMessage> getInputType() {
+        return ContractAgreementMessage.class;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
     }
 
     @Override
-    public @Nullable ContractAgreement transform(@NotNull ContractAgreementRequest request, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreement transform(@NotNull ContractAgreementMessage request, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (request == null) {
             return null;

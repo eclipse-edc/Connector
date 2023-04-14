@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -153,7 +153,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         when(store.findForCorrelationId("correlationId")).thenReturn(negotiationConsumerRequested);
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
-        var message = ContractAgreementRequest.Builder.newInstance()
+        var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
                 .connectorAddress("http://any")
@@ -181,7 +181,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var contractAgreement = mock(ContractAgreement.class);
         when(store.findForCorrelationId("correlationId")).thenReturn(negotiationConsumerRequested);
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
-        var message = ContractAgreementRequest.Builder.newInstance()
+        var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
                 .connectorAddress("http://any")
@@ -335,12 +335,12 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            MethodCall<ContractAgreementRequest> agreed = ContractNegotiationProtocolService::notifyAgreed;
+            MethodCall<ContractAgreementMessage> agreed = ContractNegotiationProtocolService::notifyAgreed;
             MethodCall<ContractAgreementVerificationMessage> verified = ContractNegotiationProtocolService::notifyVerified;
             MethodCall<ContractNegotiationEventMessage> finalized = ContractNegotiationProtocolService::notifyFinalized;
             MethodCall<ContractRejection> terminated = ContractNegotiationProtocolService::notifyTerminated;
             return Stream.of(
-                    Arguments.of(agreed, ContractAgreementRequest.Builder.newInstance()
+                    Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
                             .protocol("protocol")
                             .connectorId("connectorId")
                             .connectorAddress("http://any")

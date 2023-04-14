@@ -22,7 +22,7 @@ import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
@@ -210,7 +210,7 @@ class MultipartDispatcherIntegrationTest {
                 .thenReturn(Result.success(ContractAgreementTransformerOutput.Builder.newInstance().contractAgreement(contractAgreement).policy(policy).build()));
         when(negotiationService.notifyAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
 
-        var request = ContractAgreementRequest.Builder.newInstance()
+        var request = ContractAgreementMessage.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)

@@ -18,7 +18,7 @@ package org.eclipse.edc.connector.contract.negotiation;
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
@@ -133,7 +133,7 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferAccepted() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementRequest.class))).then(onProviderSentAgreementRequest());
+        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
         when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class))).then(onConsumerSentOfferRequest());
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
@@ -216,7 +216,7 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_agreementDeclined() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementRequest.class))).then(onProviderSentAgreementRequest());
+        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
         when(consumerDispatcherRegistry.send(any(), isA(ContractOfferRequest.class))).then(onConsumerSentOfferRequest());
         when(consumerDispatcherRegistry.send(any(), isA(ContractRejection.class))).then(onConsumerSentRejection());
         consumerNegotiationId = null;
@@ -290,7 +290,7 @@ class ContractNegotiationIntegrationTest {
     @NotNull
     private Answer<Object> onProviderSentAgreementRequest() {
         return i -> {
-            ContractAgreementRequest request = i.getArgument(1);
+            ContractAgreementMessage request = i.getArgument(1);
             var result = consumerService.notifyAgreed(request, token);
             return toFuture(result);
         };

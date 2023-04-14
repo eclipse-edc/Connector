@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.spi.contractnegotiation;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -71,7 +71,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementRequest message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementMessage message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been verified by the consumer.

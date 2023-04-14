@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.service.contractnegotiation;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -92,7 +92,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementRequest message, ClaimToken claimToken) {
+    public ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementMessage message, ClaimToken claimToken) {
         return transactionContext.execute(() -> getNegotiation(message)
                 .compose(negotiation -> validateAgreed(message, claimToken, negotiation))
                 .onSuccess(negotiation -> {
@@ -171,7 +171,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> validateAgreed(ContractAgreementRequest message, ClaimToken claimToken, ContractNegotiation negotiation) {
+    private ServiceResult<ContractNegotiation> validateAgreed(ContractAgreementMessage message, ClaimToken claimToken, ContractNegotiation negotiation) {
         var agreement = message.getContractAgreement();
         var result = validationService.validateConfirmed(claimToken, agreement, negotiation.getLastContractOffer());
         if (result.failed()) {
