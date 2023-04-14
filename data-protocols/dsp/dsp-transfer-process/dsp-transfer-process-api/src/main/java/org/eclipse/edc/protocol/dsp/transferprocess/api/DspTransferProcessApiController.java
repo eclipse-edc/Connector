@@ -38,6 +38,10 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
 
 
 @Consumes({MediaType.APPLICATION_JSON})
@@ -207,7 +211,8 @@ public class DspTransferProcessApiController {
 
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
-                //TODO ADD CONTEXTFIELDS
+                .add(DCT_PREFIX, DCT_SCHEMA)
+                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();
     }
 }
