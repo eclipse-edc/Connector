@@ -28,6 +28,7 @@ dependencies {
     api(project(":extensions:common:json-ld"))
 
     implementation(libs.jakarta.rsApi)
+    implementation(project(mapOf("path" to ":spi:control-plane:control-plane-spi")))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)

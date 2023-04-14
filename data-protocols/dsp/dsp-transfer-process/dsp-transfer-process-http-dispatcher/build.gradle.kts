@@ -30,5 +30,5 @@ dependencies {
     implementation("jakarta.json:jakarta.json-api:2.1.1")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.14.2")
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 }

@@ -33,12 +33,12 @@ dependencies {
     implementation("org.eclipse.parsson:parsson:1.1.1")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.14.2")
 
-    implementation(root.jakarta.rsApi)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:iam:iam-mock"))
 
-    testImplementation(root.restAssured)
+    testImplementation(libs.restAssured)
 }
