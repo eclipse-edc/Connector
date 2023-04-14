@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementM
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -123,7 +123,7 @@ class ProviderContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == OFFERED.code()));
-            verify(dispatcherRegistry, only()).send(any(), isA(ContractOfferRequest.class));
+            verify(dispatcherRegistry, only()).send(any(), isA(ContractRequestMessage.class));
             verify(listener).offered(any());
         });
     }

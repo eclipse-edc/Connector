@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.service.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrategy;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -114,7 +114,7 @@ class ContractNegotiationEventDispatchTest {
         });
     }
 
-    private ContractOfferRequest createContractOfferRequest(Policy policy) {
+    private ContractRequestMessage createContractOfferRequest(Policy policy) {
         var now = ZonedDateTime.now();
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id("contractDefinitionId:" + UUID.randomUUID())
@@ -126,7 +126,7 @@ class ContractNegotiationEventDispatchTest {
                 .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))
                 .build();
 
-        return ContractOfferRequest.Builder.newInstance()
+        return ContractRequestMessage.Builder.newInstance()
                 .protocol("test")
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")

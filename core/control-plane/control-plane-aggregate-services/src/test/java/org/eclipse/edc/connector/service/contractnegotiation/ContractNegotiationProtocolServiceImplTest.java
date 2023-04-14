@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementM
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -99,7 +99,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = contractOffer();
         when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(contractOffer));
-        var message = ContractOfferRequest.Builder.newInstance()
+        var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
@@ -132,7 +132,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var contractOffer = contractOffer();
         when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.failure("error"));
 
-        var message = ContractOfferRequest.Builder.newInstance()
+        var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")

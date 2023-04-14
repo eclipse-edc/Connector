@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Contra
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.policy.model.Policy;
@@ -191,9 +191,9 @@ class ContractNegotiationApiControllerTest {
 
     @Test
     void initiateNegotiation() {
-        when(service.initiateNegotiation(isA(ContractOfferRequest.class))).thenReturn(createContractNegotiation("negotiationId"));
+        when(service.initiateNegotiation(isA(ContractRequestMessage.class))).thenReturn(createContractNegotiation("negotiationId"));
         var contractOfferRequest = createContractOfferRequest();
-        when(transformerRegistry.transform(isA(NegotiationInitiateRequestDto.class), eq(ContractOfferRequest.class))).thenReturn(Result.success(contractOfferRequest));
+        when(transformerRegistry.transform(isA(NegotiationInitiateRequestDto.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(contractOfferRequest));
         var request = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
@@ -214,7 +214,7 @@ class ContractNegotiationApiControllerTest {
 
     @Test
     void initiateNegotiation_illegalArgumentIfTransformationFails() {
-        when(service.initiateNegotiation(isA(ContractOfferRequest.class))).thenReturn(createContractNegotiation("negotiationId"));
+        when(service.initiateNegotiation(isA(ContractRequestMessage.class))).thenReturn(createContractNegotiation("negotiationId"));
         var request = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
@@ -281,7 +281,7 @@ class ContractNegotiationApiControllerTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidNegotiationParameters.class)
     void initiateNegotiation_invalidRequestBody(String connectorAddress, String connectorId, String protocol, String offerId) {
-        when(transformerRegistry.transform(isA(NegotiationInitiateRequestDto.class), eq(ContractOfferRequest.class))).thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(isA(NegotiationInitiateRequestDto.class), eq(ContractRequestMessage.class))).thenReturn(Result.failure("error"));
 
         var rq = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorAddress(connectorAddress)
@@ -308,8 +308,8 @@ class ContractNegotiationApiControllerTest {
                 .build();
     }
 
-    private ContractOfferRequest createContractOfferRequest() {
-        return ContractOfferRequest.Builder.newInstance()
+    private ContractRequestMessage createContractOfferRequest() {
+        return ContractRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")

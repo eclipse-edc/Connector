@@ -26,7 +26,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementM
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -84,7 +84,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     @Override
-    public StatusResult<ContractNegotiation> initiate(ContractOfferRequest contractOffer) {
+    public StatusResult<ContractNegotiation> initiate(ContractRequestMessage contractOffer) {
         var id = UUID.randomUUID().toString();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id)
@@ -138,13 +138,13 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
-        var request = ContractOfferRequest.Builder.newInstance() // TODO: should be renamed to ContractRequestMessage
+        var request = ContractRequestMessage.Builder.newInstance() // TODO: should be renamed to ContractRequestMessage
                 .contractOffer(offer)
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .correlationId(negotiation.getId())
-                .type(ContractOfferRequest.Type.INITIAL)
+                .type(ContractRequestMessage.Type.INITIAL)
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))

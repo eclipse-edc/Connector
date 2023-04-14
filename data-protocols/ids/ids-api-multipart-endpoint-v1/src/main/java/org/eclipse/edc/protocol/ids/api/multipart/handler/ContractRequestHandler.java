@@ -17,8 +17,7 @@ package org.eclipse.edc.protocol.ids.api.multipart.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
-import de.fraunhofer.iais.eis.ContractRequestMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
@@ -39,7 +38,7 @@ import static org.eclipse.edc.protocol.ids.api.multipart.util.ResponseUtil.inPro
 import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
- * This class handles and processes incoming IDS {@link ContractRequestMessage}s.
+ * This class handles and processes incoming IDS {@link de.fraunhofer.iais.eis.ContractRequestMessage}s.
  */
 public class ContractRequestHandler implements Handler {
 
@@ -64,13 +63,13 @@ public class ContractRequestHandler implements Handler {
 
     @Override
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
-        return multipartRequest.getHeader() instanceof ContractRequestMessage;
+        return multipartRequest.getHeader() instanceof de.fraunhofer.iais.eis.ContractRequestMessage;
     }
 
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         var claimToken = multipartRequest.getClaimToken();
-        var message = (ContractRequestMessage) multipartRequest.getHeader();
+        var message = (de.fraunhofer.iais.eis.ContractRequestMessage) multipartRequest.getHeader();
 
         ContractRequest contractRequest;
         try {
@@ -127,10 +126,10 @@ public class ContractRequestHandler implements Handler {
         }
 
         var contractOffer = result.getContent();
-        var requestObj = ContractOfferRequest.Builder.newInstance()
+        var requestObj = ContractRequestMessage.Builder.newInstance()
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .connectorAddress(idsWebhookAddress.toString())
-                .type(ContractOfferRequest.Type.INITIAL)
+                .type(ContractRequestMessage.Type.INITIAL)
                 .connectorId(String.valueOf(message.getIssuerConnector()))
                 .correlationId(String.valueOf(message.getTransferContract()))
                 .contractOffer(contractOffer)

@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -114,7 +114,7 @@ class ConsumerContractNegotiationManagerImplTest {
     void initiate_shouldSaveNewNegotiationInInitialState() {
         var contractOffer = contractOffer();
 
-        var request = ContractOfferRequest.Builder.newInstance()
+        var request = ContractRequestMessage.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")

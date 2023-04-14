@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.spi.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 
@@ -63,7 +63,7 @@ public interface ContractNegotiationService {
      * @param request the contract offer request
      * @return the contract negotiation initiated
      */
-    ContractNegotiation initiateNegotiation(ContractOfferRequest request);
+    ContractNegotiation initiateNegotiation(ContractRequestMessage request);
 
     /**
      * Cancel a contract negotiation

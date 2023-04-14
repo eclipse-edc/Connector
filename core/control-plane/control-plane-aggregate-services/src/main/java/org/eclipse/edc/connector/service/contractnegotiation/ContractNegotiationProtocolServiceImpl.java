@@ -22,7 +22,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementV
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -63,7 +63,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> notifyRequested(ContractOfferRequest message, ClaimToken claimToken) {
+    public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ClaimToken claimToken) {
         return transactionContext.execute(() -> createNegotiation(message)
                 .compose(negotiation -> validateOffer(message, claimToken, negotiation))
                 .onSuccess(negotiation -> {
@@ -78,7 +78,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> notifyOffered(ContractOfferRequest message, ClaimToken claimToken) {
+    public ServiceResult<ContractNegotiation> notifyOffered(ContractRequestMessage message, ClaimToken claimToken) {
         throw new UnsupportedOperationException("not implemented");
     }
 
@@ -144,7 +144,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> createNegotiation(ContractOfferRequest message) {
+    private ServiceResult<ContractNegotiation> createNegotiation(ContractRequestMessage message) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(message.getCorrelationId())
@@ -160,7 +160,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> validateOffer(ContractOfferRequest message, ClaimToken claimToken, ContractNegotiation negotiation) {
+    private ServiceResult<ContractNegotiation> validateOffer(ContractRequestMessage message, ClaimToken claimToken, ContractNegotiation negotiation) {
         var result = validationService.validateInitialOffer(claimToken, message.getContractOffer());
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer rejected as invalid: " + result.getFailureDetail());

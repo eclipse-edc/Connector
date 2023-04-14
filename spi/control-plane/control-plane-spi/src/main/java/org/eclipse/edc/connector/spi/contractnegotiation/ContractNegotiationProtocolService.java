@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementM
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -38,7 +38,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyRequested(ContractOfferRequest message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been offered by the provider.
@@ -49,7 +49,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyOffered(ContractOfferRequest message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyOffered(ContractRequestMessage message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been agreed by the accepted.

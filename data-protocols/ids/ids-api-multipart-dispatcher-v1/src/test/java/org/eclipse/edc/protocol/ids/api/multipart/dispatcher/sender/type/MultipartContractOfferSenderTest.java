@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
@@ -61,7 +61,7 @@ class MultipartContractOfferSenderTest {
     @Test
     void buildMessagePayload_initialRequest_mapPolicyProperties() throws Exception {
         var policy = getPolicy();
-        var request = getContractOfferRequest(policy, ContractOfferRequest.Type.INITIAL);
+        var request = getContractOfferRequest(policy, ContractRequestMessage.Type.INITIAL);
 
         var result = sender.buildMessagePayload(request);
 
@@ -74,7 +74,7 @@ class MultipartContractOfferSenderTest {
     @Test
     void buildMessagePayload_notInitialRequest_mapPolicyProperties() throws Exception {
         var policy = getPolicy();
-        var request = getContractOfferRequest(policy, ContractOfferRequest.Type.COUNTER_OFFER);
+        var request = getContractOfferRequest(policy, ContractRequestMessage.Type.COUNTER_OFFER);
 
         var result = sender.buildMessagePayload(request);
 
@@ -84,8 +84,8 @@ class MultipartContractOfferSenderTest {
                 .containsAllEntriesOf(policy.getExtensibleProperties());
     }
 
-    private ContractOfferRequest getContractOfferRequest(Policy policy, ContractOfferRequest.Type type) {
-        return ContractOfferRequest.Builder.newInstance()
+    private ContractRequestMessage getContractOfferRequest(Policy policy, ContractRequestMessage.Type type) {
+        return ContractRequestMessage.Builder.newInstance()
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id("contract-offer")
                         .policy(policy)

@@ -26,7 +26,7 @@ import java.util.Objects;
  * Object that wraps the contract offer and provides additional information about e.g. protocol
  * and recipient.
  */
-public class ContractOfferRequest implements ContractRemoteMessage {
+public class ContractRequestMessage implements ContractRemoteMessage {
 
     private Type type = Type.COUNTER_OFFER;
     private String protocol;
@@ -78,10 +78,10 @@ public class ContractOfferRequest implements ContractRemoteMessage {
     }
 
     public static class Builder {
-        private final ContractOfferRequest contractOfferRequest;
+        private final ContractRequestMessage contractRequestMessage;
 
         private Builder() {
-            contractOfferRequest = new ContractOfferRequest();
+            contractRequestMessage = new ContractRequestMessage();
         }
 
         public static Builder newInstance() {
@@ -89,46 +89,46 @@ public class ContractOfferRequest implements ContractRemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            contractOfferRequest.protocol = protocol;
+            contractRequestMessage.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            contractOfferRequest.connectorId = connectorId;
+            contractRequestMessage.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            contractOfferRequest.connectorAddress = connectorAddress;
+            contractRequestMessage.connectorAddress = connectorAddress;
             return this;
         }
 
         public Builder correlationId(String correlationId) {
-            contractOfferRequest.correlationId = correlationId;
+            contractRequestMessage.correlationId = correlationId;
             return this;
         }
 
         public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
-            contractOfferRequest.callbackAddress = callbackAddresses;
+            contractRequestMessage.callbackAddress = callbackAddresses;
             return this;
         }
 
         public Builder contractOffer(ContractOffer contractOffer) {
-            contractOfferRequest.contractOffer = contractOffer;
+            contractRequestMessage.contractOffer = contractOffer;
             return this;
         }
 
         public Builder type(Type type) {
-            contractOfferRequest.type = type;
+            contractRequestMessage.type = type;
             return this;
         }
 
-        public ContractOfferRequest build() {
-            Objects.requireNonNull(contractOfferRequest.protocol, "protocol");
-            Objects.requireNonNull(contractOfferRequest.connectorId, "connectorId");
-            Objects.requireNonNull(contractOfferRequest.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractOfferRequest.contractOffer, "contractOffer");
-            return contractOfferRequest;
+        public ContractRequestMessage build() {
+            Objects.requireNonNull(contractRequestMessage.protocol, "protocol");
+            Objects.requireNonNull(contractRequestMessage.connectorId, "connectorId");
+            Objects.requireNonNull(contractRequestMessage.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
+            return contractRequestMessage;
         }
     }
 }

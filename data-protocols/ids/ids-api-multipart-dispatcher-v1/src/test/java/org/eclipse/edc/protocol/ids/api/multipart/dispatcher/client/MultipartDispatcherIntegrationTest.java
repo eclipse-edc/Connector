@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -155,8 +155,8 @@ class MultipartDispatcherIntegrationTest {
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
 
-        var request = ContractOfferRequest.Builder.newInstance()
-                .type(ContractOfferRequest.Type.COUNTER_OFFER)
+        var request = ContractRequestMessage.Builder.newInstance()
+                .type(ContractRequestMessage.Type.COUNTER_OFFER)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
@@ -180,8 +180,8 @@ class MultipartDispatcherIntegrationTest {
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
         when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(contractOffer));
 
-        var request = ContractOfferRequest.Builder.newInstance()
-                .type(ContractOfferRequest.Type.INITIAL)
+        var request = ContractRequestMessage.Builder.newInstance()
+                .type(ContractRequestMessage.Type.INITIAL)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
