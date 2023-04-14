@@ -25,7 +25,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.catalog.TestFunctions.createCriterionDto;
 
-class CatalogRequestDtoTest {
+class CatalogRequestMessageDtoTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 

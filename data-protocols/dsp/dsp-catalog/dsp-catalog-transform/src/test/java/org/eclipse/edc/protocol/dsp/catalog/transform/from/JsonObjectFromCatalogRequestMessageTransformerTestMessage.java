@@ -36,48 +36,48 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class JsonObjectFromCatalogRequestMessageTransformerTest {
-    
+class JsonObjectFromCatalogRequestMessageTransformerTestMessage {
+
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final TransformerContext context = mock(TransformerContext.class);
-    
+
     private JsonObjectFromCatalogRequestMessageTransformer transformer;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, mapper);
     }
-    
+
     @Test
     void transform_noFilter_returnJsonObject() {
         var message = CatalogRequestMessage.Builder.newInstance().build();
-        
+
         var result = transformer.transform(message, context);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_REQUEST_TYPE);
         assertThat(result.get(DSPACE_FILTER_PROPERTY)).isNull();
-        
+
         verify(context, never()).reportProblem(anyString());
     }
-    
+
     @Test
     void transform_withFilter_returnJsonObject() {
         var querySpec = QuerySpec.Builder.newInstance().build();
         var querySpecJson = jsonFactory.createObjectBuilder().build();
         when(mapper.convertValue(querySpec, JsonObject.class)).thenReturn(querySpecJson);
-    
+
         var message = CatalogRequestMessage.Builder.newInstance()
                 .filter(querySpec)
                 .build();
-    
+
         var result = transformer.transform(message, context);
-    
+
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_REQUEST_TYPE);
         assertThat(result.get(DSPACE_FILTER_PROPERTY)).isEqualTo(querySpecJson);
-    
+
         verify(context, never()).reportProblem(anyString());
     }
 }

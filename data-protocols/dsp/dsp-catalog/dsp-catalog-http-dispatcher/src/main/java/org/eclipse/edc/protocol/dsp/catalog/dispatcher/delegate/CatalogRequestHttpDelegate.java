@@ -22,8 +22,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
-import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
@@ -38,23 +37,23 @@ import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.CATALOG_R
 /**
  * Delegate for dispatching catalog requests as defined in the dataspace protocol specification.
  */
-public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<CatalogRequest, Catalog> {
-    
+public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<CatalogRequestMessage, Catalog> {
+
     private static final String APPLICATION_JSON = "application/json";
-    
+
     private final ObjectMapper mapper;
     private final JsonLdTransformerRegistry transformerRegistry;
-    
+
     public CatalogRequestHttpDelegate(ObjectMapper mapper, JsonLdTransformerRegistry transformerRegistry) {
         this.mapper = mapper;
         this.transformerRegistry = transformerRegistry;
     }
-    
+
     @Override
-    public Class<CatalogRequest> getMessageType() {
-        return CatalogRequest.class;
+    public Class<CatalogRequestMessage> getMessageType() {
+        return CatalogRequestMessage.class;
     }
-    
+
     /**
      * Sends a catalog request. The request body is constructed as defined in the dataspace protocol
      * implementation. The request is sent to the remote component using the path from the
@@ -64,18 +63,18 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
      * @return the built okhttp request
      */
     @Override
-    public Request buildRequest(CatalogRequest message) {
-        var catalogRequestMessage = CatalogRequestMessage.Builder.newInstance()
+    public Request buildRequest(CatalogRequestMessage message) {
+        var catalogRequestMessage = org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage.Builder.newInstance()
                 .filter(message.getQuerySpec())
                 .build();
         var requestBody = RequestBody.create(toJson(catalogRequestMessage), MediaType.get(APPLICATION_JSON));
-        
+
         return new Request.Builder()
                 .url(message.getConnectorAddress() + BASE_PATH + CATALOG_REQUEST)
                 .post(requestBody)
                 .build();
     }
-    
+
     /**
      * Parses the response to a catalog request. The JSON-LD structure from the response body is
      * expanded and then transformed to an EDC catalog.
@@ -102,8 +101,8 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
             }
         };
     }
-    
-    private String toJson(CatalogRequestMessage message) {
+
+    private String toJson(org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage message) {
         try {
             var transformResult = transformerRegistry.transform(message, JsonObject.class);
             if (transformResult.succeeded()) {
