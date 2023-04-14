@@ -29,8 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
 
 
 public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJsonLdTransformer<TransferRequestMessage, JsonObject> {
@@ -59,7 +58,8 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
 
         builder.add(DSPACE_SCHEMA + "agreementId", transferRequestMessage.getContractId());
         builder.add(DCT_SCHEMA + "format", "dspace:AmazonS3+Push"); //TODO fix value
-        builder.add(DSPACE_SCHEMA + "dataAddress", transformDataAddress(transferRequestMessage.getDataDestination(), context));
+        builder.add("dataAddress", transformDataAddress(transferRequestMessage.getDataDestination(), context));
+        builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getConnectorAddress());
 
         return builder.build();
     }
