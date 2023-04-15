@@ -30,7 +30,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
     private Type type = Type.COUNTER_OFFER;
     private String protocol;
-    private String connectorId;
+    private String connectorId; // TODO remove when removing ids module
     private String connectorAddress;
     private String correlationId;
     private ContractOffer contractOffer;
@@ -47,6 +47,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         return connectorAddress;
     }
 
+    @Deprecated
     public String getConnectorId() {
         return connectorId;
     }
@@ -93,6 +94,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             return this;
         }
 
+        @Deprecated
         public Builder connectorId(String connectorId) {
             contractRequestMessage.connectorId = connectorId;
             return this;
