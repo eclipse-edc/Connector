@@ -123,7 +123,6 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
         public ContractRequestMessage build() {
             Objects.requireNonNull(contractRequestMessage.protocol, "protocol");
-            Objects.requireNonNull(contractRequestMessage.connectorId, "connectorId");
             Objects.requireNonNull(contractRequestMessage.connectorAddress, "connectorAddress");
             Objects.requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
             return contractRequestMessage;

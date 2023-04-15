@@ -111,7 +111,6 @@ public class CatalogRequestMessage implements RemoteMessage {
 
         public CatalogRequestMessage build() {
             Objects.requireNonNull(protocol, "protocol");
-            Objects.requireNonNull(connectorId, "connectorId");
             Objects.requireNonNull(connectorAddress, "connectorAddress");
 
             return new CatalogRequestMessage(protocol, connectorId, connectorAddress, querySpec);
