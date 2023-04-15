@@ -143,7 +143,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .correlationId(negotiation.getId())
+                .processId(negotiation.getId())
                 .type(ContractRequestMessage.Type.INITIAL)
                 .build();
 
@@ -192,7 +192,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
-                .correlationId(negotiation.getId())
+                .processId(negotiation.getId())
                 .policy(policy)
                 .build();
 
@@ -234,7 +234,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorAddress(negotiation.getCounterPartyAddress())
-                .correlationId(negotiation.getId())
+                .processId(negotiation.getId())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))
@@ -259,7 +259,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())
-                .correlationId(negotiation.getId())
+                .processId(negotiation.getId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
 

@@ -72,7 +72,7 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
                     ._issuerConnector_(context.getConnectorId().toUri())
                     ._senderAgent_(context.getConnectorId().toUri())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                    ._transferContract_(URI.create(request.getCorrelationId()))
+                    ._transferContract_(URI.create(request.getProcessId()))
                     .build();
             message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, context.getIdsWebhookAddress());
 
@@ -85,7 +85,7 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
                     ._issuerConnector_(context.getConnectorId().toUri())
                     ._senderAgent_(context.getConnectorId().toUri())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                    ._transferContract_(URI.create(request.getCorrelationId()))
+                    ._transferContract_(URI.create(request.getProcessId()))
                     .build();
             message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, context.getIdsWebhookAddress());
 

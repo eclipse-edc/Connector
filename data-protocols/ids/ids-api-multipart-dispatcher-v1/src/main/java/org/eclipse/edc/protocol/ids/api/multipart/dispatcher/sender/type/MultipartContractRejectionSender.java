@@ -65,7 +65,7 @@ public class MultipartContractRejectionSender implements MultipartSenderDelegate
                 ._senderAgent_(context.getConnectorId().toUri())
                 ._recipientConnector_(Collections.singletonList(URI.create(rejection.getConnectorId())))
                 ._contractRejectionReason_(new TypedLiteral(rejection.getRejectionReason()))
-                ._transferContract_(URI.create(rejection.getCorrelationId()))
+                ._transferContract_(URI.create(rejection.getProcessId()))
                 .build();
     }
 

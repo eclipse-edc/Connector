@@ -266,7 +266,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private ContractNegotiation.Builder contractNegotiationBuilder() {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId("correlationId")
+                .correlationId("processId")
                 .counterPartyId("connectorId")
                 .counterPartyAddress("connectorAddress")
                 .protocol("protocol")

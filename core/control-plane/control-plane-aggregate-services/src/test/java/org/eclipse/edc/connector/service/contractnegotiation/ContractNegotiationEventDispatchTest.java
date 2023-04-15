@@ -131,7 +131,7 @@ class ContractNegotiationEventDispatchTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(contractOffer)
-                .correlationId("correlationId")
+                .processId("processId")
                 .build();
     }
 

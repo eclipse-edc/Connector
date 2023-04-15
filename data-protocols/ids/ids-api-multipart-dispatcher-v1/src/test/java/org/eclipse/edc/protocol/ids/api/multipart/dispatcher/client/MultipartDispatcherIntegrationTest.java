@@ -161,7 +161,7 @@ class MultipartDispatcherIntegrationTest {
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractOffer(contractOffer)
-                .correlationId("1")
+                .processId("1")
                 .build();
 
         var future = dispatcher.send(null, request);
@@ -186,7 +186,7 @@ class MultipartDispatcherIntegrationTest {
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractOffer(contractOffer)
-                .correlationId("1")
+                .processId("1")
                 .build();
 
         var future = dispatcher.send(null, request);
@@ -215,7 +215,7 @@ class MultipartDispatcherIntegrationTest {
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
-                .correlationId("1")
+                .processId("1")
                 .policy(policy)
                 .build();
 
@@ -234,7 +234,7 @@ class MultipartDispatcherIntegrationTest {
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .rejectionReason("Modified policy in contract offer.")
-                .correlationId(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .build();
 
         var future = dispatcher.send(null, rejection);

@@ -104,7 +104,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .contractOffer(currentOffer)
-                .correlationId(negotiation.getCorrelationId())
+                .processId(negotiation.getCorrelationId())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, contractOfferRequest))
@@ -129,7 +129,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())
-                .correlationId(negotiation.getCorrelationId())
+                .processId(negotiation.getCorrelationId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
 
@@ -187,7 +187,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
-                .correlationId(negotiation.getCorrelationId())
+                .processId(negotiation.getCorrelationId())
                 .policy(policy)
                 .build();
 
@@ -225,7 +225,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol(negotiation.getProtocol())
                 .connectorAddress(negotiation.getCounterPartyAddress())
-                .correlationId(negotiation.getCorrelationId())
+                .processId(negotiation.getCorrelationId())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))

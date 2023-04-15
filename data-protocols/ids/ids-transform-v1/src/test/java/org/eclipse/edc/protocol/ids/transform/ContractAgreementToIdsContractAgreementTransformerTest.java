@@ -105,7 +105,7 @@ class ContractAgreementToIdsContractAgreementTransformerTest {
                 .protocol("any")
                 .connectorId("any")
                 .connectorAddress("any")
-                .correlationId("any")
+                .processId("any")
                 .build();
     }
 }

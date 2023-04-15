@@ -32,7 +32,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     private String protocol;
     private String connectorId; // TODO remove when removing ids module
     private String connectorAddress;
-    private String correlationId;
+    private String processId;
     private ContractOffer contractOffer;
 
     private List<CallbackAddress> callbackAddress = new ArrayList<>();
@@ -52,8 +52,9 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         return connectorId;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     public Type getType() {
@@ -66,11 +67,6 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
     public List<CallbackAddress> getCallbackAddress() {
         return callbackAddress;
-    }
-
-    @Override
-    public String getProcessId() {
-        return getCorrelationId();
     }
 
     public enum Type {
@@ -105,8 +101,8 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             return this;
         }
 
-        public Builder correlationId(String correlationId) {
-            contractRequestMessage.correlationId = correlationId;
+        public Builder processId(String processId) {
+            contractRequestMessage.processId = processId;
             return this;
         }
 

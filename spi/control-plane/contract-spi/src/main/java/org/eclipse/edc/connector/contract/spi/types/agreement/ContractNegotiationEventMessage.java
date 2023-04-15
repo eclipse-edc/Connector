@@ -22,7 +22,7 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
 
     private String protocol;
     private String connectorAddress;
-    private String correlationId;
+    private String processId;
     private Type type;
 
     @Override
@@ -35,17 +35,13 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
         return connectorAddress;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     public Type getType() {
         return type;
-    }
-
-    @Override
-    public String getProcessId() {
-        return getCorrelationId();
     }
 
     public static class Builder {
@@ -69,8 +65,8 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
             return this;
         }
 
-        public Builder correlationId(String correlationId) {
-            this.message.correlationId = correlationId;
+        public Builder processId(String processId) {
+            this.message.processId = processId;
             return this;
         }
 
@@ -82,7 +78,7 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
         public ContractNegotiationEventMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
             Objects.requireNonNull(message.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(message.correlationId, "correlationId");
+            Objects.requireNonNull(message.processId, "processId");
             Objects.requireNonNull(message.type, "type");
             return message;
         }

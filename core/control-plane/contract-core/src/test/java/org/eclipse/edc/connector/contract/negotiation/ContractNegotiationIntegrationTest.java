@@ -272,7 +272,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onConsumerSentOfferRequest() {
         return i -> {
             ContractRequestMessage request = i.getArgument(1);
-            consumerNegotiationId = request.getCorrelationId();
+            consumerNegotiationId = request.getProcessId();
             var result = providerService.notifyRequested(request, token);
             return toFuture(result);
         };

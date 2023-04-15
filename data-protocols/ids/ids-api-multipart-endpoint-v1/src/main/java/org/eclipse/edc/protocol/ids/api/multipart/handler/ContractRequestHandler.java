@@ -131,7 +131,7 @@ public class ContractRequestHandler implements Handler {
                 .connectorAddress(idsWebhookAddress.toString())
                 .type(ContractRequestMessage.Type.INITIAL)
                 .connectorId(String.valueOf(message.getIssuerConnector()))
-                .correlationId(String.valueOf(message.getTransferContract()))
+                .processId(String.valueOf(message.getTransferContract()))
                 .contractOffer(contractOffer)
                 .build();
 

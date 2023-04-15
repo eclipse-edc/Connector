@@ -247,7 +247,7 @@ class ProviderContractNegotiationManagerImplTest {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .type(ContractNegotiation.Type.PROVIDER)
-                .correlationId("correlationId")
+                .correlationId("processId")
                 .counterPartyId("connectorId")
                 .counterPartyAddress("connectorAddress")
                 .protocol("protocol")

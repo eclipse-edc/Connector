@@ -147,7 +147,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     private ServiceResult<ContractNegotiation> createNegotiation(ContractRequestMessage message) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId(message.getCorrelationId())
+                .correlationId(message.getProcessId())
                 .counterPartyId(message.getContractOffer().getConsumer().toString())
                 .counterPartyAddress(message.getConnectorAddress())
                 .protocol(message.getProtocol())

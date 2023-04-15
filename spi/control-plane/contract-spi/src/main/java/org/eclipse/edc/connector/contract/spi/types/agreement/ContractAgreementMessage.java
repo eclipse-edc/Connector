@@ -23,7 +23,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     private String protocol;
     private String connectorId; // TODO remove when removing ids module
     private String connectorAddress;
-    private String correlationId;
+    private String processId;
     private ContractAgreement contractAgreement;
     private Policy policy; // TODO remove when removing ids module
 
@@ -42,8 +42,9 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
         return connectorId;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     public ContractAgreement getContractAgreement() {
@@ -53,11 +54,6 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     @Deprecated
     public Policy getPolicy() {
         return policy;
-    }
-
-    @Override
-    public String getProcessId() {
-        return getCorrelationId();
     }
 
     public static class Builder {
@@ -87,8 +83,8 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             return this;
         }
 
-        public Builder correlationId(String correlationId) {
-            this.contractAgreementMessage.correlationId = correlationId;
+        public Builder processId(String processId) {
+            this.contractAgreementMessage.processId = processId;
             return this;
         }
 
@@ -109,7 +105,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             Objects.requireNonNull(contractAgreementMessage.connectorAddress, "connectorAddress");
             Objects.requireNonNull(contractAgreementMessage.contractAgreement, "contractAgreement");
             Objects.requireNonNull(contractAgreementMessage.policy, "policy");
-            Objects.requireNonNull(contractAgreementMessage.correlationId, "correlationId");
+            Objects.requireNonNull(contractAgreementMessage.processId, "processId");
             return contractAgreementMessage;
         }
     }

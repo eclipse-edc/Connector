@@ -91,7 +91,7 @@ public class ContractAgreementHandler implements Handler {
                 .connectorId(String.valueOf(message.getIssuerConnector()))
                 .connectorAddress("") // this will be used by DSP
                 .contractAgreement(output.getContractAgreement())
-                .correlationId(String.valueOf(message.getTransferContract()))
+                .processId(String.valueOf(message.getTransferContract()))
                 .policy(output.getPolicy())
                 .build();
 

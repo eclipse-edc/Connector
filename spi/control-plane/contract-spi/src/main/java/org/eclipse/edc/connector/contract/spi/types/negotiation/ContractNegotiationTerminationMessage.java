@@ -23,7 +23,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
     private String protocol;
     private String connectorId; // TODO remove when removing ids module
     private String connectorAddress;
-    private String correlationId;
+    private String processId;
     private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
 
     @Override
@@ -41,17 +41,13 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         return connectorId;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     public String getRejectionReason() {
         return rejectionReason;
-    }
-
-    @Override
-    public String getProcessId() {
-        return getCorrelationId();
     }
 
     public static class Builder {
@@ -81,8 +77,8 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
             return this;
         }
 
-        public Builder correlationId(String correlationId) {
-            this.contractNegotiationTerminationMessage.correlationId = correlationId;
+        public Builder processId(String processId) {
+            this.contractNegotiationTerminationMessage.processId = processId;
             return this;
         }
 
@@ -94,7 +90,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         public ContractNegotiationTerminationMessage build() {
             Objects.requireNonNull(contractNegotiationTerminationMessage.protocol, "protocol");
             Objects.requireNonNull(contractNegotiationTerminationMessage.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractNegotiationTerminationMessage.correlationId, "correlationId");
+            Objects.requireNonNull(contractNegotiationTerminationMessage.processId, "processId");
             Objects.requireNonNull(contractNegotiationTerminationMessage.rejectionReason, "rejectionReason");
             return contractNegotiationTerminationMessage;
         }
