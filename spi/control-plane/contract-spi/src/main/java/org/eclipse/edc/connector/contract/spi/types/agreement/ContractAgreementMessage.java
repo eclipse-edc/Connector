@@ -21,11 +21,11 @@ import java.util.Objects;
 
 public class ContractAgreementMessage implements ContractRemoteMessage {
     private String protocol;
-    private String connectorId;
+    private String connectorId; // TODO remove when removing ids module
     private String connectorAddress;
     private String correlationId;
     private ContractAgreement contractAgreement;
-    private Policy policy;
+    private Policy policy; // TODO remove when removing ids module
 
     @Override
     public String getProtocol() {
@@ -37,6 +37,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
         return connectorAddress;
     }
 
+    @Deprecated
     public String getConnectorId() {
         return connectorId;
     }
@@ -49,6 +50,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
         return contractAgreement;
     }
 
+    @Deprecated
     public Policy getPolicy() {
         return policy;
     }
@@ -74,6 +76,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             return this;
         }
 
+        @Deprecated
         public Builder connectorId(String connectorId) {
             this.contractAgreementMessage.connectorId = connectorId;
             return this;
@@ -94,6 +97,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             return this;
         }
 
+        @Deprecated
         public Builder policy(Policy policy) {
             this.contractAgreementMessage.policy = policy;
             return this;
