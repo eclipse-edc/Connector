@@ -21,10 +21,10 @@ import java.util.Objects;
 public class ContractNegotiationTerminationMessage implements ContractRemoteMessage {
 
     private String protocol;
-    private String connectorId;
+    private String connectorId; // TODO remove when removing ids module
     private String connectorAddress;
-    private String correlationId; // TODO hand over the contract offer/agreement - not an id?
-    private String rejectionReason; // TODO pre-define a set of enums (+ mapping to IDS) ?
+    private String correlationId;
+    private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
 
     @Override
     public String getProtocol() {
@@ -36,6 +36,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         return connectorAddress;
     }
 
+    @Deprecated
     public String getConnectorId() {
         return connectorId;
     }
@@ -69,6 +70,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
             return this;
         }
 
+        @Deprecated
         public Builder connectorId(String connectorId) {
             this.contractNegotiationTerminationMessage.connectorId = connectorId;
             return this;
