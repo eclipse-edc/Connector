@@ -30,7 +30,7 @@ import java.util.Objects;
 public class CatalogRequestMessage implements RemoteMessage {
 
     private final String protocol;
-    private final String connectorId;
+    private final String connectorId; // TODO remove when removing ids module
     private final String connectorAddress;
     private final QuerySpec querySpec;
 
@@ -54,6 +54,7 @@ public class CatalogRequestMessage implements RemoteMessage {
         return connectorAddress;
     }
 
+    @Deprecated
     @NotNull
     public String getConnectorId() {
         return connectorId;
@@ -92,6 +93,7 @@ public class CatalogRequestMessage implements RemoteMessage {
             return this;
         }
 
+        @Deprecated
         public CatalogRequestMessage.Builder connectorId(String connectorId) {
             this.connectorId = connectorId;
             return this;
