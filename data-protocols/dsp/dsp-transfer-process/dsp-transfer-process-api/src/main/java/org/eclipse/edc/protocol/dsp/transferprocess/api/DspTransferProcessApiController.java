@@ -32,11 +32,12 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
+import java.util.Set;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
@@ -181,24 +182,13 @@ public class DspTransferProcessApiController {
                 .protocol(transferRequestMessage.getProtocol())
                 .connectorAddress(transferRequestMessage.getConnectorAddress())
                 .contractId(transferRequestMessage.getContractId())
-                .assetId(transferRequestMessage.getAssetId())
-                .properties(transferRequestMessage.getProperties())
-                .connectorId(transferRequestMessage.getConnectorId());
+                .dataDestination(transferRequestMessage.getDataDestination());
 
-        if (!transferRequestMessage.getDataDestination().getType().isEmpty()) {
-            dataRequest.destinationType(transferRequestMessage.getDataDestination().getType());
-        }
-
-        if (transferRequestMessage.getDataDestination() != null) {
-            var dataDestination = DataAddress.Builder.newInstance()
-                    .properties(transferRequestMessage.getProperties())
-                    .build();
-            dataRequest.dataDestination(dataDestination);
-        }
 
         return TransferRequest.Builder.newInstance()
                 .dataRequest(dataRequest.build())
-                .build(); //TODO Check if Callback Address is needed
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().events(Set.of()).uri(transferRequestMessage.getConnectorAddress()).build()))
+                .build(); //TODO Events for Callback Address is needed
     }
 
     private void checkAuthToken(String token) {
