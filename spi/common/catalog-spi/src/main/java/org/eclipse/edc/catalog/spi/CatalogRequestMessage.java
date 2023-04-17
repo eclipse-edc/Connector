@@ -26,16 +26,17 @@ import java.util.Objects;
 /**
  * A request for a participant's {@link Catalog}.
  */
-@JsonDeserialize(builder = CatalogRequest.Builder.class)
-public class CatalogRequest implements RemoteMessage {
+@JsonDeserialize(builder = CatalogRequestMessage.Builder.class)
+public class CatalogRequestMessage implements RemoteMessage {
 
     private final String protocol;
+    @Deprecated(forRemoval = true)
     private final String connectorId;
     private final String connectorAddress;
     private final QuerySpec querySpec;
 
-    private CatalogRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress,
-            @Nullable QuerySpec querySpec) {
+    private CatalogRequestMessage(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress,
+                                  @Nullable QuerySpec querySpec) {
         this.protocol = protocol;
         this.connectorId = connectorId;
         this.connectorAddress = connectorAddress;
@@ -54,6 +55,7 @@ public class CatalogRequest implements RemoteMessage {
         return connectorAddress;
     }
 
+    @Deprecated
     @NotNull
     public String getConnectorId() {
         return connectorId;
@@ -83,36 +85,36 @@ public class CatalogRequest implements RemoteMessage {
         }
 
         @JsonCreator
-        public static CatalogRequest.Builder newInstance() {
-            return new CatalogRequest.Builder();
+        public static CatalogRequestMessage.Builder newInstance() {
+            return new CatalogRequestMessage.Builder();
         }
 
-        public CatalogRequest.Builder protocol(String protocol) {
+        public CatalogRequestMessage.Builder protocol(String protocol) {
             this.protocol = protocol;
             return this;
         }
 
-        public CatalogRequest.Builder connectorId(String connectorId) {
+        @Deprecated
+        public CatalogRequestMessage.Builder connectorId(String connectorId) {
             this.connectorId = connectorId;
             return this;
         }
 
-        public CatalogRequest.Builder connectorAddress(String connectorAddress) {
+        public CatalogRequestMessage.Builder connectorAddress(String connectorAddress) {
             this.connectorAddress = connectorAddress;
             return this;
         }
 
-        public CatalogRequest.Builder querySpec(QuerySpec querySpec) {
+        public CatalogRequestMessage.Builder querySpec(QuerySpec querySpec) {
             this.querySpec = querySpec;
             return this;
         }
 
-        public CatalogRequest build() {
+        public CatalogRequestMessage build() {
             Objects.requireNonNull(protocol, "protocol");
-            Objects.requireNonNull(connectorId, "connectorId");
             Objects.requireNonNull(connectorAddress, "connectorAddress");
 
-            return new CatalogRequest(protocol, connectorId, connectorAddress, querySpec);
+            return new CatalogRequestMessage(protocol, connectorId, connectorAddress, querySpec);
         }
     }
 }

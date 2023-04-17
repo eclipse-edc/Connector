@@ -19,7 +19,7 @@ import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
@@ -40,7 +40,7 @@ import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_A
 /**
  * MultipartSenderDelegate for contract agreements.
  */
-public class MultipartContractAgreementSender implements MultipartSenderDelegate<ContractAgreementRequest, String> {
+public class MultipartContractAgreementSender implements MultipartSenderDelegate<ContractAgreementMessage, String> {
 
     private final SenderDelegateContext context;
 
@@ -49,12 +49,12 @@ public class MultipartContractAgreementSender implements MultipartSenderDelegate
     }
 
     @Override
-    public Class<ContractAgreementRequest> getMessageType() {
-        return ContractAgreementRequest.class;
+    public Class<ContractAgreementMessage> getMessageType() {
+        return ContractAgreementMessage.class;
     }
 
     /**
-     * Builds a {@link de.fraunhofer.iais.eis.ContractAgreementMessage} for the given {@link ContractAgreementRequest}.
+     * Builds a {@link de.fraunhofer.iais.eis.ContractAgreementMessage} for the given {@link ContractAgreementMessage}.
      *
      * @param request the request.
      * @param token   the dynamic attribute token.
@@ -62,7 +62,7 @@ public class MultipartContractAgreementSender implements MultipartSenderDelegate
      * @throws Exception if the agreement ID cannot be parsed.
      */
     @Override
-    public Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
+    public Message buildMessageHeader(ContractAgreementMessage request, DynamicAttributeToken token) throws Exception {
         var idsId = IdsId.Builder.newInstance()
                 .type(IdsType.CONTRACT_AGREEMENT)
                 .value(request.getContractAgreement().getId())
@@ -75,7 +75,7 @@ public class MultipartContractAgreementSender implements MultipartSenderDelegate
                 ._issuerConnector_(context.getConnectorId().toUri())
                 ._senderAgent_(context.getConnectorId().toUri())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                ._transferContract_(URI.create(request.getCorrelationId()))
+                ._transferContract_(URI.create(request.getProcessId()))
                 .build();
 
         message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, context.getIdsWebhookAddress());
@@ -91,7 +91,7 @@ public class MultipartContractAgreementSender implements MultipartSenderDelegate
      * @throws Exception if parsing the agreement fails.
      */
     @Override
-    public String buildMessagePayload(ContractAgreementRequest request) throws Exception {
+    public String buildMessagePayload(ContractAgreementMessage request) throws Exception {
         var transformationResult = context.getTransformerRegistry().transform(request, ContractAgreement.class);
         if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract agreement");

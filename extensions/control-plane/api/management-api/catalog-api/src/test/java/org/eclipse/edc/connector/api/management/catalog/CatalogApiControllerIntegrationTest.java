@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.catalog;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -152,7 +152,7 @@ class CatalogApiControllerIntegrationTest {
                 .contentType(JSON)
                 .body("id", notNullValue())
                 .body("contractOffers.size()", is(1));
-        var requestCaptor = ArgumentCaptor.forClass(CatalogRequest.class);
+        var requestCaptor = ArgumentCaptor.forClass(CatalogRequestMessage.class);
         verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture());
         var rq = requestCaptor.getValue().getQuerySpec();
 
@@ -189,7 +189,7 @@ class CatalogApiControllerIntegrationTest {
                 .body("id", notNullValue())
                 .body("contractOffers.size()", is(1));
 
-        var requestCaptor = ArgumentCaptor.forClass(CatalogRequest.class);
+        var requestCaptor = ArgumentCaptor.forClass(CatalogRequestMessage.class);
         verify(dispatcher).send(eq(Catalog.class), requestCaptor.capture());
         var rq = requestCaptor.getValue().getQuerySpec();
         assertThat(rq.getOffset()).isZero();

@@ -18,13 +18,14 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 
 import java.util.Objects;
 
-public class ContractRejection implements ContractRemoteMessage {
+public class ContractNegotiationTerminationMessage implements ContractRemoteMessage {
 
     private String protocol;
+    @Deprecated(forRemoval = true)
     private String connectorId;
     private String connectorAddress;
-    private String correlationId; // TODO hand over the contract offer/agreement - not an id?
-    private String rejectionReason; // TODO pre-define a set of enums (+ mapping to IDS) ?
+    private String processId;
+    private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
 
     @Override
     public String getProtocol() {
@@ -36,28 +37,25 @@ public class ContractRejection implements ContractRemoteMessage {
         return connectorAddress;
     }
 
+    @Deprecated
     public String getConnectorId() {
         return connectorId;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     public String getRejectionReason() {
         return rejectionReason;
     }
 
-    @Override
-    public String getProcessId() {
-        return getCorrelationId();
-    }
-
     public static class Builder {
-        private final ContractRejection contractRejection;
+        private final ContractNegotiationTerminationMessage contractNegotiationTerminationMessage;
 
         private Builder() {
-            this.contractRejection = new ContractRejection();
+            this.contractNegotiationTerminationMessage = new ContractNegotiationTerminationMessage();
         }
 
         public static Builder newInstance() {
@@ -65,36 +63,37 @@ public class ContractRejection implements ContractRemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.contractRejection.protocol = protocol;
+            this.contractNegotiationTerminationMessage.protocol = protocol;
             return this;
         }
 
+        @Deprecated
         public Builder connectorId(String connectorId) {
-            this.contractRejection.connectorId = connectorId;
+            this.contractNegotiationTerminationMessage.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.contractRejection.connectorAddress = connectorAddress;
+            this.contractNegotiationTerminationMessage.connectorAddress = connectorAddress;
             return this;
         }
 
-        public Builder correlationId(String correlationId) {
-            this.contractRejection.correlationId = correlationId;
+        public Builder processId(String processId) {
+            this.contractNegotiationTerminationMessage.processId = processId;
             return this;
         }
 
         public Builder rejectionReason(String rejectionReason) {
-            this.contractRejection.rejectionReason = rejectionReason;
+            this.contractNegotiationTerminationMessage.rejectionReason = rejectionReason;
             return this;
         }
 
-        public ContractRejection build() {
-            Objects.requireNonNull(contractRejection.protocol, "protocol");
-            Objects.requireNonNull(contractRejection.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractRejection.correlationId, "correlationId");
-            Objects.requireNonNull(contractRejection.rejectionReason, "rejectionReason");
-            return contractRejection;
+        public ContractNegotiationTerminationMessage build() {
+            Objects.requireNonNull(contractNegotiationTerminationMessage.protocol, "protocol");
+            Objects.requireNonNull(contractNegotiationTerminationMessage.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractNegotiationTerminationMessage.processId, "processId");
+            Objects.requireNonNull(contractNegotiationTerminationMessage.rejectionReason, "rejectionReason");
+            return contractNegotiationTerminationMessage;
         }
     }
 }

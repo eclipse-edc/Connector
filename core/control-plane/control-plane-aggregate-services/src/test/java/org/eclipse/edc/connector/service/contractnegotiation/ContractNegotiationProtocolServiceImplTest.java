@@ -19,12 +19,12 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
@@ -99,12 +99,12 @@ class ContractNegotiationProtocolServiceImplTest {
         var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = contractOffer();
         when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(contractOffer));
-        var message = ContractOfferRequest.Builder.newInstance()
+        var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
-                .correlationId("correlationId")
+                .processId("processId")
                 .build();
 
         var result = service.notifyRequested(message, token);
@@ -117,7 +117,7 @@ class ContractNegotiationProtocolServiceImplTest {
             assertThat(n.getCounterPartyId()).isEqualTo(message.getConnectorId());
             assertThat(n.getCounterPartyAddress()).isEqualTo(message.getConnectorAddress());
             assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
-            assertThat(n.getCorrelationId()).isEqualTo(message.getCorrelationId());
+            assertThat(n.getCorrelationId()).isEqualTo(message.getProcessId());
             assertThat(n.getContractOffers()).hasSize(1);
             assertThat(n.getLastContractOffer()).isEqualTo(contractOffer);
         });
@@ -132,12 +132,12 @@ class ContractNegotiationProtocolServiceImplTest {
         var contractOffer = contractOffer();
         when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.failure("error"));
 
-        var message = ContractOfferRequest.Builder.newInstance()
+        var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
-                .correlationId("correlationId")
+                .processId("processId")
                 .build();
 
         var result = service.notifyRequested(message, token);
@@ -151,13 +151,13 @@ class ContractNegotiationProtocolServiceImplTest {
         var negotiationConsumerRequested = createContractNegotiationRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiationConsumerRequested);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiationConsumerRequested);
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
-        var message = ContractAgreementRequest.Builder.newInstance()
+        var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
                 .connectorAddress("http://any")
-                .correlationId("correlationId")
+                .processId("processId")
                 .contractAgreement(contractAgreement)
                 .policy(createPolicy())
                 .build();
@@ -179,13 +179,13 @@ class ContractNegotiationProtocolServiceImplTest {
         var negotiationConsumerRequested = createContractNegotiationRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiationConsumerRequested);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiationConsumerRequested);
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
-        var message = ContractAgreementRequest.Builder.newInstance()
+        var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
                 .connectorAddress("http://any")
-                .correlationId("correlationId")
+                .processId("processId")
                 .contractAgreement(contractAgreement)
                 .policy(createPolicy())
                 .build();
@@ -201,12 +201,12 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyVerified_shouldTransitionToVerified() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiation);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
         when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorAddress("http://any")
-                .correlationId("correlationId")
+                .processId("processId")
                 .build();
 
         var result = service.notifyVerified(message, claimToken());
@@ -221,12 +221,12 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyVerified_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiation);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
         when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorAddress("http://any")
-                .correlationId("correlationId")
+                .processId("processId")
                 .build();
 
         var result = service.notifyVerified(message, claimToken());
@@ -239,13 +239,13 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyFinalized_shouldTransitionToFinalized() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiation);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
         when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
                 .connectorAddress("http://any")
-                .correlationId("correlationId")
+                .processId("processId")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -261,13 +261,13 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyFinalized_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiation);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
         when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
                 .connectorAddress("http://any")
-                .correlationId("correlationId")
+                .processId("processId")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -281,11 +281,11 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyTerminated_shouldTransitionToTerminated() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiation);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
         when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
-        var message = ContractRejection.Builder.newInstance()
+        var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .correlationId("correlationId")
+                .processId("processId")
                 .connectorAddress("http://any")
                 .rejectionReason("any")
                 .build();
@@ -303,11 +303,11 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyTerminated_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("correlationId")).thenReturn(negotiation);
+        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
         when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
-        var message = ContractRejection.Builder.newInstance()
+        var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .correlationId("correlationId")
+                .processId("processId")
                 .connectorAddress("http://any")
                 .rejectionReason("any")
                 .build();
@@ -335,33 +335,33 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            MethodCall<ContractAgreementRequest> agreed = ContractNegotiationProtocolService::notifyAgreed;
+            MethodCall<ContractAgreementMessage> agreed = ContractNegotiationProtocolService::notifyAgreed;
             MethodCall<ContractAgreementVerificationMessage> verified = ContractNegotiationProtocolService::notifyVerified;
             MethodCall<ContractNegotiationEventMessage> finalized = ContractNegotiationProtocolService::notifyFinalized;
-            MethodCall<ContractRejection> terminated = ContractNegotiationProtocolService::notifyTerminated;
+            MethodCall<ContractNegotiationTerminationMessage> terminated = ContractNegotiationProtocolService::notifyTerminated;
             return Stream.of(
-                    Arguments.of(agreed, ContractAgreementRequest.Builder.newInstance()
+                    Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
                             .protocol("protocol")
                             .connectorId("connectorId")
                             .connectorAddress("http://any")
-                            .correlationId("correlationId")
+                            .processId("processId")
                             .contractAgreement(mock(ContractAgreement.class))
                             .policy(Policy.Builder.newInstance().build())
                             .build()),
                     Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
                             .protocol("protocol")
                             .connectorAddress("http://any")
-                            .correlationId("correlationId")
+                            .processId("processId")
                             .build()),
                     Arguments.of(finalized, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.FINALIZED)
                             .protocol("protocol")
                             .connectorAddress("http://any")
-                            .correlationId("correlationId")
+                            .processId("processId")
                             .build()),
-                    Arguments.of(terminated, ContractRejection.Builder.newInstance()
+                    Arguments.of(terminated, ContractNegotiationTerminationMessage.Builder.newInstance()
                             .protocol("protocol")
-                            .correlationId("correlationId")
+                            .processId("processId")
                             .connectorAddress("http://any")
                             .rejectionReason("any")
                             .build())
@@ -392,7 +392,7 @@ class ContractNegotiationProtocolServiceImplTest {
     private ContractNegotiation.Builder contractNegotiationBuilder() {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId("correlationId")
+                .correlationId("processId")
                 .counterPartyId("connectorId")
                 .counterPartyAddress("connectorAddress")
                 .protocol("protocol")

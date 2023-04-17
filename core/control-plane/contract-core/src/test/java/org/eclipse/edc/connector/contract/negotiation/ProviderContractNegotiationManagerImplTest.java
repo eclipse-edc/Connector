@@ -20,11 +20,11 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -123,7 +123,7 @@ class ProviderContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == OFFERED.code()));
-            verify(dispatcherRegistry, only()).send(any(), isA(ContractOfferRequest.class));
+            verify(dispatcherRegistry, only()).send(any(), isA(ContractRequestMessage.class));
             verify(listener).offered(any());
         });
     }
@@ -158,7 +158,7 @@ class ProviderContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == AGREED.code()));
-            verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class));
+            verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementMessage.class));
             verify(listener).agreed(any());
         });
     }
@@ -247,7 +247,7 @@ class ProviderContractNegotiationManagerImplTest {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .type(ContractNegotiation.Type.PROVIDER)
-                .correlationId("correlationId")
+                .correlationId("processId")
                 .counterPartyId("connectorId")
                 .counterPartyAddress("connectorAddress")
                 .protocol("protocol")

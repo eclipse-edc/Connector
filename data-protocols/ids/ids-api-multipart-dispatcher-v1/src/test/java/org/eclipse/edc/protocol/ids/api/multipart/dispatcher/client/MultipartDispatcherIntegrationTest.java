@@ -22,10 +22,10 @@ import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementRequest;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
@@ -155,13 +155,13 @@ class MultipartDispatcherIntegrationTest {
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
 
-        var request = ContractOfferRequest.Builder.newInstance()
-                .type(ContractOfferRequest.Type.COUNTER_OFFER)
+        var request = ContractRequestMessage.Builder.newInstance()
+                .type(ContractRequestMessage.Type.COUNTER_OFFER)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractOffer(contractOffer)
-                .correlationId("1")
+                .processId("1")
                 .build();
 
         var future = dispatcher.send(null, request);
@@ -180,13 +180,13 @@ class MultipartDispatcherIntegrationTest {
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
         when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(contractOffer));
 
-        var request = ContractOfferRequest.Builder.newInstance()
-                .type(ContractOfferRequest.Type.INITIAL)
+        var request = ContractRequestMessage.Builder.newInstance()
+                .type(ContractRequestMessage.Type.INITIAL)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractOffer(contractOffer)
-                .correlationId("1")
+                .processId("1")
                 .build();
 
         var future = dispatcher.send(null, request);
@@ -210,12 +210,12 @@ class MultipartDispatcherIntegrationTest {
                 .thenReturn(Result.success(ContractAgreementTransformerOutput.Builder.newInstance().contractAgreement(contractAgreement).policy(policy).build()));
         when(negotiationService.notifyAgreed(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
 
-        var request = ContractAgreementRequest.Builder.newInstance()
+        var request = ContractAgreementMessage.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
-                .correlationId("1")
+                .processId("1")
                 .policy(policy)
                 .build();
 
@@ -229,12 +229,12 @@ class MultipartDispatcherIntegrationTest {
     @Test
     void testSendContractRejectionMessage(RemoteMessageDispatcherRegistry dispatcher) {
         when(negotiationService.notifyTerminated(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
-        var rejection = ContractRejection.Builder.newInstance()
+        var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .rejectionReason("Modified policy in contract offer.")
-                .correlationId(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .build();
 
         var future = dispatcher.send(null, rejection);

@@ -19,13 +19,14 @@ import org.eclipse.edc.policy.model.Policy;
 
 import java.util.Objects;
 
-public class ContractAgreementRequest implements ContractRemoteMessage {
-
+public class ContractAgreementMessage implements ContractRemoteMessage {
     private String protocol;
+    @Deprecated(forRemoval = true)
     private String connectorId;
     private String connectorAddress;
-    private String correlationId;
+    private String processId;
     private ContractAgreement contractAgreement;
+    @Deprecated(forRemoval = true)
     private Policy policy;
 
     @Override
@@ -38,32 +39,30 @@ public class ContractAgreementRequest implements ContractRemoteMessage {
         return connectorAddress;
     }
 
+    @Deprecated
     public String getConnectorId() {
         return connectorId;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    @Override
+    public String getProcessId() {
+        return processId;
     }
 
     public ContractAgreement getContractAgreement() {
         return contractAgreement;
     }
 
+    @Deprecated
     public Policy getPolicy() {
         return policy;
     }
 
-    @Override
-    public String getProcessId() {
-        return getCorrelationId();
-    }
-
     public static class Builder {
-        private final ContractAgreementRequest contractAgreementRequest;
+        private final ContractAgreementMessage contractAgreementMessage;
 
         private Builder() {
-            this.contractAgreementRequest = new ContractAgreementRequest();
+            this.contractAgreementMessage = new ContractAgreementMessage();
         }
 
         public static Builder newInstance() {
@@ -71,43 +70,43 @@ public class ContractAgreementRequest implements ContractRemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.contractAgreementRequest.protocol = protocol;
+            this.contractAgreementMessage.protocol = protocol;
             return this;
         }
 
+        @Deprecated
         public Builder connectorId(String connectorId) {
-            this.contractAgreementRequest.connectorId = connectorId;
+            this.contractAgreementMessage.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.contractAgreementRequest.connectorAddress = connectorAddress;
+            this.contractAgreementMessage.connectorAddress = connectorAddress;
             return this;
         }
 
-        public Builder correlationId(String correlationId) {
-            this.contractAgreementRequest.correlationId = correlationId;
+        public Builder processId(String processId) {
+            this.contractAgreementMessage.processId = processId;
             return this;
         }
 
         public Builder contractAgreement(ContractAgreement contractAgreement) {
-            this.contractAgreementRequest.contractAgreement = contractAgreement;
+            this.contractAgreementMessage.contractAgreement = contractAgreement;
             return this;
         }
 
+        @Deprecated
         public Builder policy(Policy policy) {
-            this.contractAgreementRequest.policy = policy;
+            this.contractAgreementMessage.policy = policy;
             return this;
         }
 
-        public ContractAgreementRequest build() {
-            Objects.requireNonNull(contractAgreementRequest.protocol, "protocol");
-            Objects.requireNonNull(contractAgreementRequest.connectorId, "connectorId");
-            Objects.requireNonNull(contractAgreementRequest.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractAgreementRequest.contractAgreement, "contractAgreement");
-            Objects.requireNonNull(contractAgreementRequest.policy, "policy");
-            Objects.requireNonNull(contractAgreementRequest.correlationId, "correlationId");
-            return contractAgreementRequest;
+        public ContractAgreementMessage build() {
+            Objects.requireNonNull(contractAgreementMessage.protocol, "protocol");
+            Objects.requireNonNull(contractAgreementMessage.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractAgreementMessage.contractAgreement, "contractAgreement");
+            Objects.requireNonNull(contractAgreementMessage.processId, "processId");
+            return contractAgreementMessage;
         }
     }
 }

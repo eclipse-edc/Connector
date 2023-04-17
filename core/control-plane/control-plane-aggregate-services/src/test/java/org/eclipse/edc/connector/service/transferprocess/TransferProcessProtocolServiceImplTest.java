@@ -92,7 +92,7 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyRequested_validAgreement_shouldInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .id("correlationId")
+                .id("processId")
                 .protocol("protocol")
                 .connectorAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -103,7 +103,7 @@ class TransferProcessProtocolServiceImplTest {
 
         var result = service.notifyRequested(message, claimToken());
 
-        assertThat(result).isSucceeded().extracting(TransferProcess::getCorrelationId).isEqualTo("correlationId");
+        assertThat(result).isSucceeded().extracting(TransferProcess::getCorrelationId).isEqualTo("processId");
         verify(listener).preCreated(any());
         verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
         verify(listener).initiated(any());
@@ -113,7 +113,7 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyRequested_doNothingIfProcessAlreadyExist() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .id("correlationId")
+                .id("processId")
                 .protocol("protocol")
                 .connectorAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -121,7 +121,7 @@ class TransferProcessProtocolServiceImplTest {
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-        when(store.processIdForDataRequestId("correlationId")).thenReturn("processId");
+        when(store.processIdForDataRequestId("processId")).thenReturn("processId");
         when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
 
         var result = service.notifyRequested(message, claimToken());

@@ -26,7 +26,7 @@ import java.util.List;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.TestFunctions.createOffer;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest.Type.INITIAL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage.Type.INITIAL;
 import static org.mockito.Mockito.mock;
 
 class NegotiationInitiateRequestDtoToDataRequestTransformerTest {

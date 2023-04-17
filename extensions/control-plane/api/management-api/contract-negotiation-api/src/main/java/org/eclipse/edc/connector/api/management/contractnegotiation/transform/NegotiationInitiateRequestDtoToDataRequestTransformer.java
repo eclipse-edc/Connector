@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -29,7 +29,7 @@ import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.stream.Collectors;
 
-public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractOfferRequest> {
+public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractRequestMessage> {
 
     private final Clock clock;
     private final String defaultConsumerId;
@@ -54,12 +54,12 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
     }
 
     @Override
-    public Class<ContractOfferRequest> getOutputType() {
-        return ContractOfferRequest.class;
+    public Class<ContractRequestMessage> getOutputType() {
+        return ContractRequestMessage.class;
     }
 
     @Override
-    public @Nullable ContractOfferRequest transform(@NotNull NegotiationInitiateRequestDto object, @NotNull TransformerContext context) {
+    public @Nullable ContractRequestMessage transform(@NotNull NegotiationInitiateRequestDto object, @NotNull TransformerContext context) {
         // TODO: ContractOfferRequest should contain only the contractOfferId and the contract offer should be retrieved from the catalog. Ref #985
         var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
         var contractOffer = ContractOffer.Builder.newInstance()
@@ -74,13 +74,13 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
 
         var callbacks = object.getCallbackAddresses().stream().map(c -> context.transform(c, CallbackAddress.class)).collect(Collectors.toList());
 
-        return ContractOfferRequest.Builder.newInstance()
+        return ContractRequestMessage.Builder.newInstance()
                 .connectorId(object.getConnectorId())
                 .connectorAddress(object.getConnectorAddress())
                 .protocol(object.getProtocol())
                 .contractOffer(contractOffer)
                 .callbackAddresses(callbacks)
-                .type(ContractOfferRequest.Type.INITIAL)
+                .type(ContractRequestMessage.Type.INITIAL)
                 .build();
     }
 

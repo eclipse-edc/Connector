@@ -21,56 +21,56 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CatalogRequestMessageTest {
+class CatalogRequestMessageMessageTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    
+
     @Test
     void serialize() throws JsonProcessingException {
         var message = CatalogRequestMessage.Builder.newInstance().build();
-        
+
         var json = mapper.writeValueAsString(message);
-        
+
         assertThat(json)
                 .isNotNull()
                 .contains("\"filter\":null");
     }
-    
+
     @Test
     void serialize_withFilter() throws JsonProcessingException {
         var message = CatalogRequestMessage.Builder.newInstance()
                 .filter(QuerySpec.none())
                 .build();
-        
+
         var json = mapper.writeValueAsString(message);
-        
+
         assertThat(json)
                 .isNotNull()
                 .doesNotContain("\"filter\":null")
                 .contains("\"filter\":{");
     }
-    
+
     @Test
     void deserialize() throws JsonProcessingException {
         var json = "{" +
                 "\"filter\": null" +
                 "}";
-        
+
         var message = mapper.readValue(json, CatalogRequestMessage.class);
-        
+
         assertThat(message)
                 .isNotNull()
                 .matches(m -> m.getFilter() == null);
     }
-    
+
     @Test
     void deserialize_withFilter() throws JsonProcessingException {
         var json = "{" +
                 "\"filter\": {}" +
                 "}";
-        
+
         var message = mapper.readValue(json, CatalogRequestMessage.class);
-        
+
         assertThat(message)
                 .isNotNull()
                 .matches(m -> m.getFilter() != null);

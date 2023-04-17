@@ -25,7 +25,7 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
@@ -48,7 +48,7 @@ import java.util.Objects;
 /**
  * MultipartSenderDelegate for connector catalog requests.
  */
-public class MultipartCatalogDescriptionRequestSender implements MultipartSenderDelegate<CatalogRequest, Catalog> {
+public class MultipartCatalogDescriptionRequestSender implements MultipartSenderDelegate<CatalogRequestMessage, Catalog> {
 
     private final SenderDelegateContext context;
 
@@ -58,14 +58,14 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
 
     /**
      * Builds a {@link de.fraunhofer.iais.eis.DescriptionRequestMessage} for requesting another
-     * connector's self description. Includes paging information defined in the {@link CatalogRequest}.
+     * connector's self description. Includes paging information defined in the {@link CatalogRequestMessage}.
      *
      * @param request the request.
      * @param token   the dynamic attribute token.
      * @return a DescriptionRequestMessage
      */
     @Override
-    public Message buildMessageHeader(CatalogRequest request, DynamicAttributeToken token) {
+    public Message buildMessageHeader(CatalogRequestMessage request, DynamicAttributeToken token) {
         var message = new DescriptionRequestMessageBuilder()
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())
@@ -80,7 +80,7 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
     }
 
     @Override
-    public String buildMessagePayload(CatalogRequest request) throws Exception {
+    public String buildMessagePayload(CatalogRequestMessage request) throws Exception {
         return null;
     }
 
@@ -126,8 +126,8 @@ public class MultipartCatalogDescriptionRequestSender implements MultipartSender
     }
 
     @Override
-    public Class<CatalogRequest> getMessageType() {
-        return CatalogRequest.class;
+    public Class<CatalogRequestMessage> getMessageType() {
+        return CatalogRequestMessage.class;
     }
 
     private BaseConnector getBaseConnector(IdsMultipartParts parts) {

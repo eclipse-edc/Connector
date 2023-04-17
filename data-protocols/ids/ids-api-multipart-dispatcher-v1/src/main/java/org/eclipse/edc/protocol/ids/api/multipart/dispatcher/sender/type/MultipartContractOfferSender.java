@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
@@ -42,7 +42,7 @@ import static org.eclipse.edc.protocol.ids.spi.domain.IdsConstants.IDS_WEBHOOK_A
 /**
  * MultipartSenderDelegate for contract requests.
  */
-public class MultipartContractOfferSender implements MultipartSenderDelegate<ContractOfferRequest, String> {
+public class MultipartContractOfferSender implements MultipartSenderDelegate<ContractRequestMessage, String> {
     private final SenderDelegateContext context;
 
     public MultipartContractOfferSender(SenderDelegateContext context) {
@@ -50,21 +50,21 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
     }
 
     @Override
-    public Class<ContractOfferRequest> getMessageType() {
-        return ContractOfferRequest.class;
+    public Class<ContractRequestMessage> getMessageType() {
+        return ContractRequestMessage.class;
     }
 
     /**
      * Builds a {@link de.fraunhofer.iais.eis.ContractRequestMessage} or a {@link de.fraunhofer.iais.eis.ContractOfferMessage}
-     * for the given {@link ContractOfferRequest} depending on whether it is an initial request.
+     * for the given {@link ContractRequestMessage} depending on whether it is an initial request.
      *
      * @param request the request.
      * @param token   the dynamic attribute token.
      * @return a ContractRequestMessage or ContractOfferMessage
      */
     @Override
-    public Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
-        if (request.getType() == ContractOfferRequest.Type.INITIAL) {
+    public Message buildMessageHeader(ContractRequestMessage request, DynamicAttributeToken token) {
+        if (request.getType() == ContractRequestMessage.Type.INITIAL) {
             var message = new ContractRequestMessageBuilder()
                     ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                     ._issued_(CalendarUtil.gregorianNow())
@@ -72,7 +72,7 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
                     ._issuerConnector_(context.getConnectorId().toUri())
                     ._senderAgent_(context.getConnectorId().toUri())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                    ._transferContract_(URI.create(request.getCorrelationId()))
+                    ._transferContract_(URI.create(request.getProcessId()))
                     .build();
             message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, context.getIdsWebhookAddress());
 
@@ -85,7 +85,7 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
                     ._issuerConnector_(context.getConnectorId().toUri())
                     ._senderAgent_(context.getConnectorId().toUri())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                    ._transferContract_(URI.create(request.getCorrelationId()))
+                    ._transferContract_(URI.create(request.getProcessId()))
                     .build();
             message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, context.getIdsWebhookAddress());
 
@@ -102,10 +102,10 @@ public class MultipartContractOfferSender implements MultipartSenderDelegate<Con
      * @throws Exception if parsing the request/offer fails.
      */
     @Override
-    public String buildMessagePayload(ContractOfferRequest request) throws Exception {
+    public String buildMessagePayload(ContractRequestMessage request) throws Exception {
         var contractOffer = request.getContractOffer();
 
-        if (request.getType() == ContractOfferRequest.Type.INITIAL) {
+        if (request.getType() == ContractRequestMessage.Type.INITIAL) {
             return context.getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
         } else {
             return context.getObjectMapper().writeValueAsString(createContractOffer(contractOffer));

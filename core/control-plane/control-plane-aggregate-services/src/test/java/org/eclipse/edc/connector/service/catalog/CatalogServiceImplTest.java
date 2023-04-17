@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.service.catalog;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -60,6 +60,6 @@ class CatalogServiceImplTest {
         var future = service.getByProviderUrl("test.provider.url", new QuerySpec());
 
         assertThat(future).succeedsWithin(1, SECONDS).extracting(Catalog::getContractOffers, InstanceOfAssertFactories.list(ContractOffer.class)).hasSize(1);
-        verify(dispatcher, times(1)).send(eq(Catalog.class), isA(CatalogRequest.class));
+        verify(dispatcher, times(1)).send(eq(Catalog.class), isA(CatalogRequestMessage.class));
     }
 }

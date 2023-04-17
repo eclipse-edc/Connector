@@ -19,7 +19,7 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRejection;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.MultipartSenderDelegate;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * MultipartSenderDelegate for contract rejections.
  */
-public class MultipartContractRejectionSender implements MultipartSenderDelegate<ContractRejection, String> {
+public class MultipartContractRejectionSender implements MultipartSenderDelegate<ContractNegotiationTerminationMessage, String> {
 
     private final SenderDelegateContext context;
 
@@ -44,19 +44,19 @@ public class MultipartContractRejectionSender implements MultipartSenderDelegate
     }
 
     @Override
-    public Class<ContractRejection> getMessageType() {
-        return ContractRejection.class;
+    public Class<ContractNegotiationTerminationMessage> getMessageType() {
+        return ContractNegotiationTerminationMessage.class;
     }
 
     /**
-     * Builds a {@link de.fraunhofer.iais.eis.ContractRejectionMessage} for the given {@link ContractRejection}.
+     * Builds a {@link de.fraunhofer.iais.eis.ContractRejectionMessage} for the given {@link ContractNegotiationTerminationMessage}.
      *
      * @param rejection the rejection request.
      * @param token   the dynamic attribute token.
      * @return a ContractRejectionMessage
      */
     @Override
-    public Message buildMessageHeader(ContractRejection rejection, DynamicAttributeToken token) throws Exception {
+    public Message buildMessageHeader(ContractNegotiationTerminationMessage rejection, DynamicAttributeToken token) throws Exception {
         return new ContractRejectionMessageBuilder()
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())
@@ -65,7 +65,7 @@ public class MultipartContractRejectionSender implements MultipartSenderDelegate
                 ._senderAgent_(context.getConnectorId().toUri())
                 ._recipientConnector_(Collections.singletonList(URI.create(rejection.getConnectorId())))
                 ._contractRejectionReason_(new TypedLiteral(rejection.getRejectionReason()))
-                ._transferContract_(URI.create(rejection.getCorrelationId()))
+                ._transferContract_(URI.create(rejection.getProcessId()))
                 .build();
     }
 
@@ -76,7 +76,7 @@ public class MultipartContractRejectionSender implements MultipartSenderDelegate
      * @return the rejection reason.
      */
     @Override
-    public String buildMessagePayload(ContractRejection rejection) throws Exception {
+    public String buildMessagePayload(ContractNegotiationTerminationMessage rejection) throws Exception {
         return rejection.getRejectionReason();
     }
 
