@@ -15,7 +15,9 @@
 
 package org.eclipse.edc.connector.service.catalog;
 
+import org.assertj.core.api.iterable.ThrowingExtractor;
 import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -26,6 +28,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -40,6 +43,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.AdditionalMatchers.and;
@@ -149,6 +154,72 @@ class DatasetResolverImplTest {
         ));
     }
 
+    @Test
+    void query_shouldLimitDataset_whenSingleDefinitionAndMultipleAssets_contained() {
+        var contractDefinition = contractDefinitionBuilder("definitionId").contractPolicyId("contractPolicyId").build();
+        var contractPolicy = Policy.Builder.newInstance().build();
+        var assets = range(0, 10).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
+        when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(contractDefinition));
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(i -> assets.stream());
+        when(policyStore.findById("contractPolicyId")).thenReturn(PolicyDefinition.Builder.newInstance().policy(contractPolicy).build());
+        var querySpec = QuerySpec.Builder.newInstance().range(new Range(2, 5)).build();
+
+        var datasets = datasetResolver.query(createParticipantAgent(), querySpec, createDataService());
+
+        assertThat(datasets).hasSize(3).map(getId()).containsExactly("2", "3", "4");
+    }
+
+    @Test
+    void query_shouldLimitDataset_whenSingleDefinitionAndMultipleAssets_overflowing() {
+        var contractDefinition = contractDefinitionBuilder("definitionId").contractPolicyId("contractPolicyId").build();
+        var contractPolicy = Policy.Builder.newInstance().build();
+        var assets = range(0, 10).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
+        when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(contractDefinition));
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(i -> assets.stream());
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(contractPolicy).build());
+        var querySpec = QuerySpec.Builder.newInstance().range(new Range(7, 15)).build();
+
+        var datasets = datasetResolver.query(createParticipantAgent(), querySpec, createDataService());
+
+        assertThat(datasets).hasSize(3).map(getId()).containsExactly("7", "8", "9");
+    }
+
+    @Test
+    void query_shouldLimitDataset_whenMultipleDefinitionAndMultipleAssets_across() {
+        var contractDefinitions = range(0, 2).mapToObj(it -> contractDefinitionBuilder(String.valueOf(it)).build()).collect(toList());
+        var contractPolicy = Policy.Builder.newInstance().build();
+        var assets1 = range(0, 10).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
+        var assets2 = range(10, 20).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
+        when(contractDefinitionResolver.definitionsFor(any())).thenAnswer(it -> contractDefinitions.stream());
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(i -> assets1.stream()).thenAnswer(i -> assets2.stream());
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(contractPolicy).build());
+        var querySpec = QuerySpec.Builder.newInstance().range(new Range(6, 14)).build();
+
+        var datasets = datasetResolver.query(createParticipantAgent(), querySpec, createDataService());
+
+        assertThat(datasets).hasSize(8).map(getId()).containsExactly("6", "7", "8", "9", "10", "11", "12", "13");
+    }
+
+    @Test
+    void query_shouldLimitDataset_whenMultipleDefinitionsWithSameAssets() {
+        var contractDefinitions = range(0, 2).mapToObj(it -> contractDefinitionBuilder(String.valueOf(it)).build()).collect(toList());
+        var contractPolicy = Policy.Builder.newInstance().build();
+        var assets = range(0, 10).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
+        when(contractDefinitionResolver.definitionsFor(any())).thenAnswer(it -> contractDefinitions.stream());
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(i -> assets.stream());
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(contractPolicy).build());
+        var querySpec = QuerySpec.Builder.newInstance().range(new Range(6, 8)).build();
+
+        var datasets = datasetResolver.query(createParticipantAgent(), querySpec, createDataService());
+
+        assertThat(datasets).hasSize(2)
+                .allSatisfy(dataset -> {
+                    assertThat(dataset.getOffers()).hasSize(2);
+                })
+                .map(getId()).containsExactly("6", "7");
+    }
+
+
     private ContractDefinition.Builder contractDefinitionBuilder(String id) {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
@@ -168,6 +239,11 @@ class DatasetResolverImplTest {
 
     private DataService createDataService() {
         return DataService.Builder.newInstance().build();
+    }
+
+    @NotNull
+    private ThrowingExtractor<Dataset, Object, RuntimeException> getId() {
+        return it -> it.getProperty(Asset.PROPERTY_ID);
     }
 
     @NotNull
