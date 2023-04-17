@@ -34,7 +34,7 @@ import static java.lang.String.format;
  * the {@link Event#name()}, the callback is the invoked using a {@link RemoteMessageDispatcherRegistry} with protocol
  * extracted by {@link CallbackAddress#getUri()}
  */
-public class CallbackEventDispatcher<T extends Event> implements EventSubscriber<T> {
+public class CallbackEventDispatcher implements EventSubscriber {
     private final RemoteMessageDispatcherRegistry dispatcher;
     private final boolean transactional;
     private final Monitor monitor;
@@ -49,7 +49,7 @@ public class CallbackEventDispatcher<T extends Event> implements EventSubscriber
     }
 
     @Override
-    public void on(EventEnvelope<T> eventEnvelope) {
+    public <E extends Event> void on(EventEnvelope<E> eventEnvelope) {
         var callbacks = eventEnvelope.getPayload().getCallbackAddresses()
                 .stream().filter(cb -> cb.isTransactional() == transactional)
                 .collect(Collectors.toList());

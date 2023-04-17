@@ -64,12 +64,9 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationEventDispatchTest {
     private static final String CONSUMER = "consumer";
     private static final String PROVIDER = "provider";
-
     private static final long CONTRACT_VALIDITY = TimeUnit.HOURS.toSeconds(1);
 
-    @SuppressWarnings("rawtypes")
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
-
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim(ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY, CONSUMER).build();
 
     @BeforeEach
@@ -94,7 +91,6 @@ class ContractNegotiationEventDispatchTest {
                                                                        AssetIndex assetIndex) {
         dispatcherRegistry.register(succeedingDispatcher());
 
-        //noinspection unchecked
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
         var contractDefinition = ContractDefinition.Builder.newInstance()
@@ -111,9 +107,7 @@ class ContractNegotiationEventDispatchTest {
         service.notifyRequested(createContractOfferRequest(policy), token);
 
         await().untilAsserted(() -> {
-            //noinspection unchecked
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
-            //noinspection unchecked
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationAgreed.class)));
         });
     }

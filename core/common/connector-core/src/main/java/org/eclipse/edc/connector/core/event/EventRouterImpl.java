@@ -46,12 +46,12 @@ public class EventRouterImpl implements EventRouter {
     }
 
     @Override
-    public <E extends Event> void registerSync(Class<E> eventKind, EventSubscriber<E> subscriber) {
+    public <E extends Event> void registerSync(Class<E> eventKind, EventSubscriber subscriber) {
         syncSubscribers.computeIfAbsent(eventKind, s -> new ArrayList<>()).add(subscriber);
     }
 
     @Override
-    public <E extends Event> void register(Class<E> eventKind, EventSubscriber<E> subscriber) {
+    public <E extends Event> void register(Class<E> eventKind, EventSubscriber subscriber) {
         subscribers.computeIfAbsent(eventKind, s -> new ArrayList<>()).add(subscriber);
     }
     

@@ -17,11 +17,11 @@ package org.eclipse.edc.spi.event;
 /**
  * Every implementation of this will have the possibility to react to every event published into the EDC
  */
-public interface EventSubscriber<E extends Event> {
+public interface EventSubscriber {
     /**
      * Add custom logic for every event happened
      *
      * @param event the event happened
      */
-    void on(EventEnvelope<E> event);
+    <E extends Event> void on(EventEnvelope<E> event);
 }

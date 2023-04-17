@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 public class CallbackEventDispatcherTest {
 
-    CallbackEventDispatcher<Event> dispatcher;
+    CallbackEventDispatcher dispatcher;
     RemoteMessageDispatcherRegistry registry = mock(RemoteMessageDispatcherRegistry.class);
 
     CallbackProtocolResolverRegistry resolverRegistry = mock(CallbackProtocolResolverRegistry.class);
@@ -50,7 +50,7 @@ public class CallbackEventDispatcherTest {
 
     @Test
     void verifyShouldNotDispatch() {
-        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, true, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, true, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
 
@@ -63,7 +63,7 @@ public class CallbackEventDispatcherTest {
 
     @Test
     void verifyDispatchShouldThrowException() {
-        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, true, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, true, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
         when(registry.send(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Test")));
@@ -94,7 +94,7 @@ public class CallbackEventDispatcherTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
 
-        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, transactional, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, transactional, monitor);
 
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("local://test")
@@ -122,7 +122,7 @@ public class CallbackEventDispatcherTest {
     @ValueSource(booleans = { true, false })
     void verifyShouldNotDispatchWithDifferentTransactionalConfiguration(boolean transactional) {
 
-        dispatcher = new CallbackEventDispatcher<>(registry, resolverRegistry, transactional, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, transactional, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
 
