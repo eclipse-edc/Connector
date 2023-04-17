@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
@@ -67,6 +68,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
         when(dispatcher.protocol()).thenReturn("protocol");
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),

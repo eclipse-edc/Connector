@@ -49,6 +49,7 @@ include(":core:common:state-machine")
 include(":core:common:util")
 include(":core:common:junit")
 
+include(":core:control-plane:catalog-core")
 include(":core:control-plane:contract-core")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:control-plane-aggregate-services")

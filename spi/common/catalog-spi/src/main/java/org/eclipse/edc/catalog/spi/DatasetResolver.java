@@ -12,10 +12,8 @@
  *
  */
 
-package org.eclipse.edc.connector.spi.catalog;
+package org.eclipse.edc.catalog.spi;
 
-import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.stream.Stream;
 
 /**
- * Resolves {@link Dataset}s for the {@link CatalogProtocolService}
+ * Resolves {@link Dataset}s for the {@link Catalog}
  */
 public interface DatasetResolver {
 
@@ -32,9 +30,8 @@ public interface DatasetResolver {
      *
      * @param agent the participant agent that requested the dataset.
      * @param querySpec the query spec for filtering and pagination.
-     * @param dataService the data service to be associated to the datasets.
      * @return a stream of datasets.
      */
     @NotNull
-    Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, DataService dataService);
+    Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec);
 }

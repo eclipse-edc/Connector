@@ -21,6 +21,7 @@ plugins {
 
 dependencies {
     implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
     implementation(project(":core:common:util"))
     implementation(project(":data-protocols:ids"))
 

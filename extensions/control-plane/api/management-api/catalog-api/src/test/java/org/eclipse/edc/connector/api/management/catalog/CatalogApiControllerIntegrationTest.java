@@ -18,6 +18,7 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -79,6 +80,7 @@ class CatalogApiControllerIntegrationTest {
     void setUp(EdcExtension extension) {
         when(dispatcher.protocol()).thenReturn("ids-multipart");
 
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
         extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),

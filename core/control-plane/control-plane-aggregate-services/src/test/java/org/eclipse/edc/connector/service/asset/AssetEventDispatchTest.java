@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -44,6 +46,8 @@ public class AssetEventDispatchTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api"
@@ -52,7 +56,6 @@ public class AssetEventDispatchTest {
 
     @Test
     void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
-
         doAnswer(i -> null).when(eventSubscriber).on(argThat(isEnvelopeOf(AssetCreated.class)));
         doAnswer(i -> null).when(eventSubscriber).on(argThat(isEnvelopeOf(AssetDeleted.class)));
 

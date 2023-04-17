@@ -61,10 +61,13 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     
     @Inject
     private TypeManager typeManager;
+
     @Inject
     private WebService webService;
+
     @Inject
     private WebServer webServer;
+
     @Inject
     private WebServiceConfigurer configurator;
     

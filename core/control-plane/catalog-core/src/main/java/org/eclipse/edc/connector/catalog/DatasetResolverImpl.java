@@ -12,21 +12,21 @@
  *
  */
 
-package org.eclipse.edc.connector.service.catalog;
+package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.catalog.spi.Distribution;
+import org.eclipse.edc.catalog.spi.DatasetResolver;
+import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.spi.catalog.DatasetResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
@@ -46,16 +46,19 @@ public class DatasetResolverImpl implements DatasetResolver {
     private final ContractDefinitionResolver contractDefinitionResolver;
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyDefinitionStore;
+    private final DistributionResolver distributionResolver;
 
-    public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex, PolicyDefinitionStore policyDefinitionStore) {
+    public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex,
+                               PolicyDefinitionStore policyDefinitionStore, DistributionResolver distributionResolver) {
         this.contractDefinitionResolver = contractDefinitionResolver;
         this.assetIndex = assetIndex;
         this.policyDefinitionStore = policyDefinitionStore;
+        this.distributionResolver = distributionResolver;
     }
 
     @Override
     @NotNull
-    public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, DataService dataService) {
+    public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
         return contractDefinitionResolver
                 .definitionsFor(agent)
                 .flatMap(definition -> {
@@ -64,7 +67,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                     var assetQuery = QuerySpec.Builder.newInstance().filter(concat(definitionCriteria, filterCriteria)).build();
                     return assetIndex.queryAssets(assetQuery)
                             .map(asset -> {
-                                var offer = createOffer(definition);
+                                var offer = createOffer(definition, asset);
                                 if (offer == null) {
                                     return null;
                                 }
@@ -78,11 +81,13 @@ public class DatasetResolverImpl implements DatasetResolver {
                 .skip(querySpec.getOffset())
                 .limit(querySpec.getLimit())
                 .map(entry -> {
+                    var offers = entry.getValue();
+                    var distributions = distributionResolver.getDistributions(offers.iterator().next().asset, null); // TODO: data addresses should be retrieved
                     var datasetBuilder = Dataset.Builder.newInstance()
-                            .distribution(createDistribution(dataService))
+                            .distributions(distributions)
                             .properties(entry.getKey());
 
-                    entry.getValue().forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
+                    offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
 
                     return datasetBuilder.build();
                 });
@@ -93,29 +98,24 @@ public class DatasetResolverImpl implements DatasetResolver {
         return Stream.concat(list1.stream(), list2.stream()).collect(toList());
     }
 
-    private Distribution createDistribution(DataService dataService) {
-        return Distribution.Builder.newInstance()
-                .dataService(dataService)
-                .format("any") // TODO: should it represent the allowedDestTypes of the associated dataplanes?
-                .build();
-    }
-
-    private Offer createOffer(ContractDefinition definition) {
+    private Offer createOffer(ContractDefinition definition, Asset asset) {
         var policyDefinition = policyDefinitionStore.findById(definition.getContractPolicyId());
         if (policyDefinition == null) {
             return null;
         }
         var contractId = ContractId.createContractId(definition.getId());
-        return new Offer(contractId, policyDefinition.getPolicy());
+        return new Offer(contractId, policyDefinition.getPolicy(), asset);
     }
 
     private static class Offer {
         private final String contractId;
         private final Policy policy;
+        private final Asset asset;
 
-        Offer(String contractId, Policy policy) {
+        Offer(String contractId, Policy policy, Asset asset) {
             this.contractId = contractId;
             this.policy = policy;
+            this.asset = asset;
         }
     }
 }

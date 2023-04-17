@@ -15,13 +15,10 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebServer;
-import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurerImpl;
@@ -45,17 +42,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class DspApiConfigurationExtensionTest {
     
+    private final WebServiceConfigurer configurer = mock(WebServiceConfigurerImpl.class);
+    private final WebServer webServer = mock(WebServer.class);
+
     private DspApiConfigurationExtension extension;
-    private WebServiceConfigurer configurer = mock(WebServiceConfigurerImpl.class);
-    private WebServer webServer = mock(WebServer.class);
-    
+
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        context.registerService(TypeManager.class, mock(TypeManager.class));
-        context.registerService(WebService.class, mock(WebService.class));
         context.registerService(WebServer.class, webServer);
         context.registerService(WebServiceConfigurer.class, configurer);
-        context.registerService(IdentityService.class, mock(IdentityService.class));
         extension = factory.constructInstance(DspApiConfigurationExtension.class);
         
         var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
@@ -98,4 +93,5 @@ class DspApiConfigurationExtensionTest {
         assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
         assertThat(apiConfig.getDspCallbackAddress()).isEqualTo(webhookAddress);
     }
+
 }

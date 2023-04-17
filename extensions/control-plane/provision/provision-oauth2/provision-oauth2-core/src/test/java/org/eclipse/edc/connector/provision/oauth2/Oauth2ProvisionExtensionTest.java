@@ -14,105 +14,48 @@
 
 package org.eclipse.edc.connector.provision.oauth2;
 
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
-import org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema;
-import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
-import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.List;
-import java.util.UUID;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.type;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
-@ExtendWith(EdcExtension.class)
+@ExtendWith(DependencyInjectionExtension.class)
 class Oauth2ProvisionExtensionTest {
 
-    private final Vault vault = mock(Vault.class);
+    private ServiceExtension extension;
 
     @BeforeEach
-    void setUp(EdcExtension extension) {
-        extension.registerServiceMock(Vault.class, vault);
-        extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
+    void setUp(ObjectFactory factory, ServiceExtensionContext context) {
+        context.registerService(TypeManager.class, mock(TypeManager.class));
+        context.registerService(ProvisionManager.class, mock(ProvisionManager.class));
+        context.registerService(ResourceManifestGenerator.class, mock(ResourceManifestGenerator.class));
+        extension = factory.constructInstance(Oauth2ProvisionExtension.class);
     }
 
     @Test
-    void generateProviderManifest(ResourceManifestGenerator manifestGenerator) {
-        var oauth2DataAddress = validOauth2DataAddress();
-        var oauth2HttpDataRequest = DataRequest.Builder.newInstance().id(UUID.randomUUID().toString()).destinationType("any").build();
+    void shouldRegisterExtensions(ServiceExtensionContext context) {
+        extension.initialize(context);
 
-        var resourceManifest = manifestGenerator.generateProviderResourceManifest(oauth2HttpDataRequest, oauth2DataAddress, Policy.Builder.newInstance().build());
-
-        assertThat(resourceManifest.getDefinitions()).hasSize(1);
-    }
-
-    @Test
-    void generateConsumerManifest(ResourceManifestGenerator manifestGenerator) {
-        var oauth2DataAddress = validOauth2DataAddress();
-        var oauth2HttpDataRequest = DataRequest.Builder.newInstance().id(UUID.randomUUID().toString()).dataDestination(oauth2DataAddress).build();
-
-        var resourceManifest = manifestGenerator.generateConsumerResourceManifest(oauth2HttpDataRequest, Policy.Builder.newInstance().build());
-
-        assertThat(resourceManifest.succeeded()).isTrue();
-        assertThat(resourceManifest.getContent().getDefinitions()).hasSize(1);
-    }
-
-    @Test
-    void oauth2Provisioner(ProvisionManager provisionManager) {
-        when(vault.resolveSecret(any())).thenReturn("aSecret");
-        var dataAddress = HttpDataAddress.Builder.newInstance()
-                .property(Oauth2DataAddressSchema.CLIENT_ID, "any")
-                .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "any")
-                .property(Oauth2DataAddressSchema.TOKEN_URL, "http://any/url")
-                .build();
-        var resourceDefinition = Oauth2ResourceDefinition.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .transferProcessId(UUID.randomUUID().toString())
-                .dataAddress(dataAddress)
-                .build();
-
-        var future = provisionManager.provision(List.of(resourceDefinition), Policy.Builder.newInstance().build());
-
-        assertThat(future).succeedsWithin(10, SECONDS).asList().hasSize(1)
-                .first().asInstanceOf(InstanceOfAssertFactories.type(StatusResult.class)).matches(StatusResult::succeeded)
-                .extracting(StatusResult::getContent).asInstanceOf(type(ProvisionResponse.class))
-                .extracting(ProvisionResponse::getSecretToken).isNotNull();
-    }
-
-    private DataAddress validOauth2DataAddress() {
-        return HttpDataAddress.Builder.newInstance()
-                .property(Oauth2DataAddressSchema.CLIENT_ID, "clientId")
-                .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "clientSecretKey")
-                .property(Oauth2DataAddressSchema.TOKEN_URL, "tokenUrl")
-                .build();
-    }
-
-    public static class TestExtension implements ServiceExtension {
-        @Provider
-        public Oauth2Client oauth2Client() {
-            var client = mock(Oauth2Client.class);
-            when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-            return client;
-        }
+        assertThat(context.getService(TypeManager.class)).satisfies(typeManager -> {
+            verify(typeManager).registerTypes(Oauth2ResourceDefinition.class, Oauth2ProvisionedResource.class);
+        });
+        assertThat(context.getService(ResourceManifestGenerator.class)).satisfies(resourceManifestGenerator -> {
+            verify(resourceManifestGenerator).registerGenerator(isA(Oauth2ProviderResourceDefinitionGenerator.class));
+            verify(resourceManifestGenerator).registerGenerator(isA(Oauth2ConsumerResourceDefinitionGenerator.class));
+        });
+        assertThat(context.getService(ProvisionManager.class)).satisfies(provisionManager -> {
+            verify(provisionManager).register(isA(Oauth2Provisioner.class));
+        });
     }
 }

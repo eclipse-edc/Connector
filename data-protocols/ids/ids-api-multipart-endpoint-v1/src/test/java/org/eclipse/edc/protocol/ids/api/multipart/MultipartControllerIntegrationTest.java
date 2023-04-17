@@ -42,6 +42,7 @@ import okhttp3.MultipartReader;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -122,6 +123,7 @@ class MultipartControllerIntegrationTest {
         extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
         extension.registerServiceMock(ContractOfferResolver.class, contractOfferResolver);
         extension.registerServiceMock(ContractNegotiationProtocolService.class, service);
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
     }
 
     @Test

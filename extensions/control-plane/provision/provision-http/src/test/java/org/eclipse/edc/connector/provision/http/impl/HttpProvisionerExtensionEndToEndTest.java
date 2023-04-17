@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.provision.http.impl;
 
 import okhttp3.Interceptor;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -27,6 +28,7 @@ import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolServ
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -66,6 +68,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ComponentTest
 @ExtendWith(EdcExtension.class)
 public class HttpProvisionerExtensionEndToEndTest {
     private static final String ASSET_ID = "1";
@@ -87,6 +90,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerServiceMock(EdcHttpClient.class, testHttpClient(delegate));
         extension.registerServiceMock(ContractValidationService.class, contractValidationService);
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
         extension.registerSystemExtension(ServiceExtension.class, new DummyCallbackUrlExtension());
         extension.setConfiguration(PROVISIONER_CONFIG);
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {

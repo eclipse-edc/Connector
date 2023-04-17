@@ -14,11 +14,12 @@
 
 package org.eclipse.edc.connector.service;
 
+import org.eclipse.edc.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservableImpl;
@@ -27,7 +28,6 @@ import org.eclipse.edc.connector.service.asset.AssetEventListener;
 import org.eclipse.edc.connector.service.asset.AssetServiceImpl;
 import org.eclipse.edc.connector.service.catalog.CatalogProtocolServiceImpl;
 import org.eclipse.edc.connector.service.catalog.CatalogServiceImpl;
-import org.eclipse.edc.connector.service.catalog.DatasetResolverImpl;
 import org.eclipse.edc.connector.service.contractagreement.ContractAgreementServiceImpl;
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionEventListener;
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionServiceImpl;
@@ -126,7 +126,10 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ParticipantAgentService participantAgentService;
 
     @Inject
-    private ContractDefinitionResolver contractDefinitionResolver;
+    private DataServiceRegistry dataServiceRegistry;
+
+    @Inject
+    private DatasetResolver datasetResolver;
 
     @Override
     public String name() {
@@ -147,8 +150,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public CatalogProtocolService catalogProtocolService() {
-        var datasetResolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyDefinitionStore);
-        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService);
+        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry);
     }
 
     @Provider
