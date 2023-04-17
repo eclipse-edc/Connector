@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTermination
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.*;
-import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessage;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

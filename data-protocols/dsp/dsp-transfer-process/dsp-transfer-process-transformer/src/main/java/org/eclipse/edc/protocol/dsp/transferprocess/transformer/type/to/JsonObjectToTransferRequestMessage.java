@@ -17,14 +17,14 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
 
 public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
@@ -42,14 +42,12 @@ public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransforme
             var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
 
             transferRequestMessageBuilder.id(nodeId(jsonObject))
-                    .contractId(String.valueOf(jsonObject.get(DSPACE_CONTRACTAGREEMENT_TYPE)))
-                    .protocol("dataspace-protocol")
-                    .connectorAddress("TestConnectorAdress"); //TODO Create external Constant and add correct connectorAddress
+                    .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
+            transformString(jsonObject.get(DSPACE_CONTRACTAGREEMENT_TYPE), transferRequestMessageBuilder::contractId, context);
+            transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::connectorAddress, context); //TODO Create external Constant and add correct connectorAddress
 
-//            if (!jsonObject.getJsonObject("dataAddress").isEmpty()) { TODO Add DataAddress
-//                transferRequestMessageBuilder.dataDestination(createDataAddress(jsonObject.getJsonObject("dataAddress")));
-//            }
+            transferRequestMessageBuilder.dataDestination(createDataAddress(jsonObject, context));
 
             return transferRequestMessageBuilder.build();
         } else {
@@ -58,9 +56,12 @@ public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransforme
         }
     }
 
-    private DataAddress createDataAddress(JsonObject jsonObject) {
-        var dataAddressBuilder = DataAddress.Builder.newInstance()  //TODO Add missing properties
-                .type(jsonObject.getString("type"));
+    private DataAddress createDataAddress(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+        var dataAddressBuilder = DataAddress.Builder.newInstance();  //TODO Add missing properties
+
+        transformString(jsonObject.get(DCT_FORMAT), dataAddressBuilder::type, context);
+
+        // TODO Add dataAddress
 
         return dataAddressBuilder.build();
     }

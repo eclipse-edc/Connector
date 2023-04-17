@@ -26,6 +26,8 @@ dependencies {
     api(project(":spi:common:transform-spi"))
     api(project(":extensions:common:json-ld"))
 
+    implementation(project(":data-protocols:dsp:dsp-http-spi"))
+
     implementation("jakarta.json:jakarta.json-api:2.1.1")
     implementation("org.eclipse.parsson:parsson:1.1.1")
 

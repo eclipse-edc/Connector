@@ -41,5 +41,7 @@ public interface DspCatalogPropertyAndTypeNames {
 
     String DSPACE_PROCESSID_TYPE = DSPACE_SCHEMA + "processId";
 
+    String DSPACE_DATAADDRESS_TYPE = DSPACE_SCHEMA + "dataAddress";
+
     String DCT_FORMAT = DCT_SCHEMA + "format";
 }
