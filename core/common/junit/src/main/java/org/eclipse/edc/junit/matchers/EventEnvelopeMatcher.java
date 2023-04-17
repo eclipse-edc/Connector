@@ -30,10 +30,6 @@ public class EventEnvelopeMatcher<T extends Event> implements ArgumentMatcher<Ev
         return new EventEnvelopeMatcher<>(klass);
     }
 
-    public static <T extends B, B extends Event> EventEnvelopeMatcher<B> isEnvelopeOf(Class<T> klass, Class<B> baseKlass) {
-        return new EventEnvelopeMatcher<>(baseKlass);
-    }
-
     @Override
     public boolean matches(EventEnvelope<T> argument) {
         return eventKind.isAssignableFrom(argument.getPayload().getClass());
