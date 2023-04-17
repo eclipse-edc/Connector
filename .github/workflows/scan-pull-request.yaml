@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
-      - uses: agilepathway/label-checker@v1.4.25
+      - uses: agilepathway/label-checker@v1.4.26
         with:
           any_of: api,bug,build,dependencies,documentation,enhancement,no-changelog,refactoring
           repo_token: ${{ secrets.GITHUB_TOKEN }}
