@@ -12,15 +12,16 @@
  *
  */
 
-package org.eclipse.edc.connector.service.catalog;
+package org.eclipse.edc.connector.catalog;
 
 import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.DatasetResolver;
+import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.spi.catalog.DatasetResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
@@ -64,7 +65,7 @@ class DatasetResolverImplIntegrationTest {
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final AssetIndex assetIndex = new InMemoryAssetIndex();
 
-    private final DatasetResolver resolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore);
+    private final DatasetResolver resolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore, mock(DistributionResolver.class));
 
     @BeforeEach
     void setUp() {
@@ -91,7 +92,7 @@ class DatasetResolverImplIntegrationTest {
         var to = 50;
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
-        var datasets = resolver.query(createAgent(), querySpec, createDataService());
+        var datasets = resolver.query(createAgent(), querySpec);
 
         assertThat(datasets).hasSize(to - from);
     }
@@ -115,7 +116,7 @@ class DatasetResolverImplIntegrationTest {
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(contractDefinition1, contractDefinition2));
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
-        var datasets = resolver.query(createAgent(), querySpec, createDataService());
+        var datasets = resolver.query(createAgent(), querySpec);
 
         assertThat(datasets).hasSize(min(requestedRange, maximumRange));
     }
@@ -138,7 +139,7 @@ class DatasetResolverImplIntegrationTest {
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
         // 4 definitions, 10 assets each = 40 offers total -> offset 20 ==> result = 20
-        var dataset = resolver.query(createAgent(), querySpec, createDataService());
+        var dataset = resolver.query(createAgent(), querySpec);
 
         assertThat(dataset).hasSize(4);
     }
@@ -152,7 +153,7 @@ class DatasetResolverImplIntegrationTest {
         var to = 50;
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
-        var datasets = resolver.query(createAgent(), querySpec, createDataService());
+        var datasets = resolver.query(createAgent(), querySpec);
 
         assertThat(datasets).isEmpty();
     }

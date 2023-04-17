@@ -25,6 +25,7 @@ dependencies {
 
     testImplementation(project(":core:common:util"))
     testImplementation(project(":core:control-plane:control-plane-core"))
+    testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
 

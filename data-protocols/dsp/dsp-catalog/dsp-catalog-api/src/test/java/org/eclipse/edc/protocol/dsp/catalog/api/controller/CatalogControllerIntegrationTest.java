@@ -21,7 +21,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
@@ -78,7 +77,6 @@ class CatalogControllerIntegrationTest {
 
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(CatalogProtocolService.class, service);
-        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(DataServiceRegistry.class, mock(DataServiceRegistry.class));
 
         request = Json.createObjectBuilder()

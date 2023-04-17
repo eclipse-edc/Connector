@@ -25,6 +25,7 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane:data-plane-core"))
+    testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:control-plane:api:control-plane-api"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))
     testImplementation(libs.awaitility)

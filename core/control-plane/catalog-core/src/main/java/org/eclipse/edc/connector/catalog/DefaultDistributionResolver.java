@@ -12,28 +12,30 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.api.configuration;
+package org.eclipse.edc.connector.catalog;
 
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ConnectorDistributionResolver implements DistributionResolver {
+public class DefaultDistributionResolver implements DistributionResolver {
 
     private final DataService dataService;
     private final DataPlaneInstanceStore dataPlaneInstanceStore;
 
-    public ConnectorDistributionResolver(DataService dataService, DataPlaneInstanceStore dataPlaneInstanceStore) {
+    public DefaultDistributionResolver(DataService dataService, DataPlaneInstanceStore dataPlaneInstanceStore) {
         this.dataService = dataService;
         this.dataPlaneInstanceStore = dataPlaneInstanceStore;
     }
 
     @Override
-    public List<Distribution> getDistributions() {
+    public List<Distribution> getDistributions(Asset asset, DataAddress dataAddress) {
         return dataPlaneInstanceStore.getAll()
                 .flatMap(it -> it.getAllowedDestTypes().stream())
                 .map(destType -> Distribution.Builder.newInstance().format(destType).dataService(dataService).build())

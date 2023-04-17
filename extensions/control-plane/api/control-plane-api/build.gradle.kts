@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.jersey.beanvalidation) //for validation
 
     testImplementation(project(":core:control-plane:control-plane-core"))
+    testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:auth:auth-tokenbased"))

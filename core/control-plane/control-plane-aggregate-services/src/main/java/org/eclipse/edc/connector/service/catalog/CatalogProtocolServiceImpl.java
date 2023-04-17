@@ -32,7 +32,8 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     private final ParticipantAgentService participantAgentService;
     private final DataServiceRegistry dataServiceRegistry;
 
-    public CatalogProtocolServiceImpl(DatasetResolver datasetResolver, ParticipantAgentService participantAgentService,
+    public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
+                                      ParticipantAgentService participantAgentService,
                                       DataServiceRegistry dataServiceRegistry) {
         this.datasetResolver = datasetResolver;
         this.participantAgentService = participantAgentService;

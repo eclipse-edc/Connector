@@ -25,9 +25,8 @@ public interface DataServiceRegistry {
      * Register a {@link DataService} with its {@link DistributionResolver}.
      *
      * @param dataService the Data Service
-     * @param distributionResolver the Distribution Resolver
      */
-    void register(DataService dataService, DistributionResolver distributionResolver);
+    void register(DataService dataService);
 
     /**
      * Returns all the {@link DataService}s

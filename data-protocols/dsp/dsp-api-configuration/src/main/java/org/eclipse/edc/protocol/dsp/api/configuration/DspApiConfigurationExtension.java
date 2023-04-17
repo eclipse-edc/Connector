@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
-import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.serdes.ObjectMapperProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -31,7 +28,6 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
-import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
 /**
@@ -74,12 +70,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Inject
     private WebServiceConfigurer configurator;
-
-    @Inject
-    private DataServiceRegistry dataServiceRegistry;
-
-    @Inject
-    private DataPlaneInstanceStore dataPlaneInstanceStore;
     
     @Override
     public String name() {
@@ -94,13 +84,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         
         var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
-
-        var dataService = DataService.Builder.newInstance()
-                .id(randomUUID().toString())
-                .terms("connector")
-                .endpointUrl(dspWebhookAddress)
-                .build();
-        dataServiceRegistry.register(dataService, new ConnectorDistributionResolver(dataService, dataPlaneInstanceStore));
     }
     
 }

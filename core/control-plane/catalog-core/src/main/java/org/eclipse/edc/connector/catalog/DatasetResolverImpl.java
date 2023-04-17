@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
@@ -58,8 +59,6 @@ public class DatasetResolverImpl implements DatasetResolver {
     @Override
     @NotNull
     public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
-        var distributions = distributionResolver.getDistributions();
-
         return contractDefinitionResolver
                 .definitionsFor(agent)
                 .flatMap(definition -> {
@@ -68,7 +67,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                     var assetQuery = QuerySpec.Builder.newInstance().filter(concat(definitionCriteria, filterCriteria)).build();
                     return assetIndex.queryAssets(assetQuery)
                             .map(asset -> {
-                                var offer = createOffer(definition);
+                                var offer = createOffer(definition, asset);
                                 if (offer == null) {
                                     return null;
                                 }
@@ -82,11 +81,13 @@ public class DatasetResolverImpl implements DatasetResolver {
                 .skip(querySpec.getOffset())
                 .limit(querySpec.getLimit())
                 .map(entry -> {
+                    var offers = entry.getValue();
+                    var distributions = distributionResolver.getDistributions(offers.iterator().next().asset, null); // TODO: data addresses should be retrieved
                     var datasetBuilder = Dataset.Builder.newInstance()
                             .distributions(distributions)
                             .properties(entry.getKey());
 
-                    entry.getValue().forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
+                    offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
 
                     return datasetBuilder.build();
                 });
@@ -97,22 +98,24 @@ public class DatasetResolverImpl implements DatasetResolver {
         return Stream.concat(list1.stream(), list2.stream()).collect(toList());
     }
 
-    private Offer createOffer(ContractDefinition definition) {
+    private Offer createOffer(ContractDefinition definition, Asset asset) {
         var policyDefinition = policyDefinitionStore.findById(definition.getContractPolicyId());
         if (policyDefinition == null) {
             return null;
         }
         var contractId = ContractId.createContractId(definition.getId());
-        return new Offer(contractId, policyDefinition.getPolicy());
+        return new Offer(contractId, policyDefinition.getPolicy(), asset);
     }
 
     private static class Offer {
         private final String contractId;
         private final Policy policy;
+        private final Asset asset;
 
-        Offer(String contractId, Policy policy) {
+        Offer(String contractId, Policy policy, Asset asset) {
             this.contractId = contractId;
             this.policy = policy;
+            this.asset = asset;
         }
     }
 }

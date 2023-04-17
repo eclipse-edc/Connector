@@ -15,7 +15,9 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
@@ -71,6 +73,8 @@ public class TransferProcessEventDispatchTest {
         extension.setConfiguration(configuration);
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()));
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
     }
 
     @Test

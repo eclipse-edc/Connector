@@ -13,3 +13,4 @@
 #
 
 org.eclipse.edc.connector.catalog.CatalogCoreExtension
+org.eclipse.edc.connector.catalog.CatalogDefaultServicesExtension

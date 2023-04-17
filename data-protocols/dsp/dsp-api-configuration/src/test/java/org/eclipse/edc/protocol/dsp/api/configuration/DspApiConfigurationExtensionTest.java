@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -35,8 +34,6 @@ import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration
 import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.DSP_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfigurationExtension.SETTINGS;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -47,7 +44,6 @@ class DspApiConfigurationExtensionTest {
     
     private final WebServiceConfigurer configurer = mock(WebServiceConfigurerImpl.class);
     private final WebServer webServer = mock(WebServer.class);
-    private final DataServiceRegistry dataServiceRegistry = mock(DataServiceRegistry.class);
 
     private DspApiConfigurationExtension extension;
 
@@ -55,7 +51,6 @@ class DspApiConfigurationExtensionTest {
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(WebServer.class, webServer);
         context.registerService(WebServiceConfigurer.class, configurer);
-        context.registerService(DataServiceRegistry.class, dataServiceRegistry);
         extension = factory.constructInstance(DspApiConfigurationExtension.class);
         
         var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
@@ -99,17 +94,4 @@ class DspApiConfigurationExtensionTest {
         assertThat(apiConfig.getDspCallbackAddress()).isEqualTo(webhookAddress);
     }
 
-    @Test
-    void initialize_shouldRegisterDataService(ServiceExtensionContext context) {
-        var webhookAddress = "http://webhook";
-        var spyContext = spy(context);
-        when(spyContext.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS)).thenReturn(webhookAddress);
-
-        extension.initialize(spyContext);
-
-        verify(dataServiceRegistry).register(
-                argThat(dataService -> dataService.getEndpointUrl().equals(webhookAddress)),
-                isA(ConnectorDistributionResolver.class)
-        );
-    }
 }

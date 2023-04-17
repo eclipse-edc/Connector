@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
@@ -43,6 +44,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThan;
+import static org.mockito.Mockito.mock;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
@@ -61,6 +63,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 "web.http.provisioner.path", PROVISIONER_BASE_PATH,
                 "edc.api.auth.key", authKey
         ));
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
     }
 
     @ParameterizedTest

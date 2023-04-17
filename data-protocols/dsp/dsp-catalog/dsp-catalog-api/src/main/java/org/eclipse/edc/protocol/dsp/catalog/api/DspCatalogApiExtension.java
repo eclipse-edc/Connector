@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.api;
 
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.CatalogController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -60,5 +62,13 @@ public class DspCatalogApiExtension implements ServiceExtension {
         var dspCallbackAddress = apiConfiguration.getDspCallbackAddress();
         var catalogController = new CatalogController(mapper, identityService, transformerRegistry, dspCallbackAddress, service);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
+    }
+
+    @Provider
+    public DataService dataService() {
+        return DataService.Builder.newInstance()
+                .terms("connector")
+                .endpointUrl(apiConfiguration.getDspCallbackAddress())
+                .build();
     }
 }

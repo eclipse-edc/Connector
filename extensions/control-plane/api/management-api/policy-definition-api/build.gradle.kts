@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
+    testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(project(":core:common:junit"))

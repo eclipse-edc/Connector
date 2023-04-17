@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.api;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -61,6 +62,7 @@ class TransferProcessControlApiControllerIntegrationTest {
         var registry = mock(RemoteMessageDispatcherRegistry.class);
         when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
+        extension.registerServiceMock(DataService.class, mock(DataService.class));
     }
 
     @Test

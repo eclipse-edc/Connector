@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -100,7 +101,7 @@ class MultipartDispatcherIntegrationTest {
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
         extension.registerServiceMock(IdentityService.class, identityService);
-
+        extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(IdsTransformerRegistry.class, transformerRegistry);
         extension.registerServiceMock(ContractNegotiationStore.class, negotiationStore);
         extension.registerServiceMock(ContractValidationService.class, validationService);

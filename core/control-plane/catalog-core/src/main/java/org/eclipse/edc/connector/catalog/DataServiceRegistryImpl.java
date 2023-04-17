@@ -16,32 +16,22 @@ package org.eclipse.edc.connector.catalog;
 
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.catalog.spi.DistributionResolver;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static java.util.stream.Collectors.toList;
+public class DataServiceRegistryImpl implements DataServiceRegistry {
 
-public class DataServiceRegistryImpl implements DataServiceRegistry, DistributionResolver {
-
-    private final Map<DataService, DistributionResolver> dataServices = new HashMap<>();
+    private final List<DataService> dataServices = new ArrayList<>();
 
     @Override
-    public void register(DataService dataService, DistributionResolver distributionResolver) {
-        dataServices.put(dataService, distributionResolver);
+    public void register(DataService dataService) {
+        dataServices.add(dataService);
     }
 
     @Override
     public List<DataService> getDataServices() {
-        return new ArrayList<>(dataServices.keySet());
+        return dataServices;
     }
 
-    @Override
-    public List<Distribution> getDistributions() {
-        return dataServices.values().stream().flatMap(it -> it.getDistributions().stream()).collect(toList());
-    }
 }
