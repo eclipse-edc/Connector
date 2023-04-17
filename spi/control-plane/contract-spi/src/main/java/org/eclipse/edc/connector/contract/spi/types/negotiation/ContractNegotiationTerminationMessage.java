@@ -21,7 +21,8 @@ import java.util.Objects;
 public class ContractNegotiationTerminationMessage implements ContractRemoteMessage {
 
     private String protocol;
-    private String connectorId; // TODO remove when removing ids module
+    @Deprecated(forRemoval = true)
+    private String connectorId;
     private String connectorAddress;
     private String processId;
     private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729

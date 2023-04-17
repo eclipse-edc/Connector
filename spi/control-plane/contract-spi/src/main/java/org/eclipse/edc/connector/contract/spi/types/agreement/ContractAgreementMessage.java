@@ -21,11 +21,13 @@ import java.util.Objects;
 
 public class ContractAgreementMessage implements ContractRemoteMessage {
     private String protocol;
-    private String connectorId; // TODO remove when removing ids module
+    @Deprecated(forRemoval = true)
+    private String connectorId;
     private String connectorAddress;
     private String processId;
     private ContractAgreement contractAgreement;
-    private Policy policy; // TODO remove when removing ids module
+    @Deprecated(forRemoval = true)
+    private Policy policy;
 
     @Override
     public String getProtocol() {

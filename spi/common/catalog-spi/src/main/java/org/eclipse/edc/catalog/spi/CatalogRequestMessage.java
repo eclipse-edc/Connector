@@ -30,7 +30,8 @@ import java.util.Objects;
 public class CatalogRequestMessage implements RemoteMessage {
 
     private final String protocol;
-    private final String connectorId; // TODO remove when removing ids module
+    @Deprecated(forRemoval = true)
+    private final String connectorId;
     private final String connectorAddress;
     private final QuerySpec querySpec;
 

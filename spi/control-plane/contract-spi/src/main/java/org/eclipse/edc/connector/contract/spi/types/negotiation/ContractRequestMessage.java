@@ -30,7 +30,8 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
     private Type type = Type.COUNTER_OFFER;
     private String protocol;
-    private String connectorId; // TODO remove when removing ids module
+    @Deprecated(forRemoval = true)
+    private String connectorId;
     private String connectorAddress;
     private String processId;
     private ContractOffer contractOffer;

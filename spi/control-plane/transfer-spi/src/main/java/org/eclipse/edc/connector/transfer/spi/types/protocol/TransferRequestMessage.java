@@ -31,9 +31,11 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     private String protocol;
     private String id;
     private String contractId;
-    private String assetId; // TODO remove when removing ids module
+    @Deprecated(forRemoval = true)
+    private String assetId;
     private DataAddress dataDestination;
-    private String connectorId; // TODO remove when removing ids module
+    @Deprecated(forRemoval = true)
+    private String connectorId;
     private Map<String, String> properties = new HashMap<>();
 
     @Override
