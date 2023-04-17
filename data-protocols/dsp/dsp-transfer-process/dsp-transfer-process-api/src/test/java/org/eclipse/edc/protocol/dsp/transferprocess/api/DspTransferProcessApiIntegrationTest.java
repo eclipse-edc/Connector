@@ -17,22 +17,32 @@ package org.eclipse.edc.protocol.dsp.transferprocess.api;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.*;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
 public class DspTransferProcessApiIntegrationTest {
@@ -40,7 +50,13 @@ public class DspTransferProcessApiIntegrationTest {
 
     private final String authKey = "123456";
 
+    private final String authHeader = "auth";
+
+    private final String callbackAddress = "http://callback";
+
     private JsonLdTransformerRegistryImpl registry;
+
+    private final IdentityService identityService = mock(IdentityService.class);
 
     @BeforeEach
     void setUp(EdcExtension extension) {
@@ -52,21 +68,28 @@ public class DspTransferProcessApiIntegrationTest {
                 "web.http.protocol.port", String.valueOf(port),
                 "web.http.protocol.path", "/api/v1/dsp",
                 "edc.api.auth.key", authKey,
-                "edc.ids.id", "testID"
+                "edc.ids.id", "testID",
+                "edc.dsp.callback.address", callbackAddress
         ));
 
+        extension.registerServiceMock(IdentityService.class, identityService);
 
+        when(identityService.verifyJwtToken(any(), any()))
+                .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
     }
 
     @Test
     public void getTransferProcess(TransferProcessStore transferProcessStore) {
         var dataRequest = DataRequest.Builder.newInstance()
                 .id("TestID")
-                .destinationType("dspace:s3+push").build();
+                .destinationType("dspace:s3+push")
+                .build();
 
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("testId")
                 .dataRequest(dataRequest)
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("https:test").events(Set.of()).build()))
+                .state(0)
                 .build();
 
         transferProcessStore.save(transferProcess);
@@ -138,6 +161,7 @@ public class DspTransferProcessApiIntegrationTest {
         return given()
                 .baseUri("http://localhost:" + port)
                 .basePath("/api/v1/dsp")
+                .header(HttpHeaders.AUTHORIZATION, authHeader)
                 .when();
     }
 
@@ -145,12 +169,14 @@ public class DspTransferProcessApiIntegrationTest {
         return Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder()
                         .add(DSPACE_PREFIX, DSPACE_SCHEMA)
+                        .add(DCT_PREFIX, DCT_SCHEMA)
                         .build())
                 .add(ID, "TESTID")
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
-                .add(DSPACE_CONTRACTAGREEMENT_TYPE, "testType")
+                .add("dspace:agreementId", "testType")
                 .add("dataAddress", "{}")
-                .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callbackAddress")
+                .add("dspace:callbackAddress", "https://callbackAddress")
+                .add("dct:format", "dspace:S3_AWS_PUSH")
                 .build();
     }
 

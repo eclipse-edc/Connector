@@ -76,16 +76,13 @@ public class JsonObjectToTransferProcessTransformerTest {
     }
 
     @Test
-    void jsonObjectToTransferRequest() {
+    void jsonObjectToTransferRequestWithoutDataAddress() {
         var json = createJsonTransferRequestWithoutDataAddress();
 
         var result = registry.transform(json, TransferRequestMessage.class);
 
         Assertions.assertNotNull(result.getContent());
-
     }
-
-
 
     private JsonObject createJsonTransferRequestWithoutDataAddress() {
         return  Json.createObjectBuilder()
@@ -93,7 +90,7 @@ public class JsonObjectToTransferProcessTransformerTest {
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
                 .add(DSPACE_CONTRACTAGREEMENT_TYPE, "TESTID")
                 .add(DCT_FORMAT, "dspace:s3+push")
-                .add("dataAddress", Json.createObjectBuilder().build())
+                .add(DSPACE_DATAADDRESS_TYPE, Json.createObjectBuilder().build())
                 .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callback")
                 .build();
     }
@@ -103,13 +100,16 @@ public class JsonObjectToTransferProcessTransformerTest {
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
                 .add(DSPACE_CONTRACTAGREEMENT_TYPE, "TESTID")
-                .add("dataAddress", createDataAddress())
+                .add(DSPACE_DATAADDRESS_TYPE, createDataAddress())
                 .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callback")
                 .build();
     }
 
     private JsonObject createDataAddress() {
         return Json.createObjectBuilder()
+                .add("accessKeyId", "TESTID")
+                .add("secretAccessKey", "SECRETID")
+                .add("region", "eu-central-1")
                 .build();
     }
 }
