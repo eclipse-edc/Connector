@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 
-class CloudEventsPublisher implements EventSubscriber<Event> {
+class CloudEventsPublisher implements EventSubscriber {
     private static final String APPLICATION_JSON = "application/json";
 
     private final String endpoint;
@@ -58,7 +58,7 @@ class CloudEventsPublisher implements EventSubscriber<Event> {
     }
 
     @Override
-    public void on(EventEnvelope<Event> event) {
+    public <E extends Event> void on(EventEnvelope<E> event) {
         var json = typeManager.writeValueAsBytes(event.getPayload());
         var instant = Instant.ofEpochMilli(event.getAt());
         var localDateTime = LocalDateTime.ofInstant(instant, clock.getZone());

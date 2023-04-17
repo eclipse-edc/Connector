@@ -54,8 +54,8 @@ public class CallbackEventDispatcherExtension implements ServiceExtension {
         context.registerService(CallbackProtocolResolverRegistry.class, resolverRegistry);
 
         // Event listener for invoking callbacks in sync (transactional) and async (not transactional)
-        router.registerSync(Event.class, new CallbackEventDispatcher<>(dispatcherRegistry, resolverRegistry, true, monitor));
-        router.register(Event.class, new CallbackEventDispatcher<>(dispatcherRegistry, resolverRegistry, false, monitor));
+        router.registerSync(Event.class, new CallbackEventDispatcher(dispatcherRegistry, resolverRegistry, true, monitor));
+        router.register(Event.class, new CallbackEventDispatcher(dispatcherRegistry, resolverRegistry, false, monitor));
 
     }
 }

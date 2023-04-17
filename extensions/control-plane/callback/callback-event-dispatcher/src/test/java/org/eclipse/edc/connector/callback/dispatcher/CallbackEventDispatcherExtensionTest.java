@@ -55,7 +55,7 @@ public class CallbackEventDispatcherExtensionTest {
 
     }
 
-    private ArgumentMatcher<CallbackEventDispatcher<Event>> callbackEventDispatcherMatcher(boolean transactional) {
+    private ArgumentMatcher<CallbackEventDispatcher> callbackEventDispatcherMatcher(boolean transactional) {
         return dispatcher -> dispatcher.isTransactional() == transactional;
     }
 }

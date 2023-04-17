@@ -27,7 +27,7 @@ public class EventEnvelopeMatcher<T extends Event> implements ArgumentMatcher<Ev
     }
 
     public static <T extends Event> EventEnvelopeMatcher<T> isEnvelopeOf(Class<T> klass) {
-        return new EventEnvelopeMatcher(klass);
+        return new EventEnvelopeMatcher<>(klass);
     }
 
     @Override
