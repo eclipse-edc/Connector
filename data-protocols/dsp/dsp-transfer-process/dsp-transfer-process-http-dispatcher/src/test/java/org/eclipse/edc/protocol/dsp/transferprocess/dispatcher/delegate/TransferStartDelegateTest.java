@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.spi.result.Result;
@@ -29,11 +28,10 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TransferStartDelegateTest {
 
@@ -65,11 +63,11 @@ public class TransferStartDelegateTest {
         var httpRequest = startDelegate.buildRequest(message);
 
         assertThat(httpRequest.url().url()).hasToString(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + "/start");
-//        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-//
-//        verify(registry, times(1))
-//                .transform(argThat(requestMessage -> ((CatalogRequestMessage) requestMessage).getFilter().equals(message.getQuerySpec())), eq(JsonObject.class));
-//        verify(mapper, times(1)).writeValueAsString(jsonObject);
+        //        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
+
+        //        verify(registry, times(1))
+        //                .transform(argThat(requestMessage -> ((CatalogRequestMessage) requestMessage).getFilter().equals(message.getQuerySpec())), eq(JsonObject.class));
+        //        verify(mapper, times(1)).writeValueAsString(jsonObject);
     }
 
     private TransferStartMessage getTransferStartMessage() {

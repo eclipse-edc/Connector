@@ -37,9 +37,19 @@ import java.util.Map;
 import java.util.Set;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.*;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.*;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_SUSPENSION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -120,8 +130,7 @@ public class DspTransferProcessApiIntegrationTest {
                 .body(createTransferStartMessageJsonBody())
                 .post("/transfers/0/start")
                 .then()
-                .statusCode(204)
-                .contentType("");
+                .statusCode(204);
     }
 
     @Test
@@ -131,8 +140,7 @@ public class DspTransferProcessApiIntegrationTest {
                 .body(createTransferCompletionMessageJsonBody())
                 .post("/transfers/0/completion")
                 .then()
-                .statusCode(204)
-                .contentType("");
+                .statusCode(204);
     }
 
     @Test
@@ -142,8 +150,7 @@ public class DspTransferProcessApiIntegrationTest {
                 .body(createTransferTerminationMessageJsonBody())
                 .post("/transfers/0/termination")
                 .then()
-                .statusCode(204)
-                .contentType("");
+                .statusCode(204);
     }
 
     @Test
@@ -153,8 +160,7 @@ public class DspTransferProcessApiIntegrationTest {
                 .body(createTransferSuspensionMessageJsonBody())
                 .post("/transfers/0/suspension")
                 .then()
-                .statusCode(204)
-                .contentType("");
+                .statusCode(204);
     }
 
     private RequestSpecification baseRequest() {
