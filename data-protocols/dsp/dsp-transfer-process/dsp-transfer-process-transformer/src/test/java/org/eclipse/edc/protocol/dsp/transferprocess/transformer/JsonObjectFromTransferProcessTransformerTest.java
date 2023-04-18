@@ -45,10 +45,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_FORMAT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CORRELATIONID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_STATE_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
 
 class JsonObjectFromTransferProcessTransformerTest {
@@ -118,6 +130,12 @@ class JsonObjectFromTransferProcessTransformerTest {
 
         Assertions.assertNotNull(result);
 
+        assertThat(result.getContent().getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_TYPE);
+        assertThat(result.getContent().getJsonString(JsonLdKeywords.ID).getString()).isEqualTo("transferProcessID");
+        assertThat(result.getContent().getJsonString(DSPACE_STATE_TYPE).getString()).isEqualTo("INITIAL");
+        assertThat(result.getContent().getJsonString(DSPACE_CORRELATIONID_TYPE).getString()).isEqualTo("dataRequestID");
+
+
         var document = JsonDocument.of(result.getContent());
         var obj = JsonLd.compact(document, contextDocument).get();
 
@@ -135,6 +153,8 @@ class JsonObjectFromTransferProcessTransformerTest {
         var result = registry.transform(message, JsonObject.class);
 
         Assertions.assertNotNull(result);
+        assertThat(result.getContent().getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_COMPLETION_TYPE);
+        assertThat(result.getContent().getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
 
         var document = JsonDocument.of(result.getContent());
         var obj = JsonLd.compact(document, contextDocument).get();
@@ -160,6 +180,12 @@ class JsonObjectFromTransferProcessTransformerTest {
         var result = registry.transform(message, JsonObject.class);
 
         Assertions.assertNotNull(result);
+        assertThat(result.getContent().getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
+        assertThat(result.getContent().getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo("ContractID");
+        assertThat(result.getContent().getJsonString(DCT_FORMAT).getString()).isEqualTo("TestValueProperty");
+        assertThat(result.getContent().getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo("TestConnectorAddress");
+        assertThat(result.getContent().getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID"); //Correct in TransferRequestMessage?
+        //TODO Add missing fields (dataAddress) from Spec
 
         var document = JsonDocument.of(result.getContent());
         var obj = JsonLd.compact(document, contextDocument).get();
@@ -171,13 +197,16 @@ class JsonObjectFromTransferProcessTransformerTest {
     void transformTransferStart() throws JsonLdError {
         var message = TransferStartMessage.Builder.newInstance()
                 .processId("TestID")
-                .connectorAddress("TestConnectorAddress")
+                .connectorAddress("TestConnectorAddress") //TODO Spec hat keine callback oder Connector Address
                 .protocol("dsp")
                 .build();
 
         var result = registry.transform(message, JsonObject.class);
 
         Assertions.assertNotNull(result);
+        assertThat(result.getContent().getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_START_TYPE);
+        assertThat(result.getContent().getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
+        //TODO Add missing fields (dataAddress) from Spec
 
         var document = JsonDocument.of(result.getContent());
         var obj = JsonLd.compact(document, contextDocument).get();
@@ -196,6 +225,9 @@ class JsonObjectFromTransferProcessTransformerTest {
         var result = registry.transform(message, JsonObject.class);
 
         Assertions.assertNotNull(result);
+        assertThat(result.getContent().getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_TERMINATION_TYPE);
+        assertThat(result.getContent().getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
+        //TODO Add missing fields (code, reason) from Spec
 
         var document = JsonDocument.of(result.getContent());
         var obj = JsonLd.compact(document, contextDocument).get();
@@ -209,16 +241,5 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .keyName("dataAddressId")
                 .property("type", "TestValueProperty")
                 .build();
-    }
-
-    private JsonObject getJson() {
-        var builder = builderFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, "negotiationId");
-        builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "ContractNegotiation");
-
-        builder.add(DSPACE_SCHEMA + "correlationId", "correlationId");
-
-
-        return builder.build();
     }
 }

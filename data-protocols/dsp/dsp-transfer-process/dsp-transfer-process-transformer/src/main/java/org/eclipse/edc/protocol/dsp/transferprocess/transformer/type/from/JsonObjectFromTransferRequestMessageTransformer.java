@@ -28,9 +28,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_FORMAT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
 
@@ -58,10 +60,11 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
         builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferRequestMessage");
 
-        builder.add(DSPACE_SCHEMA + "agreementId", transferRequestMessage.getContractId());
-        builder.add(DCT_SCHEMA + "format", transferRequestMessage.getDataDestination().getType()); //TODO check value
+        builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
+        builder.add(DCT_FORMAT, transferRequestMessage.getDataDestination().getType()); //TODO check value
         builder.add(DSPACE_DATAADDRESS_TYPE, transformDataAddress(transferRequestMessage.getDataDestination(), context)); //TODO Check if this is the correct Way
         builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getConnectorAddress());
+        builder.add(DSPACE_PROCESSID_TYPE, transferRequestMessage.getProcessId());
 
         return builder.build();
     }

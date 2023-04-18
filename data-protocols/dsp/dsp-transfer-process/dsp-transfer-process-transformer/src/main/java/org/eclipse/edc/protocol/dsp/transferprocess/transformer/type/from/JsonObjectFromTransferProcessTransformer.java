@@ -55,7 +55,7 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
         builder.add(ID, transferProcess.getId());
         builder.add(TYPE, DSPACE_TRANSFERPROCESS_TYPE);
         builder.add(DSPACE_CORRELATIONID_TYPE, transferProcess.getCorrelationId());
-        builder.add(DSPACE_STATE_TYPE, TransferProcessStates.from(transferProcess.getState()).name());
+        builder.add(DSPACE_STATE_TYPE, TransferProcessStates.from(transferProcess.getState()).name()); //TODO USE dspace:state??
 
         return builder.build();
     }

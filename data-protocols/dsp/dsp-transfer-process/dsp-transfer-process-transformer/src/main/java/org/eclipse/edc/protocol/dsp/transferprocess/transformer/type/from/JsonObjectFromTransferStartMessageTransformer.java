@@ -53,6 +53,8 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_START_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
 
+        //TODO ADD missing fields dataAddress from spec
+
         return builder.build();
     }
 }

@@ -27,7 +27,7 @@ import java.util.UUID;
 
 import static org.eclipse.edc.jsonld.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CORRELATIONID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 
 
@@ -53,11 +53,7 @@ public class JsonObjectFromTransferCompletionMessageTransformer extends Abstract
 
         builder.add(ID, String.valueOf(UUID.randomUUID()));
         builder.add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE);
-        builder.add(DSPACE_CORRELATIONID_TYPE, transferCompletionMessage.getProcessId());
-
-        //TODO Set fields after Messages are created (ProcessID)
-
-
+        builder.add(DSPACE_PROCESSID_TYPE, transferCompletionMessage.getProcessId());
 
         return builder.build();
     }
