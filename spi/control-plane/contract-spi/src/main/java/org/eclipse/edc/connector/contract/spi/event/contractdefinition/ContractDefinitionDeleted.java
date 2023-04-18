@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,38 +9,38 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
-package org.eclipse.edc.spi.event.contractnegotiation;
+package org.eclipse.edc.connector.contract.spi.event.contractdefinition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been verified by consumer.
+ * Describe a ContractDefinition deletion, after this has emitted, the ContractDefinition represented by the id won't be available anymore.
  */
-@JsonDeserialize(builder = ContractNegotiationVerified.Builder.class)
-public class ContractNegotiationVerified extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractDefinitionDeleted.Builder.class)
+public class ContractDefinitionDeleted extends ContractDefinitionEvent {
 
-    private ContractNegotiationVerified() {
+    private ContractDefinitionDeleted() {
     }
 
     @Override
     public String name() {
-        return "contract.negotiation.verified";
+        return "contract.definition.deleted";
     }
 
-
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationVerified, Builder> {
+    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionDeleted, Builder> {
 
-        @JsonCreator
         private Builder() {
-            super(new ContractNegotiationVerified());
+            super(new ContractDefinitionDeleted());
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
@@ -49,5 +49,7 @@ public class ContractNegotiationVerified extends ContractNegotiationEvent {
         public Builder self() {
             return this;
         }
+
     }
+
 }

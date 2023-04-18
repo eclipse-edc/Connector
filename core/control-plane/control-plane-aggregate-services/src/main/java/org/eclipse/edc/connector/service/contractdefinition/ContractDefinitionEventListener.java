@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.service.contractdefinition;
 
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionListener;
+import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionCreated;
+import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
+import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionEvent;
+import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionUpdated;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionCreated;
-import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionDeleted;
-import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionEvent;
-import org.eclipse.edc.spi.event.contractdefinition.ContractDefinitionUpdated;
 
 import java.time.Clock;
 
@@ -69,7 +69,7 @@ public class ContractDefinitionEventListener implements ContractDefinitionListen
                 .payload(event)
                 .at(clock.millis())
                 .build();
-        
+
         eventRouter.publish(envelope);
     }
 }

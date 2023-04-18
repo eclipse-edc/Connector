@@ -13,31 +13,31 @@
  *
  */
 
-package org.eclipse.edc.spi.event.contractnegotiation;
+package org.eclipse.edc.connector.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been offered.
+ * This event is raised when the ContractNegotiation has been inititated.
  */
-@JsonDeserialize(builder = ContractNegotiationOffered.Builder.class)
-public class ContractNegotiationOffered extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationInitiated.Builder.class)
+public class ContractNegotiationInitiated extends ContractNegotiationEvent {
 
-    private ContractNegotiationOffered() {
+    private ContractNegotiationInitiated() {
     }
 
     @Override
     public String name() {
-        return "contract.negotiation.offered";
+        return "contract.negotiation.initiated";
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationOffered, Builder> {
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationInitiated, Builder> {
 
         private Builder() {
-            super(new ContractNegotiationOffered());
+            super(new ContractNegotiationInitiated());
         }
 
         @JsonCreator

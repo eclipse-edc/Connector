@@ -13,34 +13,31 @@
  *
  */
 
-package org.eclipse.edc.spi.event.contractnegotiation;
+package org.eclipse.edc.connector.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the ContractNegotiation has been declined.
- *
- * @deprecated please use {@link ContractNegotiationTerminated}
+ * This event is raised when the ContractNegotiation has been offered.
  */
-@Deprecated(since = "milestone9")
-@JsonDeserialize(builder = ContractNegotiationDeclined.Builder.class)
-public class ContractNegotiationDeclined extends ContractNegotiationEvent {
+@JsonDeserialize(builder = ContractNegotiationOffered.Builder.class)
+public class ContractNegotiationOffered extends ContractNegotiationEvent {
 
-    private ContractNegotiationDeclined() {
+    private ContractNegotiationOffered() {
     }
 
     @Override
     public String name() {
-        return "contract.negotiation.declined";
+        return "contract.negotiation.offered";
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationDeclined, Builder> {
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationOffered, Builder> {
 
         private Builder() {
-            super(new ContractNegotiationDeclined());
+            super(new ContractNegotiationOffered());
         }
 
         @JsonCreator

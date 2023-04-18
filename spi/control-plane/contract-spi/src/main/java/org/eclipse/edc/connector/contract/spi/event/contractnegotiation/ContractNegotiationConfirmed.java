@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,37 +9,41 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - expending Event classes
  *
  */
 
-package org.eclipse.edc.spi.event.contractdefinition;
+package org.eclipse.edc.connector.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * Describe a ContractDefinition modification.
+ * This event is raised when the ContractNegotiation has been confirmed.
+ *
+ * @deprecated please use {@link ContractNegotiationAgreed}
  */
-@JsonDeserialize(builder = ContractDefinitionUpdated.Builder.class)
-public class ContractDefinitionUpdated extends ContractDefinitionEvent {
+@Deprecated(since = "milestone9")
+@JsonDeserialize(builder = ContractNegotiationConfirmed.Builder.class)
+public class ContractNegotiationConfirmed extends ContractNegotiationEvent {
 
-    private ContractDefinitionUpdated() {
+    private ContractNegotiationConfirmed() {
     }
 
     @Override
     public String name() {
-        return "contract.definition.updated";
+        return "contract.negotiation.confirmed";
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ContractDefinitionEvent.Builder<ContractDefinitionUpdated, Builder> {
-
-        private Builder() {
-            super(new ContractDefinitionUpdated());
-        }
+    public static class Builder extends ContractNegotiationEvent.Builder<ContractNegotiationConfirmed, Builder> {
 
         @JsonCreator
+        private Builder() {
+            super(new ContractNegotiationConfirmed());
+        }
+
         public static Builder newInstance() {
             return new Builder();
         }
@@ -48,7 +52,5 @@ public class ContractDefinitionUpdated extends ContractDefinitionEvent {
         public Builder self() {
             return this;
         }
-
     }
-
 }
