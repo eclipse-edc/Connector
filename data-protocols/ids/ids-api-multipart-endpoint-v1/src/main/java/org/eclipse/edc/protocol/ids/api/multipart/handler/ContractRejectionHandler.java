@@ -65,7 +65,7 @@ public class ContractRejectionHandler implements Handler {
         var rejectionMessage = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .processId(String.valueOf(correlationId))
                 .protocol(MessageProtocol.IDS_MULTIPART)
-                .connectorAddress("") // this will be used by DSP implementation
+                .callbackAddress("") // this will be used by DSP implementation
                 .rejectionReason(Optional.ofNullable(rejectionReason).map(TypedLiteral::toString).orElse(""))
                 .build();
 

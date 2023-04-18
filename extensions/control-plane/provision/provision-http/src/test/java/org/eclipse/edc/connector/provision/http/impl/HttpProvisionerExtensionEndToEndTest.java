@@ -169,7 +169,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .id(UUID.randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .protocol("any")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .contractId(CONTRACT_ID)
                 .assetId(ASSET_ID)
                 .build();

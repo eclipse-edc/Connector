@@ -25,8 +25,8 @@ public interface RemoteMessage {
     String getProtocol();
 
     /**
-     * Returns the recipient's connector address.
+     * Returns the recipient's callback address.
      */
-    String getConnectorAddress();
+    String getCallbackAddress();
 
 }

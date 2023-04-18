@@ -21,7 +21,7 @@ import java.util.Objects;
 public class ContractAgreementVerificationMessage implements ContractRemoteMessage {
 
     private String protocol;
-    private String connectorAddress;
+    private String callbackAddress;
     private String processId;
 
     @Override
@@ -30,8 +30,8 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
     }
 
     @Override
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     @Override
@@ -55,8 +55,8 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
             return this;
         }
 
-        public Builder connectorAddress(String connectorAddress) {
-            this.message.connectorAddress = connectorAddress;
+        public Builder callbackAddress(String callbackAddress) {
+            this.message.callbackAddress = callbackAddress;
             return this;
         }
 
@@ -67,7 +67,7 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
 
         public ContractAgreementVerificationMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
-            Objects.requireNonNull(message.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(message.callbackAddress, "callbackAddress");
             Objects.requireNonNull(message.processId, "processId");
             return message;
         }

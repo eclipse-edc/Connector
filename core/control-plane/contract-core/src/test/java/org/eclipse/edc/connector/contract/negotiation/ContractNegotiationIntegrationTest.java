@@ -148,11 +148,8 @@ class ContractNegotiationIntegrationTest {
         // Create an initial request and trigger consumer manager
         var request = ContractRequestMessage.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .contractOffer(offer)
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
                 .protocol("ids-multipart")
                 .build();
 
@@ -200,12 +197,9 @@ class ContractNegotiationIntegrationTest {
         // Create an initial request and trigger consumer manager
         var request = ContractRequestMessage.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .contractOffer(offer)
                 .protocol("ids-multipart")
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
                 .build();
         consumerManager.initiate(request);
 
@@ -233,12 +227,9 @@ class ContractNegotiationIntegrationTest {
         // Create an initial request and trigger consumer manager
         var request = ContractRequestMessage.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .contractOffer(offer)
                 .protocol("ids-multipart")
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
                 .build();
         consumerManager.initiate(request);
 

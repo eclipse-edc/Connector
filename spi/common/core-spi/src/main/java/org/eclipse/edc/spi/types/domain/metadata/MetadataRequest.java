@@ -50,7 +50,7 @@ public class MetadataRequest implements RemoteMessage {
     }
 
     @Override
-    public String getConnectorAddress() {
+    public String getCallbackAddress() {
         return connectorAddress;
     }
 

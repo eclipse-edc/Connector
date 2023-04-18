@@ -36,7 +36,7 @@ public class CatalogServiceImpl implements CatalogService {
         var request = CatalogRequestMessage.Builder.newInstance()
                 .protocol("ids-multipart")
                 .connectorId(providerUrl)
-                .connectorAddress(providerUrl)
+                .callbackAddress(providerUrl)
                 .querySpec(spec)
                 .build();
 

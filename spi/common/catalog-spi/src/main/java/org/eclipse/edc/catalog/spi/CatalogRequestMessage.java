@@ -32,14 +32,14 @@ public class CatalogRequestMessage implements RemoteMessage {
     private final String protocol;
     @Deprecated(forRemoval = true)
     private final String connectorId;
-    private final String connectorAddress;
+    private final String callbackAddress;
     private final QuerySpec querySpec;
 
-    private CatalogRequestMessage(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress,
+    private CatalogRequestMessage(@NotNull String protocol, @NotNull String connectorId, @NotNull String callbackAddress,
                                   @Nullable QuerySpec querySpec) {
         this.protocol = protocol;
         this.connectorId = connectorId;
-        this.connectorAddress = connectorAddress;
+        this.callbackAddress = callbackAddress;
         this.querySpec = querySpec;
     }
 
@@ -51,8 +51,8 @@ public class CatalogRequestMessage implements RemoteMessage {
 
     @NotNull
     @Override
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     @Deprecated
@@ -66,21 +66,21 @@ public class CatalogRequestMessage implements RemoteMessage {
     }
 
     public Builder toBuilder() {
-        return new Builder(protocol, connectorId, connectorAddress, querySpec);
+        return new Builder(protocol, connectorId, callbackAddress, querySpec);
     }
 
     public static class Builder {
         private String protocol;
         private String connectorId;
-        private String connectorAddress;
+        private String callbackAddress;
         private QuerySpec querySpec;
 
         private Builder() {}
 
-        private Builder(String protocol, String connectorId, String connectorAddress, QuerySpec querySpec) {
+        private Builder(String protocol, String connectorId, String callbackAddress, QuerySpec querySpec) {
             this.protocol = protocol;
             this.connectorId = connectorId;
-            this.connectorAddress = connectorAddress;
+            this.callbackAddress = callbackAddress;
             this.querySpec = querySpec;
         }
 
@@ -100,8 +100,8 @@ public class CatalogRequestMessage implements RemoteMessage {
             return this;
         }
 
-        public CatalogRequestMessage.Builder connectorAddress(String connectorAddress) {
-            this.connectorAddress = connectorAddress;
+        public CatalogRequestMessage.Builder callbackAddress(String callbackAddress) {
+            this.callbackAddress = callbackAddress;
             return this;
         }
 
@@ -112,9 +112,9 @@ public class CatalogRequestMessage implements RemoteMessage {
 
         public CatalogRequestMessage build() {
             Objects.requireNonNull(protocol, "protocol");
-            Objects.requireNonNull(connectorAddress, "connectorAddress");
+            Objects.requireNonNull(callbackAddress, "callbackAddress");
 
-            return new CatalogRequestMessage(protocol, connectorId, connectorAddress, querySpec);
+            return new CatalogRequestMessage(protocol, connectorId, callbackAddress, querySpec);
         }
     }
 }

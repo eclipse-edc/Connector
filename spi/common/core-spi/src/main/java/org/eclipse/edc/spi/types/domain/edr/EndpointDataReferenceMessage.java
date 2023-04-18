@@ -46,7 +46,7 @@ public class EndpointDataReferenceMessage implements RemoteMessage {
 
     @NotNull
     @Override
-    public String getConnectorAddress() {
+    public String getCallbackAddress() {
         return connectorAddress;
     }
 

@@ -109,7 +109,7 @@ public class TransferProcessEventDispatchTest {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
 
-        var startMessage = TransferStartMessage.Builder.newInstance().processId("dataRequestId").protocol("any").connectorAddress("http://any").build();
+        var startMessage = TransferStartMessage.Builder.newInstance().processId("dataRequestId").protocol("any").callbackAddress("http://any").build();
         protocolService.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
 
         await().untilAsserted(() -> {

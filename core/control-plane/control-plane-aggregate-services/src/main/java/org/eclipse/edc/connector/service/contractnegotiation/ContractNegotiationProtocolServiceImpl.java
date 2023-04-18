@@ -149,7 +149,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .id(UUID.randomUUID().toString())
                 .correlationId(message.getProcessId())
                 .counterPartyId(message.getContractOffer().getConsumer().toString())
-                .counterPartyAddress(message.getConnectorAddress())
+                .counterPartyAddress(message.getCallbackAddress())
                 .protocol(message.getProtocol())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(PROVIDER)

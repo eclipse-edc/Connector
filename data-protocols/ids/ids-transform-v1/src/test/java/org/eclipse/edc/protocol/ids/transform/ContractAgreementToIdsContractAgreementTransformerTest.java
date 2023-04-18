@@ -104,7 +104,7 @@ class ContractAgreementToIdsContractAgreementTransformerTest {
                 .policy(policy)
                 .protocol("any")
                 .connectorId("any")
-                .connectorAddress("any")
+                .callbackAddress("any")
                 .processId("any")
                 .build();
     }

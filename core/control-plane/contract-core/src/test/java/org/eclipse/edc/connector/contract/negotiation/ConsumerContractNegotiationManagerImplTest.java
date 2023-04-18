@@ -116,12 +116,9 @@ class ConsumerContractNegotiationManagerImplTest {
 
         var request = ContractRequestMessage.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
                 .build();
 
 
@@ -131,7 +128,7 @@ class ConsumerContractNegotiationManagerImplTest {
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == INITIAL.code() &&
                         negotiation.getCounterPartyId().equals(request.getConnectorId()) &&
-                        negotiation.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
+                        negotiation.getCounterPartyAddress().equals(request.getCallbackAddress()) &&
                         negotiation.getProtocol().equals(request.getProtocol()) &&
                         negotiation.getCorrelationId().equals(negotiation.getId()) &&
                         negotiation.getContractOffers().size() == 1 &&
@@ -268,7 +265,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .id(UUID.randomUUID().toString())
                 .correlationId("processId")
                 .counterPartyId("connectorId")
-                .counterPartyAddress("connectorAddress")
+                .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .stateTimestamp(Instant.now().toEpochMilli());
     }

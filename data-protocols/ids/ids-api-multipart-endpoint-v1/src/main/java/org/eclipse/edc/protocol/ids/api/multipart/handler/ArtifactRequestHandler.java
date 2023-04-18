@@ -147,7 +147,7 @@ public class ArtifactRequestHandler implements Handler {
                 .id(message.getId().toString())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .connectorId(connectorId.toString())
-                .connectorAddress(idsWebhookAddress)
+                .callbackAddress(idsWebhookAddress)
                 .dataDestination(dataDestination)
                 .properties(props)
                 .assetId(contractAgreement.getAssetId())

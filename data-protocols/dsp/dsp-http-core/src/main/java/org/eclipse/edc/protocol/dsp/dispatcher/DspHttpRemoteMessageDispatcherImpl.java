@@ -35,27 +35,27 @@ import static java.lang.String.format;
  * for creating the requests and parsing the responses for specific message types.
  */
 public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageDispatcher {
-    
+
     private Map<Class<? extends RemoteMessage>, DspHttpDispatcherDelegate> delegates;
     private EdcHttpClient httpClient;
     private IdentityService identityService;
-    
+
     public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient, IdentityService identityService) {
         this.httpClient = httpClient;
         this.identityService = identityService;
         this.delegates = new HashMap<>();
     }
-    
+
     @Override
     public String protocol() {
         return HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
     }
-    
+
     @Override
     public <M extends RemoteMessage, R> void registerDelegate(DspHttpDispatcherDelegate<M, R> delegate) {
         delegates.put(delegate.getMessageType(), delegate);
     }
-    
+
     /**
      * Sends a remote message. Chooses the delegate for the respective message type to build the
      * request. Adds the token received from the {@link IdentityService} as the Authorization header.
@@ -72,26 +72,26 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
         if (delegate == null) {
             throw new EdcException(format("No DSP message dispatcher found for message type %s", message.getClass()));
         }
-        
+
         var request = delegate.buildRequest(message);
-        
+
         var token = obtainToken(message);
         var requestWithAuth = request.newBuilder()
                 .header("Authorization", token.getToken())
                 .build();
-        
+
         return httpClient.executeAsync(requestWithAuth, delegate.parseResponse());
     }
-    
+
     private TokenRepresentation obtainToken(RemoteMessage message) {
         var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience(message.getConnectorAddress())
+                .audience(message.getCallbackAddress())
                 .build();
         var tokenResult = identityService.obtainClientCredentials(tokenParameters);
         if (tokenResult.failed()) {
             throw new EdcException(format("Unable to obtain credentials: %s", String.join(", ", tokenResult.getFailureMessages())));
         }
-        
+
         return tokenResult.getContent();
     }
 }

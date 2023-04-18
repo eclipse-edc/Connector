@@ -72,14 +72,11 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .contractEnd(now.plusSeconds(object.getOffer().getValidity()))
                 .build();
 
-        var callbacks = object.getCallbackAddresses().stream().map(c -> context.transform(c, CallbackAddress.class)).collect(Collectors.toList());
-
         return ContractRequestMessage.Builder.newInstance()
                 .connectorId(object.getConnectorId())
-                .connectorAddress(object.getConnectorAddress())
+                .callbackAddress(object.getConnectorAddress())
                 .protocol(object.getProtocol())
                 .contractOffer(contractOffer)
-                .callbackAddresses(callbacks)
                 .type(ContractRequestMessage.Type.INITIAL)
                 .build();
     }

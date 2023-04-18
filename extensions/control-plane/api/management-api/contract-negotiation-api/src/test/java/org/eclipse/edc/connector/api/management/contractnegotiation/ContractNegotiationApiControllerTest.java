@@ -312,7 +312,7 @@ class ContractNegotiationApiControllerTest {
         return ContractRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
@@ -320,9 +320,6 @@ class ContractNegotiationApiControllerTest {
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
                 .build();
     }
 

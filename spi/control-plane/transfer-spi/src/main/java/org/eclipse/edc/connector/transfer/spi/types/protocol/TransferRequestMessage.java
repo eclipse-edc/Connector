@@ -27,7 +27,7 @@ import java.util.Objects;
  */
 public class TransferRequestMessage implements TransferRemoteMessage {
 
-    private String connectorAddress;
+    private String callbackAddress;
     private String protocol;
     private String id;
     private String contractId;
@@ -44,8 +44,8 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     }
 
     @Override
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     @Override
@@ -97,8 +97,8 @@ public class TransferRequestMessage implements TransferRemoteMessage {
             return this;
         }
 
-        public Builder connectorAddress(String address) {
-            message.connectorAddress = address;
+        public Builder callbackAddress(String callbackAddress) {
+            message.callbackAddress = callbackAddress;
             return this;
         }
 
@@ -136,7 +136,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
         public TransferRequestMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
-            Objects.requireNonNull(message.connectorAddress, "The connectorAddress must be specified");
+            Objects.requireNonNull(message.callbackAddress, "The callbackAddress must be specified");
             return message;
         }
     }

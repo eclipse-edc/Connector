@@ -100,7 +100,7 @@ class MultipartTransferRequestSenderTest {
                 .connectorId("connector-test")
                 .properties(Map.of("foo", "bar", "hello", "world"))
                 .protocol("ids-multipart")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .build();
     }
 }
