@@ -30,12 +30,9 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -89,17 +86,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @Override
     public StatusResult<ContractNegotiation> initiate(ContractRequestMessage contractOffer) {
         var id = UUID.randomUUID().toString();
-        var callbackAddress = CallbackAddress.Builder.newInstance()
-                .uri(contractOffer.getCallbackAddress())
-                .events(Set.of("contract.negotiation.initiated"))
-                .build();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id)
                 .correlationId(id)
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getCallbackAddress())
-                .callbackAddresses(List.of(callbackAddress))
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
                 .build();

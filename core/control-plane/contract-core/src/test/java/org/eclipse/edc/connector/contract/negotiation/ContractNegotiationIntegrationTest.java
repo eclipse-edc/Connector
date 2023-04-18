@@ -163,7 +163,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(providerNegotiation).isNotNull();
 
                     // Assert that the consumer has the callbacks
-                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
+                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(0);
                     assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
 
                     // Assert that provider and consumer have the same offers and agreement stored
@@ -241,7 +241,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(providerNegotiation).isNotNull();
 
                     // Assert that the consumer has the callbacks
-                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
+                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(0);
                     assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
 
                     // Assert that provider and consumer have the same offers stored

@@ -132,7 +132,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getCorrelationId().equals(negotiation.getId()) &&
                         negotiation.getContractOffers().size() == 1 &&
                         negotiation.getLastContractOffer().equals(contractOffer) &&
-                        negotiation.getCallbackAddresses().size() == 1));
+                        negotiation.getCallbackAddresses().isEmpty()));
 
         verify(listener).initiated(any());
     }
