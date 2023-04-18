@@ -32,5 +32,7 @@ dependencies {
     implementation("org.eclipse.parsson:parsson:1.1.1")
 
     implementation(libs.dnsOverHttps)
+
+    testImplementation(project(":core:common:junit"))
 }
 

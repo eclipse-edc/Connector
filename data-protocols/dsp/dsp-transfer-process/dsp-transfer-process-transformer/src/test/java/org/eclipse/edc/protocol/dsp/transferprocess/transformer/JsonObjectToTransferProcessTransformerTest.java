@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_FORMAT;
@@ -43,6 +44,14 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalo
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 
 public class JsonObjectToTransferProcessTransformerTest {
+
+    private final String processId = "TestProcessID";
+
+    private final String contractId = "TestContreactID";
+
+    private final String destinationType = "dspace:s3+push";
+
+    private final String callbackAddress = "https://callback.de";
 
     private JsonLdTransformerRegistryImpl registry;
 
@@ -89,21 +98,36 @@ public class JsonObjectToTransferProcessTransformerTest {
         var result = registry.transform(json, TransferRequestMessage.class);
 
         Assertions.assertNotNull(result.getContent());
+
+        assertThat(result.getContent().getContractId()).isEqualTo(contractId);
+        assertThat(result.getContent().getDataDestination().getType()).isEqualTo(destinationType);
+        assertThat(result.getContent().getConnectorAddress()).isEqualTo(callbackAddress);
     }
 
     @Test
     void jsonObjectToTransferRequestWithDataAddress() {
-        //TODO WriteTest
+        var json = createJsonTransferRequestWithDataAddress();
+
+        var result = registry.transform(json, TransferRequestMessage.class);
+
+        Assertions.assertNotNull(result.getContent());
+
+        assertThat(result.getContent().getContractId()).isEqualTo(contractId);
+        assertThat(result.getContent().getDataDestination().getType()).isEqualTo(destinationType);
+        assertThat(result.getContent().getConnectorAddress()).isEqualTo(callbackAddress);
+
+        assertThat(result.getContent().getDataDestination().getProperty("accessKeyId")).isEqualTo("TESTID");
+        assertThat(result.getContent().getDataDestination().getProperty("region")).isEqualTo("eu-central-1");
     }
 
     private JsonObject createJsonTransferRequestWithoutDataAddress() {
-        return  Json.createObjectBuilder()
+        return Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
-                .add(DSPACE_CONTRACTAGREEMENT_TYPE, "TESTID")
-                .add(DCT_FORMAT, "dspace:s3+push")
+                .add(DSPACE_CONTRACTAGREEMENT_TYPE, contractId)
+                .add(DCT_FORMAT, destinationType)
                 .add(DSPACE_DATAADDRESS_TYPE, Json.createObjectBuilder().build())
-                .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callback")
+                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
                 .build();
     }
 
@@ -111,16 +135,16 @@ public class JsonObjectToTransferProcessTransformerTest {
         return Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
-                .add(DSPACE_CONTRACTAGREEMENT_TYPE, "TESTID")
+                .add(DSPACE_CONTRACTAGREEMENT_TYPE, contractId)
+                .add(DCT_FORMAT, destinationType)
                 .add(DSPACE_DATAADDRESS_TYPE, createDataAddress())
-                .add(DSPACE_CALLBACKADDRESS_TYPE, "https://callback")
+                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
                 .build();
     }
 
     private JsonObject createDataAddress() {
         return Json.createObjectBuilder()
                 .add("accessKeyId", "TESTID")
-                .add("secretAccessKey", "SECRETID")
                 .add("region", "eu-central-1")
                 .build();
     }

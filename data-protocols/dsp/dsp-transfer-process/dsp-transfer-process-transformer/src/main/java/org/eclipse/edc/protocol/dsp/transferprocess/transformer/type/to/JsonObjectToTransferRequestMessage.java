@@ -27,6 +27,7 @@ import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_FORMAT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 
 public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
@@ -64,7 +65,15 @@ public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransforme
 
         transformString(jsonObject.get(DCT_FORMAT), dataAddressBuilder::type, context);
 
-        // TODO Add missing properties (dataAddress, more to check...)
+        // TODO Check Codequality
+        if (jsonObject.containsKey(DSPACE_DATAADDRESS_TYPE)) {
+            var dataAddressJsonObject = jsonObject.getJsonObject(DSPACE_DATAADDRESS_TYPE);
+            for (var entry : dataAddressJsonObject.entrySet()) {
+                dataAddressBuilder.property(entry.getKey(), dataAddressJsonObject.getString(entry.getKey()));
+            }
+        }
+
+        //TODO Check for missing items
 
         return dataAddressBuilder.build();
     }
