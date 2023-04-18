@@ -28,7 +28,7 @@ class QueryRequestTest {
     void verifyDeserialization() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
-        QueryRequest process = QueryRequest.Builder.newInstance().protocol("foo").connectorId("id").connectorAddress("https://localhost:8080").queryLanguage("bar").query("baz").build();
+        QueryRequest process = QueryRequest.Builder.newInstance().protocol("foo").connectorId("id").callbackAddress("https://localhost:8080").queryLanguage("bar").query("baz").build();
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, process);
 

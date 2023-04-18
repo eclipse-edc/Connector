@@ -215,7 +215,7 @@ class ContractNegotiationApiControllerIntegrationTest {
         var request = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connector")
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
-                .connectorAddress("connectorAddress")
+                .connectorAddress("callbackAddress")
                 .offer(TestFunctions.createOffer())
                 .consumerId("test-consumer")
                 .providerId("test-provider")

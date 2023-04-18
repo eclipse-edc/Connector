@@ -32,7 +32,7 @@ public class TransferRequestDto {
 
     private String id;
     @NotNull(message = "connectorAddress cannot be null")
-    private String connectorAddress;
+    private String connectorAddress; // TODO change to callbackAddress
     @NotNull(message = "contractId cannot be null")
     private String contractId;
     @NotNull(message = "dataDestination cannot be null")

@@ -195,7 +195,7 @@ class ContractNegotiationApiControllerTest {
         when(transformerRegistry.transform(isA(NegotiationInitiateRequestDto.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(contractOfferRequest));
         var request = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .connectorAddress("callbackAddress")
                 .protocol("protocol")
                 .offer(TestFunctions.createOffer("offerId"))
                 .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance()
@@ -216,7 +216,7 @@ class ContractNegotiationApiControllerTest {
         when(service.initiateNegotiation(isA(ContractRequestMessage.class))).thenReturn(createContractNegotiation("negotiationId"));
         var request = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .connectorAddress("callbackAddress")
                 .protocol("protocol")
                 .offer(TestFunctions.createOffer("offerId"))
                 .build();

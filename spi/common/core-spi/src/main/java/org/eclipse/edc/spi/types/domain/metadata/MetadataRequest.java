@@ -33,13 +33,13 @@ public class MetadataRequest implements RemoteMessage {
 
     private final String protocol;
     private final String connectorId;
-    private final String connectorAddress;
+    private final String callbackAddress;
     private final URI requestedAsset;
 
-    private MetadataRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress, URI requestedAsset) {
+    private MetadataRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String callbackAddress, URI requestedAsset) {
         this.protocol = protocol;
         this.connectorId = connectorId;
-        this.connectorAddress = connectorAddress;
+        this.callbackAddress = callbackAddress;
         this.requestedAsset = requestedAsset;
     }
 
@@ -54,7 +54,7 @@ public class MetadataRequest implements RemoteMessage {
 
     @Override
     public String getCallbackAddress() {
-        return connectorAddress;
+        return callbackAddress;
     }
 
     public URI getRequestedAsset() {
@@ -64,7 +64,7 @@ public class MetadataRequest implements RemoteMessage {
     public static class Builder {
         private String protocol;
         private String connectorId;
-        private String connectorAddress;
+        private String callbackAddress;
         private URI requestedAsset;
 
         private Builder() {
@@ -85,8 +85,8 @@ public class MetadataRequest implements RemoteMessage {
             return this;
         }
 
-        public Builder connectorAddress(String connectorAddress) {
-            this.connectorAddress = connectorAddress;
+        public Builder connectorAddress(String callbackAddress) {
+            this.callbackAddress = callbackAddress;
             return this;
         }
 
@@ -98,8 +98,8 @@ public class MetadataRequest implements RemoteMessage {
         public MetadataRequest build() {
             Objects.requireNonNull(protocol, "protocol");
             Objects.requireNonNull(connectorId, "connectorId");
-            Objects.requireNonNull(connectorAddress, "connectorAddress");
-            return new MetadataRequest(protocol, connectorId, connectorAddress, requestedAsset);
+            Objects.requireNonNull(callbackAddress, "callbackAddress");
+            return new MetadataRequest(protocol, connectorId, callbackAddress, requestedAsset);
         }
     }
 }

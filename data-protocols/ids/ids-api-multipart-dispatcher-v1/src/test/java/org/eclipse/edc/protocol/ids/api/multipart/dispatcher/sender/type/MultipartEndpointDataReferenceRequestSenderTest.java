@@ -115,7 +115,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     private EndpointDataReferenceMessage createEdrRequest() {
         return EndpointDataReferenceMessage.Builder.newInstance()
                 .protocol("test-protocol")
-                .connectorAddress("http://consumer-connector.com")
+                .callbackAddress("http://consumer-connector.com")
                 .connectorId(UUID.randomUUID().toString())
                 .endpointDataReference(EndpointDataReference.Builder.newInstance()
                         .endpoint("http://provider-connector.com")

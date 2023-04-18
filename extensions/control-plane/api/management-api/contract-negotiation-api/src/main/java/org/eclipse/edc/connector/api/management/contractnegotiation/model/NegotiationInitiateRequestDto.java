@@ -23,7 +23,7 @@ import java.util.List;
 
 public class NegotiationInitiateRequestDto {
     @NotBlank(message = "connectorAddress is mandatory")
-    private String connectorAddress;
+    private String connectorAddress; // TODO change to callbackAddress
     @NotBlank(message = "protocol is mandatory")
     private String protocol = "ids-multipart";
     @NotBlank(message = "connectorId is mandatory")
