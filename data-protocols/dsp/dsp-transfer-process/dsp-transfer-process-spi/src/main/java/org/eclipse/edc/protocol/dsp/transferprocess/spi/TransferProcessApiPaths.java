@@ -19,7 +19,15 @@ package org.eclipse.edc.protocol.dsp.transferprocess.spi;
  */
 public interface TransferProcessApiPaths {
 
-    String BASE_PATH = "/transfers";
+    String BASE_PATH = "/transfers/";
 
-    //TODO Add missing Constants for Paths
+    String TRANSFER_INITIAL_REQUEST = "request";
+
+    String TRANSFER_START = "/start";
+
+    String TRANSFER_COMPLETION = "/completion";
+
+    String TRANSFER_TERMINATION = "/termination";
+
+    String TRANSFER_SUSPENSION = "/suspensions";
 }

@@ -48,6 +48,12 @@ import java.util.Set;
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_COMPLETION;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_START;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_SUSPENSION;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_TERMINATION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
@@ -56,7 +62,7 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path("/transfers")
+@Path(BASE_PATH)
 public class DspTransferProcessApiController {
 
     private Monitor monitor;
@@ -109,7 +115,7 @@ public class DspTransferProcessApiController {
 
     //Provider side
     @POST
-    @Path("/request")
+    @Path(TRANSFER_INITIAL_REQUEST)
     public JsonObject initiateTransferProcess(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug("DSP: Incoming TransferRequestMessage for initiating a transfer process");
 
@@ -145,7 +151,7 @@ public class DspTransferProcessApiController {
 
     //both sides
     @POST
-    @Path("/{id}/start")
+    @Path("{id}" + TRANSFER_START)
     public void consumerTransferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferStartMessage for transfer process %s", id));
 
@@ -156,7 +162,7 @@ public class DspTransferProcessApiController {
 
     //both sides
     @POST
-    @Path("/{id}/completion")
+    @Path("{id}" + TRANSFER_COMPLETION)
     public void consumerTransferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferCompletionMessage for transfer process %s", id));
 
@@ -167,7 +173,7 @@ public class DspTransferProcessApiController {
 
     //both sides
     @POST
-    @Path("/{id}/termination")
+    @Path("{id}" + TRANSFER_TERMINATION)
     public void consumerTransferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferTerminationMessage for transfer process %s", id));
 
@@ -178,7 +184,7 @@ public class DspTransferProcessApiController {
 
     //both sides
     @POST
-    @Path("/{id}/suspension")
+    @Path("{id}" + TRANSFER_SUSPENSION)
     public void consumerTransferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
 
