@@ -35,6 +35,7 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -88,7 +89,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @Override
     public StatusResult<ContractNegotiation> initiate(ContractRequestMessage contractOffer) {
         var id = UUID.randomUUID().toString();
-        var callbackAddress = CallbackAddress.Builder.newInstance().uri(contractOffer.getCallbackAddress()).build();
+        var callbackAddress = CallbackAddress.Builder.newInstance()
+                .uri(contractOffer.getCallbackAddress())
+                .events(Set.of("contract.negotiation.initiated"))
+                .build();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id)
                 .correlationId(id)

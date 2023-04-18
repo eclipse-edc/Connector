@@ -62,7 +62,7 @@ class IdsMultipartRemoteMessageDispatcherTest {
     void shouldNotSendTransferTerminationMessage() {
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("ids-multipart")
-                .callbackAddress("http://an/address")
+                .processId("processId")
                 .build();
 
         var future = dispatcher.send(Object.class, message);

@@ -71,7 +71,6 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         assertThat(request.getContractOffer().getContractStart().toInstant()).isEqualTo(clock.instant());
         assertThat(request.getContractOffer().getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(dto.getOffer().getValidity()));
         assertThat(request.getContractOffer().getPolicy()).isNotNull();
-        assertThat(request.getCallbackAddress()).hasSize(1);
     }
 
     @Test
