@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.asset.AssetPredicateConverter;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -41,11 +42,10 @@ import static java.lang.String.format;
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
-    private final AssetPredicateConverter predicateFactory;
+    private final AssetPredicateConverter predicateConverter = new AssetPredicateConverter();
     private final ReentrantReadWriteLock lock;
 
     public InMemoryAssetIndex() {
-        predicateFactory = new AssetPredicateConverter();
         // fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
     }
@@ -168,7 +168,7 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     private Stream<Asset> filterBy(List<Criterion> criteria) {
         var predicate = criteria.stream()
-                .map(predicateFactory::convert)
+                .map(predicateConverter::convert)
                 .reduce(x -> true, Predicate::and);
 
         return cache.values().stream()

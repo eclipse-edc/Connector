@@ -24,22 +24,18 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.asset.AssetPredicateConverter;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static java.util.Map.entry;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
+import static java.lang.Integer.MAX_VALUE;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 public class DatasetResolverImpl implements DatasetResolver {
 
@@ -47,6 +43,7 @@ public class DatasetResolverImpl implements DatasetResolver {
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final DistributionResolver distributionResolver;
+    private final AssetPredicateConverter predicateConverter = new AssetPredicateConverter();
 
     public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex,
                                PolicyDefinitionStore policyDefinitionStore, DistributionResolver distributionResolver) {
@@ -59,33 +56,30 @@ public class DatasetResolverImpl implements DatasetResolver {
     @Override
     @NotNull
     public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
-        return contractDefinitionResolver
-                .definitionsFor(agent)
-                .flatMap(definition -> {
-                    var definitionCriteria = definition.getSelectorExpression().getCriteria();
-                    var filterCriteria = querySpec.getFilterExpression();
-                    var assetQuery = QuerySpec.Builder.newInstance().filter(concat(definitionCriteria, filterCriteria)).build();
-                    return assetIndex.queryAssets(assetQuery)
-                            .map(asset -> {
-                                var offer = createOffer(definition, asset);
-                                if (offer == null) {
-                                    return null;
-                                }
-                                return entry(asset.getProperties(), offer);
-                            })
-                            .filter(Objects::nonNull);
+        var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).collect(toList());
+        var assetsQuery = QuerySpec.Builder.newInstance().offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression()).build();
+        return assetIndex.queryAssets(assetsQuery)
+                .map(asset -> {
+                    var offers = contractDefinitions.stream()
+                            .filter(definition -> definition.getSelectorExpression().getCriteria().stream()
+                                    .map(predicateConverter::convert)
+                                    .reduce(x -> true, Predicate::and)
+                                    .test(asset))
+                            .map(this::createOffer)
+                            .filter(Objects::nonNull)
+                            .collect(toList());
+                    return new ProtoDataset(asset, offers);
                 })
-                .collect(groupingBy(Map.Entry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toSet())))
-                .entrySet().stream()
-                .filter(it -> !it.getValue().isEmpty())
+                .filter(ProtoDataset::hasOffers)
                 .skip(querySpec.getOffset())
                 .limit(querySpec.getLimit())
-                .map(entry -> {
-                    var offers = entry.getValue();
-                    var distributions = distributionResolver.getDistributions(offers.iterator().next().asset, null); // TODO: data addresses should be retrieved
+                .map(proto -> {
+                    var asset = proto.asset;
+                    var offers = proto.offers;
+                    var distributions = distributionResolver.getDistributions(asset, null); // TODO: data addresses should be retrieved
                     var datasetBuilder = Dataset.Builder.newInstance()
                             .distributions(distributions)
-                            .properties(entry.getKey());
+                            .properties(asset.getProperties());
 
                     offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
 
@@ -93,29 +87,37 @@ public class DatasetResolverImpl implements DatasetResolver {
                 });
     }
 
-    @NotNull
-    private List<Criterion> concat(List<Criterion> list1, List<Criterion> list2) {
-        return Stream.concat(list1.stream(), list2.stream()).collect(toList());
-    }
-
-    private Offer createOffer(ContractDefinition definition, Asset asset) {
+    private Offer createOffer(ContractDefinition definition) {
         var policyDefinition = policyDefinitionStore.findById(definition.getContractPolicyId());
         if (policyDefinition == null) {
             return null;
         }
         var contractId = ContractId.createContractId(definition.getId());
-        return new Offer(contractId, policyDefinition.getPolicy(), asset);
+        return new Offer(contractId, policyDefinition.getPolicy());
     }
 
     private static class Offer {
         private final String contractId;
         private final Policy policy;
-        private final Asset asset;
 
-        Offer(String contractId, Policy policy, Asset asset) {
+        Offer(String contractId, Policy policy) {
             this.contractId = contractId;
             this.policy = policy;
-            this.asset = asset;
         }
     }
+
+    private static class ProtoDataset {
+        private final Asset asset;
+        private final List<Offer> offers;
+
+        private ProtoDataset(Asset asset, List<Offer> offers) {
+            this.asset = asset;
+            this.offers = offers;
+        }
+
+        boolean hasOffers() {
+            return offers.size() > 0;
+        }
+    }
+
 }

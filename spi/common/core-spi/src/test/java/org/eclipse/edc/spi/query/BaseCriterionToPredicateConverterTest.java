@@ -41,7 +41,6 @@ class BaseCriterionToPredicateConverterTest {
         assertThatThrownBy(() -> predicate.test(new TestObject("first")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Operator IN requires the right-hand operand to be an");
-
     }
 
     @Test
@@ -56,7 +55,7 @@ class BaseCriterionToPredicateConverterTest {
     private static class TestCriterionToPredicateConverter extends BaseCriterionToPredicateConverter<TestObject> {
 
         @Override
-        protected <R> R property(String key, Object object) {
+        protected Object property(String key, Object object) {
             return ReflectionUtil.getFieldValueSilent(key, object);
         }
     }

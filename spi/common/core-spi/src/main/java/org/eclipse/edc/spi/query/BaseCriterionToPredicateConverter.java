@@ -17,7 +17,6 @@ package org.eclipse.edc.spi.query;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -48,14 +47,13 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
      *
      * @param key Then name of the field
      * @param object The target object
-     * @param <R> The type of the field's value
      */
-    protected abstract <R> R property(String key, Object object);
+    protected abstract Object property(String key, Object object);
 
     @NotNull
     private Predicate<T> equalPredicate(Criterion criterion) {
         return t -> {
-            Object property = property((String) criterion.getOperandLeft(), t);
+            var property = property((String) criterion.getOperandLeft(), t);
             if (property == null) {
                 return false; //property does not exist on t
             }
@@ -66,15 +64,18 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
     @NotNull
     private Predicate<T> inPredicate(Criterion criterion) {
         return t -> {
-            String property = property((String) criterion.getOperandLeft(), t);
+            var property = property((String) criterion.getOperandLeft(), t);
 
             var rightOp = criterion.getOperandRight();
 
-
             if (rightOp instanceof Iterable) {
-                var items = new ArrayList<String>();
-                ((Iterable<?>) rightOp).forEach(o -> items.add(o.toString()));
-                return items.contains(property);
+                var iterable = (Iterable<?>) rightOp;
+                for (var value : iterable) {
+                    if (value.equals(property)) {
+                        return true;
+                    }
+                }
+                return false;
             } else {
                 throw new IllegalArgumentException("Operator IN requires the right-hand operand to be an " + Iterable.class.getName() + " but was " + rightOp.getClass().getName());
             }
