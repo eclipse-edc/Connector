@@ -141,7 +141,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
-        var request = ContractRequestMessage.Builder.newInstance() // TODO: should be renamed to ContractRequestMessage
+        var request = ContractRequestMessage.Builder.newInstance()
                 .contractOffer(offer)
                 .callbackAddress(negotiation.getCounterPartyAddress())
                 .protocol(negotiation.getProtocol())

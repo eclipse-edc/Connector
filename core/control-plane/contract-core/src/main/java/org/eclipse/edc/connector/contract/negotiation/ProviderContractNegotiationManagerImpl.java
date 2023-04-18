@@ -182,7 +182,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             policy = agreement.getPolicy();
         }
 
-        var request = ContractAgreementMessage.Builder.newInstance() // TODO: should be renamed to ContractAgreementMessage
+        var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .callbackAddress(negotiation.getCounterPartyAddress())
