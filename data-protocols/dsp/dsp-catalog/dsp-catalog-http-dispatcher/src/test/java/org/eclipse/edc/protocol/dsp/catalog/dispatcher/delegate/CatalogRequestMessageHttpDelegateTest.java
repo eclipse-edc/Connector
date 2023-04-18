@@ -37,6 +37,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.CATALOG_REQUEST;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,12 +67,14 @@ class CatalogRequestMessageHttpDelegateTest {
 
     @Test
     void buildRequest_returnRequest() throws IOException {
-        var jsonObject = getJsonObject();
+        var jsonObject = Json.createObjectBuilder()
+                .add(DSPACE_SCHEMA + "key", "value")
+                .build();
         var serializedBody = "catalog request";
 
         when(registry.transform(isA(org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(jsonObject));
-        when(mapper.writeValueAsString(jsonObject)).thenReturn(serializedBody);
+        when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(serializedBody);
 
         var message = getCatalogRequest();
         var httpRequest = delegate.buildRequest(message);
@@ -80,7 +84,8 @@ class CatalogRequestMessageHttpDelegateTest {
 
         verify(registry, times(1))
                 .transform(argThat(requestMessage -> ((org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage) requestMessage).getFilter().equals(message.getQuerySpec())), eq(JsonObject.class));
-        verify(mapper, times(1)).writeValueAsString(jsonObject);
+        verify(mapper, times(1))
+                .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
     }
 
     @Test

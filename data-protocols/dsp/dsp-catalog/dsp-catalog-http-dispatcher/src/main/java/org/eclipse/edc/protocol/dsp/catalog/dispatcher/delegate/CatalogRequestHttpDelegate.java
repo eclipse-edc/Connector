@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -30,9 +31,12 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.IOException;
 import java.util.function.Function;
 
+import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.CATALOG_REQUEST;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
 /**
  * Delegate for dispatching catalog requests as defined in the dataspace protocol specification.
@@ -106,11 +110,18 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
         try {
             var transformResult = transformerRegistry.transform(message, JsonObject.class);
             if (transformResult.succeeded()) {
-                return mapper.writeValueAsString(transformResult.getContent());
+                var compacted = compact(transformResult.getContent(), jsonLdContext());
+                return mapper.writeValueAsString(compacted);
             }
             throw new EdcException("Failed to write request.");
         } catch (JsonProcessingException e) {
             throw new EdcException("Failed to serialize catalog request", e);
         }
+    }
+    
+    private JsonObject jsonLdContext() {
+        return Json.createObjectBuilder()
+                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
+                .build();
     }
 }
