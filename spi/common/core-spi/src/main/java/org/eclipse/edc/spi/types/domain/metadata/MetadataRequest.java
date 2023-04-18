@@ -24,7 +24,10 @@ import java.util.Objects;
 
 /**
  * A request for asset metadata sent to a remote system.
+ *
+ * @deprecated only used by ids multipart api/dispatcher. Can be removed with IDS modules.
  */
+@Deprecated(forRemoval = true)
 @JsonDeserialize(builder = MetadataRequest.Builder.class)
 public class MetadataRequest implements RemoteMessage {
 

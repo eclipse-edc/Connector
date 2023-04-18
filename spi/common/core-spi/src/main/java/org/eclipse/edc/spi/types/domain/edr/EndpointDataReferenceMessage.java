@@ -23,7 +23,10 @@ import java.util.Objects;
 
 /**
  * Sends an endpoint reference to an external system.
+ *
+ * @deprecated only used by ids multipart api/dispatcher. Can be removed with IDS modules.
  */
+@Deprecated(forRemoval = true)
 @JsonDeserialize(builder = EndpointDataReferenceMessage.Builder.class)
 public class EndpointDataReferenceMessage implements RemoteMessage {
 

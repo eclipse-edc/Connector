@@ -23,7 +23,10 @@ import java.util.Objects;
 
 /**
  * A query sent to a remote system.
+ *
+ * @deprecated only used by ids multipart api/dispatcher. Can be removed with IDS modules.
  */
+@Deprecated(forRemoval = true)
 @JsonDeserialize(builder = QueryRequest.Builder.class)
 public class QueryRequest implements RemoteMessage {
     private String protocol;
