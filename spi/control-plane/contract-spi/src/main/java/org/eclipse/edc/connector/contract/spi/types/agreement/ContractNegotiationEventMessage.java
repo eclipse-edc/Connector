@@ -77,7 +77,6 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
 
         public ContractNegotiationEventMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
-            Objects.requireNonNull(message.callbackAddress, "callbackAddress");
             Objects.requireNonNull(message.processId, "processId");
             Objects.requireNonNull(message.type, "type");
             return message;

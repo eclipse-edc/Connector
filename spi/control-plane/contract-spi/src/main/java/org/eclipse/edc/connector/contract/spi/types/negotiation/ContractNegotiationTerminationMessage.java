@@ -90,7 +90,6 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
 
         public ContractNegotiationTerminationMessage build() {
             Objects.requireNonNull(contractNegotiationTerminationMessage.protocol, "protocol");
-            Objects.requireNonNull(contractNegotiationTerminationMessage.callbackAddress, "callbackAddress");
             Objects.requireNonNull(contractNegotiationTerminationMessage.processId, "processId");
             Objects.requireNonNull(contractNegotiationTerminationMessage.rejectionReason, "rejectionReason");
             return contractNegotiationTerminationMessage;

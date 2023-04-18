@@ -75,7 +75,7 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
 
         public TransferTerminationMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
-            Objects.requireNonNull(message.callbackAddress, "The callbackAddress must be specified");
+            Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;
         }
     }

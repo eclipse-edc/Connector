@@ -67,7 +67,6 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
 
         public ContractAgreementVerificationMessage build() {
             Objects.requireNonNull(message.protocol, "protocol");
-            Objects.requireNonNull(message.callbackAddress, "callbackAddress");
             Objects.requireNonNull(message.processId, "processId");
             return message;
         }
