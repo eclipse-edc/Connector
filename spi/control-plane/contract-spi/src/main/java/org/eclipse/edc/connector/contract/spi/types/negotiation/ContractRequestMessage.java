@@ -32,6 +32,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     private String callbackAddress;
     private String processId;
     private ContractOffer contractOffer;
+    private String dataSet;
 
     @Override
     public String getProtocol() {
@@ -59,6 +60,10 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
     public ContractOffer getContractOffer() {
         return contractOffer;
+    }
+
+    public String getDataSet() {
+        return dataSet;
     }
 
     public enum Type {
@@ -108,10 +113,16 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             return this;
         }
 
+        public Builder dataSet(String dataSet) {
+            contractRequestMessage.dataSet = dataSet;
+            return this;
+        }
+
         public ContractRequestMessage build() {
             Objects.requireNonNull(contractRequestMessage.protocol, "protocol");
             Objects.requireNonNull(contractRequestMessage.callbackAddress, "callbackAddress");
             Objects.requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
+            // TODO make dataSet mandatory with introduction of ContractOfferMessage
             return contractRequestMessage;
         }
     }
