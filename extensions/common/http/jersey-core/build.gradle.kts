@@ -14,6 +14,7 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -24,9 +25,12 @@ dependencies {
     implementation(libs.jetty.jakarta.servlet.api)
 
     testImplementation(project(":core:common:junit"))
-
     testImplementation(libs.restAssured)
     testImplementation(libs.jersey.beanvalidation) //for validation
+
+    testFixturesApi(project(":core:common:junit"))
+    testFixturesApi(libs.junit.jupiter.api)
+    testFixturesApi(libs.mockito.core)
 }
 
 
