@@ -48,7 +48,7 @@ public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransforme
                     .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
             transformString(jsonObject.get(DSPACE_CONTRACTAGREEMENT_TYPE), transferRequestMessageBuilder::contractId, context);
-            transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::connectorAddress, context); //TODO Create external Constant and add correct connectorAddress
+            transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::connectorAddress, context);
 
             transferRequestMessageBuilder.dataDestination(createDataAddress(jsonObject, context));
 
@@ -60,11 +60,11 @@ public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransforme
     }
 
     private DataAddress createDataAddress(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var dataAddressBuilder = DataAddress.Builder.newInstance();  //TODO Add missing properties
+        var dataAddressBuilder = DataAddress.Builder.newInstance();
 
         transformString(jsonObject.get(DCT_FORMAT), dataAddressBuilder::type, context);
 
-        // TODO Add dataAddress
+        // TODO Add missing properties (dataAddress, more to check...)
 
         return dataAddressBuilder.build();
     }

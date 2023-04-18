@@ -91,6 +91,11 @@ public class JsonObjectToTransferProcessTransformerTest {
         Assertions.assertNotNull(result.getContent());
     }
 
+    @Test
+    void jsonObjectToTransferRequestWithDataAddress() {
+        //TODO WriteTest
+    }
+
     private JsonObject createJsonTransferRequestWithoutDataAddress() {
         return  Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)

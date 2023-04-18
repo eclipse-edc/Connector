@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
 public class JsonObjectFromTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<TransferTerminationMessage, JsonObject> {
 
@@ -49,9 +49,9 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
-        builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferProcessTerminationMessage");
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
 
-        //TODO Add field when Message is evolved
+        //TODO Add field when Message is evolved (Process and CorrelationID)
 
         return builder.build();
 

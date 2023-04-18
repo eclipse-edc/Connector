@@ -30,6 +30,7 @@ import java.util.UUID;
 
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
 
@@ -58,15 +59,14 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferRequestMessage");
 
         builder.add(DSPACE_SCHEMA + "agreementId", transferRequestMessage.getContractId());
-        builder.add(DCT_SCHEMA + "format", "dspace:AmazonS3+Push"); //TODO fix value
-        builder.add("dataAddress", transformDataAddress(transferRequestMessage.getDataDestination(), context));
+        builder.add(DCT_SCHEMA + "format", transferRequestMessage.getDataDestination().getType()); //TODO check value
+        builder.add(DSPACE_DATAADDRESS_TYPE, transformDataAddress(transferRequestMessage.getDataDestination(), context)); //TODO Check if this is the correct Way
         builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getConnectorAddress());
 
         return builder.build();
     }
 
     //TODO Improve Code and check if properties are shown correct
-
     private @Nullable JsonObject transformDataAddress(DataAddress address, TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 

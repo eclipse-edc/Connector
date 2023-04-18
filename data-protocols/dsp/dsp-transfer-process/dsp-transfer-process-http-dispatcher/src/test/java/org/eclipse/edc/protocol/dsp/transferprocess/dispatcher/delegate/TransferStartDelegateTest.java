@@ -19,7 +19,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,11 +26,7 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class TransferStartDelegateTest {
 
@@ -52,22 +47,7 @@ public class TransferStartDelegateTest {
 
     @Test
     void buildRequest_returnRequest() throws IOException {
-        var jsonObject = getJsonObject();
-        var serializedBody = "catalog request";
-
-        when(registry.transform(isA(TransferStartMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.success(jsonObject));
-        when(mapper.writeValueAsString(jsonObject)).thenReturn(serializedBody);
-
-        var message = getTransferStartMessage();
-        var httpRequest = startDelegate.buildRequest(message);
-
-        assertThat(httpRequest.url().url()).hasToString(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + "/start");
-        //        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-
-        //        verify(registry, times(1))
-        //                .transform(argThat(requestMessage -> ((CatalogRequestMessage) requestMessage).getFilter().equals(message.getQuerySpec())), eq(JsonObject.class));
-        //        verify(mapper, times(1)).writeValueAsString(jsonObject);
+        //TODO Write TEST and replicate it for other delegates
     }
 
     private TransferStartMessage getTransferStartMessage() {

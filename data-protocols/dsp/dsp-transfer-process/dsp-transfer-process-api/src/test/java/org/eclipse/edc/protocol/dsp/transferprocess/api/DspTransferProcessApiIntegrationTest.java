@@ -109,7 +109,12 @@ public class DspTransferProcessApiIntegrationTest {
                 .get("/transfers/testId")
                 .then()
                 .statusCode(200)
-                .contentType("application/json");
+                .contentType("application/json"); //TODO ERROR in pipeline
+    }
+
+    @Test
+    public void getTransferProcessNotFound(TransferProcessStore transferProcessStore) {
+        //TODO Write ErrorTest
     }
 
     @Test
@@ -119,7 +124,7 @@ public class DspTransferProcessApiIntegrationTest {
                 .body(createTransferRequestMessageJsonBody())
                 .post("/transfers/request")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .contentType("application/json");
     }
 

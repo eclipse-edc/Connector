@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 
 public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonLdTransformer<TransferStartMessage, JsonObject> {
 
@@ -50,7 +50,7 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
-        builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferStartMessage");
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_START_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
 
         return builder.build();

@@ -21,4 +21,5 @@ public interface TransferProcessApiPaths {
 
     String BASE_PATH = "/transfers";
 
+    //TODO Add missing Constants for Paths
 }

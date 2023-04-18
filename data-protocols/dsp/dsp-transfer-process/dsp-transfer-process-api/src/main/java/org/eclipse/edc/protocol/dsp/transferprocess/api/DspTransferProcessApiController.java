@@ -102,6 +102,9 @@ public class DspTransferProcessApiController {
         }
 
         return mapper.convertValue(compact(result.getContent(), jsonLdContext()), JsonObject.class);
+
+        //TODO Check if sends 200 StatusCode
+        //TODO Add ErrorCase
     }
 
     //Provider side
@@ -136,6 +139,8 @@ public class DspTransferProcessApiController {
             throw new EdcException("Response could not be created");
         }
         return mapper.convertValue(compact(result.getContent(), jsonLdContext()), JsonObject.class);
+
+        //TODO Set Correct StatusCode
     }
 
     //both sides
