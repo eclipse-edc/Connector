@@ -106,7 +106,7 @@ azure-resourcemanager-authorization = { group = "com.azure.resourcemanager", nam
 azure-resourcemanager-datafactory = { group = "com.azure.resourcemanager", name = "azure-resourcemanager-datafactory", version = "1.0.0-beta.22" }
 azure-resourcemanager-keyvault = { group = "com.azure.resourcemanager", name = "azure-resourcemanager-keyvault", version.ref = "azure-rm" }
 azure-resourcemanager-storage = { group = "com.azure.resourcemanager", name = "azure-resourcemanager-storage", version.ref = "azure-rm" }
-azure-storageblob = { group = "com.azure", name = "azure-storage-blob", version = "12.21.1" }
+azure-storageblob = { group = "com.azure", name = "azure-storage-blob", version = "12.22.0" }
 
 # AWS dependencies
 aws-sts = { module = "software.amazon.awssdk:sts", version.ref = "aws" }
