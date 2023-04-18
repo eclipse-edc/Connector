@@ -85,14 +85,6 @@ class ContractValidationServiceImplTest {
     private final PolicyEquality policyEquality = mock(PolicyEquality.class);
     private ContractValidationServiceImpl validationService;
 
-    private static ContractAgreement.Builder createContractAgreement() {
-        return ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId(PROVIDER_ID)
-                .consumerAgentId(CONSUMER_ID)
-                .policy(Policy.Builder.newInstance().build())
-                .assetId(UUID.randomUUID().toString());
-    }
-
     @BeforeEach
     void setUp() {
         validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality, clock);
@@ -469,5 +461,13 @@ class ContractValidationServiceImplTest {
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .validity(TimeUnit.MINUTES.toSeconds(10))
                 .build();
+    }
+
+    private ContractAgreement.Builder createContractAgreement() {
+        return ContractAgreement.Builder.newInstance().id("1")
+                .providerAgentId(PROVIDER_ID)
+                .consumerAgentId(CONSUMER_ID)
+                .policy(Policy.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString());
     }
 }
