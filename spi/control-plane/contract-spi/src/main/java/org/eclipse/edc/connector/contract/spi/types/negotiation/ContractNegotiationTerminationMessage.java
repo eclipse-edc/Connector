@@ -26,6 +26,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
     private String callbackAddress;
     private String processId;
     private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
+    private String code;
 
     @Override
     public String getProtocol() {
@@ -49,6 +50,10 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
 
     public String getRejectionReason() {
         return rejectionReason;
+    }
+
+    public String getCode() {
+        return code;
     }
 
     public static class Builder {
@@ -85,6 +90,11 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
 
         public Builder rejectionReason(String rejectionReason) {
             this.contractNegotiationTerminationMessage.rejectionReason = rejectionReason;
+            return this;
+        }
+
+        public Builder code(String code) {
+            this.contractNegotiationTerminationMessage.code = code;
             return this;
         }
 
