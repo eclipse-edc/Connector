@@ -93,7 +93,6 @@ public class AssetApiController implements AssetApi {
                 .id(resultContent.getId())
                 .createdAt(resultContent.getCreatedAt())
                 .build();
-
     }
 
     @GET
