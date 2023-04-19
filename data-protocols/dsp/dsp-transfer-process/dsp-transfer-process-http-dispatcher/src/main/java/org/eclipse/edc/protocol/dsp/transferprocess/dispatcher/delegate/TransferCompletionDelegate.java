@@ -31,6 +31,7 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
@@ -66,7 +67,7 @@ public class TransferCompletionDelegate implements DspHttpDispatcherDelegate<Tra
         var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + "/completion") //TODO CREATE CORRELATIONID
+                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION)
                 .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
