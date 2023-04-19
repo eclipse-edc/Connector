@@ -29,5 +29,5 @@ public interface TransferProcessApiPaths {
 
     String TRANSFER_TERMINATION = "/termination";
 
-    String TRANSFER_SUSPENSION = "/suspensions";
+    String TRANSFER_SUSPENSION = "/suspension";
 }

@@ -124,7 +124,7 @@ public class DspTransferProcessApiIntegrationTest {
                 .body(createTransferRequestMessageJsonBody())
                 .post("/transfers/request")
                 .then()
-                .statusCode(201)
+                .statusCode(200)
                 .contentType("application/json");
     }
 
@@ -140,6 +140,7 @@ public class DspTransferProcessApiIntegrationTest {
 
     @Test
     public void consumerTransferProcessCompletion() {
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(createTransferCompletionMessageJsonBody())
