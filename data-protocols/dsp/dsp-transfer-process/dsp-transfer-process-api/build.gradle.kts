@@ -31,13 +31,14 @@ dependencies {
 
     implementation("com.apicatalog:titanium-json-ld:1.3.1")
     implementation("jakarta.json:jakarta.json-api:2.1.1")
-    implementation("org.eclipse.parsson:parsson:1.1.1") //TODO needed?
+    implementation("org.eclipse.parsson:parsson:1.1.1")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.14.2")
 
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
+
 
     testImplementation(libs.restAssured)
 }
