@@ -14,13 +14,11 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from;
 
-import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,27 +52,9 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
 
         builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
         builder.add(DCT_FORMAT, transferRequestMessage.getDataDestination().getType());
-        builder.add(DSPACE_DATAADDRESS_TYPE, transformDataAddress(transferRequestMessage.getDataDestination(), context)); //TODO move to separate transformer
+        builder.add(DSPACE_DATAADDRESS_TYPE, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
         builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getCallbackAddress());
         builder.add(DSPACE_PROCESSID_TYPE, transferRequestMessage.getProcessId());
-
-        return builder.build();
-    }
-
-    private @Nullable JsonObject transformDataAddress(DataAddress address, TransformerContext context) {
-        var builder = jsonBuilderFactory.createObjectBuilder();
-    
-        if (address == null) {
-            return builder.build();
-        }
-        
-        builder.add("type", address.getType());
-        
-        if (address.getKeyName() != null) {
-            builder.add("keyName", address.getKeyName());
-        }
-
-        address.getProperties().forEach((k, v) -> builder.add(k, Json.createValue(v)));
 
         return builder.build();
     }

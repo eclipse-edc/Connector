@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
-import com.apicatalog.jsonld.JsonLdError;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferRequestMessageTransformer;
@@ -36,12 +36,19 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalo
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 class JsonObjectFromTransferRequestTransformerTest {
+
+    private final String dataAddressKey = "testDataAddressKey";
+
+    private final String dataAddressType = "testDataAddressType";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -50,13 +57,20 @@ class JsonObjectFromTransferRequestTransformerTest {
 
     @BeforeEach
     void setUp() {
+        var dataAddressJson = Json.createObjectBuilder()
+                .add("keyName", dataAddressKey)
+                .add("type", dataAddressType)
+                .build();
+
         transformer = new JsonObjectFromTransferRequestMessageTransformer(jsonFactory);
+
+        when(context.transform(isA(DataAddress.class), eq(JsonObject.class))).thenReturn(dataAddressJson);
     }
 
 
 
     @Test
-    void transformTransferRequestMessage() throws JsonLdError {
+    void transformTransferRequestMessage() {
         var properties = new HashMap<String, String>();
         properties.put("key", "value");
 
@@ -74,7 +88,7 @@ class JsonObjectFromTransferRequestTransformerTest {
         Assertions.assertNotNull(result);
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
         assertThat(result.getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo("ContractID");
-        assertThat(result.getJsonString(DCT_FORMAT).getString()).isEqualTo("TestValueProperty");
+        assertThat(result.getJsonString(DCT_FORMAT).getString()).isEqualTo(dataAddressType);
         assertThat(result.getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo("TestConnectorAddress");
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
         //TODO Add missing fields (dataAddress) from Spec
@@ -84,8 +98,8 @@ class JsonObjectFromTransferRequestTransformerTest {
 
     private DataAddress buildTestDataAddress() {
         return DataAddress.Builder.newInstance()
-                .keyName("dataAddressId")
-                .property("type", "TestValueProperty")
+                .keyName(dataAddressKey)
+                .type(dataAddressType)
                 .build();
     }
 }
