@@ -34,6 +34,7 @@ import java.util.function.Function;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
@@ -63,11 +64,11 @@ public class TransferRequestDelegate implements DspHttpDispatcherDelegate<Transf
             throw new EdcException("Failed to create request body for transfer request message");
         }
 
-        var content = mapper.convertValue(compact(transferRequest.getContent(), jsonLdContext()), JsonObject.class);
+        var content = compact(transferRequest.getContent(), jsonLdContext());
         var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + "request")
+                .url(message.getConnectorAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST)
                 .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();

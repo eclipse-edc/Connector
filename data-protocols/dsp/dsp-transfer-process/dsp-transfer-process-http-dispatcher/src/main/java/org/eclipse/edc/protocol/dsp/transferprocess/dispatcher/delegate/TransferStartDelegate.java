@@ -72,7 +72,7 @@ public class TransferStartDelegate implements DspHttpDispatcherDelegate<Transfer
 
     @Override
     public Function<Response, JsonObject> parseResponse() {
-        return null;
+        return response -> null;
     }
 
     private String toString(JsonObject input) {

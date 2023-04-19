@@ -31,6 +31,7 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_TERMINATION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
@@ -59,11 +60,11 @@ public class TransferTerminationDelegate implements DspHttpDispatcherDelegate<Tr
             throw new EdcException("Failed to create request body for transfer termination message");
         }
 
-        var content = mapper.convertValue(compact(termination.getContent(), jsonLdContext()), JsonObject.class);
+        var content = compact(termination.getContent(), jsonLdContext());
         var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + "/termination")
+                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION)
                 .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
@@ -71,7 +72,7 @@ public class TransferTerminationDelegate implements DspHttpDispatcherDelegate<Tr
 
     @Override
     public Function<Response, JsonObject> parseResponse() {
-        return null;
+        return response -> null;
     }
 
     private String toString(JsonObject input) {

@@ -37,7 +37,6 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalo
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
-
 public class TransferCompletionDelegate implements DspHttpDispatcherDelegate<TransferCompletionMessage, JsonObject> {
 
     private final ObjectMapper mapper;
@@ -62,8 +61,7 @@ public class TransferCompletionDelegate implements DspHttpDispatcherDelegate<Tra
             throw new EdcException("Failed to create request body for transfer completion message");
         }
 
-        var content = mapper.convertValue(compact(completion.getContent(), jsonLdContext()), JsonObject.class);
-
+        var content = compact(completion.getContent(), jsonLdContext());
         var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
@@ -75,7 +73,7 @@ public class TransferCompletionDelegate implements DspHttpDispatcherDelegate<Tra
 
     @Override
     public Function<Response, JsonObject> parseResponse() {
-        return null;
+        return response -> null;
     }
 
     private String toString(JsonObject input) {
