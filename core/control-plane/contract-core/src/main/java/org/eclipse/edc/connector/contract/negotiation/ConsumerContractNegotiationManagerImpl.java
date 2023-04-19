@@ -91,8 +91,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .correlationId(id)
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
-                .counterPartyAddress(contractOffer.getConnectorAddress())
-                .callbackAddresses(contractOffer.getCallbackAddress())
+                .counterPartyAddress(contractOffer.getCallbackAddress())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
                 .build();
@@ -138,9 +137,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
-        var request = ContractRequestMessage.Builder.newInstance() // TODO: should be renamed to ContractRequestMessage
+        var request = ContractRequestMessage.Builder.newInstance()
                 .contractOffer(offer)
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .processId(negotiation.getId())
@@ -190,7 +189,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .processId(negotiation.getId())
                 .policy(policy)
@@ -233,7 +232,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processVerifying(ContractNegotiation negotiation) {
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
                 .build();
 
@@ -258,7 +257,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();

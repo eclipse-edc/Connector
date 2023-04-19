@@ -23,18 +23,21 @@ import java.util.Objects;
 
 /**
  * Sends an endpoint reference to an external system.
+ *
+ * @deprecated only used by ids multipart api/dispatcher. Can be removed with IDS modules.
  */
+@Deprecated(forRemoval = true)
 @JsonDeserialize(builder = EndpointDataReferenceMessage.Builder.class)
 public class EndpointDataReferenceMessage implements RemoteMessage {
 
     private final String connectorId;
-    private final String connectorAddress;
+    private final String callbackAddress;
     private final String protocol;
     private final EndpointDataReference endpointDataReference;
 
-    private EndpointDataReferenceMessage(String connectorId, String connectorAddress, String protocol, EndpointDataReference endpointDataReference) {
+    private EndpointDataReferenceMessage(String connectorId, String callbackAddress, String protocol, EndpointDataReference endpointDataReference) {
         this.connectorId = connectorId;
-        this.connectorAddress = connectorAddress;
+        this.callbackAddress = callbackAddress;
         this.protocol = protocol;
         this.endpointDataReference = endpointDataReference;
     }
@@ -46,8 +49,8 @@ public class EndpointDataReferenceMessage implements RemoteMessage {
 
     @NotNull
     @Override
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class EndpointDataReferenceMessage implements RemoteMessage {
 
     public static class Builder {
         private String connectorId;
-        private String connectorAddress;
+        private String callbackAddress;
         private String protocol;
         private EndpointDataReference endpointDataReference;
 
@@ -79,8 +82,8 @@ public class EndpointDataReferenceMessage implements RemoteMessage {
             return this;
         }
 
-        public EndpointDataReferenceMessage.Builder connectorAddress(String connectorAddress) {
-            this.connectorAddress = connectorAddress;
+        public EndpointDataReferenceMessage.Builder callbackAddress(String callbackAddress) {
+            this.callbackAddress = callbackAddress;
             return this;
         }
 
@@ -97,10 +100,10 @@ public class EndpointDataReferenceMessage implements RemoteMessage {
         public EndpointDataReferenceMessage build() {
             Objects.requireNonNull(protocol, "protocol");
             Objects.requireNonNull(connectorId, "connectorId");
-            Objects.requireNonNull(connectorAddress, "connectorAddress");
+            Objects.requireNonNull(callbackAddress, "callbackAddress");
             Objects.requireNonNull(endpointDataReference, "endpointDataReference");
 
-            return new EndpointDataReferenceMessage(connectorId, connectorAddress, protocol, endpointDataReference);
+            return new EndpointDataReferenceMessage(connectorId, callbackAddress, protocol, endpointDataReference);
         }
     }
 }

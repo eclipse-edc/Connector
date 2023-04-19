@@ -128,7 +128,7 @@ public class ContractRequestHandler implements Handler {
         var contractOffer = result.getContent();
         var requestObj = ContractRequestMessage.Builder.newInstance()
                 .protocol(MessageProtocol.IDS_MULTIPART)
-                .connectorAddress(idsWebhookAddress.toString())
+                .callbackAddress(idsWebhookAddress.toString())
                 .type(ContractRequestMessage.Type.INITIAL)
                 .connectorId(String.valueOf(message.getIssuerConnector()))
                 .processId(String.valueOf(message.getTransferContract()))

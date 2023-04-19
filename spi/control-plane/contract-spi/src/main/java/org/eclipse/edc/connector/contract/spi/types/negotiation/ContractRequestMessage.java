@@ -16,10 +16,7 @@ package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -32,11 +29,10 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     private String protocol;
     @Deprecated(forRemoval = true)
     private String connectorId;
-    private String connectorAddress;
+    private String callbackAddress;
     private String processId;
     private ContractOffer contractOffer;
-
-    private List<CallbackAddress> callbackAddress = new ArrayList<>();
+    private String dataSet;
 
     @Override
     public String getProtocol() {
@@ -44,8 +40,8 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     }
 
     @Override
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     @Deprecated
@@ -66,8 +62,8 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         return contractOffer;
     }
 
-    public List<CallbackAddress> getCallbackAddress() {
-        return callbackAddress;
+    public String getDataSet() {
+        return dataSet;
     }
 
     public enum Type {
@@ -97,18 +93,13 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             return this;
         }
 
-        public Builder connectorAddress(String connectorAddress) {
-            contractRequestMessage.connectorAddress = connectorAddress;
+        public Builder callbackAddress(String callbackAddress) {
+            contractRequestMessage.callbackAddress = callbackAddress;
             return this;
         }
 
         public Builder processId(String processId) {
             contractRequestMessage.processId = processId;
-            return this;
-        }
-
-        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
-            contractRequestMessage.callbackAddress = callbackAddresses;
             return this;
         }
 
@@ -122,10 +113,16 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             return this;
         }
 
+        public Builder dataSet(String dataSet) {
+            contractRequestMessage.dataSet = dataSet;
+            return this;
+        }
+
         public ContractRequestMessage build() {
             Objects.requireNonNull(contractRequestMessage.protocol, "protocol");
-            Objects.requireNonNull(contractRequestMessage.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractRequestMessage.callbackAddress, "callbackAddress");
             Objects.requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
+            // TODO make dataSet mandatory with introduction of ContractOfferMessage
             return contractRequestMessage;
         }
     }

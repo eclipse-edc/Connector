@@ -42,7 +42,7 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
     }
 
     @Override
-    public String getConnectorAddress() {
+    public String getCallbackAddress() {
         return connectorAddress;
     }
 

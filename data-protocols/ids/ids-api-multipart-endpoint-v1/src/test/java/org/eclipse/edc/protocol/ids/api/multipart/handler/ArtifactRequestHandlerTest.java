@@ -114,7 +114,7 @@ class ArtifactRequestHandlerTest {
         assertThat(requestMessage.getConnectorId()).isEqualTo(connectorId.toString());
         assertThat(requestMessage.getAssetId()).isEqualTo(agreement.getAssetId());
         assertThat(requestMessage.getContractId()).isEqualTo(agreement.getId());
-        assertThat(requestMessage.getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
+        assertThat(requestMessage.getCallbackAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
         assertThat(requestMessage.getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
     }
 

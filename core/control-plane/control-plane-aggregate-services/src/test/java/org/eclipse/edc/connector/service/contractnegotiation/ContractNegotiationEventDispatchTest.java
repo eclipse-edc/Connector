@@ -127,7 +127,7 @@ class ContractNegotiationEventDispatchTest {
         return ContractRequestMessage.Builder.newInstance()
                 .protocol("test")
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .contractOffer(contractOffer)
                 .processId("processId")
                 .build();

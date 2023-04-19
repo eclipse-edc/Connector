@@ -53,7 +53,7 @@ class NegotiationInitiateRequestDtoValidationTest {
     void validate_validDto(String consumer, String provider) {
         var offerDescription = validOffer();
         var dto = NegotiationInitiateRequestDto.Builder.newInstance()
-                .connectorAddress("connectorAddress")
+                .connectorAddress("callbackAddress")
                 .connectorId("connectorId")
                 .protocol("protocol")
                 .consumerId(consumer)

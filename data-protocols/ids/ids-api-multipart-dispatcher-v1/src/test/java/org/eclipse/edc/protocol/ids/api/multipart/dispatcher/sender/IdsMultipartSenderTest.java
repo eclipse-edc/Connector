@@ -56,7 +56,7 @@ class IdsMultipartSenderTest {
         }
 
         @Override
-        public String getConnectorAddress() {
+        public String getCallbackAddress() {
             return "some.remote.url";
         }
     }

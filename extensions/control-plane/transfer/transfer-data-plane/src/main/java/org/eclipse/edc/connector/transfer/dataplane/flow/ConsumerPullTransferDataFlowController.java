@@ -75,7 +75,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     private StatusResult<Void> dispatch(@NotNull EndpointDataReference edr, @NotNull DataRequest dataRequest) {
         var request = EndpointDataReferenceMessage.Builder.newInstance()
                 .connectorId(connectorId)
-                .connectorAddress(dataRequest.getConnectorAddress())
+                .callbackAddress(dataRequest.getConnectorAddress())
                 .protocol(dataRequest.getProtocol())
                 .endpointDataReference(edr)
                 .build();

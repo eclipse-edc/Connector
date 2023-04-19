@@ -249,7 +249,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .type(ContractNegotiation.Type.PROVIDER)
                 .correlationId("processId")
                 .counterPartyId("connectorId")
-                .counterPartyAddress("connectorAddress")
+                .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .state(400)
                 .stateTimestamp(Instant.now().toEpochMilli());

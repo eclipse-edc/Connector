@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 public class TransferStartMessage implements TransferRemoteMessage {
 
-    private String connectorAddress;
+    private String callbackAddress;
     private String protocol;
     private String processId;
 
@@ -34,8 +34,8 @@ public class TransferStartMessage implements TransferRemoteMessage {
     }
 
     @Override
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     @Override
@@ -56,8 +56,8 @@ public class TransferStartMessage implements TransferRemoteMessage {
             return new Builder();
         }
 
-        public Builder connectorAddress(String address) {
-            message.connectorAddress = address;
+        public Builder callbackAddress(String callbackAddress) {
+            message.callbackAddress = callbackAddress;
             return this;
         }
 
@@ -73,7 +73,6 @@ public class TransferStartMessage implements TransferRemoteMessage {
 
         public TransferStartMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
-            Objects.requireNonNull(message.connectorAddress, "The connectorAddress must be specified");
             Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;
         }

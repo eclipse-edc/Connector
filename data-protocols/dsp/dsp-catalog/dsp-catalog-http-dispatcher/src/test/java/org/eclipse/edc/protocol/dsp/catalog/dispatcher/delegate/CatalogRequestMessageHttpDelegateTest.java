@@ -75,7 +75,7 @@ class CatalogRequestMessageHttpDelegateTest {
         var message = getCatalogRequest();
         var httpRequest = delegate.buildRequest(message);
 
-        assertThat(httpRequest.url().url()).hasToString(message.getConnectorAddress() + BASE_PATH + CATALOG_REQUEST);
+        assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + CATALOG_REQUEST);
         assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
 
         verify(registry, times(1))
@@ -172,7 +172,7 @@ class CatalogRequestMessageHttpDelegateTest {
 
     private CatalogRequestMessage getCatalogRequest() {
         return CatalogRequestMessage.Builder.newInstance()
-                .connectorAddress("http://connector")
+                .callbackAddress("http://connector")
                 .connectorId("connector-id")
                 .protocol("protocol")
                 .querySpec(QuerySpec.max())

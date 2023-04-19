@@ -33,7 +33,6 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -116,12 +115,9 @@ class ConsumerContractNegotiationManagerImplTest {
 
         var request = ContractRequestMessage.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
                 .build();
 
 
@@ -131,12 +127,12 @@ class ConsumerContractNegotiationManagerImplTest {
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == INITIAL.code() &&
                         negotiation.getCounterPartyId().equals(request.getConnectorId()) &&
-                        negotiation.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
+                        negotiation.getCounterPartyAddress().equals(request.getCallbackAddress()) &&
                         negotiation.getProtocol().equals(request.getProtocol()) &&
                         negotiation.getCorrelationId().equals(negotiation.getId()) &&
                         negotiation.getContractOffers().size() == 1 &&
                         negotiation.getLastContractOffer().equals(contractOffer) &&
-                        negotiation.getCallbackAddresses().size() == 1));
+                        negotiation.getCallbackAddresses().isEmpty()));
 
         verify(listener).initiated(any());
     }
@@ -268,7 +264,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .id(UUID.randomUUID().toString())
                 .correlationId("processId")
                 .counterPartyId("connectorId")
-                .counterPartyAddress("connectorAddress")
+                .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .stateTimestamp(Instant.now().toEpochMilli());
     }

@@ -102,7 +102,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var contractOfferRequest = ContractRequestMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .contractOffer(currentOffer)
                 .processId(negotiation.getCorrelationId())
                 .build();
@@ -128,7 +128,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getCorrelationId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
@@ -182,10 +182,10 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             policy = agreement.getPolicy();
         }
 
-        var request = ContractAgreementMessage.Builder.newInstance() // TODO: should be renamed to ContractAgreementMessage
+        var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .processId(negotiation.getCorrelationId())
                 .policy(policy)
@@ -224,7 +224,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol(negotiation.getProtocol())
-                .connectorAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getCorrelationId())
                 .build();
 

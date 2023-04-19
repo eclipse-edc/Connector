@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -109,7 +110,7 @@ public class TransferProcessEventDispatchTest {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
 
-        var startMessage = TransferStartMessage.Builder.newInstance().processId("dataRequestId").protocol("any").connectorAddress("http://any").build();
+        var startMessage = TransferStartMessage.Builder.newInstance().processId("dataRequestId").protocol("any").callbackAddress("http://any").build();
         protocolService.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
 
         await().untilAsserted(() -> {
@@ -138,6 +139,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
+                .id(String.valueOf(UUID.randomUUID()))
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
@@ -165,6 +167,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
+                .id(String.valueOf(UUID.randomUUID()))
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")

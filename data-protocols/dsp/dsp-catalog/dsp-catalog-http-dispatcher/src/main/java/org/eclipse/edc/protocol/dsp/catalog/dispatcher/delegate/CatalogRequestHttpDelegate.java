@@ -70,7 +70,7 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
         var requestBody = RequestBody.create(toJson(catalogRequestMessage), MediaType.get(APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + CATALOG_REQUEST)
+                .url(message.getCallbackAddress() + BASE_PATH + CATALOG_REQUEST)
                 .post(requestBody)
                 .build();
     }

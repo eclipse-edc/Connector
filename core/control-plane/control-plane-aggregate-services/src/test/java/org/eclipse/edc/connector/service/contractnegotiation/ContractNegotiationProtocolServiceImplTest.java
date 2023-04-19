@@ -101,7 +101,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(contractOffer));
         var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
                 .processId("processId")
@@ -115,7 +115,7 @@ class ContractNegotiationProtocolServiceImplTest {
         assertThat(calls.getAllValues()).anySatisfy(n -> {
             assertThat(n.getState()).isEqualTo(AGREEING.code());
             assertThat(n.getCounterPartyId()).isEqualTo(message.getConnectorId());
-            assertThat(n.getCounterPartyAddress()).isEqualTo(message.getConnectorAddress());
+            assertThat(n.getCounterPartyAddress()).isEqualTo(message.getCallbackAddress());
             assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
             assertThat(n.getCorrelationId()).isEqualTo(message.getProcessId());
             assertThat(n.getContractOffers()).hasSize(1);
@@ -134,7 +134,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
                 .processId("processId")
@@ -156,7 +156,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("processId")
                 .contractAgreement(contractAgreement)
                 .policy(createPolicy())
@@ -184,7 +184,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("processId")
                 .contractAgreement(contractAgreement)
                 .policy(createPolicy())
@@ -205,7 +205,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("processId")
                 .build();
 
@@ -225,7 +225,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("processId")
                 .build();
 
@@ -244,7 +244,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("processId")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -266,7 +266,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("processId")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -286,7 +286,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .rejectionReason("any")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -308,7 +308,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .rejectionReason("any")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -343,26 +343,26 @@ class ContractNegotiationProtocolServiceImplTest {
                     Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
                             .protocol("protocol")
                             .connectorId("connectorId")
-                            .connectorAddress("http://any")
+                            .callbackAddress("http://any")
                             .processId("processId")
                             .contractAgreement(mock(ContractAgreement.class))
                             .policy(Policy.Builder.newInstance().build())
                             .build()),
                     Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
                             .protocol("protocol")
-                            .connectorAddress("http://any")
+                            .callbackAddress("http://any")
                             .processId("processId")
                             .build()),
                     Arguments.of(finalized, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.FINALIZED)
                             .protocol("protocol")
-                            .connectorAddress("http://any")
+                            .callbackAddress("http://any")
                             .processId("processId")
                             .build()),
                     Arguments.of(terminated, ContractNegotiationTerminationMessage.Builder.newInstance()
                             .protocol("protocol")
                             .processId("processId")
-                            .connectorAddress("http://any")
+                            .callbackAddress("http://any")
                             .rejectionReason("any")
                             .build())
             );
@@ -394,7 +394,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .id(UUID.randomUUID().toString())
                 .correlationId("processId")
                 .counterPartyId("connectorId")
-                .counterPartyAddress("connectorAddress")
+                .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .stateTimestamp(Instant.now().toEpochMilli());
     }

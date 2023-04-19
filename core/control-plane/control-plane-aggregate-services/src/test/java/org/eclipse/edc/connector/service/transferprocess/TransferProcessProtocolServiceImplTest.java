@@ -94,7 +94,7 @@ class TransferProcessProtocolServiceImplTest {
         var message = TransferRequestMessage.Builder.newInstance()
                 .id("processId")
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -115,7 +115,7 @@ class TransferProcessProtocolServiceImplTest {
         var message = TransferRequestMessage.Builder.newInstance()
                 .id("processId")
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -135,7 +135,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_invalidAgreement_shouldNotInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -154,7 +154,7 @@ class TransferProcessProtocolServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
 
@@ -171,7 +171,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -190,7 +190,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -207,7 +207,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.find("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -226,7 +226,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build());
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -243,7 +243,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.find("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -262,7 +262,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build());
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorAddress("http://any")
+                .callbackAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -295,11 +295,11 @@ class TransferProcessProtocolServiceImplTest {
             MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
             return Stream.of(
                     Arguments.of(started, TransferStartMessage.Builder.newInstance().protocol("protocol")
-                                    .connectorAddress("http://any").processId("dataRequestId").build()),
+                                    .callbackAddress("http://any").processId("dataRequestId").build()),
                     Arguments.of(completed, TransferCompletionMessage.Builder.newInstance().protocol("protocol")
-                                    .connectorAddress("http://any").processId("dataRequestId").build()),
+                                    .callbackAddress("http://any").processId("dataRequestId").build()),
                     Arguments.of(terminated, TransferTerminationMessage.Builder.newInstance().protocol("protocol")
-                                    .connectorAddress("http://any").processId("dataRequestId").build())
+                                    .callbackAddress("http://any").processId("dataRequestId").build())
             );
         }
     }

@@ -34,7 +34,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
@@ -196,7 +195,7 @@ class ContractNegotiationApiControllerTest {
         when(transformerRegistry.transform(isA(NegotiationInitiateRequestDto.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(contractOfferRequest));
         var request = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .connectorAddress("callbackAddress")
                 .protocol("protocol")
                 .offer(TestFunctions.createOffer("offerId"))
                 .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance()
@@ -217,7 +216,7 @@ class ContractNegotiationApiControllerTest {
         when(service.initiateNegotiation(isA(ContractRequestMessage.class))).thenReturn(createContractNegotiation("negotiationId"));
         var request = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .connectorAddress("callbackAddress")
                 .protocol("protocol")
                 .offer(TestFunctions.createOffer("offerId"))
                 .build();
@@ -312,7 +311,7 @@ class ContractNegotiationApiControllerTest {
         return ContractRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
+                .callbackAddress("callbackAddress")
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
@@ -320,9 +319,6 @@ class ContractNegotiationApiControllerTest {
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
                 .build();
     }
 
