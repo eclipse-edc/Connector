@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
@@ -82,7 +83,7 @@ public class DspTransferProcessApiController {
         this.monitor = monitor;
         this.transferProcessService = transferProcessService;
         this.registry = registry;
-        this.mapper = typeManager.getMapper("json-ld");
+        this.mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
         this.identityService = identityService;
         this.dspCallbackAddress = dspCallbackAddress;
     }
