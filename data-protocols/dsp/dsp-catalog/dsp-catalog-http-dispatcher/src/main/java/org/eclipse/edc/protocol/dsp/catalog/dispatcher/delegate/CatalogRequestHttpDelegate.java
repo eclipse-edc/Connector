@@ -31,6 +31,8 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.IOException;
 import java.util.function.Function;
 
+import static java.lang.String.format;
+import static java.lang.String.join;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
@@ -94,7 +96,7 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
                 if (result.succeeded()) {
                     return result.getContent();
                 } else {
-                    throw new EdcException("Failed to read response body.");
+                    throw new EdcException(format("Failed to read response body: %s", join(", ", result.getFailureMessages())));
                 }
             } catch (NullPointerException e) {
                 throw new EdcException("Failed to read response body, as body was null.");
@@ -113,7 +115,7 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
                 var compacted = compact(transformResult.getContent(), jsonLdContext());
                 return mapper.writeValueAsString(compacted);
             }
-            throw new EdcException("Failed to write request.");
+            throw new EdcException(format("Failed to write request: %s", join(", ", transformResult.getFailureMessages())));
         } catch (JsonProcessingException e) {
             throw new EdcException("Failed to serialize catalog request", e);
         }
