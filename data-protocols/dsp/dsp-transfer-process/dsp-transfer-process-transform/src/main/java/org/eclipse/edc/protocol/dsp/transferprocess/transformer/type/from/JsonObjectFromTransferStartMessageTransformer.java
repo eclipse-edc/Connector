@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -34,12 +33,9 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
-    private final ObjectMapper mapper;
-
-    public JsonObjectFromTransferStartMessageTransformer(JsonBuilderFactory jsonBuilderFactory, ObjectMapper mapper) {
+    public JsonObjectFromTransferStartMessageTransformer(JsonBuilderFactory jsonBuilderFactory) {
         super(TransferStartMessage.class, JsonObject.class);
         this.jsonBuilderFactory = jsonBuilderFactory;
-        this.mapper = mapper;
     }
 
     @Override

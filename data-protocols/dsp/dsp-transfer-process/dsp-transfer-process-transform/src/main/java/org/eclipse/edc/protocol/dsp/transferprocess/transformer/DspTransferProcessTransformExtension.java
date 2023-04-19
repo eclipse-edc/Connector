@@ -50,11 +50,11 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
-        var mapper = typeManager.getMapper("json-ld");
+        var mapper = typeManager.getMapper(JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD);
 
-        registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
         registry.register(new JsonObjectToTransferRequestMessage());
-        registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
 
     }
 }

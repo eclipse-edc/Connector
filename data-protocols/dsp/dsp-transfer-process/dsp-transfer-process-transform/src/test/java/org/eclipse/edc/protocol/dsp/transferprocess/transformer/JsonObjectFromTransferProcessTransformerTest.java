@@ -96,11 +96,11 @@ class JsonObjectFromTransferProcessTransformerTest {
 
         // EDC model to JSON-LD transformers
 
-        registry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory, mapper));
-        registry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory, mapper));
-        registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory, mapper));
-        registry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory, mapper));
-        registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, mapper));
+        registry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
+        registry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
+        registry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
+        registry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
+        registry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
     }
 
     @Test
