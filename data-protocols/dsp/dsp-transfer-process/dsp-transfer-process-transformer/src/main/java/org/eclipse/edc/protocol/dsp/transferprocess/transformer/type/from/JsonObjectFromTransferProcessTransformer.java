@@ -36,26 +36,20 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
 
     private final ObjectMapper mapper;
 
-
     public JsonObjectFromTransferProcessTransformer(JsonBuilderFactory jsonBuilderFactory, ObjectMapper mapper) {
         super(TransferProcess.class, JsonObject.class);
-
         this.jsonBuilderFactory = jsonBuilderFactory;
         this.mapper = mapper;
     }
 
     @Override
-    public @Nullable JsonObject transform(@Nullable TransferProcess transferProcess, @NotNull TransformerContext context) {
-        if (transferProcess == null) {
-            return null;
-        }
-
+    public @Nullable JsonObject transform(@NotNull TransferProcess transferProcess, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(ID, transferProcess.getId());
         builder.add(TYPE, DSPACE_TRANSFERPROCESS_TYPE);
         builder.add(DSPACE_CORRELATIONID_TYPE, transferProcess.getCorrelationId());
-        builder.add(DSPACE_STATE_TYPE, TransferProcessStates.from(transferProcess.getState()).name()); //TODO USE dspace:state??
+        builder.add(DSPACE_STATE_TYPE, TransferProcessStates.from(transferProcess.getState()).name()); //TODO USE dspace:state enum?
 
         return builder.build();
     }

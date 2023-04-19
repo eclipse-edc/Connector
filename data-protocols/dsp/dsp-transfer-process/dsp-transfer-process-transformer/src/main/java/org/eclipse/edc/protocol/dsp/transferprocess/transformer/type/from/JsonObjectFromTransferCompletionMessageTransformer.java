@@ -44,11 +44,7 @@ public class JsonObjectFromTransferCompletionMessageTransformer extends Abstract
     }
 
     @Override
-    public @Nullable JsonObject transform(@Nullable TransferCompletionMessage transferCompletionMessage, @NotNull TransformerContext context) {
-        if (transferCompletionMessage == null) {
-            return null;
-        }
-
+    public @Nullable JsonObject transform(@NotNull TransferCompletionMessage transferCompletionMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(ID, String.valueOf(UUID.randomUUID()));

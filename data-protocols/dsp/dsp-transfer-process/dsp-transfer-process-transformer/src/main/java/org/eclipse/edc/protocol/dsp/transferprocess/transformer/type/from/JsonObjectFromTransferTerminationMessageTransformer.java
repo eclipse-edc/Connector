@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+import static org.eclipse.edc.jsonld.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
@@ -42,15 +43,11 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
     }
     
     @Override
-    public @Nullable JsonObject transform(@Nullable TransferTerminationMessage transferTerminationMessage, @NotNull TransformerContext context) {
-        if (transferTerminationMessage == null) {
-            return null;
-        }
-
+    public @Nullable JsonObject transform(@NotNull TransferTerminationMessage transferTerminationMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
-        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
+        builder.add(ID, String.valueOf(UUID.randomUUID()));
+        builder.add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferTerminationMessage.getProcessId());
 
         //TODO Add field when Message is evolved (code, reason)

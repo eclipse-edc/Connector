@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
@@ -50,46 +51,35 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
 
 
     @Override
-    public @Nullable JsonObject transform(@Nullable TransferRequestMessage transferRequestMessage, @NotNull TransformerContext context) {
-        if (transferRequestMessage == null) {
-            return null;
-        }
-
+    public @Nullable JsonObject transform(@NotNull TransferRequestMessage transferRequestMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
         builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferRequestMessage");
 
         builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
-        builder.add(DCT_FORMAT, transferRequestMessage.getDataDestination().getType()); //TODO check value
-        builder.add(DSPACE_DATAADDRESS_TYPE, transformDataAddress(transferRequestMessage.getDataDestination(), context)); //TODO Check if this is the correct Way
+        builder.add(DCT_FORMAT, transferRequestMessage.getDataDestination().getType());
+        builder.add(DSPACE_DATAADDRESS_TYPE, transformDataAddress(transferRequestMessage.getDataDestination(), context)); //TODO move to separate transformer
         builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getConnectorAddress());
         builder.add(DSPACE_PROCESSID_TYPE, transferRequestMessage.getProcessId());
 
         return builder.build();
     }
 
-    //TODO Improve Code and check if properties are shown correct
     private @Nullable JsonObject transformDataAddress(DataAddress address, TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
-
+    
         if (address == null) {
             return builder.build();
         }
+        
+        builder.add("type", address.getType());
+        
         if (address.getKeyName() != null) {
             builder.add("keyName", address.getKeyName());
         }
 
-        if (address.getType() != null) {
-            builder.add("type", address.getType());
-        }
-
-        try {
-            var properties = mapper.writeValueAsString(address.getProperties());
-            builder.add("properties", properties);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        address.getProperties().forEach((k, v) -> builder.add(k, Json.createValue(v)));
 
         return builder.build();
     }
