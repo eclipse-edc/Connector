@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -31,8 +30,8 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.IOException;
 import java.util.function.Function;
 
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
+import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.DelegateUtil.toCompactedJson;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_PREFIX;
@@ -63,13 +62,12 @@ public class TransferRequestDelegate implements DspHttpDispatcherDelegate<Transf
         if (transferRequest.failed()) {
             throw new EdcException("Failed to create request body for transfer request message");
         }
-
-        var content = compact(transferRequest.getContent(), jsonLdContext());
-        var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
+    
+        var requestBody = RequestBody.create(toCompactedJson(transferRequest.getContent(), jsonLdContext(), mapper),
+                MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
                 .url(message.getConnectorAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST)
-                .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
     }
@@ -91,14 +89,6 @@ public class TransferRequestDelegate implements DspHttpDispatcherDelegate<Transf
                 throw new EdcException("Failed to read response body from contract request.", e);
             }
         };
-    }
-
-    private String toString(JsonObject input) {
-        try {
-            return mapper.writeValueAsString(input);
-        } catch (JsonProcessingException e) {
-            throw new EdcException("Failed to serialize dspace:TransferRequestMessage", e);
-        }
     }
 
     private JsonObject jsonLdContext() {

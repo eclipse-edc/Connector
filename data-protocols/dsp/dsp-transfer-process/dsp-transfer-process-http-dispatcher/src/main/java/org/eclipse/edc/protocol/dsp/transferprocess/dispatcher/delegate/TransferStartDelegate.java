@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -29,7 +28,7 @@ import org.eclipse.edc.spi.EdcException;
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
+import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.DelegateUtil.toCompactedJson;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_PREFIX;
@@ -59,13 +58,12 @@ public class TransferStartDelegate implements DspHttpDispatcherDelegate<Transfer
         if (start.failed()) {
             throw new EdcException("Failed to create request body for transfer start message.");
         }
-
-        var content = compact(start.getContent(), jsonLdContext());
-        var requestBody = RequestBody.create(toString(content), MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
+    
+        var requestBody = RequestBody.create(toCompactedJson(start.getContent(), jsonLdContext(), mapper),
+                MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
                 .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_START)
-                .header("Content-Type", "application/json")
                 .post(requestBody)
                 .build();
     }
@@ -73,14 +71,6 @@ public class TransferStartDelegate implements DspHttpDispatcherDelegate<Transfer
     @Override
     public Function<Response, JsonObject> parseResponse() {
         return response -> null;
-    }
-
-    private String toString(JsonObject input) {
-        try {
-            return mapper.writeValueAsString(input);
-        } catch (JsonProcessingException e) {
-            throw new EdcException("Failed to serialize dspace:TransferStartMessage", e);
-        }
     }
 
     private JsonObject jsonLdContext() {
