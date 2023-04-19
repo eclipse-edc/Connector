@@ -59,7 +59,7 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
         builder.add(DCT_FORMAT, transferRequestMessage.getDataDestination().getType());
         builder.add(DSPACE_DATAADDRESS_TYPE, transformDataAddress(transferRequestMessage.getDataDestination(), context)); //TODO move to separate transformer
-        builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getConnectorAddress());
+        builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getCallbackAddress());
         builder.add(DSPACE_PROCESSID_TYPE, transferRequestMessage.getProcessId());
 
         return builder.build();

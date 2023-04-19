@@ -75,7 +75,7 @@ class TransferTerminationDelegateTest {
         var message = getTransferTerminationMessage();
         var request = terminationDelegate.buildRequest(message);
         
-        assertThat(request.url().url()).hasToString(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION);
+        assertThat(request.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION);
         assertThat(readRequestBody(request)).isEqualTo(requestBody);
         
         verify(registry, times(1)).transform(any(TransferTerminationMessage.class), eq(JsonObject.class));
@@ -109,7 +109,7 @@ class TransferTerminationDelegateTest {
         return TransferTerminationMessage.Builder.newInstance()
                 .processId("testId")
                 .protocol("dataspace-protocol")
-                .connectorAddress("http://test-connector-address")
+                .callbackAddress("http://test-connector-address")
                 .build();
     }
     

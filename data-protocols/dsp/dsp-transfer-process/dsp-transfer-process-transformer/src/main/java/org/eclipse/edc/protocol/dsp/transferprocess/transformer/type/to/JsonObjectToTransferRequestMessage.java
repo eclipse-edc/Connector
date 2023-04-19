@@ -49,7 +49,7 @@ public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransforme
                     .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
             transformString(jsonObject.get(DSPACE_CONTRACTAGREEMENT_TYPE), transferRequestMessageBuilder::contractId, context);
-            transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::connectorAddress, context);
+            transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::callbackAddress, context);
 
             transferRequestMessageBuilder.dataDestination(createDataAddress(jsonObject, context));
 

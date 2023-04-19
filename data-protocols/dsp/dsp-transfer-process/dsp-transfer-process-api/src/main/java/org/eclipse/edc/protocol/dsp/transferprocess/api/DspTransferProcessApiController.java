@@ -197,14 +197,14 @@ public class DspTransferProcessApiController {
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(transferRequestMessage.getId())
                 .protocol(transferRequestMessage.getProtocol())
-                .connectorAddress(transferRequestMessage.getConnectorAddress())
+                .connectorAddress(transferRequestMessage.getCallbackAddress())
                 .contractId(transferRequestMessage.getContractId())
                 .dataDestination(transferRequestMessage.getDataDestination());
 
 
         return TransferRequest.Builder.newInstance()
                 .dataRequest(dataRequest.build())
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().events(Set.of()).uri(transferRequestMessage.getConnectorAddress()).build()))
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().events(Set.of()).uri(transferRequestMessage.getCallbackAddress()).build()))
                 .build(); //TODO Events for Callback Address is needed
     }
 

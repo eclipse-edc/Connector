@@ -67,7 +67,7 @@ public class TransferRequestDelegate implements DspHttpDispatcherDelegate<Transf
                 MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST)
+                .url(message.getCallbackAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST)
                 .post(requestBody)
                 .build();
     }

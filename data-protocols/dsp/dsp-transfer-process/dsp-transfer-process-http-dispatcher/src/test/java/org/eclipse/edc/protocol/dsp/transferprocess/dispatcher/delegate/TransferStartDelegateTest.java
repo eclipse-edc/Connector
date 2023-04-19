@@ -75,7 +75,7 @@ class TransferStartDelegateTest {
         var message = getTransferStartMessage();
         var request = startDelegate.buildRequest(message);
         
-        assertThat(request.url().url()).hasToString(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_START);
+        assertThat(request.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_START);
         assertThat(readRequestBody(request)).isEqualTo(requestBody);
         
         verify(registry, times(1)).transform(any(TransferStartMessage.class), eq(JsonObject.class));
@@ -109,7 +109,7 @@ class TransferStartDelegateTest {
         return TransferStartMessage.Builder.newInstance()
                 .processId("testId")
                 .protocol("dataspace-protocol")
-                .connectorAddress("http://test-connector-address")
+                .callbackAddress("http://test-connector-address")
                 .build();
     }
     

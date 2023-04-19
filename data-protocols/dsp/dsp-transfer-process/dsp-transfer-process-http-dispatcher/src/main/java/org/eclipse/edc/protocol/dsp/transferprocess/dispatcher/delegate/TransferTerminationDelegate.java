@@ -63,7 +63,7 @@ public class TransferTerminationDelegate implements DspHttpDispatcherDelegate<Tr
                 MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION)
+                .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION)
                 .post(requestBody)
                 .build();
     }

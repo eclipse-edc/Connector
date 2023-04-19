@@ -63,7 +63,7 @@ public class TransferStartDelegate implements DspHttpDispatcherDelegate<Transfer
                 MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_START)
+                .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_START)
                 .post(requestBody)
                 .build();
     }

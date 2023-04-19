@@ -75,7 +75,7 @@ class TransferCompletionDelegateTest {
         var message = getTransferCompletionMessage();
         var request = completionDelegate.buildRequest(message);
         
-        assertThat(request.url().url()).hasToString(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION);
+        assertThat(request.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION);
         assertThat(readRequestBody(request)).isEqualTo(requestBody);
         
         verify(registry, times(1)).transform(any(TransferCompletionMessage.class), eq(JsonObject.class));
@@ -109,7 +109,7 @@ class TransferCompletionDelegateTest {
         return TransferCompletionMessage.Builder.newInstance()
                 .processId("testId")
                 .protocol("dataspace-protocol")
-                .connectorAddress("http://test-connector-address")
+                .callbackAddress("http://test-connector-address")
                 .build();
     }
     

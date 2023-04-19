@@ -101,7 +101,7 @@ public class JsonObjectToTransferProcessTransformerTest {
 
         assertThat(result.getContent().getContractId()).isEqualTo(contractId);
         assertThat(result.getContent().getDataDestination().getType()).isEqualTo(destinationType);
-        assertThat(result.getContent().getConnectorAddress()).isEqualTo(callbackAddress);
+        assertThat(result.getContent().getCallbackAddress()).isEqualTo(callbackAddress);
     }
 
     @Test
@@ -114,7 +114,7 @@ public class JsonObjectToTransferProcessTransformerTest {
 
         assertThat(result.getContent().getContractId()).isEqualTo(contractId);
         assertThat(result.getContent().getDataDestination().getType()).isEqualTo(destinationType);
-        assertThat(result.getContent().getConnectorAddress()).isEqualTo(callbackAddress);
+        assertThat(result.getContent().getCallbackAddress()).isEqualTo(callbackAddress);
 
         assertThat(result.getContent().getDataDestination().getProperty("accessKeyId")).isEqualTo("TESTID");
         assertThat(result.getContent().getDataDestination().getProperty("region")).isEqualTo("eu-central-1");

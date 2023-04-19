@@ -79,7 +79,7 @@ class TransferRequestDelegateTest {
         var message = getTransferRequestMessage();
         var request = requestDelegate.buildRequest(message);
         
-        assertThat(request.url().url()).hasToString(message.getConnectorAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST);
+        assertThat(request.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST);
         assertThat(readRequestBody(request)).isEqualTo(requestBody);
         
         verify(registry, times(1)).transform(any(TransferRequestMessage.class), eq(JsonObject.class));
@@ -177,7 +177,7 @@ class TransferRequestDelegateTest {
         return TransferRequestMessage.Builder.newInstance()
                 .id("testId")
                 .protocol("dataspace-protocol")
-                .connectorAddress("http://test-connector-address")
+                .callbackAddress("http://test-connector-address")
                 .contractId("contractId")
                 .assetId("assetId")
                 .dataDestination(DataAddress.Builder.newInstance()

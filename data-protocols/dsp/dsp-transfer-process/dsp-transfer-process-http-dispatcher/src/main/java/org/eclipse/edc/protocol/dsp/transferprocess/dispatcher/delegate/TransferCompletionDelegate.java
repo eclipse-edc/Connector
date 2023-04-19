@@ -64,7 +64,7 @@ public class TransferCompletionDelegate implements DspHttpDispatcherDelegate<Tra
                 MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
 
         return new Request.Builder()
-                .url(message.getConnectorAddress() + BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION)
+                .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION)
                 .post(requestBody)
                 .build();
     }

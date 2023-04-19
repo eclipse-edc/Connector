@@ -146,7 +146,7 @@ class JsonObjectFromTransferProcessTransformerTest {
     void transformTransferCompletion() throws JsonLdError {
         var message = TransferCompletionMessage.Builder.newInstance()
                 .processId("TestID")
-                .connectorAddress("TestConnectorAddress")
+                .callbackAddress("TestConnectorAddress")
                 .protocol("dsp")
                 .build();
 
@@ -171,7 +171,7 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .id("TestID")
                 .assetId("TestAssetID")
                 .properties(properties)
-                .connectorAddress("TestConnectorAddress")
+                .callbackAddress("TestConnectorAddress")
                 .contractId("ContractID")
                 .protocol("dsp")
                 .dataDestination(buildTestDataAddress())
@@ -197,7 +197,7 @@ class JsonObjectFromTransferProcessTransformerTest {
     void transformTransferStart() throws JsonLdError {
         var message = TransferStartMessage.Builder.newInstance()
                 .processId("TestID")
-                .connectorAddress("TestConnectorAddress") //TODO Spec hat keine callback oder Connector Address
+                .callbackAddress("TestConnectorAddress") //TODO Spec hat keine callback oder Connector Address
                 .protocol("dsp")
                 .build();
 
@@ -218,7 +218,7 @@ class JsonObjectFromTransferProcessTransformerTest {
     void transformTransferTermination() throws JsonLdError {
         var message = TransferTerminationMessage.Builder.newInstance()
                 .processId("TestID")
-                .connectorAddress("TestConnectorAddress")
+                .callbackAddress("TestConnectorAddress")
                 .protocol("dsp")
                 .build();
 
