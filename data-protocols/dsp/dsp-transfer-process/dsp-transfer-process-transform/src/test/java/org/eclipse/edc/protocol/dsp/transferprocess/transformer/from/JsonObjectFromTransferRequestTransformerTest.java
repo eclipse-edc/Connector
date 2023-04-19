@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_FORMAT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -49,6 +50,14 @@ class JsonObjectFromTransferRequestTransformerTest {
     private final String dataAddressKey = "testDataAddressKey";
 
     private final String dataAddressType = "testDataAddressType";
+
+    private final String protocol = "testProtocol";
+
+    private final String contractId = "testContractId";
+
+    private final String callbackAddress = "http://testcallback";
+
+    private final String id = "testId";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -75,11 +84,11 @@ class JsonObjectFromTransferRequestTransformerTest {
         properties.put("key", "value");
 
         var message = TransferRequestMessage.Builder.newInstance()
-                .id("TestID")
+                .id(id)
                 .properties(properties)
-                .callbackAddress("TestConnectorAddress")
-                .contractId("ContractID")
-                .protocol("dsp")
+                .callbackAddress(callbackAddress)
+                .contractId(contractId)
+                .protocol(protocol)
                 .dataDestination(buildTestDataAddress())
                 .build();
 
@@ -87,11 +96,11 @@ class JsonObjectFromTransferRequestTransformerTest {
 
         Assertions.assertNotNull(result);
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
-        assertThat(result.getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo("ContractID");
+        assertThat(result.getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT).getString()).isEqualTo(dataAddressType);
-        assertThat(result.getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo("TestConnectorAddress");
-        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
-        //TODO Add missing fields (dataAddress) from Spec
+        assertThat(result.getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(id);
+        assertThat(result.getJsonObject(DSPACE_DATAADDRESS_TYPE).getString("keyName")).isEqualTo(dataAddressKey);
 
         verify(context, never()).reportProblem(anyString());
     }

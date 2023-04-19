@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
-import com.apicatalog.jsonld.JsonLdError;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -38,6 +37,12 @@ import static org.mockito.Mockito.verify;
 
 class JsonObjectFromTransferStartMessageTransformerTest {
 
+    private final String processId = "testId";
+
+    private final String callbackAddress = "testCallbackAddress";
+
+    private final String protocol = "testProtocol";
+
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
@@ -51,19 +56,19 @@ class JsonObjectFromTransferStartMessageTransformerTest {
 
 
     @Test
-    void transformTransferStartMessage() throws JsonLdError {
+    void transformTransferStartMessage() {
         var message = TransferStartMessage.Builder.newInstance()
-                .processId("TestID")
-                .callbackAddress("TestConnectorAddress") //TODO Spec has no Callback field
-                .protocol("dsp")
+                .processId(processId)
+                .callbackAddress(callbackAddress) //TODO Spec has no Callback field
+                .protocol(protocol)
                 .build();
 
         var result = transformer.transform(message, context);
 
         Assertions.assertNotNull(result);
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_START_TYPE);
-        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
-        //TODO Add missing fields (dataAddress) from Spec
+        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(processId);
+        //TODO Add missing fields (dataAddress) from Spec Issue #2727
 
         verify(context, never()).reportProblem(anyString());
     }
