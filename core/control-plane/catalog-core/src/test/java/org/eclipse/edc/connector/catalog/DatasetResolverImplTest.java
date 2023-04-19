@@ -153,7 +153,7 @@ class DatasetResolverImplTest {
 
         verify(assetIndex).queryAssets(and(
                 isA(QuerySpec.class),
-                argThat(q -> q.getFilterExpression().containsAll(List.of(definitionCriterion, additionalCriterion)))
+                argThat(q -> q.getFilterExpression().contains(additionalCriterion))
         ));
     }
 
@@ -191,10 +191,9 @@ class DatasetResolverImplTest {
     void query_shouldLimitDataset_whenMultipleDefinitionAndMultipleAssets_across() {
         var contractDefinitions = range(0, 2).mapToObj(it -> contractDefinitionBuilder(String.valueOf(it)).build()).collect(toList());
         var contractPolicy = Policy.Builder.newInstance().build();
-        var assets1 = range(0, 10).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
-        var assets2 = range(10, 20).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
+        var assets = range(0, 20).mapToObj(it -> createAsset(String.valueOf(it)).build()).collect(toList());
         when(contractDefinitionResolver.definitionsFor(any())).thenAnswer(it -> contractDefinitions.stream());
-        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(i -> assets1.stream()).thenAnswer(i -> assets2.stream());
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(i -> assets.stream());
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(contractPolicy).build());
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(6, 14)).build();
 

@@ -12,9 +12,8 @@
  *
  */
 
-package org.eclipse.edc.connector.defaults.storage.assetindex;
+package org.eclipse.edc.spi.asset;
 
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.BaseCriterionToPredicateConverter;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -27,15 +26,16 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
  * <p>
  * _Note: other {@link AssetIndex} implementations might have different converters!
  */
-class AssetPredicateConverter extends BaseCriterionToPredicateConverter<Asset> {
+public class AssetPredicateConverter extends BaseCriterionToPredicateConverter<Asset> {
+
     @Override
-    public <T> T property(String key, Object object) {
+    public Object property(String key, Object object) {
         if (object instanceof Asset) {
             var asset = (Asset) object;
             if (asset.getProperties() == null || asset.getProperties().isEmpty()) {
                 return null;
             }
-            return (T) asset.getProperty(key);
+            return asset.getProperty(key);
         }
         throw new IllegalArgumentException("Can only handle objects of type " + Asset.class.getSimpleName() + " but received an " + object.getClass().getSimpleName());
     }

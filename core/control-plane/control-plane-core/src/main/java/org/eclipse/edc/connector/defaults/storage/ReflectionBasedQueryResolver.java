@@ -79,9 +79,9 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
     }
 
     private Predicate<T> toPredicate(Criterion criterion) {
-        BaseCriterionToPredicateConverter<T> predicateConverter = new BaseCriterionToPredicateConverter<>() {
+        var predicateConverter = new BaseCriterionToPredicateConverter<T>() {
             @Override
-            protected <R> R property(String key, Object object) {
+            protected Object property(String key, Object object) {
                 return ReflectionUtil.getFieldValueSilent(key, object);
             }
         };
