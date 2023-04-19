@@ -32,7 +32,7 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalo
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 
 
 public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJsonLdTransformer<TransferRequestMessage, JsonObject> {
@@ -50,7 +50,7 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
-        builder.add(JsonLdKeywords.TYPE, DSPACE_SCHEMA + "TransferRequestMessage");
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
 
         builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
         builder.add(DCT_FORMAT, transferRequestMessage.getDataDestination().getType());

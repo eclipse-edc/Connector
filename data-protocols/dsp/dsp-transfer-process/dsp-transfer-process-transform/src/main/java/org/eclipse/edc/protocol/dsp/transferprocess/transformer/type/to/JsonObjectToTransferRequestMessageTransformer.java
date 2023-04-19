@@ -30,9 +30,9 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalo
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 
-public class JsonObjectToTransferRequestMessage extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
+public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
-    public JsonObjectToTransferRequestMessage() {
+    public JsonObjectToTransferRequestMessageTransformer() {
         super(JsonObject.class, TransferRequestMessage.class);
     }
 

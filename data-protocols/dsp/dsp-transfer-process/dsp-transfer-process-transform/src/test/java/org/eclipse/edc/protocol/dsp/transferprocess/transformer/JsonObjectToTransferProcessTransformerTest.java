@@ -19,9 +19,16 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
-import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessage;
+import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferCompletionMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferStartMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferTerminationMessageTransformer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,10 +40,16 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalo
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
 public class JsonObjectToTransferProcessTransformerTest {
+
+    private final String processId = "TestProcessId";
 
     private final String contractId = "TestContreactID";
 
@@ -64,7 +77,11 @@ public class JsonObjectToTransferProcessTransformerTest {
 
         // EDC model to JSON-LD transformers
 
-        registry.register(new JsonObjectToTransferRequestMessage());
+        registry.register(new JsonObjectToTransferRequestMessageTransformer());
+        registry.register(new JsonObjectToTransferCompletionMessageTransformer());
+        registry.register(new JsonObjectToTransferStartMessageTransformer());
+        registry.register(new JsonObjectToTransferTerminationMessageTransformer());
+
 
     }
 
@@ -96,6 +113,65 @@ public class JsonObjectToTransferProcessTransformerTest {
         assertThat(result.getContent().getDataDestination().getProperty("accessKeyId")).isEqualTo("TESTID");
         assertThat(result.getContent().getDataDestination().getProperty("region")).isEqualTo("eu-central-1");
     }
+
+    @Test
+    void jsonObjectToCompletionMessage() {
+        var json = Json.createObjectBuilder()
+                .add(CONTEXT, DSPACE_SCHEMA)
+                .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
+                .add(DSPACE_PROCESSID_TYPE, processId)
+                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
+                .build();
+
+        var result = registry.transform(json, TransferCompletionMessage.class);
+
+        Assertions.assertNotNull(result.getContent());
+
+        assertThat(result.getContent().getProcessId()).isEqualTo(processId);
+        assertThat(result.getContent().getCallbackAddress()).isEqualTo(callbackAddress);
+        assertThat(result.getContent().getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+    }
+
+    @Test
+    void jsonObjectToStartMessage() {
+        //TODO Add missing DataAddress from Spec
+
+        var json = Json.createObjectBuilder()
+                .add(CONTEXT, DSPACE_SCHEMA)
+                .add(TYPE, DSPACE_TRANSFER_START_TYPE)
+                .add(DSPACE_PROCESSID_TYPE, processId)
+                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
+                .build();
+
+        var result = registry.transform(json, TransferStartMessage.class);
+
+        Assertions.assertNotNull(result.getContent());
+
+        assertThat(result.getContent().getProcessId()).isEqualTo(processId);
+        assertThat(result.getContent().getCallbackAddress()).isEqualTo(callbackAddress);
+        assertThat(result.getContent().getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+    }
+
+    @Test
+    void jsonObjectToTerminationMessage() {
+        //TODO Add missing code reason from Spec
+
+        var json = Json.createObjectBuilder()
+                .add(CONTEXT, DSPACE_SCHEMA)
+                .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
+                .add(DSPACE_PROCESSID_TYPE, processId)
+                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
+                .build();
+
+        var result = registry.transform(json, TransferTerminationMessage.class);
+
+        Assertions.assertNotNull(result.getContent());
+
+        assertThat(result.getContent().getProcessId()).isEqualTo(processId);
+        assertThat(result.getContent().getCallbackAddress()).isEqualTo(callbackAddress);
+        assertThat(result.getContent().getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+    }
+
 
     private JsonObject createJsonTransferRequestWithoutDataAddress() {
         return Json.createObjectBuilder()
