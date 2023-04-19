@@ -18,16 +18,16 @@ package org.eclipse.edc.protocol.dsp.transferprocess.api;
  * API paths for transfer process requests as defined in the dataspace protocol specification.
  */
 public interface TransferProcessApiPaths {
-    
+
     String BASE_PATH = "/transfers/";
-    
+
     String TRANSFER_INITIAL_REQUEST = "request";
-    
+
     String TRANSFER_START = "/start";
-    
+
     String TRANSFER_COMPLETION = "/completion";
-    
+
     String TRANSFER_TERMINATION = "/termination";
-    
+
     String TRANSFER_SUSPENSION = "/suspension";
 }
