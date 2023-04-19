@@ -61,11 +61,17 @@ public class ContractOffer {
     private ZonedDateTime offerEnd;
     /**
      * Timestamp defining the start date when the contract becomes effective
+     *
+     * @deprecated replaced with policy implementation
      */
+    @Deprecated(forRemoval = true)
     private ZonedDateTime contractStart;
     /**
      * Timestamp defining the end date when the contract becomes terminated
+     *
+     * @deprecated replaced with policy implementation
      */
+    @Deprecated(forRemoval = true)
     private ZonedDateTime contractEnd;
 
 
@@ -94,11 +100,13 @@ public class ContractOffer {
         return offerEnd;
     }
 
+    @Deprecated
     @NotNull
     public ZonedDateTime getContractStart() {
         return contractStart;
     }
 
+    @Deprecated
     @NotNull
     public ZonedDateTime getContractEnd() {
         return contractEnd;
@@ -177,11 +185,13 @@ public class ContractOffer {
             return this;
         }
 
+        @Deprecated
         public Builder contractStart(ZonedDateTime date) {
             contractOffer.contractStart = date;
             return this;
         }
 
+        @Deprecated
         public Builder contractEnd(ZonedDateTime date) {
             contractOffer.contractEnd = date;
             return this;
@@ -196,8 +206,6 @@ public class ContractOffer {
             Objects.requireNonNull(contractOffer.id);
             Objects.requireNonNull(contractOffer.asset, "Asset must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
-            Objects.requireNonNull(contractOffer.contractStart, "Contract start must not be null");
-            Objects.requireNonNull(contractOffer.contractEnd, "Contract end must not be null");
             return contractOffer;
         }
     }
