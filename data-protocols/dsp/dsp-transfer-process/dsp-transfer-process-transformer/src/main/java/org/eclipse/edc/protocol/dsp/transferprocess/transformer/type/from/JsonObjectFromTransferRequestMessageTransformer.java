@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
