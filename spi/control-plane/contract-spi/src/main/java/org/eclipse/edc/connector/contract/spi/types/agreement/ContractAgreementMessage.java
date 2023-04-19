@@ -103,7 +103,6 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
 
         public ContractAgreementMessage build() {
             Objects.requireNonNull(contractAgreementMessage.protocol, "protocol");
-            Objects.requireNonNull(contractAgreementMessage.callbackAddress, "callbackAddress");
             Objects.requireNonNull(contractAgreementMessage.contractAgreement, "contractAgreement");
             Objects.requireNonNull(contractAgreementMessage.processId, "processId");
             return contractAgreementMessage;
