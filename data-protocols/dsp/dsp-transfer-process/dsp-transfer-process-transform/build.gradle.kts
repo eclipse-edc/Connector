@@ -16,22 +16,11 @@ plugins {
     `java-library`
 }
 
-repositories {
-    mavenCentral()
-}
-
-
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":extensions:common:json-ld"))
-
     api(project(":data-protocols:dsp:dsp-http-spi"))
-
-    implementation("jakarta.json:jakarta.json-api:2.1.1")
-    implementation("org.eclipse.parsson:parsson:1.1.1")
-
-    implementation(libs.dnsOverHttps)
 
     testImplementation(project(":core:common:junit"))
 }
