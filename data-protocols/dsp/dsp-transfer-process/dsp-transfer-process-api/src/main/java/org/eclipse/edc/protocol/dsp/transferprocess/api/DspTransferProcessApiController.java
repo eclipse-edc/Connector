@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.Map;
 
@@ -58,6 +59,10 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalo
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
 
+/**
+ * Provides the endpoints for receiving messages regarding transfers, like initiating, completing
+ * and terminating a transfer process.
+ */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
@@ -99,7 +104,7 @@ public class DspTransferProcessApiController {
 
         var messageResult = registry.transform(expand(jsonObject).getJsonObject(0), TransferRequestMessage.class);
         if (messageResult.failed()) {
-            throw new EdcException("Failed to create request body for transfer request message");
+            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", messageResult.getFailureMessages())));
         }
 
         var requestMessage = messageResult.getContent();
@@ -127,7 +132,7 @@ public class DspTransferProcessApiController {
     
         var result = registry.transform(expand(jsonObject).getJsonObject(0), TransferStartMessage.class);
         if (result.failed()) {
-            throw new EdcException("Failed to create request body for transfer start message");
+            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", result.getFailureMessages())));
         }
 
         var serviceResult = protocolService.notifyStarted(result.getContent(), claimToken);
@@ -146,7 +151,7 @@ public class DspTransferProcessApiController {
     
         var result = registry.transform(expand(jsonObject).getJsonObject(0), TransferCompletionMessage.class);
         if (result.failed()) {
-            throw new EdcException("Failed to create request body for transfer completion message");
+            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", result.getFailureMessages())));
         }
     
         var serviceResult = protocolService.notifyCompleted(result.getContent(), claimToken);
@@ -165,7 +170,7 @@ public class DspTransferProcessApiController {
     
         var result = registry.transform(expand(jsonObject).getJsonObject(0), TransferTerminationMessage.class);
         if (result.failed()) {
-            throw new EdcException("Failed to create request body for transfer termination message");
+            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", result.getFailureMessages())));
         }
     
         var serviceResult = protocolService.notifyTerminated(result.getContent(), claimToken);

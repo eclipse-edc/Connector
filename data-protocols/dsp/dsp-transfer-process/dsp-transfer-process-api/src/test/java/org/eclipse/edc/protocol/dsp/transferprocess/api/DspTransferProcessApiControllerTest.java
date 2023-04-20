@@ -15,9 +15,11 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.assertj.core.api.ThrowableAssert;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -27,27 +29,32 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessag
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
-import org.junit.jupiter.api.BeforeAll;
+import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_COMPLETION;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_START;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_SUSPENSION;
+import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_TERMINATION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -56,7 +63,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class DspTransferProcessApiControllerTest {
+class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     
     private static final ObjectMapper MAPPER = mock(ObjectMapper.class);
     private static final IdentityService IDENTITY_SERVICE = mock(IdentityService.class);
@@ -65,34 +72,36 @@ class DspTransferProcessApiControllerTest {
     private static final String CALLBACK_ADDRESS = "http://callback";
     private static final String AUTH_HEADER = "auth";
     
-    private static JsonObject request;
+    private static JsonObject request = Json.createObjectBuilder()
+            .add("http://schema/key", "value")
+            .build();
     
-    private static DspTransferProcessApiController controller;
-    
-    @BeforeAll
-    static void setUp() {
+    @Override
+    protected Object controller() {
         var typeManager = mock(TypeManager.class);
         when(typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD)).thenReturn(MAPPER);
-        
-        controller = new DspTransferProcessApiController(mock(Monitor.class), typeManager, REGISTRY, PROTOCOL_SERVICE, IDENTITY_SERVICE, CALLBACK_ADDRESS);
-        
-        request = Json.createObjectBuilder()
-                .add("http://schema/key", "value")
-                .build();
+    
+        return new DspTransferProcessApiController(mock(Monitor.class), typeManager, REGISTRY, PROTOCOL_SERVICE, IDENTITY_SERVICE, CALLBACK_ADDRESS);
     }
     
     @Test
-    void getTransferProcess_operationNotSupported_throwException() {
-        assertThatThrownBy(() -> controller.getTransferProcess("id", AUTH_HEADER)).isInstanceOf(UnsupportedOperationException.class);
+    void getTransferProcess_shouldReturnNotImplemented_whenOperationNotSupported() {
+        //operation not yet supported
+        baseRequest()
+                .get(BASE_PATH + "testId")
+                .then()
+                .statusCode(501);
     }
     
     @Test
-    void initiateTransferProcess_returnTransferProcess() {
+    void initiateTransferProcess_shouldReturnTransferProcess_whenValidRequest() {
         var token = token();
         var message = transferRequestMessage();
         var process = transferProcess();
         var json = Json.createObjectBuilder().build();
-        var map = new HashMap<String, Object>();
+        var map = new HashMap<String, Object>() {{
+            put("key", "value");
+        }};
         
         when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
                 .thenReturn(Result.success(token));
@@ -101,15 +110,22 @@ class DspTransferProcessApiControllerTest {
         when(PROTOCOL_SERVICE.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(REGISTRY.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(MAPPER.convertValue(any(JsonObject.class), eq(Map.class))).thenReturn(map);
-        
-        var result = controller.initiateTransferProcess(request, AUTH_HEADER);
+    
+        var result = baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(BASE_PATH + TRANSFER_INITIAL_REQUEST)
+                .then()
+                .statusCode(200)
+                .contentType("application/json")
+                .extract().as(Map.class);
         
         assertThat(result).isEqualTo(map);
         verify(PROTOCOL_SERVICE, times(1)).notifyRequested(message, token);
     }
     
     @Test
-    void initiateTransferProcess_transferProcessTransformationFails_throwException() {
+    void initiateTransferProcess_shouldReturnInternalServerError_whenTransferProcessTransformationFails() {
         var token = token();
         var message = transferRequestMessage();
         var process = transferProcess();
@@ -121,11 +137,16 @@ class DspTransferProcessApiControllerTest {
         when(PROTOCOL_SERVICE.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(REGISTRY.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
     
-        assertThatThrownBy(() -> controller.initiateTransferProcess(request, AUTH_HEADER)).isInstanceOf(EdcException.class);
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(BASE_PATH + TRANSFER_INITIAL_REQUEST)
+                .then()
+                .statusCode(500);
     }
     
     @Test
-    void initiateTransferProcess_convertingResultFails_throwException() {
+    void initiateTransferProcess_shouldReturnInternalServerError_whenConvertingResultFails() {
         var token = token();
         var message = transferRequestMessage();
         var process = transferProcess();
@@ -139,74 +160,51 @@ class DspTransferProcessApiControllerTest {
         when(REGISTRY.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(MAPPER.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
     
-        assertThatThrownBy(() -> controller.initiateTransferProcess(request, AUTH_HEADER)).isInstanceOf(IllegalArgumentException.class);
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(BASE_PATH + TRANSFER_INITIAL_REQUEST)
+                .then()
+                .statusCode(500);
     }
     
     @Test
-    void consumerTransferProcessStart_startProcess() {
-        var token = token();
-        var message = transferStartMessage();
-        
-        when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
-                .thenReturn(Result.success(token));
-        when(REGISTRY.transform(any(JsonObject.class), eq(TransferStartMessage.class)))
-                .thenReturn(Result.success(message));
-        when(PROTOCOL_SERVICE.notifyStarted(message, token)).thenReturn(ServiceResult.success(transferProcess()));
-        
-        controller.transferProcessStart("id", request, AUTH_HEADER);
-        
-        verify(PROTOCOL_SERVICE, times(1)).notifyStarted(message, token);
+    void consumerTransferProcessSuspension_shouldReturnNotImplemented_whenOperationNotSupported() {
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(BASE_PATH + "testId" + TRANSFER_SUSPENSION)
+                .then()
+                .statusCode(501);
     }
     
-    @Test
-    void consumerTransferProcessCompletion_completeProcess() {
-        var token = token();
-        var message = transferCompletionMessage();
-    
-        when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
-                .thenReturn(Result.success(token));
-        when(REGISTRY.transform(any(JsonObject.class), eq(TransferCompletionMessage.class)))
-                .thenReturn(Result.success(message));
-        when(PROTOCOL_SERVICE.notifyCompleted(message, token)).thenReturn(ServiceResult.success(transferProcess()));
-    
-        controller.transferProcessCompletion("id", request, AUTH_HEADER);
-    
-        verify(PROTOCOL_SERVICE, times(1)).notifyCompleted(message, token);
-    }
-    
-    @Test
-    void consumerTransferProcessTermination_terminateProcess() {
-        var token = token();
-        var message = transferTerminationMessage();
-    
-        when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
-                .thenReturn(Result.success(token));
-        when(REGISTRY.transform(any(JsonObject.class), eq(TransferTerminationMessage.class)))
-                .thenReturn(Result.success(message));
-        when(PROTOCOL_SERVICE.notifyTerminated(message, token)).thenReturn(ServiceResult.success(transferProcess()));
-    
-        controller.transferProcessTermination("id", request, AUTH_HEADER);
-    
-        verify(PROTOCOL_SERVICE, times(1)).notifyTerminated(message, token);
-    }
-    
-    @Test
-    void consumerTransferProcessSuspension_operationNotSupported_throwException() {
-        assertThatThrownBy(() -> controller.transferProcessSuspension("id", request, AUTH_HEADER)).isInstanceOf(UnsupportedOperationException.class);
-    }
-    
+    /**
+     * Verifies that an endpoint returns 401 if the identity service cannot verify the identity token.
+     *
+     * @param path the request path to the endpoint
+     */
     @ParameterizedTest
     @MethodSource("controllerMethodArguments")
-    void callEndpoint_unauthorized_throwException(ThrowableAssert.ThrowingCallable callable) {
+    void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path) {
         when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
                 .thenReturn(Result.failure("error"));
     
-        assertThatThrownBy(callable).isInstanceOf(AuthenticationFailedException.class);
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(path)
+                .then()
+                .statusCode(401);
     }
     
+    /**
+     * Verifies that an endpoint returns 400 if the incoming message cannot be transformed.
+     *
+     * @param path the request path to the endpoint
+     */
     @ParameterizedTest
     @MethodSource("controllerMethodArguments")
-    void callEndpoint_messageTransformationFails_throwException(ThrowableAssert.ThrowingCallable callable) {
+    void callEndpoint_shouldReturnBadRequest_whenRequestTransformationFails(String path) {
         var token = token();
         
         when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
@@ -214,12 +212,58 @@ class DspTransferProcessApiControllerTest {
         when(REGISTRY.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.failure("error"));
     
-        assertThatThrownBy(callable).isInstanceOf(EdcException.class);
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(path)
+                .then()
+                .statusCode(400);
     }
     
+    /**
+     * Verifies that an endpoint returns 204 if the call to the service was successful. Also verifies
+     * that the correct service method was called. This is only applicable for part of the endpoints.
+     *
+     * @param path the request path to the endpoint
+     * @param message the request message to be returned by the transformer registry
+     * @param serviceMethod reference to the service method that should be called, required to verify that it was called
+     */
+    @ParameterizedTest
+    @MethodSource("controllerMethodArgumentsForServiceCall")
+    void callEndpoint_shouldCallService_whenValidRequest(String path, TransferRemoteMessage message, Method serviceMethod) throws Exception {
+        var token = token();
+        
+        when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
+                .thenReturn(Result.success(token));
+        when(REGISTRY.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
+                .thenReturn(Result.success(message));
+        
+        when(PROTOCOL_SERVICE.notifyStarted(any(TransferStartMessage.class), eq(token))).thenReturn(ServiceResult.success(transferProcess()));
+        when(PROTOCOL_SERVICE.notifyCompleted(any(TransferCompletionMessage.class), eq(token))).thenReturn(ServiceResult.success(transferProcess()));
+        when(PROTOCOL_SERVICE.notifyTerminated(any(TransferTerminationMessage.class), eq(token))).thenReturn(ServiceResult.success(transferProcess()));
+        
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(path)
+                .then()
+                .statusCode(204);
+        
+        var verify = verify(PROTOCOL_SERVICE, times(1));
+        serviceMethod.invoke(verify, message, token);
+    }
+    
+    /**
+     * Verifies that an endpoint returns 500 if there is an error in the service. Also verifies
+     * that the correct service method was called.
+     *
+     * @param path the request path to the endpoint
+     * @param message the request message to be returned by the transformer registry
+     * @param serviceMethod reference to the service method that should be called, required to verify that it was called
+     */
     @ParameterizedTest
     @MethodSource("controllerMethodArgumentsForServiceError")
-    void callEndpoint_errorInService_throwException(ThrowableAssert.ThrowingCallable callable, TransferRemoteMessage message) {
+    void callEndpoint_shouldReturnInternalServerError_whenErrorInService(String path, TransferRemoteMessage message, Method serviceMethod) throws Exception {
         var token = token();
         
         when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
@@ -231,26 +275,57 @@ class DspTransferProcessApiControllerTest {
         when(PROTOCOL_SERVICE.notifyStarted(any(TransferStartMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(PROTOCOL_SERVICE.notifyCompleted(any(TransferCompletionMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(PROTOCOL_SERVICE.notifyTerminated(any(TransferTerminationMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
-        
-        assertThatThrownBy(callable).isInstanceOf(EdcException.class);
+    
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(path)
+                .then()
+                .statusCode(500);
+    
+        var verify = verify(PROTOCOL_SERVICE, times(1));
+        serviceMethod.invoke(verify, message, token);
     }
     
     private static Stream<Arguments> controllerMethodArguments() {
         return Stream.of(
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.initiateTransferProcess(request, AUTH_HEADER)),
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.transferProcessStart("id", request, AUTH_HEADER)),
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.transferProcessCompletion("id", request, AUTH_HEADER)),
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.transferProcessTermination("id", request, AUTH_HEADER))
+                Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_START),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION)
         );
     }
     
-    private static Stream<Arguments> controllerMethodArgumentsForServiceError() {
+    private static Stream<Arguments> controllerMethodArgumentsForServiceCall() throws Exception {
         return Stream.of(
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.initiateTransferProcess(request, AUTH_HEADER), transferRequestMessage()),
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.transferProcessStart("id", request, AUTH_HEADER), transferStartMessage()),
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.transferProcessCompletion("id", request, AUTH_HEADER), transferCompletionMessage()),
-                Arguments.of((ThrowableAssert.ThrowingCallable) () -> controller.transferProcessTermination("id", request, AUTH_HEADER), transferTerminationMessage())
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartMessage(),
+                        PROTOCOL_SERVICE.getClass().getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionMessage(),
+                        PROTOCOL_SERVICE.getClass().getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationMessage(),
+                        PROTOCOL_SERVICE.getClass().getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
         );
+    }
+    
+    private static Stream<Arguments> controllerMethodArgumentsForServiceError() throws Exception {
+        return Stream.of(
+                Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestMessage(),
+                        PROTOCOL_SERVICE.getClass().getDeclaredMethod("notifyRequested", TransferRequestMessage.class, ClaimToken.class)),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartMessage(),
+                        PROTOCOL_SERVICE.getClass().getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionMessage(),
+                        PROTOCOL_SERVICE.getClass().getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
+                Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationMessage(),
+                        PROTOCOL_SERVICE.getClass().getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
+        );
+    }
+    
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/")
+                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER)
+                .when();
     }
     
     private static ClaimToken token() {
