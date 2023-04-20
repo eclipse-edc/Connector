@@ -25,12 +25,12 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DCT_FORMAT;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -61,7 +61,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
                 .add(DSPACE_CONTRACTAGREEMENT_TYPE, contractId)
-                .add(DCT_FORMAT, destinationType)
+                .add(DCT_FORMAT_ATTRIBUTE, destinationType)
                 .add(DSPACE_DATAADDRESS_TYPE, Json.createObjectBuilder().build())
                 .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
                 .build();
@@ -83,7 +83,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
                 .add(DSPACE_CONTRACTAGREEMENT_TYPE, contractId)
-                .add(DCT_FORMAT, destinationType)
+                .add(DCT_FORMAT_ATTRIBUTE, destinationType)
                 .add(DSPACE_DATAADDRESS_TYPE, createDataAddress())
                 .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
                 .build();

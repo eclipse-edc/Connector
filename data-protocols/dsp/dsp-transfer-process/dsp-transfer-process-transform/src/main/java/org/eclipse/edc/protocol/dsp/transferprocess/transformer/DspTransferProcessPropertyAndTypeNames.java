@@ -17,21 +17,15 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 /**
  * Dataspace protocol types and attributes for catalog request.
  */
-public interface DspCatalogPropertyAndTypeNames {
-    
-    String DSPACE_PREFIX = "dspace";
-    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
+public interface DspTransferProcessPropertyAndTypeNames {
 
-    String DCT_PREFIX = "dct";
-    String DCT_SCHEMA = "https://purl.org/dc/terms/";
+    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
 
     String DSPACE_TRANSFERPROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferRequestMessage";
 
     String DSPACE_TRANSFER_START_TYPE = DSPACE_SCHEMA + "TransferStartMessage";
 
     String DSPACE_TRANSFER_COMPLETION_TYPE = DSPACE_SCHEMA + "TransferCompletionMessage";
-
-    String DSPACE_TRANSFER_SUSPENSION_TYPE = DSPACE_SCHEMA + "TransferSuspensionMessage";
 
     String DSPACE_TRANSFER_TERMINATION_TYPE = DSPACE_SCHEMA + "TransferTerminationMessage";
 
@@ -48,6 +42,4 @@ public interface DspCatalogPropertyAndTypeNames {
     String DSPACE_CORRELATIONID_TYPE = DSPACE_SCHEMA + "correlationId";
 
     String DSPACE_STATE_TYPE = DSPACE_SCHEMA + "state";
-
-    String DCT_FORMAT = DCT_SCHEMA + "format";
 }
