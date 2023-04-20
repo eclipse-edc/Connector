@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher;
 
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.CatalogRequestHttpDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;

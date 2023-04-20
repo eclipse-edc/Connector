@@ -24,7 +24,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.spi.EdcException;
 
