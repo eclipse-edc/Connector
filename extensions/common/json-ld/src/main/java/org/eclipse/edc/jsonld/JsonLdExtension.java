@@ -14,11 +14,9 @@
 
 package org.eclipse.edc.jsonld;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -53,21 +51,7 @@ public class JsonLdExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var mapper = getObjectMapper();
-        typeManager.registerContext(TYPE_MANAGER_CONTEXT_JSON_LD, mapper);
+        typeManager.registerContext(TYPE_MANAGER_CONTEXT_JSON_LD, JacksonJsonLd.createObjectMapper());
     }
-    
-    private ObjectMapper getObjectMapper() {
-        var mapper = new ObjectMapper();
-        mapper.registerModule(new JSONPModule());
-        var module = new SimpleModule() {
-            @Override
-            public void setupModule(SetupContext context) {
-                super.setupModule(context);
-            }
-        };
-        mapper.registerModule(module);
-        return mapper;
-    }
-    
+
 }

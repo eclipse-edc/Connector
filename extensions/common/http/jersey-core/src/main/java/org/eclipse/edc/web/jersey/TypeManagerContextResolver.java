@@ -32,6 +32,6 @@ public class TypeManagerContextResolver implements ContextResolver<ObjectMapper>
 
     @Override
     public ObjectMapper getContext(Class<?> type) {
-        return typeManager.getMapper();
+        return typeManager.getMapper("json-ld");
     }
 }

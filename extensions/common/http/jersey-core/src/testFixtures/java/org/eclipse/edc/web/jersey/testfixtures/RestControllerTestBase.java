@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.web.jersey.testfixtures;
 
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
@@ -24,6 +25,7 @@ import org.eclipse.edc.web.jetty.PortMapping;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.Mockito.mock;
 
@@ -44,9 +46,12 @@ public abstract class RestControllerTestBase {
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("test", port, "/"));
         jetty = new JettyService(config, monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(JerseyConfiguration.class), monitor);
-        jetty.start();
+        var typeManager = new TypeManager();
+        typeManager.registerContext(TYPE_MANAGER_CONTEXT_JSON_LD, JacksonJsonLd.createObjectMapper());
+        var jerseyService = new JerseyRestService(jetty, typeManager, mock(JerseyConfiguration.class), monitor);
         jerseyService.registerResource("test", controller());
+        jetty.start();
+
         jerseyService.start();
     }
 

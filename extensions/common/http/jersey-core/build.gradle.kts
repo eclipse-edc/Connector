@@ -21,6 +21,8 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":extensions:common:http:jetty-core"))
 
+    implementation(libs.jakartaJson)
+    implementation(libs.jacksonJsonP)
     implementation(libs.bundles.jersey.core)
     implementation(libs.jetty.jakarta.servlet.api)
 
@@ -29,6 +31,9 @@ dependencies {
     testImplementation(libs.jersey.beanvalidation) //for validation
 
     testFixturesApi(project(":core:common:junit"))
+    testFixturesApi(project(":extensions:common:json-ld"))
+    testFixturesApi(libs.jakarta.rsApi)
+    testFixturesApi(libs.jacksonJsonP)
     testFixturesApi(libs.junit.jupiter.api)
     testFixturesApi(libs.mockito.core)
 }

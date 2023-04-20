@@ -90,7 +90,6 @@ public class JerseyRestService implements WebService {
         resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
         resourceConfig.registerInstances(new Binder());
         resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
-
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new ValidationExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
