@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:management-api-configuration"))
+    implementation(project(":extensions:common:http:jersey-core"))
 
     api(libs.jakartaJson)
     implementation(libs.jakarta.rsApi)

@@ -21,8 +21,6 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":extensions:common:http:jetty-core"))
 
-    implementation(libs.jakartaJson)
-    implementation(libs.jacksonJsonP)
     implementation(libs.bundles.jersey.core)
     implementation(libs.jetty.jakarta.servlet.api)
 
