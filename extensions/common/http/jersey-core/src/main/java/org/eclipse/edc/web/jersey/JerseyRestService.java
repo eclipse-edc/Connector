@@ -89,8 +89,7 @@ public class JerseyRestService implements WebService {
         // In order to use instances with Jersey, the controller types must be registered along with an {@link AbstractBinder} that maps those types to the instances.
         resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
         resourceConfig.registerInstances(new Binder());
-        resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
-
+        resourceConfig.registerInstances(new ObjectMapperProvider(typeManager.getMapper()));
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new ValidationExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));

@@ -57,6 +57,7 @@ paths:
       tags:
       - Policy
     post:
+      deprecated: true
       description: Creates a new policy definition
       operationId: createPolicy
       requestBody:
@@ -95,6 +96,7 @@ paths:
       - Policy
   /policydefinitions/request:
     post:
+      deprecated: true
       description: Returns all policy definitions according to a query
       operationId: queryAllPolicies
       requestBody:
@@ -124,6 +126,7 @@ paths:
       - Policy
   /policydefinitions/{id}:
     delete:
+      deprecated: true
       description: "Removes a policy definition with the given ID if possible. Deleting\
         \ a policy definition is only possible if that policy definition is not yet\
         \ referenced by a contract definition, in which case an error is returned.\
@@ -171,6 +174,7 @@ paths:
       tags:
       - Policy
     get:
+      deprecated: true
       description: Gets a policy definition with the given ID
       operationId: getPolicy
       parameters:
@@ -209,6 +213,7 @@ paths:
       - Policy
   /policydefinitions/{policyId}:
     put:
+      deprecated: true
       description: "Updates an existing Policy, If the Policy is not found, an error\
         \ is reported"
       operationId: updatePolicy
@@ -246,6 +251,44 @@ paths:
             \ exists"
       tags:
       - Policy
+  /v2/policydefinitions:
+    post:
+      description: Creates a new policy definition
+      operationId: createPolicyDefinition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionNewRequestDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+        "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+      tags:
+      - Policy Definition
 components:
   schemas:
     Action:
@@ -341,6 +384,41 @@ components:
         id:
           type: string
           example: null
+    JsonObject:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+      example: null
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+          example: null
+    JsonValue:
+      type: object
+      example: null
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+          example: null
     Permission:
       type: object
       example: null
@@ -413,6 +491,35 @@ components:
         target:
           type: string
           example: null
+    PolicyDefinitionNewRequestDto:
+      type: object
+      example: null
+      properties:
+        id:
+          type: string
+          example: null
+        policy:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+            valueType:
+              type: string
+              enum:
+              - ARRAY
+              - OBJECT
+              - STRING
+              - NUMBER
+              - "TRUE"
+              - "FALSE"
+              - "NULL"
+              example: null
+      required:
+      - policy
     PolicyDefinitionRequestDto:
       type: object
       example: null

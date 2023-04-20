@@ -29,6 +29,9 @@ dependencies {
     testImplementation(libs.jersey.beanvalidation) //for validation
 
     testFixturesApi(project(":core:common:junit"))
+    testFixturesApi(project(":extensions:common:json-ld"))
+    testFixturesApi(libs.jakarta.rsApi)
+    testFixturesApi(libs.jacksonJsonP)
     testFixturesApi(libs.junit.jupiter.api)
     testFixturesApi(libs.mockito.core)
 }

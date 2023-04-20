@@ -1456,6 +1456,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /policydefinitions/request:
     post:
       tags:
@@ -1485,6 +1486,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /policydefinitions/{id}:
     get:
       tags:
@@ -1525,6 +1527,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
     delete:
       tags:
       - Policy
@@ -1574,6 +1577,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /policydefinitions/{policyId}:
     put:
       tags:
@@ -1615,6 +1619,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /token:
     get:
       tags:
@@ -2092,6 +2097,44 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/policydefinitions:
+    post:
+      tags:
+      - Policy Definition
+      description: Creates a new policy definition
+      operationId: createPolicyDefinition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionNewRequestDto'
+      responses:
+        "200":
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
   /{any}:
     get:
       tags:
@@ -2253,6 +2296,43 @@ components:
           additionalProperties:
             type: object
             example: null
+          example: null
+      example: null
+    CallbackAddress:
+      type: object
+      properties:
+        events:
+          uniqueItems: true
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+        transactional:
+          type: boolean
+          example: null
+        uri:
+          type: string
+          example: null
+      example: null
+    CallbackAddressDto:
+      required:
+      - events
+      - uri
+      type: object
+      properties:
+        events:
+          uniqueItems: true
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+        transactional:
+          type: boolean
+          example: null
+        uri:
+          type: string
           example: null
       example: null
     Catalog:
@@ -2419,6 +2499,11 @@ components:
     ContractNegotiationDto:
       type: object
       properties:
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddress'
         contractAgreementId:
           type: string
           example: null
@@ -2779,6 +2864,41 @@ components:
           type: string
           example: null
       example: null
+    JsonObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          example: null
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+      example: null
+    JsonValue:
+      type: object
+      properties:
+        valueType:
+          type: string
+          example: null
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+      example: null
     NegotiationInitiateRequestDto:
       required:
       - connectorAddress
@@ -2787,6 +2907,11 @@ components:
       - protocol
       type: object
       properties:
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddressDto'
         connectorAddress:
           type: string
           example: null
@@ -2882,6 +3007,35 @@ components:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
+          example: null
+      example: null
+    PolicyDefinitionNewRequestDto:
+      required:
+      - policy
+      type: object
+      properties:
+        id:
+          type: string
+          example: null
+        policy:
+          type: object
+          properties:
+            empty:
+              type: boolean
+              example: null
+            valueType:
+              type: string
+              example: null
+              enum:
+              - ARRAY
+              - OBJECT
+              - STRING
+              - NUMBER
+              - "TRUE"
+              - "FALSE"
+              - "NULL"
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
           example: null
       example: null
     PolicyDefinitionRequestDto:
@@ -3020,6 +3174,11 @@ components:
     TransferProcessDto:
       type: object
       properties:
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddress'
         createdAt:
           type: integer
           format: int64
@@ -3072,6 +3231,11 @@ components:
         assetId:
           type: string
           example: null
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddressDto'
         connectorAddress:
           type: string
           example: null

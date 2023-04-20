@@ -24,7 +24,11 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
+
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
 @Extension(value = PolicyDefinitionApiExtension.NAME)
 public class PolicyDefinitionApiExtension implements ServiceExtension {
@@ -43,6 +47,9 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     @Inject
     private PolicyDefinitionService service;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -55,7 +62,9 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         transformerRegistry.register(new PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer());
 
         var monitor = context.getMonitor();
-
+        var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        webService.registerResource(configuration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, service, transformerRegistry));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionNewApiController(transformerRegistry, service));
     }
 }

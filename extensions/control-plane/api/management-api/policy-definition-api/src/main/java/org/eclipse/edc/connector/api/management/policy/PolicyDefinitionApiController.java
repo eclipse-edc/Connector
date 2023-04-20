@@ -53,6 +53,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
 @Path("/policydefinitions")
+@Deprecated(since = "milestone9")
 public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     private final Monitor monitor;

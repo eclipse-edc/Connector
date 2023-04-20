@@ -14,10 +14,12 @@
 
 package org.eclipse.edc.web.jersey.testfixtures;
 
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
+import org.eclipse.edc.web.jersey.ObjectMapperProvider;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.PortMapping;
@@ -45,8 +47,10 @@ public abstract class RestControllerTestBase {
         config.portMapping(new PortMapping("test", port, "/"));
         jetty = new JettyService(config, monitor);
         var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(JerseyConfiguration.class), monitor);
-        jetty.start();
+        jerseyService.registerResource("test", new ObjectMapperProvider(JacksonJsonLd.createObjectMapper()));
         jerseyService.registerResource("test", controller());
+        jetty.start();
+
         jerseyService.start();
     }
 
