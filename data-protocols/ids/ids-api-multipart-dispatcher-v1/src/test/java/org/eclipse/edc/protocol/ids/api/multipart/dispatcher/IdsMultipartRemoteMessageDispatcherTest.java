@@ -63,6 +63,8 @@ class IdsMultipartRemoteMessageDispatcherTest {
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("ids-multipart")
                 .processId("processId")
+                .code("TestCode")
+                .reason("TestReason")
                 .build();
 
         var future = dispatcher.send(Object.class, message);

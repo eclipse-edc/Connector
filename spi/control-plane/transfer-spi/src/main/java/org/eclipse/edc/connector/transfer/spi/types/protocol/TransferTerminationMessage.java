@@ -30,6 +30,10 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
     private String protocol;
     private String processId;
 
+    private String code;
+
+    private String reason; //TODO change to List  https://github.com/eclipse-edc/Connector/issues/2729
+
     @Override
     public String getProtocol() {
         return protocol;
@@ -43,6 +47,14 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
     @Override
     public String getProcessId() {
         return processId;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getReason() {
+        return reason;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -70,6 +82,16 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
 
         public Builder processId(String processId) {
             message.processId = processId;
+            return this;
+        }
+
+        public Builder code(String code) {
+            message.code = code;
+            return this;
+        }
+
+        public Builder reason(String reason) {
+            message.reason = reason;
             return this;
         }
 
