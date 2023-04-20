@@ -52,10 +52,12 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
 
         builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
         builder.add(DCT_FORMAT_ATTRIBUTE, transferRequestMessage.getDataDestination().getType());
-        builder.add(DSPACE_DATAADDRESS_TYPE, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
         builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getCallbackAddress());
         builder.add(DSPACE_PROCESSID_TYPE, transferRequestMessage.getProcessId());
 
+        if (transferRequestMessage.getDataDestination().getProperties().size() > 1) {
+            builder.add(DSPACE_DATAADDRESS_TYPE, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
+        }
         return builder.build();
     }
 }

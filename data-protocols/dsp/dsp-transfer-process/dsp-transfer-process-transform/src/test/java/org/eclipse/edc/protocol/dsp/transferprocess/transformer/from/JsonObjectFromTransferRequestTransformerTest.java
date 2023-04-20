@@ -79,7 +79,7 @@ class JsonObjectFromTransferRequestTransformerTest {
 
 
     @Test
-    void transformTransferRequestMessage() {
+    void transformTransferRequestMessageWithDataAddress() {
         var properties = new HashMap<String, String>();
         properties.put("key", "value");
 
@@ -101,6 +101,33 @@ class JsonObjectFromTransferRequestTransformerTest {
         assertThat(result.getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo(callbackAddress);
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(id);
         assertThat(result.getJsonObject(DSPACE_DATAADDRESS_TYPE).getString("keyName")).isEqualTo(dataAddressKey);
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transformTransferRequestMessageWithoutDataAddress() {
+        var properties = new HashMap<String, String>();
+        properties.put("key", "value");
+
+        var message = TransferRequestMessage.Builder.newInstance()
+                .id(id)
+                .properties(properties)
+                .callbackAddress(callbackAddress)
+                .contractId(contractId)
+                .protocol(protocol)
+                .dataDestination(DataAddress.Builder.newInstance().type(dataAddressType).build())
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        Assertions.assertNotNull(result);
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
+        assertThat(result.getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
+        assertThat(result.getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(id);
+        assertThat(result.getJsonObject(DSPACE_DATAADDRESS_TYPE)).isEqualTo(null);
 
         verify(context, never()).reportProblem(anyString());
     }
