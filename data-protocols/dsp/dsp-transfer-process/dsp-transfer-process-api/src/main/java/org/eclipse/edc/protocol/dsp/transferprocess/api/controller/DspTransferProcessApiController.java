@@ -121,13 +121,13 @@ public class DspTransferProcessApiController {
         var requestMessage = messageResult.getContent();
         var initiateResult = protocolService.notifyRequested(requestMessage, claimToken);
         if (initiateResult.failed()) {
-            throw new EdcException("TransferProcess could not be initiated");
+            throw new EdcException(format("TransferProcess could not be initiated: %s", join(", ", initiateResult.getFailureMessages())));
         }
         
         var transferprocess = initiateResult.getContent();
         var transferProcessResult = registry.transform(transferprocess, JsonObject.class);
         if (transferProcessResult.failed()) {
-            throw new EdcException("Response could not be created");
+            throw new EdcException(format("Response could not be created: %s", join(", ", initiateResult.getFailureMessages())));
         }
         
         return mapper.convertValue(compact(transferProcessResult.getContent(), jsonLdContext()), Map.class);
