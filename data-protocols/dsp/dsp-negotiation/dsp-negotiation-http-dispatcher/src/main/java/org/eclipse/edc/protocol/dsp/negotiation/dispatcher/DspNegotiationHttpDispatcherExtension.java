@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher;
 
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementMessageDelegate;
-import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementVerificationMessageDelegate;
-import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationEventMessageDelegate;
-import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractOfferRequestDelegate;
-import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractRejectionHttpDelegate;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementMessageHttpDelegate;
+import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementVerificationMessageHttpDelegate;
+import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationEventMessageHttpDelegate;
+import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationTerminationMessageHttpDelegate;
+import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractRequestMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -50,10 +50,10 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var objectMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
 
-        messageDispatcher.registerDelegate(new ContractAgreementMessageDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractAgreementVerificationMessageDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractNegotiationEventMessageDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractOfferRequestDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractRejectionHttpDelegate(objectMapper, transformerRegistry));
+        messageDispatcher.registerDelegate(new ContractAgreementMessageHttpDelegate(objectMapper, transformerRegistry));
+        messageDispatcher.registerDelegate(new ContractAgreementVerificationMessageHttpDelegate(objectMapper, transformerRegistry));
+        messageDispatcher.registerDelegate(new ContractNegotiationEventMessageHttpDelegate(objectMapper, transformerRegistry));
+        messageDispatcher.registerDelegate(new ContractNegotiationTerminationMessageHttpDelegate(objectMapper, transformerRegistry));
+        messageDispatcher.registerDelegate(new ContractRequestMessageHttpDelegate(objectMapper, transformerRegistry));
     }
 }
