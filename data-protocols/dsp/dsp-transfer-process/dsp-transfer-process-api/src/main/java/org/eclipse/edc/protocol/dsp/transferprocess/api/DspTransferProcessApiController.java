@@ -84,17 +84,28 @@ public class DspTransferProcessApiController {
         this.identityService = identityService;
         this.dspCallbackAddress = dspCallbackAddress;
     }
-
-    //Provider side
+    
+    /**
+     * Retrieves an existing transfer process. This functionality is not yet supported.
+     *
+     * @param id the ID of the process
+     * @return the transfer process in JSON-LD expanded form
+     */
     @GET
     @Path("/{id}")
-    public JsonObject getTransferProcess(@PathParam("id") String id, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public JsonObject getTransferProcess(@PathParam("id") String id) {
         monitor.debug(format("DSP: Incoming request for transfer process with id %s", id));
     
         throw new UnsupportedOperationException("Getting a transfer process not yet supported.");
     }
-
-    //Provider side
+    
+    /**
+     * Initiates a new transfer process that has been requested by the counter-party.
+     *
+     * @param jsonObject the {@link TransferRequestMessage} in JSON-LD expanded form
+     * @param token the authorization header
+     * @return the created transfer process  in JSON-LD expanded form
+     */
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
     public Map<String, Object> initiateTransferProcess(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
@@ -121,8 +132,14 @@ public class DspTransferProcessApiController {
         
         return mapper.convertValue(compact(transferProcessResult.getContent(), jsonLdContext()), Map.class);
     }
-
-    //both sides
+    
+    /**
+     * Notifies the connector that a transfer process has been started by the counter-part.
+     *
+     * @param id the ID of the process
+     * @param jsonObject the {@link TransferStartMessage} in JSON-LD expanded form
+     * @param token the authorization header
+     */
     @POST
     @Path("{id}" + TRANSFER_START)
     public void transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
@@ -140,8 +157,14 @@ public class DspTransferProcessApiController {
             throw new EdcException(format("Failed to start transfer: %s", join(", ", serviceResult.getFailureMessages())));
         }
     }
-
-    //both sides
+    
+    /**
+     * Notifies the connector that a transfer process has been completed by the counter-part.
+     *
+     * @param id the ID of the process
+     * @param jsonObject the {@link TransferCompletionMessage} in JSON-LD expanded form
+     * @param token the authorization header
+     */
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
     public void transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
@@ -159,8 +182,14 @@ public class DspTransferProcessApiController {
             throw new EdcException(format("Failed to complete transfer: %s", join(", ", serviceResult.getFailureMessages())));
         }
     }
-
-    //both sides
+    
+    /**
+     * Notifies the connector that a transfer process has been terminated by the counter-part.
+     *
+     * @param id the ID of the process
+     * @param jsonObject the {@link TransferTerminationMessage} in JSON-LD expanded form
+     * @param token the authorization header
+     */
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
     public void transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
@@ -178,11 +207,16 @@ public class DspTransferProcessApiController {
             throw new EdcException(format("Failed to terminate transfer: %s", join(", ", serviceResult.getFailureMessages())));
         }
     }
-
-    //both sides
+    
+    /**
+     * Notifies the connector that a transfer process has been suspended by the counter-part.
+     * This functionality is not yet supported.
+     *
+     * @param id the ID of the process
+     */
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
-    public void transferProcessSuspension(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public void transferProcessSuspension(@PathParam("id") String id) {
         monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
 
         throw new UnsupportedOperationException("Suspension not yet supported.");
