@@ -245,6 +245,8 @@ class TransferProcessProtocolServiceImplTest {
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .processId("dataRequestId")
+                .code("TestCode")
+                .reason("TestReason")
                 .build();
 
         var result = service.notifyTerminated(message, claimToken());
@@ -264,6 +266,8 @@ class TransferProcessProtocolServiceImplTest {
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .processId("dataRequestId")
+                .code("TestCode")
+                .reason("TestReason")
                 .build();
 
         var result = service.notifyTerminated(message, claimToken());
@@ -299,7 +303,8 @@ class TransferProcessProtocolServiceImplTest {
                     Arguments.of(completed, TransferCompletionMessage.Builder.newInstance().protocol("protocol")
                                     .callbackAddress("http://any").processId("dataRequestId").build()),
                     Arguments.of(terminated, TransferTerminationMessage.Builder.newInstance().protocol("protocol")
-                                    .callbackAddress("http://any").processId("dataRequestId").build())
+                                    .callbackAddress("http://any").processId("dataRequestId").code("TestCode")
+                                    .reason("TestReason").build())
             );
         }
     }
