@@ -224,7 +224,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     
     /**
      * Verifies that an endpoint returns 204 if the call to the service was successful. Also verifies
-     * that the correct service method was called. This is only applicable for part of the endpoints.
+     * that the correct service method was called. This is only applicable for endpoints that do not
+     * return a response body.
      *
      * @param path the request path to the endpoint
      * @param message the request message to be returned by the transformer registry
