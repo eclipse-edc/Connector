@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 
 public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferCompletionMessage> {
 
@@ -33,10 +32,6 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
 
     @Override
     public @Nullable TransferCompletionMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var type = nodeType(jsonObject, context);
-
-        assert DSPACE_TRANSFER_COMPLETION_TYPE.equals(type);
-
         var transferCompletionMessageBuilder = TransferCompletionMessage.Builder.newInstance();
 
         transferCompletionMessageBuilder

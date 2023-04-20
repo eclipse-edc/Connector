@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
 public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
@@ -37,10 +36,6 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
     @Override
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var type = nodeType(jsonObject, context);
-
-        assert DSPACE_TRANSFERPROCESS_REQUEST_TYPE.equals(type);
-
         var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
 
         transferRequestMessageBuilder.id(nodeId(jsonObject))

@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
 public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferTerminationMessage> {
 
@@ -33,10 +32,6 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
 
     @Override
     public @Nullable TransferTerminationMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var type = nodeType(jsonObject, context);
-
-        assert DSPACE_TRANSFER_TERMINATION_TYPE.equals(type);
-
         var transferTerminationMessageBuilder = TransferTerminationMessage.Builder.newInstance();
 
         transferTerminationMessageBuilder
