@@ -22,7 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 
@@ -36,20 +35,16 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
     public @Nullable TransferCompletionMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var type = nodeType(jsonObject, context);
 
+        assert DSPACE_TRANSFER_COMPLETION_TYPE.equals(type);
 
-        if (DSPACE_TRANSFER_COMPLETION_TYPE.equals(type)) {
+        var transferCompletionMessageBuilder = TransferCompletionMessage.Builder.newInstance();
 
-            var transferCompletionMessageBuilder = TransferCompletionMessage.Builder.newInstance();
+        transferCompletionMessageBuilder
+                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
-            transferCompletionMessageBuilder
-                    .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferCompletionMessageBuilder::processId, context);
 
-            transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferCompletionMessageBuilder::processId, context);
+        return transferCompletionMessageBuilder.build();
 
-            return transferCompletionMessageBuilder.build();
-        } else {
-            context.reportProblem(format("Cannot transform type %s to TransferRequestMessage", type));
-            return null;
-        }
     }
 }

@@ -23,7 +23,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
@@ -40,24 +39,19 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var type = nodeType(jsonObject, context);
 
+        assert DSPACE_TRANSFERPROCESS_REQUEST_TYPE.equals(type);
 
-        if (DSPACE_TRANSFERPROCESS_REQUEST_TYPE.equals(type)) {
+        var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
 
-            var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
+        transferRequestMessageBuilder.id(nodeId(jsonObject))
+                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
-            transferRequestMessageBuilder.id(nodeId(jsonObject))
-                    .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        transformString(jsonObject.get(DSPACE_CONTRACTAGREEMENT_TYPE), transferRequestMessageBuilder::contractId, context);
+        transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::callbackAddress, context);
 
-            transformString(jsonObject.get(DSPACE_CONTRACTAGREEMENT_TYPE), transferRequestMessageBuilder::contractId, context);
-            transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::callbackAddress, context);
+        transferRequestMessageBuilder.dataDestination(createDataAddress(jsonObject, context));
 
-            transferRequestMessageBuilder.dataDestination(createDataAddress(jsonObject, context));
-
-            return transferRequestMessageBuilder.build();
-        } else {
-            context.reportProblem(format("Cannot transform type %s to TransferRequestMessage", type));
-            return null;
-        }
+        return transferRequestMessageBuilder.build();
     }
 
     private DataAddress createDataAddress(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {

@@ -22,7 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 
@@ -36,21 +35,16 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
     public @Nullable TransferStartMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var type = nodeType(jsonObject, context);
 
+        assert DSPACE_TRANSFER_START_TYPE.equals(type);
 
-        if (DSPACE_TRANSFER_START_TYPE.equals(type)) {
+        var transferStartMessageBuilder = TransferStartMessage.Builder.newInstance();
 
-            var transferStartMessageBuilder = TransferStartMessage.Builder.newInstance();
+        transferStartMessageBuilder
+                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
-            transferStartMessageBuilder
-                    .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
+        //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
 
-            transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
-            //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
-
-            return transferStartMessageBuilder.build();
-        } else {
-            context.reportProblem(format("Cannot transform type %s to TransferRequestMessage", type));
-            return null;
-        }
+        return transferStartMessageBuilder.build();
     }
 }

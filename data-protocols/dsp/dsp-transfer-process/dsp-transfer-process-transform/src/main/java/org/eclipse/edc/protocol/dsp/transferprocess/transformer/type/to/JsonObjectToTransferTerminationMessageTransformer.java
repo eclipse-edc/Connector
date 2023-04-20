@@ -22,7 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
@@ -36,21 +35,17 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
     public @Nullable TransferTerminationMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var type = nodeType(jsonObject, context);
 
+        assert DSPACE_TRANSFER_TERMINATION_TYPE.equals(type);
 
-        if (DSPACE_TRANSFER_TERMINATION_TYPE.equals(type)) {
+        var transferTerminationMessageBuilder = TransferTerminationMessage.Builder.newInstance();
 
-            var transferTerminationMessageBuilder = TransferTerminationMessage.Builder.newInstance();
+        transferTerminationMessageBuilder
+                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
-            transferTerminationMessageBuilder
-                    .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
+        //TODO ADD missing fields (code, reason) from spec issue https://github.com/eclipse-edc/Connector/issues/2764
 
-            transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
-            //TODO ADD missing fields (code, reason) from spec issue https://github.com/eclipse-edc/Connector/issues/2764
+        return transferTerminationMessageBuilder.build();
 
-            return transferTerminationMessageBuilder.build();
-        } else {
-            context.reportProblem(format("Cannot transform type %s to TransferRequestMessage", type));
-            return null;
-        }
     }
 }
