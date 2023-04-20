@@ -22,7 +22,6 @@ import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -73,8 +72,7 @@ class JsonObjectFromTransferProcessTransformerTest {
 
         var result = transformer.transform(transferProcess, context);
 
-        Assertions.assertNotNull(result);
-
+        assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_TYPE);
         assertThat(result.getJsonString(JsonLdKeywords.ID).getString()).isEqualTo("transferProcessID");
         assertThat(result.getJsonString(DSPACE_STATE_TYPE).getString()).isEqualTo("INITIAL");

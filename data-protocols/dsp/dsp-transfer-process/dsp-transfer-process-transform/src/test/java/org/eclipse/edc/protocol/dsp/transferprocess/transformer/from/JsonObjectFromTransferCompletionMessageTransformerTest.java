@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionM
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -56,7 +55,7 @@ class JsonObjectFromTransferCompletionMessageTransformerTest {
 
         var result = transformer.transform(message, context);
 
-        Assertions.assertNotNull(result);
+        assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_COMPLETION_TYPE);
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
 

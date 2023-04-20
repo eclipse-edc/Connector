@@ -121,7 +121,7 @@ class JsonObjectFromTransferRequestTransformerTest {
 
         var result = transformer.transform(message, context);
 
-        Assertions.assertNotNull(result);
+        assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
         assertThat(result.getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);

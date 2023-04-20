@@ -19,7 +19,6 @@ import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +60,7 @@ class JsonObjectFromDataAddressTransformerTest {
 
         var result = transformer.transform(message, context);
 
-        Assertions.assertNotNull(result);
+        assertThat(result).isNotNull();
         assertThat(result.getJsonString(propertyKey).getString()).isEqualTo(propertyValue);
         assertThat(result.getJsonString("type").getString()).isEqualTo(type);
         assertThat(result.getJsonString("keyName").getString()).isEqualTo(key);

@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessag
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferStartMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +61,7 @@ class JsonObjectFromTransferStartMessageTransformerTest {
 
         var result = transformer.transform(message, context);
 
-        Assertions.assertNotNull(result);
+        assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_START_TYPE);
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(processId);
         //TODO Add missing fields (dataAddress) from Spec Issue https://github.com/eclipse-edc/Connector/issues/2727

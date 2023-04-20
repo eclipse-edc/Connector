@@ -90,7 +90,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
 
         var result = transformer.transform(json, context);
 
-        Assertions.assertNotNull(result);
+        assertThat(result).isNotNull();
 
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
