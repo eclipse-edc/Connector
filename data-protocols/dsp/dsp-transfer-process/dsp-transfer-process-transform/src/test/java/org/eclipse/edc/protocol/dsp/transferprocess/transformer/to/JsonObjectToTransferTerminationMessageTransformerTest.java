@@ -49,7 +49,7 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
     @Test
     void jsonObjectToTransferTerminationMessage() {
 
-        //TODO Add missing code,reason attribute from Spec
+        //TODO Add missing (code,reason) attributes from Spec issue https://github.com/eclipse-edc/Connector/issues/2764
 
         var json = Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)

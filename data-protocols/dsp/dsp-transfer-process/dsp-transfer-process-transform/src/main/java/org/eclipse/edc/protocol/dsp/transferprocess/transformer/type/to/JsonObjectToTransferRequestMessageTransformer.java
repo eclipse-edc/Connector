@@ -71,8 +71,6 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
             dataAddressJsonObject.entrySet().forEach((k) -> dataAddressBuilder.property(k.getKey(), dataAddressJsonObject.getString(k.getKey())));
         }
 
-        //TODO Check for missing items
-
         return dataAddressBuilder.build();
     }
 }
