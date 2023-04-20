@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -63,6 +64,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ApiTest
 class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     
     private static final ObjectMapper MAPPER = mock(ObjectMapper.class);
@@ -100,8 +102,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var process = transferProcess();
         var json = Json.createObjectBuilder().build();
         var map = new HashMap<String, Object>() {{
-            put("key", "value");
-        }};
+                put("key", "value");
+            }};
         
         when(IDENTITY_SERVICE.verifyJwtToken(any(TokenRepresentation.class), eq(CALLBACK_ADDRESS)))
                 .thenReturn(Result.success(token));
