@@ -47,7 +47,7 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
 
             transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
             transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferTerminationMessageBuilder::callbackAddress, context);
-            //TODO ADD missing fields dataAddress from spec
+            //TODO ADD missing fields (code, reason) from spec issue https://github.com/eclipse-edc/Connector/issues/2764
 
             return transferTerminationMessageBuilder.build();
         } else {

@@ -68,7 +68,7 @@ class JsonObjectFromTransferStartMessageTransformerTest {
         Assertions.assertNotNull(result);
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_START_TYPE);
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(processId);
-        //TODO Add missing fields (dataAddress) from Spec Issue #2727
+        //TODO Add missing fields (dataAddress) from Spec Issue https://github.com/eclipse-edc/Connector/issues/2727
 
         verify(context, never()).reportProblem(anyString());
     }

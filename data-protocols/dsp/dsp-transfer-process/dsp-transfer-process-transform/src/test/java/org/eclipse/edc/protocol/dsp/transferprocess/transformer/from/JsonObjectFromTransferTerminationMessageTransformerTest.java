@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
-import com.apicatalog.jsonld.JsonLdError;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
@@ -49,7 +48,7 @@ class JsonObjectFromTransferTerminationMessageTransformerTest {
     }
 
     @Test
-    void transformTransferTerminationMessage() throws JsonLdError {
+    void transformTransferTerminationMessage() {
         var message = TransferTerminationMessage.Builder.newInstance()
                 .processId("TestID")
                 .callbackAddress("TestConnectorAddress")
@@ -61,7 +60,7 @@ class JsonObjectFromTransferTerminationMessageTransformerTest {
         Assertions.assertNotNull(result);
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_TERMINATION_TYPE);
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("TestID");
-        //TODO Add missing fields (code, reason) from Spec
+        //TODO Add missing fields (code, reason) from Spec issue https://github.com/eclipse-edc/Connector/issues/2764
 
         verify(context, never()).reportProblem(anyString());
     }

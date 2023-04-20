@@ -46,7 +46,7 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
         builder.add(TYPE, DSPACE_TRANSFER_START_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
 
-        //TODO ADD missing fields dataAddress from spec
+        //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
 
         return builder.build();
     }

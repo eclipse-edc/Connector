@@ -51,7 +51,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
 
     @Test
     void jsonObjectToTransferStartMessage() {
-        //TODO Add missing DataAddress from Spec
+        //TODO Add missing DataAddress from Spec Issue https://github.com/eclipse-edc/Connector/issues/2727
 
         var json = Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)

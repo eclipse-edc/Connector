@@ -47,7 +47,7 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
 
             transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
             transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferStartMessageBuilder::callbackAddress, context);
-            //TODO ADD missing fields dataAddress from spec
+            //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
 
             return transferStartMessageBuilder.build();
         } else {

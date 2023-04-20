@@ -46,7 +46,7 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
         builder.add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferTerminationMessage.getProcessId());
 
-        //TODO Add field when Message is evolved (code, reason)
+        //TODO Add field when Message is evolved (code, reason) issue https://github.com/eclipse-edc/Connector/issues/2764
 
         return builder.build();
 
