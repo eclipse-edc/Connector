@@ -42,7 +42,7 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
     public @Nullable JsonObject transform(@NotNull TransferStartMessage transferStartMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(ID, String.valueOf(UUID.randomUUID()));
+        builder.add(ID, UUID.randomUUID().toString());
         builder.add(TYPE, DSPACE_TRANSFER_START_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
 
