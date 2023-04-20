@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
-import com.apicatalog.jsonld.JsonLdError;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -49,10 +48,9 @@ class JsonObjectFromTransferCompletionMessageTransformerTest {
     }
 
     @Test
-    void transformTransferCompletionMessage() throws JsonLdError {
+    void transformTransferCompletionMessage() {
         var message = TransferCompletionMessage.Builder.newInstance()
                 .processId("TestID")
-                .callbackAddress("TestConnectorAddress")
                 .protocol("dsp")
                 .build();
 

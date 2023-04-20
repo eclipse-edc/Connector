@@ -39,8 +39,6 @@ class JsonObjectFromTransferStartMessageTransformerTest {
 
     private final String processId = "testId";
 
-    private final String callbackAddress = "testCallbackAddress";
-
     private final String protocol = "testProtocol";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
@@ -59,7 +57,6 @@ class JsonObjectFromTransferStartMessageTransformerTest {
     void transformTransferStartMessage() {
         var message = TransferStartMessage.Builder.newInstance()
                 .processId(processId)
-                .callbackAddress(callbackAddress) //TODO Spec has no Callback field
                 .protocol(protocol)
                 .build();
 

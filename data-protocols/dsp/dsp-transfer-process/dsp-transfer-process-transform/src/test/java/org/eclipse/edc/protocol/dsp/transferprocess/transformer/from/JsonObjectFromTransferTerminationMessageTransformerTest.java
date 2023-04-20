@@ -51,7 +51,6 @@ class JsonObjectFromTransferTerminationMessageTransformerTest {
     void transformTransferTerminationMessage() {
         var message = TransferTerminationMessage.Builder.newInstance()
                 .processId("TestID")
-                .callbackAddress("TestConnectorAddress")
                 .protocol("dsp")
                 .build();
 

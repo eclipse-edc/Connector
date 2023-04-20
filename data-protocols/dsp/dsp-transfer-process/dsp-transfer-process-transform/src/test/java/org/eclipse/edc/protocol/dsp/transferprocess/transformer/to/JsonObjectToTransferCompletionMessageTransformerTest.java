@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
@@ -37,8 +36,6 @@ import static org.mockito.Mockito.verify;
 class JsonObjectToTransferCompletionMessageTransformerTest {
 
     private final String processId = "TestProcessId";
-
-    private final String callbackAddress = "https://callback.de";
 
     private TransformerContext context = mock(TransformerContext.class);
 
@@ -56,7 +53,6 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
                 .add(DSPACE_PROCESSID_TYPE, processId)
-                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
                 .build();
 
         var result = transformer.transform(json, context);
@@ -64,7 +60,6 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
         Assertions.assertNotNull(result);
 
         assertThat(result.getProcessId()).isEqualTo(processId);
-        assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
         assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
         verify(context, never()).reportProblem(anyString());

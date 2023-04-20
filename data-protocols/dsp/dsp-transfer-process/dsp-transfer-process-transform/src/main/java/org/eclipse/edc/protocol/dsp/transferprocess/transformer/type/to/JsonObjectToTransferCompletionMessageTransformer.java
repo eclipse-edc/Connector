@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 
@@ -46,7 +45,6 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
                     .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
             transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferCompletionMessageBuilder::processId, context);
-            transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferCompletionMessageBuilder::callbackAddress, context);
 
             return transferCompletionMessageBuilder.build();
         } else {
