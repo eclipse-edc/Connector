@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_TERMS_ATTRIBUTE;
 
@@ -39,17 +37,12 @@ public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransforme
     @Override
     public @Nullable DataService transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var type = nodeType(object, context);
-        if (DCAT_DATA_SERVICE_TYPE.equals(type)) {
-            var builder = DataService.Builder.newInstance();
+        var builder = DataService.Builder.newInstance();
 
-            builder.id(nodeId(object));
-            visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-    
-            return builderResult(builder::build, context);
-        } else {
-            context.reportProblem(format("Cannot transform type %s to DataService", type));
-            return null;
-        }
+        builder.id(nodeId(object));
+        visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
+
+        return builderResult(builder::build, context);
     }
 
     private void transformProperties(String key, JsonValue value, DataService.Builder builder, TransformerContext context) {

@@ -19,13 +19,15 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
 
 public class TypeTransformerRegistryImpl<T extends TypeTransformer<?, ?>> implements TypeTransformerRegistry<T> {
-
+    private final Map<String, Class<?>> aliases = new HashMap<>();
     private final List<T> transformers = new ArrayList<>();
 
     @Override
@@ -54,5 +56,21 @@ public class TypeTransformerRegistryImpl<T extends TypeTransformer<?, ?>> implem
         } else {
             return Result.success(result);
         }
+    }
+
+
+    @Override
+    public Class<?> typeAlias(String type) {
+        return aliases.get(type);
+    }
+
+    @Override
+    public Class<?> typeAlias(String type, Class<?> defaultType) {
+        return aliases.getOrDefault(type, defaultType);
+    }
+
+    @Override
+    public void registerTypeAlias(String alias, Class<?> type) {
+        aliases.put(alias, type);
     }
 }

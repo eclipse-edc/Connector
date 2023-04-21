@@ -23,9 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DISTRIBUTION_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
 /**
@@ -39,15 +37,9 @@ public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransform
 
     @Override
     public @Nullable Distribution transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var type = nodeType(object, context);
-        if (DCAT_DISTRIBUTION_TYPE.equals(type)) {
-            var builder = Distribution.Builder.newInstance();
-            visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-            return builderResult(builder::build, context);
-        } else {
-            context.reportProblem(format("Cannot transform type %s to Distribution", type));
-            return null;
-        }
+        var builder = Distribution.Builder.newInstance();
+        visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
+        return builderResult(builder::build, context);
     }
 
     private void transformProperties(String key, JsonValue value, Distribution.Builder builder, TransformerContext context) {

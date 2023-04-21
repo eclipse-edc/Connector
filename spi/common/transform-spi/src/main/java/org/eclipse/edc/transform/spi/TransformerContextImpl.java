@@ -51,4 +51,15 @@ public class TransformerContextImpl implements TransformerContext {
         return registry.transformerFor(object, outputType)
                 .transform(object, this);
     }
+
+    @Override
+    public Class<?> typeAlias(String type) {
+        return registry.typeAlias(type);
+    }
+
+    @Override
+    public Class<?> typeAlias(String type, Class<?> defaultType) {
+        return registry.typeAlias(type, defaultType);
+    }
+
 }

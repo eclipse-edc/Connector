@@ -24,8 +24,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 
@@ -40,18 +38,12 @@ public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<Js
 
     @Override
     public @Nullable Catalog transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var type = nodeType(object, context);
-        if (DCAT_CATALOG_TYPE.equals(type)) {
-            var builder = Catalog.Builder.newInstance();
+        var builder = Catalog.Builder.newInstance();
 
-            builder.id(nodeId(object));
-            visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-    
-            return builderResult(builder::build, context);
-        } else {
-            context.reportProblem(format("Cannot transform type %s to Catalog", type));
-            return null;
-        }
+        builder.id(nodeId(object));
+        visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
+
+        return builderResult(builder::build, context);
     }
 
     private void transformProperties(String key, JsonValue value, Catalog.Builder builder, TransformerContext context) {
