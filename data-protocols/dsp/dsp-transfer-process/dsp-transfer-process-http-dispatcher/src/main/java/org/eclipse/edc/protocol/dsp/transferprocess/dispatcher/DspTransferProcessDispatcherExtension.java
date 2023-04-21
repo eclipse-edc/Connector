@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher;
 
 
+import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferCompletionDelegate;
@@ -27,6 +28,10 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
+
+/**
+ * Provides the delegates for TransferProcessDispatcher  via the {@link DspHttpRemoteMessageDispatcher}.
+ */
 @Extension(value = DspTransferProcessDispatcherExtension.NAME)
 public class DspTransferProcessDispatcherExtension implements ServiceExtension {
 
@@ -46,7 +51,7 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var objectMapper = typeManager.getMapper("json-ld");
+        var objectMapper = typeManager.getMapper(JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD);
 
         messageDispatcher.registerDelegate(new TransferRequestDelegate(objectMapper, transformerRegistry));
         messageDispatcher.registerDelegate(new TransferCompletionDelegate(objectMapper, transformerRegistry));

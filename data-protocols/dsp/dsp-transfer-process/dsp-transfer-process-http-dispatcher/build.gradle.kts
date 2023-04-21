@@ -24,11 +24,8 @@ dependencies {
 
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-spi"))
-    // implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")) TODO Waiting for PR#2759
+    implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
     implementation(project(":extensions:common:json-ld"))
-
-    implementation("jakarta.json:jakarta.json-api:2.1.1")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.14.2")
 
     implementation(libs.jakarta.rsApi)
 }
