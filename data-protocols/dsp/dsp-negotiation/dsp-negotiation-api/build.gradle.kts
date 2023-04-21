@@ -31,5 +31,6 @@ dependencies {
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
 }
