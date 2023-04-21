@@ -46,7 +46,6 @@ class QuerySpecDtoToQuerySpecTransformerTest {
         var querySpecDto = QuerySpecDto.Builder.newInstance()
                 .offset(10)
                 .limit(20)
-                .filter("field=value")
                 .sortOrder(SortOrder.DESC)
                 .sortField("field")
                 .build();
@@ -55,8 +54,6 @@ class QuerySpecDtoToQuerySpecTransformerTest {
 
         assertThat(spec.getOffset()).isEqualTo(10);
         assertThat(spec.getLimit()).isEqualTo(20);
-        assertThat(spec.getFilterExpression()).hasSize(1)
-                .containsExactly(new Criterion("field", "=", "value"));
         assertThat(spec.getSortOrder()).isEqualTo(SortOrder.DESC);
         assertThat(spec.getSortField()).isEqualTo("field");
     }
@@ -83,7 +80,6 @@ class QuerySpecDtoToQuerySpecTransformerTest {
 
         var querySpecDto = QuerySpecDto.Builder.newInstance()
                 .filterExpression(List.of(CriterionDto.from("foo", "=", "bar")))
-                .filter("bar < baz")
                 .build();
 
         var spec = transformer.transform(querySpecDto, context);
@@ -100,7 +96,6 @@ class QuerySpecDtoToQuerySpecTransformerTest {
                 .thenReturn(expected);
 
         var querySpecDto = QuerySpecDto.Builder.newInstance()
-                .filter("bar < baz")
                 .build();
 
         var spec = transformer.transform(querySpecDto, context);

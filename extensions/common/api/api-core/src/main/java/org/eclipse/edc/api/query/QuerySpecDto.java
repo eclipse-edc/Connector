@@ -15,10 +15,8 @@
 package org.eclipse.edc.api.query;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.ws.rs.QueryParam;
@@ -39,10 +37,6 @@ public class QuerySpecDto {
     @Positive(message = "limit must be greater than 0")
     private Integer limit = 50;
 
-    @QueryParam("filter")
-    @Deprecated
-    private String filter;
-
     private List<CriterionDto> filterExpression = new ArrayList<>();
 
     @QueryParam("sort")
@@ -59,27 +53,12 @@ public class QuerySpecDto {
         return limit;
     }
 
-    @Deprecated
-    public String getFilter() {
-        return filter;
-    }
-
     public SortOrder getSortOrder() {
         return sortOrder;
     }
 
     public String getSortField() {
         return sortField;
-    }
-
-    @JsonIgnore
-    @AssertTrue
-    public boolean isValid() {
-        if (filter != null && filter.isBlank()) {
-            return false;
-        }
-
-        return sortField == null || !sortField.isBlank();
     }
 
     public List<CriterionDto> getFilterExpression() {
@@ -116,12 +95,6 @@ public class QuerySpecDto {
 
         public Builder sortField(String sortField) {
             querySpec.sortField = sortField;
-            return this;
-        }
-
-        @Deprecated
-        public Builder filter(String filter) {
-            querySpec.filter = filter;
             return this;
         }
 

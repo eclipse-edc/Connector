@@ -18,11 +18,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.eclipse.edc.spi.message.Range;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Specifies various query parameters for collection-like queries. Typical uses include API endpoints, where the query
@@ -110,9 +107,7 @@ public class QuerySpec {
     }
 
     public static final class Builder {
-        private static final String EQUALS_EXPRESSION_PATTERN = "[^\\s\\\\]*(\\s*)=(\\s*)[^\\\\]*";
         private final QuerySpec querySpec;
-        private boolean equalsAsContains = false;
 
         private Builder() {
             querySpec = new QuerySpec();
@@ -152,11 +147,6 @@ public class QuerySpec {
             return this;
         }
 
-        public Builder equalsAsContains(boolean equalsAsContains) {
-            this.equalsAsContains = equalsAsContains;
-            return this;
-        }
-
         public Builder filter(Criterion criterion) {
             querySpec.filterExpression.add(criterion);
             return this;
@@ -166,34 +156,6 @@ public class QuerySpec {
             if (criteria != null) {
                 querySpec.filterExpression.addAll(criteria);
             }
-            return this;
-        }
-
-        @Deprecated
-        public Builder filter(String filterExpression) {
-
-            if (filterExpression != null) {
-                if (Pattern.matches(EQUALS_EXPRESSION_PATTERN, filterExpression)) { // something like X = Y
-                    // we'll interpret the "=" as "contains" if desired
-                    var tokens = filterExpression.split("=", 2);
-                    var left = tokens[0].trim();
-                    var right = tokens[1].trim();
-                    var op = equalsAsContains ? "contains" : "=";
-                    querySpec.filterExpression = List.of(new Criterion(left, op, right));
-                } else {
-                    var s = filterExpression.split(" +", 3);
-
-                    //generic LEFT OPERAND RIGHT expression
-                    if (s.length >= 3) {
-                        var rh = Arrays.stream(s, 2, s.length).collect(Collectors.joining(" "));
-                        querySpec.filterExpression = List.of(new Criterion(s[0], s[1], rh));
-                    } else {
-                        // unsupported filter expression
-                        throw new IllegalArgumentException("Cannot convert " + filterExpression + " into a Criterion");
-                    }
-                }
-            }
-
             return this;
         }
 

@@ -47,9 +47,6 @@ public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QueryS
                 .sortField(query.getSortField())
                 .sortOrder(query.getSortOrder());
 
-        // use filter string
-        builder.filter(query.getFilter());
-
         // overwrite with filter expression, if present
         if (!query.getFilterExpression().isEmpty()) {
             var result = transformFilter(query.getFilterExpression(), context);
