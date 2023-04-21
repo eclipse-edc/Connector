@@ -18,7 +18,9 @@ import jakarta.json.Json;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TypeUtilTest {
 
@@ -78,5 +80,29 @@ class TypeUtilTest {
         var actual = TypeUtil.typeValueArray(value);
 
         assertNull(actual);
+    }
+
+    @Test
+    public void isOfExpectedType_false() {
+        var expected = "type";
+        var object = Json.createObjectBuilder()
+                .add("@type", expected)
+                .build();
+
+        var actual = TypeUtil.isOfExpectedType(object, "invalid_type");
+
+        assertFalse(actual);
+    }
+
+    @Test
+    public void isOfExpectedType_true() {
+        var expected = "type";
+        var object = Json.createObjectBuilder()
+                .add("@type", expected)
+                .build();
+
+        var actual = TypeUtil.isOfExpectedType(object, expected);
+
+        assertTrue(actual);
     }
 }

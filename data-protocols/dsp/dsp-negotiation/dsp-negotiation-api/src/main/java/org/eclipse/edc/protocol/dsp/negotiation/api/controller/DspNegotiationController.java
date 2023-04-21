@@ -36,7 +36,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.transform.util.TypeUtil;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -70,6 +69,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.T
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.VERIFICATION;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -258,13 +258,12 @@ public class DspNegotiationController implements DspNegotiationApi {
         return result.getContent();
     }
 
-    protected JsonObject hasValidType(JsonObject object, String expected) {
-        var actual = TypeUtil.nodeType(object);
-        if (actual == null || !actual.equals(expected)) {
+    private JsonObject hasValidType(JsonObject object, String expected) {
+        if (isOfExpectedType(object, expected)) {
+            return object;
+        } else {
             throw new InvalidRequestException(format("Request body was not of expected type: %s", expected));
         }
-
-        return object;
     }
 
     private void validateId(String actual, String expected) {
