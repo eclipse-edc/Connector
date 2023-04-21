@@ -29,23 +29,24 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
@@ -116,18 +117,10 @@ public class DspTransferProcessApiController {
     @Path(TRANSFER_INITIAL_REQUEST)
     public Map<String, Object> initiateTransferProcess(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug("DSP: Incoming TransferRequestMessage for initiating a transfer process");
-        
-        var claimToken = checkAuthToken(token);
     
-        var expanded = expand(jsonObject).getJsonObject(0);
-        validateType(expanded, DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
-        var message = registry.transform(expanded, TransferRequestMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
+        var transferProcess = handleMessage(jsonObject, token, DSPACE_TRANSFERPROCESS_REQUEST_TYPE, TransferRequestMessage.class, protocolService::notifyRequested);
         
-        var transferprocess = protocolService.notifyRequested(message, claimToken)
-                .orElseThrow(exceptionMapper(TransferProcess.class));
-        
-        var transferProcessJson = registry.transform(transferprocess, JsonObject.class)
+        var transferProcessJson = registry.transform(transferProcess, JsonObject.class)
                 .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
         
         return mapper.convertValue(compact(transferProcessJson, jsonLdContext()), Map.class);
@@ -144,16 +137,8 @@ public class DspTransferProcessApiController {
     @Path("{id}" + TRANSFER_START)
     public void transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferStartMessage for transfer process %s", id));
-        
-        var claimToken = checkAuthToken(token);
     
-        var expanded = expand(jsonObject).getJsonObject(0);
-        validateType(expanded, DSPACE_TRANSFER_START_TYPE);
-        var message = registry.transform(expanded, TransferStartMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
-        
-        protocolService.notifyStarted(message, claimToken)
-                .orElseThrow(exceptionMapper(TransferProcess.class));
+        handleMessage(jsonObject, token, DSPACE_TRANSFER_START_TYPE, TransferStartMessage.class, protocolService::notifyStarted);
     }
     
     /**
@@ -167,16 +152,8 @@ public class DspTransferProcessApiController {
     @Path("{id}" + TRANSFER_COMPLETION)
     public void transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferCompletionMessage for transfer process %s", id));
-        
-        var claimToken = checkAuthToken(token);
     
-        var expanded = expand(jsonObject).getJsonObject(0);
-        validateType(expanded, DSPACE_TRANSFER_COMPLETION_TYPE);
-        var message = registry.transform(expanded, TransferCompletionMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
-        
-        protocolService.notifyCompleted(message, claimToken)
-                .orElseThrow(exceptionMapper(TransferProcess.class));
+        handleMessage(jsonObject, token, DSPACE_TRANSFER_COMPLETION_TYPE, TransferCompletionMessage.class, protocolService::notifyCompleted);
     }
     
     /**
@@ -191,15 +168,7 @@ public class DspTransferProcessApiController {
     public void transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming TransferTerminationMessage for transfer process %s", id));
         
-        var claimToken = checkAuthToken(token);
-        
-        var expanded = expand(jsonObject).getJsonObject(0);
-        validateType(expanded, DSPACE_TRANSFER_TERMINATION_TYPE);
-        var message = registry.transform(expanded, TransferTerminationMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
-        
-        protocolService.notifyTerminated(message, claimToken)
-                .orElseThrow(exceptionMapper(TransferProcess.class));
+        handleMessage(jsonObject, token, DSPACE_TRANSFER_TERMINATION_TYPE, TransferTerminationMessage.class, protocolService::notifyTerminated);
     }
     
     /**
@@ -214,6 +183,19 @@ public class DspTransferProcessApiController {
         monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
         
         throw new UnsupportedOperationException("Suspension not yet supported.");
+    }
+    
+    private <T, M extends TransferRemoteMessage> T handleMessage(JsonObject request, String token, String expectedType,
+                                               Class<M> messageClass, BiFunction<M, ClaimToken, ServiceResult<T>> serviceCall) {
+        var claimToken = checkAuthToken(token);
+        
+        var expanded = expand(request).getJsonObject(0);
+        validateType(expanded, expectedType);
+        var message = registry.transform(expanded, messageClass)
+                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
+        
+        return serviceCall.apply(message, claimToken)
+                .orElseThrow(exceptionMapper(TransferProcess.class));
     }
     
     private ClaimToken checkAuthToken(String token) {
