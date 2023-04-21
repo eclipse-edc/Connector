@@ -72,6 +72,8 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     
+    private static final String PROCESS_ID = "testId";
+    
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final IdentityService identityService = mock(IdentityService.class);
     private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
@@ -88,7 +90,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     void getTransferProcess_shouldReturnNotImplemented_whenOperationNotSupported() {
         //operation not yet supported
         baseRequest()
-                .get(BASE_PATH + "testId")
+                .get(BASE_PATH + PROCESS_ID)
                 .then()
                 .statusCode(501);
     }
@@ -100,8 +102,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var process = transferProcess();
         var json = Json.createObjectBuilder().build();
         var map = new HashMap<String, Object>() {{
-            put("key", "value");
-        }};
+                put("key", "value");
+            }};
         
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
@@ -172,7 +174,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Json.createObjectBuilder().build())
-                .post(BASE_PATH + "testId" + TRANSFER_SUSPENSION)
+                .post(BASE_PATH + PROCESS_ID + TRANSFER_SUSPENSION)
                 .then()
                 .statusCode(501);
     }
@@ -211,6 +213,32 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.failure("error"));
+        
+        baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(path)
+                .then()
+                .statusCode(400);
+    }
+    
+    /**
+     * Verifies that an endpoint returns 400 if the ID in the request does not match the ID in
+     * the request path.
+     *
+     * @param path the request path to the endpoint
+     * @param request the request body
+     * @param message the request message to be returned by the transformer registry
+     */
+    @ParameterizedTest
+    @ArgumentsSource(ControllerMethodArgumentsForIdValidationFails.class)
+    void callEndpoint_shouldReturnBadRequest_whenIdValidationFails(String path, JsonObject request, TransferRemoteMessage message) {
+        var token = token();
+        
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
+                .thenReturn(Result.success(token));
+        when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
+                .thenReturn(Result.success(message));
         
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -311,20 +339,27 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     }
     
     private static JsonObject transferStartJson() {
-        return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFER_START_TYPE).build();
+        return Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TRANSFER_START_TYPE)
+                .build();
     }
     
     private static JsonObject transferCompletionJson() {
-        return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE).build();
+        return Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
+                .build();
     }
     
     private static JsonObject transferTerminationJson() {
-        return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE).build();
+        return Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
+                .build();
     }
     
     private static TransferRequestMessage transferRequestMessage() {
         return TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
+                .id(PROCESS_ID)
                 .callbackAddress("http://connector")
                 .build();
     }
@@ -333,7 +368,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         return TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://connector")
-                .processId("processId")
+                .processId(PROCESS_ID)
                 .build();
     }
     
@@ -341,7 +376,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         return TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://connector")
-                .processId("processId")
+                .processId(PROCESS_ID)
                 .build();
     }
     
@@ -349,7 +384,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         return TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://connector")
-                .processId("processId")
+                .processId(PROCESS_ID)
                 .build();
     }
     
@@ -358,9 +393,20 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
             return Stream.of(
                     Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestJson()),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson()),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson()),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson())
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_START, transferStartJson()),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_COMPLETION, transferCompletionJson()),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_TERMINATION, transferTerminationJson())
+            );
+        }
+    }
+    
+    private static class ControllerMethodArgumentsForIdValidationFails implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + "invalidId" + TRANSFER_START, transferStartJson(), transferStartMessage()),
+                    Arguments.of(BASE_PATH + "invalidId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage()),
+                    Arguments.of(BASE_PATH + "invalidId" + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage())
             );
         }
     }
@@ -369,11 +415,11 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
             return Stream.of(
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson(), transferStartMessage(),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_START, transferStartJson(), transferStartMessage(),
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
             );
         }
@@ -385,11 +431,11 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
             return Stream.of(
                     Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestJson(), transferRequestMessage(),
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyRequested", TransferRequestMessage.class, ClaimToken.class)),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson(), transferStartMessage(),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_START, transferStartJson(), transferStartMessage(),
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
-                    Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
+                    Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
             );
         }
