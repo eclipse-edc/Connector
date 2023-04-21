@@ -24,8 +24,7 @@ dependencies {
 
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":data-protocols:dsp:dsp-transform"))
-    //TODO waiting for PRs #2759 & #2760
-//    implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transformer"))
+    implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
     implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-spi"))
 
     implementation(libs.jakarta.rsApi)

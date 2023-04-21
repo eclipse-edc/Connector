@@ -54,10 +54,15 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_TERMINATION;
-//import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
-//import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -113,8 +118,10 @@ public class DspTransferProcessApiController {
         monitor.debug("DSP: Incoming TransferRequestMessage for initiating a transfer process");
         
         var claimToken = checkAuthToken(token);
-        
-        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferRequestMessage.class)
+    
+        var expanded = expand(jsonObject).getJsonObject(0);
+        validateType(expanded, DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
+        var message = registry.transform(expanded, TransferRequestMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         var transferprocess = protocolService.notifyRequested(message, claimToken)
@@ -139,8 +146,10 @@ public class DspTransferProcessApiController {
         monitor.debug(format("DSP: Incoming TransferStartMessage for transfer process %s", id));
         
         var claimToken = checkAuthToken(token);
-        
-        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferStartMessage.class)
+    
+        var expanded = expand(jsonObject).getJsonObject(0);
+        validateType(expanded, DSPACE_TRANSFER_START_TYPE);
+        var message = registry.transform(expanded, TransferStartMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         protocolService.notifyStarted(message, claimToken)
@@ -160,8 +169,10 @@ public class DspTransferProcessApiController {
         monitor.debug(format("DSP: Incoming TransferCompletionMessage for transfer process %s", id));
         
         var claimToken = checkAuthToken(token);
-        
-        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferCompletionMessage.class)
+    
+        var expanded = expand(jsonObject).getJsonObject(0);
+        validateType(expanded, DSPACE_TRANSFER_COMPLETION_TYPE);
+        var message = registry.transform(expanded, TransferCompletionMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         protocolService.notifyCompleted(message, claimToken)
@@ -182,7 +193,9 @@ public class DspTransferProcessApiController {
         
         var claimToken = checkAuthToken(token);
         
-        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferTerminationMessage.class)
+        var expanded = expand(jsonObject).getJsonObject(0);
+        validateType(expanded, DSPACE_TRANSFER_TERMINATION_TYPE);
+        var message = registry.transform(expanded, TransferTerminationMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         protocolService.notifyTerminated(message, claimToken)
@@ -216,10 +229,16 @@ public class DspTransferProcessApiController {
         return result.getContent();
     }
     
+    private void validateType(JsonObject object, String expected) {
+        if (!isOfExpectedType(object, expected)) {
+            throw new InvalidRequestException(format("Request body was not of expected type: %s", expected));
+        }
+    }
+    
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
                 .add(DCT_PREFIX, DCT_SCHEMA)
-                //.add(DSPACE_PREFIX, DSPACE_SCHEMA) TODO waiting for PR #2759
+                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();
     }
 }
