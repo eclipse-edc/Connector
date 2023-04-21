@@ -31,6 +31,10 @@ import java.util.function.Function;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.DelegateUtil.toCompactedJson;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_START;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
 
 public class TransferStartDelegate implements DspHttpDispatcherDelegate<TransferStartMessage, JsonObject> {
 
@@ -71,8 +75,8 @@ public class TransferStartDelegate implements DspHttpDispatcherDelegate<Transfer
 
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
-//                .add(DCT_PREFIX, DCT_SCHEMA) TODO Waiting for PR#2759
-//                .add(DSPACE_PREFIX, DSPACE_SCHEMA) TODO Waiting for PR#2759
+                .add(DCT_PREFIX, DCT_SCHEMA)
+                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();
     }
 }

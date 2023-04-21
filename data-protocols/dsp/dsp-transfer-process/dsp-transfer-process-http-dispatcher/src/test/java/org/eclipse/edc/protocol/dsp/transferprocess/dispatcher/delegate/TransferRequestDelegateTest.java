@@ -38,7 +38,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -66,7 +69,7 @@ class TransferRequestDelegateTest {
     @Test
     void buildRequest_returnRequest() throws IOException {
         var jsonObject = Json.createObjectBuilder()
-//                .add(DSPACE_SCHEMA + "key", "value") TODO Waiting for PR#2759
+                .add(DSPACE_SCHEMA + "key", "value")
                 .build();
         var requestBody = "request body";
         
@@ -80,8 +83,8 @@ class TransferRequestDelegateTest {
         assertThat(readRequestBody(request)).isEqualTo(requestBody);
         
         verify(registry, times(1)).transform(any(TransferRequestMessage.class), eq(JsonObject.class));
-        verify(mapper, times(1));
-//                .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null)); TODO Waiting for PR#2759
+        verify(mapper, times(1))
+                .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
     }
     
     @Test
@@ -176,11 +179,9 @@ class TransferRequestDelegateTest {
                 .protocol("dataspace-protocol")
                 .callbackAddress("http://test-connector-address")
                 .contractId("contractId")
-                .assetId("assetId")
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type("type")
                         .build())
-                .connectorId("connectorId")
                 .build();
     }
     
