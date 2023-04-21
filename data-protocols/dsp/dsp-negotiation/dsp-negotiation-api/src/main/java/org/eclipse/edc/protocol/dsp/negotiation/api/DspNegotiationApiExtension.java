@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProt
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
-import org.eclipse.edc.protocol.dsp.negotiation.api.controller.NegotiationController;
+import org.eclipse.edc.protocol.dsp.negotiation.api.controller.DspNegotiationController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 
 /**
- * Creates and registers the controller for dataspace protocol catalog requests.
+ * Creates and registers the controller for dataspace protocol negotiation requests.
  */
 @Extension(value = DspNegotiationApiExtension.NAME)
 public class DspNegotiationApiExtension implements ServiceExtension {
@@ -68,7 +68,7 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var callbackAddress = apiConfiguration.getDspCallbackAddress();
-        var controller = new NegotiationController(monitor, typeManager, callbackAddress, identityService, transformerRegistry, negotiationService, protocolService);
+        var controller = new DspNegotiationController(monitor, typeManager, callbackAddress, identityService, transformerRegistry, negotiationService, protocolService);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }

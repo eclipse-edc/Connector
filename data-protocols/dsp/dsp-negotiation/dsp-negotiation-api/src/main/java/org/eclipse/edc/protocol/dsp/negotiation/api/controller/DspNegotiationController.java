@@ -36,26 +36,30 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.transform.util.TypeUtil;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
+import java.util.Map;
+
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.CONTRACT_OFFER;
@@ -64,19 +68,17 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.E
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.VERIFICATION;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
+/**
+ * Provides consumer and provider endpoints according to http binding of the dataspace protocol.
+ */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
-public class NegotiationController implements NegotiationApi {
+public class DspNegotiationController implements DspNegotiationApi {
 
     private final IdentityService identityService;
     private final JsonLdTransformerRegistry transformerRegistry;
@@ -86,9 +88,9 @@ public class NegotiationController implements NegotiationApi {
     private final ContractNegotiationProtocolService protocolService;
     private final ObjectMapper mapper;
 
-    public NegotiationController(Monitor monitor, TypeManager typeManager, String callbackAddress,
-                                 IdentityService identityService, JsonLdTransformerRegistry transformerRegistry,
-                                 ContractNegotiationService service, ContractNegotiationProtocolService protocolService) {
+    public DspNegotiationController(Monitor monitor, TypeManager typeManager, String callbackAddress,
+                                    IdentityService identityService, JsonLdTransformerRegistry transformerRegistry,
+                                    ContractNegotiationService service, ContractNegotiationProtocolService protocolService) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
@@ -102,7 +104,7 @@ public class NegotiationController implements NegotiationApi {
     @GET
     @Path("{id}")
     @Override
-    public JsonObject getNegotiation(@PathParam("id") String id, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public Map<String, Object> getNegotiation(@PathParam("id") String id, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
 
         checkAndReturnAuthToken(token);
@@ -112,35 +114,29 @@ public class NegotiationController implements NegotiationApi {
             throw new ObjectNotFoundException(ContractNegotiation.class, id);
         }
 
-        var result = transformerRegistry.transform(negotiation, JsonObject.class);
-        if (result.failed()) {
-            throw new EdcException(format("Failed to build response: %s", join(", ", result.getFailureMessages())));
-        }
+        var result = transformerRegistry.transform(negotiation, JsonObject.class).orElseThrow((failure ->
+                new EdcException(format("Failed to build response: %s", failure.getFailureDetail()))));
 
-        return mapper.convertValue(compact(result.getContent(), jsonLdContext()), JsonObject.class);
+        return mapper.convertValue(compact(result, jsonLdContext()), Map.class);
     }
 
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
     @Override
-    public JsonObject initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public Map<String, Object> initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug("DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
 
         var claimToken = checkAndReturnAuthToken(token);
 
         var expanded = expand(body).getJsonObject(0);
-        var message = (ContractRequestMessage) transformRequestToMessage(expanded, ContractRequestMessage.class);
-        var negotiation = protocolService.notifyRequested(message, claimToken);
-        if (negotiation.failed()) {
-            throw new EdcException(format("Failed to process dspace:ContractRequestMessage: %s", join(", ", negotiation.getFailureMessages())));
-        }
+        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE), ContractRequestMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        var result = transformerRegistry.transform(negotiation.getContent(), JsonObject.class);
-        if (result.failed() || result.getContent() == null) {
-            throw new EdcException(format("Failed to build response: %s", join(", ", result.getFailureMessages())));
-        }
+        var negotiation = protocolService.notifyRequested(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
 
-        return mapper.convertValue(compact(result.getContent(), jsonLdContext()), JsonObject.class);
+        var result = transformerRegistry.transform(negotiation, JsonObject.class).orElseThrow(failure ->
+                new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
+        return mapper.convertValue(compact(result, jsonLdContext()), Map.class);
     }
 
     @POST
@@ -150,15 +146,14 @@ public class NegotiationController implements NegotiationApi {
         monitor.debug(format("DSP: Incoming ContractRequestMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
+
         var expanded = expand(body).getJsonObject(0);
+        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE), ContractRequestMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        validateId(expanded, id);
+        validateId(message.getProcessId(), id);
 
-        var message = (ContractRequestMessage) transformRequestToMessage(expanded, ContractRequestMessage.class); // TODO write transformer
-        var result = protocolService.notifyRequested(message, claimToken);
-        if (result.failed()) {
-            throw new EdcException(format("Failed to process dspace:ContractRequestMessage: %s", join(", ", result.getFailureMessages())));
-        }
+        protocolService.notifyRequested(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
     @POST
@@ -168,27 +163,22 @@ public class NegotiationController implements NegotiationApi {
         monitor.debug(format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
+
         var expanded = expand(body).getJsonObject(0);
+        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_EVENT_MESSAGE), ContractNegotiationEventMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        validateId(expanded, id);
+        validateId(message.getProcessId(), id);
 
-        var message = (ContractNegotiationEventMessage) transformRequestToMessage(expanded, ContractNegotiationEventMessage.class); // TODO write transformer
-        var eventType = getValueByKey(expanded, DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE);
-        switch (eventType) {
-            case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED:
-                var resultFinalized = protocolService.notifyFinalized(message, claimToken);
-                if (resultFinalized.failed()) {
-                    throw new EdcException(format("Failed to process dspace:ContractNegotiationEventMessage with status %s: %s", DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED, join(", ", resultFinalized.getFailureMessages())));
-                }
+        switch (message.getType()) {
+            case FINALIZED:
+                protocolService.notifyFinalized(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
                 break;
-            case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED:
-                var resultAccepted = protocolService.notifyAccepted(message, claimToken);
-                if (resultAccepted.failed()) {
-                    throw new EdcException(format("Failed to process dspace:ContractNegotiationEventMessage with status %s: %s", DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED, join(", ", resultAccepted.getFailureMessages())));
-                }
+            case ACCEPTED:
+                protocolService.notifyAccepted(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
                 break;
             default:
-                throw new InvalidRequestException(String.format("Cannot process dspace:ContractNegotiationEventMessage with unexpected type %s.", eventType));
+                throw new InvalidRequestException(String.format("Cannot process dspace:ContractNegotiationEventMessage with unexpected type %s.", message.getType()));
         }
     }
 
@@ -199,15 +189,14 @@ public class NegotiationController implements NegotiationApi {
         monitor.debug(format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
+
         var expanded = expand(body).getJsonObject(0);
+        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE), ContractAgreementVerificationMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        validateId(expanded, id);
+        validateId(message.getProcessId(), id);
 
-        var message = (ContractAgreementVerificationMessage) transformRequestToMessage(expanded, ContractAgreementVerificationMessage.class); // TODO write transformer
-        var result = protocolService.notifyVerified(message, claimToken);
-        if (result.failed()) {
-            throw new EdcException(format("Failed to process dspace:ContractAgreementVerificationMessage: %s", join(", ", result.getFailureMessages())));
-        }
+        protocolService.notifyVerified(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
     @POST
@@ -217,15 +206,14 @@ public class NegotiationController implements NegotiationApi {
         monitor.debug(format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
+
         var expanded = expand(body).getJsonObject(0);
+        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_TERMINATION_MESSAGE), ContractNegotiationTerminationMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        validateId(expanded, id);
+        validateId(message.getProcessId(), id);
 
-        var message = (ContractNegotiationTerminationMessage) transformRequestToMessage(expanded, ContractNegotiationTerminationMessage.class); // TODO write transformer
-        var result = protocolService.notifyTerminated(message, claimToken); // TODO or decline?
-        if (result.failed()) {
-            throw new EdcException(format("Failed to cancel contract negotiation with id %s: %s", id, join(", ", result.getFailureMessages())));
-        }
+        protocolService.notifyTerminated(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
     @POST
@@ -235,16 +223,9 @@ public class NegotiationController implements NegotiationApi {
     public void providerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractOfferMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractOfferMessage for process %s", id));
 
-        var claimToken = checkAndReturnAuthToken(token);
-        var expanded = expand(body).getJsonObject(0);
+        checkAndReturnAuthToken(token);
 
-        validateId(expanded, id);
-
-        var message = (ContractRequestMessage) transformRequestToMessage(expanded, ContractRequestMessage.class); // TODO write transformer
-        var result = protocolService.notifyOffered(message, claimToken);
-        if (result.failed()) {
-            throw new EdcException(format("Failed to process dspace:ContractOfferMessage: %s", join(", ", result.getFailureMessages())));
-        }
+        throw new UnsupportedOperationException("Processing of dspace:ContractOfferMessage currently not supported.");
     }
 
     @POST
@@ -254,18 +235,17 @@ public class NegotiationController implements NegotiationApi {
         monitor.debug(format("DSP: Incoming ContractAgreementMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
+
         var expanded = expand(body).getJsonObject(0);
+        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE), ContractAgreementMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        validateId(expanded, id);
+        validateId(message.getProcessId(), id);
 
-        var message = (ContractAgreementMessage) transformRequestToMessage(expanded, ContractAgreementMessage.class); // TODO write transformer
-        var result = protocolService.notifyAgreed(message, claimToken);
-        if (result.failed()) {
-            throw new EdcException(format("Failed to process dspace:ContractAgreementMessage: %s", join(", ", result.getFailureMessages())));
-        }
+        protocolService.notifyAgreed(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
-    private ClaimToken checkAndReturnAuthToken(String token) { // TODO refactor: move to dsp core module?
+    private ClaimToken checkAndReturnAuthToken(String token) {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
@@ -278,34 +258,24 @@ public class NegotiationController implements NegotiationApi {
         return result.getContent();
     }
 
-    private String getValueByKey(JsonObject object, String key) {
-        try {
-            return object.getJsonString(key).getString();
-        } catch (NullPointerException e) {
-            throw new InvalidRequestException(String.format("Value %s is missing.", key));
+    protected JsonObject hasValidType(JsonObject object, String expected) {
+        var actual = TypeUtil.nodeType(object);
+        if (actual == null || !actual.equals(expected)) {
+            throw new InvalidRequestException(format("Request body was not of expected type: %s", expected));
+        }
+
+        return object;
+    }
+
+    private void validateId(String actual, String expected) {
+        if (!actual.equals(expected)) {
+            throw new InvalidRequestException(String.format("ProcessId %s is not matching path id %s.", actual, expected));
         }
     }
 
-    private void validateId(JsonObject message, String requestId) {
-        var processId = getValueByKey(message, DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID);
-        if (!requestId.equals(processId)) {
-            throw new InvalidRequestException(String.format("ProcessId %s is not matching path id %s.", processId, requestId));
-        }
-    }
-
-    private RemoteMessage transformRequestToMessage(JsonObject message, Class<? extends RemoteMessage> type) {
-        var resultRequest = transformerRegistry.transform(message, type);
-        if (resultRequest.failed()) {
-            throw new InvalidRequestException(format("Request body was malformed: %s", join(", ", resultRequest.getFailureMessages())));
-        }
-
-        return resultRequest.getContent();
-    }
-
+    // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
-                .add(DCAT_PREFIX, DCAT_SCHEMA)
-                .add(DCT_PREFIX, DCT_SCHEMA)
                 .add(ODRL_PREFIX, ODRL_SCHEMA)
                 .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                 .build();

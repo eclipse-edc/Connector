@@ -19,9 +19,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 
+import java.util.Map;
+
 @OpenAPIDefinition
 @Tag(name = "Dataspace Protocol: Contract Negotiation")
-public interface NegotiationApi {
+public interface DspNegotiationApi {
 
     /**
      * Provider-specific endpoint.
@@ -30,7 +32,7 @@ public interface NegotiationApi {
      * @param token identity token.
      */
     @Operation(description = "Gets contract negotiation by id", operationId = "dspGetNegotiation")
-    JsonObject getNegotiation(String id, String token);
+    Map<String, Object> getNegotiation(String id, String token);
 
     /**
      * Provider-specific endpoint.
@@ -39,7 +41,7 @@ public interface NegotiationApi {
      * @param token identity token.
      */
     @Operation(description = "Starts contract negotiation", operationId = "dspInitiateNegotiation")
-    JsonObject initiateNegotiation(JsonObject body, String token);
+    Map<String, Object> initiateNegotiation(JsonObject body, String token);
 
     /**
      * Provider-specific endpoint.
