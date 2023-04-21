@@ -93,39 +93,6 @@ class CatalogApiControllerIntegrationTest {
     }
 
     @Test
-    void getProviderCatalog() {
-        var contractOffer = createContractOffer();
-        var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
-        var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
-        when(dispatcher.send(any(), any())).thenReturn(completedFuture(catalog))
-                .thenReturn(completedFuture(emptyCatalog));
-
-        baseRequest()
-                .queryParam("providerUrl", "some.provider.url")
-                .get("/catalog")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("id", notNullValue())
-                .body("contractOffers.size()", is(1));
-    }
-
-    @Test
-    void getProviderCatalog_shouldFailWithoutProviderUrl() {
-        var contractOffer = createContractOffer();
-        var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
-        var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
-        when(dispatcher.send(any(), any())).thenReturn(completedFuture(catalog))
-                .thenReturn(completedFuture(emptyCatalog));
-
-        baseRequest()
-                .get("/catalog")
-                .then()
-                .statusCode(400)
-                .body("message[0]", is("providerUrl must not be null"));
-    }
-
-    @Test
     void postCatalogRequest() {
         var contractOffer = createContractOffer();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();

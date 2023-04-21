@@ -67,38 +67,6 @@ class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllContractDefs(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
-
-        baseRequest()
-                .get("/contractdefinitions")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(1));
-    }
-
-    @Test
-    void getAllContractDefs_withPaging(ContractDefinitionStore store) {
-        store.save(createContractDefinition("definitionId"));
-
-        baseRequest()
-                .get("/contractdefinitions?offset=0&limit=15&sort=ASC")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(1));
-    }
-
-    @Test
-    void getAll_invalidQuery() {
-        baseRequest()
-                .get("/contractdefinitions?limit=1&offset=-1&filter=&sortField=")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
     void queryAllContractDefs(ContractDefinitionStore store) {
         store.save(createContractDefinition("definitionId"));
 

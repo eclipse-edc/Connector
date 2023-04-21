@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -62,13 +61,6 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         this.monitor = monitor;
         this.service = service;
         this.transformerRegistry = transformerRegistry;
-    }
-
-    @GET
-    @Override
-    @Deprecated
-    public List<ContractNegotiationDto> getNegotiations(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryContractNegotiations(querySpecDto);
     }
 
     @POST

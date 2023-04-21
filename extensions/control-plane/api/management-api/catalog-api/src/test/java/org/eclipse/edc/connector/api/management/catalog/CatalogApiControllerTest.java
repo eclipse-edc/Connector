@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -37,10 +36,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,32 +52,6 @@ class CatalogApiControllerTest {
     void setup() {
         transformerRegistry = mock(DtoTransformerRegistry.class);
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(new QuerySpec()));
-    }
-
-    @Test
-    void shouldGetTheCatalog() {
-        var controller = new CatalogApiController(service, transformerRegistry, monitor);
-        var response = mock(AsyncResponse.class);
-        var offer = createContractOffer();
-        var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
-        var url = "test.url";
-        when(service.getByProviderUrl(eq(url), any())).thenReturn(completedFuture(catalog));
-
-        controller.getCatalog(url, new QuerySpecDto(), response);
-
-        verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
-    }
-
-    @Test
-    void shouldResumeWithExceptionIfGetCatalogFails() {
-        var controller = new CatalogApiController(service, transformerRegistry, monitor);
-        var response = mock(AsyncResponse.class);
-        var url = "test.url";
-        when(service.getByProviderUrl(eq(url), any())).thenReturn(failedFuture(new EdcException("error")));
-
-        controller.getCatalog(url, new QuerySpecDto(), response);
-
-        verify(response).resume(isA(EdcException.class));
     }
 
     @Test

@@ -85,43 +85,6 @@ public class AssetApiControllerIntegrationTest extends RestControllerTestBase {
     }
 
     @Test
-    void getAll_filtersOutFailedTransforms() {
-        when(service.query(any()))
-                .thenReturn(ServiceResult.success(Stream.of(Asset.Builder.newInstance().build())));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class)))
-                .thenReturn(Result.failure("failed to transform"));
-
-        baseRequest()
-                .get("/assets")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(0));
-    }
-
-    @Test
-    void getAll_invalidQuery() {
-        baseRequest()
-                .get("/assets?limit=0&offset=-1&filter=&sortField=")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
-    void getAll_shouldReturnBadRequest_whenServiceReturnsBadRequest() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.none()));
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("error"));
-
-        baseRequest()
-                .get("/assets")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
     void queryAllAssets() {
         when(service.query(any()))
                 .thenReturn(ServiceResult.success(Stream.of(Asset.Builder.newInstance().build())));
@@ -170,29 +133,6 @@ public class AssetApiControllerIntegrationTest extends RestControllerTestBase {
                 .statusCode(400);
     }
 
-    @Test
-    void getAll_shouldReturnBadRequest_whenQueryTransformFails() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.failure("error"));
-        when(service.query(any())).thenReturn(ServiceResult.success());
-
-        baseRequest()
-                .get("/assets")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
-    void queryAll_shouldReturnBadRequest_whenServiceReturnsBadRequest() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
-        when(service.query(any())).thenReturn(ServiceResult.badRequest());
-
-        baseRequest()
-                .get("/assets")
-                .then()
-                .statusCode(400);
-    }
 
     @Test
     void getSingleAsset() {

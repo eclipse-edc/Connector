@@ -59,62 +59,6 @@ class ContractAgreementApiControllerTest {
     }
 
     @Test
-    void getAll() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
-        var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().build();
-
-        var allContractAgreements = controller.getAllAgreements(querySpec);
-
-        assertThat(allContractAgreements).hasSize(1).first().matches(d -> d.getId().equals(contractAgreement.getId()));
-        verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
-        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
-    }
-
-    @Test
-    void getAll_filtersOutFailedTransforms() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class)))
-                .thenReturn(Result.failure("failure"));
-
-        var allContractAgreements = controller.getAllAgreements(QuerySpecDto.Builder.newInstance().build());
-
-        assertThat(allContractAgreements).hasSize(0);
-        verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
-    }
-
-    @Test
-    void getAll_throwsExceptionIfQuerySpecTransformFails() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.failure("Cannot transform"));
-        var querySpecDto = QuerySpecDto.Builder.newInstance().build();
-
-        assertThatThrownBy(() -> controller.getAllAgreements(querySpecDto)).isInstanceOf(InvalidRequestException.class);
-    }
-
-    @Test
-    void getAll_withInvalidQuery_shouldThrowException() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("test error message"));
-
-        var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().filter("invalid=foobar").build();
-
-        assertThatThrownBy(() -> controller.getAllAgreements(querySpec)).isInstanceOf(InvalidRequestException.class);
-
-    }
-
-    @Test
     void queryAll() {
         var contractAgreement = createContractAgreement();
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));

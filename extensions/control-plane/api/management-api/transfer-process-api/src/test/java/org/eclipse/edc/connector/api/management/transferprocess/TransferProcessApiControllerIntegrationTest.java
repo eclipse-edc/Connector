@@ -72,27 +72,6 @@ class TransferProcessApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllTransferProcesses(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID));
-
-        baseRequest()
-                .get("/transferprocess")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(1));
-    }
-
-    @Test
-    void getAll_invalidQuery() {
-        baseRequest()
-                .get("/transferprocess?limit=1&offset=-1&filter=&sortField=")
-                .then()
-                .statusCode(400);
-    }
-
-
-    @Test
     void queryAllTransferProcesses(TransferProcessStore store) {
         store.save(createTransferProcess(PROCESS_ID));
 

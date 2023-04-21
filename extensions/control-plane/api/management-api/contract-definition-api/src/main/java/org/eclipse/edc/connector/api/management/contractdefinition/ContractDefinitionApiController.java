@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.api.management.contractdefinition;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -60,13 +59,6 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         this.monitor = monitor;
         this.service = service;
         this.transformerRegistry = transformerRegistry;
-    }
-
-    @GET
-    @Override
-    @Deprecated
-    public List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryContractDefinitions(querySpecDto);
     }
 
     @POST

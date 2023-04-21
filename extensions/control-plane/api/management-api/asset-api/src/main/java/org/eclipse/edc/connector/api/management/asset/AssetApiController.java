@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.api.management.asset;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -93,13 +92,6 @@ public class AssetApiController implements AssetApi {
                 .id(resultContent.getId())
                 .createdAt(resultContent.getCreatedAt())
                 .build();
-    }
-
-    @GET
-    @Override
-    @Deprecated
-    public List<AssetResponseDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryAssets(querySpecDto);
     }
 
     @POST

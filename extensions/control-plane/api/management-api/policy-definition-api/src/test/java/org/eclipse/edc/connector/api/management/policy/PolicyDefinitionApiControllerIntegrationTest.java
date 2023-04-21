@@ -64,28 +64,6 @@ public class PolicyDefinitionApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllpolicydefinitions(PolicyDefinitionStore policyStore) {
-        var policy = createPolicy("id");
-
-        policyStore.create(policy);
-
-        baseRequest()
-                .get("/policydefinitions")
-                .then()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("size()", is(1));
-    }
-
-    @Test
-    void getAll_invalidQuery() {
-        baseRequest()
-                .get("/policydefinitions?limit=1&offset=-1&filter=&sortField=")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
     void queryAllPolicyDefinitions(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 

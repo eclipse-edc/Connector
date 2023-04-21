@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.api.management.transferprocess;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -68,13 +67,6 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Override
     public List<TransferProcessDto> queryAllTransferProcesses(@Valid QuerySpecDto querySpecDto) {
         return queryTransferProcesses(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
-    }
-
-    @GET
-    @Deprecated
-    @Override
-    public List<TransferProcessDto> getAllTransferProcesses(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryTransferProcesses(querySpecDto);
     }
 
     @GET

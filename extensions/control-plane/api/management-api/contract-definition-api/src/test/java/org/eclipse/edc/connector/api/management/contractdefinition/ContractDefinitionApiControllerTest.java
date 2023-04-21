@@ -61,47 +61,6 @@ class ContractDefinitionApiControllerTest {
     }
 
     @Test
-    void getAll() {
-        var contractDefinition = createContractDefinition(UUID.randomUUID().toString());
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractDefinition)));
-        var dto = ContractDefinitionResponseDto.Builder.newInstance().id(contractDefinition.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractDefinitionResponseDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().build();
-
-        var allContractDefinitions = controller.getAllContractDefinitions(querySpec);
-
-        assertThat(allContractDefinitions).hasSize(1).first().matches(d -> d.getId().equals(contractDefinition.getId()));
-        verify(service).query(argThat(s -> s.getOffset() == 10));
-        verify(transformerRegistry).transform(contractDefinition, ContractDefinitionResponseDto.class);
-        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
-    }
-
-    @Test
-    void getAll_filtersOutFailedTransforms() {
-        var contractDefinition = createContractDefinition(UUID.randomUUID().toString());
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractDefinition)));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionResponseDto.class)))
-                .thenReturn(Result.failure("failure"));
-
-        var allContractDefinitions = controller.getAllContractDefinitions(QuerySpecDto.Builder.newInstance().build());
-
-        assertThat(allContractDefinitions).isEmpty();
-        verify(transformerRegistry).transform(contractDefinition, ContractDefinitionResponseDto.class);
-    }
-
-    @Test
-    void getAll_throwsExceptionIfQuerySpecTransformFails() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.failure("Cannot transform"));
-
-        assertThatThrownBy(() -> controller.getAllContractDefinitions(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
-    }
-
-    @Test
     void queryAll() {
         var contractDefinition = createContractDefinition(UUID.randomUUID().toString());
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractDefinition)));

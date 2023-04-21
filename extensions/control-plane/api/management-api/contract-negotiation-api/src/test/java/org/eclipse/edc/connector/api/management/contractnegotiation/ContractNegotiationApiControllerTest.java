@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractNegotiationDto;
@@ -31,7 +30,6 @@ import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationServ
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
@@ -54,7 +52,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -71,47 +68,6 @@ class ContractNegotiationApiControllerTest {
     void setup() {
         var monitor = mock(Monitor.class);
         controller = new ContractNegotiationApiController(monitor, service, transformerRegistry);
-    }
-
-    @Test
-    void getAll() {
-        var contractNegotiation = createContractNegotiation("negotiationId");
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractNegotiation)));
-        var dto = ContractNegotiationDto.Builder.newInstance().id(contractNegotiation.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractNegotiationDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().build();
-
-        var negotiations = controller.getNegotiations(querySpec);
-
-        assertThat(negotiations).hasSize(1).first().matches(d -> d.getId().equals(contractNegotiation.getId()));
-        verify(service).query(argThat(s -> s.getOffset() == 10));
-        verify(transformerRegistry).transform(contractNegotiation, ContractNegotiationDto.class);
-        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
-    }
-
-    @Test
-    void getAll_filtersOutFailedTransforms() {
-        var contractNegotiation = createContractNegotiation("negotiationId");
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractNegotiation)));
-        when(transformerRegistry.transform(isA(ContractNegotiation.class), eq(ContractNegotiationDto.class)))
-                .thenReturn(Result.failure("failure"));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-
-        var negotiations = controller.getNegotiations(QuerySpecDto.Builder.newInstance().build());
-
-        assertThat(negotiations).hasSize(0);
-        verify(transformerRegistry).transform(contractNegotiation, ContractNegotiationDto.class);
-    }
-
-    @Test
-    void getAll_throwsExceptionIfQuerySpecTransformFails() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.failure("Cannot transform"));
-
-        assertThatThrownBy(() -> controller.getNegotiations(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test

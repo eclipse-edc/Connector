@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.api.management.policy;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -71,13 +70,6 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Override
     public List<PolicyDefinitionResponseDto> queryAllPolicies(@Valid QuerySpecDto querySpecDto) {
         return queryPolicies(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
-    }
-
-    @GET
-    @Override
-    @Deprecated
-    public List<PolicyDefinitionResponseDto> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryPolicies(querySpecDto);
     }
 
     @GET

@@ -15,12 +15,9 @@
 package org.eclipse.edc.connector.api.management.catalog;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
@@ -33,7 +30,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.jetbrains.annotations.NotNull;
 
 import static java.util.Optional.ofNullable;
 
@@ -49,26 +45,6 @@ public class CatalogApiController implements CatalogApi {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
         this.monitor = monitor;
-    }
-
-    @Override
-    @GET
-    @Deprecated
-    public void getCatalog(@jakarta.validation.constraints.NotNull(message = PROVIDER_URL_NOT_NULL_MESSAGE) @QueryParam("providerUrl") String providerUrl, @Valid @BeanParam QuerySpecDto querySpecDto, @Suspended AsyncResponse response) {
-
-        @NotNull QuerySpec spec;
-        if (querySpecDto != null) {
-            var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-            if (result.failed()) {
-                throw new InvalidRequestException(result.getFailureMessages());
-            }
-            spec = result.getContent();
-        } else {
-            spec = QuerySpec.max();
-            monitor.debug("No paging parameters were supplied, using 0...Integer.MAX_VALUE");
-        }
-
-        performQuery(providerUrl, spec, response);
     }
 
     @Override

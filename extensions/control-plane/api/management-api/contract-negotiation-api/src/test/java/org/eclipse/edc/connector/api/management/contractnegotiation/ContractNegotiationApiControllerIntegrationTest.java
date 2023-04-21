@@ -80,38 +80,6 @@ class ContractNegotiationApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllContractNegotiations(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
-
-        baseRequest()
-                .get("/contractnegotiations")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(1));
-    }
-
-    @Test
-    void getAllContractNegotiations_withPaging(ContractNegotiationStore store) {
-        store.save(createContractNegotiation("negotiationId"));
-
-        baseRequest()
-                .get("/contractnegotiations?offset=0&limit=15&sort=ASC")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(1));
-    }
-
-    @Test
-    void getAll_invalidQuery() {
-        baseRequest()
-                .get("/contractnegotiations?limit=1&offset=-1&filter=&sortField=")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
     void queryAllContractNegotiations(ContractNegotiationStore store) {
         store.save(createContractNegotiation("negotiationId"));
 
