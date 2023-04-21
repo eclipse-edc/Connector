@@ -34,8 +34,7 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
     public @Nullable TransferStartMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var transferStartMessageBuilder = TransferStartMessage.Builder.newInstance();
 
-        transferStartMessageBuilder
-                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        transferStartMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
         transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
         //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727

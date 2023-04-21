@@ -34,6 +34,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.util.Map;
 
+/**
+ * Provides the transformers for transferprocess message types via the {@link JsonLdTransformerRegistry}.
+ */
 @Extension(value = JsonLdExtension.NAME)
 public class DspTransferProcessTransformExtension implements ServiceExtension {
 

@@ -34,8 +34,7 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
     public @Nullable TransferTerminationMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var transferTerminationMessageBuilder = TransferTerminationMessage.Builder.newInstance();
 
-        transferTerminationMessageBuilder
-                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        transferTerminationMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
         transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
         //TODO ADD missing fields (code, reason) from spec issue https://github.com/eclipse-edc/Connector/issues/2764
