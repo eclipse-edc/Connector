@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
@@ -43,22 +43,17 @@ public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLd
     
     @Override
     public @Nullable CatalogRequestMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var type = nodeType(object, context);
-        if (DSPACE_CATALOG_REQUEST_TYPE.equals(type)) {
-            return CatalogRequestMessage.Builder.newInstance()
-                    .filter(transformQuerySpec(object.get(DSPACE_FILTER_PROPERTY), context))
-                    .build();
-        } else {
-            context.reportProblem(format("Cannot transform type %s to CatalogRequestMessage", type));
-            return null;
+        var builder = CatalogRequestMessage.Builder.newInstance();
+        builder.protocol(DATASPACE_PROTOCOL_HTTP);
+        
+        if (object.get(DSPACE_FILTER_PROPERTY) != null) {
+            builder.querySpec(transformQuerySpec(object.get(DSPACE_FILTER_PROPERTY), context));
         }
+        
+        return builder.build();
     }
     
     private QuerySpec transformQuerySpec(JsonValue value, TransformerContext context) {
-        if (value == null) {
-            return null;
-        }
-        
         if (value instanceof JsonObject) {
             return mapper.convertValue(value, QuerySpec.class);
         } else if (value instanceof JsonArray) {

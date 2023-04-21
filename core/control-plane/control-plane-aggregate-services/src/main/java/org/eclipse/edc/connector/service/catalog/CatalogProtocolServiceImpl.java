@@ -15,9 +15,9 @@
 package org.eclipse.edc.connector.service.catalog;
 
 import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
-import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
@@ -45,7 +45,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ClaimToken token) {
         var agent = participantAgentService.createFor(token);
 
-        try (var datasets = datasetResolver.query(agent, message.getFilter())) {
+        try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
             var dataServices = dataServiceRegistry.getDataServices();
 
             var catalog = Catalog.Builder.newInstance()

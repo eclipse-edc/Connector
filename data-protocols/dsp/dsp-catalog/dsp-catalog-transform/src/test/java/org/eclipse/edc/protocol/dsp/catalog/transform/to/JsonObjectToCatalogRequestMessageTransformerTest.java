@@ -31,11 +31,10 @@ import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyA
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class JsonObjectToCatalogRequestMessageTransformerTestMessage {
+class JsonObjectToCatalogRequestMessageTransformerTest {
 
     private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private ObjectMapper mapper = mock(ObjectMapper.class);
@@ -57,7 +56,7 @@ class JsonObjectToCatalogRequestMessageTransformerTestMessage {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getFilter()).isNull();
+        assertThat(result.getQuerySpec()).isNull();
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -76,20 +75,8 @@ class JsonObjectToCatalogRequestMessageTransformerTestMessage {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getFilter()).isNotNull().isEqualTo(querySpec);
+        assertThat(result.getQuerySpec()).isNotNull().isEqualTo(querySpec);
 
         verify(context, never()).reportProblem(anyString());
-    }
-
-    @Test
-    void transform_invalidType_reportProblem() {
-        var message = jsonFactory.createObjectBuilder()
-                .add(TYPE, "not-a-catalog-request-message")
-                .build();
-
-        var result = transformer.transform(message, context);
-
-        assertThat(result).isNull();
-        verify(context, times(1)).reportProblem(anyString());
     }
 }

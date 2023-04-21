@@ -70,10 +70,7 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
      */
     @Override
     public Request buildRequest(CatalogRequestMessage message) {
-        var catalogRequestMessage = org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage.Builder.newInstance()
-                .filter(message.getQuerySpec())
-                .build();
-        var requestBody = RequestBody.create(toJson(catalogRequestMessage), MediaType.get(APPLICATION_JSON));
+        var requestBody = RequestBody.create(toJson(message), MediaType.get(APPLICATION_JSON));
 
         return new Request.Builder()
                 .url(message.getCallbackAddress() + BASE_PATH + CATALOG_REQUEST)
@@ -108,7 +105,7 @@ public class CatalogRequestHttpDelegate implements DspHttpDispatcherDelegate<Cat
         };
     }
 
-    private String toJson(org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage message) {
+    private String toJson(CatalogRequestMessage message) {
         try {
             var transformResult = transformerRegistry.transform(message, JsonObject.class);
             if (transformResult.succeeded()) {

@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +46,8 @@ public class JsonObjectFromCatalogRequestMessageTransformer extends AbstractJson
         var builder = jsonFactory.createObjectBuilder();
         builder.add(TYPE, DSPACE_CATALOG_REQUEST_TYPE);
         
-        if (message.getFilter() != null) {
-            builder.add(DSPACE_FILTER_PROPERTY, mapper.convertValue(message.getFilter(), JsonObject.class));
+        if (message.getQuerySpec() != null) {
+            builder.add(DSPACE_FILTER_PROPERTY, mapper.convertValue(message.getQuerySpec(), JsonObject.class));
         }
         
         return builder.build();

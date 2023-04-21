@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class JsonObjectFromCatalogRequestMessageTransformerTestMessage {
+class JsonObjectFromCatalogRequestMessageTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final ObjectMapper mapper = mock(ObjectMapper.class);
@@ -51,7 +51,9 @@ class JsonObjectFromCatalogRequestMessageTransformerTestMessage {
 
     @Test
     void transform_noFilter_returnJsonObject() {
-        var message = CatalogRequestMessage.Builder.newInstance().build();
+        var message = CatalogRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .build();
 
         var result = transformer.transform(message, context);
 
@@ -69,7 +71,8 @@ class JsonObjectFromCatalogRequestMessageTransformerTestMessage {
         when(mapper.convertValue(querySpec, JsonObject.class)).thenReturn(querySpecJson);
 
         var message = CatalogRequestMessage.Builder.newInstance()
-                .filter(querySpec)
+                .protocol("protocol")
+                .querySpec(querySpec)
                 .build();
 
         var result = transformer.transform(message, context);

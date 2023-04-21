@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -67,7 +67,7 @@ class CatalogControllerTest {
         request = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
                 .build();
-        requestMessage = CatalogRequestMessage.Builder.newInstance().build();
+        requestMessage = CatalogRequestMessage.Builder.newInstance().protocol("protocol").build();
     }
 
     @Test
