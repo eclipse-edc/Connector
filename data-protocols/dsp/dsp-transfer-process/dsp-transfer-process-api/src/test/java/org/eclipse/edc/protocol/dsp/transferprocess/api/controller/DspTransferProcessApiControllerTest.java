@@ -37,9 +37,11 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -47,7 +49,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_COMPLETION;
@@ -59,6 +60,7 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransf
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -109,16 +111,15 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenReturn(map);
         
-        var result = baseRequest()
+        baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(transferRequestJson())
                 .post(BASE_PATH + TRANSFER_INITIAL_REQUEST)
                 .then()
                 .statusCode(200)
                 .contentType("application/json")
-                .extract().as(Map.class);
+                .body("key", is("value"));
         
-        assertThat(result).isEqualTo(map);
         verify(protocolService, times(1)).notifyRequested(message, token);
     }
     
@@ -182,7 +183,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      * @param path the request path to the endpoint
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArguments")
+    @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path, JsonObject request) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
@@ -202,7 +203,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      * @param request the request body
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArguments")
+    @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnBadRequest_whenRequestTransformationFails(String path, JsonObject request) {
         var token = token();
         
@@ -230,7 +231,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArgumentsForServiceCall")
+    @ArgumentsSource(ControllerMethodArgumentsForServiceCall.class)
     void callEndpoint_shouldCallService_whenValidRequest(String path, JsonObject request, TransferRemoteMessage message, Method serviceMethod) throws Exception {
         var token = token();
         
@@ -264,7 +265,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArgumentsForServiceError")
+    @ArgumentsSource(ControllerMethodArgumentsForServiceError.class)
     void callEndpoint_shouldReturnConflict_whenServiceResultConflict(String path, JsonObject request, TransferRemoteMessage message, Method serviceMethod) throws Exception {
         var token = token();
         
@@ -287,39 +288,6 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
-    }
-    
-    private static Stream<Arguments> controllerMethodArguments() {
-        return Stream.of(
-                Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestJson()),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson()),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson()),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson())
-        );
-    }
-    
-    private static Stream<Arguments> controllerMethodArgumentsForServiceCall() throws Exception {
-        return Stream.of(
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson(), transferStartMessage(),
-                        TransferProcessProtocolService.class.getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
-                        TransferProcessProtocolService.class.getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
-                        TransferProcessProtocolService.class.getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
-        );
-    }
-    
-    private static Stream<Arguments> controllerMethodArgumentsForServiceError() throws Exception {
-        return Stream.of(
-                Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestJson(), transferRequestMessage(),
-                        TransferProcessProtocolService.class.getDeclaredMethod("notifyRequested", TransferRequestMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson(), transferStartMessage(),
-                        TransferProcessProtocolService.class.getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
-                        TransferProcessProtocolService.class.getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
-                        TransferProcessProtocolService.class.getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
-        );
     }
     
     private RequestSpecification baseRequest() {
@@ -383,5 +351,47 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .callbackAddress("http://connector")
                 .processId("processId")
                 .build();
+    }
+    
+    private static class ControllerMethodArguments implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestJson()),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson()),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson()),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson())
+            );
+        }
+    }
+    
+    private static class ControllerMethodArgumentsForServiceCall implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson(), transferStartMessage(),
+                            TransferProcessProtocolService.class.getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
+                            TransferProcessProtocolService.class.getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
+                            TransferProcessProtocolService.class.getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
+            );
+        }
+    }
+    
+    private static class ControllerMethodArgumentsForServiceError implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestJson(), transferRequestMessage(),
+                            TransferProcessProtocolService.class.getDeclaredMethod("notifyRequested", TransferRequestMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_START, transferStartJson(), transferStartMessage(),
+                            TransferProcessProtocolService.class.getDeclaredMethod("notifyStarted", TransferStartMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage(),
+                            TransferProcessProtocolService.class.getDeclaredMethod("notifyCompleted", TransferCompletionMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + TRANSFER_TERMINATION, transferTerminationJson(), transferTerminationMessage(),
+                            TransferProcessProtocolService.class.getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
+            );
+        }
     }
 }
