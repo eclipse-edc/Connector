@@ -27,6 +27,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -57,6 +58,7 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessAp
 //import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
  * Provides the endpoints for receiving messages regarding transfers, like initiating, completing
@@ -116,7 +118,7 @@ public class DspTransferProcessApiController {
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         var transferprocess = protocolService.notifyRequested(message, claimToken)
-                .orElseThrow(failure -> new EdcException(format("TransferProcess could not be initiated: %s", failure.getFailureDetail())));
+                .orElseThrow(exceptionMapper(TransferProcess.class));
         
         var transferProcessJson = registry.transform(transferprocess, JsonObject.class)
                 .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
@@ -142,7 +144,7 @@ public class DspTransferProcessApiController {
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         protocolService.notifyStarted(message, claimToken)
-                .orElseThrow(failure -> new EdcException(format("Failed to start transfer: %s", failure.getFailureDetail())));
+                .orElseThrow(exceptionMapper(TransferProcess.class));
     }
     
     /**
@@ -163,7 +165,7 @@ public class DspTransferProcessApiController {
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         protocolService.notifyCompleted(message, claimToken)
-                .orElseThrow(failure -> new EdcException(format("Failed to complete transfer: %s", failure.getFailureDetail())));
+                .orElseThrow(exceptionMapper(TransferProcess.class));
     }
     
     /**
@@ -184,7 +186,7 @@ public class DspTransferProcessApiController {
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
         protocolService.notifyTerminated(message, claimToken)
-                .orElseThrow(failure -> new EdcException(format("Failed to terminate transfer: %s", failure.getFailureDetail())));
+                .orElseThrow(exceptionMapper(TransferProcess.class));
     }
     
     /**

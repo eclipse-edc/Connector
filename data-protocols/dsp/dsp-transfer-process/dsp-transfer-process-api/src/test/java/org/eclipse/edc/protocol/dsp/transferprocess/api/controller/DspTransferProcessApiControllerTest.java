@@ -266,7 +266,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      */
     @ParameterizedTest
     @MethodSource("controllerMethodArgumentsForServiceError")
-    void callEndpoint_shouldReturnInternalServerError_whenErrorInService(String path, TransferRemoteMessage message, Method serviceMethod) throws Exception {
+    void callEndpoint_shouldReturnConflict_whenServiceResultConflict(String path, TransferRemoteMessage message, Method serviceMethod) throws Exception {
         var token = token();
         
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
@@ -284,7 +284,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .body(request)
                 .post(path)
                 .then()
-                .statusCode(500);
+                .statusCode(409);
         
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
