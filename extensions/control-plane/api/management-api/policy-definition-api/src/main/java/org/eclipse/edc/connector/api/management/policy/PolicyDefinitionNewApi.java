@@ -25,8 +25,8 @@ import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewRequestDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewUpdateDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
@@ -37,23 +37,23 @@ public interface PolicyDefinitionNewApi {
 
     @Operation(description = "Returns all policy definitions according to a query",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
+                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionNewResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<PolicyDefinitionResponseDto> queryAllPolicyDefinitions(@Valid QuerySpecDto querySpecDto);
+    List<PolicyDefinitionNewResponseDto> queryPolicyDefinitions(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The  policy definition",
-                            content = @Content(schema = @Schema(implementation = PolicyDefinitionResponseDto.class))),
+                            content = @Content(schema = @Schema(implementation = PolicyDefinitionNewResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An  policy definition with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    PolicyDefinitionResponseDto getPolicyDefinition(String id);
+    PolicyDefinitionNewResponseDto getPolicyDefinition(String id);
 
     @Operation(description = "Creates a new policy definition",
             responses = {
@@ -90,5 +90,5 @@ public interface PolicyDefinitionNewApi {
                             content = @Content(schema = @Schema(implementation = ApiErrorDetail.class)))
             }
     )
-    void updatePolicyDefinition(String policyId, @Valid PolicyDefinitionUpdateDto policyDefinition);
+    void updatePolicyDefinition(String id, @Valid PolicyDefinitionNewUpdateDto policyDefinition);
 }

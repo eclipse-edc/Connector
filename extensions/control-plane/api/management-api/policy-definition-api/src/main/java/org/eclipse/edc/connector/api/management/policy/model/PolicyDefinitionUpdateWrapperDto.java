@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.policy.model;
 
+@Deprecated(since = "milestone9")
 public class PolicyDefinitionUpdateWrapperDto {
 
     private PolicyDefinitionUpdateDto policyDefinitionUpdateDto;

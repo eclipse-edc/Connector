@@ -17,19 +17,28 @@ package org.eclipse.edc.connector.api.management.policy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.json.JsonObject;
+import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.BaseResponseDto;
 
 import java.util.Objects;
 
-@JsonDeserialize(builder = PolicyDefinitionNewRequestDto.Builder.class)
-public class PolicyDefinitionNewRequestDto extends PolicyDefinitionNewDto {
+@JsonDeserialize(builder = PolicyDefinitionNewResponseDto.Builder.class)
+public class PolicyDefinitionNewResponseDto extends BaseResponseDto {
 
     private String id;
+    @NotNull
+    private JsonObject policy;
 
-    private PolicyDefinitionNewRequestDto() {
+    private PolicyDefinitionNewResponseDto() {
     }
 
     public String getId() {
         return id;
+    }
+
+    public JsonObject getPolicy() {
+        return policy;
     }
 
     @Override
@@ -45,20 +54,20 @@ public class PolicyDefinitionNewRequestDto extends PolicyDefinitionNewDto {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PolicyDefinitionNewRequestDto that = (PolicyDefinitionNewRequestDto) o;
+        PolicyDefinitionNewResponseDto that = (PolicyDefinitionNewResponseDto) o;
         return Objects.equals(id, that.id) && policy.equals(that.policy);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends PolicyDefinitionNewDto.Builder<PolicyDefinitionNewRequestDto, PolicyDefinitionNewRequestDto.Builder> {
+    public static final class Builder extends BaseResponseDto.Builder<PolicyDefinitionNewResponseDto, Builder> {
 
         private Builder() {
-            super(new PolicyDefinitionNewRequestDto());
+            super(new PolicyDefinitionNewResponseDto());
         }
 
         @JsonCreator
-        public static PolicyDefinitionNewRequestDto.Builder newInstance() {
-            return new PolicyDefinitionNewRequestDto.Builder();
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder id(String id) {
@@ -66,10 +75,19 @@ public class PolicyDefinitionNewRequestDto extends PolicyDefinitionNewDto {
             return this;
         }
 
-        @Override
-        public PolicyDefinitionNewRequestDto.Builder self() {
+        public Builder policy(JsonObject policy) {
+            dto.policy = policy;
             return this;
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        @Override
+        public PolicyDefinitionNewResponseDto build() {
+            return dto;
+        }
     }
 }

@@ -289,6 +289,158 @@ paths:
             \ with that ID already exists"
       tags:
       - Policy Definition
+  /v2/policydefinitions/request:
+    post:
+      description: Returns all policy definitions according to a query
+      operationId: queryPolicyDefinitions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/PolicyDefinitionNewResponseDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request was malformed
+      tags:
+      - Policy Definition
+  /v2/policydefinitions/{id}:
+    delete:
+      description: "Removes a policy definition with the given ID if possible. Deleting\
+        \ a policy definition is only possible if that policy definition is not yet\
+        \ referenced by a contract definition, in which case an error is returned.\
+        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
+        \ do this at your own risk!"
+      operationId: deletePolicyDefinition
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Policy definition was deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An policy definition with the given ID does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "The policy definition cannot be deleted, because it is referenced\
+            \ by a contract definition"
+      tags:
+      - Policy Definition
+    get:
+      description: Gets a policy definition with the given ID
+      operationId: getPolicyDefinition
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDefinitionNewResponseDto'
+          description: The  policy definition
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An  policy definition with the given ID does not exist
+      tags:
+      - Policy Definition
+    put:
+      description: "Updates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: updatePolicyDefinition
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionNewUpdateDto'
+      responses:
+        "200":
+          description: policy definition was updated successfully. Returns the Policy
+            Definition Id and updated timestamp
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDetail'
+          description: "policy definition could not be updated, because it does not\
+            \ exists"
+      tags:
+      - Policy Definition
 components:
   schemas:
     Action:
@@ -498,6 +650,65 @@ components:
         id:
           type: string
           example: null
+        policy:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+            valueType:
+              type: string
+              enum:
+              - ARRAY
+              - OBJECT
+              - STRING
+              - NUMBER
+              - "TRUE"
+              - "FALSE"
+              - "NULL"
+              example: null
+      required:
+      - policy
+    PolicyDefinitionNewResponseDto:
+      type: object
+      example: null
+      properties:
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+        id:
+          type: string
+          example: null
+        policy:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+            valueType:
+              type: string
+              enum:
+              - ARRAY
+              - OBJECT
+              - STRING
+              - NUMBER
+              - "TRUE"
+              - "FALSE"
+              - "NULL"
+              example: null
+      required:
+      - policy
+    PolicyDefinitionNewUpdateDto:
+      type: object
+      example: null
+      properties:
         policy:
           type: object
           additionalProperties:
