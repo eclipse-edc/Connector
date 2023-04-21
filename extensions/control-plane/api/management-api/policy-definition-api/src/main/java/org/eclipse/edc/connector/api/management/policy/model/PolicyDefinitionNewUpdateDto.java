@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 T-Systems International GmbH
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       T-Systems International GmbH
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -17,24 +17,18 @@ package org.eclipse.edc.connector.api.management.policy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.policy.model.Policy;
 
-@Deprecated(since = "milestone9")
-@JsonDeserialize(builder = PolicyDefinitionUpdateDto.Builder.class)
-public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto {
+@JsonDeserialize(builder = PolicyDefinitionNewUpdateDto.Builder.class)
+public class PolicyDefinitionNewUpdateDto extends PolicyDefinitionNewDto {
 
-    private PolicyDefinitionUpdateDto() {
-    }
-
-    public Policy getPolicy() {
-        return policy;
+    private PolicyDefinitionNewUpdateDto() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends PolicyDefinitionDto.Builder<PolicyDefinitionUpdateDto, Builder> {
+    public static final class Builder extends PolicyDefinitionNewDto.Builder<PolicyDefinitionNewUpdateDto, Builder> {
 
         private Builder() {
-            super(new PolicyDefinitionUpdateDto());
+            super(new PolicyDefinitionNewUpdateDto());
         }
 
         @JsonCreator
@@ -48,7 +42,7 @@ public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto {
         }
 
         @Override
-        public PolicyDefinitionUpdateDto build() {
+        public PolicyDefinitionNewUpdateDto build() {
             return dto;
         }
     }

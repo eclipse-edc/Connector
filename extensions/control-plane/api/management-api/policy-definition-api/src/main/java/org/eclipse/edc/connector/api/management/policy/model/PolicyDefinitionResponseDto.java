@@ -23,6 +23,7 @@ import org.eclipse.edc.policy.model.Policy;
 
 import java.util.Objects;
 
+@Deprecated(since = "milestone9")
 @JsonDeserialize(builder = PolicyDefinitionResponseDto.Builder.class)
 public class PolicyDefinitionResponseDto extends BaseResponseDto {
 

@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.web.spi.exception;
 
+import org.eclipse.edc.spi.result.Failure;
+
 import java.util.List;
 
 public class InvalidRequestException extends EdcApiException {
@@ -24,6 +26,10 @@ public class InvalidRequestException extends EdcApiException {
 
     public InvalidRequestException(List<String> messages) {
         super(messages);
+    }
+
+    public InvalidRequestException(Failure failure) {
+        super(failure.getMessages());
     }
 
     @Override

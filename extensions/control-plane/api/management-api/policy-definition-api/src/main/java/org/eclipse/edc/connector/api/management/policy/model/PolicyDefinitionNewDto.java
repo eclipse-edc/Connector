@@ -23,6 +23,10 @@ public abstract class PolicyDefinitionNewDto {
     @NotNull
     protected JsonObject policy;
 
+    public JsonObject getPolicy() {
+        return policy;
+    }
+
     protected abstract static class Builder<A extends PolicyDefinitionNewDto, B extends Builder<A, B>> {
 
         protected final A dto;

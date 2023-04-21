@@ -65,6 +65,6 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
         webService.registerResource(configuration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, service, transformerRegistry));
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionNewApiController(transformerRegistry, service));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionNewApiController(monitor, transformerRegistry, service));
     }
 }
