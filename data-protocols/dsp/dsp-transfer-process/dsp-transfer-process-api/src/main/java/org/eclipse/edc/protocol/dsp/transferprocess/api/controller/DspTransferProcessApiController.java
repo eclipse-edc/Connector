@@ -44,7 +44,6 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import java.util.Map;
 
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
@@ -113,24 +112,16 @@ public class DspTransferProcessApiController {
         
         var claimToken = checkAuthToken(token);
         
-        var messageResult = registry.transform(expand(jsonObject).getJsonObject(0), TransferRequestMessage.class);
-        if (messageResult.failed()) {
-            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", messageResult.getFailureMessages())));
-        }
+        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferRequestMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
-        var requestMessage = messageResult.getContent();
-        var initiateResult = protocolService.notifyRequested(requestMessage, claimToken);
-        if (initiateResult.failed()) {
-            throw new EdcException(format("TransferProcess could not be initiated: %s", join(", ", initiateResult.getFailureMessages())));
-        }
+        var transferprocess = protocolService.notifyRequested(message, claimToken)
+                .orElseThrow(failure -> new EdcException(format("TransferProcess could not be initiated: %s", failure.getFailureDetail())));
         
-        var transferprocess = initiateResult.getContent();
-        var transferProcessResult = registry.transform(transferprocess, JsonObject.class);
-        if (transferProcessResult.failed()) {
-            throw new EdcException(format("Response could not be created: %s", join(", ", initiateResult.getFailureMessages())));
-        }
+        var transferProcessJson = registry.transform(transferprocess, JsonObject.class)
+                .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
         
-        return mapper.convertValue(compact(transferProcessResult.getContent(), jsonLdContext()), Map.class);
+        return mapper.convertValue(compact(transferProcessJson, jsonLdContext()), Map.class);
     }
     
     /**
@@ -147,15 +138,11 @@ public class DspTransferProcessApiController {
         
         var claimToken = checkAuthToken(token);
         
-        var result = registry.transform(expand(jsonObject).getJsonObject(0), TransferStartMessage.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", result.getFailureMessages())));
-        }
+        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferStartMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
-        var serviceResult = protocolService.notifyStarted(result.getContent(), claimToken);
-        if (serviceResult.failed()) {
-            throw new EdcException(format("Failed to start transfer: %s", join(", ", serviceResult.getFailureMessages())));
-        }
+        protocolService.notifyStarted(message, claimToken)
+                .orElseThrow(failure -> new EdcException(format("Failed to start transfer: %s", failure.getFailureDetail())));
     }
     
     /**
@@ -172,15 +159,11 @@ public class DspTransferProcessApiController {
         
         var claimToken = checkAuthToken(token);
         
-        var result = registry.transform(expand(jsonObject).getJsonObject(0), TransferCompletionMessage.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", result.getFailureMessages())));
-        }
+        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferCompletionMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
-        var serviceResult = protocolService.notifyCompleted(result.getContent(), claimToken);
-        if (serviceResult.failed()) {
-            throw new EdcException(format("Failed to complete transfer: %s", join(", ", serviceResult.getFailureMessages())));
-        }
+        protocolService.notifyCompleted(message, claimToken)
+                .orElseThrow(failure -> new EdcException(format("Failed to complete transfer: %s", failure.getFailureDetail())));
     }
     
     /**
@@ -197,15 +180,11 @@ public class DspTransferProcessApiController {
         
         var claimToken = checkAuthToken(token);
         
-        var result = registry.transform(expand(jsonObject).getJsonObject(0), TransferTerminationMessage.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(format("Failed to read request body: %s", join(", ", result.getFailureMessages())));
-        }
+        var message = registry.transform(expand(jsonObject).getJsonObject(0), TransferTerminationMessage.class)
+                .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
         
-        var serviceResult = protocolService.notifyTerminated(result.getContent(), claimToken);
-        if (serviceResult.failed()) {
-            throw new EdcException(format("Failed to terminate transfer: %s", join(", ", serviceResult.getFailureMessages())));
-        }
+        protocolService.notifyTerminated(message, claimToken)
+                .orElseThrow(failure -> new EdcException(format("Failed to terminate transfer: %s", failure.getFailureDetail())));
     }
     
     /**
