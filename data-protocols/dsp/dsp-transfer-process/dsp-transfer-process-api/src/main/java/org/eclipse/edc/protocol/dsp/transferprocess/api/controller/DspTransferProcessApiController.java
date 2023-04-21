@@ -81,12 +81,12 @@ public class DspTransferProcessApiController {
     private IdentityService identityService;
     private String dspCallbackAddress;
     
-    public DspTransferProcessApiController(Monitor monitor, TypeManager typeManager, JsonLdTransformerRegistry registry,
+    public DspTransferProcessApiController(Monitor monitor, ObjectMapper mapper, JsonLdTransformerRegistry registry,
                                            TransferProcessProtocolService protocolService, IdentityService identityService, String dspCallbackAddress) {
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.registry = registry;
-        this.mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        this.mapper = mapper;
         this.identityService = identityService;
         this.dspCallbackAddress = dspCallbackAddress;
     }

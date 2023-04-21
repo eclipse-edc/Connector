@@ -35,7 +35,6 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,7 +48,6 @@ import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_COMPLETION;
@@ -81,10 +79,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     
     @Override
     protected Object controller() {
-        var typeManager = mock(TypeManager.class);
-        when(typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD)).thenReturn(mapper);
-        
-        return new DspTransferProcessApiController(mock(Monitor.class), typeManager, registry, protocolService, identityService, callbackAddress);
+        return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress);
     }
     
     @Test
