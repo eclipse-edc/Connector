@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.spi.flow;
 
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -45,6 +46,6 @@ public interface DataFlowController {
      * @param policy         the contract agreement usage policy for the asset being transferred
      */
     @NotNull
-    StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy);
+    StatusResult<DataFlowResponse> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy);
 
 }

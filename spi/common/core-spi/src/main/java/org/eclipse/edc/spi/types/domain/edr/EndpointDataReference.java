@@ -32,7 +32,7 @@ import java.util.UUID;
 @JsonDeserialize(builder = EndpointDataReference.Builder.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EndpointDataReference {
-
+    
     private final String id;
     private final String endpoint;
     private final String authKey;

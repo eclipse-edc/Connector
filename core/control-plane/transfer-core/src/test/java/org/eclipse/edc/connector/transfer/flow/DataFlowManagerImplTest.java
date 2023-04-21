@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.transfer.flow;
 
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
@@ -40,7 +41,7 @@ class DataFlowManagerImplTest {
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
 
         when(controller.canHandle(any(), any())).thenReturn(true);
-        when(controller.initiateFlow(any(), any(), any())).thenReturn(StatusResult.success());
+        when(controller.initiateFlow(any(), any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         manager.register(controller);
 
         var response = manager.initiate(dataRequest, dataAddress, policy);

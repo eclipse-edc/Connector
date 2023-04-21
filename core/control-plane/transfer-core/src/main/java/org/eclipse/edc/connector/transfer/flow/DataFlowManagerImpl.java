@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.transfer.flow;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -42,7 +43,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @WithSpan
     @Override
-    public @NotNull StatusResult<Void> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         try {
             return controllers.stream()
                     .filter(controller -> controller.canHandle(dataRequest, contentAddress))

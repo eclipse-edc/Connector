@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Objects;
 
@@ -27,6 +28,8 @@ public class TransferStartMessage implements TransferRemoteMessage {
     private String callbackAddress;
     private String protocol;
     private String processId;
+
+    private DataAddress dataAddress;
 
     @Override
     public String getProtocol() {
@@ -41,6 +44,10 @@ public class TransferStartMessage implements TransferRemoteMessage {
     @Override
     public String getProcessId() {
         return processId;
+    }
+
+    public DataAddress getDataAddress() {
+        return dataAddress;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -68,6 +75,11 @@ public class TransferStartMessage implements TransferRemoteMessage {
 
         public Builder processId(String processId) {
             message.processId = processId;
+            return this;
+        }
+
+        public Builder dataAddress(DataAddress dataAddress) {
+            message.dataAddress = dataAddress;
             return this;
         }
 

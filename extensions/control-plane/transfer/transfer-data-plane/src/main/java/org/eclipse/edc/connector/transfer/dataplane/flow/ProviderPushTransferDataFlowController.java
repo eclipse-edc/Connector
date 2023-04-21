@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.transfer.dataplane.flow;
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -45,13 +46,13 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
     }
 
     @Override
-    public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var dataFlowRequest = createRequest(dataRequest, contentAddress);
         var result = dataPlaneClient.transfer(dataFlowRequest);
         if (result.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to delegate data transfer to Data Plane: " + result.getFailureDetail());
         }
-        return StatusResult.success();
+        return StatusResult.success(DataFlowResponse.Builder.newInstance().build());
     }
 
     private DataFlowRequest createRequest(DataRequest dataRequest, DataAddress sourceAddress) {
