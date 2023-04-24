@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 
 /**
- *  Constants for {@link EndpointDataReference} mapping to {@link DataAddress}
+ * Constants for {@link EndpointDataReference} mapping to {@link DataAddress}
  */
 public class EndpointDataAddressConstants {
 
@@ -33,9 +33,12 @@ public class EndpointDataAddressConstants {
     public static final String AUTH_CODE = "authCode";
     public static final String AUTH_KEY = "authKey";
     public static final String ENDPOINT = "endpoint";
-    private static final String TYPE_FIELD = "type";
+    public static final String TYPE_FIELD = "type";
 
     private static final Set<String> PROPERTIES = Set.of(ID, TYPE_FIELD, AUTH_CODE, ENDPOINT, AUTH_KEY);
+
+    private EndpointDataAddressConstants() {
+    }
 
     public static DataAddress from(EndpointDataReference edr) {
         return DataAddress.Builder.newInstance()
@@ -49,7 +52,7 @@ public class EndpointDataAddressConstants {
     }
 
     public static Result<EndpointDataReference> to(DataAddress address) {
-        
+
         if (!address.getType().equals(TYPE)) {
             return Result.failure(format("Failed to convert data address with type %s to an EDR", address.getType()));
         }
