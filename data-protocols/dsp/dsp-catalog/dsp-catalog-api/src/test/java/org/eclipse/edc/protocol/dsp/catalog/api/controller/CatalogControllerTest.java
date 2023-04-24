@@ -89,6 +89,18 @@ class CatalogControllerTest {
         assertThat(response).isEqualTo(responseMap);
         verify(service).getCatalog(requestMessage, token);
     }
+    
+    @Test
+    void getCatalog_invalidTypeInRequest_throwException() {
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
+                .thenReturn(Result.success(createToken()));
+        
+        var invalidRequest = Json.createObjectBuilder()
+                .add(TYPE, "not-a-catalog-request")
+                .build();
+        
+        assertThatThrownBy(() -> controller.getCatalog(invalidRequest, authHeader)).isInstanceOf(InvalidRequestException.class);
+    }
 
     @Test
     void getCatalog_transformingRequestFails_throwException() {
