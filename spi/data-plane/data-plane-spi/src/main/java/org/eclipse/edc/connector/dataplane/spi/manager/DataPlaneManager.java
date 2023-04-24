@@ -28,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
  * Manages the execution of data plane requests. Methods that return {@link StreamResult} from their futures can use that value to respond to different failure conditions.
  * For example:
  * <p>
+ * <code>
  * <pre>
  * dataPlaneManager.transfer(sink, flowRequest).whenComplete((result, throwable) -> {
  *      if (result != null && result.failed()) {
@@ -47,6 +48,7 @@ import java.util.concurrent.CompletableFuture;
  *      }
  * });
  * </pre>
+ * </code>
  */
 @ExtensionPoint
 public interface DataPlaneManager {
