@@ -34,7 +34,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -50,6 +50,8 @@ import java.util.function.BiFunction;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
@@ -68,8 +70,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.E
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.VERIFICATION;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 

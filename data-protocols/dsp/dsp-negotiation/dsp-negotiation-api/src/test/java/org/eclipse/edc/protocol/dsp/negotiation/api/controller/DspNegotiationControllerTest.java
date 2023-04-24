@@ -30,7 +30,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;

@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.negotiation.api;
 
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.negotiation.api.controller.DspNegotiationController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
