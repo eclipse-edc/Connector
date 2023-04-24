@@ -18,6 +18,8 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
  * Dataspace protocol types and attributes for catalog request.
  */
 public interface DspTransferProcessPropertyAndTypeNames {
+    
+    String DSPACE_PREFIX = "dspace";
 
     String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
 
