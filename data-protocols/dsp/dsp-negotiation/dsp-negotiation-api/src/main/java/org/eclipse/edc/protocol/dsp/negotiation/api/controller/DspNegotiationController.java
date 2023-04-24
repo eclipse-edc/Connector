@@ -72,12 +72,13 @@ import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedT
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
- * Provides consumer and provider endpoints according to http binding of the dataspace protocol.
+ * Provides consumer and provider endpoints for the contract negotiation according to the http binding
+ * of the dataspace protocol.
  */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
-public class DspNegotiationController implements DspNegotiationApi {
+public class DspNegotiationController {
 
     private final IdentityService identityService;
     private final JsonLdTransformerRegistry transformerRegistry;
@@ -98,9 +99,14 @@ public class DspNegotiationController implements DspNegotiationApi {
         this.mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
     }
 
+    /**
+     * Provider-specific endpoint.
+     *
+     * @param id of contract negotiation.
+     * @param token identity token.
+     */
     @GET
     @Path("{id}")
-    @Override
     public Map<String, Object> getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
 
@@ -109,9 +115,14 @@ public class DspNegotiationController implements DspNegotiationApi {
         throw new UnsupportedOperationException("Currently not supported.");
     }
 
+    /**
+     * Provider-specific endpoint.
+     *
+     * @param body dspace:ContractRequestMessage sent by a consumer.
+     * @param token identity token.
+     */
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
-    @Override
     public Map<String, Object> initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug("DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
 
@@ -128,9 +139,15 @@ public class DspNegotiationController implements DspNegotiationApi {
         return mapper.convertValue(compact(result, jsonLdContext()), Map.class);
     }
 
+    /**
+     * Provider-specific endpoint.
+     *
+     * @param id of contract negotiation.
+     * @param body dspace:ContractRequestMessage sent by a consumer.
+     * @param token identity token.
+     */
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
-    @Override
     public void consumerOffer(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractRequestMessage for process %s", id));
 
@@ -145,9 +162,15 @@ public class DspNegotiationController implements DspNegotiationApi {
         protocolService.notifyRequested(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
+    /**
+     * Endpoint on provider and consumer side.
+     *
+     * @param id of contract negotiation.
+     * @param body dspace:ContractNegotiationEventMessage sent by consumer or provider.
+     * @param token identity token.
+     */
     @POST
     @Path("{id}" + EVENT)
-    @Override
     public void createEvent(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_EVENT_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
 
@@ -171,9 +194,15 @@ public class DspNegotiationController implements DspNegotiationApi {
         }
     }
 
+    /**
+     * Provider-specific endpoint.
+     *
+     * @param id of contract negotiation.
+     * @param body dspace:ContractAgreementVerificationMessage sent by a consumer.
+     * @param token identity token.
+     */
     @POST
     @Path("{id}" + AGREEMENT + VERIFICATION)
-    @Override
     public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
 
@@ -188,9 +217,15 @@ public class DspNegotiationController implements DspNegotiationApi {
         protocolService.notifyVerified(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
+    /**
+     * Endpoint on provider and consumer side.
+     *
+     * @param id of contract negotiation.
+     * @param body dspace:ContractNegotiationTerminationMessage sent by consumer or provider.
+     * @param token identity token.
+     */
     @POST
     @Path("{id}" + TERMINATION)
-    @Override
     public void terminateNegotiation(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_TERMINATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
 
@@ -205,10 +240,16 @@ public class DspNegotiationController implements DspNegotiationApi {
         protocolService.notifyTerminated(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
+    /**
+     * Consumer-specific endpoint.
+     *
+     * @param id of contract negotiation.
+     * @param body dspace:ContractOfferMessage sent by a provider.
+     * @param token identity token.
+     */
     @POST
     @Path("{id}" + CONTRACT_OFFER)
 
-    @Override
     public void providerOffer(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractOfferMessage for process %s", id));
 
@@ -217,9 +258,15 @@ public class DspNegotiationController implements DspNegotiationApi {
         throw new UnsupportedOperationException("Currently not supported.");
     }
 
+    /**
+     * Consumer-specific endpoint.
+     *
+     * @param id of contract negotiation.
+     * @param body dspace:ContractAgreementMessage sent by a provider.
+     * @param token identity token.
+     */
     @POST
     @Path("{id}" + AGREEMENT)
-    @Override
     public void createAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractAgreementMessage for process %s", id));
 
