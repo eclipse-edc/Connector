@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
@@ -37,7 +36,7 @@ import java.util.Map;
 /**
  * Provides the transformers for transferprocess message types via the {@link JsonLdTransformerRegistry}.
  */
-@Extension(value = JsonLdExtension.NAME)
+@Extension(value = DspTransferProcessTransformExtension.NAME)
 public class DspTransferProcessTransformExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Transfer Process Transform Extension";

@@ -34,6 +34,7 @@ import org.eclipse.edc.jsonld.transformer.to.JsonObjectToProhibitionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -47,35 +48,36 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
  * Provides support for transforming DCAT catalog and ODRL policy types to and from JSON-LD. The
  * respective transformers are registered with the {@link JsonLdTransformerRegistry}.
  */
+@Extension(value = DspTransformExtension.NAME)
 public class DspTransformExtension implements ServiceExtension {
-    
+
     public static final String NAME = "Dataspace Protocol Transform Extension";
-    
+
     @Inject
     private TypeManager typeManager;
-    
+
     @Inject
     private JsonLdTransformerRegistry registry;
-    
+
     @Override
     public String name() {
         return NAME;
     }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
         mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
-        
+
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
-    
+
         // EDC model to JSON-LD transformers
         registry.register(new JsonObjectFromCatalogTransformer(jsonBuilderFactory, mapper));
         registry.register(new JsonObjectFromDatasetTransformer(jsonBuilderFactory, mapper));
         registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory));
         registry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory));
         registry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory));
-    
+
         // JSON-LD to EDC model transformers
         registry.register(new JsonObjectToCatalogTransformer());
         registry.register(new JsonObjectToDataServiceTransformer());
