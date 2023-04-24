@@ -30,7 +30,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -94,7 +93,6 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
     private final IdentityService identityService = mock(IdentityService.class);
     private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
     private final ContractNegotiationProtocolService protocolService = mock(ContractNegotiationProtocolService.class);
-    private final ContractNegotiationService service = mock(ContractNegotiationService.class);
 
     private final String callbackAddress = "http://callback";
     private final JsonObject request = Json.createObjectBuilder()
@@ -106,44 +104,23 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
         var typeManager = mock(TypeManager.class);
         when(typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD)).thenReturn(mapper);
 
-        return new DspNegotiationController(mock(Monitor.class), typeManager, callbackAddress, identityService, registry, service, protocolService);
+        return new DspNegotiationController(mock(Monitor.class), typeManager, callbackAddress, identityService, registry, protocolService);
     }
 
     @Test
-    void getNegotiation_shouldReturnContractNegotiation() {
+    void getNegotiation_shouldReturnNotImplemented_whenOperationNotSupported() {
         var token = token();
         var process = contractNegotiation();
         var json = Json.createObjectBuilder().build();
         var response = Json.createObjectBuilder().add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION).build();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(service.findbyId("testId")).thenReturn(process);
-        when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
-        when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenReturn(response);
 
         //operation not yet supported
         baseRequest()
                 .get(BASE_PATH + "testId")
                 .then()
-                .statusCode(200);
-    }
-
-    @Test
-    void getNegotiation_shouldReturnNotFound_whenInvalidId() {
-        var token = token();
-        var json = Json.createObjectBuilder().build();
-        var response = Json.createObjectBuilder().add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION).build();
-
-        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(service.findbyId("testId")).thenReturn(null);
-        when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
-        when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenReturn(response);
-
-        //operation not yet supported
-        baseRequest()
-                .get(BASE_PATH + "testId")
-                .then()
-                .statusCode(404);
+                .statusCode(501);
     }
 
     @Test

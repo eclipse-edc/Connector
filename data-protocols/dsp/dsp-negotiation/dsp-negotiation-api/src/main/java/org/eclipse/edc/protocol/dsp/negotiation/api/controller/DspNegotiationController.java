@@ -25,7 +25,6 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
@@ -34,7 +33,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -44,7 +42,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.Map;
 
@@ -86,18 +83,16 @@ public class DspNegotiationController implements DspNegotiationApi {
     private final JsonLdTransformerRegistry transformerRegistry;
     private final String callbackAddress;
     private final Monitor monitor;
-    private final ContractNegotiationService service;
     private final ContractNegotiationProtocolService protocolService;
     private final ObjectMapper mapper;
 
     public DspNegotiationController(Monitor monitor, TypeManager typeManager, String callbackAddress,
                                     IdentityService identityService, JsonLdTransformerRegistry transformerRegistry,
-                                    ContractNegotiationService service, ContractNegotiationProtocolService protocolService) {
+                                    ContractNegotiationProtocolService protocolService) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
         this.protocolService = protocolService;
-        this.service = service;
         this.transformerRegistry = transformerRegistry;
 
         this.mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
@@ -111,15 +106,7 @@ public class DspNegotiationController implements DspNegotiationApi {
 
         checkAndReturnAuthToken(token);
 
-        var negotiation = service.findbyId(id);
-        if (negotiation == null) {
-            throw new ObjectNotFoundException(ContractNegotiation.class, id);
-        }
-
-        var result = transformerRegistry.transform(negotiation, JsonObject.class).orElseThrow((failure ->
-                new EdcException(format("Failed to build response: %s", failure.getFailureDetail()))));
-
-        return mapper.convertValue(compact(result, jsonLdContext()), Map.class);
+        throw new UnsupportedOperationException("Currently not supported.");
     }
 
     @POST
@@ -227,7 +214,7 @@ public class DspNegotiationController implements DspNegotiationApi {
 
         checkAndReturnAuthToken(token);
 
-        throw new UnsupportedOperationException("Processing of dspace:ContractOfferMessage currently not supported.");
+        throw new UnsupportedOperationException("Currently not supported.");
     }
 
     @POST
