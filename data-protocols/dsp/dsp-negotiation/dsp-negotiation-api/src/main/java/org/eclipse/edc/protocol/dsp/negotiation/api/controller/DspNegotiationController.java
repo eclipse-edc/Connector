@@ -32,8 +32,10 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiatio
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -43,6 +45,8 @@ import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
@@ -123,13 +127,7 @@ public class DspNegotiationController {
     public Map<String, Object> initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug("DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
 
-        var claimToken = checkAndReturnAuthToken(token);
-
-        var expanded = expand(body).getJsonObject(0);
-        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE), ContractRequestMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
-
-        var negotiation = protocolService.notifyRequested(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
+        var negotiation = processMessage(token, Optional.empty(), body, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, ContractRequestMessage.class, protocolService::notifyRequested);
 
         var result = transformerRegistry.transform(negotiation, JsonObject.class).orElseThrow(failure ->
                 new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
@@ -148,15 +146,7 @@ public class DspNegotiationController {
     public void consumerOffer(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractRequestMessage for process %s", id));
 
-        var claimToken = checkAndReturnAuthToken(token);
-
-        var expanded = expand(body).getJsonObject(0);
-        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE), ContractRequestMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
-
-        validateId(message.getProcessId(), id);
-
-        protocolService.notifyRequested(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
+        processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, ContractRequestMessage.class, protocolService::notifyRequested);
     }
 
     /**
@@ -177,7 +167,7 @@ public class DspNegotiationController {
         var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_EVENT_MESSAGE), ContractNegotiationEventMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        validateId(message.getProcessId(), id);
+        validateProcessId(message.getProcessId(), id);
 
         switch (message.getType()) {
             case FINALIZED:
@@ -203,15 +193,7 @@ public class DspNegotiationController {
     public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
 
-        var claimToken = checkAndReturnAuthToken(token);
-
-        var expanded = expand(body).getJsonObject(0);
-        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE), ContractAgreementVerificationMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
-
-        validateId(message.getProcessId(), id);
-
-        protocolService.notifyVerified(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
+        processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, ContractAgreementVerificationMessage.class, protocolService::notifyVerified);
     }
 
     /**
@@ -226,15 +208,7 @@ public class DspNegotiationController {
     public void terminateNegotiation(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_TERMINATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
 
-        var claimToken = checkAndReturnAuthToken(token);
-
-        var expanded = expand(body).getJsonObject(0);
-        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_TERMINATION_MESSAGE), ContractNegotiationTerminationMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
-
-        validateId(message.getProcessId(), id);
-
-        protocolService.notifyTerminated(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
+        processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_TERMINATION_MESSAGE, ContractNegotiationTerminationMessage.class, protocolService::notifyTerminated);
     }
 
     /**
@@ -267,42 +241,40 @@ public class DspNegotiationController {
     public void createAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractAgreementMessage for process %s", id));
 
-        var claimToken = checkAndReturnAuthToken(token);
+        processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, ContractAgreementMessage.class, protocolService::notifyAgreed);
+    }
 
+    private <M extends ContractRemoteMessage> ContractNegotiation processMessage(String token, Optional<String> processId, JsonObject body, String expectedType, Class<M> messageClass,
+                                                                                 BiFunction<M, ClaimToken, ServiceResult<ContractNegotiation>> serviceCall) {
+        var claimToken = checkAndReturnAuthToken(token);
         var expanded = expand(body).getJsonObject(0);
-        var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE), ContractAgreementMessage.class)
+        var message = transformerRegistry.transform(hasValidType(expanded, expectedType), messageClass)
                 .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
-        validateId(message.getProcessId(), id);
+        processId.ifPresent(id -> validateProcessId(message.getProcessId(), id));
 
-        protocolService.notifyAgreed(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
+        // invokes negotiation protocol service method
+        return serviceCall.apply(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
     }
 
     private ClaimToken checkAndReturnAuthToken(String token) {
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
-                .token(token)
-                .build();
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
+        return identityService.verifyJwtToken(tokenRepresentation, callbackAddress).orElseThrow(failure ->
+                new AuthenticationFailedException(format("Authentication failed: %s", failure.getFailureDetail())));
+    }
 
-        var result = identityService.verifyJwtToken(tokenRepresentation, callbackAddress);
-        if (result.failed()) {
-            throw new AuthenticationFailedException();
+    private void validateProcessId(String actual, String expected) {
+        if (!expected.equals(actual)) {
+            throw new InvalidRequestException(format("Invalid process ID. Expected: %s, actual: %s", expected, actual));
         }
-
-        return result.getContent();
     }
 
     private JsonObject hasValidType(JsonObject object, String expected) {
-        if (isOfExpectedType(object, expected)) {
-            return object;
-        } else {
+        if (!isOfExpectedType(object, expected)) {
             throw new InvalidRequestException(format("Request body was not of expected type: %s", expected));
         }
-    }
 
-    private void validateId(String actual, String expected) {
-        if (!actual.equals(expected)) {
-            throw new InvalidRequestException(String.format("ProcessId %s is not matching path id %s.", actual, expected));
-        }
+        return object;
     }
 
     // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
