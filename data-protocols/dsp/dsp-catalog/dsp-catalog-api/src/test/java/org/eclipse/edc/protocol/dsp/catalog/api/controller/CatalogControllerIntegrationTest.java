@@ -51,7 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//@ApiTest
+@ApiTest
 @ExtendWith(EdcExtension.class)
 class CatalogControllerIntegrationTest {
 

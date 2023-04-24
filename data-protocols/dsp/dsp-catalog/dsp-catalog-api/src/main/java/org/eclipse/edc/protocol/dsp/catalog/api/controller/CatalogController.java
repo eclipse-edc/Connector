@@ -16,9 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -39,14 +37,12 @@ import java.util.Map;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
@@ -54,6 +50,7 @@ import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.CATALOG_R
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -91,7 +88,9 @@ public class CatalogController {
                 .orElseThrow(failure -> new AuthenticationFailedException());
 
         var expanded = expand(jsonObject).getJsonObject(0); //expanding returns a JsonArray of size 1
-        validateType(expanded);
+        if (!isOfExpectedType(expanded, DSPACE_CATALOG_REQUEST_TYPE)) {
+            throw new InvalidRequestException(format("Request body was not of expected type: %s", DSPACE_CATALOG_REQUEST_TYPE));
+        }
         
         var message = transformerRegistry.transform(expanded, CatalogRequestMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
@@ -103,25 +102,6 @@ public class CatalogController {
                 .orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
         
         return mapper.convertValue(compact(catalogJson, jsonLdContext()), Map.class);
-    }
-    
-    private void validateType(JsonObject request) {
-        var typeNode = request.get(TYPE);
-        
-        String type = null;
-        if (typeNode instanceof JsonString) {
-            type = ((JsonString) typeNode).getString();
-        } else if (typeNode instanceof JsonArray) {
-            var array = (JsonArray) typeNode;
-            if (array.isEmpty()) {
-                throw new InvalidRequestException("Invalid type node: found empty array");
-            }
-            type = ((JsonString) array.get(0)).getString();
-        }
-        
-        if (!DSPACE_CATALOG_REQUEST_TYPE.equals(type)) {
-            throw new InvalidRequestException(format("Invalid type in request body: %s, expected: %s", type, DSPACE_CATALOG_REQUEST_TYPE));
-        }
     }
 
     private JsonObject jsonLdContext() {
