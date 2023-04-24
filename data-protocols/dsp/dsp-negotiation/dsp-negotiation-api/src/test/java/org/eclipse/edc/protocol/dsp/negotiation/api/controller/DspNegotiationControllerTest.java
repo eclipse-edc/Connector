@@ -30,7 +30,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Action;
@@ -44,7 +43,6 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
@@ -63,8 +61,6 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
@@ -101,18 +97,12 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        var typeManager = mock(TypeManager.class);
-        when(typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD)).thenReturn(mapper);
-
-        return new DspNegotiationController(mock(Monitor.class), typeManager, callbackAddress, identityService, registry, protocolService);
+        return new DspNegotiationController(mock(Monitor.class), mapper, callbackAddress, identityService, registry, protocolService);
     }
 
     @Test
     void getNegotiation_shouldReturnNotImplemented_whenOperationNotSupported() {
         var token = token();
-        var process = contractNegotiation();
-        var json = Json.createObjectBuilder().build();
-        var response = Json.createObjectBuilder().add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION).build();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
 

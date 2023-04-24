@@ -39,7 +39,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
@@ -47,7 +46,6 @@ import java.util.Map;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
@@ -87,7 +85,7 @@ public class DspNegotiationController {
     private final ContractNegotiationProtocolService protocolService;
     private final ObjectMapper mapper;
 
-    public DspNegotiationController(Monitor monitor, TypeManager typeManager, String callbackAddress,
+    public DspNegotiationController(Monitor monitor, ObjectMapper mapper, String callbackAddress,
                                     IdentityService identityService, JsonLdTransformerRegistry transformerRegistry,
                                     ContractNegotiationProtocolService protocolService) {
         this.callbackAddress = callbackAddress;
@@ -95,8 +93,7 @@ public class DspNegotiationController {
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.transformerRegistry = transformerRegistry;
-
-        this.mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        this.mapper = mapper;
     }
 
     /**

@@ -27,6 +27,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+
 /**
  * Creates and registers the controller for dataspace protocol negotiation requests.
  */
@@ -64,7 +66,9 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var callbackAddress = apiConfiguration.getDspCallbackAddress();
-        var controller = new DspNegotiationController(monitor, typeManager, callbackAddress, identityService, transformerRegistry, protocolService);
+        var objectMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+
+        var controller = new DspNegotiationController(monitor, objectMapper, callbackAddress, identityService, transformerRegistry, protocolService);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }
