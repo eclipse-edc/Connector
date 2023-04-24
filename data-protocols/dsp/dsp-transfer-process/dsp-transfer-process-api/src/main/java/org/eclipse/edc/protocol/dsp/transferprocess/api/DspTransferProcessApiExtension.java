@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.api;
 
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.controller.DspTransferProcessApiController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -34,7 +34,7 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
  */
 @Extension(value = DspTransferProcessApiExtension.NAME)
 public class DspTransferProcessApiExtension implements ServiceExtension {
-    
+
     @Inject
     private DspApiConfiguration config;
     @Inject
@@ -49,13 +49,13 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
     private JsonLdTransformerRegistry registry;
     @Inject
     private IdentityService identityService;
-    
+
     public static final String NAME = "Dataspace Protocol: TransferProcess API Extension";
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var controller = new DspTransferProcessApiController(monitor, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), registry, transferProcessProtocolService, identityService, config.getDspCallbackAddress());
-        
+
         webService.registerResource(config.getContextAlias(), controller);
     }
 }

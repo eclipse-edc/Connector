@@ -27,7 +27,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessa
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
@@ -71,21 +71,21 @@ import static org.mockito.Mockito.when;
 
 @ApiTest
 class DspTransferProcessApiControllerTest extends RestControllerTestBase {
-    
+
     private static final String PROCESS_ID = "testId";
-    
+
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final IdentityService identityService = mock(IdentityService.class);
     private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
     private final TransferProcessProtocolService protocolService = mock(TransferProcessProtocolService.class);
     private final String callbackAddress = "http://callback";
     private final String authHeader = "auth";
-    
+
     @Override
     protected Object controller() {
         return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress);
     }
-    
+
     @Test
     void getTransferProcess_shouldReturnNotImplemented_whenOperationNotSupported() {
         //operation not yet supported
@@ -94,7 +94,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(501);
     }
-    
+
     @Test
     void initiateTransferProcess_shouldReturnTransferProcess_whenValidRequest() {
         var token = token();
@@ -104,7 +104,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var map = new HashMap<String, Object>() {{
                 put("key", "value");
             }};
-        
+
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), eq(TransferRequestMessage.class)))
@@ -112,7 +112,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenReturn(map);
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(transferRequestJson())
@@ -121,23 +121,23 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .contentType("application/json")
                 .body("key", is("value"));
-        
+
         verify(protocolService, times(1)).notifyRequested(message, token);
     }
-    
+
     @Test
     void initiateTransferProcess_shouldReturnInternalServerError_whenTransferProcessTransformationFails() {
         var token = token();
         var message = transferRequestMessage();
         var process = transferProcess();
-        
+
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), eq(TransferRequestMessage.class)))
                 .thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(transferRequestJson())
@@ -145,14 +145,14 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(500);
     }
-    
+
     @Test
     void initiateTransferProcess_shouldReturnInternalServerError_whenConvertingResultFails() {
         var token = token();
         var message = transferRequestMessage();
         var process = transferProcess();
         var json = Json.createObjectBuilder().build();
-        
+
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), eq(TransferRequestMessage.class)))
@@ -160,7 +160,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(transferRequestJson())
@@ -168,7 +168,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(500);
     }
-    
+
     @Test
     void consumerTransferProcessSuspension_shouldReturnNotImplemented_whenOperationNotSupported() {
         baseRequest()
@@ -178,7 +178,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(501);
     }
-    
+
     /**
      * Verifies that an endpoint returns 401 if the identity service cannot verify the identity token.
      *
@@ -189,7 +189,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path, JsonObject request) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
@@ -197,7 +197,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(401);
     }
-    
+
     /**
      * Verifies that an endpoint returns 400 if the incoming message cannot be transformed.
      *
@@ -208,12 +208,12 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnBadRequest_whenRequestTransformationFails(String path, JsonObject request) {
         var token = token();
-        
+
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.failure("error"));
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
@@ -221,7 +221,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(400);
     }
-    
+
     /**
      * Verifies that an endpoint returns 400 if the ID in the request does not match the ID in
      * the request path.
@@ -234,12 +234,12 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArgumentsForIdValidationFails.class)
     void callEndpoint_shouldReturnBadRequest_whenIdValidationFails(String path, JsonObject request, TransferRemoteMessage message) {
         var token = token();
-        
+
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
@@ -247,7 +247,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(400);
     }
-    
+
     /**
      * Verifies that an endpoint returns 204 if the call to the service was successful. Also verifies
      * that the correct service method was called. This is only applicable for endpoints that do not
@@ -262,27 +262,27 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArgumentsForServiceCall.class)
     void callEndpoint_shouldCallService_whenValidRequest(String path, JsonObject request, TransferRemoteMessage message, Method serviceMethod) throws Exception {
         var token = token();
-        
+
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
-        
+
         when(protocolService.notifyStarted(any(TransferStartMessage.class), eq(token))).thenReturn(ServiceResult.success(transferProcess()));
         when(protocolService.notifyCompleted(any(TransferCompletionMessage.class), eq(token))).thenReturn(ServiceResult.success(transferProcess()));
         when(protocolService.notifyTerminated(any(TransferTerminationMessage.class), eq(token))).thenReturn(ServiceResult.success(transferProcess()));
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(path)
                 .then()
                 .statusCode(204);
-        
+
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
     }
-    
+
     /**
      * Verifies that an endpoint returns 500 if there is an error in the service. Also verifies
      * that the correct service method was called.
@@ -296,28 +296,28 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArgumentsForServiceError.class)
     void callEndpoint_shouldReturnConflict_whenServiceResultConflict(String path, JsonObject request, TransferRemoteMessage message, Method serviceMethod) throws Exception {
         var token = token();
-        
+
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
-        
+
         when(protocolService.notifyRequested(any(TransferRequestMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyStarted(any(TransferStartMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyCompleted(any(TransferCompletionMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyTerminated(any(TransferTerminationMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
-        
+
         baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(path)
                 .then()
                 .statusCode(409);
-        
+
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
     }
-    
+
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
@@ -325,37 +325,37 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .header(HttpHeaders.AUTHORIZATION, authHeader)
                 .when();
     }
-    
+
     private static ClaimToken token() {
         return ClaimToken.Builder.newInstance().build();
     }
-    
+
     private TransferProcess transferProcess() {
         return TransferProcess.Builder.newInstance().id("id").build();
     }
-    
+
     private static JsonObject transferRequestJson() {
         return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE).build();
     }
-    
+
     private static JsonObject transferStartJson() {
         return Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TRANSFER_START_TYPE)
                 .build();
     }
-    
+
     private static JsonObject transferCompletionJson() {
         return Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
                 .build();
     }
-    
+
     private static JsonObject transferTerminationJson() {
         return Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
                 .build();
     }
-    
+
     private static TransferRequestMessage transferRequestMessage() {
         return TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -363,7 +363,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .callbackAddress("http://connector")
                 .build();
     }
-    
+
     private static TransferStartMessage transferStartMessage() {
         return TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -371,7 +371,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .processId(PROCESS_ID)
                 .build();
     }
-    
+
     private static TransferCompletionMessage transferCompletionMessage() {
         return TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -379,7 +379,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .processId(PROCESS_ID)
                 .build();
     }
-    
+
     private static TransferTerminationMessage transferTerminationMessage() {
         return TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -387,7 +387,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .processId(PROCESS_ID)
                 .build();
     }
-    
+
     private static class ControllerMethodArguments implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
@@ -399,7 +399,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
             );
         }
     }
-    
+
     private static class ControllerMethodArgumentsForIdValidationFails implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
@@ -410,7 +410,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
             );
         }
     }
-    
+
     private static class ControllerMethodArgumentsForServiceCall implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
@@ -424,7 +424,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
             );
         }
     }
-    
+
     private static class ControllerMethodArgumentsForServiceError implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
