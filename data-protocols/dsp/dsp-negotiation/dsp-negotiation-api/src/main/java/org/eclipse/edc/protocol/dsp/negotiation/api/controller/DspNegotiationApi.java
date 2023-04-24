@@ -31,7 +31,7 @@ public interface DspNegotiationApi {
      * @param id of contract negotiation.
      * @param token identity token.
      */
-    @Operation(description = "Gets contract negotiation by id", operationId = "dspGetNegotiation")
+    @Operation(description = "Gets a contract negotiation by id", operationId = "dspGetNegotiation")
     Map<String, Object> getNegotiation(String id, String token);
 
     /**
@@ -40,7 +40,7 @@ public interface DspNegotiationApi {
      * @param body dspace:ContractRequestMessage sent by a consumer.
      * @param token identity token.
      */
-    @Operation(description = "Starts contract negotiation", operationId = "dspInitiateNegotiation")
+    @Operation(description = "Starts a contract negotiation", operationId = "dspInitiateNegotiation")
     Map<String, Object> initiateNegotiation(JsonObject body, String token);
 
     /**
@@ -50,7 +50,7 @@ public interface DspNegotiationApi {
      * @param body dspace:ContractRequestMessage sent by a consumer.
      * @param token identity token.
      */
-    @Operation(description = "Adds contract offer to contract negotiation", operationId = "dspConsumerOfferNegotiation")
+    @Operation(description = "Adds a contract offer to a contract negotiation", operationId = "dspConsumerOfferNegotiation")
     void consumerOffer(String id, JsonObject body, String token);
 
     /**
@@ -60,7 +60,7 @@ public interface DspNegotiationApi {
      * @param body dspace:ContractNegotiationEventMessage sent by consumer or provider.
      * @param token identity token.
      */
-    @Operation(description = "Accepts current offer or finalizes an agreement within a contract negotiation", operationId = "dspEventNegotiation")
+    @Operation(description = "Accepts the current offer or finalizes an agreement within a contract negotiation", operationId = "dspEventNegotiation")
     void createEvent(String id, JsonObject body, String token);
 
     /**
@@ -70,7 +70,7 @@ public interface DspNegotiationApi {
      * @param body dspace:ContractAgreementVerificationMessage sent by a consumer.
      * @param token identity token.
      */
-    @Operation(description = "Verifies current agreement of contract negotiation", operationId = "dspVerifyAgreementNegotiation")
+    @Operation(description = "Verifies the current agreement of a contract negotiation", operationId = "dspVerifyAgreementNegotiation")
     void verifyAgreement(String id, JsonObject body, String token);
 
     /**
@@ -80,7 +80,7 @@ public interface DspNegotiationApi {
      * @param body dspace:ContractNegotiationTerminationMessage sent by consumer or provider.
      * @param token identity token.
      */
-    @Operation(description = "Terminates contract negotiation", operationId = "dspTerminateNegotiation")
+    @Operation(description = "Terminates a contract negotiation", operationId = "dspTerminateNegotiation")
     void terminateNegotiation(String id, JsonObject body, String token);
 
     /**
@@ -90,7 +90,7 @@ public interface DspNegotiationApi {
      * @param body dspace:ContractOfferMessage sent by a provider.
      * @param token identity token.
      */
-    @Operation(description = "Adds contract offer to contract negotiation", operationId = "dspProviderOfferNegotiation")
+    @Operation(description = "Adds a contract offer to a contract negotiation", operationId = "dspProviderOfferNegotiation")
     void providerOffer(String id, JsonObject body, String token);
 
     /**

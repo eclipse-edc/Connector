@@ -48,12 +48,14 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.Map;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
@@ -104,7 +106,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @GET
     @Path("{id}")
     @Override
-    public Map<String, Object> getNegotiation(@PathParam("id") String id, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public Map<String, Object> getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
 
         checkAndReturnAuthToken(token);
@@ -123,7 +125,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
     @Override
-    public Map<String, Object> initiateNegotiation(@RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public Map<String, Object> initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug("DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
 
         var claimToken = checkAndReturnAuthToken(token);
@@ -142,7 +144,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
     @Override
-    public void consumerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractRequestMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public void consumerOffer(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractRequestMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
@@ -159,7 +161,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @POST
     @Path("{id}" + EVENT)
     @Override
-    public void createEvent(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationEventMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public void createEvent(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_EVENT_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
@@ -185,7 +187,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @POST
     @Path("{id}" + AGREEMENT + VERIFICATION)
     @Override
-    public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementVerificationMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
@@ -202,7 +204,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @POST
     @Path("{id}" + TERMINATION)
     @Override
-    public void terminateNegotiation(@PathParam("id") String id, @RequestBody(description = "dspace:ContractNegotiationTerminationMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public void terminateNegotiation(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_TERMINATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
@@ -220,7 +222,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @Path("{id}" + CONTRACT_OFFER)
 
     @Override
-    public void providerOffer(@PathParam("id") String id, @RequestBody(description = "dspace:ContractOfferMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public void providerOffer(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractOfferMessage for process %s", id));
 
         checkAndReturnAuthToken(token);
@@ -231,7 +233,7 @@ public class DspNegotiationController implements DspNegotiationApi {
     @POST
     @Path("{id}" + AGREEMENT)
     @Override
-    public void createAgreement(@PathParam("id") String id, @RequestBody(description = "dspace:ContractAgreementMessage", required = true) JsonObject body, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+    public void createAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(format("DSP: Incoming ContractAgreementMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
