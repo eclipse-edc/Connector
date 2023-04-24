@@ -16,12 +16,12 @@ package org.eclipse.edc.connector.dataplane.util.sink;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
 /**
  * A sink factory whose sole purpose is to validate {@link DataFlowRequest} whose destination address type is OutputStream.
@@ -55,6 +55,6 @@ public class OutputStreamDataSinkFactory implements DataSinkFactory {
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        return source -> CompletableFuture.completedFuture(StatusResult.success());
+        return source -> completedFuture(success());
     }
 }

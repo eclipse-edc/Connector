@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.util.sink;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -30,11 +31,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.error;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.failure;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.response.StatusResult.failure;
-import static org.eclipse.edc.spi.response.StatusResult.success;
 import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
 
 /**
@@ -68,8 +71,12 @@ public class AsyncStreamingDataSink implements DataSink {
     }
 
     @Override
-    public CompletableFuture<StatusResult<Void>> transfer(DataSource source) {
-        var partStream = source.openPartStream();
+    public CompletableFuture<StreamResult<Void>> transfer(DataSource source) {
+        var streamResult = source.openPartStream();
+        if (streamResult.failed()) {
+            return completedFuture(failure(streamResult.getFailure()));
+        }
+        var partStream = streamResult.getContent();
         return partStream
                 .map(part -> supplyAsync(() -> transferPart(part), executorService))
                 .collect(asyncAllOf())
@@ -77,10 +84,10 @@ public class AsyncStreamingDataSink implements DataSink {
     }
 
     @NotNull
-    private StatusResult<Void> processResults(List<? extends StatusResult<?>> results, Stream<DataSource.Part> partStream) {
+    private StreamResult<Void> processResults(List<? extends StatusResult<?>> results, Stream<DataSource.Part> partStream) {
         close(partStream);
         if (results.stream().anyMatch(AbstractResult::failed)) {
-            return failure(ERROR_RETRY, "Error transferring data");
+            return error("Error transferring data");
         }
         return success();
     }
@@ -94,7 +101,7 @@ public class AsyncStreamingDataSink implements DataSink {
                 throw new EdcException(e);
             }
         });
-        return result ? success() : failure(FATAL_ERROR, "Could not resume output stream write");
+        return result ? StatusResult.success() : failure(FATAL_ERROR, "Could not resume output stream write");
     }
 
     private void close(AutoCloseable closeable) {

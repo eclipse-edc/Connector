@@ -17,15 +17,14 @@ package org.eclipse.edc.connector.dataplane.azure.storage.pipeline;
 import com.azure.core.credential.AzureSasCredential;
 import org.eclipse.edc.azure.blob.api.BlobStoreApi;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Writes data into an Azure storage container.
@@ -43,7 +42,7 @@ public class AzureStorageDataSink extends ParallelSink {
      * Writes data into an Azure storage container.
      */
     @Override
-    protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
+    protected StreamResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
             String blobName = part.name();
             try (var input = part.openStream()) {
@@ -61,11 +60,11 @@ public class AzureStorageDataSink extends ParallelSink {
                 return getTransferResult(e, "Error reading blob %s", blobName);
             }
         }
-        return StatusResult.success();
+        return StreamResult.success();
     }
 
     @Override
-    protected StatusResult<Void> complete() {
+    protected StreamResult<Void> complete() {
         try {
             // Write an empty blob to indicate completion
             blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, new AzureSasCredential(sharedAccessSignature))
@@ -77,10 +76,10 @@ public class AzureStorageDataSink extends ParallelSink {
     }
 
     @NotNull
-    private StatusResult<Void> getTransferResult(Exception e, String logMessage, Object... args) {
+    private StreamResult<Void> getTransferResult(Exception e, String logMessage, Object... args) {
         String message = format(logMessage, args);
         monitor.severe(message, e);
-        return StatusResult.failure(ERROR_RETRY, message);
+        return StreamResult.error(message);
     }
 
     private AzureStorageDataSink() {

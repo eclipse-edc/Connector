@@ -19,9 +19,8 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.common.io.ByteStreams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -40,7 +39,7 @@ public class GcsDataSink extends ParallelSink {
      * Writes data into an Google storage.
      */
     @Override
-    protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
+    protected StreamResult<Void> transferParts(List<DataSource.Part> parts) {
 
         for (DataSource.Part part : parts) {
             try (var input = part.openStream()) {
@@ -53,13 +52,13 @@ public class GcsDataSink extends ParallelSink {
             } catch (IOException e) {
                 monitor.severe("Cannot open the input part", e);
                 monitor.severe(e.toString());
-                return StatusResult.failure(ResponseStatus.FATAL_ERROR, "An error");
+                return StreamResult.error("An error");
             } catch (Exception e) {
                 monitor.severe("Error writing data to the bucket", e);
-                return StatusResult.failure(ResponseStatus.FATAL_ERROR, "An error");
+                return StreamResult.error("An error");
             }
         }
-        return StatusResult.success();
+        return StreamResult.success();
     }
 
     public static class Builder extends ParallelSink.Builder<Builder, GcsDataSink> {

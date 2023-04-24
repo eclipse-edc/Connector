@@ -16,8 +16,8 @@ package org.eclipse.edc.connector.dataplane.http;
 
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterAll;
@@ -77,7 +77,7 @@ public class DataPlaneHttpExtensionTest {
         var future = pipeline.transfer(request);
 
         assertThat(future).succeedsWithin(10, SECONDS)
-                .matches(StatusResult::succeeded);
+                .matches(StreamResult::succeeded);
         sourceServer.verify(request().withMethod("GET"));
         destinationServer.verify(request().withMethod("POST"));
     }
@@ -104,7 +104,7 @@ public class DataPlaneHttpExtensionTest {
         var future = pipeline.transfer(request);
 
         assertThat(future).succeedsWithin(10, SECONDS)
-                .matches(StatusResult::succeeded);
+                .matches(StreamResult::succeeded);
         sourceServer.verify(request().withMethod("GET").withHeader("customSourceHeader", "customValue"));
         destinationServer.verify(request().withMethod("POST").withHeader("customSinkHeader", "customValue"));
     }

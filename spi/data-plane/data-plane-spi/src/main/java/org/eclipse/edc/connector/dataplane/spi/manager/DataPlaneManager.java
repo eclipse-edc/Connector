@@ -16,16 +16,37 @@ package org.eclipse.edc.connector.dataplane.spi.manager;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Manages the execution of data plane requests.
+ * Manages the execution of data plane requests. Methods that return {@link StreamResult} from their futures can use that value to respond to different failure conditions.
+ * For example:
+ * <p>
+ * <pre>
+ * dataPlaneManager.transfer(sink, flowRequest).whenComplete((result, throwable) -> {
+ *      if (result != null && result.failed()) {
+ *          switch (result.reason()) {
+ *              case NOT_FOUND:
+ *                  // process
+ *                  break;
+ *              case NOT_AUTHORIZED:
+ *                  // process
+ *                  break;
+ *              case GENERAL_ERROR:
+ *                  // process
+ *                  break;
+ *              }
+ *      } else if (throwable != null) {
+ *          reportError(response, throwable);
+ *      }
+ * });
+ * </pre>
  */
 @ExtensionPoint
 public interface DataPlaneManager {
@@ -43,15 +64,15 @@ public interface DataPlaneManager {
     /**
      * Performs a data transfer using the supplied data source.
      */
-    CompletableFuture<StatusResult<Void>> transfer(DataSource source, DataFlowRequest request);
+    CompletableFuture<StreamResult<Void>> transfer(DataSource source, DataFlowRequest request);
 
     /**
      * Performs a data transfer using the supplied data sink.
      */
-    CompletableFuture<StatusResult<Void>> transfer(DataSink sink, DataFlowRequest request);
+    CompletableFuture<StreamResult<Void>> transfer(DataSink sink, DataFlowRequest request);
 
     /**
-     * Provides transfer state.
+     * Returns the transfer state for the process.
      */
     State transferState(String processId);
 }

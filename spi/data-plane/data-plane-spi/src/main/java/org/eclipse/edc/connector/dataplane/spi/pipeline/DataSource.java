@@ -26,7 +26,7 @@ public interface DataSource {
     /**
      * Opens a stream to the source parts.
      */
-    Stream<Part> openPartStream();
+    StreamResult<Stream<Part>> openPartStream();
 
     /**
      * A data source part. This is typically an underlying file or container that the data contains.

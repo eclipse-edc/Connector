@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.azure.datafactory;
 
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
-import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class AzureDataFactoryTransferServiceTest {
     private final Result<Boolean> failure = Result.failure("Test Failure");
     private final Result<Boolean> success = Result.success(true);
     @SuppressWarnings("unchecked")
-    private final CompletableFuture<StatusResult<Void>> result = mock(CompletableFuture.class);
+    private final CompletableFuture<StreamResult<Void>> result = mock(CompletableFuture.class);
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })

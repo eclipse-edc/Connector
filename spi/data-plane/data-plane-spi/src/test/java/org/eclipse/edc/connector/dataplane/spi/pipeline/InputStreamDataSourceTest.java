@@ -29,6 +29,6 @@ class InputStreamDataSourceTest {
         var data = "bar".getBytes();
         var source = new InputStreamDataSource("foo", new ByteArrayInputStream(data));
 
-        assertThat(source.openPartStream().findFirst().get().openStream().readAllBytes()).isEqualTo(data);
+        assertThat(source.openPartStream().getContent().findFirst().get().openStream().readAllBytes()).isEqualTo(data);
     }
 }

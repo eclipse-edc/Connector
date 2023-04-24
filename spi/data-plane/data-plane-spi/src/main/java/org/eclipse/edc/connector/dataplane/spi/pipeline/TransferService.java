@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -31,12 +30,12 @@ public interface TransferService {
     boolean canHandle(DataFlowRequest request);
 
     /**
-     * Returns true if the request is valid.
+     * Returns a true result if the request is valid.
      */
     Result<Boolean> validate(DataFlowRequest request);
 
     /**
      * Transfers data from source to destination.
      */
-    CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request);
+    CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request);
 }

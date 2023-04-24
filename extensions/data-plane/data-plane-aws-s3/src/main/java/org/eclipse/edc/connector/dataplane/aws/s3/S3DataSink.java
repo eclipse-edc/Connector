@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.dataplane.aws.s3;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.util.sink.ParallelSink;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 class S3DataSink extends ParallelSink {
 
@@ -44,7 +43,7 @@ class S3DataSink extends ParallelSink {
     private S3DataSink() {}
 
     @Override
-    protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
+    protected StreamResult<Void> transferParts(List<DataSource.Part> parts) {
         for (var part : parts) {
             try (var input = part.openStream()) {
 
@@ -87,11 +86,11 @@ class S3DataSink extends ParallelSink {
             }
         }
 
-        return StatusResult.success();
+        return StreamResult.success();
     }
 
     @Override
-    protected StatusResult<Void> complete() {
+    protected StreamResult<Void> complete() {
         var completeKeyName = keyName + ".complete";
         var request = PutObjectRequest.builder().bucket(bucketName).key(completeKeyName).build();
         try {
@@ -104,10 +103,10 @@ class S3DataSink extends ParallelSink {
     }
 
     @NotNull
-    private StatusResult<Void> uploadFailure(Exception e, String keyName) {
+    private StreamResult<Void> uploadFailure(Exception e, String keyName) {
         var message = format("Error writing the %s object on the %s bucket: %s", keyName, bucketName, e.getMessage());
         monitor.severe(message, e);
-        return StatusResult.failure(FATAL_ERROR, message);
+        return StreamResult.error(message);
     }
 
     public static class Builder extends ParallelSink.Builder<Builder, S3DataSink> {

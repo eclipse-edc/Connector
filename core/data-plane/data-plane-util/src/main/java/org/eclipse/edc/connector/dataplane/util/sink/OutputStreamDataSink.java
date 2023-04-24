@@ -16,8 +16,8 @@ package org.eclipse.edc.connector.dataplane.util.sink;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
@@ -26,8 +26,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.error;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.failure;
 import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
 
 /**
@@ -47,21 +49,26 @@ public class OutputStreamDataSink implements DataSink {
     }
 
     @Override
-    public CompletableFuture<StatusResult<Void>> transfer(DataSource source) {
-        try (var partStream = source.openPartStream()) {
+    public CompletableFuture<StreamResult<Void>> transfer(DataSource source) {
+        var streamResult = source.openPartStream();
+        if (streamResult.failed()) {
+            return completedFuture(failure(streamResult.getFailure()));
+        }
+
+        try (var partStream = streamResult.getContent()) {
             return partStream
                     .map(part -> supplyAsync(() -> transferData(part), executorService))
                     .collect(asyncAllOf())
                     .thenApply(results -> {
                         if (results.stream().anyMatch(AbstractResult::failed)) {
-                            return StatusResult.failure(ERROR_RETRY, "Error transferring data");
+                            return error("Error transferring data");
                         }
-                        return StatusResult.success();
+                        return StreamResult.success();
                     });
         } catch (Exception e) {
             var errorMessage = format("Error processing data transfer request - Request ID: %s", requestId);
             monitor.severe(errorMessage, e);
-            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, errorMessage));
+            return CompletableFuture.completedFuture(error(errorMessage));
         }
     }
 

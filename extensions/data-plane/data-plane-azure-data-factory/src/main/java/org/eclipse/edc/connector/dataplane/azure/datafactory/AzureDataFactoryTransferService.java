@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.azure.datafactory;
 
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ public class AzureDataFactoryTransferService implements TransferService {
     }
 
     @Override
-    public CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request) {
+    public CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request) {
         return transferManager.transfer(request);
     }
 }

@@ -18,8 +18,8 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ class PipelineServiceImplTest {
         when(sourceFactory.createSource(request)).thenReturn(source);
         when(sinkFactory.canHandle(request)).thenReturn(true);
         when(sinkFactory.createSink(request)).thenReturn(sink);
-        when(sink.transfer(source)).thenReturn(completedFuture(StatusResult.success()));
+        when(sink.transfer(source)).thenReturn(completedFuture(StreamResult.success()));
 
         service.transfer(request);
 

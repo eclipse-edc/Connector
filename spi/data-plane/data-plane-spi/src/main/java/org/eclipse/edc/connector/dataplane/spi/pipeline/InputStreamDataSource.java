@@ -17,6 +17,8 @@ package org.eclipse.edc.connector.dataplane.spi.pipeline;
 import java.io.InputStream;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
+
 /**
  * A {@link DataSource} backed by an input stream.
  */
@@ -30,8 +32,8 @@ public class InputStreamDataSource implements DataSource, DataSource.Part {
     }
 
     @Override
-    public Stream<Part> openPartStream() {
-        return Stream.of(this);
+    public StreamResult<Stream<Part>> openPartStream() {
+        return success(Stream.of(this));
     }
 
     @Override

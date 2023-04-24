@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.util.sink;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink.AsyncResponseContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +34,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
@@ -52,7 +54,7 @@ class AsyncStreamingDataSinkTest {
         when(part.openStream()).thenReturn(new ByteArrayInputStream(TEST_CONTENT));
 
         var dataSource = mock(DataSource.class);
-        when(dataSource.openPartStream()).thenReturn(Stream.of(part));
+        when(dataSource.openPartStream()).thenReturn(success(Stream.of(part)));
 
         var dataSink = new AsyncStreamingDataSink(asyncContext, executorService, monitor);
 
@@ -81,7 +83,7 @@ class AsyncStreamingDataSinkTest {
         when(part.openStream()).thenReturn(new ByteArrayInputStream(TEST_CONTENT));
 
         var dataSource = mock(DataSource.class);
-        when(dataSource.openPartStream()).thenReturn(Stream.of(part));
+        when(dataSource.openPartStream()).thenReturn(StreamResult.success(Stream.of(part)));
 
         var dataSink = new AsyncStreamingDataSink(asyncContext, executorService, monitor);
 
