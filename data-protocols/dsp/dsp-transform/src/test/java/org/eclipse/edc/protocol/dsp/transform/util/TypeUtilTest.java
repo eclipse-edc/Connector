@@ -15,12 +15,11 @@
 package org.eclipse.edc.protocol.dsp.transform.util;
 
 import jakarta.json.Json;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TypeUtilTest {
 
@@ -91,7 +90,7 @@ class TypeUtilTest {
 
         var actual = TypeUtil.isOfExpectedType(object, "invalid_type");
 
-        assertFalse(actual);
+        Assertions.assertFalse(actual);
     }
 
     @Test
@@ -103,6 +102,6 @@ class TypeUtilTest {
 
         var actual = TypeUtil.isOfExpectedType(object, expected);
 
-        assertTrue(actual);
+        Assertions.assertTrue(actual);
     }
 }
