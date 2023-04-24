@@ -16,32 +16,40 @@ package org.eclipse.edc.jsonld.spi;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 
 /**
  * Collection of DCAT, DCT and ODRL type and attribute names.
  */
 public interface PropertyAndTypeNames {
-    
+
     String DCAT_CATALOG_TYPE = DCAT_SCHEMA + "Catalog";
     String DCAT_DATASET_TYPE = DCAT_SCHEMA + "Dataset";
     String DCAT_DISTRIBUTION_TYPE = DCAT_SCHEMA + "Distribution";
     String DCAT_DATA_SERVICE_TYPE = DCAT_SCHEMA + "DataService";
-    
+
+    String EDC_ASSET_TYPE = EDC_SCHEMA + "Asset";
+    String EDC_ASSET_PROPERTIES = EDC_SCHEMA + "properties";
+    String EDC_ASSET_NAME = EDC_SCHEMA + "name";
+    String EDC_ASSET_DESCRIPTION = EDC_SCHEMA + "description";
+    String EDC_ASSET_VERSION = EDC_SCHEMA + "version";
+    String EDC_ASSET_CONTENTTYPE = EDC_SCHEMA + "contenttype";
+
     String DCAT_DATA_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "service";
     String DCAT_DATASET_ATTRIBUTE = DCAT_SCHEMA + "dataset";
     String DCAT_DISTRIBUTION_ATTRIBUTE = DCAT_SCHEMA + "distribution";
     String DCAT_ACCESS_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "accessService";
     String ODRL_POLICY_ATTRIBUTE = ODRL_SCHEMA + "hasPolicy";
-    
+
     String DCT_FORMAT_ATTRIBUTE = DCT_SCHEMA + "format";
     String DCT_TERMS_ATTRIBUTE = DCT_SCHEMA + "terms";
     String DCT_ENDPOINT_URL_ATTRIBUTE = DCT_SCHEMA + "endpointUrl";
-    
+
     String ODRL_POLICY_TYPE_SET = ODRL_SCHEMA + "Set";
     String ODRL_POLICY_TYPE_OFFER = ODRL_SCHEMA + "Offer";
     String ODRL_POLICY_TYPE_AGREEMENT = ODRL_SCHEMA + "Agreement";
-    
+
     String ODRL_PERMISSION_ATTRIBUTE = ODRL_SCHEMA + "permission";
     String ODRL_PROHIBITION_ATTRIBUTE = ODRL_SCHEMA + "prohibition";
     String ODRL_OBLIGATION_ATTRIBUTE = ODRL_SCHEMA + "obligation";
@@ -55,5 +63,5 @@ public interface PropertyAndTypeNames {
     String ODRL_OPERATOR_ATTRIBUTE = ODRL_SCHEMA + "operator";
     String ODRL_RIGHT_OPERAND_ATTRIBUTE = ODRL_SCHEMA + "rightOperand";
     String ODRL_DUTY_ATTRIBUTE = ODRL_SCHEMA + "duty";
-    
+
 }

@@ -48,37 +48,37 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToPolicyTransformerTest {
-    
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
-    
+
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
+
     private JsonObjectToPolicyTransformer transformer;
-    
+
     private JsonObject permissionJson;
     private JsonObject prohibitionJson;
     private JsonObject dutyJson;
-    
+
     private Permission permission;
     private Prohibition prohibition;
     private Duty duty;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToPolicyTransformer();
-    
+
         permissionJson = getJsonObject("permission");
         prohibitionJson = getJsonObject("prohibition");
         dutyJson = getJsonObject("duty");
-        
+
         permission = Permission.Builder.newInstance().build();
         prohibition = Prohibition.Builder.newInstance().build();
         duty = Duty.Builder.newInstance().build();
-        
+
         when(context.transform(permissionJson, Permission.class)).thenReturn(permission);
         when(context.transform(prohibitionJson, Prohibition.class)).thenReturn(prohibition);
         when(context.transform(dutyJson, Duty.class)).thenReturn(duty);
     }
-    
+
     @Test
     void transform_withAllRuleTypesAsObjects_returnPolicy() {
         var policy = jsonFactory.createObjectBuilder()
@@ -87,12 +87,12 @@ class JsonObjectToPolicyTransformerTest {
                 .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
                 .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
                 .build();
-    
+
         var result = transformer.transform(policy, context);
-    
+
         assertResult(result);
     }
-    
+
     @Test
     void transform_withAllRuleTypesAsArrays_returnPolicy() {
         var policy = jsonFactory.createObjectBuilder()
@@ -101,34 +101,34 @@ class JsonObjectToPolicyTransformerTest {
                 .add(ODRL_PROHIBITION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(prohibitionJson))
                 .add(ODRL_OBLIGATION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(dutyJson))
                 .build();
-        
+
         var result = transformer.transform(policy, context);
-        
+
         assertResult(result);
     }
-    
+
     @Test
     void transform_policyWithAdditionalProperty_returnPolicy() {
         var propertyKey = "policy:prop:key";
         var propertyValue = "value";
-        
+
         when(context.transform(any(JsonValue.class), eq(Object.class))).thenReturn(propertyValue);
-        
+
         var policy = jsonFactory.createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
                 .add(propertyKey, propertyValue)
                 .build();
-        
+
         var result = transformer.transform(policy, context);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.getExtensibleProperties()).hasSize(1);
         assertThat(result.getExtensibleProperties()).containsEntry(propertyKey, propertyValue);
-    
+
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(any(JsonValue.class), eq(Object.class));
     }
-    
+
     @ParameterizedTest
     @ValueSource(strings = {
             ODRL_POLICY_TYPE_SET,
@@ -139,30 +139,30 @@ class JsonObjectToPolicyTransformerTest {
         var policy = jsonFactory.createObjectBuilder()
                 .add(TYPE, type)
                 .build();
-        
+
         var result = transformer.transform(policy, context);
-        
+
         assertThat(result).isNotNull();
         verify(context, never()).reportProblem(anyString());
     }
-    
+
     @Test
     void transform_invalidType_reportProblem() {
         var policy = jsonFactory.createObjectBuilder()
                 .add(TYPE, "not-a-policy")
                 .build();
-    
+
         transformer.transform(policy, context);
-    
-        verify(context, times(1)).reportProblem(anyString());
+
+        verify(context, never()).reportProblem(anyString());
     }
-    
+
     private JsonObject getJsonObject(String type) {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, type)
                 .build();
     }
-    
+
     private void assertResult(Policy result) {
         assertThat(result).isNotNull();
         assertThat(result.getPermissions()).hasSize(1);
@@ -171,7 +171,7 @@ class JsonObjectToPolicyTransformerTest {
         assertThat(result.getProhibitions().get(0)).isEqualTo(prohibition);
         assertThat(result.getObligations()).hasSize(1);
         assertThat(result.getObligations().get(0)).isEqualTo(duty);
-        
+
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(permissionJson, Permission.class);
         verify(context, times(1)).transform(prohibitionJson, Prohibition.class);

@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
 /**
@@ -44,12 +45,25 @@ public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer
     public Object transform(@NotNull JsonValue value, @NotNull TransformerContext context) {
         if (value instanceof JsonObject) {
             var object = (JsonObject) value;
-            var valueField = object.get(VALUE);
-            if (valueField == null) {
-                // parse it as a generic object type
+            if (object.containsKey(VALUE)) {
+                var valueField = object.get(VALUE);
+                if (valueField == null) {
+                    // parse it as a generic object type
+                    return toJavaType(object, context);
+                }
+                return transform(valueField, context);
+            } else if (object.containsKey(TYPE)) {
+                var typeValue = object.get(TYPE).asJsonArray().get(0).toString().replace("\"", "");
+
+                var typeAlias = context.typeAlias(typeValue);
+                if (typeAlias != null) {
+                    // delegate back to the context, using the type alias
+                    return context.transform(object, typeAlias);
+                }
+                context.reportProblem(format("There is no type alias registered for %s = %s", TYPE, typeValue));
+            } else {
                 return toJavaType(object, context);
             }
-            return transform(valueField, context);
         } else if (value instanceof JsonArray) {
             var jsonArray = (JsonArray) value;
             return jsonArray.stream().map(entry -> transform(entry, context)).collect(toList());

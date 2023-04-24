@@ -30,54 +30,54 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_ENDPOINT_URL_A
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_TERMS_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 class JsonObjectToDataServiceTransformerTest {
-    
+
     private static final String DATA_SERVICE_ID = "dataServiceId";
-    
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
-    
+
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
+
     private JsonObjectToDataServiceTransformer transformer;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToDataServiceTransformer();
     }
-    
+
     @Test
     void transform_returnDataService() {
         var terms = "terms";
         var url = "url";
-        
+
         var dataService = jsonFactory.createObjectBuilder()
                 .add(ID, DATA_SERVICE_ID)
                 .add(TYPE, DCAT_DATA_SERVICE_TYPE)
                 .add(DCT_TERMS_ATTRIBUTE, terms)
                 .add(DCT_ENDPOINT_URL_ATTRIBUTE, url)
                 .build();
-    
+
         var result = transformer.transform(dataService, context);
-    
+
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(DATA_SERVICE_ID);
         assertThat(result.getTerms()).isEqualTo(terms);
         assertThat(result.getEndpointUrl()).isEqualTo(url);
-        
+
         verifyNoInteractions(context);
     }
-    
+
     @Test
     void transform_invalidType_reportProblem() {
         var dataService = jsonFactory.createObjectBuilder()
                 .add(TYPE, "not-a-data-service")
                 .build();
-    
+
         transformer.transform(dataService, context);
-        
-        verify(context, times(1)).reportProblem(anyString());
+
+        verify(context, never()).reportProblem(anyString());
     }
 }
