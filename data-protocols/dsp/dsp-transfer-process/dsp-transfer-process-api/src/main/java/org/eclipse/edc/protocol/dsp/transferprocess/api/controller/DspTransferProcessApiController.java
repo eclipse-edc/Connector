@@ -201,7 +201,9 @@ public class DspTransferProcessApiController {
         var claimToken = checkAuthToken(token);
         
         var expanded = expand(request).getJsonObject(0);
-        validateType(expanded, expectedType);
+        if (!isOfExpectedType(expanded, expectedType)) {
+            throw new InvalidRequestException(format("Request body was not of expected type: %s", expectedType));
+        }
         var message = registry.transform(expanded, messageClass)
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
 
@@ -222,12 +224,6 @@ public class DspTransferProcessApiController {
         }
         
         return result.getContent();
-    }
-    
-    private void validateType(JsonObject object, String expected) {
-        if (!isOfExpectedType(object, expected)) {
-            throw new InvalidRequestException(format("Request body was not of expected type: %s", expected));
-        }
     }
     
     private void validateProcessId(String actual, String expected) {
