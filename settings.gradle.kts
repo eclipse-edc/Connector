@@ -40,14 +40,14 @@ dependencyResolutionManagement {
 }
 
 // EDC core modules --------------------------------------------------------------------------------
-include(":core:common:connector-core")
 include(":core:common:boot")
+include(":core:common:connector-core")
+include(":core:common:junit")
 include(":core:common:jwt-core")
 include(":core:common:policy-engine")
 include(":core:common:policy-evaluator")
 include(":core:common:state-machine")
 include(":core:common:util")
-include(":core:common:junit")
 
 include(":core:control-plane:catalog-core")
 include(":core:control-plane:contract-core")
@@ -190,16 +190,17 @@ include(":launchers:dpf-selector")
 include(":launchers:ids-connector")
 
 // extension points for a connector ----------------------------------------------------------------
+include(":spi:common:aggregate-service-spi")
 include(":spi:common:auth-spi")
 include(":spi:common:catalog-spi")
 include(":spi:common:core-spi")
-include(":spi:common:identity-did-spi")
 include(":spi:common:http-spi")
+include(":spi:common:identity-did-spi")
+include(":spi:common:json-ld-spi")
 include(":spi:common:jwt-spi")
 include(":spi:common:oauth2-spi")
 include(":spi:common:policy-engine-spi")
 include(":spi:common:policy-model")
-include(":spi:common:aggregate-service-spi")
 include(":spi:common:transaction-datasource-spi")
 include(":spi:common:transaction-spi")
 include(":spi:common:transform-spi")

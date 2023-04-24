@@ -14,8 +14,9 @@
 
 package org.eclipse.edc.jsonld;
 
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistryImpl;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -27,7 +28,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 /**
  * Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
  * types through the TypeManager context {@link #TYPE_MANAGER_CONTEXT_JSON_LD} and a registry
- * for {@link org.eclipse.edc.jsonld.transformer.JsonLdTransformer}s. The module also offers
+ * for {@link JsonLdTransformer}s. The module also offers
  * functions for working with JSON-LD structures.
  */
 @Extension(value = JsonLdExtension.NAME)

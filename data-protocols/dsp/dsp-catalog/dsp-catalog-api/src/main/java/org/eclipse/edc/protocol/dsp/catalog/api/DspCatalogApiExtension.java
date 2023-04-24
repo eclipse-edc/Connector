@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.api;
 
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.CatalogController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
