@@ -38,6 +38,8 @@ import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_
 
 public class TransferCompletionDelegate implements DspHttpDispatcherDelegate<TransferCompletionMessage, JsonObject> {
 
+    private static final String APPLICATION_JSON = "application/json";
+
     private final ObjectMapper mapper;
 
     private final JsonLdTransformerRegistry registry;
@@ -61,10 +63,11 @@ public class TransferCompletionDelegate implements DspHttpDispatcherDelegate<Tra
         }
         
         var requestBody = RequestBody.create(toCompactedJson(completion.getContent(), jsonLdContext(), mapper),
-                MediaType.get(jakarta.ws.rs.core.MediaType.APPLICATION_JSON));
+                MediaType.get(APPLICATION_JSON));
 
         return new Request.Builder()
                 .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION)
+                .header("Content-Type", APPLICATION_JSON)
                 .post(requestBody)
                 .build();
     }

@@ -30,7 +30,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 
 
 /**
- * Provides the delegates for TransferProcessDispatcher  via the {@link DspHttpRemoteMessageDispatcher}.
+ *
+ * Provides HTTP dispatching for Dataspace Protocol transfer process messages  via the {@link DspHttpRemoteMessageDispatcher}.
  */
 @Extension(value = DspTransferProcessDispatcherExtension.NAME)
 public class DspTransferProcessDispatcherExtension implements ServiceExtension {
