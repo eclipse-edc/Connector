@@ -50,7 +50,7 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS), builder::callbackAddress, context);
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_DATASET), builder::dataSet, context);
 
-        var policy = transformPolicy(object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER), context);
+        var policy = context.transform(object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER), Policy.class);
         if (policy == null) {
             context.reportProblem("Cannot transform to ContractRequestMessage with null policy");
             return null;
@@ -59,10 +59,6 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
         builder.contractOffer(contractOffer(object, policy));
 
         return builder.build();
-    }
-
-    private @Nullable Policy transformPolicy(JsonObject policy, TransformerContext context) {
-        return context.transform(policy, Policy.class);
     }
 
     private ContractOffer contractOffer(JsonObject offer, Policy policy) {

@@ -49,7 +49,7 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
             if (result == null) {
                 context.reportProblem(format("Cannot transform property %s", DSPACE_NEGOTIATION_PROPERTY_REASON));
             } else {
-                builder.rejectionReason(String.valueOf(result.get(0)));
+                if (result.size() > 0) builder.rejectionReason(String.valueOf(result.get(0)));
             }
         }
 

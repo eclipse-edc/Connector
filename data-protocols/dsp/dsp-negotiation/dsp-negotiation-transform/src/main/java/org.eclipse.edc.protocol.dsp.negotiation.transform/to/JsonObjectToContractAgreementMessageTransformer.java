@@ -43,7 +43,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         builder.protocol(DATASPACE_PROTOCOL_HTTP);
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
 
-        var policy = transformPolicy(object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT), context);
+        var policy = context.transform(object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT), Policy.class);
         if (policy == null) {
             context.reportProblem("Cannot transform to ContractAgreementMessage with null policy");
             return null;
@@ -58,10 +58,6 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         builder.contractAgreement(agreement);
 
         return builder.build();
-    }
-
-    private @Nullable Policy transformPolicy(JsonObject policy, TransformerContext context) {
-        return context.transform(policy, Policy.class);
     }
 
     private ContractAgreement contractAgreement(JsonObject object, Policy policy, TransformerContext context) {

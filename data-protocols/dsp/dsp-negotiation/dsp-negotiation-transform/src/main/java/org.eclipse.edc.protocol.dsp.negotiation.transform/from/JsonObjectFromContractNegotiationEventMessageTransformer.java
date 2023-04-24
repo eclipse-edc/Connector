@@ -71,7 +71,8 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
             case FINALIZED:
                 return DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
             default:
-                context.reportProblem(String.format("Could not map eventType %s", message.getType()));
+                context.reportProblem(String.format("Could not map eventType %s to %s or %s in ContractNegotiationEventMessage", message.getType(),
+                        DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED, DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED));
                 return null;
         }
     }

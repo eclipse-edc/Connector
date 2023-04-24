@@ -47,7 +47,7 @@ public class JsonObjectFromContractAgreementVerificationMessageTransformer exten
         builder.add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE);
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getProcessId());
-        // TODO add mapping of cred:credentialSubject and sec:proof for signature processes
+        // TODO add mapping of cred:credentialSubject for signature processes
 
         return builder.build();
     }

@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.jsonld.JsonLdKeywords;
 import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
@@ -50,7 +49,7 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getProcessId());
 
-        var policy = transformPolicy(object.getContractAgreement(), context);
+        var policy = context.transform(object.getContractAgreement().getPolicy(), JsonObject.class);
         if (policy == null) {
             context.reportProblem("Cannot transform from ContractAgreementMessage with null policy");
             return null;
@@ -59,10 +58,6 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
         builder.add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, policy);
 
         return builder.build();
-    }
-
-    private @Nullable JsonObject transformPolicy(ContractAgreement agreement, TransformerContext context) {
-        return context.transform(agreement.getPolicy(), JsonObject.class);
     }
 
 }
