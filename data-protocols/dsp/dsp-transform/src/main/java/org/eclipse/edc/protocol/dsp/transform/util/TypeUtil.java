@@ -20,13 +20,13 @@ import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.jsonld.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 /**
  * Provides methods for processing JSON objects.
  */
 public class TypeUtil {
-    
+
     /**
      * Returns the {@code @type} of a JSON object. If more than one type is specified, this method
      * will return the first.
@@ -40,7 +40,7 @@ public class TypeUtil {
         if (typeNode == null) {
             return null;
         }
-        
+
         if (typeNode instanceof JsonString) {
             return ((JsonString) typeNode).getString();
         } else if (typeNode instanceof JsonArray) {
@@ -48,18 +48,18 @@ public class TypeUtil {
             if (array == null) {
                 return null;
             }
-            
+
             var typeValue = array.get(0); // a note can have more than one type, take the first
             if (!(typeValue instanceof JsonString)) {
                 return null;
             }
-            
+
             return ((JsonString) typeValue).getString();
         }
-        
+
         return null;
     }
-    
+
     /**
      * Returns a json value as {@link JsonArray}.
      *
@@ -71,15 +71,15 @@ public class TypeUtil {
         if (!(typeNode instanceof JsonArray)) {
             return null;
         }
-        
+
         var array = (JsonArray) typeNode;
         if (array.isEmpty()) {
             return null;
         }
-        
+
         return array;
     }
-    
+
     /**
      * Checks if a JSON object is of expected type.
      *
@@ -89,7 +89,7 @@ public class TypeUtil {
      */
     public static boolean isOfExpectedType(JsonObject object, String expected) {
         var actual = nodeType(object);
-        
+
         return actual != null && actual.equals(expected);
     }
 }

@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
-import org.eclipse.edc.jsonld.JsonLdKeywords;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;

@@ -33,7 +33,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessa
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -48,6 +48,8 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
@@ -62,8 +64,6 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransf
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -75,14 +75,14 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
 public class DspTransferProcessApiController {
-    
+
     private Monitor monitor;
     private JsonLdTransformerRegistry registry;
     private TransferProcessProtocolService protocolService;
     private ObjectMapper mapper;
     private IdentityService identityService;
     private String dspCallbackAddress;
-    
+
     public DspTransferProcessApiController(Monitor monitor, ObjectMapper mapper, JsonLdTransformerRegistry registry,
                                            TransferProcessProtocolService protocolService, IdentityService identityService, String dspCallbackAddress) {
         this.monitor = monitor;
@@ -92,7 +92,7 @@ public class DspTransferProcessApiController {
         this.identityService = identityService;
         this.dspCallbackAddress = dspCallbackAddress;
     }
-    
+
     /**
      * Retrieves an existing transfer process. This functionality is not yet supported.
      *
@@ -103,10 +103,10 @@ public class DspTransferProcessApiController {
     @Path("/{id}")
     public JsonObject getTransferProcess(@PathParam("id") String id) {
         monitor.debug(format("DSP: Incoming request for transfer process with id %s", id));
-        
+
         throw new UnsupportedOperationException("Getting a transfer process not yet supported.");
     }
-    
+
     /**
      * Initiates a new transfer process that has been requested by the counter-party.
      *
@@ -118,13 +118,13 @@ public class DspTransferProcessApiController {
     @Path(TRANSFER_INITIAL_REQUEST)
     public Map<String, Object> initiateTransferProcess(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         var transferProcess = handleMessage(jsonObject, Optional.empty(), token, DSPACE_TRANSFERPROCESS_REQUEST_TYPE, TransferRequestMessage.class, protocolService::notifyRequested);
-        
+
         var transferProcessJson = registry.transform(transferProcess, JsonObject.class)
                 .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
-        
+
         return mapper.convertValue(compact(transferProcessJson, jsonLdContext()), Map.class);
     }
-    
+
     /**
      * Notifies the connector that a transfer process has been started by the counter-part.
      *
@@ -137,7 +137,7 @@ public class DspTransferProcessApiController {
     public void transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         handleMessage(jsonObject, Optional.of(id), token, DSPACE_TRANSFER_START_TYPE, TransferStartMessage.class, protocolService::notifyStarted);
     }
-    
+
     /**
      * Notifies the connector that a transfer process has been completed by the counter-part.
      *
@@ -150,7 +150,7 @@ public class DspTransferProcessApiController {
     public void transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         handleMessage(jsonObject, Optional.of(id), token, DSPACE_TRANSFER_COMPLETION_TYPE, TransferCompletionMessage.class, protocolService::notifyCompleted);
     }
-    
+
     /**
      * Notifies the connector that a transfer process has been terminated by the counter-part.
      *
@@ -163,7 +163,7 @@ public class DspTransferProcessApiController {
     public void transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
         handleMessage(jsonObject, Optional.of(id), token, DSPACE_TRANSFER_TERMINATION_TYPE, TransferTerminationMessage.class, protocolService::notifyTerminated);
     }
-    
+
     /**
      * Notifies the connector that a transfer process has been suspended by the counter-part.
      * This functionality is not yet supported.
@@ -174,10 +174,10 @@ public class DspTransferProcessApiController {
     @Path("{id}" + TRANSFER_SUSPENSION)
     public void transferProcessSuspension(@PathParam("id") String id) {
         monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
-        
+
         throw new UnsupportedOperationException("Suspension not yet supported.");
     }
-    
+
     /**
      * Handles an incoming message. Validates the identity token. Then verifies that the JSON-LD
      * message has the expected type, before transforming it to a respective message class instance.
@@ -197,9 +197,9 @@ public class DspTransferProcessApiController {
                                                                  Class<M> messageClass, BiFunction<M, ClaimToken, ServiceResult<TransferProcess>> serviceCall) {
         processId.ifPresentOrElse(id ->  monitor.debug(format("DSP: Incoming %s for transfer process %s", messageClass.getSimpleName(), id)),
                 () -> monitor.debug(format("DSP: Incoming %s for initiating a transfer process", messageClass.getSimpleName())));
-        
+
         var claimToken = checkAuthToken(token);
-        
+
         var expanded = expand(request).getJsonObject(0);
         if (!isOfExpectedType(expanded, expectedType)) {
             throw new InvalidRequestException(format("Request body was not of expected type: %s", expectedType));
@@ -208,30 +208,30 @@ public class DspTransferProcessApiController {
                 .orElseThrow(failure -> new InvalidRequestException(format("Failed to read request body: %s", failure.getFailureDetail())));
 
         processId.ifPresent(id -> validateProcessId(message.getProcessId(), id));
-        
+
         return serviceCall.apply(message, claimToken)
                 .orElseThrow(exceptionMapper(TransferProcess.class));
     }
-    
+
     private ClaimToken checkAuthToken(String token) {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
-        
+
         var result = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress);
         if (result.failed()) {
             throw new AuthenticationFailedException();
         }
-        
+
         return result.getContent();
     }
-    
+
     private void validateProcessId(String actual, String expected) {
         if (!expected.equals(actual)) {
             throw new InvalidRequestException(format("Invalid process ID. Expected: %s, actual: %s", expected, actual));
         }
     }
-    
+
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
                 .add(DCT_PREFIX, DCT_SCHEMA)
