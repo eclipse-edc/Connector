@@ -46,9 +46,11 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
@@ -203,7 +205,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * @param path the request path to the endpoint
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArguments")
+    @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.failure("error"));
 
@@ -221,7 +223,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * @param path the request path to the endpoint
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArguments")
+    @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnBadRequest_whenRequestTransformationFails(String path) {
         var token = token();
 
@@ -247,7 +249,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArgumentsForServiceCall")
+    @ArgumentsSource(ControllerMethodArgumentsForServiceCall.class)
     void callEndpoint_shouldCallService_whenValidRequest(String path, ContractRemoteMessage message, JsonObject request, Method serviceMethod) throws Exception {
         var token = token();
 
@@ -282,7 +284,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArgumentsForServiceError")
+    @ArgumentsSource(ControllerMethodArgumentsForServiceError.class)
     void callEndpoint_shouldReturnConflict_whenServiceResultConflict(String path, ContractRemoteMessage message, JsonObject request, Method serviceMethod) throws Exception {
         var token = token();
 
@@ -316,7 +318,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * @param request the request body for a defined endpoint
      */
     @ParameterizedTest
-    @MethodSource("controllerMethodArgumentsForValidationError")
+    @ArgumentsSource(ControllerMethodArgumentsForIdValidationFails.class)
     void callEndpoint_shouldReturnBadRequest_whenValidationFails(String path, ContractRemoteMessage message, JsonObject request) throws Exception {
         var token = token();
 
@@ -329,82 +331,6 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
                 .post(path)
                 .then()
                 .statusCode(400);
-    }
-
-    private static Stream<Arguments> controllerMethodArguments() {
-        return Stream.of(
-                Arguments.of(BASE_PATH + INITIAL_CONTRACT_REQUEST),
-                Arguments.of(BASE_PATH + "testId" + CONTRACT_REQUEST),
-                Arguments.of(BASE_PATH + "testId" + EVENT),
-                Arguments.of(BASE_PATH + "testId" + AGREEMENT + VERIFICATION),
-                Arguments.of(BASE_PATH + "testId" + TERMINATION),
-                Arguments.of(BASE_PATH + "testId" + AGREEMENT)
-        );
-    }
-
-    private static Stream<Arguments> controllerMethodArgumentsForServiceCall() throws Exception {
-        var contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
-        var negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
-        var agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
-        var negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
-        var contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
-
-        return Stream.of(
-                Arguments.of(BASE_PATH + "testId" + CONTRACT_REQUEST, contractRequestMessage(), contractRequest,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyRequested", ContractRequestMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_accepted(), negotiationEvent,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAccepted", ContractNegotiationEventMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_finalized(), negotiationEvent,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyFinalized", ContractNegotiationEventMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + AGREEMENT + VERIFICATION, contractAgreementVerificationMessage(), agreementVerification,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyVerified", ContractAgreementVerificationMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + TERMINATION, contractNegotiationTerminationMessage(), negotiationTermination,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyTerminated", ContractNegotiationTerminationMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + AGREEMENT, contractAgreementMessage(), contractAgreement,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAgreed", ContractAgreementMessage.class, ClaimToken.class))
-        );
-    }
-
-    private static Stream<Arguments> controllerMethodArgumentsForServiceError() throws Exception {
-        var contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
-        var negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
-        var agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
-        var negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
-        var contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
-
-        return Stream.of(
-                Arguments.of(BASE_PATH + INITIAL_CONTRACT_REQUEST, contractRequestMessage(), contractRequest,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyRequested", ContractRequestMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + CONTRACT_REQUEST, contractRequestMessage(), contractRequest,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyRequested", ContractRequestMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_accepted(), negotiationEvent,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAccepted", ContractNegotiationEventMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_finalized(), negotiationEvent,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyFinalized", ContractNegotiationEventMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + AGREEMENT + VERIFICATION, contractAgreementVerificationMessage(), agreementVerification,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyVerified", ContractAgreementVerificationMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + TERMINATION, contractNegotiationTerminationMessage(), negotiationTermination,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyTerminated", ContractNegotiationTerminationMessage.class, ClaimToken.class)),
-                Arguments.of(BASE_PATH + "testId" + AGREEMENT, contractAgreementMessage(), contractAgreement,
-                        ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAgreed", ContractAgreementMessage.class, ClaimToken.class))
-        );
-    }
-
-    private static Stream<Arguments> controllerMethodArgumentsForValidationError() {
-        var contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
-        var negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
-        var agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
-        var negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
-        var contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
-
-        return Stream.of(
-                Arguments.of(BASE_PATH + "invalidId" + CONTRACT_REQUEST, contractRequestMessage(), contractRequest),
-                Arguments.of(BASE_PATH + "invalidId" + EVENT, contractNegotiationEventMessage_accepted(), negotiationEvent),
-                Arguments.of(BASE_PATH + "invalidId" + EVENT, contractNegotiationEventMessage_finalized(), negotiationEvent),
-                Arguments.of(BASE_PATH + "invalidId" + AGREEMENT + VERIFICATION, contractAgreementVerificationMessage(), agreementVerification),
-                Arguments.of(BASE_PATH + "invalidId" + TERMINATION, contractNegotiationTerminationMessage(), negotiationTermination),
-                Arguments.of(BASE_PATH + "invalidId" + AGREEMENT, contractAgreementMessage(), contractAgreement)
-        );
     }
 
     private RequestSpecification baseRequest() {
@@ -515,5 +441,93 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
                 .processId("testId")
                 .rejectionReason("reason")
                 .build();
+    }
+
+    private static class ControllerMethodArguments implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + INITIAL_CONTRACT_REQUEST),
+                    Arguments.of(BASE_PATH + "testId" + CONTRACT_REQUEST),
+                    Arguments.of(BASE_PATH + "testId" + EVENT),
+                    Arguments.of(BASE_PATH + "testId" + AGREEMENT + VERIFICATION),
+                    Arguments.of(BASE_PATH + "testId" + TERMINATION),
+                    Arguments.of(BASE_PATH + "testId" + AGREEMENT)
+            );
+        }
+    }
+
+    private static class ControllerMethodArgumentsForServiceCall implements ArgumentsProvider {
+        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + "testId" + CONTRACT_REQUEST, contractRequestMessage(), contractRequest,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyRequested", ContractRequestMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_accepted(), negotiationEvent,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAccepted", ContractNegotiationEventMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_finalized(), negotiationEvent,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyFinalized", ContractNegotiationEventMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + AGREEMENT + VERIFICATION, contractAgreementVerificationMessage(), agreementVerification,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyVerified", ContractAgreementVerificationMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + TERMINATION, contractNegotiationTerminationMessage(), negotiationTermination,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyTerminated", ContractNegotiationTerminationMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + AGREEMENT, contractAgreementMessage(), contractAgreement,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAgreed", ContractAgreementMessage.class, ClaimToken.class))
+            );
+        }
+    }
+
+    private static class ControllerMethodArgumentsForServiceError implements ArgumentsProvider {
+        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + INITIAL_CONTRACT_REQUEST, contractRequestMessage(), contractRequest,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyRequested", ContractRequestMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + CONTRACT_REQUEST, contractRequestMessage(), contractRequest,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyRequested", ContractRequestMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_accepted(), negotiationEvent,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAccepted", ContractNegotiationEventMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + EVENT, contractNegotiationEventMessage_finalized(), negotiationEvent,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyFinalized", ContractNegotiationEventMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + AGREEMENT + VERIFICATION, contractAgreementVerificationMessage(), agreementVerification,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyVerified", ContractAgreementVerificationMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + TERMINATION, contractNegotiationTerminationMessage(), negotiationTermination,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyTerminated", ContractNegotiationTerminationMessage.class, ClaimToken.class)),
+                    Arguments.of(BASE_PATH + "testId" + AGREEMENT, contractAgreementMessage(), contractAgreement,
+                            ContractNegotiationProtocolService.class.getDeclaredMethod("notifyAgreed", ContractAgreementMessage.class, ClaimToken.class))
+            );
+        }
+    }
+
+    private static class ControllerMethodArgumentsForIdValidationFails implements ArgumentsProvider {
+        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(BASE_PATH + "invalidId" + CONTRACT_REQUEST, contractRequestMessage(), contractRequest),
+                    Arguments.of(BASE_PATH + "invalidId" + EVENT, contractNegotiationEventMessage_accepted(), negotiationEvent),
+                    Arguments.of(BASE_PATH + "invalidId" + EVENT, contractNegotiationEventMessage_finalized(), negotiationEvent),
+                    Arguments.of(BASE_PATH + "invalidId" + AGREEMENT + VERIFICATION, contractAgreementVerificationMessage(), agreementVerification),
+                    Arguments.of(BASE_PATH + "invalidId" + TERMINATION, contractNegotiationTerminationMessage(), negotiationTermination),
+                    Arguments.of(BASE_PATH + "invalidId" + AGREEMENT, contractAgreementMessage(), contractAgreement)
+            );
+        }
     }
 }
