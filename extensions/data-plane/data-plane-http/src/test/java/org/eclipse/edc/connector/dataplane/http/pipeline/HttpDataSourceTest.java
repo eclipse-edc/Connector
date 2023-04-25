@@ -22,11 +22,13 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailureArgument;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,10 +36,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.GENERAL_ERROR;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure.Reason.NOT_AUTHORIZED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -70,7 +74,7 @@ class HttpDataSourceTest {
 
         when(requestFactory.toRequest(any())).thenReturn(request);
 
-        var parts = source.openPartStream().collect(Collectors.toList());
+        var parts = source.openPartStream().getContent().collect(Collectors.toList());
 
         var interceptedRequest = interceptor.getInterceptedRequest();
         assertThat(interceptedRequest).isEqualTo(request);
@@ -83,22 +87,30 @@ class HttpDataSourceTest {
         verify(requestFactory).toRequest(any());
     }
 
-    @Test
-    void verifyExceptionIsThrownIfCallFailed() {
+    @ParameterizedTest
+    @MethodSource
+    void verifyCallFailed(StreamFailureArgument argument) {
         var message = "Test message";
         var body = "Test body";
-        var interceptor = new CustomInterceptor(400, ResponseBody.create(body, MediaType.parse("text/plain")), message);
+        var interceptor = new CustomInterceptor(argument.getCode(), ResponseBody.create(body, MediaType.parse("text/plain")), message);
         var params = mock(HttpRequestParams.class);
         var request = new Request.Builder().url(url).get().build();
         var source = defaultBuilder(interceptor).params(params).requestFactory(requestFactory).build();
 
         when(requestFactory.toRequest(any())).thenReturn(request);
 
-        assertThatExceptionOfType(EdcException.class)
-                .isThrownBy(source::openPartStream)
-                .withMessage("Received code transferring HTTP data for request %s: %d - %s.", requestId, 400, message);
-
+        var result = source.openPartStream();
+        assertThat(result.failed()).isTrue();
+        assertThat(result.reason()).isEqualTo(argument.getReason());
         verify(requestFactory).toRequest(any());
+    }
+
+    static Stream<StreamFailureArgument> verifyCallFailed() {
+        return Stream.of(
+                new StreamFailureArgument(400, GENERAL_ERROR),
+                new StreamFailureArgument(401, NOT_AUTHORIZED),
+                new StreamFailureArgument(403, NOT_AUTHORIZED),
+                new StreamFailureArgument(500, GENERAL_ERROR));
     }
 
     private HttpDataSource.Builder defaultBuilder(Interceptor interceptor) {

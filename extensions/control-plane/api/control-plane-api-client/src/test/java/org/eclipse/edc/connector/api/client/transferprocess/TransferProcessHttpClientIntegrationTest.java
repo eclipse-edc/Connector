@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.client.transferprocess;
 
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
@@ -29,8 +30,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -81,7 +80,7 @@ public class TransferProcessHttpClientIntegrationTest {
 
     @Test
     void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
-        when(service.transfer(any())).thenReturn(completedFuture(StatusResult.success()));
+        when(service.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
         var id = "tp-id";
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
@@ -97,7 +96,7 @@ public class TransferProcessHttpClientIntegrationTest {
 
     @Test
     void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
-        when(service.transfer(any())).thenReturn(completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error")));
+        when(service.transfer(any())).thenReturn(completedFuture(StreamResult.error("error")));
         var id = "tp-id";
         store.save(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());

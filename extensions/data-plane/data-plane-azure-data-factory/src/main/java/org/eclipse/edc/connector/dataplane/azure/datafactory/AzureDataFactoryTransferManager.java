@@ -19,8 +19,8 @@ import com.azure.resourcemanager.datafactory.models.PipelineResource;
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
 import org.eclipse.edc.azure.blob.AzureSasToken;
 import org.eclipse.edc.azure.blob.api.BlobStoreApi;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Service for performing data transfers in Azure Data Factory.
@@ -79,7 +78,7 @@ public class AzureDataFactoryTransferManager {
      * @param request the data flow request.
      * @return a {@link CompletableFuture} that completes when the data transfer completes.
      */
-    public CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request) {
+    public CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request) {
 
         PipelineResource pipeline = pipelineFactory.createPipeline(request);
 
@@ -104,12 +103,12 @@ public class AzureDataFactoryTransferManager {
                 .exceptionally(throwable -> {
                     var error = "Unhandled exception raised when transferring data";
                     monitor.severe(error, throwable);
-                    return StatusResult.failure(ERROR_RETRY, error + ":" + throwable.getMessage());
+                    return StreamResult.error(error + ":" + throwable.getMessage());
                 });
     }
 
     @NotNull
-    private CompletableFuture<StatusResult<Void>> awaitRunCompletion(String runId) {
+    private CompletableFuture<StreamResult<Void>> awaitRunCompletion(String runId) {
         monitor.debug("Awaiting ADF pipeline completion for run " + runId);
 
         var timeout = clock.instant().plus(maxDuration);
@@ -123,15 +122,13 @@ public class AzureDataFactoryTransferManager {
             try {
                 runStatus = DataFactoryPipelineRunStates.valueOf(runStatusValue);
             } catch (IllegalArgumentException e) {
-                return completedFuture(StatusResult.failure(ERROR_RETRY,
-                        format("ADF run in unexpected state %s with message: %s", runStatusValue, message)));
+                return completedFuture(StreamResult.error(format("ADF run in unexpected state %s with message: %s", runStatusValue, message)));
             }
             if (runStatus.succeeded) {
-                return completedFuture(StatusResult.success());
+                return completedFuture(StreamResult.success());
             }
             if (runStatus.failed) {
-                return completedFuture(StatusResult.failure(ERROR_RETRY,
-                        format("ADF run in state %s with message: %s", runStatusValue, message)));
+                return completedFuture(StreamResult.error(format("ADF run in state %s with message: %s", runStatusValue, message)));
             }
 
             try {
@@ -142,17 +139,17 @@ public class AzureDataFactoryTransferManager {
             }
         }
         client.cancelPipelineRun(runId);
-        return completedFuture(StatusResult.failure(ERROR_RETRY, "ADF run timed out"));
+        return completedFuture(StreamResult.error("ADF run timed out"));
     }
 
-    private StatusResult<Void> complete(String accountName, String containerName, String sharedAccessSignature) {
+    private StreamResult<Void> complete(String accountName, String containerName, String sharedAccessSignature) {
         try {
             // Write an empty blob to indicate completion
             blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, new AzureSasCredential(sharedAccessSignature))
                     .getOutputStream().close();
-            return StatusResult.success();
+            return StreamResult.success();
         } catch (IOException e) {
-            return StatusResult.failure(ERROR_RETRY, format("Error creating blob %s on account %s", COMPLETE_BLOB_NAME, accountName));
+            return StreamResult.error(format("Error creating blob %s on account %s", COMPLETE_BLOB_NAME, accountName));
         }
     }
 

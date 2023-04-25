@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
-import org.eclipse.edc.spi.response.StatusResult;
-
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -26,5 +24,5 @@ public interface DataSink {
     /**
      * Transfers the data to the sink, returning a future to obtain the result. Implementations may be non-blocking.
      */
-    CompletableFuture<StatusResult<Void>> transfer(DataSource source);
+    CompletableFuture<StreamResult<Void>> transfer(DataSource source);
 }

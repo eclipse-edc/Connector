@@ -18,6 +18,7 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
 import org.eclipse.edc.azure.blob.adapter.BlobAdapter;
 import org.eclipse.edc.azure.blob.api.BlobStoreApi;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -79,8 +80,8 @@ class AzureStorageDataSourceTest {
 
     @Test
     void openPartStream_succeeds() {
-        var result = dataSource.openPartStream();
-        assertThat(result).map(s -> s.openStream()).containsExactly(input);
+        var result = dataSource.openPartStream().getContent();
+        assertThat(result).map(DataSource.Part::openStream).containsExactly(input);
     }
 
     @Test

@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.gcp.storage;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -25,6 +26,8 @@ import java.nio.channels.Channels;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
+
 public class GcsDataSource implements DataSource {
     private Storage storageClient;
     private String bucketName;
@@ -32,9 +35,9 @@ public class GcsDataSource implements DataSource {
     private Monitor monitor;
 
     @Override
-    public Stream<Part> openPartStream() {
+    public StreamResult<Stream<Part>> openPartStream() {
         try {
-            return Stream.of(new GoogleStoragePart(storageClient, bucketName, blobName));
+            return success(Stream.of(new GoogleStoragePart(storageClient, bucketName, blobName)));
         } catch (Exception e) {
             monitor.severe(String.format("Error accessing bucket %s or blob %s in project %s", bucketName, blobName, storageClient.getOptions().getProjectId()), e);
             throw new EdcException(e);

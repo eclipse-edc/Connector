@@ -16,16 +16,15 @@ package org.eclipse.edc.connector.dataplane.framework.pipeline;
 
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Implementation of {@link TransferService} that performs transfers using a
- * {@link PipelineService}.
+ * Implementation of {@link TransferService} that performs transfers using a {@link PipelineService}.
  */
 public class PipelineServiceTransferServiceImpl implements TransferService {
     private final PipelineService pipelineService;
@@ -46,7 +45,7 @@ public class PipelineServiceTransferServiceImpl implements TransferService {
 
     @WithSpan
     @Override
-    public CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request) {
+    public CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request) {
         return pipelineService.transfer(request);
     }
 }

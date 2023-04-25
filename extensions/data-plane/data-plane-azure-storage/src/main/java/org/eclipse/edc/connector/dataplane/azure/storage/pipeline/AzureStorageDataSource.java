@@ -19,6 +19,7 @@ import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.blob.adapter.BlobAdapter;
 import org.eclipse.edc.azure.blob.api.BlobStoreApi;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -27,6 +28,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
 /**
  * Pulls data from an Azure Storage blob source.
@@ -42,8 +44,8 @@ public class AzureStorageDataSource implements DataSource {
     private Monitor monitor;
 
     @Override
-    public Stream<Part> openPartStream() {
-        return Stream.of(getPart());
+    public StreamResult<Stream<Part>> openPartStream() {
+        return success(Stream.of(getPart()));
     }
 
     private AzureStoragePart getPart() {

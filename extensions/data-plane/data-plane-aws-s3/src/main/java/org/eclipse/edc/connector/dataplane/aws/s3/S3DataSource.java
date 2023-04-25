@@ -15,12 +15,15 @@
 package org.eclipse.edc.connector.dataplane.aws.s3;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 
 import java.io.InputStream;
 import java.util.stream.Stream;
+
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
 class S3DataSource implements DataSource {
 
@@ -31,8 +34,8 @@ class S3DataSource implements DataSource {
     private S3DataSource() { }
 
     @Override
-    public Stream<Part> openPartStream() {
-        return Stream.of(new S3Part(client, keyName, bucketName));
+    public StreamResult<Stream<Part>> openPartStream() {
+        return success(Stream.of(new S3Part(client, keyName, bucketName)));
     }
 
     private static class S3Part implements Part {

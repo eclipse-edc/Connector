@@ -17,9 +17,9 @@ package org.eclipse.edc.connector.dataplane.util.sink;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,7 +70,7 @@ class ParallelSinkTest {
 
     @Test
     void transfer_whenCompleteFails_fails() {
-        fakeSink.completeResponse = StatusResult.failure(ResponseStatus.ERROR_RETRY);
+        fakeSink.completeResponse = StreamResult.error("General error");
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .isEqualTo(fakeSink.completeResponse);
     }
@@ -89,11 +89,11 @@ class ParallelSinkTest {
 
     @Test
     void transfer_whenFailureDuringTransfer_fails() {
-        fakeSink.transferResultSupplier = () -> StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
+        fakeSink.transferResultSupplier = () -> StreamResult.error(errorMessage);
 
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
-                .satisfies(transferResult -> assertThat(transferResult.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY))
+                .satisfies(transferResult -> assertThat(transferResult.getFailure().getReason()).isEqualTo(StreamFailure.Reason.GENERAL_ERROR))
                 .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly(errorMessage));
 
         assertThat(fakeSink.parts).containsExactly(dataSource);
@@ -108,7 +108,7 @@ class ParallelSinkTest {
 
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
-                .satisfies(transferResult -> assertThat(transferResult.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY))
+                .satisfies(transferResult -> assertThat(transferResult.getFailure().getReason()).isEqualTo(StreamFailure.Reason.GENERAL_ERROR))
                 .satisfies(transferResult -> assertThat(transferResult.getFailureMessages())
                         .containsExactly("Unhandled exception raised when transferring data: java.lang.RuntimeException: " + errorMessage));
 
@@ -119,18 +119,18 @@ class ParallelSinkTest {
     private static class FakeParallelSink extends ParallelSink {
 
         List<DataSource.Part> parts;
-        Supplier<StatusResult<Void>> transferResultSupplier = StatusResult::success;
+        Supplier<StreamResult<Void>> transferResultSupplier = StreamResult::success;
         private int complete;
-        private StatusResult<Void> completeResponse = StatusResult.success();
+        private StreamResult<Void> completeResponse = StreamResult.success();
 
         @Override
-        protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
+        protected StreamResult<Void> transferParts(List<DataSource.Part> parts) {
             this.parts = parts;
             return transferResultSupplier.get();
         }
 
         @Override
-        protected StatusResult<Void> complete() {
+        protected StreamResult<Void> complete() {
             complete++;
             return completeResponse;
         }

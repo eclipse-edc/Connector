@@ -19,11 +19,11 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.telemetry.Telemetry;
@@ -94,13 +94,14 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
         var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
         return transferService != null ?
                 transferService.validate(dataRequest) :
-                Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination", dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
+                Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination",
+                        dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
     }
 
     @Override
     public void initiateTransfer(DataFlowRequest dataRequest) {
         // store current trace context in entity for request traceability
-        DataFlowRequest dataRequestWithTraceContext = dataRequest.toBuilder()
+        var dataRequestWithTraceContext = dataRequest.toBuilder()
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
         queue.add(dataRequestWithTraceContext);
@@ -108,12 +109,12 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     }
 
     @Override
-    public CompletableFuture<StatusResult<Void>> transfer(DataSource source, DataFlowRequest request) {
+    public CompletableFuture<StreamResult<Void>> transfer(DataSource source, DataFlowRequest request) {
         return pipelineService.transfer(source, request);
     }
 
     @Override
-    public CompletableFuture<StatusResult<Void>> transfer(DataSink sink, DataFlowRequest request) {
+    public CompletableFuture<StreamResult<Void>> transfer(DataSink sink, DataFlowRequest request) {
         return pipelineService.transfer(sink, request);
     }
 
@@ -170,7 +171,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
         }
     }
 
-    private void onTransferFinished(DataFlowRequest request, StatusResult<Void> result, Throwable exception) {
+    private void onTransferFinished(DataFlowRequest request, StreamResult<Void> result, Throwable exception) {
         if (exception != null) {
             transferProcessClient.failed(request, exception.getMessage());
         } else if (result.succeeded()) {

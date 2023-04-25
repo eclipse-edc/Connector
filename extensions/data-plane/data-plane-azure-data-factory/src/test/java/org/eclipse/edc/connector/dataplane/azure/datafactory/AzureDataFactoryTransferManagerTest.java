@@ -24,9 +24,9 @@ import org.bouncycastle.util.test.UncloseableOutputStream;
 import org.eclipse.edc.azure.blob.AzureSasToken;
 import org.eclipse.edc.azure.blob.adapter.BlobAdapter;
 import org.eclipse.edc.azure.blob.api.BlobStoreApi;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -128,7 +128,7 @@ class AzureDataFactoryTransferManagerTest {
 
         // Act & Assert
         assertThatTransferResult()
-                .matches(StatusResult::succeeded, "is succeeded");
+                .matches(StreamResult::succeeded, "is succeeded");
     }
 
     @ParameterizedTest
@@ -139,7 +139,7 @@ class AzureDataFactoryTransferManagerTest {
 
         // Act & Assert
         assertThatTransferResult()
-                .matches(StatusResult::failed);
+                .matches(StreamResult::failed);
     }
 
     @Test
@@ -150,9 +150,9 @@ class AzureDataFactoryTransferManagerTest {
 
         // Act & Assert
         assertThatTransferResult()
-                .matches(StatusResult::failed);
+                .matches(StreamResult::failed);
         assertThatTransferResult()
-                .satisfies(r -> assertThat(r.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY));
+                .satisfies(r -> assertThat(r.getFailure().getReason()).isEqualTo(StreamFailure.Reason.GENERAL_ERROR));
     }
 
     @Test
@@ -171,7 +171,7 @@ class AzureDataFactoryTransferManagerTest {
         verify(client).cancelPipelineRun(runId);
     }
 
-    ObjectAssert<StatusResult<Void>> assertThatTransferResult() {
+    ObjectAssert<StreamResult<Void>> assertThatTransferResult() {
         return assertThat(transferManager.transfer(request))
                 .succeedsWithin(Duration.ofMinutes(1));
     }

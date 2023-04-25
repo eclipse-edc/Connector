@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.dataplane.http.pipeline;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -28,8 +29,14 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.error;
+import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
 public class HttpDataSource implements DataSource {
+    private static final int FORBIDDEN = 401;
+    private static final int NOT_AUTHORIZED = 403;
+    private static final int NOT_FOUND = 404;
+
     private String name;
     private HttpRequestParams params;
     private String requestId;
@@ -38,11 +45,7 @@ public class HttpDataSource implements DataSource {
     private HttpRequestFactory requestFactory;
 
     @Override
-    public Stream<Part> openPartStream() {
-        return Stream.of(getPart());
-    }
-
-    private HttpPart getPart() {
+    public StreamResult<Stream<Part>> openPartStream() {
         var request = requestFactory.toRequest(params);
         monitor.debug(() -> "Executing HTTP request: " + request.url());
         try {
@@ -53,14 +56,23 @@ public class HttpDataSource implements DataSource {
                 if (body == null) {
                     throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
                 }
-                return new HttpPart(name, body.byteStream());
+                return success(Stream.of(new HttpPart(name, body.byteStream())));
             } else {
                 try {
-                    response.close();
-                } catch (Exception e) {
-                    monitor.info("Error closing failed response", e);
+                    if (NOT_AUTHORIZED == response.code() || FORBIDDEN == response.code()) {
+                        return StreamResult.notAuthorized();
+                    } else if (NOT_FOUND == response.code()) {
+                        return StreamResult.notFound();
+                    } else {
+                        return error(format("Received code transferring HTTP data: %s - %s.", response.code(), response.message()));
+                    }
+                } finally {
+                    try {
+                        response.close();
+                    } catch (Exception e) {
+                        monitor.info("Error closing failed response", e);
+                    }
                 }
-                throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s.", requestId, response.code(), response.message()));
             }
         } catch (IOException e) {
             throw new EdcException(e);

@@ -21,12 +21,11 @@ import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -226,7 +225,7 @@ class DataPlaneApiIntegrationTest {
                 );
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any()))
-                .thenReturn(completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
+                .thenReturn(completedFuture(StreamResult.error(errorMsg)));
 
         given()
                 .port(PUBLIC_API_PORT)
@@ -276,7 +275,7 @@ class DataPlaneApiIntegrationTest {
                 );
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any()))
-                .thenReturn(completedFuture(StatusResult.success()));
+                .thenReturn(completedFuture(StreamResult.success()));
 
         given()
                 .port(PUBLIC_API_PORT)
