@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
@@ -191,6 +192,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         handleProvisionResult(transferProcess, responses);
     }
 
+    @Override
+    public void handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
+        var transferProcess = transferProcessStore.find(processId);
+        if (transferProcess == null) {
+            monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
+            return;
+        }
+
+        handleDeprovisionResult(transferProcess, responses);
+    }
+
     private void handleProvisionResult(TransferProcess transferProcess, List<StatusResult<ProvisionResponse>> responses) {
         if (transferProcess.getState() == TERMINATED.code()) {
             monitor.severe(format("TransferProcessManager: transfer process %s is in TERMINATED state, so provisioning could not be completed", transferProcess.getId()));
@@ -218,17 +230,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .collect(Collectors.toList());
 
         handleProvisionResponses(transferProcess, provisionResponses);
-    }
-
-    @Override
-    public void handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
-            return;
-        }
-
-        handleDeprovisionResult(transferProcess, responses);
     }
 
     private void handleDeprovisionResult(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> responses) {
@@ -443,7 +444,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var description = "Initiate data flow";
 
         return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
-                .onSuccess((t, content) -> sendTransferStartMessage(t))
+                .onSuccess(this::sendTransferStartMessage)
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitionToStarting(t))
                 .onRetryExhausted((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
@@ -452,10 +453,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @WithSpan
-    private void sendTransferStartMessage(TransferProcess process) {
+    private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse) {
         var dataRequest = process.getDataRequest();
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
+                .dataAddress(dataFlowResponse.getDataAddress())
                 .callbackAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? it shouldn't be for provider.
                 .processId(dataRequest.getId())
                 .build();
@@ -588,12 +590,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
-                        .entityRetrieve(transferProcessStore::find)
-                        .onDelay(this::breakLease)
-                        .onSuccess(this::handleDeprovisionResult)
-                        .onFailure((t, throwable) -> transitionToDeprovisioning(t))
-                        .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
-                        .execute("deprovisioning");
+                .entityRetrieve(transferProcessStore::find)
+                .onDelay(this::breakLease)
+                .onSuccess(this::handleDeprovisionResult)
+                .onFailure((t, throwable) -> transitionToDeprovisioning(t))
+                .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
+                .execute("deprovisioning");
     }
 
     private void handleProvisionResponses(TransferProcess transferProcess, List<ProvisionResponse> responses) {

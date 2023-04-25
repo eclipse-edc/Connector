@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
@@ -144,7 +145,7 @@ class TransferProcessManagerImplTest {
 
     @BeforeEach
     void setup() {
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
@@ -462,17 +463,20 @@ class TransferProcessManagerImplTest {
     @Test
     void starting_shouldStartDataTransferAndSendMessageToConsumer() {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
+        var dataFlowResponse = createDataFlowResponse();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(STARTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
         when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture("any"));
 
         manager.start();
 
         await().untilAsserted(() -> {
+            var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(dispatcherRegistry).send(any(), isA(TransferStartMessage.class));
+            verify(dispatcherRegistry).send(any(), captor.capture());
+            assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
             verify(listener).started(process);
         });
@@ -871,6 +875,14 @@ class TransferProcessManagerImplTest {
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
         return createTransferProcessBuilder(inState, true).build();
+    }
+
+    private DataFlowResponse createDataFlowResponse() {
+        return DataFlowResponse.Builder.newInstance()
+                .dataAddress(DataAddress.Builder.newInstance()
+                        .type("type")
+                        .build())
+                .build();
     }
 
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState) {
