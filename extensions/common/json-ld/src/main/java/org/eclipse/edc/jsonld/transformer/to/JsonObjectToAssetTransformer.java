@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * Converts from an {@link Asset} as a {@link JsonObject} in JSON-LD expanded form to an {@link Asset}.
  */
 public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<JsonObject, Asset> {
-    protected JsonObjectToAssetTransformer() {
+    public JsonObjectToAssetTransformer() {
         super(JsonObject.class, Asset.class);
     }
 
@@ -47,14 +47,6 @@ public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<Json
             visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
 
             //parse known properties:
-        } else if (PropertyAndTypeNames.EDC_ASSET_NAME.equals(key)) {
-            transformString(jsonValue, builder::name, context);
-        } else if (PropertyAndTypeNames.EDC_ASSET_DESCRIPTION.equals(key)) {
-            transformString(jsonValue, builder::description, context);
-        } else if (PropertyAndTypeNames.EDC_ASSET_VERSION.equals(key)) {
-            transformString(jsonValue, builder::version, context);
-        } else if (PropertyAndTypeNames.EDC_ASSET_CONTENTTYPE.equals(key)) {
-            transformString(jsonValue, builder::contentType, context);
         } else {
             builder.property(key, transformGenericProperty(jsonValue, context));
         }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,8 +44,8 @@ class AssetQueryValidatorTest {
     @ValueSource(strings = {
             "asset_prop_id in (foo, bar)", // invalid key
             "customProp=whatever", // no custom properties supported
-            "asset:prop:id.=something", // trailing dot
-            ".asset:prop:id=something" // leading dot
+            CoreConstants.EDC_NAMESPACE + "id.=something", // trailing dot
+            "." + CoreConstants.EDC_NAMESPACE + ":id=something" // leading dot
     })
     void validate_invalidProperty(String filter) {
         var query = QuerySpec.Builder.newInstance()

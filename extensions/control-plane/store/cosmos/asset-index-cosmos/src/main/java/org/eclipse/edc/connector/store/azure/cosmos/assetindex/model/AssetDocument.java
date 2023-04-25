@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.edc.azure.cosmos.CosmosDocument;
+import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
@@ -46,7 +47,7 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
                          @JsonProperty("dataAddress") DataAddress dataAddress,
                          @JsonProperty("createdAt") long createdAt) {
         super(wrappedInstance, partitionKey);
-        id = wrappedInstance.get("asset_prop_id").toString();
+        id = wrappedInstance.get(sanitize(CoreConstants.EDC_NAMESPACE) + "id").toString();
         this.dataAddress = dataAddress;
         this.createdAt = createdAt;
     }

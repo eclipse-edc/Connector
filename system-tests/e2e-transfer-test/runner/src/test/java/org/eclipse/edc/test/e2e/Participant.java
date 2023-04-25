@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
+import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -70,8 +71,8 @@ public class Participant {
                 "asset", Map.of(
                         "id", assetId,
                         "properties", Map.of(
-                                "asset:prop:id", assetId,
-                                "asset:prop:description", "description"
+                                CoreConstants.EDC_NAMESPACE + "id", assetId,
+                                CoreConstants.EDC_NAMESPACE + "description", "description"
                         )
                 ),
                 "dataAddress", Map.of(
@@ -108,7 +109,7 @@ public class Participant {
                 "accessPolicyId", accessPolicyId,
                 "validity", String.valueOf(contractValidityDurationSeconds),
                 "contractPolicyId", contractPolicyId,
-                "criteria", AssetSelectorExpression.Builder.newInstance().constraint("asset:prop:id", "=", assetId).build().getCriteria()
+                "criteria", AssetSelectorExpression.Builder.newInstance().constraint(CoreConstants.EDC_NAMESPACE + "id", "=", assetId).build().getCriteria()
         );
 
         given()
@@ -247,7 +248,6 @@ public class Participant {
 
     public void registerDataPlane() {
         var body = Map.of(
-                "edctype", "dataspaceconnector:dataplaneinstance",
                 "id", UUID.randomUUID().toString(),
                 "url", dataPlaneControl + "/transfer",
                 "allowedSourceTypes", List.of("HttpData", "HttpProvision"),

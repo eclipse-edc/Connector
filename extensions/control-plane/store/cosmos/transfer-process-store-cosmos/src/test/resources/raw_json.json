@@ -15,8 +15,8 @@
       "connectorId": null,
       "asset": {
         "properties": {
-          "asset:prop:policy-id": "test-policyId",
-          "asset:prop:id": "asset-id"
+          "https://foo.bar.org/ds/schema/policy-id": "test-policyId",
+          "https://foo.bar.org/ds/schema/id": "asset-id"
         }
       },
       "dataDestination": {

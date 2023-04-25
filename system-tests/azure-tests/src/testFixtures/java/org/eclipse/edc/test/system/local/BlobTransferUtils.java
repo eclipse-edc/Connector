@@ -21,6 +21,7 @@ import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,10 +50,10 @@ public class BlobTransferUtils {
                 "asset", Map.of(
                         "id", PROVIDER_ASSET_ID,
                         "properties", Map.of(
-                                "asset:prop:name", PROVIDER_ASSET_ID,
-                                "asset:prop:contenttype", "text/plain",
-                                "asset:prop:version", "1.0",
-                                "asset:prop:id", PROVIDER_ASSET_ID,
+                                CoreConstants.EDC_NAMESPACE + "name", PROVIDER_ASSET_ID,
+                                CoreConstants.EDC_NAMESPACE + "contenttype", "text/plain",
+                                CoreConstants.EDC_NAMESPACE + "version", "1.0",
+                                CoreConstants.EDC_NAMESPACE + "id", PROVIDER_ASSET_ID,
                                 "type", "AzureStorage"
                         )
                 ),
@@ -90,7 +91,7 @@ public class BlobTransferUtils {
     public static void createContractDefinition(String policyId) {
 
         var criteria = AssetSelectorExpression.Builder.newInstance()
-                .constraint("asset:prop:id",
+                .constraint(CoreConstants.EDC_NAMESPACE + "id",
                         "=",
                         PROVIDER_ASSET_ID)
                 .build();

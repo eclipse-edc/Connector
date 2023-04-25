@@ -79,12 +79,12 @@ class JsonObjectToAssetTransformerTest {
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
                 .hasSize(5)
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_ID, TEST_ASSET_ID)
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_ID, asset.getContent().getId())
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_NAME, TEST_ASSET_NAME)
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_VERSION, TEST_ASSET_VERSION);
+                .containsEntry(Asset.PROPERTY_ID, TEST_ASSET_ID)
+                .containsEntry(Asset.PROPERTY_ID, asset.getContent().getId())
+                .containsEntry(Asset.PROPERTY_NAME, TEST_ASSET_NAME)
+                .containsEntry(Asset.PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
+                .containsEntry(Asset.PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
+                .containsEntry(Asset.PROPERTY_VERSION, TEST_ASSET_VERSION);
     }
 
     @Test
@@ -121,9 +121,10 @@ class JsonObjectToAssetTransformerTest {
         var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
 
         assertThat(asset.getContent().getProperties()).hasSize(2)
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_ID, asset.getContent().getId())
-                .hasFieldOrPropertyWithValue(Asset.PROPERTY_VERSION, TEST_ASSET_VERSION);
+                .containsEntry(Asset.PROPERTY_ID, TEST_ASSET_ID)
+                .containsEntry(Asset.PROPERTY_VERSION, TEST_ASSET_VERSION);
 
+        assertThat(asset.getContent().getProperties().get(Asset.PROPERTY_ID)).isEqualTo(asset.getContent().getId());
     }
 
     @Test

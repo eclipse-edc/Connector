@@ -16,37 +16,15 @@ package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-
-import java.util.HashMap;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 
 @EndToEndTest
-public class PolicyDefinitionApiEndToEndTest {
+public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
-    public static final int PORT = getFreePort();
-
-    @RegisterExtension
-    static EdcRuntimeExtension controlPlane = new EdcRuntimeExtension(
-            ":system-tests:management-api:management-api-test-runtime",
-            "control-plane",
-            new HashMap<>() {
-                {
-                    put("edc.ids.id", "urn:connector:" + UUID.randomUUID());
-                    put("web.http.path", "/");
-                    put("web.http.port", String.valueOf(getFreePort()));
-                    put("web.http.management.path", "/management");
-                    put("web.http.management.port", String.valueOf(PORT));
-                }
-            }
-    );
-
-    @Test // stub test just to verify structure
+    // stub test just to verify structure
+    @Test
     void shouldReturnBadRequest() {
         given()
                 .port(PORT)

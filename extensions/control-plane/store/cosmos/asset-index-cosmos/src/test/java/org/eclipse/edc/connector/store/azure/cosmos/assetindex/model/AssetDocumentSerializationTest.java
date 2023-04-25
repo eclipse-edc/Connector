@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.assetindex.model;
 
+import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -21,9 +22,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.azure.cosmos.CosmosDocument.sanitize;
 
 class AssetDocumentSerializationTest {
 
+    private static final String PREFIX = CoreConstants.EDC_NAMESPACE;
     private TypeManager typeManager;
 
     private static Asset createAsset() {
@@ -50,12 +53,13 @@ class AssetDocumentSerializationTest {
 
         String s = typeManager.writeValueAsString(document);
 
+        var prefix = sanitize(PREFIX);
         assertThat(s).isNotNull()
                 .contains("\"partitionKey\":\"partitionkey-test\"")
-                .contains("\"asset_prop_id\":\"id-test\"")
-                .contains("\"asset_prop_name\":\"node-test\"")
-                .contains("\"asset_prop_version\":\"123\"")
-                .contains("\"asset_prop_contenttype\":\"application/json\"")
+                .contains("\"" + prefix + "id\":\"id-test\"")
+                .contains("\"" + prefix + "name\":\"node-test\"")
+                .contains("\"" + prefix + "version\":\"123\"")
+                .contains("\"" + prefix + "contenttype\":\"application/json\"")
                 .contains("\"foo\":\"bar\"")
                 .contains("\"wrappedInstance\":")
                 .contains("\"id\":\"id-test\"");

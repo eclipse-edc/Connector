@@ -60,6 +60,7 @@ import org.eclipse.edc.protocol.ids.spi.types.IdsType;
 import org.eclipse.edc.protocol.ids.util.CalendarUtil;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -255,9 +256,9 @@ class MultipartControllerIntegrationTest {
         var assetId = UUID.randomUUID().toString();
         var asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("asset:prop:fileName", "test.txt")
-                .property("asset:prop:byteSize", BigInteger.valueOf(10))
-                .property("asset:prop:fileExtension", "txt")
+                .property(CoreConstants.EDC_NAMESPACE + "fileName", "test.txt")
+                .property(CoreConstants.EDC_NAMESPACE + "byteSize", BigInteger.valueOf(10))
+                .property(CoreConstants.EDC_NAMESPACE + "fileExtension", "txt")
                 .build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
         var contractOffer = ContractOffer.Builder.newInstance()
@@ -391,9 +392,9 @@ class MultipartControllerIntegrationTest {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("asset:prop:fileName", "test.txt")
-                .property("asset:prop:byteSize", BigInteger.valueOf(10))
-                .property("asset:prop:fileExtension", "txt")
+                .property(CoreConstants.EDC_NAMESPACE + "fileName", "test.txt")
+                .property(CoreConstants.EDC_NAMESPACE + "byteSize", BigInteger.valueOf(10))
+                .property(CoreConstants.EDC_NAMESPACE + "fileExtension", "txt")
                 .build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
@@ -452,9 +453,9 @@ class MultipartControllerIntegrationTest {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("asset:prop:fileName", "test.txt")
-                .property("asset:prop:byteSize", BigInteger.valueOf(10))
-                .property("asset:prop:fileExtension", "txt")
+                .property(CoreConstants.EDC_NAMESPACE + "fileName", "test.txt")
+                .property(CoreConstants.EDC_NAMESPACE + "byteSize", BigInteger.valueOf(10))
+                .property(CoreConstants.EDC_NAMESPACE + "fileExtension", "txt")
                 .build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
@@ -517,9 +518,9 @@ class MultipartControllerIntegrationTest {
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("asset:prop:fileName", "test.txt")
-                .property("asset:prop:byteSize", BigInteger.valueOf(10))
-                .property("asset:prop:fileExtension", "txt")
+                .property(CoreConstants.EDC_NAMESPACE + "fileName", "test.txt")
+                .property(CoreConstants.EDC_NAMESPACE + "byteSize", BigInteger.valueOf(10))
+                .property(CoreConstants.EDC_NAMESPACE + "fileExtension", "txt")
                 .build();
         assetIndex.accept(asset, DataAddress.Builder.newInstance().type("test").build());
         var contractOffer = ContractOffer.Builder.newInstance()

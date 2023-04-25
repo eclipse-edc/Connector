@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 
 /**
  * The {@link Asset} contains the metadata and describes the data itself or a collection of data.
@@ -32,12 +35,14 @@ import java.util.UUID;
 @JsonDeserialize(builder = Asset.Builder.class)
 public class Asset extends Entity {
 
-    @Deprecated(since = "Do not use anymore. The ID should be accessed through the getter")
-    public static final String PROPERTY_ID = "asset:prop:id";
-    public static final String PROPERTY_NAME = "asset:prop:name";
-    public static final String PROPERTY_DESCRIPTION = "asset:prop:description";
-    public static final String PROPERTY_VERSION = "asset:prop:version";
-    public static final String PROPERTY_CONTENT_TYPE = "asset:prop:contenttype";
+    public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
+    public static final String PROPERTY_NAME = EDC_NAMESPACE + "name";
+    public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
+    public static final String PROPERTY_VERSION = EDC_NAMESPACE + "version";
+    public static final String PROPERTY_CONTENT_TYPE = EDC_NAMESPACE + "contenttype";
+
+    @Deprecated(since = "milestone9")
+    private static final String DEPRECATED_PROPERTY_PREFIX = "asset:prop:";
 
     private final Map<String, Object> properties;
 
@@ -47,27 +52,28 @@ public class Asset extends Entity {
 
     @Override
     public String getId() {
-        return id == null ? getPropertyAsString(PROPERTY_ID) : id;
+        return id == null ? ofNullable(getPropertyAsString(PROPERTY_ID)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + id)) : id;
     }
 
     @JsonIgnore
     public String getName() {
-        return getPropertyAsString(PROPERTY_NAME);
+        return ofNullable(getPropertyAsString(PROPERTY_NAME))
+                .orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "name"));
     }
 
     @JsonIgnore
     public String getDescription() {
-        return getPropertyAsString(PROPERTY_DESCRIPTION);
+        return ofNullable(getPropertyAsString(PROPERTY_DESCRIPTION)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "description"));
     }
 
     @JsonIgnore
     public String getVersion() {
-        return getPropertyAsString(PROPERTY_VERSION);
+        return ofNullable(getPropertyAsString(PROPERTY_VERSION)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "version"));
     }
 
     @JsonIgnore
     public String getContentType() {
-        return getPropertyAsString(PROPERTY_CONTENT_TYPE);
+        return ofNullable(getPropertyAsString(PROPERTY_CONTENT_TYPE)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "contenttype"));
     }
 
     public Map<String, Object> getProperties() {

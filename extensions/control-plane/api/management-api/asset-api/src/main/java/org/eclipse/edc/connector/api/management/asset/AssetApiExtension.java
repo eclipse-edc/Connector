@@ -29,7 +29,11 @@ import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
+
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
 @Extension(value = AssetApiExtension.NAME)
 public class AssetApiExtension implements ServiceExtension {
@@ -50,6 +54,12 @@ public class AssetApiExtension implements ServiceExtension {
 
     @Inject
     private DataAddressResolver dataAddressResolver;
+    @Inject
+    private ManagementApiConfiguration configuration;
+
+    @Inject
+    private TypeManager typeManager;
+
 
     @Override
     public String name() {
@@ -66,7 +76,10 @@ public class AssetApiExtension implements ServiceExtension {
         transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
         transformerRegistry.register(new DataAddressToDataAddressDtoTransformer());
 
+        var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        webService.registerResource(configuration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, dataAddressResolver, transformerRegistry));
+        webService.registerResource(config.getContextAlias(), new AssetNewApiController(assetService, dataAddressResolver, transformerRegistry));
     }
 
 }

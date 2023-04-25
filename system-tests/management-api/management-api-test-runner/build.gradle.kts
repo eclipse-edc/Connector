@@ -18,6 +18,13 @@ plugins {
 
 dependencies {
     testImplementation(project(":core:common:junit"))
+    // gives access to the Json LD models, etc.
+    testImplementation(project(":spi:common:json-ld-spi"))
+
+    //useful for generic DTOs etc.
+    testImplementation(project(":extensions:common:api:api-core"))
+    //we need the JacksonJsonLd util class
+    testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.restAssured)
     testImplementation(libs.assertj)
