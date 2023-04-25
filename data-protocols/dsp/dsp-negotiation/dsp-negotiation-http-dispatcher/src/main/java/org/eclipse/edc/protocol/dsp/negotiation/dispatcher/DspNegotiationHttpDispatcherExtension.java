@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher;
 
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementVerificationMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationEventMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationTerminationMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractRequestMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
+import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -39,7 +39,7 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
-    private JsonLdTransformerRegistry transformerRegistry;
+    private JsonLdRemoteMessageSerializer remoteMessageSerializer;
 
     @Override
     public String name() {
@@ -48,12 +48,10 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var objectMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
-
-        messageDispatcher.registerDelegate(new ContractAgreementMessageHttpDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractAgreementVerificationMessageHttpDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractNegotiationEventMessageHttpDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractNegotiationTerminationMessageHttpDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new ContractRequestMessageHttpDelegate(objectMapper, transformerRegistry));
+        messageDispatcher.registerDelegate(new ContractAgreementMessageHttpDelegate(remoteMessageSerializer));
+        messageDispatcher.registerDelegate(new ContractAgreementVerificationMessageHttpDelegate(remoteMessageSerializer));
+        messageDispatcher.registerDelegate(new ContractNegotiationEventMessageHttpDelegate(remoteMessageSerializer));
+        messageDispatcher.registerDelegate(new ContractNegotiationTerminationMessageHttpDelegate(remoteMessageSerializer));
+        messageDispatcher.registerDelegate(new ContractRequestMessageHttpDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD)));
     }
 }

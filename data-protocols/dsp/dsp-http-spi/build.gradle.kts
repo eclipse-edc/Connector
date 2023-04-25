@@ -19,4 +19,5 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(libs.okhttp)
+    api(libs.jakartaJson)
 }
