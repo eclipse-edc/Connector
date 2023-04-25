@@ -27,57 +27,19 @@ to selecting a policy.
 ## Approach
 
 ---
-Example approach on the basis of the `Asset`.
 
 ### SPI
 Since the `Asset` file inside the SPI is the internal representation of the `Asset` entity,
 the first, fundamental change happens here.
 
-The first step is to actually extend the `Asset` is to define a new map containing the private properties.
+The first step is to actually extend the `Asset` is to define a new map `privateProperties` containing the private properties.
 
-```java
-private final Map<String, Object> privateProperties;
-```
+Next, the ``Asset`` constructor needs to initialise the new `privateProperties` map.
 
-Next, the constructor needs to initialise the new map.
-```java
-protected Asset() {
-    properties = new HashMap<>();
-    privateProperties = new HashMap<>();
-}
-```
-Reading of the added `privateProperties` is achieved through the following methods.
-No JSON Ignore
+Reading of the added `privateProperties` is achieved through the methods `getPrivateProperties`, `getPrivateProperty` and `getPrivatePropertyAsString`.
 
-```java
-public Map<String, Object> getPrivateProperties() {
-    return privateProperties;
-}
-
-public Object getPrivateProperty(String key) {
-    return privateProperties.get(key);
-}
-
-private String getPrivatePropertyAsString(String key) {
-    var val = getPrivateProperty(key);
-    return val != null ? val.toString() : null;
-}
-```
-
-Afterwards, the `Builder` needs to reflect the changes in the `Asset`
-
-```java
-public B privateProperties(Map<String, Object> privateProperties) {
-    Objects.requireNonNull(privateProperties);
-    entity.privateProperties.putAll(privateProperties);
-    return self();
-}
-
-public B privateProperty(String key, Object value) {
-    entity.privateProperties.put(key, value);
-    return self();
-}
-```
+Besides the Constructor, the `Builder` also needs to reflect the changes in the `Asset` and allows the addition of a whole map with `privateProperties(Map<String, Object> privateProperties)`
+or just a single key-value-pair with `privateProperty(String key, Object value)`.
 
 ### Models
 Since the change decided in this decision record affects the data structure of the 'Asset' entity,
@@ -87,49 +49,23 @@ it will also affect the models representing the entity to the outside during API
 
 First the abstract class `AssetRequestDto` needs to be adjusted.
 
-This code adds the `privateProperties` map to the model.
-```java
-@NotNull(message = "privateProperties cannot be null")
-protected Map<String, Object> privateProperties;
-```
+Here the `privateProperties` map is added to the model together with a `@NotNull` constraint.
 
-The `Builder` creating the `AssetRequestDto` also needs to be able to set the `privateProperties`.
-```java
-public B privateProperties(Map<String, Object> privateProperties) {
-    dto.privateProperties = privateProperties;
-    return self();
-}
-```
+The `Builder` creating the `AssetRequestDto` also needs to be able to set the `privateProperties` with the help of a similarly named method.
 
-Both `AssetUpdateRequestDto` and `AssetCreationRequestDto` inherit from this class
-so these changes will propagate to them.
+Both `AssetUpdateRequestDto` and `AssetCreationRequestDto` inherit from this class  so these changes will propagate to them.
 
 #### AssetUpdateRequestDto
 
-Analog to the check for empty property keys in `AssetUpdateRequestDto`
-we also need to check for empty private property keys.
+Analog to the check for empty property keys in `AssetUpdateRequestDto` we also need to check for empty private property keys.
 
-```java
-@JsonIgnore
-@AssertTrue(message = "no empty property keys and no duplicate keys")
-public boolean isValid() {
-    boolean validPrivate = privateProperties != null && privateProperties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
-    boolean validPublic = properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
-    return validPrivate && validPublic
-}
-```
-Additionally, a Method is needed to access the `privateProperties` of the `AssetUpdateRequestDto`.
+To reflect the behaviour of the SQL implementation, there is an additional check for identical keys in both `properties` and `privateProperties`.
 
-```java
-public Map<String, Object> getPrivateProperties() {
-    return privateProperties;
-}
-```
+Additionally, a method named `getPrivateProperties` is needed to access the `privateProperties` of the `AssetUpdateRequestDto`.
 
 #### AssetCreationRequestDto
 
-The changes inside `AssetCreationRequestDto` are duplicates of the changes inside
-`AssetUpdateRequestDto`.
+The changes inside `AssetCreationRequestDto` are duplicates of the changes inside `AssetUpdateRequestDto`.
 
 A question that arises here is, if it would be possible to refactor both classes
 and move the changes, including the original code for the `properties` map, to the
@@ -139,209 +75,68 @@ parent class `AssetRequestDto` they both inherit from.
 Three changes are necessary inside the `AssetResponseDto`.
 
 First the map for the `privateProperties` needs to be created.
-```java
-private Map<String, Object> privateProperties;
-```
 
-Next, a get method allows access to the map.
-```java    
-public Map<String, Object> getPrivateProperties() {
-    return privateProperties;
-}
-```
+Next, a get method ``getPrivateProperties`` allows access to the map.
 
 Finally, the `Builder` is extended to enable setting the `privateProperties` map during initialisation.
-```java
-public Builder privateProperties(Map<String, Object> privateProperties) {
-    dto.privateProperties = privateProperties;
-    return this;
-}
-```
 
 ### Transformer
-The `AssetRequestDtoToAssetTransformer` needs transfer `privateProperties` from
+The `AssetRequestDtoToAssetTransformer` needs transform `privateProperties` from
 `AssetRequestDto` to the in-memory `Asset`.
 
-```java
-@Override
-public @Nullable Asset transform(@NotNull AssetCreationRequestDto object, @NotNull TransformerContext context) {
-    return Asset.Builder.newInstance()
-            .id(object.getId())
-            .properties(object.getProperties())
-            .privateProperties(object.getPrivateProperties())
-            .build();
-}
-```
+A corresponding call to the `privateProperties` method of the `Builder` solves this issue.
 
 An identical change needs to be made for `AssetToAssetResponseDtoTransformer`,
 `AssetUpdateRequestWrapperDtoToAssetTransformer`,
 `DataAddressDtoToDataAddressTransformer` and `DataAddressToDataAddressDtoTransformer`.
 
 ### Database
-#### In-Memory
 To allow `privateProperties` to be used in the intended way, it needs to be possible to
 query `Assets` with `privateProerties` as filter and to sort with the help of `privateProperties`.
 In the original implementation of the `InMemoryAssetIndex` the filtering is achieved by using predicates.
 The given criteria inside the `QuerySpec` are converted into predicates through the `AssetPredicateConverter`.
 
 ##### filtering
-By adjusting the `AssetPredicateConverter` to search both properties and private properties filtering for private properties
+By adjusting the `AssetPredicateConverter` to search both properties and private properties, filtering for private properties
 is achieved without any adjustments to the `QuerySpec`.
-It is important to note, that the below implementation searches the `properties` map first and only after looks at the
+
+It is important to note, that the implementation searches the `properties` map first and only afterwards looks at the
 `privateProperties` map.
 
-```java
-public <T> T property(String key, Object object) {
-    if (object instanceof Asset) {
-        var asset = (Asset) object;
-        boolean emptyProperties = asset.getProperties() == null || asset.getProperties().isEmpty()
-        boolean emptyPrivateProperties = asset.getPrivateProperties() == null || asset.getPrivateProperties().isEmpty()
-        if (!emptyProperties) {
-            if (asset.getProeprties().containsKey(key)){
-                return (T) asset.getProperty(key);
-            }
-        }
-        if (!emptyPrivateProperties) {
-            if (asset.getPrivateProeprties().containsKey(key)) {
-                return (T) asset.getPrivateProperty(key);
-            }   
-        }
-        return null
-        
-    }
-    throw new IllegalArgumentException("Can only handle objects of type " + Asset.class.getSimpleName() + " but received an " + object.getClass().getSimpleName());
-}
-```
-
 ##### sorting
-Extend `queryAsset` Methods inside `InMemoryAssetInedex` with sorting for `privateProperties` if no applicable keys inside the properties are found.
-```java
-@Override
-public Stream<Asset> queryAssets(QuerySpec querySpec) {
-    lock.readLock().lock();
-    try {
-        // filter
-        var result = filterBy(querySpec.getFilterExpression());
-
-        // ... then sort
-        var sortField = querySpec.getSortField();
-        if (sortField != null) {
-            result = result.sorted((asset1, asset2) -> {
-                var f1 = asComparable(asset1.getProperty(sortField));
-                var f2 = asComparable(asset2.getProperty(sortField));
-                
-                // try for private properties next
-                if (f1 == null && f2 == null) {
-                        f1 = asComparable(asset1.getPrivateProperty(sortField));
-                        f2 = asComparable(asset2.getPrivateProperty(sortField));
-                }
-                
-                if (f1 == null || f2 == null) {
-                    throw new IllegalArgumentException(format("Cannot sort by field %s, it does not exist on one or more Assets", sortField));
-                }
-                return querySpec.getSortOrder() == SortOrder.ASC ? f1.compareTo(f2) : f2.compareTo(f1);
-            });
-        }
-
-        // ... then limit
-        return result.skip(querySpec.getOffset()).limit(querySpec.getLimit());
-    } finally {
-        lock.readLock().unlock();
-    }
-}
-```
-
-
+Finally, the `queryAsset` method inside `InMemoryAssetInedex` is extended with sorting for `privateProperties` if no matching keys inside the properties are found.
 
 #### SQL
-WIP
+To enable the distinction of `properties` and `privateProperties`  inside the postgresql database,
+the ``schema`` of the `edc_asset_property` table is extended by a boolean value `property_is_private`, that marks private properties.
 
-`AssetStatements`
+With this addition it is necessary, that a template string gets added inside the `AssetStatements`, which contains the name of the added value.
+The Method ``getAssetPropertyColumnIsPrivate`` serves as getter for the string.
 
-```java
-/**
- * The asset private property table name.
- */
-default String getAssetPrivatePropertyTable() {
-    return "edc_asset_private_property";
-}
+This Method is then used inside `BaseSqlDialectStatements` to generate a string template for a sql-statement inside the method `getInsertPropertyTemplate`.
 
-/**
- * The asset private property name column.
- */
-default String getAssetPrivatePropertyColumnName() {
-    return "private_property_name";
-}
+With the addition of `privateProperties` a wrapper is needed to ensure no information is lost during the mapping of result sets from the database to java objects.
+Through the ``SqlPropertyWrapper`` class, the boolean value `isPrivate` is encapsulated together with the property.
 
-/**
- * The asset private property value column.
- */
-default String getAssetPrivatePropertyColumnValue() {
-    return "private_property_value";
-}
+The ``SqlAssetIndex`` uses the `SqlPropertyWrapper` class to map the result set of the `edc_asset_property` with the method `mapPropertyResultSet`.
 
-/**
- * The asset private property type column.
- */
-default String getAssetPrivatePropertyColumnType() {
-    return "private_property_type";
-}
+`isPrivate` of the ``SqlPropertyWrapper`` is then used  to filter the result set inside `findById`.
+After filtering, the found ``properties`` and `privateProperties` are then added to their respective maps inside the `Asset` object that is returned.
 
-default String getPrivatePropertyAssetIdFkColumn() {
-        return "asset_id_fk";
-}
-
-/**
- * INSERT clause for private properties.
- */
-String getInsertPrivatePropertyTemplate();
-
-/**
- * SELECT clause for private properties.
- */
-String getFindPrivatePropertyByIdTemplate();
-
-/**
- * DELETE statement for private properties of an Asset. Useful for delete-insert (=update) operations
- */
-String getDeletePrivatePropertyByIdTemplate();
-```
-
-`BaseSqlDialectStatements`
-
-```java
-@Override
-public String getInsertPrivatePropertyTemplate() {
-    return format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
-            getAssetPrivatePropertyTable(),
-            getPrivatePropertyAssetIdFkColumn(),
-            getAssetPrivatePropertyColumnName(),
-            getAssetPrivatePropertyColumnValue(),
-            getAssetPrivatePropertyColumnType());
-}
-
-@Override
-public String getFindPrivatePropertyByIdTemplate() {
-        return format("SELECT * FROM %s WHERE %s = ?",
-        getAssetPrivatePropertyTable(),
-        getPrivatePropertyAssetIdFkColumn());
-}
-
-@Override
-public String getDeletePrivatePropertyByIdTemplate() {
-        return format("DELETE FROM %s WHERE %s = ?", getAssetPrivatePropertyTable(), getPrivatePropertyAssetIdFkColumn());
-}
-```
-
-TODO adapt or copy `getQuerySubSelectTemplate` for `privateProperties`  and tying `privateProperties` into `toSubSelect`, `concatSubSelects` and `createQuery`
+Both methods `accept` and `updateAsset` inside ``SqlAssetIndex`` need to be adjusted to reflect then changes inside the `edc_asset_property` table.
+To achieve this, the ``properties`` and `privateProperties` maps of the `Asset` object are read and added to the table with the `isPrivate` value set accordingly.
+The change is identical in both `accept` and `updateAsset`.
 
 #### Cosmos
+The changes to include `privateProperties` inside Cosmos DB storage focus on the `AssetDocument` class.
 
+Here a `privateProperties` map is added as attribute to `AssetDocument`. 
 
+Analogous to the treatment of the existing `properties`, `privateProperties` are first sanitizes with the ``sanitizePrivateProperties`` method when getting stored.
+
+In turn, the `privateProperties` are then unsanitized again with `restorePrivateProperties` when being read through the `getWrappedAsset` method.
 
 ### Privacy Protection
 To ensure that `privateProperties` stay private, the transformers for the IDS data-protocol
 will not be updated for the `privateProperties`.
 This way, only the Data Management API will have access.
-
-### Testing
