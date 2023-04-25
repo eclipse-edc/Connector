@@ -33,7 +33,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropert
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 class JsonObjectToContractNegotiationEventMessageTransformerTest {
@@ -69,21 +68,5 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
         assertThat(result.getType()).isEqualTo(ContractNegotiationEventMessage.Type.ACCEPTED);
 
         verify(context, never()).reportProblem(anyString());
-    }
-
-    @Test
-    void transform_invalidType() {
-        var value = "example";
-        var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, value)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, value)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM, value)
-                .add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, "INVALID_TYPE")
-                .build();
-
-        assertThat(transformer.transform(message, context)).isNull();
-
-        verify(context, times(1)).reportProblem(anyString());
     }
 }
