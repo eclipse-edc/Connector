@@ -5,6 +5,7 @@
 ---
 Extend the following entities with an additional `privateProperties` map,
 that enables the saving of information only accessible through the Data Management API.
+
 - `Asset`
 
 ## Rationale
@@ -18,17 +19,18 @@ to selecting a policy.
 
 ## Affected Areas
 
-* Data-Management-API for Assets (Models, Transformers)
-* SPI for Assets (Core Datatype)
-* In-Memory-Storage for Assets (Storage, Manipulation and Filtering)
-* SQL Storage for Assets (Storage, Manipulation and Filtering)
-* Cosmos Storage for Assets (Storage, Manipulation and Filtering)
+- Data-Management-API for Assets (Models, Transformers)
+- SPI for Assets (Core Datatype)
+- In-Memory-Storage for Assets (Storage, Manipulation and Filtering)
+- SQL Storage for Assets (Storage, Manipulation and Filtering)
+- Cosmos Storage for Assets (Storage, Manipulation and Filtering)
 
 ## Approach
 
 ---
 
 ### SPI
+
 Since the `Asset` file inside the SPI is the internal representation of the `Asset` entity,
 the first, fundamental change happens here.
 
@@ -41,7 +43,8 @@ Reading of the added `privateProperties` is achieved through the methods `getPri
 Besides the Constructor, the `Builder` also needs to reflect the changes in the `Asset` and allows the addition of a whole map with `privateProperties(Map<String, Object> privateProperties)`
 or just a single key-value-pair with `privateProperty(String key, Object value)`.
 
-### Models
+#### Models
+
 Since the change decided in this decision record affects the data structure of the 'Asset' entity,
 it will also affect the models representing the entity to the outside during API calls.
 
@@ -55,7 +58,7 @@ The `Builder` creating the `AssetRequestDto` also needs to be able to set the `p
 
 Both `AssetUpdateRequestDto` and `AssetCreationRequestDto` inherit from this class  so these changes will propagate to them.
 
-#### AssetUpdateRequestDto
+##### AssetUpdateRequestDto
 
 Analog to the check for empty property keys in `AssetUpdateRequestDto` we also need to check for empty private property keys.
 
@@ -63,7 +66,7 @@ To reflect the behaviour of the SQL implementation, there is an additional check
 
 Additionally, a method named `getPrivateProperties` is needed to access the `privateProperties` of the `AssetUpdateRequestDto`.
 
-#### AssetCreationRequestDto
+##### AssetCreationRequestDto
 
 The changes inside `AssetCreationRequestDto` are duplicates of the changes inside `AssetUpdateRequestDto`.
 
@@ -71,7 +74,8 @@ A question that arises here is, if it would be possible to refactor both classes
 and move the changes, including the original code for the `properties` map, to the
 parent class `AssetRequestDto` they both inherit from.
 
-#### AssetResponseDto
+##### AssetResponseDto
+
 Three changes are necessary inside the `AssetResponseDto`.
 
 First the map for the `privateProperties` needs to be created.
@@ -80,7 +84,8 @@ Next, a get method ``getPrivateProperties`` allows access to the map.
 
 Finally, the `Builder` is extended to enable setting the `privateProperties` map during initialisation.
 
-### Transformer
+#### Transformer
+
 The `AssetRequestDtoToAssetTransformer` needs transform `privateProperties` from
 `AssetRequestDto` to the in-memory `Asset`.
 
@@ -91,12 +96,16 @@ An identical change needs to be made for `AssetToAssetResponseDtoTransformer`,
 `DataAddressDtoToDataAddressTransformer` and `DataAddressToDataAddressDtoTransformer`.
 
 ### Database
+
+#### In-Memory
+
 To allow `privateProperties` to be used in the intended way, it needs to be possible to
 query `Assets` with `privateProerties` as filter and to sort with the help of `privateProperties`.
 In the original implementation of the `InMemoryAssetIndex` the filtering is achieved by using predicates.
 The given criteria inside the `QuerySpec` are converted into predicates through the `AssetPredicateConverter`.
 
 ##### filtering
+
 By adjusting the `AssetPredicateConverter` to search both properties and private properties, filtering for private properties
 is achieved without any adjustments to the `QuerySpec`.
 
@@ -104,9 +113,11 @@ It is important to note, that the implementation searches the `properties` map f
 `privateProperties` map.
 
 ##### sorting
+
 Finally, the `queryAsset` method inside `InMemoryAssetInedex` is extended with sorting for `privateProperties` if no matching keys inside the properties are found.
 
 #### SQL
+
 To enable the distinction of `properties` and `privateProperties`  inside the postgresql database,
 the ``schema`` of the `edc_asset_property` table is extended by a boolean value `property_is_private`, that marks private properties.
 
@@ -128,15 +139,17 @@ To achieve this, the ``properties`` and `privateProperties` maps of the `Asset` 
 The change is identical in both `accept` and `updateAsset`.
 
 #### Cosmos
+
 The changes to include `privateProperties` inside Cosmos DB storage focus on the `AssetDocument` class.
 
-Here a `privateProperties` map is added as attribute to `AssetDocument`. 
+Here a `privateProperties` map is added as attribute to `AssetDocument`.
 
 Analogous to the treatment of the existing `properties`, `privateProperties` are first sanitizes with the ``sanitizePrivateProperties`` method when getting stored.
 
 In turn, the `privateProperties` are then unsanitized again with `restorePrivateProperties` when being read through the `getWrappedAsset` method.
 
 ### Privacy Protection
+
 To ensure that `privateProperties` stay private, the transformers for the IDS data-protocol
 will not be updated for the `privateProperties`.
 This way, only the Data Management API will have access.
