@@ -38,7 +38,7 @@ public class JsonObjectToContractAgreementVerificationMessageTransformer extends
         var builder = ContractAgreementVerificationMessage.Builder.newInstance();
         builder.protocol(DATASPACE_PROTOCOL_HTTP);
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
-        // TODO add mapping of cred:credentialSubject and sec:proof with signature processes
+        // TODO add mapping of cred:credentialSubject with signature processes
 
         return builder.build();
     }

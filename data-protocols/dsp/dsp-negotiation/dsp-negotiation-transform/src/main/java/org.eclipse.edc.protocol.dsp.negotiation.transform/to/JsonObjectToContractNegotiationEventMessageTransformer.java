@@ -56,7 +56,7 @@ public class JsonObjectToContractNegotiationEventMessageTransformer extends Abst
                     builder.type(FINALIZED);
                     break;
                 default:
-                    context.reportProblem(String.format("Could not map type %s", value));
+                    context.reportProblem(String.format("Could not map type %s in ContractNegotiationEventMessage", value));
             }
         }, context);
 

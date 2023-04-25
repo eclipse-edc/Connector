@@ -72,7 +72,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         try {
             builder.contractSigningDate(Long.parseLong(timestamp));
         } catch (NumberFormatException exception) {
-            context.reportProblem(String.format("Cannot transform %s to long", timestamp));
+            context.reportProblem(String.format("Cannot transform %s to long in ContractAgreementMessage", timestamp));
             return null;
         }
 

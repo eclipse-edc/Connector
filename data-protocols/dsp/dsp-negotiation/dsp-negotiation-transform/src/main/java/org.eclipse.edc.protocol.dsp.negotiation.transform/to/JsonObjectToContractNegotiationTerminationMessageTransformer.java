@@ -47,7 +47,7 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
         if (reasons != null) {
             var result = typeValueArray(reasons, context);
             if (result == null) {
-                context.reportProblem(format("Cannot transform property %s", DSPACE_NEGOTIATION_PROPERTY_REASON));
+                context.reportProblem(format("Cannot transform property %s in ContractNegotiationTerminationMessage", DSPACE_NEGOTIATION_PROPERTY_REASON));
             } else {
                 if (result.size() > 0) builder.rejectionReason(String.valueOf(result.get(0)));
             }

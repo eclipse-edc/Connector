@@ -78,7 +78,7 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
             case TERMINATED:
                 return DSPACE_NEGOTIATION_STATE_TERMINATED;
             default:
-                context.reportProblem(String.format("Could not map state %s", state));
+                context.reportProblem(String.format("Could not map state %s in ContractNegotiation", state));
                 return null;
         }
     }
