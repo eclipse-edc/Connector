@@ -96,7 +96,7 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 titaniumJsonLd = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium" }
 
 # Azure dependencies
-azure-cosmos = { group = "com.azure", name = "azure-cosmos", version = "4.43.0" }
+azure-cosmos = { group = "com.azure", name = "azure-cosmos", version = "4.44.0" }
 azure-eventgrid = { group = "com.azure", name = "azure-messaging-eventgrid", version = "4.15.0" }
 azure-identity = { group = "com.azure", name = "azure-identity", version = "1.8.2" }
 azure-keyvault = { group = "com.azure", name = "azure-security-keyvault-secrets", version = "4.6.1" }
