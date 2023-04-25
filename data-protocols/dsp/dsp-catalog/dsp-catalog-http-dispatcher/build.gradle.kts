@@ -25,4 +25,6 @@ dependencies {
     api(project(":spi:common:catalog-spi"))
 
     api(libs.jakartaJson)
+
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-http-spi")))
 }

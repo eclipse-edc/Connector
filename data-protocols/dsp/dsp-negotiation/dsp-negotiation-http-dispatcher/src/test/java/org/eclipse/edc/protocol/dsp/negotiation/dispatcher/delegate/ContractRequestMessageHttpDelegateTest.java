@@ -14,13 +14,10 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okio.Buffer;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
@@ -29,8 +26,8 @@ import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
-import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
+import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +37,6 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
@@ -50,17 +46,12 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropert
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ContractRequestMessageHttpDelegateTest {
-    
-    private final JsonLdRemoteMessageSerializer serializer = mock(JsonLdRemoteMessageSerializer.class);
-    private final ObjectMapper mapper = mock(ObjectMapper.class);
+class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractRequestMessage> {
 
     private ContractRequestMessageHttpDelegate delegate;
 
@@ -76,41 +67,18 @@ class ContractRequestMessageHttpDelegateTest {
 
     @Test
     void buildRequest_initial() throws IOException {
-        var message = message_initial();
-        var serializedBody = "message";
-    
-        when(serializer.serialize(eq(message), any(JsonObject.class))).thenReturn(serializedBody);
-        
-        var httpRequest = delegate.buildRequest(message);
-
-        assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + INITIAL_CONTRACT_REQUEST);
-        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-    
-        verify(serializer, times(1)).serialize(eq(message), any(JsonObject.class));
+        testBuildRequest_shouldReturnRequest(message_initial(), BASE_PATH + INITIAL_CONTRACT_REQUEST);
     }
 
     @Test
     void buildRequest() throws IOException {
         var message = message();
-        var serializedBody = "message";
-    
-        when(serializer.serialize(eq(message), any(JsonObject.class))).thenReturn(serializedBody);
-        
-        var httpRequest = delegate.buildRequest(message);
-
-        assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + CONTRACT_REQUEST);
-        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-    
-        verify(serializer, times(1)).serialize(eq(message), any(JsonObject.class));
+        testBuildRequest_shouldReturnRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_REQUEST);
     }
 
     @Test
     void buildRequest_serializationFails_throwException() {
-        var message = message();
-    
-        when(serializer.serialize(eq(message), any(JsonObject.class))).thenThrow(EdcException.class);
-    
-        assertThatThrownBy(() -> delegate.buildRequest(message)).isInstanceOf(EdcException.class);
+        testBuildRequest_shouldThrowException_whenSerializationFails(message());
     }
 
     @Test
@@ -133,11 +101,12 @@ class ContractRequestMessageHttpDelegateTest {
 
     @Test
     void parseResponse_responseBodyNull_throwException() {
-        var response = mock(Response.class);
-
-        when(response.body()).thenReturn(null);
-
-        assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
+        testParseResponse_shouldThrowException_whenResponseBodyNull();
+    }
+    
+    @Test
+    void parseResponse_readingResponseBodyFails_throwException() throws IOException {
+        testParseResponse_shouldThrowException_whenReadingResponseBodyFails();
     }
 
     private ContractRequestMessage message() {
@@ -197,10 +166,9 @@ class ContractRequestMessageHttpDelegateTest {
 
         return builder.build();
     }
-
-    private String readRequestBody(Request request) throws IOException {
-        var buffer = new Buffer();
-        request.body().writeTo(buffer);
-        return buffer.readUtf8();
+    
+    @Override
+    protected DspHttpDispatcherDelegate<ContractRequestMessage, ?> delegate() {
+        return delegate;
     }
 }

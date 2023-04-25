@@ -25,4 +25,6 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
 
     api(libs.jakartaJson)
+
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-http-spi")))
 }

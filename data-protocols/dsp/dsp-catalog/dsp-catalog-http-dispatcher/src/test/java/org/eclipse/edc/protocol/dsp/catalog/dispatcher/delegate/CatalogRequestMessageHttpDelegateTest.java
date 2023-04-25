@@ -14,17 +14,14 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okio.Buffer;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
+import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
+import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -46,11 +43,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CatalogRequestMessageHttpDelegateTest {
-    
-    private final JsonLdRemoteMessageSerializer serializer = mock(JsonLdRemoteMessageSerializer.class);
-    private final ObjectMapper mapper = mock(ObjectMapper.class);
-    private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
+class CatalogRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<CatalogRequestMessage> {
 
     private CatalogRequestHttpDelegate delegate;
 
@@ -66,26 +59,12 @@ class CatalogRequestMessageHttpDelegateTest {
 
     @Test
     void buildRequest_returnRequest() throws IOException {
-        var message = getCatalogRequest();
-        var serializedBody = "catalog request";
-    
-        when(serializer.serialize(eq(message), any(JsonObject.class))).thenReturn(serializedBody);
-        
-        var httpRequest = delegate.buildRequest(message);
-
-        assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + CATALOG_REQUEST);
-        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-    
-        verify(serializer, times(1)).serialize(eq(message), any(JsonObject.class));
+        testBuildRequest_shouldReturnRequest(message(), BASE_PATH + CATALOG_REQUEST);
     }
 
     @Test
-    void buildRequest_serializationFails_throwException() {
-        var message = getCatalogRequest();
-    
-        when(serializer.serialize(eq(message), any(JsonObject.class))).thenThrow(EdcException.class);
-    
-        assertThatThrownBy(() -> delegate.buildRequest(message)).isInstanceOf(EdcException.class);
+    void buildRequest_serializationFails_throwException() throws IOException {
+        testBuildRequest_shouldReturnRequest(message(), BASE_PATH + CATALOG_REQUEST);
     }
 
     @Test
@@ -124,23 +103,12 @@ class CatalogRequestMessageHttpDelegateTest {
 
     @Test
     void parseResponse_readingResponseBodyFails_throwException() throws IOException {
-        var response = mock(Response.class);
-        var responseBody = mock(ResponseBody.class);
-
-        when(response.body()).thenReturn(responseBody);
-        when(responseBody.bytes()).thenReturn("test".getBytes());
-        when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenThrow(IOException.class);
-
-        assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
+        testParseResponse_shouldThrowException_whenReadingResponseBodyFails();
     }
 
     @Test
-    void parseResponse_responseBodyNull_throwException() throws IOException {
-        var response = mock(Response.class);
-
-        when(response.body()).thenReturn(null);
-
-        assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
+    void parseResponse_responseBodyNull_throwException() {
+        testParseResponse_shouldThrowException_whenResponseBodyNull();
     }
 
     @Test
@@ -166,7 +134,7 @@ class CatalogRequestMessageHttpDelegateTest {
                 .build();
     }
 
-    private CatalogRequestMessage getCatalogRequest() {
+    private CatalogRequestMessage message() {
         return CatalogRequestMessage.Builder.newInstance()
                 .callbackAddress("http://connector")
                 .connectorId("connector-id")
@@ -174,11 +142,9 @@ class CatalogRequestMessageHttpDelegateTest {
                 .querySpec(QuerySpec.max())
                 .build();
     }
-
-    private String readRequestBody(Request request) throws IOException {
-        var buffer = new Buffer();
-        request.body().writeTo(buffer);
-        return buffer.readUtf8();
+    
+    @Override
+    protected DspHttpDispatcherDelegate<CatalogRequestMessage, ?> delegate() {
+        return delegate;
     }
-
 }
