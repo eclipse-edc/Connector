@@ -72,7 +72,7 @@ class CatalogRequestMessageHttpDelegateTest {
                 .build();
         var serializedBody = "catalog request";
 
-        when(registry.transform(isA(org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage.class), eq(JsonObject.class)))
+        when(registry.transform(isA(CatalogRequestMessage.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(jsonObject));
         when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(serializedBody);
 
@@ -83,14 +83,14 @@ class CatalogRequestMessageHttpDelegateTest {
         assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
 
         verify(registry, times(1))
-                .transform(argThat(requestMessage -> ((org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage) requestMessage).getFilter().equals(message.getQuerySpec())), eq(JsonObject.class));
+                .transform(argThat(requestMessage -> ((CatalogRequestMessage) requestMessage).getQuerySpec().equals(message.getQuerySpec())), eq(JsonObject.class));
         verify(mapper, times(1))
                 .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
     }
 
     @Test
     void buildRequest_transformationFails_throwException() {
-        when(registry.transform(isA(org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage.class), eq(JsonObject.class)))
+        when(registry.transform(isA(CatalogRequestMessage.class), eq(JsonObject.class)))
                 .thenReturn(Result.failure("error"));
 
         var message = getCatalogRequest();

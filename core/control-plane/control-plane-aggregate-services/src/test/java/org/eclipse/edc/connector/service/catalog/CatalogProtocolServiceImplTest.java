@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.service.catalog;
 
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.catalog.spi.protocol.CatalogRequestMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
@@ -51,7 +51,7 @@ class CatalogProtocolServiceImplTest {
     @Test
     void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
         var querySpec = QuerySpec.none();
-        var message = CatalogRequestMessage.Builder.newInstance().filter(querySpec).build();
+        var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
         var token = ClaimToken.Builder.newInstance().build();
         var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
         var dataService = DataService.Builder.newInstance().build();
