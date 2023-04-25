@@ -63,8 +63,8 @@ class CatalogRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTes
     }
 
     @Test
-    void buildRequest_serializationFails_throwException() throws IOException {
-        testBuildRequest_shouldReturnRequest(message(), BASE_PATH + CATALOG_REQUEST);
+    void buildRequest_serializationFails_throwException() {
+        testBuildRequest_shouldThrowException_whenSerializationFails(message());
     }
 
     @Test
