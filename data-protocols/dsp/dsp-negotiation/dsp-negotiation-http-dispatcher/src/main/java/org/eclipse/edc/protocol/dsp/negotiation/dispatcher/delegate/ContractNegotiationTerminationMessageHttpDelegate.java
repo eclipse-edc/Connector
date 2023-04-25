@@ -16,9 +16,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -34,14 +32,10 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.T
 /**
  * Delegate for dispatching contract negotiation termination message as defined in the dataspace protocol specification.
  */
-public class ContractNegotiationTerminationMessageHttpDelegate implements DspHttpDispatcherDelegate<ContractNegotiationTerminationMessage, Object> {
-
-    private static final String APPLICATION_JSON = "application/json";
-    
-    private JsonLdRemoteMessageSerializer serializer;
+public class ContractNegotiationTerminationMessageHttpDelegate extends DspHttpDispatcherDelegate<ContractNegotiationTerminationMessage, Object> {
 
     public ContractNegotiationTerminationMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer) {
-        this.serializer = serializer;
+        super(serializer);
     }
 
     @Override
@@ -59,14 +53,7 @@ public class ContractNegotiationTerminationMessageHttpDelegate implements DspHtt
      */
     @Override
     public Request buildRequest(ContractNegotiationTerminationMessage message) {
-        var body = serializer.serialize(message, jsonLdContext());
-        var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
-    
-        return new Request.Builder()
-                .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TERMINATION)
-                .header("Content-Type", APPLICATION_JSON)
-                .post(requestBody)
-                .build();
+        return buildRequest(message, BASE_PATH + message.getProcessId() + TERMINATION, jsonLdContext());
     }
 
     /**

@@ -24,6 +24,7 @@ import okio.Buffer;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -37,10 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.CATALOG_REQUEST;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -49,7 +47,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CatalogRequestMessageHttpDelegateTest {
-
+    
+    private final JsonLdRemoteMessageSerializer serializer = mock(JsonLdRemoteMessageSerializer.class);
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
 
@@ -57,7 +56,7 @@ class CatalogRequestMessageHttpDelegateTest {
 
     @BeforeEach
     void setUp() {
-        delegate = new CatalogRequestHttpDelegate(mapper, registry);
+        delegate = new CatalogRequestHttpDelegate(serializer, mapper, registry);
     }
 
     @Test
@@ -67,33 +66,25 @@ class CatalogRequestMessageHttpDelegateTest {
 
     @Test
     void buildRequest_returnRequest() throws IOException {
-        var jsonObject = Json.createObjectBuilder()
-                .add(DSPACE_SCHEMA + "key", "value")
-                .build();
-        var serializedBody = "catalog request";
-
-        when(registry.transform(isA(CatalogRequestMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.success(jsonObject));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(serializedBody);
-
         var message = getCatalogRequest();
+        var serializedBody = "catalog request";
+    
+        when(serializer.serialize(eq(message), any(JsonObject.class))).thenReturn(serializedBody);
+        
         var httpRequest = delegate.buildRequest(message);
 
         assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + CATALOG_REQUEST);
         assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-
-        verify(registry, times(1))
-                .transform(argThat(requestMessage -> ((CatalogRequestMessage) requestMessage).getQuerySpec().equals(message.getQuerySpec())), eq(JsonObject.class));
-        verify(mapper, times(1))
-                .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
+    
+        verify(serializer, times(1)).serialize(eq(message), any(JsonObject.class));
     }
 
     @Test
-    void buildRequest_transformationFails_throwException() {
-        when(registry.transform(isA(CatalogRequestMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.failure("error"));
-
+    void buildRequest_serializationFails_throwException() {
         var message = getCatalogRequest();
+    
+        when(serializer.serialize(eq(message), any(JsonObject.class))).thenThrow(EdcException.class);
+    
         assertThatThrownBy(() -> delegate.buildRequest(message)).isInstanceOf(EdcException.class);
     }
 

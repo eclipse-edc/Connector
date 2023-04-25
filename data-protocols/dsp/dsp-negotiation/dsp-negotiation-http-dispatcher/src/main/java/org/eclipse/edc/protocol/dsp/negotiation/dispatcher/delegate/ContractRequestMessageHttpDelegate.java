@@ -17,9 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -41,15 +39,12 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.I
 /**
  * Delegate for dispatching contract request message as defined in the dataspace protocol specification.
  */
-public class ContractRequestMessageHttpDelegate implements DspHttpDispatcherDelegate<ContractRequestMessage, Object> {
-
-    private static final String APPLICATION_JSON = "application/json";
+public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegate<ContractRequestMessage, Object> {
     
-    private JsonLdRemoteMessageSerializer serializer;
     private ObjectMapper mapper;
 
     public ContractRequestMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper) {
-        this.serializer = serializer;
+        super(serializer);
         this.mapper = mapper;
     }
 
@@ -67,21 +62,10 @@ public class ContractRequestMessageHttpDelegate implements DspHttpDispatcherDele
      */
     @Override
     public Request buildRequest(ContractRequestMessage message) {
-        var body = serializer.serialize(message, jsonLdContext());
-        var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
-    
         if (message.getType() == ContractRequestMessage.Type.INITIAL) {
-            return new Request.Builder()
-                    .url(message.getCallbackAddress() + BASE_PATH + INITIAL_CONTRACT_REQUEST)
-                    .header("Content-Type", "application/json")
-                    .post(requestBody)
-                    .build();
+            return buildRequest(message, BASE_PATH + INITIAL_CONTRACT_REQUEST, jsonLdContext());
         } else {
-            return new Request.Builder()
-                    .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + CONTRACT_REQUEST)
-                    .header("Content-Type", "application/json")
-                    .post(requestBody)
-                    .build();
+            return buildRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_REQUEST, jsonLdContext());
         }
     }
 

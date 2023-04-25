@@ -14,17 +14,13 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.Request;
 import okhttp3.Response;
 import okio.Buffer;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,30 +28,24 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.TERMINATION;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractNegotiationTerminationMessageHttpDelegateTest {
-
-    private final ObjectMapper mapper = mock(ObjectMapper.class);
-    private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
+    
+    private final JsonLdRemoteMessageSerializer serializer = mock(JsonLdRemoteMessageSerializer.class);
 
     private ContractNegotiationTerminationMessageHttpDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        delegate = new ContractNegotiationTerminationMessageHttpDelegate(mapper, registry);
+        delegate = new ContractNegotiationTerminationMessageHttpDelegate(serializer);
     }
 
     @Test
@@ -65,35 +55,26 @@ class ContractNegotiationTerminationMessageHttpDelegateTest {
 
     @Test
     void buildRequest() throws IOException {
-        var jsonObject = Json.createObjectBuilder().add(DSPACE_SCHEMA + "key", "value").build();
-        var serializedBody = "message";
-
-        when(registry.transform(isA(ContractNegotiationTerminationMessage.class), eq(JsonObject.class))).thenReturn(Result.success(jsonObject));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(serializedBody);
-
         var message = message();
+        var serializedBody = "message";
+    
+        when(serializer.serialize(eq(message), any(JsonObject.class))).thenReturn(serializedBody);
+
         var httpRequest = delegate.buildRequest(message);
 
         assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TERMINATION);
         assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-
-        verify(registry, times(1)).transform(any(ContractNegotiationTerminationMessage.class), eq(JsonObject.class));
-        verify(mapper, times(1)).writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
+    
+        verify(serializer, times(1)).serialize(eq(message), any(JsonObject.class));
     }
 
     @Test
-    void buildRequest_transformationFails_throwException() {
-        when(registry.transform(any(ContractNegotiationTerminationMessage.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-
-        assertThatThrownBy(() -> delegate.buildRequest(message())).isInstanceOf(EdcException.class);
-    }
-
-    @Test
-    void buildRequest_writingJsonFails_throwException() throws JsonProcessingException {
-        when(registry.transform(any(ContractNegotiationTerminationMessage.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JsonProcessingException.class);
-
-        assertThatThrownBy(() -> delegate.buildRequest(message())).isInstanceOf(EdcException.class);
+    void buildRequest_serializationFails_throwException() {
+        var message = message();
+    
+        when(serializer.serialize(eq(message), any(JsonObject.class))).thenThrow(EdcException.class);
+    
+        assertThatThrownBy(() -> delegate.buildRequest(message)).isInstanceOf(EdcException.class);
     }
 
     @Test

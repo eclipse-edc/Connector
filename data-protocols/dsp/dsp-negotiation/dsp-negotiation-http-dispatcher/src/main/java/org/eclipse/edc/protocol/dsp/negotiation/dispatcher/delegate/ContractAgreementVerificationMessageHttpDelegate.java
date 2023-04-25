@@ -16,9 +16,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -35,14 +33,10 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.V
 /**
  * Delegate for dispatching contract agreement verification message as defined in the dataspace protocol specification.
  */
-public class ContractAgreementVerificationMessageHttpDelegate implements DspHttpDispatcherDelegate<ContractAgreementVerificationMessage, Object> {
-
-    private static final String APPLICATION_JSON = "application/json";
-    
-    private JsonLdRemoteMessageSerializer serializer;
+public class ContractAgreementVerificationMessageHttpDelegate extends DspHttpDispatcherDelegate<ContractAgreementVerificationMessage, Object> {
 
     public ContractAgreementVerificationMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer) {
-        this.serializer = serializer;
+        super(serializer);
     }
 
     @Override
@@ -60,14 +54,7 @@ public class ContractAgreementVerificationMessageHttpDelegate implements DspHttp
      */
     @Override
     public Request buildRequest(ContractAgreementVerificationMessage message) {
-        var body = serializer.serialize(message, jsonLdContext());
-        var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
-        
-        return new Request.Builder()
-                .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + AGREEMENT + VERIFICATION)
-                .header("Content-Type", APPLICATION_JSON)
-                .post(requestBody)
-                .build();
+        return buildRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT + VERIFICATION, jsonLdContext());
     }
 
     /**

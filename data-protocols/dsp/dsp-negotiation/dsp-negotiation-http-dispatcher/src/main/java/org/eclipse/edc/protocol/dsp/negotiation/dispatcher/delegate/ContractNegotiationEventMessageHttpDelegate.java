@@ -16,9 +16,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -34,14 +32,10 @@ import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.E
 /**
  * Delegate for dispatching contract negotiation event message as defined in the dataspace protocol specification.
  */
-public class ContractNegotiationEventMessageHttpDelegate implements DspHttpDispatcherDelegate<ContractNegotiationEventMessage, Object> {
-    
-    private static final String APPLICATION_JSON = "application/json";
-    
-    private JsonLdRemoteMessageSerializer serializer;
+public class ContractNegotiationEventMessageHttpDelegate extends DspHttpDispatcherDelegate<ContractNegotiationEventMessage, Object> {
 
     public ContractNegotiationEventMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer) {
-        this.serializer = serializer;
+        super(serializer);
     }
 
     @Override
@@ -59,14 +53,7 @@ public class ContractNegotiationEventMessageHttpDelegate implements DspHttpDispa
      */
     @Override
     public Request buildRequest(ContractNegotiationEventMessage message) {
-        var body = serializer.serialize(message, jsonLdContext());
-        var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
-        
-        return new Request.Builder()
-                .url(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + EVENT)
-                .header("Content-Type", APPLICATION_JSON)
-                .post(requestBody)
-                .build();
+        return buildRequest(message, BASE_PATH + message.getProcessId() + EVENT, jsonLdContext());
     }
 
     /**
