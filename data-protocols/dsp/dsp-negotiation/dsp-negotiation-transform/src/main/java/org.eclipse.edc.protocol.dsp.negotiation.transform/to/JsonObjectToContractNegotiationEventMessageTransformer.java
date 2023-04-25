@@ -35,44 +35,32 @@ import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPA
  */
 public class JsonObjectToContractNegotiationEventMessageTransformer extends AbstractJsonLdTransformer<JsonObject, ContractNegotiationEventMessage> {
 
-    private TransformerContext context;
-    private ContractNegotiationEventMessage.Type eventType;
-
     public JsonObjectToContractNegotiationEventMessageTransformer() {
         super(JsonObject.class, ContractNegotiationEventMessage.class);
     }
 
     @Override
     public @Nullable ContractNegotiationEventMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        this.context = context;
 
         var builder = ContractNegotiationEventMessage.Builder.newInstance();
         builder.protocol(DATASPACE_PROTOCOL_HTTP);
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM), builder::checksum, context);
 
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE), this::type, context);
-
-        if (eventType == null) {
-            return null;
-        }
-
-        builder.type(eventType);
+        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE), (value) -> {
+            switch (value) {
+                case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED:
+                    builder.type(ACCEPTED);
+                    break;
+                case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED:
+                    builder.type(FINALIZED);
+                    break;
+                default:
+                    context.reportProblem(String.format("Could not map type %s", value));
+            }
+        }, context);
 
         return builder.build();
-    }
-
-    private void type(String type) {
-        switch (type) {
-            case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED:
-                eventType = ACCEPTED;
-                break;
-            case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED:
-                eventType = FINALIZED;
-                break;
-            default:
-                context.reportProblem(String.format("Could not map type %s", type));
-        }
     }
 
 }
