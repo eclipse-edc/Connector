@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.negotiation.transform;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementVerificationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationEventMessageTransformer;

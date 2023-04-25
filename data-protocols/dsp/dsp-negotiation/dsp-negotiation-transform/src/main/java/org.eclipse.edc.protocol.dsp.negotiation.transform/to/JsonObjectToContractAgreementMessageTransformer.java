@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
-import org.eclipse.edc.jsonld.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;

@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
-import org.eclipse.edc.jsonld.JsonLdKeywords;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
