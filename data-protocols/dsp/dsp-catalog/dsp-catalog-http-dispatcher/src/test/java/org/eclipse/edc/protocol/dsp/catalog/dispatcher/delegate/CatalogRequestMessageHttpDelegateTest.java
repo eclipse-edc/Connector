@@ -14,16 +14,14 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okio.Buffer;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
+import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -37,10 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.spi.CatalogApiPaths.CATALOG_REQUEST;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -48,16 +43,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CatalogRequestMessageHttpDelegateTest {
-
-    private final ObjectMapper mapper = mock(ObjectMapper.class);
-    private final JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
+class CatalogRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<CatalogRequestMessage> {
 
     private CatalogRequestHttpDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        delegate = new CatalogRequestHttpDelegate(mapper, registry);
+        delegate = new CatalogRequestHttpDelegate(serializer, mapper, registry);
     }
 
     @Test
@@ -67,34 +59,12 @@ class CatalogRequestMessageHttpDelegateTest {
 
     @Test
     void buildRequest_returnRequest() throws IOException {
-        var jsonObject = Json.createObjectBuilder()
-                .add(DSPACE_SCHEMA + "key", "value")
-                .build();
-        var serializedBody = "catalog request";
-
-        when(registry.transform(isA(CatalogRequestMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.success(jsonObject));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(serializedBody);
-
-        var message = getCatalogRequest();
-        var httpRequest = delegate.buildRequest(message);
-
-        assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + CATALOG_REQUEST);
-        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-
-        verify(registry, times(1))
-                .transform(argThat(requestMessage -> ((CatalogRequestMessage) requestMessage).getQuerySpec().equals(message.getQuerySpec())), eq(JsonObject.class));
-        verify(mapper, times(1))
-                .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
+        testBuildRequest_shouldReturnRequest(message(), BASE_PATH + CATALOG_REQUEST);
     }
 
     @Test
-    void buildRequest_transformationFails_throwException() {
-        when(registry.transform(isA(CatalogRequestMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.failure("error"));
-
-        var message = getCatalogRequest();
-        assertThatThrownBy(() -> delegate.buildRequest(message)).isInstanceOf(EdcException.class);
+    void buildRequest_serializationFails_throwException() {
+        testBuildRequest_shouldThrowException_whenSerializationFails(message());
     }
 
     @Test
@@ -133,23 +103,12 @@ class CatalogRequestMessageHttpDelegateTest {
 
     @Test
     void parseResponse_readingResponseBodyFails_throwException() throws IOException {
-        var response = mock(Response.class);
-        var responseBody = mock(ResponseBody.class);
-
-        when(response.body()).thenReturn(responseBody);
-        when(responseBody.bytes()).thenReturn("test".getBytes());
-        when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenThrow(IOException.class);
-
-        assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
+        testParseResponse_shouldThrowException_whenReadingResponseBodyFails();
     }
 
     @Test
-    void parseResponse_responseBodyNull_throwException() throws IOException {
-        var response = mock(Response.class);
-
-        when(response.body()).thenReturn(null);
-
-        assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
+    void parseResponse_responseBodyNull_throwException() {
+        testParseResponse_shouldThrowException_whenResponseBodyNull();
     }
 
     @Test
@@ -175,7 +134,7 @@ class CatalogRequestMessageHttpDelegateTest {
                 .build();
     }
 
-    private CatalogRequestMessage getCatalogRequest() {
+    private CatalogRequestMessage message() {
         return CatalogRequestMessage.Builder.newInstance()
                 .callbackAddress("http://connector")
                 .connectorId("connector-id")
@@ -183,11 +142,9 @@ class CatalogRequestMessageHttpDelegateTest {
                 .querySpec(QuerySpec.max())
                 .build();
     }
-
-    private String readRequestBody(Request request) throws IOException {
-        var buffer = new Buffer();
-        request.body().writeTo(buffer);
-        return buffer.readUtf8();
+    
+    @Override
+    protected DspHttpDispatcherDelegate<CatalogRequestMessage, ?> delegate() {
+        return delegate;
     }
-
 }

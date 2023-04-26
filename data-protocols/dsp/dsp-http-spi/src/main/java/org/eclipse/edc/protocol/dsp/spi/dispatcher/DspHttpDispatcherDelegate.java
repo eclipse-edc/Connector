@@ -14,8 +14,12 @@
 
 package org.eclipse.edc.protocol.dsp.spi.dispatcher;
 
+import jakarta.json.JsonObject;
+import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.function.Function;
@@ -26,14 +30,22 @@ import java.util.function.Function;
  * @param <M> the type of message
  * @param <R> the response type
  */
-public interface DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
+public abstract class DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
+    
+    private static final String APPLICATION_JSON = "application/json";
+    
+    private JsonLdRemoteMessageSerializer serializer;
+    
+    protected DspHttpDispatcherDelegate(JsonLdRemoteMessageSerializer serializer) {
+        this.serializer = serializer;
+    }
     
     /**
      * Returns the type of {@link RemoteMessage} this delegate can handle.
      *
      * @return the message type
      */
-    Class<M> getMessageType();
+    public abstract Class<M> getMessageType();
     
     /**
      * Builds the HTTP request for the message including method, URL, body and headers. The
@@ -42,13 +54,24 @@ public interface DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
      * @param message the message
      * @return the request builder
      */
-    Request buildRequest(M message);
+    public abstract Request buildRequest(M message);
+    
+    protected Request buildRequest(M message, String path, JsonObject jsonLdContext) {
+        var body = serializer.serialize(message, jsonLdContext);
+        var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
+    
+        return new Request.Builder()
+                .url(message.getCallbackAddress() + path)
+                .header("Content-Type", APPLICATION_JSON)
+                .post(requestBody)
+                .build();
+    }
     
     /**
      * Parses the response to return an instance of the expected response type.
      *
      * @return the parsed response
      */
-    Function<Response, R> parseResponse();
+    public abstract Function<Response, R> parseResponse();
     
 }

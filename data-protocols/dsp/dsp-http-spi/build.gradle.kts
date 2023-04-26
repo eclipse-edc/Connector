@@ -14,9 +14,16 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
     api(project(":spi:common:core-spi"))
     api(libs.okhttp)
+    api(libs.jakartaJson)
+
+    testFixturesApi(project(":core:common:junit"))
+    testFixturesApi(project(":spi:common:json-ld-spi"))
+    testFixturesImplementation(libs.mockito.core)
+    testFixturesImplementation(libs.assertj)
 }

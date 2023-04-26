@@ -17,12 +17,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-spi"))
-    api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
+    api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-spi"))
+    api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform"))
     api(project(":data-protocols:dsp:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":extensions:common:json-ld"))
-    api(project(":spi:common:catalog-spi"))
+    api(project(":spi:control-plane:contract-spi"))
 
     api(libs.jakartaJson)
 
