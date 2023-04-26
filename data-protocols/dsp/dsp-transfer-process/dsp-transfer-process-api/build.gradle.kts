@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":data-protocols:dsp:dsp-transform"))
     implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
-    implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-spi"))
 
     implementation(libs.jakarta.rsApi)
 

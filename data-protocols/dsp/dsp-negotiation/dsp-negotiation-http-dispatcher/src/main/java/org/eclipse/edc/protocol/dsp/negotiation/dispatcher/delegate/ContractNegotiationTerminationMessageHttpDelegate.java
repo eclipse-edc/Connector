@@ -24,10 +24,10 @@ import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSeriali
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.TERMINATION;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 
 /**
  * Delegate for dispatching contract negotiation termination message as defined in the dataspace protocol specification.
