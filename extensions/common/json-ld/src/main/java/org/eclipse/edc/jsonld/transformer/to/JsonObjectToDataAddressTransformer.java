@@ -30,6 +30,10 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  * Converts from an {@link DataAddress} as a {@link JsonObject} in JSON-LD expanded form to an {@link DataAddress}.
  */
 public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransformer<JsonObject, DataAddress> {
+
+    //TODO: move into a module-level constants file
+    public static final String PROPERTIES_KEY = EDC_NAMESPACE + "properties";
+
     public JsonObjectToDataAddressTransformer() {
         super(JsonObject.class, DataAddress.class);
     }
@@ -42,7 +46,7 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
     }
 
     private void transformProperties(String key, JsonValue jsonValue, DataAddress.Builder builder, TransformerContext context) {
-        if ((EDC_NAMESPACE + "properties").equals(key) && jsonValue instanceof JsonArray) {
+        if ((PROPERTIES_KEY).equals(key) && jsonValue instanceof JsonArray) {
             var props = jsonValue.asJsonArray().getJsonObject(0);
             visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
         } else {
