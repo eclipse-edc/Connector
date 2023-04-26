@@ -15,9 +15,9 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher;
 
 
-import org.eclipse.edc.jsonld.JsonLdExtension;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
+import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferCompletionDelegate;
 import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferRequestDelegate;
 import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferStartDelegate;
@@ -27,6 +27,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+
+import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
 
 /**
@@ -43,6 +45,8 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
+    private JsonLdRemoteMessageSerializer remoteMessageSerializer;
+    @Inject
     private JsonLdTransformerRegistry transformerRegistry;
 
     @Override
@@ -52,12 +56,9 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var objectMapper = typeManager.getMapper(JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD);
-
-        messageDispatcher.registerDelegate(new TransferRequestDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new TransferCompletionDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new TransferStartDelegate(objectMapper, transformerRegistry));
-        messageDispatcher.registerDelegate(new TransferTerminationDelegate(objectMapper, transformerRegistry));
-
+        messageDispatcher.registerDelegate(new TransferRequestDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), transformerRegistry));
+        messageDispatcher.registerDelegate(new TransferCompletionDelegate(remoteMessageSerializer));
+        messageDispatcher.registerDelegate(new TransferStartDelegate(remoteMessageSerializer));
+        messageDispatcher.registerDelegate(new TransferTerminationDelegate(remoteMessageSerializer));
     }
 }

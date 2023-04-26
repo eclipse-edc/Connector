@@ -21,8 +21,6 @@ public interface DspTransferProcessPropertyAndTypeNames {
     
     String DSPACE_PREFIX = "dspace";
 
-    String DSPACE_PREFIX = "dspace";
-
     String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
 
     String DSPACE_TRANSFERPROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferRequestMessage";

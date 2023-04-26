@@ -14,108 +14,58 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import okhttp3.Request;
-import okhttp3.Response;
-import okio.Buffer;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
+import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_START;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-class TransferStartDelegateTest {
+class TransferStartDelegateTest extends DspHttpDispatcherDelegateTestBase<TransferStartMessage> {
 
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
-
-    private TransferStartDelegate startDelegate;
+    private TransferStartDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        startDelegate = new TransferStartDelegate(mapper, registry);
+        delegate = new TransferStartDelegate(serializer);
     }
 
     @Test
-    void getMessageType_returnCatalogRequest() {
-        assertThat(startDelegate.getMessageType()).isEqualTo(TransferStartMessage.class);
+    void getMessageType() {
+        assertThat(delegate.getMessageType()).isEqualTo(TransferStartMessage.class);
     }
 
     @Test
-    void buildRequest_returnRequest() throws IOException {
-        var jsonObject = Json.createObjectBuilder()
-                .add(DSPACE_SCHEMA + "key", "value")
-                .build();
-        var requestBody = "request body";
-        
-        when(registry.transform(any(TransferStartMessage.class), eq(JsonObject.class))).thenReturn(Result.success(jsonObject));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(requestBody);
-        
-        var message = getTransferStartMessage();
-        var request = startDelegate.buildRequest(message);
-        
-        assertThat(request.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + message.getProcessId() + TRANSFER_START);
-        assertThat(readRequestBody(request)).isEqualTo(requestBody);
-        
-        verify(registry, times(1)).transform(any(TransferStartMessage.class), eq(JsonObject.class));
-        verify(mapper, times(1))
-                .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
+    void buildRequest() throws IOException {
+        var message = message();
+        testBuildRequest_shouldReturnRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_START);
     }
-    
+
     @Test
-    void buildRequest_transformationFails_throwException() {
-        when(registry.transform(any(TransferStartMessage.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-        
-        assertThatThrownBy(() -> startDelegate.buildRequest(getTransferStartMessage())).isInstanceOf(EdcException.class);
+    void buildRequest_serializationFails_throwException() {
+        testBuildRequest_shouldThrowException_whenSerializationFails(message());
     }
-    
-    @Test
-    void buildRequest_writingJsonFails_throwException() throws JsonProcessingException {
-        when(registry.transform(any(TransferStartMessage.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JsonProcessingException.class);
-    
-        assertThatThrownBy(() -> startDelegate.buildRequest(getTransferStartMessage())).isInstanceOf(EdcException.class);
-    }
-    
+
     @Test
     void parseResponse_returnNull() {
-        var response = mock(Response.class);
-        
-        assertThat(startDelegate.parseResponse().apply(response)).isNull();
+        testParseResponse_shouldReturnNullFunction_whenResponseBodyNotProcessed();
     }
 
-    private TransferStartMessage getTransferStartMessage() {
+    private TransferStartMessage message() {
         return TransferStartMessage.Builder.newInstance()
                 .processId("testId")
                 .protocol("dataspace-protocol")
                 .callbackAddress("http://test-connector-address")
                 .build();
     }
-    
-    private String readRequestBody(Request request) throws IOException {
-        var buffer = new Buffer();
-        request.body().writeTo(buffer);
-        return buffer.readUtf8();
+
+    @Override
+    protected DspHttpDispatcherDelegate<TransferStartMessage, ?> delegate() {
+        return delegate;
     }
 }

@@ -14,17 +14,16 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okio.Buffer;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
+import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -35,13 +34,10 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.jsonld.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -49,57 +45,32 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class TransferRequestDelegateTest {
+class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<TransferRequestMessage> {
 
     private ObjectMapper mapper = mock(ObjectMapper.class);
     private JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
 
-    private TransferRequestDelegate requestDelegate;
+    private TransferRequestDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        requestDelegate = new TransferRequestDelegate(mapper, registry);
+        delegate = new TransferRequestDelegate(serializer, mapper, registry);
     }
 
     @Test
-    void getMessageType_returnCatalogRequest() {
-        assertThat(requestDelegate.getMessageType()).isEqualTo(TransferRequestMessage.class);
+    void getMessageType() {
+        assertThat(delegate.getMessageType()).isEqualTo(TransferRequestMessage.class);
     }
 
     @Test
-    void buildRequest_returnRequest() throws IOException {
-        var jsonObject = Json.createObjectBuilder()
-                .add(DSPACE_SCHEMA + "key", "value")
-                .build();
-        var requestBody = "request body";
-        
-        when(registry.transform(any(TransferRequestMessage.class), eq(JsonObject.class))).thenReturn(Result.success(jsonObject));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(requestBody);
-        
-        var message = getTransferRequestMessage();
-        var request = requestDelegate.buildRequest(message);
-        
-        assertThat(request.url().url()).hasToString(message.getCallbackAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST);
-        assertThat(readRequestBody(request)).isEqualTo(requestBody);
-        
-        verify(registry, times(1)).transform(any(TransferRequestMessage.class), eq(JsonObject.class));
-        verify(mapper, times(1))
-                .writeValueAsString(argThat(json -> ((JsonObject) json).get(CONTEXT) != null && ((JsonObject) json).get(DSPACE_PREFIX + ":key") != null));
+    void buildRequest() throws IOException {
+        var message = message();
+        testBuildRequest_shouldReturnRequest(message, BASE_PATH + TRANSFER_INITIAL_REQUEST);
     }
-    
+
     @Test
-    void buildRequest_transformationFails_throwException() {
-        when(registry.transform(any(TransferRequestMessage.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-        
-        assertThatThrownBy(() -> requestDelegate.buildRequest(getTransferRequestMessage())).isInstanceOf(EdcException.class);
-    }
-    
-    @Test
-    void buildRequest_writingJsonFails_throwException() throws JsonProcessingException {
-        when(registry.transform(any(TransferRequestMessage.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JsonProcessingException.class);
-        
-        assertThatThrownBy(() -> requestDelegate.buildRequest(getTransferRequestMessage())).isInstanceOf(EdcException.class);
+    void buildRequest_serializationFails_throwException() {
+        testBuildRequest_shouldThrowException_whenSerializationFails(message());
     }
     
     @Test
@@ -115,7 +86,7 @@ class TransferRequestDelegateTest {
         when(mapper.readValue(bytes, JsonObject.class)).thenReturn(jsonObject);
         when(registry.transform(any(JsonObject.class), eq(TransferProcess.class))).thenReturn(Result.success(transferProcess));
     
-        var result = requestDelegate.parseResponse().apply(response);
+        var result = delegate.parseResponse().apply(response);
     
         assertThat(result).isEqualTo(transferProcess);
         verify(mapper, times(1)).readValue(bytes, JsonObject.class);
@@ -133,29 +104,9 @@ class TransferRequestDelegateTest {
         when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenReturn(jsonObject);
         when(registry.transform(any(JsonObject.class), eq(TransferProcess.class))).thenReturn(Result.failure("error"));
     
-        assertThatThrownBy(() -> requestDelegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
     }
-    
-    @Test
-    void parseResponse_readingResponseBodyFails_throwException() throws IOException {
-        var response = mock(Response.class);
-        var responseBody = mock(ResponseBody.class);
-        
-        when(response.body()).thenReturn(responseBody);
-        when(responseBody.bytes()).thenReturn("test".getBytes());
-        when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenThrow(IOException.class);
-        
-        assertThatThrownBy(() -> requestDelegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
-    }
-    
-    @Test
-    void parseResponse_responseBodyNull_throwException() {
-        var response = mock(Response.class);
-        
-        when(response.body()).thenReturn(null);
-        
-        assertThatThrownBy(() -> requestDelegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
-    }
+
     
     @Test
     void parseResponse_expandingJsonLdFails_throwException() throws IOException {
@@ -170,10 +121,21 @@ class TransferRequestDelegateTest {
         when(responseBody.bytes()).thenReturn("test".getBytes());
         when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenReturn(jsonObject);
         
-        assertThatThrownBy(() -> requestDelegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
     }
 
-    private TransferRequestMessage getTransferRequestMessage() {
+    @Test
+    void parseResponse_responseBodyNull_throwException() {
+        testParseResponse_shouldThrowException_whenResponseBodyNull();
+    }
+
+    @Test
+    void parseResponse_readingResponseBodyFails_throwException() throws IOException {
+        testParseResponse_shouldThrowException_whenReadingResponseBodyFails();
+    }
+
+
+    private TransferRequestMessage message() {
         return TransferRequestMessage.Builder.newInstance()
                 .id("testId")
                 .protocol("dataspace-protocol")
@@ -184,11 +146,10 @@ class TransferRequestDelegateTest {
                         .build())
                 .build();
     }
-    
-    private String readRequestBody(Request request) throws IOException {
-        var buffer = new Buffer();
-        request.body().writeTo(buffer);
-        return buffer.readUtf8();
+
+    @Override
+    protected DspHttpDispatcherDelegate<TransferRequestMessage, ?> delegate() {
+        return delegate;
     }
     
     private JsonObject getJsonObject() {

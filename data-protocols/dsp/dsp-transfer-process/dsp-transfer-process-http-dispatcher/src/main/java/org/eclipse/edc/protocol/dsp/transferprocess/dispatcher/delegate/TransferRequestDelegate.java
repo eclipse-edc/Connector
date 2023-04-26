@@ -17,37 +17,34 @@ package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.jsonld.transformer.JsonLdTransformerRegistry;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
+import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
 import java.util.function.Function;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
-import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.DelegateUtil.toCompactedJson;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.spi.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PREFIX;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transform.transformer.Namespaces.DCT_SCHEMA;
 
-public class TransferRequestDelegate implements DspHttpDispatcherDelegate<TransferRequestMessage, TransferProcess> {
+public class TransferRequestDelegate extends DspHttpDispatcherDelegate<TransferRequestMessage, TransferProcess> {
 
-    private static final String APPLICATION_JSON = "application/json";
+    private ObjectMapper mapper;
 
-    private final ObjectMapper mapper;
+    private JsonLdTransformerRegistry registry;
 
-    private final JsonLdTransformerRegistry registry;
-
-    public TransferRequestDelegate(ObjectMapper mapper, JsonLdTransformerRegistry registry) {
+    public TransferRequestDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, JsonLdTransformerRegistry registry) {
+        super(serializer);
         this.mapper = mapper;
         this.registry = registry;
     }
@@ -59,20 +56,7 @@ public class TransferRequestDelegate implements DspHttpDispatcherDelegate<Transf
 
     @Override
     public Request buildRequest(TransferRequestMessage message) {
-        var transferRequest = registry.transform(message, JsonObject.class);
-
-        if (transferRequest.failed()) {
-            throw new EdcException("Failed to create request body for transfer request message");
-        }
-    
-        var requestBody = RequestBody.create(toCompactedJson(transferRequest.getContent(), jsonLdContext(), mapper),
-                MediaType.get(APPLICATION_JSON));
-
-        return new Request.Builder()
-                .url(message.getCallbackAddress() + BASE_PATH + TRANSFER_INITIAL_REQUEST)
-                .post(requestBody)
-                .header("Content-Type", APPLICATION_JSON)
-                .build();
+        return buildRequest(message, BASE_PATH + TRANSFER_INITIAL_REQUEST, jsonLdContext());
     }
 
     @Override
@@ -94,10 +78,11 @@ public class TransferRequestDelegate implements DspHttpDispatcherDelegate<Transf
         };
     }
 
+    // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
     private JsonObject jsonLdContext() {
         return Json.createObjectBuilder()
-                .add(DCT_PREFIX, DCT_SCHEMA)
                 .add(DSPACE_PREFIX, DSPACE_SCHEMA)
+                .add(ODRL_PREFIX, ODRL_SCHEMA)
                 .build();
     }
 }
