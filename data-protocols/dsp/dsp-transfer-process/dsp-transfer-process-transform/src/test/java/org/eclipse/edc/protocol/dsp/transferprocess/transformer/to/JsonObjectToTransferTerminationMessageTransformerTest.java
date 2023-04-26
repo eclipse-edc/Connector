@@ -21,6 +21,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -40,8 +42,6 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
     private final String code = "testCode";
 
-    private final String reason = "testReason";
-
     private TransformerContext context = mock(TransformerContext.class);
 
     private JsonObjectToTransferTerminationMessageTransformer transformer;
@@ -53,13 +53,14 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
     @Test
     void jsonObjectToTransferTerminationMessage() {
+        var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add("foo", "bar");
 
         var json = Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
                 .add(DSPACE_PROCESSID_TYPE, processId)
                 .add(DSPACE_CODE_TYPE, code)
-                .add(DSPACE_REASON_TYPE, reason)
+                .add(DSPACE_REASON_TYPE, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build())
                 .build();
 
         var result = transformer.transform(json, context);
@@ -68,7 +69,7 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
         assertThat(result.getProcessId()).isEqualTo(processId);
         assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
-        assertThat(result.getReason()).isEqualTo(reason);
+        assertThat(result.getReason()).isEqualTo("{\"foo\":\"bar\"}");
         assertThat(result.getCode()).isEqualTo(code);
 
         verify(context, never()).reportProblem(anyString());
