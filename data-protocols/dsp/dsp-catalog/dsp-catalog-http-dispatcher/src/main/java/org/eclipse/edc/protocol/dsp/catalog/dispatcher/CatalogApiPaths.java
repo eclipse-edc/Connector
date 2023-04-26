@@ -12,13 +12,14 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.edc.protocol.dsp.catalog.dispatcher;
 
-dependencies {
-    api(project(":spi:common:catalog-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":extensions:common:json-ld"))
-    api(project(":data-protocols:dsp:dsp-http-spi"))
+/**
+ * API paths for catalog requests as defined in the dataspace protocol specification.
+ */
+public interface CatalogApiPaths {
+    
+    String BASE_PATH = "/catalog";
+    String CATALOG_REQUEST = "/request";
+    
 }

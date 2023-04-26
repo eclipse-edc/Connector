@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.catalog.spi;
+package org.eclipse.edc.protocol.dsp.catalog.api;
 
 /**
  * API paths for catalog requests as defined in the dataspace protocol specification.
