@@ -21,7 +21,8 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
@@ -189,13 +190,15 @@ class ContractNegotiationServiceImplTest {
     @Test
     void initiateNegotiation_callsManager() {
         var contractNegotiation = createContractNegotiation("negotiationId");
-        when(consumerManager.initiate(isA(ContractRequestMessage.class))).thenReturn(StatusResult.success(contractNegotiation));
-        var request = ContractRequestMessage.Builder.newInstance()
+        when(consumerManager.initiate(isA(ContractRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
+        var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
                 .callbackAddress("address")
                 .protocol("protocol")
                 .contractOffer(createContractOffer())
                 .build();
+
+        var request = ContractRequest.Builder.newInstance().requestData(requestData).build();
 
         var result = service.initiateNegotiation(request);
 

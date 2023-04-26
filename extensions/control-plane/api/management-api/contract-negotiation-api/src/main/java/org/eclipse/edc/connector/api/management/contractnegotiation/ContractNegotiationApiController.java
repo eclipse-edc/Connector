@@ -33,7 +33,7 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Contra
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -120,7 +120,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @POST
     @Override
     public IdResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
-        var transformResult = transformerRegistry.transform(initiateDto, ContractRequestMessage.class);
+        var transformResult = transformerRegistry.transform(initiateDto, ContractRequest.class);
         if (transformResult.failed()) {
             throw new InvalidRequestException(transformResult.getFailureMessages());
         }

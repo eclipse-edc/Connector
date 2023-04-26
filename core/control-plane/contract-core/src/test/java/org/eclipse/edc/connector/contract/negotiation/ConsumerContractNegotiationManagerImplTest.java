@@ -21,7 +21,8 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -33,6 +34,7 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,26 +115,32 @@ class ConsumerContractNegotiationManagerImplTest {
     void initiate_shouldSaveNewNegotiationInInitialState() {
         var contractOffer = contractOffer();
 
-        var request = ContractRequestMessage.Builder.newInstance()
+        var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
                 .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
                 .build();
 
+        var request = ContractRequest.Builder.newInstance()
+                .requestData(requestData)
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
+                .build();
 
         var result = negotiationManager.initiate(request);
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == INITIAL.code() &&
-                        negotiation.getCounterPartyId().equals(request.getConnectorId()) &&
-                        negotiation.getCounterPartyAddress().equals(request.getCallbackAddress()) &&
-                        negotiation.getProtocol().equals(request.getProtocol()) &&
+                        negotiation.getCounterPartyId().equals(requestData.getConnectorId()) &&
+                        negotiation.getCounterPartyAddress().equals(requestData.getCallbackAddress()) &&
+                        negotiation.getProtocol().equals(requestData.getProtocol()) &&
                         negotiation.getCorrelationId().equals(negotiation.getId()) &&
                         negotiation.getContractOffers().size() == 1 &&
                         negotiation.getLastContractOffer().equals(contractOffer) &&
-                        negotiation.getCallbackAddresses().isEmpty()));
+                        negotiation.getCallbackAddresses().size() == 1));
 
         verify(listener).initiated(any());
     }
