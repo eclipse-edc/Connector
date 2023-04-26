@@ -25,6 +25,8 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
     private String processId;
     private Type type;
 
+    private String checksum;
+
     @Override
     public String getProtocol() {
         return protocol;
@@ -42,6 +44,10 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
 
     public Type getType() {
         return type;
+    }
+
+    public String getChecksum() {
+        return checksum;
     }
 
     public static class Builder {
@@ -72,6 +78,11 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
 
         public Builder type(Type type) {
             this.message.type = type;
+            return this;
+        }
+
+        public Builder checksum(String checksum) {
+            this.message.checksum = checksum;
             return this;
         }
 
