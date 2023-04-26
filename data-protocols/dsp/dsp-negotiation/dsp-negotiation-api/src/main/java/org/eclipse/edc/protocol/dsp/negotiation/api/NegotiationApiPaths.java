@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.spi;
+package org.eclipse.edc.protocol.dsp.negotiation.api;
 
 /**
  * Provides API paths used by negotiation controllers (api) and delegates (dispatcher).

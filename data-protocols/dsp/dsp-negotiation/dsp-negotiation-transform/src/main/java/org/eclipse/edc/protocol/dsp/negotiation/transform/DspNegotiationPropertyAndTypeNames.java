@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.spi;
+package org.eclipse.edc.protocol.dsp.negotiation.transform;
 
 public interface DspNegotiationPropertyAndTypeNames {
 

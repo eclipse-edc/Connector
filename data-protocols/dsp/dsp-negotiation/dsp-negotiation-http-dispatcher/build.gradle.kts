@@ -17,7 +17,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-spi"))
     api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform"))
     api(project(":data-protocols:dsp:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
