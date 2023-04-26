@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-api-configuration"))
-    api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-spi"))
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     api(project(":data-protocols:dsp:dsp-transform"))
 

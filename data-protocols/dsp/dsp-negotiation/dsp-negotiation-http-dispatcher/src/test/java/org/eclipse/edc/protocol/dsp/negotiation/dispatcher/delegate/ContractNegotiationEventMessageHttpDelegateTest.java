@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.negotiation.spi.NegotiationApiPaths.EVENT;
+import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.EVENT;
 
 class ContractNegotiationEventMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractNegotiationEventMessage> {
     

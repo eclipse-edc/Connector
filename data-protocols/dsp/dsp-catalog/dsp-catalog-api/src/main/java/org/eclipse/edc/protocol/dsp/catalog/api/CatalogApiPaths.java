@@ -12,10 +12,14 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.edc.protocol.dsp.catalog.api;
 
-dependencies {
-    api(project(":spi:common:core-spi"))
+/**
+ * API paths for catalog requests as defined in the dataspace protocol specification.
+ */
+public interface CatalogApiPaths {
+    
+    String BASE_PATH = "/catalog";
+    String CATALOG_REQUEST = "/request";
+    
 }
