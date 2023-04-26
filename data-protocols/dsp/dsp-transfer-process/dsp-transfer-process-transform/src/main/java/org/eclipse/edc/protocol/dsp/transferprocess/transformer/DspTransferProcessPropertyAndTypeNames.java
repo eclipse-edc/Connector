@@ -44,4 +44,8 @@ public interface DspTransferProcessPropertyAndTypeNames {
     String DSPACE_CORRELATIONID_TYPE = DSPACE_SCHEMA + "correlationId";
 
     String DSPACE_STATE_TYPE = DSPACE_SCHEMA + "state";
+
+    String DSPACE_REASON_TYPE = DSPACE_SCHEMA + "reason";
+
+    String DSPACE_CODE_TYPE = DSPACE_SCHEMA + "code";
 }

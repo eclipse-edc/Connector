@@ -98,6 +98,7 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
         public TransferTerminationMessage build() {
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.processId, "The processId must be specified");
+            //TODO add Nullcheck for message.code Issue https://github.com/eclipse-edc/Connector/issues/2810
             return message;
         }
     }

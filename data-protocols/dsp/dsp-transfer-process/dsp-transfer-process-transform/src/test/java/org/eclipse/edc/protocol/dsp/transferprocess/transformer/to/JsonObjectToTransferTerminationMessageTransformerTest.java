@@ -24,7 +24,9 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -35,6 +37,10 @@ import static org.mockito.Mockito.verify;
 class JsonObjectToTransferTerminationMessageTransformerTest {
 
     private final String processId = "TestProcessId";
+
+    private final String code = "testCode";
+
+    private final String reason = "testReason";
 
     private TransformerContext context = mock(TransformerContext.class);
 
@@ -48,12 +54,12 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
     @Test
     void jsonObjectToTransferTerminationMessage() {
 
-        //TODO Add missing (code,reason) attributes from Spec issue https://github.com/eclipse-edc/Connector/issues/2764
-
         var json = Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
                 .add(DSPACE_PROCESSID_TYPE, processId)
+                .add(DSPACE_CODE_TYPE, code)
+                .add(DSPACE_REASON_TYPE, reason)
                 .build();
 
         var result = transformer.transform(json, context);
@@ -62,6 +68,8 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
         assertThat(result.getProcessId()).isEqualTo(processId);
         assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        assertThat(result.getReason()).isEqualTo(reason);
+        assertThat(result.getCode()).isEqualTo(code);
 
         verify(context, never()).reportProblem(anyString());
     }
