@@ -18,10 +18,12 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 
 public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferStartMessage> {
@@ -37,7 +39,12 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
         transferStartMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
         transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
-        //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
+
+        if (jsonObject.containsKey(DSPACE_DATAADDRESS_TYPE)) {
+            if (!jsonObject.get(DSPACE_DATAADDRESS_TYPE).asJsonObject().isEmpty()) {
+                transferStartMessageBuilder.dataAddress(context.transform(jsonObject.get(DSPACE_DATAADDRESS_TYPE), DataAddress.class));
+            }
+        }
 
         return transferStartMessageBuilder.build();
     }
