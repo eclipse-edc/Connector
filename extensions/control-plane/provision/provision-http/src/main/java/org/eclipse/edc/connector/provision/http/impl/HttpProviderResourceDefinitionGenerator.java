@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       ZF Friedrichshafen AG - improvements (refactoring of canGenerate method)
+ *       Lallu Anthoor (SAP) - refactoring
  *
  */
 
@@ -23,7 +24,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
@@ -40,10 +40,6 @@ public class HttpProviderResourceDefinitionGenerator implements ProviderResource
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
-        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
-        Objects.requireNonNull(assetAddress, "assetAddress must always be provided");
-        Objects.requireNonNull(policy, "policy must always be provided");
-
         var assetId = dataRequest.getAssetId();
 
         if (assetId == null) {
@@ -60,10 +56,6 @@ public class HttpProviderResourceDefinitionGenerator implements ProviderResource
 
     @Override
     public boolean canGenerate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
-        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
-        Objects.requireNonNull(assetAddress, "assetAddress must always be provided");
-        Objects.requireNonNull(policy, "policy must always be provided");
-
         return dataAddressType.equals(assetAddress.getType());
     }
 }

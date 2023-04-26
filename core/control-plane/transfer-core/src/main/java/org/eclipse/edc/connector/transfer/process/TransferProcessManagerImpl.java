@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Lallu Anthoor (SAP) - refactoring
  *
  */
 
@@ -291,7 +292,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private boolean processInitial(TransferProcess process) {
         var dataRequest = process.getDataRequest();
 
-        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
+        var contractId = dataRequest.getContractId();
+        var policy = policyArchive.findPolicyForContract(contractId);
+
+        if (policy == null) {
+            transitionToTerminating(process, "Policy not found for contract: " + contractId);
+            return true;
+        }
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {

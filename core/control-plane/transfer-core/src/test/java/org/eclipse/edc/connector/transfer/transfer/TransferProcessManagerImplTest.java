@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Lallu Anthoor (SAP) - refactoring
  *
  */
 
@@ -221,6 +222,21 @@ class TransferProcessManagerImplTest {
                 .thenReturn(emptyList());
         when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
                 .thenReturn(Result.failure("error"));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verifyNoInteractions(provisionManager);
+            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATING.code()));
+        });
+    }
+
+    @Test
+    void initial_noPolicyFound_shouldTransitionToTerminating() {
+        when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt()))
+                .thenReturn(List.of(createTransferProcess(INITIAL)))
+                .thenReturn(emptyList());
 
         manager.start();
 
