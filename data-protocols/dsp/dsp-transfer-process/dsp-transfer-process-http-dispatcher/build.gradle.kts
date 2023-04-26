@@ -26,4 +26,6 @@ dependencies {
     implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
     implementation(project(":extensions:common:json-ld"))
 
-    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-http-spi")))}
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-http-spi")))
+
+}

@@ -33,7 +33,7 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
 
 /**
  *
- * Provides HTTP dispatching for Dataspace Protocol transfer process messages  via the {@link DspHttpRemoteMessageDispatcher}.
+ * Provides HTTP dispatching for Dataspace Protocol transfer process messages via the {@link DspHttpRemoteMessageDispatcher}.
  */
 @Extension(value = DspTransferProcessDispatcherExtension.NAME)
 public class DspTransferProcessDispatcherExtension implements ServiceExtension {
