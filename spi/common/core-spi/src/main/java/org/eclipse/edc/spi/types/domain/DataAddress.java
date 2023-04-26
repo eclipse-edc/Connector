@@ -24,6 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * An address that can be used resolve a data location. Data addresses are used throughout the system. For example, an asset has a data address used to resolve its contents,
@@ -44,7 +47,7 @@ public class DataAddress {
 
     @NotNull
     public String getType() {
-        return properties.get(TYPE);
+        return Optional.ofNullable(properties.get(EDC_NAMESPACE + TYPE)).orElseGet(() -> properties.get(TYPE));
     }
 
     @JsonIgnore
@@ -70,7 +73,13 @@ public class DataAddress {
     }
 
     public String getKeyName() {
-        return properties.get(KEY_NAME);
+        return Optional.ofNullable(properties.get(EDC_NAMESPACE + KEY_NAME)).orElseGet(() -> properties.get(KEY_NAME));
+    }
+
+    @JsonIgnore
+    public void setKeyName(String keyName) {
+        Objects.requireNonNull(keyName);
+        properties.put(KEY_NAME, keyName);
     }
 
     /**
@@ -82,12 +91,6 @@ public class DataAddress {
     @JsonIgnore
     public boolean hasProperty(String key) {
         return properties.containsKey(key);
-    }
-
-    @JsonIgnore
-    public void setKeyName(String keyName) {
-        Objects.requireNonNull(keyName);
-        properties.put(KEY_NAME, keyName);
     }
 
     @JsonPOJOBuilder(withPrefix = "")

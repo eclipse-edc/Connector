@@ -16,8 +16,8 @@ package org.eclipse.edc.jsonld.spi;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Collection of DCAT, DCT and ODRL type and attribute names.
@@ -29,12 +29,12 @@ public interface PropertyAndTypeNames {
     String DCAT_DISTRIBUTION_TYPE = DCAT_SCHEMA + "Distribution";
     String DCAT_DATA_SERVICE_TYPE = DCAT_SCHEMA + "DataService";
 
-    String EDC_ASSET_TYPE = EDC_SCHEMA + "Asset";
-    String EDC_ASSET_PROPERTIES = EDC_SCHEMA + "properties";
-    String EDC_ASSET_NAME = EDC_SCHEMA + "name";
-    String EDC_ASSET_DESCRIPTION = EDC_SCHEMA + "description";
-    String EDC_ASSET_VERSION = EDC_SCHEMA + "version";
-    String EDC_ASSET_CONTENTTYPE = EDC_SCHEMA + "contenttype";
+    String EDC_ASSET_TYPE = EDC_NAMESPACE + "Asset";
+    String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
+    String EDC_ASSET_NAME = EDC_NAMESPACE + "name";
+    String EDC_ASSET_DESCRIPTION = EDC_NAMESPACE + "description";
+    String EDC_ASSET_VERSION = EDC_NAMESPACE + "version";
+    String EDC_ASSET_CONTENTTYPE = EDC_NAMESPACE + "contenttype";
 
     String DCAT_DATA_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "service";
     String DCAT_DATASET_ATTRIBUTE = DCAT_SCHEMA + "dataset";

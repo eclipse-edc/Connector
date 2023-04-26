@@ -32,14 +32,10 @@ import static org.mockito.Mockito.verify;
 
 
 class JsonObjectFromDataAddressTransformerTest {
+    private static final String TEST_KEY = "region";
+    private static final String TEST_VALUE = "europe";
     private final String type = "testType";
-
     private final String key = "testKey";
-
-    private final String propertyKey = "region";
-
-    private final String propertyValue = "europe";
-
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
@@ -51,20 +47,35 @@ class JsonObjectFromDataAddressTransformerTest {
     }
 
     @Test
-    void transformTransferCompletionMessage() {
+    void transform() {
         var message = DataAddress.Builder.newInstance()
-                        .type(type)
-                        .keyName(key)
-                        .property(propertyKey, propertyValue)
-                        .build();
+                .type(type)
+                .keyName(key)
+                .property(TEST_KEY, TEST_VALUE)
+                .build();
 
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(propertyKey).getString()).isEqualTo(propertyValue);
-        assertThat(result.getJsonString("type").getString()).isEqualTo(type);
-        assertThat(result.getJsonString("keyName").getString()).isEqualTo(key);
+        assertThat(result.getJsonString(TEST_KEY).getString()).isEqualTo(TEST_VALUE);
+        assertThat(result.getJsonString(DataAddress.TYPE).getString()).isEqualTo(type);
+        assertThat(result.getJsonString(DataAddress.KEY_NAME).getString()).isEqualTo(key);
 
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transform_withNamespace() {
+        var schema = "https://some.custom.org/schema/";
+        var message = DataAddress.Builder.newInstance()
+                .type(type)
+                .keyName(key)
+                .property(schema + TEST_KEY, TEST_VALUE)
+                .build();
+
+        var result = transformer.transform(message, context);
+        assertThat(result).isNotNull();
+        assertThat(result.getJsonString(schema + TEST_KEY).getString()).isEqualTo(TEST_VALUE);
         verify(context, never()).reportProblem(anyString());
     }
 }
