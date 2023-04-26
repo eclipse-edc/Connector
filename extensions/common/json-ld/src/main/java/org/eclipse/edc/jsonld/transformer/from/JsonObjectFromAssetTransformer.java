@@ -17,7 +17,6 @@ package org.eclipse.edc.jsonld.transformer.from;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -30,6 +29,7 @@ import java.util.Map;
 import static java.util.stream.Collectors.toMap;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<Asset, JsonObject> {
     private final ObjectMapper mapper;
@@ -49,7 +49,7 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
 
         // replace the special asset properties, starting with "asset:prop:", with the EDC_SCHEMA
         var props = asset.getProperties().entrySet().stream()
-                .collect(toMap(entry -> entry.getKey().replace("asset:prop:", Namespaces.EDC_SCHEMA), Map.Entry::getValue));
+                .collect(toMap(entry -> entry.getKey().replace("asset:prop:", EDC_NAMESPACE), Map.Entry::getValue));
 
         transformProperties(props, builder, mapper, context);
 

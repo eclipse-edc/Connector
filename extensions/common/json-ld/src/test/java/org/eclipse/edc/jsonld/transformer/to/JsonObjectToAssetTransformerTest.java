@@ -18,9 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.transformer.Payload;
@@ -39,7 +37,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 class JsonObjectToAssetTransformerTest {
 
@@ -63,7 +61,7 @@ class JsonObjectToAssetTransformerTest {
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(jsonPmapper));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new PayloadTransformer());
-        typeTransformerRegistry.registerTypeAlias(Namespaces.EDC_SCHEMA + "customPayload", Payload.class);
+        typeTransformerRegistry.registerTypeAlias(EDC_NAMESPACE + "customPayload", Payload.class);
     }
 
     @Test
@@ -103,7 +101,7 @@ class JsonObjectToAssetTransformerTest {
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
                 .hasSize(6)
-                .hasEntrySatisfying(Namespaces.EDC_SCHEMA + "payload", o -> assertThat(o).isInstanceOf(Payload.class)
+                .hasEntrySatisfying(EDC_NAMESPACE + "payload", o -> assertThat(o).isInstanceOf(Payload.class)
                         .hasFieldOrPropertyWithValue("age", CUSTOM_PAYLOAD_AGE)
                         .hasFieldOrPropertyWithValue("name", CUSTOM_PAYLOAD_NAME));
     }
@@ -163,22 +161,8 @@ class JsonObjectToAssetTransformerTest {
 
     private JsonObjectBuilder createContextBuilder() {
         return jsonFactory.createObjectBuilder()
-                .add(VOCAB, Namespaces.EDC_SCHEMA)
-                .add("edc", Namespaces.EDC_SCHEMA);
-    }
-
-    /**
-     * will read the resource with the given name, assuming it's JSON, and expand it to JSON-LD's expanded form.
-     */
-    private JsonObject parseJson(String filename) {
-        try {
-            var jsonLd = getResourceFileContentAsString(filename);
-            JsonObject assetJsonObject = jsonPmapper.readValue(jsonLd, JsonObject.class);
-            var expandedJsonLd = JsonLdUtil.expand(assetJsonObject).getJsonObject(0);
-            return expandedJsonLd;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+                .add(VOCAB, EDC_NAMESPACE)
+                .add("edc", EDC_NAMESPACE);
     }
 
 

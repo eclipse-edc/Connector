@@ -32,10 +32,10 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull DataAddress transferCompletionMessage, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull DataAddress dataAddress, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        transferCompletionMessage.getProperties().forEach((k, v) -> builder.add(k, v));
+        dataAddress.getProperties().forEach(builder::add);
 
         return builder.build();
     }

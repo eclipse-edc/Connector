@@ -16,7 +16,6 @@ package org.eclipse.edc.jsonld.transformer.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.transformer.Payload;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -30,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromAssetTransformerTest {
@@ -56,11 +56,11 @@ class JsonObjectFromAssetTransformerTest {
         assertThat(jsonObject).isNotNull().hasSize(7);
         assertThat(jsonObject.getJsonString(ID).getString()).isEqualTo(TEST_ASSET_ID);
         assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(PropertyAndTypeNames.EDC_ASSET_TYPE);
-        assertThat(jsonObject.getJsonString(Namespaces.EDC_SCHEMA + "id").getString()).isEqualTo(TEST_ASSET_ID);
-        assertThat(jsonObject.getJsonString(Namespaces.EDC_SCHEMA + "contenttype").getString()).isEqualTo(TEST_CONTENT_TYPE);
-        assertThat(jsonObject.getJsonString(Namespaces.EDC_SCHEMA + "description").getString()).isEqualTo(TEST_DESCRIPTION);
-        assertThat(jsonObject.getJsonString(Namespaces.EDC_SCHEMA + "name").getString()).isEqualTo(TEST_ASSET_NAME);
-        assertThat(jsonObject.getJsonString(Namespaces.EDC_SCHEMA + "version").getString()).isEqualTo(TEST_VERSION);
+        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "id").getString()).isEqualTo(TEST_ASSET_ID);
+        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "contenttype").getString()).isEqualTo(TEST_CONTENT_TYPE);
+        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "description").getString()).isEqualTo(TEST_DESCRIPTION);
+        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "name").getString()).isEqualTo(TEST_ASSET_NAME);
+        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "version").getString()).isEqualTo(TEST_VERSION);
     }
 
     @Test
