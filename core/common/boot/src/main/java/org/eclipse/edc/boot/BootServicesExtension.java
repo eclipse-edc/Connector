@@ -31,6 +31,11 @@ public class BootServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Boot Services";
 
+    @Override
+    public String name() {
+        return NAME;
+    }
+
     @Provider
     public TypeManager typeManager() {
         return new TypeManager();
@@ -45,4 +50,5 @@ public class BootServicesExtension implements ServiceExtension {
     public Telemetry telemetry() {
         return ExtensionLoader.loadTelemetry();
     }
+
 }

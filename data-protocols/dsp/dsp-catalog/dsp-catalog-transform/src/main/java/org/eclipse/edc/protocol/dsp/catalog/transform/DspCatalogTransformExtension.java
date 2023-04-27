@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.catalog.transform;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToCatalogRequestMessageTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -23,13 +22,14 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
 /**
- * Provides the transformers for catalog message types via the {@link JsonLdTransformerRegistry}.
+ * Provides the transformers for catalog message types via the {@link TypeTransformerRegistry}.
  */
 @Extension(value = DspCatalogTransformExtension.NAME)
 public class DspCatalogTransformExtension implements ServiceExtension {
@@ -39,7 +39,7 @@ public class DspCatalogTransformExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
-    private JsonLdTransformerRegistry registry;
+    private TypeTransformerRegistry registry;
 
     @Override
     public String name() {

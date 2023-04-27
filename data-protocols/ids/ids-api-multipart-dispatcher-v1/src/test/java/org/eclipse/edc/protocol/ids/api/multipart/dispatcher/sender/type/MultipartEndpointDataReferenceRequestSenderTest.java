@@ -26,11 +26,11 @@ import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelega
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.edc.protocol.ids.serialization.IdsTypeManagerUtil;
 import org.eclipse.edc.protocol.ids.spi.domain.IdsConstants;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReferenceMessage;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +50,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     @BeforeEach
     public void setUp() {
         var connectorId = IdsId.from("urn:connector:edc").getContent();
-        var transformerRegistry = mock(IdsTransformerRegistry.class);
+        var transformerRegistry = mock(TypeTransformerRegistry.class);
         var idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
 
         var typeManager = new TypeManager();

@@ -25,12 +25,12 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +42,10 @@ import static java.util.Optional.ofNullable;
 public class CatalogApiController implements CatalogApi {
 
     private final CatalogService service;
-    private final DtoTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
     private final Monitor monitor;
 
-    public CatalogApiController(CatalogService service, DtoTransformerRegistry transformerRegistry, Monitor monitor) {
+    public CatalogApiController(CatalogService service, TypeTransformerRegistry transformerRegistry, Monitor monitor) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
         this.monitor = monitor;

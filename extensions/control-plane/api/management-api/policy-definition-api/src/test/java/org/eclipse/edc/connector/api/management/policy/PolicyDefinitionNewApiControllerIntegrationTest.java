@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.policy;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewResponseDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewUpdateWrapperDto;
@@ -27,6 +26,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTestBase {
 
-    private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final PolicyDefinitionService service = mock(PolicyDefinitionService.class);
 
     @Override

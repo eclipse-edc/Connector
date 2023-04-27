@@ -20,12 +20,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Generic registry to hold {@link TypeTransformer} objects
  */
-public interface TypeTransformerRegistry<T extends TypeTransformer<?, ?>> {
+public interface TypeTransformerRegistry {
 
     /**
      * Registers a transformer.
      */
-    void register(T transformer);
+    void register(TypeTransformer<?, ?> transformer);
 
     /**
      * Returns a transformer that can transfor input to outputType

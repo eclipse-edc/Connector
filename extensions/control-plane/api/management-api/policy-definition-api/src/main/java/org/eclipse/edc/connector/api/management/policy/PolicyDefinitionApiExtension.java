@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.policy;
 
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionRequestDtoToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionToPolicyDefinitionResponseDtoTransformer;
@@ -25,10 +24,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
-
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
 @Extension(value = PolicyDefinitionApiExtension.NAME)
 public class PolicyDefinitionApiExtension implements ServiceExtension {
@@ -36,7 +34,7 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     public static final String NAME = "Management API: Policy";
 
     @Inject
-    private DtoTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private WebService webService;
@@ -62,7 +60,7 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         transformerRegistry.register(new PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer());
 
         var monitor = context.getMonitor();
-        var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        var jsonLdMapper = typeManager.getMapper("json-ld");
         webService.registerResource(configuration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, service, transformerRegistry));
         webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionNewApiController(monitor, transformerRegistry, service));

@@ -12,19 +12,20 @@
  *
  */
 
-package org.eclipse.edc.transform.spi;
+package org.eclipse.edc.connector.core.transform;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 public class TypeTransformerRegistryImplTest {
 
-    private final TypeTransformerRegistryImpl<TypeTransformer<?, ?>> registry = new TypeTransformerRegistryImpl<>();
+    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
 
     @BeforeEach
     void setUp() {

@@ -33,13 +33,13 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessa
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
@@ -76,14 +76,14 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Path(BASE_PATH)
 public class DspTransferProcessApiController {
 
-    private Monitor monitor;
-    private JsonLdTransformerRegistry registry;
-    private TransferProcessProtocolService protocolService;
-    private ObjectMapper mapper;
-    private IdentityService identityService;
-    private String dspCallbackAddress;
+    private final Monitor monitor;
+    private final TypeTransformerRegistry registry;
+    private final TransferProcessProtocolService protocolService;
+    private final ObjectMapper mapper;
+    private final IdentityService identityService;
+    private final String dspCallbackAddress;
 
-    public DspTransferProcessApiController(Monitor monitor, ObjectMapper mapper, JsonLdTransformerRegistry registry,
+    public DspTransferProcessApiController(Monitor monitor, ObjectMapper mapper, TypeTransformerRegistry registry,
                                            TransferProcessProtocolService protocolService, IdentityService identityService, String dspCallbackAddress) {
         this.monitor = monitor;
         this.protocolService = protocolService;

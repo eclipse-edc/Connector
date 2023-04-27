@@ -25,7 +25,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewResponseDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewUpdateDto;
@@ -35,6 +34,7 @@ import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
@@ -51,10 +51,10 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 public class PolicyDefinitionNewApiController implements PolicyDefinitionNewApi {
 
     private final Monitor monitor;
-    private final DtoTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
     private final PolicyDefinitionService service;
 
-    public PolicyDefinitionNewApiController(Monitor monitor, DtoTransformerRegistry transformerRegistry, PolicyDefinitionService service) {
+    public PolicyDefinitionNewApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service) {
         this.monitor = monitor;
         this.transformerRegistry = transformerRegistry;
         this.service = service;

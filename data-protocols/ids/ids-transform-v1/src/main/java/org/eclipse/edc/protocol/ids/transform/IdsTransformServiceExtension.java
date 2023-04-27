@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.ids.transform;
 
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.transform.type.asset.AssetFromIdsArtifactTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.asset.AssetFromIdsRepresentationTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.asset.AssetFromIdsResourceTransformer;
@@ -50,6 +49,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Arrays;
 
@@ -57,8 +57,9 @@ import java.util.Arrays;
 public class IdsTransformServiceExtension implements ServiceExtension {
 
     public static final String NAME = "IDS Transform Extension";
+
     @Inject
-    private IdsTransformerRegistry registry;
+    private TypeTransformerRegistry registry;
 
     @Override
     public String name() {

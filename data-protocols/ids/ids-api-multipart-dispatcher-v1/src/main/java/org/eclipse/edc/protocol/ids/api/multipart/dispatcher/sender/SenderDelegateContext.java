@@ -15,8 +15,8 @@
 package org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 /**
  * Contains services and context information required by sender delegate classes.
@@ -24,11 +24,11 @@ import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 public class SenderDelegateContext {
     private final IdsId connectorId;
     private final ObjectMapper objectMapper;
-    private final IdsTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
     private final String idsWebhookAddress;
 
     public SenderDelegateContext(IdsId connectorId, ObjectMapper objectMapper,
-                                 IdsTransformerRegistry transformerRegistry,
+                                 TypeTransformerRegistry transformerRegistry,
                                  String idsWebhookAddress) {
         this.connectorId = connectorId;
         this.objectMapper = objectMapper;
@@ -44,7 +44,7 @@ public class SenderDelegateContext {
         return objectMapper;
     }
 
-    public IdsTransformerRegistry getTransformerRegistry() {
+    public TypeTransformerRegistry getTransformerRegistry() {
         return transformerRegistry;
     }
 

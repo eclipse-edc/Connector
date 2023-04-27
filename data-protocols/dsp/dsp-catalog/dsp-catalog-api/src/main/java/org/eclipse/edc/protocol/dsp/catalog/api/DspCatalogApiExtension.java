@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.catalog.api;
 
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.CatalogController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -26,6 +25,7 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
@@ -47,7 +47,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Inject
     private DspApiConfiguration apiConfiguration;
     @Inject
-    private JsonLdTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
     @Inject
     private CatalogProtocolService service;
     

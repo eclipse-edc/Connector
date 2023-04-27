@@ -12,10 +12,12 @@
  *
  */
 
-package org.eclipse.edc.transform.spi;
+package org.eclipse.edc.connector.core.transform;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformer;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,12 +28,12 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 
-public class TypeTransformerRegistryImpl<T extends TypeTransformer<?, ?>> implements TypeTransformerRegistry<T> {
+public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
     private final Map<String, Class<?>> aliases = new HashMap<>();
-    private final List<T> transformers = new ArrayList<>();
+    private final List<TypeTransformer<?, ?>> transformers = new ArrayList<>();
 
     @Override
-    public void register(T transformer) {
+    public void register(TypeTransformer<?, ?> transformer) {
         this.transformers.add(transformer);
     }
 

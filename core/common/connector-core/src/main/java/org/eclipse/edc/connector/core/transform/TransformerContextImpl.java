@@ -12,8 +12,10 @@
  *
  */
 
-package org.eclipse.edc.transform.spi;
+package org.eclipse.edc.connector.core.transform;
 
+import org.eclipse.edc.transform.spi.TransformerContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -21,9 +23,9 @@ import java.util.List;
 
 public class TransformerContextImpl implements TransformerContext {
     private final List<String> problems = new ArrayList<>();
-    private final TypeTransformerRegistry<?> registry;
+    private final TypeTransformerRegistry registry;
 
-    public TransformerContextImpl(TypeTransformerRegistry<?> registry) {
+    public TransformerContextImpl(TypeTransformerRegistry registry) {
         this.registry = registry;
     }
 

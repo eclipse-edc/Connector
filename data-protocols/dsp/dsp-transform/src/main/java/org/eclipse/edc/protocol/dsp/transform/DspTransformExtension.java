@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transform;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDatasetTransformer;
@@ -39,6 +38,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
@@ -46,7 +46,7 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
 
 /**
  * Provides support for transforming DCAT catalog and ODRL policy types to and from JSON-LD. The
- * respective transformers are registered with the {@link JsonLdTransformerRegistry}.
+ * respective transformers are registered with the {@link TypeTransformerRegistry}.
  */
 @Extension(value = DspTransformExtension.NAME)
 public class DspTransformExtension implements ServiceExtension {
@@ -57,7 +57,7 @@ public class DspTransformExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     @Inject
-    private JsonLdTransformerRegistry registry;
+    private TypeTransformerRegistry registry;
 
     @Override
     public String name() {

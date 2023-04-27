@@ -19,13 +19,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.connector.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.transformer.Payload;
 import org.eclipse.edc.jsonld.transformer.PayloadTransformer;
 import org.eclipse.edc.jsonld.util.JsonLdUtil;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,14 +51,14 @@ class JsonObjectToAssetTransformerTest {
     private static final String CUSTOM_PAYLOAD_NAME = "max";
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private ObjectMapper jsonPmapper;
-    private JsonLdTransformerRegistryImpl typeTransformerRegistry;
+    private TypeTransformerRegistry typeTransformerRegistry;
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
 
         jsonPmapper = createObjectMapper();
         var transformer = new JsonObjectToAssetTransformer();
-        typeTransformerRegistry = new JsonLdTransformerRegistryImpl();
+        typeTransformerRegistry = new TypeTransformerRegistryImpl();
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(jsonPmapper));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new PayloadTransformer());

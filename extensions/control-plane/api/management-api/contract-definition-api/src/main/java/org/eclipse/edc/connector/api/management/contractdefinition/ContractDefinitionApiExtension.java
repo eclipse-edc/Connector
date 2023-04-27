@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition;
 
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionRequestDtoToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionToContractDefinitionResponseDtoTransformer;
@@ -25,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 @Extension(value = ContractDefinitionApiExtension.NAME)
@@ -37,7 +37,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     ManagementApiConfiguration config;
 
     @Inject
-    DtoTransformerRegistry transformerRegistry;
+    TypeTransformerRegistry transformerRegistry;
 
     @Inject
     ContractDefinitionService service;

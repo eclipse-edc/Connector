@@ -21,10 +21,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -43,9 +43,9 @@ import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyA
 public class CatalogRequestHttpDelegate extends DspHttpDispatcherDelegate<CatalogRequestMessage, Catalog> {
 
     private final ObjectMapper mapper;
-    private final JsonLdTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
 
-    public CatalogRequestHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, JsonLdTransformerRegistry transformerRegistry) {
+    public CatalogRequestHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, TypeTransformerRegistry transformerRegistry) {
         super(serializer);
         this.mapper = mapper;
         this.transformerRegistry = transformerRegistry;

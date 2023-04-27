@@ -34,13 +34,13 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
@@ -83,14 +83,14 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 public class DspNegotiationController {
 
     private final IdentityService identityService;
-    private final JsonLdTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
     private final String callbackAddress;
     private final Monitor monitor;
     private final ContractNegotiationProtocolService protocolService;
     private final ObjectMapper mapper;
 
     public DspNegotiationController(Monitor monitor, ObjectMapper mapper, String callbackAddress,
-                                    IdentityService identityService, JsonLdTransformerRegistry transformerRegistry,
+                                    IdentityService identityService, TypeTransformerRegistry transformerRegistry,
                                     ContractNegotiationProtocolService protocolService) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;

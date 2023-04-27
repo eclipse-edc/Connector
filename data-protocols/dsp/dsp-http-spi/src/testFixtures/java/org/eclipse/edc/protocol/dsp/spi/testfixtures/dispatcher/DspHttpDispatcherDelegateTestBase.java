@@ -20,11 +20,11 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.IOException;
 
@@ -46,7 +46,7 @@ public abstract class DspHttpDispatcherDelegateTestBase<M extends RemoteMessage>
     
     protected JsonLdRemoteMessageSerializer serializer = mock(JsonLdRemoteMessageSerializer.class);
     protected ObjectMapper mapper = mock(ObjectMapper.class);
-    protected JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
+    protected TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
     
     /**
      * Returns the delegate to test.

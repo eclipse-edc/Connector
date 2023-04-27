@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.negotiation.transform;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementVerificationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationEventMessageTransformer;
@@ -31,12 +30,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
 /**
- * Provides the transformers for negotiation message types via the {@link JsonLdTransformerRegistry}.
+ * Provides the transformers for negotiation message types via the {@link TypeTransformerRegistry}.
  */
 @Extension(value = DspNegotiationTransformExtension.NAME)
 public class DspNegotiationTransformExtension implements ServiceExtension {
@@ -44,10 +43,7 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
     public static final String NAME = "Dataspace Protocol Negotiation Transform Extension";
 
     @Inject
-    private TypeManager typeManager;
-
-    @Inject
-    private JsonLdTransformerRegistry registry;
+    private TypeTransformerRegistry registry;
 
     @Override
     public String name() {

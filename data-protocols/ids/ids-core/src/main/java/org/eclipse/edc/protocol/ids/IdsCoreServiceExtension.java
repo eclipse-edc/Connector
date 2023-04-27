@@ -24,10 +24,8 @@ import org.eclipse.edc.protocol.ids.service.DynamicAttributeTokenServiceImpl;
 import org.eclipse.edc.protocol.ids.spi.service.CatalogService;
 import org.eclipse.edc.protocol.ids.spi.service.ConnectorService;
 import org.eclipse.edc.protocol.ids.spi.service.DynamicAttributeTokenService;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
-import org.eclipse.edc.protocol.ids.transform.IdsTransformerRegistryImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -45,8 +43,7 @@ import java.util.List;
 /**
  * Implements the IDS Controller REST API.
  */
-@Provides({ CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class,
-        DynamicAttributeTokenService.class })
+@Provides({ CatalogService.class, ConnectorService.class, DynamicAttributeTokenService.class })
 @Extension(value = IdsCoreServiceExtension.NAME)
 public class IdsCoreServiceExtension implements ServiceExtension {
 
@@ -98,8 +95,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         if (!settingErrors.isEmpty()) {
             throw new EdcException(String.join(", ", settingErrors));
         }
-
-        context.registerService(IdsTransformerRegistry.class, new IdsTransformerRegistryImpl());
 
         var dataCatalogService = new CatalogServiceImpl(dataCatalogId, contractOfferResolver);
         context.registerService(CatalogService.class, dataCatalogService);

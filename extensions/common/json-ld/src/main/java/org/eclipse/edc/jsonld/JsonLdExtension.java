@@ -15,12 +15,10 @@
 package org.eclipse.edc.jsonld;
 
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformer;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -31,25 +29,21 @@ import org.eclipse.edc.spi.types.TypeManager;
  * for {@link JsonLdTransformer}s. The module also offers
  * functions for working with JSON-LD structures.
  */
+@BaseExtension
 @Extension(value = JsonLdExtension.NAME)
 public class JsonLdExtension implements ServiceExtension {
     
     public static final String NAME = "JSON-LD Extension";
     public static final String TYPE_MANAGER_CONTEXT_JSON_LD = "json-ld";
-    
+
     @Inject
     private TypeManager typeManager;
-    
+
     @Override
     public String name() {
         return NAME;
     }
-    
-    @Provider
-    public JsonLdTransformerRegistry jsonLdTransformerRegistry() {
-        return new JsonLdTransformerRegistryImpl();
-    }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         typeManager.registerContext(TYPE_MANAGER_CONTEXT_JSON_LD, JacksonJsonLd.createObjectMapper());
