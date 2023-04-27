@@ -41,6 +41,7 @@ import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class Participant {
     private static final String IDS_PATH = "/api/v1/ids";
@@ -70,8 +71,8 @@ public class Participant {
                 "asset", Map.of(
                         "id", assetId,
                         "properties", Map.of(
-                                "asset:prop:id", assetId,
-                                "asset:prop:description", "description"
+                                EDC_NAMESPACE + "id", assetId,
+                                EDC_NAMESPACE + "description", "description"
                         )
                 ),
                 "dataAddress", Map.of(
@@ -108,7 +109,7 @@ public class Participant {
                 "accessPolicyId", accessPolicyId,
                 "validity", String.valueOf(contractValidityDurationSeconds),
                 "contractPolicyId", contractPolicyId,
-                "criteria", AssetSelectorExpression.Builder.newInstance().constraint("asset:prop:id", "=", assetId).build().getCriteria()
+                "criteria", AssetSelectorExpression.Builder.newInstance().constraint(EDC_NAMESPACE + "id", "=", assetId).build().getCriteria()
         );
 
         given()
@@ -247,7 +248,6 @@ public class Participant {
 
     public void registerDataPlane() {
         var body = Map.of(
-                "edctype", "dataspaceconnector:dataplaneinstance",
                 "id", UUID.randomUUID().toString(),
                 "url", dataPlaneControl + "/transfer",
                 "allowedSourceTypes", List.of("HttpData", "HttpProvision"),

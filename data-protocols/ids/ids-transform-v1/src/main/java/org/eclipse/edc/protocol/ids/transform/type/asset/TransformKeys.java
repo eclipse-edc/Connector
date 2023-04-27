@@ -17,12 +17,14 @@ package org.eclipse.edc.protocol.ids.transform.type.asset;
 
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * IDS Transform Keys from the {@link Asset} properties.
  */
 public class TransformKeys {
-    public static final String KEY_ASSET_FILE_NAME = "asset:prop:fileName";
-    public static final String KEY_ASSET_BYTE_SIZE = "asset:prop:byteSize";
-    public static final String KEY_ASSET_FILE_EXTENSION = "asset:prop:fileExtension";
+    public static final String KEY_ASSET_FILE_NAME = EDC_NAMESPACE + "fileName";
+    public static final String KEY_ASSET_BYTE_SIZE = EDC_NAMESPACE + "byteSize";
+    public static final String KEY_ASSET_FILE_EXTENSION = EDC_NAMESPACE + "fileExtension";
 
 }

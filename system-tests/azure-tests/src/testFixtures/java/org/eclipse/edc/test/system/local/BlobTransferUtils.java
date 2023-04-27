@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_MANAGEMENT_URL;
@@ -49,10 +50,10 @@ public class BlobTransferUtils {
                 "asset", Map.of(
                         "id", PROVIDER_ASSET_ID,
                         "properties", Map.of(
-                                "asset:prop:name", PROVIDER_ASSET_ID,
-                                "asset:prop:contenttype", "text/plain",
-                                "asset:prop:version", "1.0",
-                                "asset:prop:id", PROVIDER_ASSET_ID,
+                                EDC_NAMESPACE + "name", PROVIDER_ASSET_ID,
+                                EDC_NAMESPACE + "contenttype", "text/plain",
+                                EDC_NAMESPACE + "version", "1.0",
+                                EDC_NAMESPACE + "id", PROVIDER_ASSET_ID,
                                 "type", "AzureStorage"
                         )
                 ),
@@ -90,7 +91,7 @@ public class BlobTransferUtils {
     public static void createContractDefinition(String policyId) {
 
         var criteria = AssetSelectorExpression.Builder.newInstance()
-                .constraint("asset:prop:id",
+                .constraint(EDC_NAMESPACE + "id",
                         "=",
                         PROVIDER_ASSET_ID)
                 .build();

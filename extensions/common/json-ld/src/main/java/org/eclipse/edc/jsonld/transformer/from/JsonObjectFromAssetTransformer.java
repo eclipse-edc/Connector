@@ -24,12 +24,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
-import static java.util.stream.Collectors.toMap;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<Asset, JsonObject> {
     private final ObjectMapper mapper;
@@ -46,13 +42,7 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
         var builder = jsonFactory.createObjectBuilder();
         builder.add(ID, asset.getId());
         builder.add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE);
-
-        // replace the special asset properties, starting with "asset:prop:", with the EDC_SCHEMA
-        var props = asset.getProperties().entrySet().stream()
-                .collect(toMap(entry -> entry.getKey().replace("asset:prop:", EDC_NAMESPACE), Map.Entry::getValue));
-
-        transformProperties(props, builder, mapper, context);
-
+        transformProperties(asset.getProperties(), builder, mapper, context);
         return builder.build();
     }
 }

@@ -35,14 +35,12 @@ import static org.mockito.Mockito.mock;
  */
 public abstract class RestControllerTestBase {
 
-    private JettyService jetty;
     protected final int port = getFreePort();
     protected Monitor monitor = mock(Monitor.class);
-
-    protected abstract Object controller();
+    private JettyService jetty;
 
     @BeforeEach
-    void setup() {
+    final void startJetty() {
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("test", port, "/"));
         jetty = new JettyService(config, monitor);
@@ -58,5 +56,7 @@ public abstract class RestControllerTestBase {
     void teardown() {
         jetty.shutdown();
     }
+
+    protected abstract Object controller();
 
 }

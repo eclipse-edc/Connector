@@ -54,16 +54,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-public class AssetApiControllerIntegrationTest extends RestControllerTestBase {
+public class AssetApiControllerTest extends RestControllerTestBase {
 
     private final AssetService service = mock(AssetService.class);
     private final DataAddressResolver dataAddressResolver = mock(DataAddressResolver.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
-
-    @Override
-    protected Object controller() {
-        return new AssetApiController(monitor, service, dataAddressResolver, transformerRegistry);
-    }
 
     @Test
     void getAllAssets() {
@@ -477,6 +472,11 @@ public class AssetApiControllerIntegrationTest extends RestControllerTestBase {
                 .then()
                 .statusCode(400);
         verifyNoInteractions(service);
+    }
+
+    @Override
+    protected Object controller() {
+        return new AssetApiController(monitor, service, dataAddressResolver, transformerRegistry);
     }
 
     private AssetEntryDto createAssetEntryDto() {

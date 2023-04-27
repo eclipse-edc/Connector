@@ -25,6 +25,8 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 @JsonTypeName("dataspaceconnector:assetdocument")
 public class AssetDocument extends CosmosDocument<Map<String, Object>> {
     private final String id;
@@ -46,7 +48,7 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
                          @JsonProperty("dataAddress") DataAddress dataAddress,
                          @JsonProperty("createdAt") long createdAt) {
         super(wrappedInstance, partitionKey);
-        id = wrappedInstance.get("asset_prop_id").toString();
+        id = wrappedInstance.get(sanitize(EDC_NAMESPACE) + "id").toString();
         this.dataAddress = dataAddress;
         this.createdAt = createdAt;
     }

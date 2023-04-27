@@ -21,9 +21,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.azure.cosmos.CosmosDocument.sanitize;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 class AssetDocumentSerializationTest {
 
+    private static final String PREFIX = EDC_NAMESPACE;
     private TypeManager typeManager;
 
     private static Asset createAsset() {
@@ -50,12 +53,13 @@ class AssetDocumentSerializationTest {
 
         String s = typeManager.writeValueAsString(document);
 
+        var prefix = sanitize(PREFIX);
         assertThat(s).isNotNull()
                 .contains("\"partitionKey\":\"partitionkey-test\"")
-                .contains("\"asset_prop_id\":\"id-test\"")
-                .contains("\"asset_prop_name\":\"node-test\"")
-                .contains("\"asset_prop_version\":\"123\"")
-                .contains("\"asset_prop_contenttype\":\"application/json\"")
+                .contains("\"" + prefix + "id\":\"id-test\"")
+                .contains("\"" + prefix + "name\":\"node-test\"")
+                .contains("\"" + prefix + "version\":\"123\"")
+                .contains("\"" + prefix + "contenttype\":\"application/json\"")
                 .contains("\"foo\":\"bar\"")
                 .contains("\"wrappedInstance\":")
                 .contains("\"id\":\"id-test\"");

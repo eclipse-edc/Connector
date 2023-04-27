@@ -51,19 +51,11 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
     /**
      * Converts a {@link Optional} into a result, interpreting the Optional's value as content.
      *
-     * @return {@link Result#failure(String)} if the Optional is empty, {@link Result#success(Object)} using the
-     *         Optional's value otherwise.
+     * @return {@link Result#failure(String)} if the Optional is empty, {@link Result#success(Object)} using the Optional's value otherwise.
      */
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public static <T> Result<T> from(Optional<T> opt) {
         return opt.map(Result::success).orElse(Result.failure("Empty optional"));
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    @NotNull
-    protected <R1 extends AbstractResult<C1, Failure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable Failure failure) {
-        return (R1) new Result<>(content, failure);
     }
 
     /**
@@ -72,7 +64,7 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
      * all failure messages, no content. If both results are failures, the merged result will contain failure messages
      * of {@code this} result, then the failure messages of {@code other}.
      */
-    public Result<T> merge(Result<T> other) {
+    public <R> Result<R> merge(Result<?> other) {
         if (succeeded() && other.succeeded()) {
             return new Result<>(null, null);
         } else {
@@ -130,6 +122,13 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
      */
     public Optional<T> asOptional() {
         return succeeded() && getContent() != null ? Optional.of(getContent()) : Optional.empty();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    @NotNull
+    protected <R1 extends AbstractResult<C1, Failure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable Failure failure) {
+        return (R1) new Result<>(content, failure);
     }
 
 }

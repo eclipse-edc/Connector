@@ -1,8 +1,8 @@
 {
   "properties": {
-    "asset:prop:contenttype": "application/json",
-    "asset:prop:version": "1.0",
-    "asset:prop:id": "abcd123",
+    "https://foo.bar.org/ds/schema/contenttype": "application/json",
+    "https://foo.bar.org/ds/schema/version": "1.0",
+    "https://foo.bar.org/ds/schema/id": "abcd123",
     "anotherProperty": "some value",
     "numberVal": 42069
   },

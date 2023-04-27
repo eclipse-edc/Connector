@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
+
 /**
  * An address that can be used resolve a data location. Data addresses are used throughout the system. For example, an asset has a data address used to resolve its contents,
  * which may be in an external store. A data address can also be used as a destination to send data during a transfer.

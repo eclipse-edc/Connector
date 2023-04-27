@@ -15,12 +15,14 @@
 package org.eclipse.edc.protocol.dsp.transform;
 
 import jakarta.json.Json;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDatasetTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToActionTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToAssetTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToConstraintTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataServiceTransformer;
@@ -77,6 +79,7 @@ public class DspTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory));
         registry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory));
         registry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory));
+        registry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
 
         // JSON-LD to EDC model transformers
         registry.register(new JsonObjectToCatalogTransformer());
@@ -90,5 +93,6 @@ public class DspTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToActionTransformer());
         registry.register(new JsonObjectToConstraintTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(mapper));
+        registry.register(new JsonObjectToAssetTransformer());
     }
 }
