@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transferprocess.api;
+package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher;
 
 /**
  * API paths for transfer process requests as defined in the dataspace protocol specification.
