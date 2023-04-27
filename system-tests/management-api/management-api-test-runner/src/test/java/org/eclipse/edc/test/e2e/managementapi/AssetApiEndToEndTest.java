@@ -27,7 +27,6 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -53,7 +52,6 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     private static final String TEST_ASSET_NAME = "test-asset";
 
     @Test
-    @Disabled(value = "Can enable once we have a unified transformer registry")
     void getAssetById() {
         //insert one asset into the index
         controlPlane.getContext().getService(AssetIndex.class)
@@ -75,7 +73,6 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     }
 
     @Test
-    @Disabled(value = "Can enable once we have a unified transformer registry")
     void createAsset_shouldBeStored() {
 
         var assetJson = Json.createObjectBuilder()
@@ -105,7 +102,6 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     }
 
     @Test
-    @Disabled(value = "Can enable once we have a unified transformer registry")
     void queryAsset_byContentType() {
         //insert one asset into the index
         controlPlane.getContext().getService(AssetIndex.class)
