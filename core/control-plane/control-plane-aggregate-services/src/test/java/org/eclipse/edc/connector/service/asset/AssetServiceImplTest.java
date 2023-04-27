@@ -106,8 +106,8 @@ class AssetServiceImplTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "asset_prop_id in (foo, bar)", // invalid key
-            "customProp=whatever", // no custom properties supported
+            "  asset_prop_id in (foo, bar)", // invalid leading whitespace
+            ".customProp=whatever", // invalid leading dot
     })
     void query_invalidFilter(String filter) {
         var query = QuerySpec.Builder.newInstance()

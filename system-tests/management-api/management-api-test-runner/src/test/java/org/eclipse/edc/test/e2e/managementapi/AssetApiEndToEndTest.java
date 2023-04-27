@@ -121,6 +121,90 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     }
 
+    @Test
+    void queryAsset_byCustomStringProperty() {
+        //insert one asset into the index
+        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
+        assetIndex.accept(new AssetEntry(Asset.Builder.newInstance()
+                .id("test-asset")
+                .contentType("application/octet-stream")
+                .property("myProp", "myVal")
+                .build(),
+                DataAddress.Builder.newInstance().type("test-type").build()));
+
+        var byCustomProp = CriterionDto.Builder.newInstance()
+                .operandLeft("myProp")
+                .operator("=")
+                .operandRight("myVal").build();
+        var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byCustomProp)).build();
+
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(query)
+                .post("/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void queryAsset_byCustomComplexProperty_whenJsonPathQuery_expectNoResult() {
+        //insert one asset into the index
+        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
+        assetIndex.accept(new AssetEntry(Asset.Builder.newInstance()
+                .id("test-asset")
+                .contentType("application/octet-stream")
+                // use a custom, complex object type
+                .property("myProp", new TestObject("test desc", 42))
+                .build(),
+                DataAddress.Builder.newInstance().type("test-type").build()));
+
+        var byCustomProp = CriterionDto.Builder.newInstance()
+                .operandLeft("myProp.description") //access in "json-path style", will not work
+                .operator("=")
+                .operandRight("test desc").build();
+        var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byCustomProp)).build();
+
+        // querying custom complex types in "json-path" style is expected not to work.
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(query)
+                .post("/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(0));
+    }
+
+    @Test
+    void queryAsset_byCustomComplexProperty_whenLikeOperator_expectException() {
+        //insert one asset into the index
+        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
+        assetIndex.accept(new AssetEntry(Asset.Builder.newInstance()
+                .id("test-asset")
+                .contentType("application/octet-stream")
+                // use a custom, complex object type
+                .property("myProp", new TestObject("test desc", 42))
+                .build(),
+                DataAddress.Builder.newInstance().type("test-type").build()));
+
+        var byCustomProp = CriterionDto.Builder.newInstance()
+                .operandLeft("myProp") //access with LIKE operator, will not work, because the inmem query convert does not support this
+                .operator("LIKE")
+                .operandRight("test desc").build();
+        var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byCustomProp)).build();
+
+        // querying custom complex types in "json-path" style is expected not to work.
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(query)
+                .post("/request")
+                .then()
+                .log().ifError()
+                .statusCode(500);
+    }
+
     private JsonObjectBuilder createPropertiesBuilder() {
         return Json.createObjectBuilder()
                 .add("name", TEST_ASSET_NAME)
@@ -139,5 +223,23 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
         return given()
                 .baseUri("http://localhost:" + PORT + "/management/v2/assets")
                 .when();
+    }
+
+    private static class TestObject {
+        private final String description;
+        private final int number;
+
+        TestObject(String description, int number) {
+            this.description = description;
+            this.number = number;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public int getNumber() {
+            return number;
+        }
     }
 }

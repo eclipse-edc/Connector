@@ -18,31 +18,27 @@ import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
-import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
 class AssetQueryValidator extends QueryValidator {
-    private static final List<String> KNOWN_PROPERTIES = List.of(
-            Asset.PROPERTY_ID,
-            Asset.PROPERTY_NAME,
-            Asset.PROPERTY_DESCRIPTION,
-            Asset.PROPERTY_VERSION,
-            Asset.PROPERTY_CONTENT_TYPE
-    );
+    private static final Pattern VALID_QUERY_PATH_REGEX = Pattern.compile("^[A-Za-z_]+.*$");
 
     AssetQueryValidator() {
         super(Asset.class);
     }
 
     /**
-     * The only valid paths are named properties from {@link Asset}
+     * Only paths are valid that start with either a character or an '_'
      *
-     * @param path The path. Cannot start or end with a "."
+     * @param path The path. Cannot start with anything other chan A-Za-z_
      */
     @Override
     protected Result<Void> isValid(String path) {
-        return KNOWN_PROPERTIES.contains(path) ? Result.success() :
-                Result.failure(format("Currently only named properties of Asset are supported, and %s isn't one of them.", path));
+        if (VALID_QUERY_PATH_REGEX.matcher(path).matches()) {
+            return Result.success();
+        }
+        return Result.failure(format("The query path must start with a letter or an '_' but was '%s'", path));
     }
 }
