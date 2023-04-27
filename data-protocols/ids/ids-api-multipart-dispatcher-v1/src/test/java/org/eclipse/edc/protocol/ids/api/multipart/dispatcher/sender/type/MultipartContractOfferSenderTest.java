@@ -18,13 +18,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.SenderDelegateContext;
 import org.eclipse.edc.protocol.ids.serialization.IdsTypeManagerUtil;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
-import org.eclipse.edc.protocol.ids.transform.IdsTransformerRegistryImpl;
 import org.eclipse.edc.protocol.ids.transform.type.contract.ContractOfferToIdsContractOfferTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.policy.ActionToIdsActionTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.policy.PermissionToIdsPermissionTransformer;
@@ -47,7 +47,7 @@ class MultipartContractOfferSenderTest {
         var connectorId = IdsId.from("urn:connector:edc").getContent();
         var webhookAddress = "https://webhook";
 
-        var transformerRegistry = new IdsTransformerRegistryImpl();
+        var transformerRegistry = new TypeTransformerRegistryImpl();
         transformerRegistry.register(new ContractOfferToIdsContractOfferTransformer());
         transformerRegistry.register(new PermissionToIdsPermissionTransformer());
         transformerRegistry.register(new ActionToIdsActionTransformer());

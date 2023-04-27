@@ -26,10 +26,10 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
@@ -63,12 +63,12 @@ public class CatalogController {
     
     private final ObjectMapper mapper;
     private final IdentityService identityService;
-    private final JsonLdTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
     private final String dspCallbackAddress;
     private final CatalogProtocolService service;
 
     public CatalogController(ObjectMapper mapper, IdentityService identityService,
-                             JsonLdTransformerRegistry transformerRegistry, String dspCallbackAddress,
+                             TypeTransformerRegistry transformerRegistry, String dspCallbackAddress,
                              CatalogProtocolService service) {
         this.mapper = mapper;
         this.identityService = identityService;

@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.transferprocess;
 
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
@@ -30,6 +29,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
@@ -58,7 +58,7 @@ import static org.mockito.Mockito.when;
 
 class TransferProcessApiControllerTest {
     private final TransferProcessService service = mock(TransferProcessService.class);
-    private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private TransferProcessApiController controller;
 
     @BeforeEach

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher;
 
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.CatalogRequestHttpDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
@@ -23,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
@@ -42,7 +42,7 @@ public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
-    private JsonLdTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
     
     @Override
     public String name() {

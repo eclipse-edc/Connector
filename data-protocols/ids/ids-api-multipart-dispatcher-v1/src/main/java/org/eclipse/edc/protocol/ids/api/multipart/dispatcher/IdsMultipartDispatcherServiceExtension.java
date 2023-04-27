@@ -26,7 +26,6 @@ import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.Multipa
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartEndpointDataReferenceRequestSender;
 import org.eclipse.edc.protocol.ids.api.multipart.dispatcher.sender.type.MultipartTransferRequestSender;
 import org.eclipse.edc.protocol.ids.spi.service.DynamicAttributeTokenService;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -36,6 +35,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static org.eclipse.edc.protocol.ids.util.ConnectorIdUtil.resolveConnectorId;
 
@@ -53,7 +53,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     private DynamicAttributeTokenService dynamicAttributeTokenService;
 
     @Inject
-    private IdsTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private IdsApiConfiguration idsApiConfiguration;

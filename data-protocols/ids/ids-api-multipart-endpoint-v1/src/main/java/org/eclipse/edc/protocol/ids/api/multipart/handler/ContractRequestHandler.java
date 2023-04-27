@@ -23,11 +23,11 @@ import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProt
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.transform.ContractTransformerInput;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.MessageProtocol;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -45,13 +45,13 @@ public class ContractRequestHandler implements Handler {
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final IdsId connectorId;
-    private final IdsTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
     private final ContractNegotiationProtocolService service;
 
     public ContractRequestHandler(
             Monitor monitor, IdsId connectorId, ObjectMapper objectMapper,
-            IdsTransformerRegistry transformerRegistry,
+            TypeTransformerRegistry transformerRegistry,
             AssetIndex assetIndex, ContractNegotiationProtocolService service) {
         this.monitor = monitor;
         this.connectorId = connectorId;

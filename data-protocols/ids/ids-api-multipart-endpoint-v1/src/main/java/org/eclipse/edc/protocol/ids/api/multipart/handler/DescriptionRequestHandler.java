@@ -29,7 +29,6 @@ import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.edc.protocol.ids.spi.service.CatalogService;
 import org.eclipse.edc.protocol.ids.spi.service.ConnectorService;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
 import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
@@ -38,6 +37,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -58,7 +58,7 @@ import static org.eclipse.edc.protocol.ids.spi.types.IdsType.RESOURCE;
 public class DescriptionRequestHandler implements Handler {
     private final Monitor monitor;
     private final IdsId connectorId;
-    private final IdsTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
     private final CatalogService catalogService;
     private final ContractOfferResolver contractOfferResolver;
@@ -76,7 +76,7 @@ public class DescriptionRequestHandler implements Handler {
     public DescriptionRequestHandler(
             @NotNull Monitor monitor,
             @NotNull IdsId connectorId,
-            @NotNull IdsTransformerRegistry transformerRegistry,
+            @NotNull TypeTransformerRegistry transformerRegistry,
             @NotNull AssetIndex assetIndex,
             @NotNull CatalogService catalogService,
             @NotNull ContractOfferResolver contractOfferResolver,

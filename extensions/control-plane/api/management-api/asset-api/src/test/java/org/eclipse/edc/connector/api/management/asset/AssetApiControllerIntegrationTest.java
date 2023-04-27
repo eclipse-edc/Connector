@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.asset;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
@@ -32,6 +31,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +58,7 @@ public class AssetApiControllerIntegrationTest extends RestControllerTestBase {
 
     private final AssetService service = mock(AssetService.class);
     private final DataAddressResolver dataAddressResolver = mock(DataAddressResolver.class);
-    private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
 
     @Override
     protected Object controller() {

@@ -36,7 +36,6 @@ import org.eclipse.edc.protocol.ids.api.multipart.handler.Handler;
 import org.eclipse.edc.protocol.ids.spi.service.CatalogService;
 import org.eclipse.edc.protocol.ids.spi.service.ConnectorService;
 import org.eclipse.edc.protocol.ids.spi.service.DynamicAttributeTokenService;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.AssetIndex;
@@ -45,6 +44,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.LinkedList;
@@ -77,7 +77,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private AssetIndex assetIndex;
 
     @Inject
-    private IdsTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private ContractOfferResolver contractOfferResolver;

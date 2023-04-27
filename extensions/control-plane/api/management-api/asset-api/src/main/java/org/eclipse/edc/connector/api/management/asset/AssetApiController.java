@@ -29,7 +29,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
@@ -42,6 +41,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
@@ -61,11 +61,11 @@ public class AssetApiController implements AssetApi {
 
     private final Monitor monitor;
     private final AssetService service;
-    private final DtoTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
 
     private final DataAddressResolver dataAddressResolver;
 
-    public AssetApiController(Monitor monitor, AssetService service, DataAddressResolver dataAddressResolver, DtoTransformerRegistry transformerRegistry) {
+    public AssetApiController(Monitor monitor, AssetService service, DataAddressResolver dataAddressResolver, TypeTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.service = service;
         this.dataAddressResolver = dataAddressResolver;

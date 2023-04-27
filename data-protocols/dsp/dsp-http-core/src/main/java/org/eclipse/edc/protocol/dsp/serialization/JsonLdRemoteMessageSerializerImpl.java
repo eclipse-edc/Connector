@@ -17,10 +17,10 @@ package org.eclipse.edc.protocol.dsp.serialization;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -31,17 +31,17 @@ import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
  */
 public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSerializer {
     
-    private JsonLdTransformerRegistry registry;
-    private ObjectMapper mapper;
+    private final TypeTransformerRegistry registry;
+    private final ObjectMapper mapper;
     
-    public JsonLdRemoteMessageSerializerImpl(JsonLdTransformerRegistry registry, ObjectMapper mapper) {
+    public JsonLdRemoteMessageSerializerImpl(TypeTransformerRegistry registry, ObjectMapper mapper) {
         this.registry = registry;
         this.mapper = mapper;
     }
     
     /**
      * Serializes a {@link RemoteMessage} to JSON-LD. The message is first transformed using the
-     * {@link JsonLdTransformerRegistry}, then the resulting JSON-LD structure is compacted using
+     * {@link TypeTransformerRegistry}, then the resulting JSON-LD structure is compacted using
      * the given JSON-LD context before returning it as a string.
      *
      * @param message the message to serialize

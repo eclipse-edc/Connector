@@ -18,10 +18,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 class JsonLdRemoteMessageSerializerImplTest {
     
-    private JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
+    private TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
     private ObjectMapper mapper = mock(ObjectMapper.class);
     
     private JsonLdRemoteMessageSerializerImpl serializer;

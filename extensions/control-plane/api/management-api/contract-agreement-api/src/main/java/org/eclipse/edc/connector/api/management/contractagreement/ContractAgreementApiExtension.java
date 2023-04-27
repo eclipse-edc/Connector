@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.api.management.contractagreement;
 
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
@@ -23,6 +22,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 @Extension(value = ContractAgreementApiExtension.NAME)
@@ -36,7 +36,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     ManagementApiConfiguration config;
 
     @Inject
-    DtoTransformerRegistry transformerRegistry;
+    TypeTransformerRegistry transformerRegistry;
 
     @Inject
     ContractAgreementService service;

@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.edc.transform.spi;
+package org.eclipse.edc.connector.core.transform;
 
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.when;
 
 class TransformerContextImplTest {
 
-    private final TypeTransformerRegistry<?> registry = mock(TypeTransformerRegistry.class);
+    private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
     private final TransformerContextImpl context = new TransformerContextImpl(registry);
 
     @Test

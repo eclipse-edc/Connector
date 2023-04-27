@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi:common:policy-engine-spi"))
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:transaction-datasource-spi"))
+    api(project(":spi:common:transform-spi"))
 
     implementation(project(":core:common:policy-engine"))
     implementation(project(":core:common:util"))

@@ -26,7 +26,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
@@ -37,6 +36,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
@@ -55,9 +55,9 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 public class TransferProcessApiController implements TransferProcessApi {
     private final Monitor monitor;
     private final TransferProcessService service;
-    private final DtoTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
 
-    public TransferProcessApiController(Monitor monitor, TransferProcessService service, DtoTransformerRegistry transformerRegistry) {
+    public TransferProcessApiController(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.service = service;
         this.transformerRegistry = transformerRegistry;

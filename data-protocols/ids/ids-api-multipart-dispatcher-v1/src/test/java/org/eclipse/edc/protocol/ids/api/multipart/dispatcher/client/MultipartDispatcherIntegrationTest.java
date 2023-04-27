@@ -36,7 +36,6 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.ids.api.multipart.controller.MultipartController;
 import org.eclipse.edc.protocol.ids.spi.transform.ContractAgreementTransformerOutput;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.MessageProtocol;
 import org.eclipse.edc.protocol.ids.util.CalendarUtil;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -49,6 +48,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.metadata.MetadataRequest;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -79,7 +79,7 @@ class MultipartDispatcherIntegrationTest {
     private static final int IDS_PORT = getFreePort();
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
 
-    private final IdsTransformerRegistry transformerRegistry = mock(IdsTransformerRegistry.class);
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final ContractNegotiationProtocolService negotiationService = mock(ContractNegotiationProtocolService.class);
@@ -102,7 +102,7 @@ class MultipartDispatcherIntegrationTest {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
-        extension.registerServiceMock(IdsTransformerRegistry.class, transformerRegistry);
+        extension.registerServiceMock(TypeTransformerRegistry.class, transformerRegistry);
         extension.registerServiceMock(ContractNegotiationStore.class, negotiationStore);
         extension.registerServiceMock(ContractValidationService.class, validationService);
         extension.registerServiceMock(ContractNegotiationProtocolService.class, negotiationService);

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.transferprocess;
 
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.DataRequestToDataRequestDtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.TransferProcessToTransferProcessDtoTransformer;
@@ -24,6 +23,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 @Extension(value = TransferProcessApiExtension.NAME)
@@ -36,7 +36,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
     private ManagementApiConfiguration configuration;
 
     @Inject
-    private DtoTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private TransferProcessService service;

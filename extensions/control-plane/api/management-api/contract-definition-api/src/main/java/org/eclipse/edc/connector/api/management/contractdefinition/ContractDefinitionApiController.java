@@ -27,7 +27,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
@@ -37,6 +36,7 @@ import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionServic
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.jetbrains.annotations.NotNull;
@@ -54,9 +54,9 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 public class ContractDefinitionApiController implements ContractDefinitionApi {
     private final Monitor monitor;
     private final ContractDefinitionService service;
-    private final DtoTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry;
 
-    public ContractDefinitionApiController(Monitor monitor, ContractDefinitionService service, DtoTransformerRegistry transformerRegistry) {
+    public ContractDefinitionApiController(Monitor monitor, ContractDefinitionService service, TypeTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.service = service;
         this.transformerRegistry = transformerRegistry;

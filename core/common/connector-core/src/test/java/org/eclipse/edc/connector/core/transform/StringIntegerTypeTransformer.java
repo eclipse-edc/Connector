@@ -12,8 +12,10 @@
  *
  */
 
-package org.eclipse.edc.transform.spi;
+package org.eclipse.edc.connector.core.transform;
 
+import org.eclipse.edc.transform.spi.TransformerContext;
+import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

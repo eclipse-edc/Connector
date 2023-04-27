@@ -14,9 +14,11 @@
 
 package org.eclipse.edc.jsonld.util;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class JacksonJsonLd {
     private JacksonJsonLd() {
@@ -24,6 +26,8 @@ public class JacksonJsonLd {
 
     public static ObjectMapper createObjectMapper() {
         var mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.registerModule(new JavaTimeModule());
         mapper.registerModule(new JSONPModule());
         var module = new SimpleModule() {
             @Override

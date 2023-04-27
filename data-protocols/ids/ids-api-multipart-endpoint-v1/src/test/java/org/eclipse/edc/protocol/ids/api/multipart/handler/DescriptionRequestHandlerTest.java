@@ -39,7 +39,6 @@ import org.eclipse.edc.protocol.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.edc.protocol.ids.spi.domain.connector.Connector;
 import org.eclipse.edc.protocol.ids.spi.service.CatalogService;
 import org.eclipse.edc.protocol.ids.spi.service.ConnectorService;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
 import org.eclipse.edc.spi.asset.AssetIndex;
@@ -48,6 +47,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -83,7 +83,7 @@ class DescriptionRequestHandlerTest {
     private final int rangeTo = 10;
     private DescriptionRequestHandler handler;
 
-    private IdsTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
     private AssetIndex assetIndex;
     private CatalogService catalogService;
     private ContractOfferResolver contractOfferResolver;
@@ -93,7 +93,7 @@ class DescriptionRequestHandlerTest {
     void init() {
         var connectorId = IdsId.from("urn:connector:edc").getContent();
 
-        transformerRegistry = mock(IdsTransformerRegistry.class);
+        transformerRegistry = mock(TypeTransformerRegistry.class);
         assetIndex = mock(AssetIndex.class);
         catalogService = mock(CatalogService.class);
         contractOfferResolver = mock(ContractOfferResolver.class);

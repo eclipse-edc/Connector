@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
@@ -28,6 +27,7 @@ import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 
 class ContractDefinitionApiControllerTest {
 
-    private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final ContractDefinitionService service = mock(ContractDefinitionService.class);
     private ContractDefinitionApiController controller;
 

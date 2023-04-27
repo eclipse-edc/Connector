@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp;
 
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdRemoteMessageSerializerImpl;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
@@ -27,6 +26,7 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
 
@@ -47,7 +47,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Inject
     private IdentityService identityService;
     @Inject
-    private JsonLdTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
     @Inject
     private TypeManager typeManager;
     

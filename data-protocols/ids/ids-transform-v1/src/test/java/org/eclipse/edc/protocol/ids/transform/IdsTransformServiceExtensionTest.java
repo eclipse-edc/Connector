@@ -33,11 +33,11 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.ids.spi.domain.connector.Connector;
 import org.eclipse.edc.protocol.ids.spi.domain.connector.SecurityProfile;
-import org.eclipse.edc.protocol.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.edc.protocol.ids.spi.types.container.OfferedAsset;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -59,11 +59,11 @@ class IdsTransformServiceExtensionTest {
     private IdsTransformServiceExtension idsTransformServiceExtension;
 
     private ServiceExtensionContext serviceExtensionContext;
-    private final IdsTransformerRegistry transformerRegistry = mock(IdsTransformerRegistry.class);
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        context.registerService(IdsTransformerRegistry.class, transformerRegistry);
+        context.registerService(TypeTransformerRegistry.class, transformerRegistry);
         idsTransformServiceExtension = factory.constructInstance(IdsTransformServiceExtension.class);
         serviceExtensionContext = context;
     }

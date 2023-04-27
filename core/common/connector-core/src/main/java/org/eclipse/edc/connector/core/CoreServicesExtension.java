@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.core.event.EventRouterImpl;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
 import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
+import org.eclipse.edc.connector.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
 import org.eclipse.edc.policy.engine.ScopeFilter;
@@ -44,6 +45,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.security.PrivateKey;
 import java.time.Duration;
@@ -162,6 +164,11 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public HealthCheckService healthCheckService() {
         return healthCheckService;
+    }
+
+    @Provider
+    public TypeTransformerRegistry typeTransformerRegistry() {
+        return new TypeTransformerRegistryImpl();
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {

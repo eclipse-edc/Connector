@@ -16,7 +16,6 @@
 
 package org.eclipse.edc.connector.api.management.asset;
 
-import org.eclipse.edc.api.transformer.DtoTransformerRegistry;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetRequestDtoToAssetTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetToAssetResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetUpdateRequestWrapperDtoToAssetTransformer;
@@ -29,6 +28,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 @Extension(value = AssetApiExtension.NAME)
@@ -43,7 +43,7 @@ public class AssetApiExtension implements ServiceExtension {
     private ManagementApiConfiguration config;
 
     @Inject
-    private DtoTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
     private AssetService assetService;

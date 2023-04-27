@@ -21,22 +21,15 @@ public class ExampleObjectTransformer implements DtoTransformer<ExampleObject, E
 ```java
 //ExampleApiExtension.java
 
-@Provides(DtoTransformerRegistry.class)
 public class ExampleApiExtension implements ServiceExtension{
-    @Inject(required=false)
-    private DtoTransformerRegistry registry;
+    @Inject
+    private TypeTransformerRegistry registry;
     
     @Inject
     private WebService webService;
     
     @Override
     public void initialize(ServiceExtensionContext context){
-        
-        if(registry == null){
-            registry= new DtoTransformerRegistryImpl();
-            context.registerService(DtoTransformerRegistry.class, registry);
-        }
-        
         //register the transformer
         var transformer = new ExampleObjectTransformer(/*params*/);
         registry.register(transformer);
