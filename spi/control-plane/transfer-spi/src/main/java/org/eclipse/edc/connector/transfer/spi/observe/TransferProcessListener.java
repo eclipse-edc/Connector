@@ -194,7 +194,7 @@ public interface TransferProcessListener {
      *
      * @param process the transfer process that has been started.
      */
-    default void started(TransferProcess process) {
+    default void started(TransferProcess process, TransferProcessStartedData additionalData) {
 
     }
 

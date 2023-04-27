@@ -478,7 +478,7 @@ class TransferProcessManagerImplTest {
             verify(dispatcherRegistry).send(any(), captor.capture());
             assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
-            verify(listener).started(process);
+            verify(listener).started(eq(process), any());
         });
     }
 

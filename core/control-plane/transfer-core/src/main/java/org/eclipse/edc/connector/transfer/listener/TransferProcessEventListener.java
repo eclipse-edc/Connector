@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.transfer.listener;
 
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
+import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -85,9 +86,10 @@ public class TransferProcessEventListener implements TransferProcessListener {
     }
 
     @Override
-    public void started(TransferProcess process) {
+    public void started(TransferProcess process, TransferProcessStartedData additionalData) {
         var event = TransferProcessStarted.Builder.newInstance()
                 .transferProcessId(process.getId())
+                .dataAddress(additionalData.getDataAddress())
                 .callbackAddresses(process.getCallbackAddresses())
                 .build();
 

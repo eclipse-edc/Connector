@@ -17,6 +17,7 @@ package org.eclipse.edc.spi.event.transferprocess;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
  * This event is raised when the TransferProcess has been started.
@@ -24,7 +25,14 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 @JsonDeserialize(builder = TransferProcessStarted.Builder.class)
 public class TransferProcessStarted extends TransferProcessEvent {
 
+
+    private DataAddress dataAddress;
+
     private TransferProcessStarted() {
+    }
+
+    public DataAddress getDataAddress() {
+        return dataAddress;
     }
 
     @Override
@@ -42,6 +50,11 @@ public class TransferProcessStarted extends TransferProcessEvent {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder dataAddress(DataAddress dataAddress) {
+            event.dataAddress = dataAddress;
+            return this;
         }
 
         @Override
