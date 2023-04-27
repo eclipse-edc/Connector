@@ -559,7 +559,7 @@ paths:
           description: An asset with the given ID does not exist
       tags:
       - Asset
-  /v2/assets/{id}/address:
+  /v2/assets/{id}/dataaddress:
     get:
       description: Gets a data address of an asset with the given ID
       operationId: getAssetDataAddress_1

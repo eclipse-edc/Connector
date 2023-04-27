@@ -51,8 +51,7 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
     /**
      * Converts a {@link Optional} into a result, interpreting the Optional's value as content.
      *
-     * @return {@link Result#failure(String)} if the Optional is empty, {@link Result#success(Object)} using the
-     * Optional's value otherwise.
+     * @return {@link Result#failure(String)} if the Optional is empty, {@link Result#success(Object)} using the Optional's value otherwise.
      */
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public static <T> Result<T> from(Optional<T> opt) {
