@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementV
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -79,24 +80,26 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and persisted, which moves it to
      * state REQUESTING.
      *
-     * @param contractOffer Container object containing all relevant request parameters.
+     * @param request Container object containing all relevant request parameters.
      * @return a {@link StatusResult}: OK
      */
     @WithSpan
     @Override
-    public StatusResult<ContractNegotiation> initiate(ContractRequestMessage contractOffer) {
+    public StatusResult<ContractNegotiation> initiate(ContractRequest request) {
         var id = UUID.randomUUID().toString();
+        var requestData = request.getRequestData();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id)
                 .correlationId(id)
-                .protocol(contractOffer.getProtocol())
-                .counterPartyId(contractOffer.getConnectorId())
-                .counterPartyAddress(contractOffer.getCallbackAddress())
+                .protocol(requestData.getProtocol())
+                .counterPartyId(requestData.getConnectorId())
+                .counterPartyAddress(requestData.getCallbackAddress())
+                .callbackAddresses(request.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
                 .build();
 
-        negotiation.addContractOffer(contractOffer.getContractOffer());
+        negotiation.addContractOffer(requestData.getContractOffer());
         transitionToInitial(negotiation);
 
         return StatusResult.success(negotiation);

@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCom
 import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.service.query.QueryValidator;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -81,7 +81,7 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     }
 
     @Override
-    public ContractNegotiation initiateNegotiation(ContractRequestMessage request) {
+    public ContractNegotiation initiateNegotiation(ContractRequest request) {
         return transactionContext.execute(() -> consumerManager.initiate(request).getContent());
     }
 

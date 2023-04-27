@@ -21,6 +21,8 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -43,6 +45,7 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -54,6 +57,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -144,11 +148,19 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var request = ContractRequestMessage.Builder.newInstance()
+        var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
                 .callbackAddress("callbackAddress")
                 .contractOffer(offer)
                 .protocol("ids-multipart")
+                .build();
+
+
+        var request = ContractRequest.Builder.newInstance()
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
+                .requestData(requestData)
                 .build();
 
         consumerManager.initiate(request);
@@ -163,7 +175,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(providerNegotiation).isNotNull();
 
                     // Assert that the consumer has the callbacks
-                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(0);
+                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
                     assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
 
                     // Assert that provider and consumer have the same offers and agreement stored
@@ -193,12 +205,15 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var request = ContractRequestMessage.Builder.newInstance()
+        var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
                 .callbackAddress("callbackAddress")
                 .contractOffer(offer)
                 .protocol("ids-multipart")
                 .build();
+
+        var request = ContractRequest.Builder.newInstance().requestData(requestData).build();
+
         consumerManager.initiate(request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT)
@@ -223,11 +238,18 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var request = ContractRequestMessage.Builder.newInstance()
+        var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
                 .callbackAddress("callbackAddress")
                 .contractOffer(offer)
                 .protocol("ids-multipart")
+                .build();
+
+        var request = ContractRequest.Builder.newInstance()
+                .requestData(requestData)
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .build();
         consumerManager.initiate(request);
 
@@ -241,7 +263,7 @@ class ContractNegotiationIntegrationTest {
                     assertThat(providerNegotiation).isNotNull();
 
                     // Assert that the consumer has the callbacks
-                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(0);
+                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
                     assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
 
                     // Assert that provider and consumer have the same offers stored

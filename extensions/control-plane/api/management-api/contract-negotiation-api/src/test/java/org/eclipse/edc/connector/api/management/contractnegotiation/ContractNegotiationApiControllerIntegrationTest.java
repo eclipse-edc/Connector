@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.DataService;
@@ -216,6 +217,9 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .connectorId("connector")
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
                 .connectorAddress("callbackAddress")
+                .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
                 .offer(TestFunctions.createOffer())
                 .consumerId("test-consumer")
                 .providerId("test-provider")

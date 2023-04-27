@@ -26,7 +26,6 @@ import java.util.List;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.TestFunctions.createOffer;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage.Type.INITIAL;
 import static org.mockito.Mockito.mock;
 
 class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
@@ -63,14 +62,14 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         var request = transformer.transform(dto, context);
 
         assertThat(request).isNotNull();
-        assertThat(request.getConnectorId()).isEqualTo("connectorId");
-        assertThat(request.getCallbackAddress()).isEqualTo("address");
-        assertThat(request.getProtocol()).isEqualTo("protocol");
-        assertThat(request.getType()).isEqualTo(INITIAL);
-        assertThat(request.getContractOffer().getId()).isEqualTo("offerId");
-        assertThat(request.getContractOffer().getContractStart().toInstant()).isEqualTo(clock.instant());
-        assertThat(request.getContractOffer().getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(dto.getOffer().getValidity()));
-        assertThat(request.getContractOffer().getPolicy()).isNotNull();
+        assertThat(request.getRequestData().getConnectorId()).isEqualTo("connectorId");
+        assertThat(request.getRequestData().getCallbackAddress()).isEqualTo("address");
+        assertThat(request.getRequestData().getProtocol()).isEqualTo("protocol");
+        assertThat(request.getRequestData().getContractOffer().getId()).isEqualTo("offerId");
+        assertThat(request.getRequestData().getContractOffer().getContractStart().toInstant()).isEqualTo(clock.instant());
+        assertThat(request.getRequestData().getContractOffer().getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(dto.getOffer().getValidity()));
+        assertThat(request.getRequestData().getContractOffer().getPolicy()).isNotNull();
+        assertThat(request.getCallbackAddresses()).hasSize(1);
     }
 
     @Test
@@ -87,8 +86,8 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         var request = transformer.transform(dto, context);
 
         assertThat(request).isNotNull();
-        assertThat(request.getContractOffer().getProvider()).asString().isEqualTo(dto.getConnectorAddress());
-        assertThat(request.getContractOffer().getConsumer()).asString().isEqualTo("urn:connector:test-consumer");
+        assertThat(request.getRequestData().getContractOffer().getProvider()).asString().isEqualTo(dto.getConnectorAddress());
+        assertThat(request.getRequestData().getContractOffer().getConsumer()).asString().isEqualTo("urn:connector:test-consumer");
     }
 
     @Test
@@ -104,7 +103,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
         var request = transformer.transform(dto, context);
         assertThat(request).isNotNull();
-        assertThat(request.getContractOffer().getProvider()).asString().isEqualTo("urn:connector:test-provider");
-        assertThat(request.getContractOffer().getConsumer()).asString().isEqualTo(DEFAULT_CONSUMER_ID);
+        assertThat(request.getRequestData().getContractOffer().getProvider()).asString().isEqualTo("urn:connector:test-provider");
+        assertThat(request.getRequestData().getContractOffer().getConsumer()).asString().isEqualTo(DEFAULT_CONSUMER_ID);
     }
 }
