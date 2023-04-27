@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -400,6 +401,22 @@ public abstract class AssetIndexTestBase {
         var criterion = new Criterion("myjson", "LIKE", "%test123%");
 
         var assetsFound = getAssetIndex().queryAssets(filter(criterion));
+
+        assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);
+    }
+
+    @Test
+    @DisplayName("Query assets using two criteria, each with the LIKE operator on a nested json value")
+    @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
+    void queryAsset_likeJson_withComplexObject() throws JsonProcessingException {
+        var asset = getAsset("id1");
+        var jsonObject = Map.of("root", Map.of("key1", "value1", "nested1", Map.of("key2", "value2", "key3", Map.of("theKey", "theValue, this is what we're looking for"))));
+        asset.getProperties().put("myProp", new ObjectMapper().writeValueAsString(jsonObject));
+        getAssetIndex().accept(asset, getDataAddress());
+        var criterion1 = new Criterion("myProp", "LIKE", "%is%what%");
+        var criterion2 = new Criterion("myProp", "LIKE", "%we're%looking%");
+
+        var assetsFound = getAssetIndex().queryAssets(filter(criterion1, criterion2));
 
         assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);
     }
