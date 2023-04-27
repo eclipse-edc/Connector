@@ -314,7 +314,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(dataAddressDto));
 
         baseRequest()
-                .get("/assets/id/address")
+                .get("/assets/id/dataaddress")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)

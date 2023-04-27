@@ -84,7 +84,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
         var json = Map.of("asset", assetJson,
                 "dataAddress", Map.of("properties", Map.of("type", "test-type")));
 
-        var id = baseRequest()
+        baseRequest()
                 .contentType(ContentType.JSON)
                 .body(json)
                 .post()
