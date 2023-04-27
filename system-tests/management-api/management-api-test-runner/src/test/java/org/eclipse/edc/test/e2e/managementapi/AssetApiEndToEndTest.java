@@ -20,7 +20,6 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.asset.AssetIndex;
@@ -92,9 +91,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .then()
                 .log().ifError()
                 .statusCode(200)
-                .extract().body().as(IdResponseDto.class);
-
-        assertThat(id).isNotNull().extracting(IdResponseDto::getId).isEqualTo("test-asset-id");
+                .body("id", is("test-asset-id"));
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);

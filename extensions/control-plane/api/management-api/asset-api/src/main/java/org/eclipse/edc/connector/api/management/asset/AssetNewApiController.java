@@ -46,7 +46,6 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.util.Optional.of;
@@ -78,9 +77,10 @@ public class AssetNewApiController implements AssetNewApi {
         var assetResult = transformerRegistry.transform(expandedJsonAsset, Asset.class);
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 
-        if (assetResult.failed() || dataAddressResult.failed()) {
-            var errorMessages = Stream.concat(assetResult.getFailureMessages().stream(), dataAddressResult.getFailureMessages().stream());
-            throw new InvalidRequestException(errorMessages.collect(toList()));
+        var result = assetResult.merge(dataAddressResult);
+        if (result.failed()) {
+            var errorMessages = result.getFailureMessages();
+            throw new InvalidRequestException(errorMessages);
         }
 
         var dataAddress = dataAddressResult.getContent();
@@ -148,7 +148,7 @@ public class AssetNewApiController implements AssetNewApi {
     }
 
     @GET
-    @Path("{id}/address")
+    @Path("{id}/dataaddress")
     @Override
     public DataAddressDto getAssetDataAddress(@PathParam("id") String id) {
         return of(id)
