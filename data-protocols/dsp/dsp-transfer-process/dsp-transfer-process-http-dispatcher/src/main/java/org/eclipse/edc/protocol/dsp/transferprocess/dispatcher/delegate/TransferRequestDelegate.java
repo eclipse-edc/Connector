@@ -21,10 +21,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -41,9 +41,9 @@ public class TransferRequestDelegate extends DspHttpDispatcherDelegate<TransferR
 
     private ObjectMapper mapper;
 
-    private JsonLdTransformerRegistry registry;
+    private TypeTransformerRegistry registry;
 
-    public TransferRequestDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, JsonLdTransformerRegistry registry) {
+    public TransferRequestDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, TypeTransformerRegistry registry) {
         super(serializer);
         this.mapper = mapper;
         this.registry = registry;

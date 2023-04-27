@@ -21,12 +21,12 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<TransferRequestMessage> {
 
     private ObjectMapper mapper = mock(ObjectMapper.class);
-    private JsonLdTransformerRegistry registry = mock(JsonLdTransformerRegistry.class);
+    private TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
 
     private TransferRequestDelegate delegate;
 
