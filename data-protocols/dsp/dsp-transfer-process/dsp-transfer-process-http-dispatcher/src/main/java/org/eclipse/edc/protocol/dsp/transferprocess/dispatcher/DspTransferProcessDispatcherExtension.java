@@ -38,7 +38,7 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
 @Extension(value = DspTransferProcessDispatcherExtension.NAME)
 public class DspTransferProcessDispatcherExtension implements ServiceExtension {
 
-    public static final String NAME = "Dataspace Protocol: Control Plane Dispatcher Extension";
+    public static final String NAME = "Dataspace Protocol Transfer HTTP Dispatcher Extension";
 
     @Inject
     private DspHttpRemoteMessageDispatcher messageDispatcher;
