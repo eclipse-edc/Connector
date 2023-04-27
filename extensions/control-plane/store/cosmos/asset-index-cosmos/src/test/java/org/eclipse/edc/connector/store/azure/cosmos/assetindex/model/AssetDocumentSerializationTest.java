@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.store.azure.cosmos.assetindex.model;
 
-import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -23,10 +22,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.azure.cosmos.CosmosDocument.sanitize;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 class AssetDocumentSerializationTest {
 
-    private static final String PREFIX = CoreConstants.EDC_NAMESPACE;
+    private static final String PREFIX = EDC_NAMESPACE;
     private TypeManager typeManager;
 
     private static Asset createAsset() {

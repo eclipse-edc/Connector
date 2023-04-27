@@ -21,7 +21,6 @@ import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_MANAGEMENT_URL;
@@ -50,10 +50,10 @@ public class BlobTransferUtils {
                 "asset", Map.of(
                         "id", PROVIDER_ASSET_ID,
                         "properties", Map.of(
-                                CoreConstants.EDC_NAMESPACE + "name", PROVIDER_ASSET_ID,
-                                CoreConstants.EDC_NAMESPACE + "contenttype", "text/plain",
-                                CoreConstants.EDC_NAMESPACE + "version", "1.0",
-                                CoreConstants.EDC_NAMESPACE + "id", PROVIDER_ASSET_ID,
+                                EDC_NAMESPACE + "name", PROVIDER_ASSET_ID,
+                                EDC_NAMESPACE + "contenttype", "text/plain",
+                                EDC_NAMESPACE + "version", "1.0",
+                                EDC_NAMESPACE + "id", PROVIDER_ASSET_ID,
                                 "type", "AzureStorage"
                         )
                 ),
@@ -91,7 +91,7 @@ public class BlobTransferUtils {
     public static void createContractDefinition(String policyId) {
 
         var criteria = AssetSelectorExpression.Builder.newInstance()
-                .constraint(CoreConstants.EDC_NAMESPACE + "id",
+                .constraint(EDC_NAMESPACE + "id",
                         "=",
                         PROVIDER_ASSET_ID)
                 .build();

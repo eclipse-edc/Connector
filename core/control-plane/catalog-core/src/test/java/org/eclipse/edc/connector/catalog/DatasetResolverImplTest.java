@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
@@ -50,6 +49,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -139,7 +139,7 @@ class DatasetResolverImplTest {
 
     @Test
     void query_shouldFilterAssetsByPassedCriteria() {
-        var definitionCriterion = new Criterion(CoreConstants.EDC_NAMESPACE + "id", "=", "id");
+        var definitionCriterion = new Criterion(EDC_NAMESPACE + "id", "=", "id");
         var contractDefinition = contractDefinitionBuilder("definitionId")
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().criteria(List.of(definitionCriterion)).build())
                 .contractPolicyId("contractPolicyId")
@@ -147,7 +147,7 @@ class DatasetResolverImplTest {
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(contractDefinition));
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(createAsset("id").property("key", "value").build()));
         when(policyStore.findById("contractPolicyId")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
-        var additionalCriterion = new Criterion(CoreConstants.EDC_NAMESPACE + "key", "=", "value");
+        var additionalCriterion = new Criterion(EDC_NAMESPACE + "key", "=", "value");
         var querySpec = QuerySpec.Builder.newInstance().filter(additionalCriterion).build();
 
         datasetResolver.query(createParticipantAgent(), querySpec);
