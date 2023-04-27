@@ -50,8 +50,8 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
             var result = typeValueArray(reasons, context);
             if (result == null) {
                 context.reportProblem(format("Cannot transform property %s in ContractNegotiationTerminationMessage", DSPACE_REASON_TYPE));
-            } else {
-                if (result.size() > 0) transferTerminationMessageBuilder.reason(String.valueOf(result.get(0)));
+            } else if (result.size() > 0) {
+                transferTerminationMessageBuilder.reason(String.valueOf(result.get(0)));
             }
         }
 

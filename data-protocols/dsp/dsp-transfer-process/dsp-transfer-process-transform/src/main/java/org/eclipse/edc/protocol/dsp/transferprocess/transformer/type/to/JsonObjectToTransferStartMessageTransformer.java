@@ -40,10 +40,8 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
 
         transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
 
-        if (jsonObject.containsKey(DSPACE_DATAADDRESS_TYPE)) {
-            if (!jsonObject.get(DSPACE_DATAADDRESS_TYPE).asJsonObject().isEmpty()) {
-                transferStartMessageBuilder.dataAddress(context.transform(jsonObject.get(DSPACE_DATAADDRESS_TYPE), DataAddress.class));
-            }
+        if (jsonObject.containsKey(DSPACE_DATAADDRESS_TYPE) && !jsonObject.get(DSPACE_DATAADDRESS_TYPE).asJsonObject().isEmpty()) {
+            transferStartMessageBuilder.dataAddress(context.transform(jsonObject.get(DSPACE_DATAADDRESS_TYPE), DataAddress.class));
         }
 
         return transferStartMessageBuilder.build();

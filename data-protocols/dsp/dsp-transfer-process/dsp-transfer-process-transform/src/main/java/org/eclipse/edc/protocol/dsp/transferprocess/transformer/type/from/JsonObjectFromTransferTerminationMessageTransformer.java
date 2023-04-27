@@ -47,8 +47,12 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
         builder.add(ID, String.valueOf(UUID.randomUUID()));
         builder.add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferTerminationMessage.getProcessId());
-        if (transferTerminationMessage.getCode() != null) builder.add(DSPACE_CODE_TYPE, transferTerminationMessage.getCode());
-        if (transferTerminationMessage.getReason() != null) builder.add(DSPACE_REASON_TYPE, transferTerminationMessage.getReason());
+        if (transferTerminationMessage.getCode() != null) {
+            builder.add(DSPACE_CODE_TYPE, transferTerminationMessage.getCode());
+        }
+        if (transferTerminationMessage.getReason() != null) {
+            builder.add(DSPACE_REASON_TYPE, transferTerminationMessage.getReason());
+        }
 
         return builder.build();
 
