@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
+import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -149,7 +150,10 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             observable.invokeForEach(l -> l.preStarted(transferProcess));
             transferProcess.transitionStarted();
             update(transferProcess);
-            observable.invokeForEach(l -> l.started(transferProcess));
+            var transferStartedData = TransferProcessStartedData.Builder.newInstance()
+                    .dataAddress(message.getDataAddress())
+                    .build();
+            observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));

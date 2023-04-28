@@ -15,16 +15,20 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
+import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.StatusChecker;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
@@ -38,9 +42,11 @@ import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 import java.util.UUID;
@@ -54,6 +60,7 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,12 +87,17 @@ public class TransferProcessEventDispatchTest {
 
     @Test
     void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service, TransferProcessProtocolService protocolService,
-                                                           EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+                                                           EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                           StatusCheckerRegistry statusCheckerRegistry) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         dispatcherRegistry.register(testDispatcher);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
+        var statusCheck = mock(StatusChecker.class);
+
+        statusCheckerRegistry.register("any", statusCheck);
+        when(statusCheck.isComplete(any(), any())).thenReturn(false);
 
 
         var dataRequest = DataRequest.Builder.newInstance()
@@ -110,11 +122,24 @@ public class TransferProcessEventDispatchTest {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
 
-        var startMessage = TransferStartMessage.Builder.newInstance().processId("dataRequestId").protocol("any").callbackAddress("http://any").build();
+        ArgumentCaptor<EventEnvelope<TransferProcessStarted>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
+
+        var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+        var startMessage = TransferStartMessage.Builder.newInstance()
+                .processId("dataRequestId")
+                .protocol("any")
+                .callbackAddress("http://any")
+                .dataAddress(dataAddress)
+                .build();
+
         protocolService.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
 
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessStarted.class)));
+            verify(eventSubscriber, times(4)).on(captor.capture());
+            Assertions.assertThat(captor.getValue()).isNotNull()
+                    .extracting(EventEnvelope::getPayload)
+                    .extracting(TransferProcessStarted::getDataAddress)
+                    .usingRecursiveComparison().isEqualTo(dataAddress);
         });
 
         service.complete(initiateResult.getContent());

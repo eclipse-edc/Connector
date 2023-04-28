@@ -15,12 +15,14 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
+import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
@@ -47,6 +49,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.util.UUID;
@@ -173,15 +176,20 @@ class TransferProcessProtocolServiceImplTest {
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .processId("dataRequestId")
+                .dataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
 
         var result = service.notifyStarted(message, claimToken());
 
+        var captor = ArgumentCaptor.forClass(TransferProcessStartedData.class);
+
         assertThat(result).isSucceeded();
         verify(listener).preStarted(any());
         verify(store).save(argThat(t -> t.getState() == STARTED.code()));
-        verify(listener).started(any());
+        verify(listener).started(any(), captor.capture());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+
+        Assertions.assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
     }
 
     @Test
@@ -290,30 +298,6 @@ class TransferProcessProtocolServiceImplTest {
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    private static class NotFoundArguments implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            MethodCall<TransferStartMessage> started = TransferProcessProtocolService::notifyStarted;
-            MethodCall<TransferCompletionMessage> completed = TransferProcessProtocolService::notifyCompleted;
-            MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
-            return Stream.of(
-                    Arguments.of(started, TransferStartMessage.Builder.newInstance().protocol("protocol")
-                                    .callbackAddress("http://any").processId("dataRequestId").build()),
-                    Arguments.of(completed, TransferCompletionMessage.Builder.newInstance().protocol("protocol")
-                                    .callbackAddress("http://any").processId("dataRequestId").build()),
-                    Arguments.of(terminated, TransferTerminationMessage.Builder.newInstance().protocol("protocol")
-                                    .callbackAddress("http://any").processId("dataRequestId").code("TestCode")
-                                    .reason("TestReason").build())
-            );
-        }
-    }
-
-    @FunctionalInterface
-    private interface MethodCall<M extends RemoteMessage> {
-        ServiceResult<?> call(TransferProcessProtocolService service, M message, ClaimToken token);
-    }
-
     private TransferProcess transferProcess(TransferProcessStates state, String id) {
         return TransferProcess.Builder.newInstance()
                 .state(state.code())
@@ -335,5 +319,29 @@ class TransferProcessProtocolServiceImplTest {
                 .assetId("asset")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
+    }
+
+    @FunctionalInterface
+    private interface MethodCall<M extends RemoteMessage> {
+        ServiceResult<?> call(TransferProcessProtocolService service, M message, ClaimToken token);
+    }
+
+    private static class NotFoundArguments implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            MethodCall<TransferStartMessage> started = TransferProcessProtocolService::notifyStarted;
+            MethodCall<TransferCompletionMessage> completed = TransferProcessProtocolService::notifyCompleted;
+            MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
+            return Stream.of(
+                    Arguments.of(started, TransferStartMessage.Builder.newInstance().protocol("protocol")
+                            .callbackAddress("http://any").processId("dataRequestId").build()),
+                    Arguments.of(completed, TransferCompletionMessage.Builder.newInstance().protocol("protocol")
+                            .callbackAddress("http://any").processId("dataRequestId").build()),
+                    Arguments.of(terminated, TransferTerminationMessage.Builder.newInstance().protocol("protocol")
+                            .callbackAddress("http://any").processId("dataRequestId").code("TestCode")
+                            .reason("TestReason").build())
+            );
+        }
     }
 }

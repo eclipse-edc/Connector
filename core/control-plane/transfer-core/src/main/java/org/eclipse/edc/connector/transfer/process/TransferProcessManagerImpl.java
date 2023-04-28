@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
+import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
@@ -741,7 +742,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         process.transitionStarted();
         observable.invokeForEach(l -> l.preStarted(process));
         update(process);
-        observable.invokeForEach(l -> l.started(process));
+        observable.invokeForEach(l -> l.started(process, TransferProcessStartedData.Builder.newInstance().build()));
     }
 
     private void transitionToCompleting(TransferProcess process) {
