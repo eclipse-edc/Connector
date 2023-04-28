@@ -37,8 +37,8 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
     public static final String NAME = "Sql Data Plane Instance Store";
 
     @Setting(value = "Name of the datasource to use for accessing data plane instances")
-    private static final String DATASOURCE_SETTING_NAME = "edc.datasource.dataplaneinstance.name";
-    private static final String DEFAULT_DATASOURCE_NAME = "dataplaneinstance";
+    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.dataplaneinstance.name";
+    public static final String DEFAULT_DATASOURCE_NAME = "dataplaneinstance";
     @Inject
     private DataSourceRegistry dataSourceRegistry;
 
@@ -58,7 +58,7 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneInstanceStore dataPlaneInstanceStore(ServiceExtensionContext context) {
-        return new SqlDataPlaneInstanceStore(dataSourceRegistry, getDataSourceName(context), transactionContext, statements, typeManager.getMapper());
+        return new SqlDataPlaneInstanceStore(dataSourceRegistry, getDataSourceName(context), transactionContext, getStatementImpl(), typeManager.getMapper());
     }
 
     /**
