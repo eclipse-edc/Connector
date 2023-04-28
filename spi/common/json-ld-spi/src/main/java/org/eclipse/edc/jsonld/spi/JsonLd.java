@@ -32,7 +32,7 @@ public interface JsonLd {
 
 
     /**
-     * Compact a JsonLD document
+     * Compact a JsonLD document. The context will be generated from registered contexts and namespaces.
      *
      * @param json the expanded json.
      * @return a successful {@link Result} containing the compacted {@link JsonObject} if the operation succeed, a failed one otherwise
@@ -40,11 +40,11 @@ public interface JsonLd {
     Result<JsonObject> compact(JsonObject json);
 
     /**
-     * Register a JsonLD context
+     * Register a JsonLD namespace
      *
      * @param prefix the prefix
-     * @param url the string representing the URL
+     * @param contextIri the string representing the IRI where the context is located
      */
-    void registerContext(String prefix, String url);
+    void registerNamespace(String prefix, String contextIri);
 
 }
