@@ -31,12 +31,14 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class AssetDocument extends CosmosDocument<Map<String, Object>> {
     private final String id;
     private final DataAddress dataAddress;
+    private final Map<String, Object> privateProperties;
     private final long createdAt;
 
     public AssetDocument(Asset wrappedInstance,
                          String partitionKey,
                          DataAddress dataAddress) {
         super(sanitizeProperties(wrappedInstance), partitionKey);
+        this.privateProperties = sanitizePrivateProperties(wrappedInstance);
         id = wrappedInstance.getId();
         this.dataAddress = dataAddress;
         this.createdAt = wrappedInstance.getCreatedAt();
@@ -46,16 +48,23 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
     public AssetDocument(@JsonProperty("wrappedInstance") Map<String, Object> wrappedInstance,
                          @JsonProperty("partitionKey") String partitionKey,
                          @JsonProperty("dataAddress") DataAddress dataAddress,
+                         @JsonProperty("privateProperties") Map<String, Object> privateProperties,
                          @JsonProperty("createdAt") long createdAt) {
         super(wrappedInstance, partitionKey);
         id = wrappedInstance.get(sanitize(EDC_NAMESPACE) + "id").toString();
         this.dataAddress = dataAddress;
+        this.privateProperties = privateProperties;
         this.createdAt = createdAt;
     }
 
 
     private static Map<String, Object> sanitizeProperties(Asset asset) {
         return asset.getProperties().entrySet().stream()
+                .collect(Collectors.toMap(entry -> sanitize(entry.getKey()), Map.Entry::getValue));
+    }
+
+    private static Map<String, Object> sanitizePrivateProperties(Asset asset) {
+        return asset.getPrivateProperties().entrySet().stream()
                 .collect(Collectors.toMap(entry -> sanitize(entry.getKey()), Map.Entry::getValue));
     }
 
@@ -70,6 +79,7 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
                 .id(id)
                 .createdAt(createdAt)
                 .properties(restoreProperties())
+                .privateProperties(restorePrivateProperties())
                 .build();
     }
 
@@ -85,6 +95,11 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
         var map = getWrappedInstance();
 
         return map.entrySet().stream().collect(Collectors.toMap(entry -> unsanitize(entry.getKey()), Map.Entry::getValue));
+    }
+
+    private Map<String, Object> restorePrivateProperties() {
+
+        return this.privateProperties.entrySet().stream().collect(Collectors.toMap(entry -> unsanitize(entry.getKey()), Map.Entry::getValue));
     }
 
     private String unsanitize(String key) {
