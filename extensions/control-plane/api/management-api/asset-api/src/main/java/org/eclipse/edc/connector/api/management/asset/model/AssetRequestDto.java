@@ -23,6 +23,9 @@ public abstract class AssetRequestDto {
     @NotNull(message = "properties cannot be null")
     protected Map<String, Object> properties;
 
+    @NotNull(message = "privateProperties cannot be null")
+    protected Map<String, Object> privateProperties;
+
     protected abstract static class Builder<A extends AssetRequestDto, B extends Builder<A, B>> {
 
         protected final A dto;
@@ -37,6 +40,11 @@ public abstract class AssetRequestDto {
             return self();
         }
 
+        public B privateProperties(Map<String, Object> privateProperties) {
+            dto.privateProperties = privateProperties;
+            return self();
+        }
+        
         public abstract B self();
 
         public A build() {

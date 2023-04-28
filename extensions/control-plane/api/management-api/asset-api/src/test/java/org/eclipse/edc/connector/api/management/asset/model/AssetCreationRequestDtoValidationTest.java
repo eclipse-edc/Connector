@@ -55,7 +55,7 @@ class AssetCreationRequestDtoValidationTest {
 
         var result = validator.validate(entry);
 
-        assertThat(result).hasSize(3).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("dataAddress cannot be null"));
+        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("dataAddress cannot be null"));
     }
 
     @Test

@@ -26,6 +26,8 @@ public class AssetResponseDto extends BaseResponseDto {
 
     private Map<String, Object> properties;
 
+    private Map<String, Object> privateProperties;
+
     private String id;
 
     private AssetResponseDto() {
@@ -33,6 +35,10 @@ public class AssetResponseDto extends BaseResponseDto {
 
     public Map<String, Object> getProperties() {
         return properties;
+    }
+
+    public Map<String, Object> getPrivateProperties() {
+        return privateProperties;
     }
 
     public String getId() {
@@ -53,6 +59,11 @@ public class AssetResponseDto extends BaseResponseDto {
 
         public Builder properties(Map<String, Object> properties) {
             dto.properties = properties;
+            return this;
+        }
+
+        public Builder privateProperties(Map<String, Object> privateProperties) {
+            dto.privateProperties = privateProperties;
             return this;
         }
 
