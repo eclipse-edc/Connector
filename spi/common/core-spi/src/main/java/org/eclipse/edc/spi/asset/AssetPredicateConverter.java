@@ -32,10 +32,19 @@ public class AssetPredicateConverter extends BaseCriterionToPredicateConverter<A
     public Object property(String key, Object object) {
         if (object instanceof Asset) {
             var asset = (Asset) object;
-            if (asset.getProperties() == null || asset.getProperties().isEmpty()) {
-                return null;
+            boolean emptyProperties = asset.getProperties() == null || asset.getProperties().isEmpty();
+            boolean emptyPrivateProperties = asset.getPrivateProperties() == null || asset.getPrivateProperties().isEmpty();
+            if (!emptyProperties) {
+                if (asset.getProperties().containsKey(key)){
+                    return asset.getProperty(key);
+                }
             }
-            return asset.getProperty(key);
+            if (!emptyPrivateProperties) {
+                if (asset.getPrivateProperties().containsKey(key)) {
+                    return asset.getPrivateProperty(key);
+                }
+            }
+            return null;
         }
         throw new IllegalArgumentException("Can only handle objects of type " + Asset.class.getSimpleName() + " but received an " + object.getClass().getSimpleName());
     }
