@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -24,12 +23,8 @@ import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSeriali
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_COMPLETION;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
 
 public class TransferCompletionDelegate extends DspHttpDispatcherDelegate<TransferCompletionMessage, JsonObject> {
 
@@ -44,7 +39,7 @@ public class TransferCompletionDelegate extends DspHttpDispatcherDelegate<Transf
 
     @Override
     public Request buildRequest(TransferCompletionMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION, jsonLdContext());
+        return buildRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION);
     }
 
     @Override
@@ -52,11 +47,4 @@ public class TransferCompletionDelegate extends DspHttpDispatcherDelegate<Transf
         return response -> null;
     }
 
-    // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
-    private JsonObject jsonLdContext() {
-        return Json.createObjectBuilder()
-                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
-                .add(ODRL_PREFIX, ODRL_SCHEMA)
-                .build();
-    }
 }

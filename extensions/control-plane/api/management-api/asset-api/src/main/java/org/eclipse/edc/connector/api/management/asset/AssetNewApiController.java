@@ -32,7 +32,7 @@ import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDt
 import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
-import org.eclipse.edc.jsonld.util.JsonLdUtil;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -60,21 +60,24 @@ public class AssetNewApiController implements AssetNewApi {
     private final TypeTransformerRegistry transformerRegistry;
     private final AssetService service;
     private final DataAddressResolver dataAddressResolver;
+    private final JsonLd jsonLdService;
 
-    public AssetNewApiController(AssetService service, DataAddressResolver dataAddressResolver, TypeTransformerRegistry transformerRegistry) {
+    public AssetNewApiController(AssetService service, DataAddressResolver dataAddressResolver, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService) {
         this.transformerRegistry = transformerRegistry;
         this.service = service;
         this.dataAddressResolver = dataAddressResolver;
+        this.jsonLdService = jsonLdService;
     }
 
     @POST
     @Override
     public IdResponseDto createAsset(@Valid AssetEntryNewDto assetEntryDto) {
-        var expandedJson = JsonLdUtil.expand(assetEntryDto.getAsset());
-        if (expandedJson.size() == 0) throw new InvalidRequestException("Invalid asset!");
+        var expandedJson = jsonLdService.expand(assetEntryDto.getAsset());
+        if (expandedJson.failed()) {
+            throw new InvalidRequestException(expandedJson.getFailureDetail());
+        }
 
-        var expandedJsonAsset = expandedJson.getJsonObject(0);
-        var assetResult = transformerRegistry.transform(expandedJsonAsset, Asset.class);
+        var assetResult = transformerRegistry.transform(expandedJson.getContent(), Asset.class);
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 
         var result = assetResult.merge(dataAddressResult);
@@ -179,9 +182,9 @@ public class AssetNewApiController implements AssetNewApi {
     }
 
     private AssetResponseNewDto expand(JsonObject jsonObject) {
-        var expanded = JsonLdUtil.expand(jsonObject);
-        if (expanded.size() > 0) {
-            return AssetResponseNewDto.Builder.newInstance().asset(expanded.getJsonObject(0)).build();
+        var expanded = jsonLdService.expand(jsonObject);
+        if (expanded.succeeded()) {
+            return AssetResponseNewDto.Builder.newInstance().asset(expanded.getContent()).build();
         }
         return null;
     }

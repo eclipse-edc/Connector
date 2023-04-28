@@ -25,6 +25,15 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
+
 /**
  * Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
  * types through the TypeManager context {@link #TYPE_MANAGER_CONTEXT_JSON_LD} and a registry
@@ -53,7 +62,12 @@ public class JsonLdExtension implements ServiceExtension {
 
     @Provider
     public JsonLd createJsonLdService(ServiceExtensionContext context) {
-        return new TitaniumJsonLd(context.getMonitor());
+        var service = new TitaniumJsonLd(context.getMonitor());
+        service.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA);
+        service.registerNamespace(DCT_PREFIX, DCT_SCHEMA);
+        service.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);
+        service.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
+        return service;
     }
 
 }

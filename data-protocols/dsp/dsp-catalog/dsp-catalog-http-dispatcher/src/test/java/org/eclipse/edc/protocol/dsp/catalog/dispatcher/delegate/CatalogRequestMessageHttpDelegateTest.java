@@ -20,9 +20,12 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,11 +48,12 @@ import static org.mockito.Mockito.when;
 
 class CatalogRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<CatalogRequestMessage> {
 
+    private final JsonLd jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
     private CatalogRequestHttpDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        delegate = new CatalogRequestHttpDelegate(serializer, mapper, registry);
+        delegate = new CatalogRequestHttpDelegate(serializer, mapper, registry, jsonLdService);
     }
 
     @Test
@@ -127,6 +131,11 @@ class CatalogRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTes
         assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
     }
 
+    @Override
+    protected DspHttpDispatcherDelegate<CatalogRequestMessage, ?> delegate() {
+        return delegate;
+    }
+
     private JsonObject getJsonObject() {
         return Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder().add("prefix", "http://schema").build())
@@ -141,10 +150,5 @@ class CatalogRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTes
                 .protocol("protocol")
                 .querySpec(QuerySpec.max())
                 .build();
-    }
-    
-    @Override
-    protected DspHttpDispatcherDelegate<CatalogRequestMessage, ?> delegate() {
-        return delegate;
     }
 }

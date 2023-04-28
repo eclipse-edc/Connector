@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.api.management.asset.transform.DataAddressDtoTo
 import org.eclipse.edc.connector.api.management.asset.transform.DataAddressToDataAddressDtoTransformer;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -60,6 +61,9 @@ public class AssetApiExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private JsonLd jsonLdService;
+
 
     @Override
     public String name() {
@@ -79,7 +83,7 @@ public class AssetApiExtension implements ServiceExtension {
         var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
         webService.registerResource(configuration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, dataAddressResolver, transformerRegistry));
-        webService.registerResource(config.getContextAlias(), new AssetNewApiController(assetService, dataAddressResolver, transformerRegistry));
+        webService.registerResource(config.getContextAlias(), new AssetNewApiController(assetService, dataAddressResolver, transformerRegistry, jsonLdService));
     }
 
 }

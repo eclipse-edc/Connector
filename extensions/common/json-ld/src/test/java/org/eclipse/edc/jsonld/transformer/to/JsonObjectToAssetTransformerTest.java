@@ -18,13 +18,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.core.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.transformer.Payload;
 import org.eclipse.edc.jsonld.transformer.PayloadTransformer;
-import org.eclipse.edc.jsonld.util.JsonLdUtil;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +41,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.mockito.Mockito.mock;
 
 class JsonObjectToAssetTransformerTest {
 
@@ -50,6 +53,7 @@ class JsonObjectToAssetTransformerTest {
     private static final int CUSTOM_PAYLOAD_AGE = 34;
     private static final String CUSTOM_PAYLOAD_NAME = "max";
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TitaniumJsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private ObjectMapper jsonPmapper;
     private TypeTransformerRegistry typeTransformerRegistry;
 
@@ -73,7 +77,7 @@ class JsonObjectToAssetTransformerTest {
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder().build())
                 .build();
-        jsonObj = JsonLdUtil.expand(jsonObj).getJsonObject(0);
+        jsonObj = expand(jsonObj);
         var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
 
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
@@ -97,7 +101,7 @@ class JsonObjectToAssetTransformerTest {
                         .add("payload", createPayloadBuilder().build())
                         .build())
                 .build();
-        jsonObj = JsonLdUtil.expand(jsonObj).getJsonObject(0);
+        jsonObj = expand(jsonObj);
         var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
@@ -116,7 +120,7 @@ class JsonObjectToAssetTransformerTest {
                 // will only work if properties is prefixed with "edc:"
                 .add("edc:properties", createPropertiesBuilder().build())
                 .build();
-        jsonObj = JsonLdUtil.expand(jsonObj).getJsonObject(0);
+        jsonObj = expand(jsonObj);
 
         var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
 
@@ -137,7 +141,7 @@ class JsonObjectToAssetTransformerTest {
                         .add("payload", createPayloadBuilder().build())
                         .build())
                 .build();
-        jsonObj = JsonLdUtil.expand(jsonObj).getJsonObject(0);
+        jsonObj = expand(jsonObj);
         var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
 
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
@@ -167,5 +171,8 @@ class JsonObjectToAssetTransformerTest {
                 .add("edc", EDC_NAMESPACE);
     }
 
+    private JsonObject expand(JsonObject jsonObject) {
+        return jsonLd.expand(jsonObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+    }
 
 }

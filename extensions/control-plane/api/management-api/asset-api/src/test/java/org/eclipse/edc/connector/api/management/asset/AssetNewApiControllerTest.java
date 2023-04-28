@@ -26,9 +26,11 @@ import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDt
 import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
 import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -441,7 +443,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new AssetNewApiController(service, dataAddressResolver, transformerRegistry);
+        return new AssetNewApiController(service, dataAddressResolver, transformerRegistry, new TitaniumJsonLd(mock(Monitor.class)));
     }
 
     private AssetEntryNewDto createAssetEntryDto() {

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.spi.dispatcher;
 
-import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -31,22 +30,22 @@ import java.util.function.Function;
  * @param <R> the response type
  */
 public abstract class DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
-    
+
     private static final String APPLICATION_JSON = "application/json";
-    
-    private JsonLdRemoteMessageSerializer serializer;
-    
+
+    private final JsonLdRemoteMessageSerializer serializer;
+
     protected DspHttpDispatcherDelegate(JsonLdRemoteMessageSerializer serializer) {
         this.serializer = serializer;
     }
-    
+
     /**
      * Returns the type of {@link RemoteMessage} this delegate can handle.
      *
      * @return the message type
      */
     public abstract Class<M> getMessageType();
-    
+
     /**
      * Builds the HTTP request for the message including method, URL, body and headers. The
      * Authorization header can be omitted as it is handled centrally.
@@ -55,23 +54,23 @@ public abstract class DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
      * @return the request builder
      */
     public abstract Request buildRequest(M message);
-    
-    protected Request buildRequest(M message, String path, JsonObject jsonLdContext) {
-        var body = serializer.serialize(message, jsonLdContext);
-        var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
-    
-        return new Request.Builder()
-                .url(message.getCallbackAddress() + path)
-                .header("Content-Type", APPLICATION_JSON)
-                .post(requestBody)
-                .build();
-    }
-    
+
     /**
      * Parses the response to return an instance of the expected response type.
      *
      * @return the parsed response
      */
     public abstract Function<Response, R> parseResponse();
-    
+
+    protected Request buildRequest(M message, String path) {
+        var body = serializer.serialize(message);
+        var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
+
+        return new Request.Builder()
+                .url(message.getCallbackAddress() + path)
+                .header("Content-Type", APPLICATION_JSON)
+                .post(requestBody)
+                .build();
+    }
+
 }

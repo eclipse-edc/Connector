@@ -21,9 +21,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -47,14 +49,14 @@ import static org.mockito.Mockito.when;
 
 class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<TransferRequestMessage> {
 
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
+    private final ObjectMapper mapper = mock(ObjectMapper.class);
+    private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
 
     private TransferRequestDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        delegate = new TransferRequestDelegate(serializer, mapper, registry);
+        delegate = new TransferRequestDelegate(serializer, mapper, registry, new TitaniumJsonLd(mock(Monitor.class)));
     }
 
     @Test
@@ -72,7 +74,7 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
     void buildRequest_serializationFails_throwException() {
         testBuildRequest_shouldThrowException_whenSerializationFails(message());
     }
-    
+
     @Test
     void parseResponse_returnTransferProcess() throws IOException {
         var jsonObject = getJsonObject();
@@ -80,34 +82,34 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
         var response = mock(Response.class);
         var responseBody = mock(ResponseBody.class);
         var bytes = "test".getBytes();
-    
+
         when(response.body()).thenReturn(responseBody);
         when(responseBody.bytes()).thenReturn(bytes);
         when(mapper.readValue(bytes, JsonObject.class)).thenReturn(jsonObject);
         when(registry.transform(any(JsonObject.class), eq(TransferProcess.class))).thenReturn(Result.success(transferProcess));
-    
+
         var result = delegate.parseResponse().apply(response);
-    
+
         assertThat(result).isEqualTo(transferProcess);
         verify(mapper, times(1)).readValue(bytes, JsonObject.class);
         verify(registry, times(1)).transform(isA(JsonObject.class), eq(TransferProcess.class));
     }
-    
+
     @Test
     void parseResponse_transformationFails_throwException() throws IOException {
         var jsonObject = getJsonObject();
         var response = mock(Response.class);
         var responseBody = mock(ResponseBody.class);
-        
+
         when(response.body()).thenReturn(responseBody);
         when(responseBody.bytes()).thenReturn("test".getBytes());
         when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenReturn(jsonObject);
         when(registry.transform(any(JsonObject.class), eq(TransferProcess.class))).thenReturn(Result.failure("error"));
-    
+
         assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
     }
 
-    
+
     @Test
     void parseResponse_expandingJsonLdFails_throwException() throws IOException {
         // JSON is missing @context -> expanding returns empty JsonArray
@@ -116,11 +118,11 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
                 .build();
         var response = mock(Response.class);
         var responseBody = mock(ResponseBody.class);
-        
+
         when(response.body()).thenReturn(responseBody);
         when(responseBody.bytes()).thenReturn("test".getBytes());
         when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenReturn(jsonObject);
-        
+
         assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
     }
 
@@ -134,6 +136,10 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
         testParseResponse_shouldThrowException_whenReadingResponseBodyFails();
     }
 
+    @Override
+    protected DspHttpDispatcherDelegate<TransferRequestMessage, ?> delegate() {
+        return delegate;
+    }
 
     private TransferRequestMessage message() {
         return TransferRequestMessage.Builder.newInstance()
@@ -147,11 +153,6 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
                 .build();
     }
 
-    @Override
-    protected DspHttpDispatcherDelegate<TransferRequestMessage, ?> delegate() {
-        return delegate;
-    }
-    
     private JsonObject getJsonObject() {
         return Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder().add("prefix", "http://schema").build())

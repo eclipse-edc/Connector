@@ -30,6 +30,8 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
@@ -96,10 +98,94 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
     private final JsonObject request = Json.createObjectBuilder()
             .add("http://schema/key", "value")
             .build();
+    private final JsonLd jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
 
-    @Override
-    protected Object controller() {
-        return new DspNegotiationController(mock(Monitor.class), mapper, callbackAddress, identityService, registry, protocolService);
+    private static ClaimToken token() {
+        return ClaimToken.Builder.newInstance().build();
+    }
+
+    private static ContractAgreementMessage contractAgreementMessage() {
+        return ContractAgreementMessage.Builder.newInstance()
+                .protocol("protocol")
+                .processId("testId")
+                .callbackAddress("http://connector")
+                .contractAgreement(contractAgreement())
+                .build();
+    }
+
+    private static ContractAgreement contractAgreement() {
+        return ContractAgreement.Builder.newInstance()
+                .id(String.valueOf(UUID.randomUUID()))
+                .providerAgentId("agentId")
+                .consumerAgentId("agentId")
+                .assetId("assetId")
+                .policy(policy()).build();
+    }
+
+    private static ContractRequestMessage contractRequestMessage() {
+        return ContractRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .processId("testId")
+                .callbackAddress("http://connector")
+                .dataSet("dataSet")
+                .contractOffer(contractOffer())
+                .build();
+    }
+
+    private static ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(String.valueOf(UUID.randomUUID()))
+                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now())
+                .policy(policy()).build();
+    }
+
+    private static Policy policy() {
+        var action = Action.Builder.newInstance().type("USE").build();
+        var permission = Permission.Builder.newInstance().action(action).build();
+        var prohibition = Prohibition.Builder.newInstance().action(action).build();
+        var duty = Duty.Builder.newInstance().action(action).build();
+        return Policy.Builder.newInstance()
+                .permission(permission)
+                .prohibition(prohibition)
+                .duty(duty)
+                .build();
+    }
+
+    private static ContractAgreementVerificationMessage contractAgreementVerificationMessage() {
+        return ContractAgreementVerificationMessage.Builder.newInstance()
+                .protocol("protocol")
+                .callbackAddress("http://connector")
+                .processId("testId")
+                .build();
+    }
+
+    private static ContractNegotiationEventMessage contractNegotiationEventMessage_accepted() {
+        return ContractNegotiationEventMessage.Builder.newInstance()
+                .protocol("protocol")
+                .callbackAddress("http://connector")
+                .processId("testId")
+                .type(ACCEPTED)
+                .build();
+    }
+
+    private static ContractNegotiationEventMessage contractNegotiationEventMessage_finalized() {
+        return ContractNegotiationEventMessage.Builder.newInstance()
+                .protocol("protocol")
+                .callbackAddress("http://connector")
+                .processId("testId")
+                .type(FINALIZED)
+                .build();
+    }
+
+    private static ContractNegotiationTerminationMessage contractNegotiationTerminationMessage() {
+        return ContractNegotiationTerminationMessage.Builder.newInstance()
+                .protocol("protocol")
+                .callbackAddress("http://connector")
+                .processId("testId")
+                .rejectionReason("reason")
+                .build();
     }
 
     @Test
@@ -243,9 +329,9 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * that the correct service method was called. This is only applicable for endpoints that do not
      * return a response body.
      *
-     * @param path the request path to the endpoint
-     * @param message the request message to be returned by the transformer registry
-     * @param request the request body for a defined endpoint
+     * @param path          the request path to the endpoint
+     * @param message       the request message to be returned by the transformer registry
+     * @param request       the request body for a defined endpoint
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
@@ -278,9 +364,9 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * Verifies that an endpoint returns 500 if there is an error in the service. Also verifies
      * that the correct service method was called.
      *
-     * @param path the request path to the endpoint
-     * @param message the request message to be returned by the transformer registry
-     * @param request the request body for a defined endpoint
+     * @param path          the request path to the endpoint
+     * @param message       the request message to be returned by the transformer registry
+     * @param request       the request body for a defined endpoint
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
@@ -313,7 +399,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
      * Verifies that an endpoint returns 500 if there is an error in the service. Also verifies
      * that the correct service method was called.
      *
-     * @param path the request path to the endpoint
+     * @param path    the request path to the endpoint
      * @param message the request message to be returned by the transformer registry
      * @param request the request body for a defined endpoint
      */
@@ -333,6 +419,11 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
                 .statusCode(400);
     }
 
+    @Override
+    protected Object controller() {
+        return new DspNegotiationController(mock(Monitor.class), mapper, callbackAddress, identityService, registry, protocolService, jsonLdService);
+    }
+
     private RequestSpecification baseRequest() {
         String authHeader = "auth";
         return given()
@@ -340,10 +431,6 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
                 .basePath("/")
                 .header(HttpHeaders.AUTHORIZATION, authHeader)
                 .when();
-    }
-
-    private static ClaimToken token() {
-        return ClaimToken.Builder.newInstance().build();
     }
 
     private ContractNegotiation contractNegotiation() {
@@ -356,90 +443,6 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
                 .protocol("protocol")
                 .state(400)
                 .stateTimestamp(Instant.now().toEpochMilli())
-                .build();
-    }
-
-    private static ContractAgreementMessage contractAgreementMessage() {
-        return ContractAgreementMessage.Builder.newInstance()
-                .protocol("protocol")
-                .processId("testId")
-                .callbackAddress("http://connector")
-                .contractAgreement(contractAgreement())
-                .build();
-    }
-
-    private static ContractAgreement contractAgreement() {
-        return ContractAgreement.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
-                .providerAgentId("agentId")
-                .consumerAgentId("agentId")
-                .assetId("assetId")
-                .policy(policy()).build();
-    }
-
-    private static ContractRequestMessage contractRequestMessage() {
-        return ContractRequestMessage.Builder.newInstance()
-                .protocol("protocol")
-                .processId("testId")
-                .callbackAddress("http://connector")
-                .dataSet("dataSet")
-                .contractOffer(contractOffer())
-                .build();
-    }
-
-    private static ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
-                .asset(Asset.Builder.newInstance().id("assetId").build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
-                .policy(policy()).build();
-    }
-
-    private static Policy policy() {
-        var action = Action.Builder.newInstance().type("USE").build();
-        var permission = Permission.Builder.newInstance().action(action).build();
-        var prohibition = Prohibition.Builder.newInstance().action(action).build();
-        var duty = Duty.Builder.newInstance().action(action).build();
-        return Policy.Builder.newInstance()
-                .permission(permission)
-                .prohibition(prohibition)
-                .duty(duty)
-                .build();
-    }
-
-    private static ContractAgreementVerificationMessage contractAgreementVerificationMessage() {
-        return ContractAgreementVerificationMessage.Builder.newInstance()
-                .protocol("protocol")
-                .callbackAddress("http://connector")
-                .processId("testId")
-                .build();
-    }
-
-    private static ContractNegotiationEventMessage contractNegotiationEventMessage_accepted() {
-        return ContractNegotiationEventMessage.Builder.newInstance()
-                .protocol("protocol")
-                .callbackAddress("http://connector")
-                .processId("testId")
-                .type(ACCEPTED)
-                .build();
-    }
-
-    private static ContractNegotiationEventMessage contractNegotiationEventMessage_finalized() {
-        return ContractNegotiationEventMessage.Builder.newInstance()
-                .protocol("protocol")
-                .callbackAddress("http://connector")
-                .processId("testId")
-                .type(FINALIZED)
-                .build();
-    }
-
-    private static ContractNegotiationTerminationMessage contractNegotiationTerminationMessage() {
-        return ContractNegotiationTerminationMessage.Builder.newInstance()
-                .protocol("protocol")
-                .callbackAddress("http://connector")
-                .processId("testId")
-                .rejectionReason("reason")
                 .build();
     }
 

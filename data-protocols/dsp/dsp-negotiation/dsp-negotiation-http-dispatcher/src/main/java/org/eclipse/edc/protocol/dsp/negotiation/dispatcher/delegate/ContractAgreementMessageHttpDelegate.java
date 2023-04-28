@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
@@ -24,12 +22,8 @@ import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSeriali
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 
 /**
  * Delegate for dispatching contract agreement message as defined in the dataspace protocol specification.
@@ -54,7 +48,7 @@ public class ContractAgreementMessageHttpDelegate extends DspHttpDispatcherDeleg
      */
     @Override
     public Request buildRequest(ContractAgreementMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT, jsonLdContext());
+        return buildRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT);
     }
 
     /**
@@ -68,11 +62,4 @@ public class ContractAgreementMessageHttpDelegate extends DspHttpDispatcherDeleg
         return response -> null;
     }
 
-    // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
-    private JsonObject jsonLdContext() {
-        return Json.createObjectBuilder()
-                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
-                .add(ODRL_PREFIX, ODRL_SCHEMA)
-                .build();
-    }
 }
