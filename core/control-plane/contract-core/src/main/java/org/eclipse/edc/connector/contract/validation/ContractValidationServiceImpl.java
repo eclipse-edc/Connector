@@ -148,10 +148,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         // Create additional context information for policy engine to make agreement available in context
-        var contextInformation = new HashMap<Class, Object>();
+        var contextInformation = new HashMap<Class<?>, Object>();
         contextInformation.put(ContractAgreement.class, agreement);
 
-        var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent, contextInformation);
+        var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), agent, contextInformation);
         if (!policyResult.succeeded()) {
             return Result.failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));
         }

@@ -59,6 +59,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.NEGOTIATION_SCOPE;
+import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.any;
@@ -216,13 +217,13 @@ class ContractValidationServiceImplTest {
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
 
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<Class, Object>> captor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<Class<?>, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
 
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class), any())).thenReturn(Result.success(newPolicy));
+        when(policyEngine.evaluate(eq(TRANSFER_SCOPE), eq(newPolicy), isA(ParticipantAgent.class), any())).thenReturn(Result.success(newPolicy));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
@@ -239,7 +240,7 @@ class ContractValidationServiceImplTest {
         assertThat(isValid.succeeded()).isTrue();
 
         verify(agentService).createFor(isA(ClaimToken.class));
-        verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class), captor.capture());
+        verify(policyEngine).evaluate(eq(TRANSFER_SCOPE), eq(newPolicy), isA(ParticipantAgent.class), captor.capture());
 
         var context = captor.getValue();
         assertThat(context.get(ContractAgreement.class)).isNotNull().isInstanceOf(ContractAgreement.class);

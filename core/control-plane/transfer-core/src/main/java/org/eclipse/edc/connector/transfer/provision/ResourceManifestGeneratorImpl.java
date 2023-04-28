@@ -71,7 +71,7 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         var manifestContext = new ResourceManifestContext(manifest);
 
         // Create additional context information for policy engine to make manifest context available
-        var contextInformation = new HashMap<Class, Object>();
+        var contextInformation = new HashMap<Class<?>, Object>();
         contextInformation.put(ResourceManifestContext.class, manifestContext);
 
         var result = policyEngine.evaluate(MANIFEST_VERIFICATION_SCOPE, policy, null, contextInformation);
@@ -92,7 +92,7 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();
     }
 
-    private ResourceManifest buildFromContextInformation(Map<Class, Object> contextInformation) {
+    private ResourceManifest buildFromContextInformation(Map<Class<?>, Object> contextInformation) {
         var manifestContext = (ResourceManifestContext) contextInformation.get(ResourceManifestContext.class);
         return ResourceManifest.Builder.newInstance().definitions(manifestContext.getDefinitions()).build();
     }

@@ -33,6 +33,9 @@ public interface ContractValidationService {
     @PolicyScope
     String NEGOTIATION_SCOPE = "contract.negotiation";
 
+    @PolicyScope
+    String TRANSFER_SCOPE = "transfer.process";
+
     /**
      * Validates and sanitizes the contract offer for the consumer represented by the given claims.
      * <p>

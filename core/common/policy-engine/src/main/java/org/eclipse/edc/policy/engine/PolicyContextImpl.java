@@ -40,11 +40,11 @@ public class PolicyContextImpl implements PolicyContext {
      * @param agent the requesting participant agent.
      * @param additionalData additional context data.
      */
-    public PolicyContextImpl(ParticipantAgent agent, Map<Class, Object> additionalData) {
+    public PolicyContextImpl(ParticipantAgent agent, Map<Class<?>, Object> additionalData) {
         this.agent = agent;
         additionalData.forEach((key, value) -> {
             try {
-                this.putContextData(key, key.cast(value));
+                additional.put(key, value);
             } catch (ClassCastException ignore) {
                 // invalid entry
             }
@@ -72,6 +72,7 @@ public class PolicyContextImpl implements PolicyContext {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T getContextData(Class<T> type) {
         return (T) additional.get(type);
     }
