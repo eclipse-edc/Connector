@@ -83,6 +83,13 @@ public interface AssetStatements {
         return "property_type";
     }
 
+    /**
+     * The asset property is private column.
+     */
+    default String getAssetPropertyColumnIsPrivate() {
+        return "property_is_private";
+    }
+
     default String getDataAddressAssetIdFkColumn() {
         return "asset_id_fk";
     }

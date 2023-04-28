@@ -45,12 +45,13 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getInsertPropertyTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?)",
                 getAssetPropertyTable(),
                 getPropertyAssetIdFkColumn(),
                 getAssetPropertyColumnName(),
                 getAssetPropertyColumnValue(),
-                getAssetPropertyColumnType());
+                getAssetPropertyColumnType(),
+                getAssetPropertyColumnIsPrivate());
     }
 
     @Override
@@ -105,7 +106,11 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getQuerySubSelectTemplate() {
-        return format("EXISTS (SELECT 1 FROM %s WHERE %s = a.%s AND %s = ? AND %s", getAssetPropertyTable(), getPropertyAssetIdFkColumn(), getAssetIdColumn(), getAssetPropertyColumnName(),
+        return format("EXISTS (SELECT 1 FROM %s WHERE %s = a.%s AND %s = ? AND %s",
+                getAssetPropertyTable(),
+                getPropertyAssetIdFkColumn(),
+                getAssetIdColumn(),
+                getAssetPropertyColumnName(),
                 getAssetPropertyColumnValue());
     }
 

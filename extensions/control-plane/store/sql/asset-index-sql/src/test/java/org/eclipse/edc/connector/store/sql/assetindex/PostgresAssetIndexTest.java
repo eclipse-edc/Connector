@@ -81,6 +81,16 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     }
 
     @Test
+    @DisplayName("Verify an asset query based on an Asset property")
+    void query_byAssetPrivateProperty() {
+        List<Asset> allAssets = createPrivateAssets(5);
+        var query = QuerySpec.Builder.newInstance().filter("test-pKey = test-pValue1").build();
+
+        assertThat(sqlAssetIndex.queryAssets(query)).usingRecursiveFieldByFieldElementComparator().containsOnly(allAssets.get(1));
+
+    }
+
+    @Test
     @DisplayName("Verify an asset query based on an Asset property, when the left operand does not exist")
     void query_byAssetProperty_leftOperandNotExist() {
         createAssets(5);
@@ -142,6 +152,18 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         return IntStream.range(0, amount).mapToObj(i -> {
             var asset = TestFunctions.createAssetBuilder("test-asset" + i)
                     .property("test-key", "test-value" + i)
+                    .build();
+            var dataAddress = TestFunctions.createDataAddress("test-type");
+            sqlAssetIndex.create(asset, dataAddress);
+            return asset;
+        }).collect(Collectors.toList());
+    }
+
+    private List<Asset> createPrivateAssets(int amount) {
+        return IntStream.range(0, amount).mapToObj(i -> {
+            var asset = TestFunctions.createAssetBuilder("test-asset" + i)
+                    .property("test-key", "test-value" + i)
+                    .property("test-pKey", "test-pValue" + i)
                     .build();
             var dataAddress = TestFunctions.createDataAddress("test-type");
             sqlAssetIndex.create(asset, dataAddress);
