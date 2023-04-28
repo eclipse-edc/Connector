@@ -98,7 +98,7 @@ public class DspTransferProcessApiController {
     @GET
     @Path("/{id}")
     public JsonObject getTransferProcess(@PathParam("id") String id) {
-        monitor.debug(format("DSP: Incoming request for transfer process with id %s", id));
+        monitor.debug(() -> format("DSP: Incoming request for transfer process with id %s", id));
 
         throw new UnsupportedOperationException("Getting a transfer process not yet supported.");
     }
@@ -172,7 +172,7 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
     public void transferProcessSuspension(@PathParam("id") String id) {
-        monitor.debug(format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
+        monitor.debug(() -> format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
 
         throw new UnsupportedOperationException("Suspension not yet supported.");
     }
@@ -193,9 +193,9 @@ public class DspTransferProcessApiController {
      * @return the transfer process returned by the service call
      */
     private <M extends TransferRemoteMessage> TransferProcess handleMessage(JsonObject request, Optional<String> processId, String token, String expectedType,
-                                                                            Class<M> messageClass, BiFunction<M, ClaimToken, ServiceResult<TransferProcess>> serviceCall) {
-        processId.ifPresentOrElse(id -> monitor.debug(format("DSP: Incoming %s for transfer process %s", messageClass.getSimpleName(), id)),
-                () -> monitor.debug(format("DSP: Incoming %s for initiating a transfer process", messageClass.getSimpleName())));
+                                                                 Class<M> messageClass, BiFunction<M, ClaimToken, ServiceResult<TransferProcess>> serviceCall) {
+        processId.ifPresentOrElse(id ->  monitor.debug(() -> format("DSP: Incoming %s for transfer process %s", messageClass.getSimpleName(), id)),
+                () -> monitor.debug(() -> format("DSP: Incoming %s for initiating a transfer process", messageClass.getSimpleName())));
 
         var claimToken = checkAuthToken(token);
 

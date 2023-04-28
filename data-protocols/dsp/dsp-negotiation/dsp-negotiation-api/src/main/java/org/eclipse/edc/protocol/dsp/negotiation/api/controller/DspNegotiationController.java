@@ -105,7 +105,7 @@ public class DspNegotiationController {
     @GET
     @Path("{id}")
     public Map<String, Object> getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(format("DSP: Incoming request for contract negotiation with id %s", id));
+        monitor.debug(() -> format("DSP: Incoming request for contract negotiation with id %s", id));
 
         checkAndReturnAuthToken(token);
 
@@ -121,7 +121,7 @@ public class DspNegotiationController {
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
     public Map<String, Object> initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug("DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
+        monitor.debug(() -> "DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
 
         var negotiation = processMessage(token, Optional.empty(), body, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, ContractRequestMessage.class, protocolService::notifyRequested);
 
@@ -142,7 +142,7 @@ public class DspNegotiationController {
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
     public void consumerOffer(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(format("DSP: Incoming ContractRequestMessage for process %s", id));
+        monitor.debug(() -> format("DSP: Incoming ContractRequestMessage for process %s", id));
 
         processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, ContractRequestMessage.class, protocolService::notifyRequested);
     }
@@ -157,7 +157,7 @@ public class DspNegotiationController {
     @POST
     @Path("{id}" + EVENT)
     public void createEvent(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_EVENT_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
+        monitor.debug(() -> format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
         var expandedResult = jsonLdService.expand(body);
@@ -190,7 +190,7 @@ public class DspNegotiationController {
     @POST
     @Path("{id}" + AGREEMENT + VERIFICATION)
     public void verifyAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
+        monitor.debug(() -> format("DSP: Incoming ContractAgreementVerificationMessage for process %s", id));
 
         processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, ContractAgreementVerificationMessage.class, protocolService::notifyVerified);
     }
@@ -205,7 +205,7 @@ public class DspNegotiationController {
     @POST
     @Path("{id}" + TERMINATION)
     public void terminateNegotiation(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_TERMINATION_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
+        monitor.debug(() -> format("DSP: Incoming ContractNegotiationTerminationMessage for process %s", id));
 
         processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_TERMINATION_MESSAGE, ContractNegotiationTerminationMessage.class, protocolService::notifyTerminated);
     }
@@ -221,7 +221,7 @@ public class DspNegotiationController {
     @Path("{id}" + CONTRACT_OFFER)
 
     public void providerOffer(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(format("DSP: Incoming ContractOfferMessage for process %s", id));
+        monitor.debug(() -> format("DSP: Incoming ContractOfferMessage for process %s", id));
 
         checkAndReturnAuthToken(token);
 
@@ -238,7 +238,7 @@ public class DspNegotiationController {
     @POST
     @Path("{id}" + AGREEMENT)
     public void createAgreement(@PathParam("id") String id, @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(format("DSP: Incoming ContractAgreementMessage for process %s", id));
+        monitor.debug(() -> format("DSP: Incoming ContractAgreementMessage for process %s", id));
 
         processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, ContractAgreementMessage.class, protocolService::notifyAgreed);
     }
