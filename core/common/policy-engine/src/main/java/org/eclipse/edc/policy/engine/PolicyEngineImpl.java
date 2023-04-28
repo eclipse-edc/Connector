@@ -66,7 +66,7 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @Override
-    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class, Object> contextInformation) {
+    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation) {
         var context = new PolicyContextImpl(agent, contextInformation);
 
         for (BiFunction<Policy, PolicyContext, Boolean> validator : preValidators) {
@@ -126,7 +126,7 @@ public class PolicyEngineImpl implements PolicyEngine {
      * @param context the policy context.
      * @param contextInformation the initial context data.
      */
-    private void updateContextInformation(PolicyContext context, Map<Class, Object> contextInformation) {
+    private void updateContextInformation(PolicyContext context, Map<Class<?>, Object> contextInformation) {
         contextInformation.keySet().forEach(key -> contextInformation.put(key, context.getContextData(key)));
     }
 

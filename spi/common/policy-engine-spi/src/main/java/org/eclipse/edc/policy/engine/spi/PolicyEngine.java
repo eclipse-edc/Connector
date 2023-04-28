@@ -64,7 +64,7 @@ public interface PolicyEngine {
      * Evaluates the given policy for an agent for the given scope using additional context information.
      * Values in the map need to be of the same type defined by the key.
      */
-    Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class, Object> contextInformation);
+    Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation);
 
     /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key for the specified scope.
