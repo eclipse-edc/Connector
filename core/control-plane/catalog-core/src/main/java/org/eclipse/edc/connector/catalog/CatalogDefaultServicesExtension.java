@@ -14,13 +14,14 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 @Extension(value = CatalogDefaultServicesExtension.NAME)
 public class CatalogDefaultServicesExtension implements ServiceExtension {
@@ -28,18 +29,27 @@ public class CatalogDefaultServicesExtension implements ServiceExtension {
     public static final String NAME = "Catalog Default Services";
 
     @Inject
-    private DataService dataService;
-
-    @Inject
     private DataPlaneInstanceStore dataPlaneInstanceStore;
+    
+    private DataServiceRegistry dataServiceRegistry;
 
     @Override
     public String name() {
         return NAME;
     }
+    
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        dataServiceRegistry = new DataServiceRegistryImpl();
+    }
+    
+    @Provider
+    public DataServiceRegistry dataServiceRegistry() {
+        return dataServiceRegistry;
+    }
 
     @Provider(isDefault = true)
     public DistributionResolver distributionResolver() {
-        return new DefaultDistributionResolver(dataService, dataPlaneInstanceStore);
+        return new DefaultDistributionResolver(dataServiceRegistry, dataPlaneInstanceStore);
     }
 }
