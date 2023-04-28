@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.callback;
+package org.eclipse.edc.connector.spi.callback;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
