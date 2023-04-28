@@ -29,9 +29,11 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
-@Provides({ ContractNegotiationStore.class })
-@Extension(value = "SQL contract negotiation store")
+@Provides({ContractNegotiationStore.class})
+@Extension(SqlContractNegotiationStoreExtension.NAME)
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
+
+    public static final String NAME = "SQL contract negotiation store";
 
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
     private static final String DEFAULT_DATASOURCE_NAME = "contractnegotiation";
@@ -50,6 +52,11 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

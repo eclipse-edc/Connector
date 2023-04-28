@@ -33,8 +33,10 @@ import java.util.Objects;
 import static java.lang.String.format;
 
 @Provides(DataPlaneSelectorClient.class)
-@Extension(value = "DataPlane instance client")
+@Extension(DataPlaneInstanceClientExtension.NAME)
 public class DataPlaneInstanceClientExtension implements ServiceExtension {
+
+    public static final String NAME = "DataPlane instance client";
 
     @Setting
     private static final String DPF_SELECTOR_URL_SETTING = "edc.dpf.selector.url";
@@ -47,6 +49,11 @@ public class DataPlaneInstanceClientExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

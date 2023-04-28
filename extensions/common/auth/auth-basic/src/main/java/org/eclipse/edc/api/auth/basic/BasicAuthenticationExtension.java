@@ -31,13 +31,20 @@ import static java.lang.String.format;
  * Extension that registers an AuthenticationService that uses API Keys
  */
 @Provides(AuthenticationService.class)
-@Extension(value = "Basic authentication")
+@Extension(BasicAuthenticationExtension.NAME)
 public class BasicAuthenticationExtension implements ServiceExtension {
+
+    public static final String NAME = "Basic authentication";
 
     @Setting
     public static final String BASIC_AUTH = "edc.api.auth.basic.vault-keys";
     @Inject
     private Vault vault;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

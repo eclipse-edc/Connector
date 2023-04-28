@@ -20,13 +20,15 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.gcp.iam.IamServiceImpl;
 import org.eclipse.edc.gcp.storage.StorageServiceImpl;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-
+@Extension(GcsProvisionExtension.NAME)
 public class GcsProvisionExtension implements ServiceExtension {
+    public static final String NAME = "Gcs Provision";
 
     @Setting(value = "The GCP project ID", required = true)
     private static final String GCP_PROJECT_ID = "edc.gcp.project.id";

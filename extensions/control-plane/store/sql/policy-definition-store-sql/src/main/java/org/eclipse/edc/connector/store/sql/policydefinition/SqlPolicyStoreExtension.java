@@ -29,8 +29,10 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 @Provides(PolicyDefinitionStore.class)
-@Extension("SQL policy store")
+@Extension(SqlPolicyStoreExtension.NAME)
 public class SqlPolicyStoreExtension implements ServiceExtension {
+
+    public static final String NAME = "SQL policy store";
 
     @Setting(required = true)
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.policy.name";
@@ -46,6 +48,11 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

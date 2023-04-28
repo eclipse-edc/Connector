@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.web.jetty;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -32,9 +33,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 @Provides({ WebServer.class, JettyService.class })
+@Extension(JettyExtension.NAME)
 public class JettyExtension implements ServiceExtension {
 
-
+    public static final String NAME = "Jetty";
     @Setting
     private static final String KEYSTORE_PASSWORD = "edc.web.https.keystore.password";
     @Setting

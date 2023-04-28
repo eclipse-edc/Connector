@@ -50,7 +50,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
  * Provides support for transforming DCAT catalog and ODRL policy types to and from JSON-LD. The
  * respective transformers are registered with the {@link TypeTransformerRegistry}.
  */
-@Extension(value = DspTransformExtension.NAME)
+@Extension(DspTransformExtension.NAME)
 public class DspTransformExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Transform Extension";

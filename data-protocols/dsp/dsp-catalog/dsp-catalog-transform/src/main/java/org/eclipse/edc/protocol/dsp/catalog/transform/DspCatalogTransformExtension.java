@@ -31,7 +31,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 /**
  * Provides the transformers for catalog message types via the {@link TypeTransformerRegistry}.
  */
-@Extension(value = DspCatalogTransformExtension.NAME)
+@Extension(DspCatalogTransformExtension.NAME)
 public class DspCatalogTransformExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Catalog Transform Extension";

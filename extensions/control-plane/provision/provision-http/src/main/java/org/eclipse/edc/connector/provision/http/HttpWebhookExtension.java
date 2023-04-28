@@ -19,6 +19,7 @@ import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.provision.http.webhook.HttpProvisionerWebhookApiController;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.EdcException;
@@ -37,8 +38,9 @@ import java.net.URL;
 import static java.lang.String.format;
 
 @Provides(HttpProvisionerWebhookUrl.class)
+@Extension(HttpWebhookExtension.NAME)
 public class HttpWebhookExtension implements ServiceExtension {
-
+    public static final String NAME = "HTTP Webhook";
     private static final String DEPRECATED_PROVISIONER_WEBHOOK_CONFIG = "web.http.provisioner";
 
     /**
@@ -76,6 +78,11 @@ public class HttpWebhookExtension implements ServiceExtension {
 
     @Inject
     private ManagementApiConfiguration managementApiConfiguration;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

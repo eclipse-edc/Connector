@@ -28,9 +28,11 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-@Provides({ DataPlaneSelector.class, SelectionStrategyRegistry.class, DataPlaneSelectorService.class })
-@Extension(value = "DataPlane core selector")
+@Provides({DataPlaneSelector.class, SelectionStrategyRegistry.class, DataPlaneSelectorService.class})
+@Extension(DataPlaneSelectorExtension.NAME)
 public class DataPlaneSelectorExtension implements ServiceExtension {
+
+    public static final String NAME = "DataPlane core selector";
 
     @Inject
     private DataPlaneInstanceStore instanceStore;
@@ -38,6 +40,10 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     @Inject
     private TransactionContext transactionContext;
 
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
