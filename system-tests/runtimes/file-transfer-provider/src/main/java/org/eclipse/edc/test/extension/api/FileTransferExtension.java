@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
@@ -35,7 +36,9 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
+@Extension(FileTransferExtension.NAME)
 public class FileTransferExtension implements ServiceExtension {
+    public static final String NAME = "File Transfer";
 
     public static final String USE_POLICY = "use-eu";
     private static final String EDC_ASSET_PATH = "edc.test.asset.path";
@@ -52,6 +55,11 @@ public class FileTransferExtension implements ServiceExtension {
 
     @Inject
     private Telemetry telemetry;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

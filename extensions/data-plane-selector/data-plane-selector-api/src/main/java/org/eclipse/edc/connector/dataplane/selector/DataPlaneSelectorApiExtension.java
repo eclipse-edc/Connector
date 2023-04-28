@@ -27,7 +27,7 @@ import org.eclipse.edc.web.spi.WebService;
 
 import static java.lang.String.format;
 
-@Extension(value = "DataPlane selector API")
+@Extension(DataPlaneSelectorApiExtension.NAME)
 public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
     /**
@@ -36,9 +36,11 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
      *
      * @deprecated "web.http.management" config should be used instead of "web.http.dataplane"
      */
+
     @Deprecated(since = "milestone8")
     private static final String DEPRECATED_CONTEXT = "dataplane";
     private static final String DEPRECATED_SETTINGS_GROUP = "web.http." + DEPRECATED_CONTEXT;
+    public static final String NAME = "DataPlane selector API";
 
     @Inject
     private WebService webservice;
@@ -51,6 +53,11 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

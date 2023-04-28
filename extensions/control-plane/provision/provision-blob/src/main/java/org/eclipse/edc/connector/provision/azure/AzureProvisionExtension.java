@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.Provisioner;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -35,8 +36,9 @@ import org.eclipse.edc.spi.types.TypeManager;
 /**
  * Provides data transfer {@link Provisioner}s backed by Azure services.
  */
+@Extension(AzureProvisionExtension.NAME)
 public class AzureProvisionExtension implements ServiceExtension {
-
+    public static final String NAME = "Azure Provision";
     @Inject
     private BlobStoreApi blobStoreApi;
 

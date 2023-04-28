@@ -21,8 +21,15 @@ import org.eclipse.edc.spi.system.MonitorExtension;
 /**
  * Extension adding logging monitor.
  */
-@Extension("Logger monitor")
+@Extension(LoggerMonitorExtension.NAME)
 public class LoggerMonitorExtension implements MonitorExtension {
+
+    public static final String NAME = "Logger monitor";
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public Monitor getMonitor() {

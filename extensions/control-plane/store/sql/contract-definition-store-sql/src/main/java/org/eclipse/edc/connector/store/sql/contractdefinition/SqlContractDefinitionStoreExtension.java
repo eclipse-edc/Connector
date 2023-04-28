@@ -29,13 +29,15 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-@Provides({ ContractDefinitionStore.class })
-@Extension(value = "SQL contract definition store")
+@Provides({ContractDefinitionStore.class})
+@Extension(SqlContractDefinitionStoreExtension.NAME)
 public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
     /**
      * Name of the datasource to use for accessing contract definitions.
      */
+
+    public static final String NAME = "SQL contract definition store";
     @Setting(required = true)
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.contractdefinition.name";
 
@@ -50,6 +52,11 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

@@ -27,8 +27,10 @@ import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
 
-@Extension(value = "Cloud events HTTP")
+@Extension(CloudEventsHttpExtension.NAME)
 public class CloudEventsHttpExtension implements ServiceExtension {
+
+    public static final String NAME = "Cloud events HTTP";
 
     @Setting(required = true)
     static final String EDC_EVENTS_CLOUDEVENTS_ENDPOINT = "edc.events.cloudevents.endpoint";
@@ -47,6 +49,11 @@ public class CloudEventsHttpExtension implements ServiceExtension {
 
     @Inject
     private Hostname hostname;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

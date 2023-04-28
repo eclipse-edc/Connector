@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.web.jersey;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -27,7 +28,10 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry;
 
 @Provides(WebService.class)
+@Extension(JerseyExtension.NAME)
 public class JerseyExtension implements ServiceExtension {
+
+    public static final String NAME = "Jersey";
     private JerseyRestService jerseyRestService;
 
     @Inject

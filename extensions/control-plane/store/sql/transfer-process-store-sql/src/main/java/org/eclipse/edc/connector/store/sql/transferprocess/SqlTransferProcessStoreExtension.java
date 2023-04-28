@@ -31,9 +31,9 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.time.Clock;
 
 @Provides(TransferProcessStore.class)
-@Extension(value = "SQL transfer process store")
+@Extension(SqlTransferProcessStoreExtension.NAME)
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
-
+    public static final String NAME = "SQL transfer process store";
     @Setting
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.transferprocess.name";
     private static final String DEFAULT_DATASOURCE_NAME = "transferprocess";
@@ -50,6 +50,11 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

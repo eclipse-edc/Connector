@@ -28,9 +28,11 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-@Provides({ AssetIndex.class, DataAddressResolver.class })
-@Extension(value = "SQL asset index")
+@Provides({AssetIndex.class, DataAddressResolver.class})
+@Extension(SqlAssetIndexServiceExtension.NAME)
 public class SqlAssetIndexServiceExtension implements ServiceExtension {
+
+    public static final String NAME = "SQL asset index";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -43,6 +45,11 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

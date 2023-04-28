@@ -30,12 +30,19 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  * handlers the core provides.
  */
 @CoreExtension
-@Provides({ CommandHandlerRegistry.class })
-@Extension(value = "Contract Negotiation command handler")
+@Provides({CommandHandlerRegistry.class})
+@Extension(ContractNegotiationCommandExtension.NAME)
 public class ContractNegotiationCommandExtension implements ServiceExtension {
+
+    public static final String NAME = "Contract Negotiation command handler";
 
     @Inject
     private ContractNegotiationStore store;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

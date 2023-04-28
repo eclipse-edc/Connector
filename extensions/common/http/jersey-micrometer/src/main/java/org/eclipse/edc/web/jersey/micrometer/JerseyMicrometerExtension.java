@@ -17,6 +17,7 @@ package org.eclipse.edc.web.jersey.micrometer;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jersey.server.DefaultJerseyTagsProvider;
 import io.micrometer.core.instrument.binder.jersey.server.MetricsApplicationEventListener;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -27,8 +28,10 @@ import org.eclipse.edc.web.spi.WebService;
  * An extension that register a Micrometer {@link MetricsApplicationEventListener} into Jersey to
  * provide metrics and request timings.
  */
+@Extension(JerseyMicrometerExtension.NAME)
 public class JerseyMicrometerExtension implements ServiceExtension {
 
+    public static final String NAME = "Jersey Micrometer";
     @Setting
     public static final String ENABLE_METRICS = "edc.metrics.enabled";
     @Setting
