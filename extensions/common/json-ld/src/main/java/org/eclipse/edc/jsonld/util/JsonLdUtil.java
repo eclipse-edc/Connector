@@ -24,10 +24,12 @@ import org.eclipse.edc.spi.EdcException;
 
 import java.util.Map;
 
+@Deprecated
 public class JsonLdUtil {
-    
-    private JsonLdUtil() { }
-    
+
+    private JsonLdUtil() {
+    }
+
     /**
      * Expands a JSON-LD structure. When expanding, the prefixes for attributes are resolved using
      * the context entries. and replaced by the respective context reference.
@@ -43,13 +45,13 @@ public class JsonLdUtil {
             throw new EdcException("Failed to expand JSON-LD", e);
         }
     }
-    
+
     /**
      * Compacts a JSON-LD structure. When compacting, the context references of attributes are
      * replaced by the respective context prefixes. A context object for resolving the prefixes
      * is added to the structure.
      *
-     * @param object the structure to compact
+     * @param object  the structure to compact
      * @param context the context for compacting
      * @return the compacted structure
      */
@@ -65,5 +67,5 @@ public class JsonLdUtil {
             throw new EdcException("Failed to compact JSON-LD", e);
         }
     }
-    
+
 }
