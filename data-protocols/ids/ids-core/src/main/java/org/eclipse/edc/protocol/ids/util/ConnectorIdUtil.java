@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  */
 public class ConnectorIdUtil {
 
-    @Setting
+    @Setting(value = "The IDS id of the connector", defaultValue = DEFAULT_EDC_IDS_ID)
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 

@@ -41,7 +41,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     public static final String NAME = "Data Plane HTTP";
     private static final int DEFAULT_PART_SIZE = 5;
 
-    @Setting
+    @Setting(value = "The number of partitions for parallel message push in the HttpDataSink")
     private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
 
     @Inject

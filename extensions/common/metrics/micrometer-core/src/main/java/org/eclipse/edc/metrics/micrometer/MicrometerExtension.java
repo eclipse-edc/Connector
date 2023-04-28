@@ -32,17 +32,17 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 @BaseExtension
-@Provides({ EventListener.class, ExecutorInstrumentation.class, MeterRegistry.class })
+@Provides({EventListener.class, ExecutorInstrumentation.class, MeterRegistry.class})
 @Extension(value = MicrometerExtension.NAME)
 public class MicrometerExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "enables or disables metrics collection globally")
     public static final String ENABLE_METRICS = "edc.metrics.enabled";
-    @Setting
+    @Setting(value = "enables or disables of system metrics (class loader, memory, garbage collection, processor and thread metrics)")
     public static final String ENABLE_SYSTEM_METRICS = "edc.metrics.system.enabled";
-    @Setting
+    @Setting(value = "enables or disables collection of metrics for the OkHttp client")
     public static final String ENABLE_OKHTTP_METRICS = "edc.metrics.okhttp.enabled";
-    @Setting
+    @Setting(value = "enables or disables collection of metrics for the instrumented ExecutorServices")
     public static final String ENABLE_EXECUTOR_METRICS = "edc.metrics.executor.enabled";
     public static final String NAME = "Micrometer Metrics";
     private static final String OKHTTP_REQUESTS_METRIC_NAME = "okhttp.requests";

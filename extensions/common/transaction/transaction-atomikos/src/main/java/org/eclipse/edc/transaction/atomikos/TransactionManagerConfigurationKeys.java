@@ -21,19 +21,19 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
  */
 public interface TransactionManagerConfigurationKeys {
 
-    @Setting(required = false)
+    @Setting(required = false, value = "The maximum timeout that is allowed for a transaction, the TransactionManager reverses the transaction if it takes time more than the specified timeout")
     String TIMEOUT = "edc.atomikos.timeout";
 
-    @Setting(required = false)
+    @Setting(required = false, value = " The directory where Atomikos transaction logs will be stored")
     String DATA_DIR = "edc.atomikos.directory";
 
-    @Setting(required = false)
+    @Setting(required = false, value = "Boolean flag whether to use Threaded2PC protocol")
     String THREADED2PC = "edc.atomikos.threaded2pc";
 
-    @Setting(required = false)
+    @Setting(required = false, value = "Boolean flag whether to enable logging")
     String LOGGING = "edc.atomikos.logging";
 
-    @Setting(required = false)
+    @Setting(required = false, value = "The interval at which Atomikos will take a checkpoint of its transaction log")
     String CHECKPOINT_INTERVAL = "edc.atomikos.checkpoint.interval";
 
     int DEFAULT_VALUE = -1;

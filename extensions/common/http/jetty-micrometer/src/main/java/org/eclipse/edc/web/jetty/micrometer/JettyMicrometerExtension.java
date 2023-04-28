@@ -30,9 +30,9 @@ import org.eclipse.edc.web.jetty.JettyService;
 @Extension(value = JettyMicrometerExtension.NAME)
 public class JettyMicrometerExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "enables or disables Metrics for Jetty connector")
     public static final String ENABLE_METRICS = "edc.metrics.enabled";
-    @Setting
+    @Setting(value = "enables or disables collection of Jetty metrics")
     public static final String ENABLE_JETTY_METRICS = "edc.metrics.jetty.enabled";
     public static final String NAME = "Jetty Micrometer Metrics";
 

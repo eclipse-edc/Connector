@@ -21,49 +21,49 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
  */
 public interface DataSourceConfigurationKeys {
 
-    @Setting(required = true)
+    @Setting(required = true, value = "The full name of the driver class")
     String DRIVER_CLASS = "driver.class";
 
-    @Setting(required = true)
+    @Setting(required = true, value = "The URL to connect to")
     String URL = "url";
 
-    @Setting
+    @Setting(value = "The type of DataSource")
     String DS_TYPE = "type";
 
-    @Setting
+    @Setting(value = "The username used to authenticate")
     String USERNAME = "username";
 
-    @Setting
+    @Setting(value = "The password used to authenticate")
     String PASSWORD = "password";
 
-    @Setting
+    @Setting(value = "The size of the connection pool")
     String POOL_SIZE = "pool.size";
 
-    @Setting
+    @Setting(value = "The maximum connections in the connection pool")
     String MAX_POOL_SIZE = "max.pool.size";
 
-    @Setting
+    @Setting(value = "The minimum connections in the connection pool")
     String MIN_POOL_SIZE = "min.pool.size";
 
-    @Setting
+    @Setting(value = "The connection timeout from the pool")
     String CONNECTION_TIMEOUT = "connection.timeout";
 
-    @Setting
+    @Setting(value = "The login timeout response")
     String LOGIN_TIMEOUT = "login.timeout";
 
-    @Setting
+    @Setting(value = "The maintenance interval for the connection pool")
     String MAINTENANCE_INTERVAL = "maintenance.interval";
 
-    @Setting
+    @Setting(value = "The maximum idle connections that can be maintained")
     String MAX_IDLE = "max.idle";
 
-    @Setting
+    @Setting(value = "The time that the idle connections reaped after")
     String REAP = "reap";
 
-    @Setting
+    @Setting(value = "SQL query")
     String QUERY = "query";
 
-    @Setting
+    @Setting(value = "driver properties that are used when connecting to DB")
     String DRIVER_PROPERTIES = "properties";
 
 

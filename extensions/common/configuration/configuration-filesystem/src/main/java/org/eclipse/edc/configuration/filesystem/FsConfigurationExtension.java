@@ -39,7 +39,7 @@ import static org.eclipse.edc.util.configuration.ConfigurationFunctions.propOrEn
 public class FsConfigurationExtension implements ConfigurationExtension {
 
     public static final String NAME = "FS Configuration";
-    @Setting
+    @Setting(value = "Location of the file system configuration file that is used to read configuration values from the properties file")
     private static final String FS_CONFIG = "edc.fs.config";
     private Config config;
     private Path configFile;

@@ -29,9 +29,9 @@ import org.eclipse.edc.web.spi.WebService;
  */
 public class JerseyMicrometerExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "enables or disables metrics")
     public static final String ENABLE_METRICS = "edc.metrics.enabled";
-    @Setting
+    @Setting(value = "enables or disables collection of Jersey metrics")
     public static final String ENABLE_JERSEY_METRICS = "edc.metrics.jersey.enabled";
 
     @Inject

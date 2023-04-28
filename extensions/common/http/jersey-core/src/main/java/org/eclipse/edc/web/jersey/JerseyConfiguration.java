@@ -21,13 +21,13 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  * Jersey extension configuration class
  */
 public class JerseyConfiguration {
-    @Setting
+    @Setting(value = "The allowed origins for CORS filter")
     public static final String CORS_CONFIG_ORIGINS_SETTING = "edc.web.rest.cors.origins";
-    @Setting
+    @Setting(value = "Boolean flag to enable CORS")
     public static final String CORS_CONFIG_ENABLED_SETTING = "edc.web.rest.cors.enabled";
-    @Setting
+    @Setting(value = "The allowed Headers for the CORS filter")
     public static final String CORS_CONFIG_HEADERS_SETTING = "edc.web.rest.cors.headers";
-    @Setting
+    @Setting(value = "The allowed methods for CORS filter")
     public static final String CORS_CONFIG_METHODS_SETTING = "edc.web.rest.cors.methods";
     private String allowedOrigins;
     private String allowedHeaders;

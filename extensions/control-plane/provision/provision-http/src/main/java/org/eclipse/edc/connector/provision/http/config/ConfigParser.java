@@ -38,16 +38,16 @@ public class ConfigParser {
 
     private static final String HTTP_PROVISIONER_ENTRIES = CONFIG_PREFIX + ".entries";
 
-    @Setting(required = true)
+    @Setting(required = true, value = "Type of the provisioner")
     private static final String PROVISIONER_TYPE = "provisioner.type";
 
-    @Setting(required = true)
+    @Setting(required = true, value = "Type of the data address that the provisioner will use")
     private static final String DATA_ADDRESS_TYPE = "data.address.type";
 
-    @Setting(required = true)
+    @Setting(required = true, value = "The URL of endpoint that the HTTP provisioner will connect to")
     private static final String ENDPOINT_URL = "endpoint";
 
-    @Setting
+    @Setting(value = "Scope of the policy")
     private static final String POLICY_SCOPE = "policy.scope";
 
     private ConfigParser() {

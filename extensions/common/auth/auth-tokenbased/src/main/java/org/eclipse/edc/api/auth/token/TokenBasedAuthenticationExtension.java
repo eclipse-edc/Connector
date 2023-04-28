@@ -35,9 +35,9 @@ import java.util.UUID;
 public class TokenBasedAuthenticationExtension implements ServiceExtension {
 
     public static final String NAME = "Static token API Authentication";
-    @Setting
+    @Setting(value = "The API key to be used for authentication")
     private static final String AUTH_SETTING_APIKEY = "edc.api.auth.key";
-    @Setting
+    @Setting(value = "Optional alias for API key to retrieve the key from a secure vault")
     private static final String AUTH_SETTING_APIKEY_ALIAS = "edc.api.auth.key.alias";
     @Inject
     private Vault vault;

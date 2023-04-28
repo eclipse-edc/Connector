@@ -24,7 +24,7 @@ public interface ConfigurationKeys {
     /**
      * If set, the resolver will use the endpoint to resolve DIDs using DNS over HTTPS.
      */
-    @Setting
+    @Setting(value = "specification of endpoint to resolve DIDs using DNS over HTTPS")
     String DNS_OVER_HTTPS = "edc.webdid.doh.url";
 
 }

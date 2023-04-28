@@ -36,7 +36,7 @@ import static java.lang.String.format;
 @Extension(value = "DataPlane instance client")
 public class DataPlaneInstanceClientExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "The URL of the DataPlane instance selector endpoint, which is used to determine whether to use an embedded or remote DataPlaneSelectorClient")
     private static final String DPF_SELECTOR_URL_SETTING = "edc.dpf.selector.url";
 
     @Inject(required = false)

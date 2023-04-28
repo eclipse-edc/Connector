@@ -32,15 +32,15 @@ import static org.eclipse.edc.util.string.StringUtils.isNullOrEmpty;
 public class AzureVaultExtension implements ServiceExtension {
 
     public static final String NAME = "Azure Vault";
-    @Setting
+    @Setting(value = "The client ID to access the Azure Vault")
     private static final String VAULT_CLIENT_ID = "edc.vault.clientid";
-    @Setting
+    @Setting(value = "The tenant ID to access the Azure Vault")
     private static final String VAULT_TENANT_ID = "edc.vault.tenantid";
-    @Setting
+    @Setting(value = "The name of Azure Vault")
     private static final String VAULT_NAME = "edc.vault.name";
-    @Setting
+    @Setting(value = "The client secret to access the Azure Vault, that can be used instead of VAULT_CERTIFICATE")
     private static final String VAULT_CLIENT_SECRET = "edc.vault.clientsecret";
-    @Setting
+    @Setting(value = "The certificate to access the Azure Vault, that can be used instead of VAULT_CLIENT_SECRET")
     private static final String VAULT_CERTIFICATE = "edc.vault.certificate";
 
     @Override

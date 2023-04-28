@@ -47,7 +47,7 @@ import java.util.List;
 @Extension(value = IdsCoreServiceExtension.NAME)
 public class IdsCoreServiceExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = " The ID of the catalog used in IDS",defaultValue = DEFAULT_EDC_IDS_CATALOG_ID)
     public static final String EDC_IDS_CATALOG_ID = "edc.ids.catalog.id";
 
     public static final String DEFAULT_EDC_IDS_CATALOG_ID = "urn:catalog:default";

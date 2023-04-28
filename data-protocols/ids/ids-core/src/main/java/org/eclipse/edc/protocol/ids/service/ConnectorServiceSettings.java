@@ -32,17 +32,17 @@ import static org.eclipse.edc.protocol.ids.util.ConnectorIdUtil.resolveConnector
 
 public class ConnectorServiceSettings {
 
-    @Setting
+    @Setting(value = "The title of the connector")
     public static final String EDC_IDS_TITLE = "edc.ids.title";
-    @Setting
+    @Setting(value = "The description of the connector")
     public static final String EDC_IDS_DESCRIPTION = "edc.ids.description";
-    @Setting
+    @Setting(value = "The security profile of the connector")
     public static final String EDC_IDS_SECURITY_PROFILE = "edc.ids.security.profile";
-    @Setting
+    @Setting(value = "The endpoint url of the connector")
     public static final String EDC_IDS_ENDPOINT = "edc.ids.endpoint";
-    @Setting
+    @Setting(value = "The maintainer of the connector")
     public static final String EDC_IDS_MAINTAINER = "edc.ids.maintainer";
-    @Setting
+    @Setting(value = "The curator of the connector's instance")
     public static final String EDC_IDS_CURATOR = "edc.ids.curator";
 
     public static final String DEFAULT_EDC_IDS_TITLE = "Eclipse Dataspace Connector";

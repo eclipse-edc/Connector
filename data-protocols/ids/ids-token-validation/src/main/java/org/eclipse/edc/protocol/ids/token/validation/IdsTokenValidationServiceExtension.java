@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 @Extension(value = IdsTokenValidationServiceExtension.NAME)
 public final class IdsTokenValidationServiceExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "The ID of the connector to use as the referring connector for token validation")
     public static final String EDC_IDS_VALIDATION_REFERRINGCONNECTOR = "edc.ids.validation.referringconnector";
     public static final String NAME = "IDS Token Validation";
 

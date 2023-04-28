@@ -38,9 +38,9 @@ import org.eclipse.edc.spi.types.TypeManager;
 public class AwsProvisionExtension implements ServiceExtension {
 
     public static final String NAME = "AWS Provision";
-    @Setting
+    @Setting(value = "The maximum number of retries during AWS provisioning")
     private static final String PROVISION_MAX_RETRY = "edc.aws.provision.retry.retries.max";
-    @Setting
+    @Setting(value = "The maximum duration of an AWS role session during the provisioning")
     private static final String PROVISION_MAX_ROLE_SESSION_DURATION = "edc.aws.provision.role.duration.session.max";
     @Inject
     private Vault vault;

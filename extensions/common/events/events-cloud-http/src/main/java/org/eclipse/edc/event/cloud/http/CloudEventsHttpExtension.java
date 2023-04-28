@@ -30,7 +30,7 @@ import java.time.Clock;
 @Extension(value = "Cloud events HTTP")
 public class CloudEventsHttpExtension implements ServiceExtension {
 
-    @Setting(required = true)
+    @Setting(required = true, value = "The endpoint URL of the CloudEvents that sends events to the endpoint")
     static final String EDC_EVENTS_CLOUDEVENTS_ENDPOINT = "edc.events.cloudevents.endpoint";
 
     @Inject

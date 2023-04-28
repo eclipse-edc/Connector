@@ -18,16 +18,16 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 public final class FsConfiguration {
 
-    @Setting
+    @Setting(value = "The location of the Vault file, that contains sensitive data")
     static final String VAULT_LOCATION = "edc.vault";
 
-    @Setting
+    @Setting(value = "The path to the Keystore")
     static final String KEYSTORE_LOCATION = "edc.keystore";
 
-    @Setting
+    @Setting(value = "The password for the Keystore")
     static final String KEYSTORE_PASSWORD = "edc.keystore.password";
 
-    @Setting
+    @Setting(value = " Boolean flag that determines whether the vault file should be persistent or not. When set to true, the vault file will be stored and will not get lost when the system restarts")
     static final String PERSISTENT_VAULT = "edc.vault.persistent";
 
 

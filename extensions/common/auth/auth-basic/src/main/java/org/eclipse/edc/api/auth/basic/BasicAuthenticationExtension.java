@@ -34,7 +34,7 @@ import static java.lang.String.format;
 @Extension(value = "Basic authentication")
 public class BasicAuthenticationExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "The vault keys to use for basic authentication in the API")
     public static final String BASIC_AUTH = "edc.api.auth.basic.vault-keys";
     @Inject
     private Vault vault;

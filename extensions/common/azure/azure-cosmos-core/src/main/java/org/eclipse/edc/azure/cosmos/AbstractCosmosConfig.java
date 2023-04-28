@@ -28,9 +28,9 @@ import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
 public abstract class AbstractCosmosConfig {
 
     public static final String DEFAULT_REGION = "westeurope";
-    @Setting
+    @Setting(value = "The name of partition key for the Cosmos DB that is used to determine which attribute in the database used as partition key")
     private static final String PARTITION_KEY_SETTING = "edc.cosmos.partition-key";
-    @Setting
+    @Setting(value = "determines if query metrics are enabled for the Cosmos DB")
     private static final String QUERY_METRICS_ENABLED_SETTING = "edc.cosmos.query-metrics-enabled";
 
 

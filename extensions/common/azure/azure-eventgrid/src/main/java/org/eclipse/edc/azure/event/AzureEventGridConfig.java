@@ -21,9 +21,9 @@ public class AzureEventGridConfig {
     public static final String DEFAULT_SYSTEM_TOPIC_NAME = "connector-events";
     public static final String DEFAULT_ENDPOINT_NAME_TEMPLATE = "https://%s.westeurope-1.eventgrid.azure.net/api/events";
 
-    @Setting
+    @Setting(value = "The name of the Azure event grid topic")
     public static final String TOPIC_NAME_SETTING = "edc.events.topic.name";
-    @Setting
+    @Setting(value = "The endpoint URL of the Azure event grid topic")
     public static final String TOPIC_ENDPOINT_SETTING = "edc.events.topic.endpoint";
     private final ServiceExtensionContext context;
 

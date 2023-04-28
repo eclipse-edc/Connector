@@ -29,14 +29,14 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-@Provides({ ContractDefinitionStore.class })
+@Provides({ContractDefinitionStore.class})
 @Extension(value = "SQL contract definition store")
 public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
     /**
      * Name of the datasource to use for accessing contract definitions.
      */
-    @Setting(required = true)
+    @Setting(required = true, value = "The Datasource used by SQL contract definition store")
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.contractdefinition.name";
 
     @Inject

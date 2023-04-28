@@ -38,7 +38,7 @@ public class WebDidExtension implements ServiceExtension {
      * <p>
      * This setting can be used by EDC downstream projects, e.g. for testing with docker compose
      */
-    @Setting
+    @Setting(value = "creation of DID URLs with the https scheme, if set to true then https scheme is used, otherwise http scheme is used")
     private static final String USE_HTTPS_SCHEME = "edc.iam.did.web.use.https";
     @Inject
     private DidResolverRegistry resolverRegistry;

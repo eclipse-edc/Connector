@@ -35,13 +35,13 @@ import java.security.cert.CertificateException;
 public class JettyExtension implements ServiceExtension {
 
 
-    @Setting
+    @Setting(value = "The password that is used to access the HTTPS keystore")
     private static final String KEYSTORE_PASSWORD = "edc.web.https.keystore.password";
-    @Setting
+    @Setting(value = "Password for the private key")
     private static final String KEYMANAGER_PASSWORD = "edc.web.https.keymanager.password";
-    @Setting
+    @Setting(value = "The absolute path on the filesystem where the keystore is located")
     private static final String KEYSTORE_PATH_SETTING = "edc.web.https.keystore.path";
-    @Setting
+    @Setting(value = "The Type of keystore, could be \"JKS\" or \"PKCS12\"")
     private static final String KEYSTORE_TYPE_SETTING = "edc.web.https.keystore.type";
 
     private JettyService jettyService;

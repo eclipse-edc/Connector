@@ -20,16 +20,16 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 public class TransferProcessStoreCosmosConfig extends AbstractCosmosConfig {
 
-    @Setting
+    @Setting(value = "The name of the Cosmos DB account for the TransferProcessStore")
     private static final String COSMOS_ACCOUNTNAME_SETTING = "edc.transfer-process-store.cosmos.account.name";
 
-    @Setting
+    @Setting(value = "The name of the Cosmos DB database for the TransferProcessStore")
     private static final String COSMOS_DBNAME_SETTING = "edc.transfer-process-store.database.name";
 
-    @Setting
+    @Setting(value = "The preferred region for the Cosmos client instance used for the TransferProcessStore")
     private static final String COSMOS_PREFERRED_REGION_SETTING = "edc.transfer-process-store.cosmos.preferred-region";
 
-    @Setting
+    @Setting(value = "The name of the Cosmos DB container used to store assets for the TransferProcessStore")
     private static final String COSMOS_CONTAINER_NAME_SETTING = "edc.transfer-process-store.cosmos.container-name";
 
     /**

@@ -20,13 +20,13 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 public class AssetIndexCosmosConfig extends AbstractCosmosConfig {
 
-    @Setting
+    @Setting(value = "The nane of the Cosmos DB account for the AssetIndex")
     private static final String COSMOS_ACCOUNTNAME_SETTING = "edc.assetindex.cosmos.account-name";
-    @Setting
+    @Setting(value = "The name of the Database used for the asset within the Cosmos DB account")
     private static final String COSMOS_DBNAME_SETTING = "edc.assetindex.cosmos.database-name";
-    @Setting
+    @Setting(value = "The preferred region used for Cosmos client instance")
     private static final String COSMOS_PREFERRED_REGION_SETTING = "edc.assetindex.cosmos.preferred-region";
-    @Setting(value = "string", type = "something", required = true)
+    @Setting(value = "The Name of the Cosmos container used to store assets", type = "something", required = true)
     private static final String COSMOS_CONTAINER_NAME_SETTING = "edc.assetindex.cosmos.container-name";
 
     /**

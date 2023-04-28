@@ -42,13 +42,13 @@ import java.util.Objects;
 public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Azure Data Factory";
-    @Setting
+    @Setting(value = "The name of the Data Factory linked service for the Azure Key Vault in the Data Factory instance")
     private static final String KEY_VAULT_LINKED_SERVICE_NAME = "edc.data.factory.key.vault.linkedservicename";
-    @Setting
+    @Setting(value = "The Resource ID of the Azure Data Factory instance to be used for data transfers")
     private static final String RESOURCE_ID = "edc.data.factory.resource.id";
-    @Setting
+    @Setting(value = "The Resource ID of the Azure Key Vault to be used for storing secrets")
     private static final String KEY_VAULT_RESOURCE_ID = "edc.data.factory.key.vault.resource.id";
-    @Setting
+    @Setting(value = "Delay in ms between polls to check the status of Data factory instance")
     private static final String DATA_FACTORY_POLL_DELAY = "edc.data.factory.poll.delay.ms";
     @Inject
     private TransferServiceRegistry registry;

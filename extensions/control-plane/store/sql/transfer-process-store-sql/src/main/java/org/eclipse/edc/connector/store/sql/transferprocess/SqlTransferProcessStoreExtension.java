@@ -34,7 +34,7 @@ import java.time.Clock;
 @Extension(value = "SQL transfer process store")
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "The Datasource used for SQL transfer process store")
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.transferprocess.name";
     private static final String DEFAULT_DATASOURCE_NAME = "transferprocess";
 

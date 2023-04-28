@@ -34,10 +34,10 @@ import org.eclipse.edc.spi.types.TypeManager;
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
 
-    @Setting(value = "The URL of the Hashicorp Vault", required = true)
+    @Setting(value = "URL used to establish a connection with the HashiCorp Vault", required = true)
     public static final String VAULT_URL = "edc.vault.hashicorp.url";
 
-    @Setting(value = "The token used to access the Hashicorp Vault", required = true)
+    @Setting(value = "Token Authentication with the HashiCorp vault", required = true)
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
     public static final String NAME = "Hashicorp Vault";
 

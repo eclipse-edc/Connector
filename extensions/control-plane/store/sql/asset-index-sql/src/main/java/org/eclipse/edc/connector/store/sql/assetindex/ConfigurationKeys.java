@@ -25,7 +25,7 @@ public interface ConfigurationKeys {
     /**
      * Name of the datasource to use for accessing assets.
      */
-    @Setting(required = true)
+    @Setting(required = true, value = "The Datasource used to by SqlAssetIndexService extension ")
     String DATASOURCE_SETTING_NAME = "edc.datasource.asset.name";
 
 }

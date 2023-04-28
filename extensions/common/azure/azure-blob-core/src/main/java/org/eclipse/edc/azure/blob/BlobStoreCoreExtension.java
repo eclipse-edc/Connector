@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 @Extension(value = BlobStoreCoreExtension.NAME)
 public class BlobStoreCoreExtension implements ServiceExtension {
 
-    @Setting
+    @Setting(value = "The endpoint template for the BlobStore that will be used by the connector")
     public static final String EDC_BLOBSTORE_ENDPOINT_TEMPLATE = "edc.blobstore.endpoint.template";
     public static final String NAME = "Azure BlobStore Core";
 

@@ -32,7 +32,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 @Extension("SQL policy store")
 public class SqlPolicyStoreExtension implements ServiceExtension {
 
-    @Setting(required = true)
+    @Setting(required = true, value = "The Datasource used by the SQL policy store")
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.policy.name";
 
     @Inject
