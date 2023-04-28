@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.service.policydefinition;
 
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionCreated;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionDeleted;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionEvent;
+import org.eclipse.edc.connector.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionListener;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionCreated;
-import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionDeleted;
-import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionEvent;
-import org.eclipse.edc.spi.event.policydefinition.PolicyDefinitionUpdated;
 
 import java.time.Clock;
 

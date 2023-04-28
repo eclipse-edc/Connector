@@ -14,22 +14,22 @@
 
 package org.eclipse.edc.connector.transfer.listener;
 
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessDeprovisioned;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessDeprovisioningRequested;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessEvent;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessFailed;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessInitiated;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioned;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioningRequested;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessRequested;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessCompleted;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioned;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessDeprovisioningRequested;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessEvent;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessFailed;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessInitiated;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioned;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessProvisioningRequested;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessRequested;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessStarted;
-import org.eclipse.edc.spi.event.transferprocess.TransferProcessTerminated;
 
 import java.time.Clock;
 

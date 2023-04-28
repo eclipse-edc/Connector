@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.service;
 
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
+import org.eclipse.edc.connector.asset.spi.observe.AssetObservableImpl;
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
@@ -60,7 +61,6 @@ import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.observe.asset.AssetObservableImpl;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -109,7 +109,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Inject
     private TransactionContext transactionContext;
-    
+
     @Inject
     private ContractValidationService contractValidationService;
 
