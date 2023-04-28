@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessa
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -81,9 +82,62 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     private final String callbackAddress = "http://callback";
     private final String authHeader = "auth";
 
-    @Override
-    protected Object controller() {
-        return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress);
+    private static ClaimToken token() {
+        return ClaimToken.Builder.newInstance().build();
+    }
+
+    private static JsonObject transferRequestJson() {
+        return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE).build();
+    }
+
+    private static JsonObject transferStartJson() {
+        return Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TRANSFER_START_TYPE)
+                .build();
+    }
+
+    private static JsonObject transferCompletionJson() {
+        return Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
+                .build();
+    }
+
+    private static JsonObject transferTerminationJson() {
+        return Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
+                .build();
+    }
+
+    private static TransferRequestMessage transferRequestMessage() {
+        return TransferRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .id(PROCESS_ID)
+                .callbackAddress("http://connector")
+                .build();
+    }
+
+    private static TransferStartMessage transferStartMessage() {
+        return TransferStartMessage.Builder.newInstance()
+                .protocol("protocol")
+                .callbackAddress("http://connector")
+                .processId(PROCESS_ID)
+                .build();
+    }
+
+    private static TransferCompletionMessage transferCompletionMessage() {
+        return TransferCompletionMessage.Builder.newInstance()
+                .protocol("protocol")
+                .callbackAddress("http://connector")
+                .processId(PROCESS_ID)
+                .build();
+    }
+
+    private static TransferTerminationMessage transferTerminationMessage() {
+        return TransferTerminationMessage.Builder.newInstance()
+                .protocol("protocol")
+                .callbackAddress("http://connector")
+                .processId(PROCESS_ID)
+                .build();
     }
 
     @Test
@@ -101,9 +155,11 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var message = transferRequestMessage();
         var process = transferProcess();
         var json = Json.createObjectBuilder().build();
-        var map = new HashMap<String, Object>() {{
+        var map = new HashMap<String, Object>() {
+            {
                 put("key", "value");
-            }};
+            }
+        };
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(token));
@@ -201,7 +257,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     /**
      * Verifies that an endpoint returns 400 if the incoming message cannot be transformed.
      *
-     * @param path the request path to the endpoint
+     * @param path    the request path to the endpoint
      * @param request the request body
      */
     @ParameterizedTest
@@ -226,7 +282,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      * Verifies that an endpoint returns 400 if the ID in the request does not match the ID in
      * the request path.
      *
-     * @param path the request path to the endpoint
+     * @param path    the request path to the endpoint
      * @param request the request body
      * @param message the request message to be returned by the transformer registry
      */
@@ -253,9 +309,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      * that the correct service method was called. This is only applicable for endpoints that do not
      * return a response body.
      *
-     * @param path the request path to the endpoint
-     * @param request the request body
-     * @param message the request message to be returned by the transformer registry
+     * @param path          the request path to the endpoint
+     * @param request       the request body
+     * @param message       the request message to be returned by the transformer registry
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
@@ -287,9 +343,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
      * Verifies that an endpoint returns 500 if there is an error in the service. Also verifies
      * that the correct service method was called.
      *
-     * @param path the request path to the endpoint
-     * @param request the request body
-     * @param message the request message to be returned by the transformer registry
+     * @param path          the request path to the endpoint
+     * @param request       the request body
+     * @param message       the request message to be returned by the transformer registry
      * @param serviceMethod reference to the service method that should be called, required to verify that it was called
      */
     @ParameterizedTest
@@ -318,6 +374,11 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         serviceMethod.invoke(verify, message, token);
     }
 
+    @Override
+    protected Object controller() {
+        return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress, new TitaniumJsonLd(monitor));
+    }
+
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
@@ -326,66 +387,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .when();
     }
 
-    private static ClaimToken token() {
-        return ClaimToken.Builder.newInstance().build();
-    }
-
     private TransferProcess transferProcess() {
         return TransferProcess.Builder.newInstance().id("id").build();
-    }
-
-    private static JsonObject transferRequestJson() {
-        return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE).build();
-    }
-
-    private static JsonObject transferStartJson() {
-        return Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TRANSFER_START_TYPE)
-                .build();
-    }
-
-    private static JsonObject transferCompletionJson() {
-        return Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
-                .build();
-    }
-
-    private static JsonObject transferTerminationJson() {
-        return Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
-                .build();
-    }
-
-    private static TransferRequestMessage transferRequestMessage() {
-        return TransferRequestMessage.Builder.newInstance()
-                .protocol("protocol")
-                .id(PROCESS_ID)
-                .callbackAddress("http://connector")
-                .build();
-    }
-
-    private static TransferStartMessage transferStartMessage() {
-        return TransferStartMessage.Builder.newInstance()
-                .protocol("protocol")
-                .callbackAddress("http://connector")
-                .processId(PROCESS_ID)
-                .build();
-    }
-
-    private static TransferCompletionMessage transferCompletionMessage() {
-        return TransferCompletionMessage.Builder.newInstance()
-                .protocol("protocol")
-                .callbackAddress("http://connector")
-                .processId(PROCESS_ID)
-                .build();
-    }
-
-    private static TransferTerminationMessage transferTerminationMessage() {
-        return TransferTerminationMessage.Builder.newInstance()
-                .protocol("protocol")
-                .callbackAddress("http://connector")
-                .processId(PROCESS_ID)
-                .build();
     }
 
     private static class ControllerMethodArguments implements ArgumentsProvider {

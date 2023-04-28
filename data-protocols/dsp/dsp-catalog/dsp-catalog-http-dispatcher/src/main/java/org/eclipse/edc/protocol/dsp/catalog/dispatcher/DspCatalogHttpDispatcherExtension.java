@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher;
 
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.CatalogRequestHttpDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
@@ -32,9 +33,9 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
  */
 @Extension(value = DspCatalogHttpDispatcherExtension.NAME)
 public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
-    
+
     public static final String NAME = "Dataspace Protocol Catalog HTTP Dispatcher Extension";
-    
+
     @Inject
     private DspHttpRemoteMessageDispatcher messageDispatcher;
     @Inject
@@ -43,15 +44,17 @@ public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
-    
+    @Inject
+    private JsonLd jsonLdService;
+
     @Override
     public String name() {
         return NAME;
     }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        messageDispatcher.registerDelegate(new CatalogRequestHttpDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), transformerRegistry));
+        messageDispatcher.registerDelegate(new CatalogRequestHttpDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), transformerRegistry, jsonLdService));
     }
-    
+
 }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp;
 
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdRemoteMessageSerializerImpl;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
@@ -37,9 +38,9 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
  */
 @Extension(value = DspHttpCoreExtension.NAME)
 public class DspHttpCoreExtension implements ServiceExtension {
-    
+
     public static final String NAME = "Dataspace Protocol Core Extension";
-    
+
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
@@ -50,7 +51,9 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private TypeManager typeManager;
-    
+    @Inject
+    private JsonLd jsonLdService;
+
     @Override
     public String name() {
         return NAME;
@@ -62,10 +65,10 @@ public class DspHttpCoreExtension implements ServiceExtension {
         dispatcherRegistry.register(dispatcher);
         return dispatcher;
     }
-    
+
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD));
+        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), jsonLdService);
     }
 
 }

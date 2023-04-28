@@ -14,21 +14,19 @@
 
 package org.eclipse.edc.protocol.dsp.spi.serialization;
 
-import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Serializes {@link RemoteMessage}s to JSON-LD.
  */
 public interface JsonLdRemoteMessageSerializer {
-    
+
     /**
      * Serializes a {@link RemoteMessage} to JSON-LD using the given JSON-LD context.
      *
      * @param message the message to serialize
-     * @param jsonLdContext the JSON-LD context
      * @return the serialized message
      */
-    String serialize(RemoteMessage message, JsonObject jsonLdContext);
-    
+    String serialize(RemoteMessage message);
+
 }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher;
 
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementVerificationMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationEventMessageHttpDelegate;
@@ -40,6 +41,8 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private JsonLdRemoteMessageSerializer remoteMessageSerializer;
+    @Inject
+    private JsonLd jsonLdService;
 
     @Override
     public String name() {
@@ -52,6 +55,6 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
         messageDispatcher.registerDelegate(new ContractAgreementVerificationMessageHttpDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new ContractNegotiationEventMessageHttpDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new ContractNegotiationTerminationMessageHttpDelegate(remoteMessageSerializer));
-        messageDispatcher.registerDelegate(new ContractRequestMessageHttpDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD)));
+        messageDispatcher.registerDelegate(new ContractRequestMessageHttpDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), jsonLdService));
     }
 }

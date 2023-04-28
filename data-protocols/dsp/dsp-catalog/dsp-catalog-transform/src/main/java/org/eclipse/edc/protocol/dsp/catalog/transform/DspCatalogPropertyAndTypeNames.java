@@ -14,15 +14,14 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform;
 
+import org.eclipse.edc.jsonld.spi.Namespaces;
+
 /**
  * Dataspace protocol types and attributes for catalog request.
  */
 public interface DspCatalogPropertyAndTypeNames {
-    
-    String DSPACE_PREFIX = "dspace";
-    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
-    
-    String DSPACE_CATALOG_REQUEST_TYPE = DSPACE_SCHEMA + "CatalogRequestMessage";
-    String DSPACE_FILTER_PROPERTY = DSPACE_SCHEMA + "filter";
-    
+
+    String DSPACE_CATALOG_REQUEST_TYPE = Namespaces.DSPACE_SCHEMA + "CatalogRequestMessage";
+    String DSPACE_FILTER_PROPERTY = Namespaces.DSPACE_SCHEMA + "filter";
+
 }

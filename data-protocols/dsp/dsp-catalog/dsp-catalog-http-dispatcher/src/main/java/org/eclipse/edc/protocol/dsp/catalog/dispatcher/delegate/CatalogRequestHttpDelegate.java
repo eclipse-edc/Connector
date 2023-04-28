@@ -15,12 +15,12 @@
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
@@ -31,11 +31,8 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.CATALOG_REQUEST;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_SCHEMA;
 
 /**
  * Delegate for dispatching catalog requests as defined in the dataspace protocol specification.
@@ -44,11 +41,13 @@ public class CatalogRequestHttpDelegate extends DspHttpDispatcherDelegate<Catalo
 
     private final ObjectMapper mapper;
     private final TypeTransformerRegistry transformerRegistry;
+    private final JsonLd jsonLdService;
 
-    public CatalogRequestHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, TypeTransformerRegistry transformerRegistry) {
+    public CatalogRequestHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService) {
         super(serializer);
         this.mapper = mapper;
         this.transformerRegistry = transformerRegistry;
+        this.jsonLdService = jsonLdService;
     }
 
     @Override
@@ -66,7 +65,7 @@ public class CatalogRequestHttpDelegate extends DspHttpDispatcherDelegate<Catalo
      */
     @Override
     public Request buildRequest(CatalogRequestMessage message) {
-        return buildRequest(message, BASE_PATH + CATALOG_REQUEST, jsonLdContext());
+        return buildRequest(message, BASE_PATH + CATALOG_REQUEST);
     }
 
     /**
@@ -80,12 +79,20 @@ public class CatalogRequestHttpDelegate extends DspHttpDispatcherDelegate<Catalo
         return response -> {
             try {
                 var jsonObject = mapper.readValue(response.body().bytes(), JsonObject.class);
-                var result = transformerRegistry.transform(expand(jsonObject).get(0), Catalog.class);
-                if (result.succeeded()) {
-                    return result.getContent();
+                var expansion = jsonLdService.expand(jsonObject);
+
+                if (expansion.succeeded()) {
+                    var result = transformerRegistry.transform(expansion.getContent(), Catalog.class);
+                    if (result.succeeded()) {
+                        return result.getContent();
+                    } else {
+                        throw new EdcException(format("Failed to read response body: %s", join(", ", result.getFailureMessages())));
+                    }
                 } else {
-                    throw new EdcException(format("Failed to read response body: %s", join(", ", result.getFailureMessages())));
+                    throw new EdcException(expansion.getFailureDetail());
                 }
+
+
             } catch (NullPointerException e) {
                 throw new EdcException("Failed to read response body, as body was null.");
             } catch (IndexOutOfBoundsException e) {
@@ -95,10 +102,5 @@ public class CatalogRequestHttpDelegate extends DspHttpDispatcherDelegate<Catalo
             }
         };
     }
-    
-    private JsonObject jsonLdContext() {
-        return Json.createObjectBuilder()
-                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
-                .build();
-    }
+
 }

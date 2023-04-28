@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
@@ -26,8 +24,6 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.TERMINATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 
 /**
  * Delegate for dispatching contract negotiation termination message as defined in the dataspace protocol specification.
@@ -53,7 +49,7 @@ public class ContractNegotiationTerminationMessageHttpDelegate extends DspHttpDi
      */
     @Override
     public Request buildRequest(ContractNegotiationTerminationMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + TERMINATION, jsonLdContext());
+        return buildRequest(message, BASE_PATH + message.getProcessId() + TERMINATION);
     }
 
     /**
@@ -67,10 +63,4 @@ public class ContractNegotiationTerminationMessageHttpDelegate extends DspHttpDi
         return response -> null;
     }
 
-    // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
-    private JsonObject jsonLdContext() {
-        return Json.createObjectBuilder()
-                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
-                .build();
-    }
 }

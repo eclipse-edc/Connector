@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.serialization;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -24,37 +25,41 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
 
 /**
  * Serializes {@link RemoteMessage}s to JSON-LD.
  */
 public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSerializer {
-    
+
     private final TypeTransformerRegistry registry;
     private final ObjectMapper mapper;
-    
-    public JsonLdRemoteMessageSerializerImpl(TypeTransformerRegistry registry, ObjectMapper mapper) {
+    private final JsonLd jsonLdService;
+
+    public JsonLdRemoteMessageSerializerImpl(TypeTransformerRegistry registry, ObjectMapper mapper, JsonLd jsonLdService) {
         this.registry = registry;
         this.mapper = mapper;
+        this.jsonLdService = jsonLdService;
     }
-    
+
     /**
      * Serializes a {@link RemoteMessage} to JSON-LD. The message is first transformed using the
      * {@link TypeTransformerRegistry}, then the resulting JSON-LD structure is compacted using
      * the given JSON-LD context before returning it as a string.
      *
      * @param message the message to serialize
-     * @param jsonLdContext the JSON-LD context
      * @return the serialized message
      */
     @Override
-    public String serialize(RemoteMessage message, JsonObject jsonLdContext) {
+    public String serialize(RemoteMessage message) {
         try {
             var transformResult = registry.transform(message, JsonObject.class);
+
             if (transformResult.succeeded()) {
-                var compacted = compact(transformResult.getContent(), jsonLdContext);
-                return mapper.writeValueAsString(compacted);
+                var compacted = jsonLdService.compact(transformResult.getContent());
+                if (compacted.succeeded()) {
+                    return mapper.writeValueAsString(compacted.getContent());
+                }
+                throw new EdcException("Failed to compact JSON-LD: " + compacted.getFailureDetail());
             }
             throw new EdcException(format("Failed to transform %s: %s", message.getClass().getSimpleName(), join(", ", transformResult.getFailureMessages())));
         } catch (JsonProcessingException e) {

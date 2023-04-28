@@ -20,6 +20,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
@@ -28,6 +29,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +39,6 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
@@ -54,10 +55,12 @@ import static org.mockito.Mockito.when;
 class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractRequestMessage> {
 
     private ContractRequestMessageHttpDelegate delegate;
+    private TitaniumJsonLd jsonLdService;
 
     @BeforeEach
     void setUp() {
-        delegate = new ContractRequestMessageHttpDelegate(serializer, mapper);
+        jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
+        delegate = new ContractRequestMessageHttpDelegate(serializer, mapper, jsonLdService);
     }
 
     @Test
@@ -87,7 +90,7 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
         var responseBody = mock(ResponseBody.class);
         var bytes = "test".getBytes();
 
-        var expanded = expand(negotiation()).get(0);
+        var expanded = jsonLdService.expand(negotiation()).getContent();
 
         when(response.body()).thenReturn(responseBody);
         when(responseBody.bytes()).thenReturn(bytes);
@@ -103,10 +106,15 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
     void parseResponse_responseBodyNull_throwException() {
         testParseResponse_shouldThrowException_whenResponseBodyNull();
     }
-    
+
     @Test
     void parseResponse_readingResponseBodyFails_throwException() throws IOException {
         testParseResponse_shouldThrowException_whenReadingResponseBodyFails();
+    }
+
+    @Override
+    protected DspHttpDispatcherDelegate<ContractRequestMessage, ?> delegate() {
+        return delegate;
     }
 
     private ContractRequestMessage message() {
@@ -165,10 +173,5 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
         builder.add(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM, value);
 
         return builder.build();
-    }
-    
-    @Override
-    protected DspHttpDispatcherDelegate<ContractRequestMessage, ?> delegate() {
-        return delegate;
     }
 }

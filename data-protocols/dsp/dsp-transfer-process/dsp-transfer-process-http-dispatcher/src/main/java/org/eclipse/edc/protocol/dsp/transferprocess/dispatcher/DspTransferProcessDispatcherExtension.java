@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher;
 
 
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferCompletionDelegate;
@@ -32,7 +33,6 @@ import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_L
 
 
 /**
- *
  * Provides HTTP dispatching for Dataspace Protocol transfer process messages via the {@link DspHttpRemoteMessageDispatcher}.
  */
 @Extension(value = DspTransferProcessDispatcherExtension.NAME)
@@ -48,6 +48,8 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
     private JsonLdRemoteMessageSerializer remoteMessageSerializer;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
+    @Inject
+    private JsonLd jsonLdService;
 
     @Override
     public String name() {
@@ -56,7 +58,7 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        messageDispatcher.registerDelegate(new TransferRequestDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), transformerRegistry));
+        messageDispatcher.registerDelegate(new TransferRequestDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), transformerRegistry, jsonLdService));
         messageDispatcher.registerDelegate(new TransferCompletionDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new TransferStartDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new TransferTerminationDelegate(remoteMessageSerializer));

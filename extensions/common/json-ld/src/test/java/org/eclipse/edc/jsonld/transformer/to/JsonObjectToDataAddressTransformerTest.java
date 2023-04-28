@@ -17,8 +17,10 @@ package org.eclipse.edc.jsonld.transformer.to;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.transformer.Payload;
-import org.eclipse.edc.jsonld.util.JsonLdUtil;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +47,7 @@ class JsonObjectToDataAddressTransformerTest {
     private static final String TEST_TYPE = "test-type";
     private static final String TEST_KEY_NAME = "test-key-name";
     private final JsonValueToGenericTypeTransformer objectTransformer = new JsonValueToGenericTypeTransformer(createObjectMapper());
+    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private JsonObjectToDataAddressTransformer transformer;
     private TransformerContext transformerContext;
 
@@ -58,7 +61,7 @@ class JsonObjectToDataAddressTransformerTest {
 
     @Test
     void transform() {
-        var json = JsonLdUtil.expand(createDataAddress().build()).getJsonObject(0);
+        var json = expand(createDataAddress().build());
 
         var dataAddress = transformer.transform(json, transformerContext);
         assertThat(dataAddress).isNotNull();
@@ -73,8 +76,7 @@ class JsonObjectToDataAddressTransformerTest {
                         .add("my-test-prop", "some-test-value")
                         .build())
                 .build();
-        json = JsonLdUtil.expand(json)
-                .getJsonObject(0);
+        json = expand(json);
 
         var dataAddress = transformer.transform(json, transformerContext);
         assertThat(dataAddress).isNotNull();
@@ -91,8 +93,7 @@ class JsonObjectToDataAddressTransformerTest {
                         .add("payload", createPayloadBuilder().build())
                         .build())
                 .build();
-        json = JsonLdUtil.expand(json)
-                .getJsonObject(0);
+        json = expand(json);
 
         var dataAddress = transformer.transform(json, transformerContext);
         assertThat(dataAddress).isNotNull();
@@ -122,6 +123,10 @@ class JsonObjectToDataAddressTransformerTest {
                 .add(TYPE, "customPayload")
                 .add("name", CUSTOM_PAYLOAD_NAME)
                 .add("age", CUSTOM_PAYLOAD_AGE);
+    }
+
+    private JsonObject expand(JsonObject jsonObject) {
+        return jsonLd.expand(jsonObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
     }
 
 }

@@ -15,11 +15,11 @@
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
@@ -27,25 +27,23 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.IOException;
 import java.util.function.Function;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 
 /**
  * Delegate for dispatching contract request message as defined in the dataspace protocol specification.
  */
 public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegate<ContractRequestMessage, Object> {
-    
-    private ObjectMapper mapper;
 
-    public ContractRequestMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper) {
+    private final ObjectMapper mapper;
+    private final JsonLd jsonLdService;
+
+
+    public ContractRequestMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, JsonLd jsonLdService) {
         super(serializer);
         this.mapper = mapper;
+        this.jsonLdService = jsonLdService;
     }
 
     @Override
@@ -63,9 +61,9 @@ public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegat
     @Override
     public Request buildRequest(ContractRequestMessage message) {
         if (message.getType() == ContractRequestMessage.Type.INITIAL) {
-            return buildRequest(message, BASE_PATH + INITIAL_CONTRACT_REQUEST, jsonLdContext());
+            return buildRequest(message, BASE_PATH + INITIAL_CONTRACT_REQUEST);
         } else {
-            return buildRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_REQUEST, jsonLdContext());
+            return buildRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_REQUEST);
         }
     }
 
@@ -74,7 +72,7 @@ public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegat
         return response -> {
             try {
                 var jsonObject = mapper.readValue(response.body().bytes(), JsonObject.class);
-                return expand(jsonObject).get(0);
+                return jsonLdService.expand(jsonObject).map(jo -> jo).orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
             } catch (NullPointerException e) {
                 throw new EdcException("Failed to read response body, as body was null.");
             } catch (IndexOutOfBoundsException e) {
@@ -85,11 +83,4 @@ public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegat
         };
     }
 
-    // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
-    private JsonObject jsonLdContext() {
-        return Json.createObjectBuilder()
-                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
-                .add(ODRL_PREFIX, ODRL_SCHEMA)
-                .build();
-    }
 }

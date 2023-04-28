@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.negotiation.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -34,6 +33,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -50,10 +50,6 @@ import java.util.function.BiFunction;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.compact;
-import static org.eclipse.edc.jsonld.util.JsonLdUtil.expand;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
@@ -68,8 +64,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_PREFIX;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -77,8 +71,8 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
  * Provides consumer and provider endpoints for the contract negotiation according to the http binding
  * of the dataspace protocol.
  */
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(BASE_PATH)
 public class DspNegotiationController {
 
@@ -88,22 +82,24 @@ public class DspNegotiationController {
     private final Monitor monitor;
     private final ContractNegotiationProtocolService protocolService;
     private final ObjectMapper mapper;
+    private final JsonLd jsonLdService;
 
     public DspNegotiationController(Monitor monitor, ObjectMapper mapper, String callbackAddress,
                                     IdentityService identityService, TypeTransformerRegistry transformerRegistry,
-                                    ContractNegotiationProtocolService protocolService) {
+                                    ContractNegotiationProtocolService protocolService, JsonLd jsonLdService) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.transformerRegistry = transformerRegistry;
         this.mapper = mapper;
+        this.jsonLdService = jsonLdService;
     }
 
     /**
      * Provider-specific endpoint.
      *
-     * @param id of contract negotiation.
+     * @param id    of contract negotiation.
      * @param token identity token.
      */
     @GET
@@ -119,7 +115,7 @@ public class DspNegotiationController {
     /**
      * Provider-specific endpoint.
      *
-     * @param body dspace:ContractRequestMessage sent by a consumer.
+     * @param body  dspace:ContractRequestMessage sent by a consumer.
      * @param token identity token.
      */
     @POST
@@ -131,14 +127,16 @@ public class DspNegotiationController {
 
         var result = transformerRegistry.transform(negotiation, JsonObject.class).orElseThrow(failure ->
                 new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
-        return mapper.convertValue(compact(result, jsonLdContext()), Map.class);
+        var compactResult = jsonLdService.compact(result);
+        return compactResult.map(jo -> mapper.convertValue(jo, Map.class))
+                .orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
     }
 
     /**
      * Provider-specific endpoint.
      *
-     * @param id of contract negotiation.
-     * @param body dspace:ContractRequestMessage sent by a consumer.
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractRequestMessage sent by a consumer.
      * @param token identity token.
      */
     @POST
@@ -152,8 +150,8 @@ public class DspNegotiationController {
     /**
      * Endpoint on provider and consumer side.
      *
-     * @param id of contract negotiation.
-     * @param body dspace:ContractNegotiationEventMessage sent by consumer or provider.
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractNegotiationEventMessage sent by consumer or provider.
      * @param token identity token.
      */
     @POST
@@ -162,8 +160,9 @@ public class DspNegotiationController {
         monitor.debug(format("DSP: Incoming ContractNegotiationEventMessage for process %s", id));
 
         var claimToken = checkAndReturnAuthToken(token);
+        var expandedResult = jsonLdService.expand(body);
+        var expanded = expandedResult.map(ej -> ej).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
 
-        var expanded = expand(body).getJsonObject(0);
         var message = transformerRegistry.transform(hasValidType(expanded, DSPACE_NEGOTIATION_EVENT_MESSAGE), ContractNegotiationEventMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
@@ -184,8 +183,8 @@ public class DspNegotiationController {
     /**
      * Provider-specific endpoint.
      *
-     * @param id of contract negotiation.
-     * @param body dspace:ContractAgreementVerificationMessage sent by a consumer.
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractAgreementVerificationMessage sent by a consumer.
      * @param token identity token.
      */
     @POST
@@ -199,8 +198,8 @@ public class DspNegotiationController {
     /**
      * Endpoint on provider and consumer side.
      *
-     * @param id of contract negotiation.
-     * @param body dspace:ContractNegotiationTerminationMessage sent by consumer or provider.
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractNegotiationTerminationMessage sent by consumer or provider.
      * @param token identity token.
      */
     @POST
@@ -214,8 +213,8 @@ public class DspNegotiationController {
     /**
      * Consumer-specific endpoint.
      *
-     * @param id of contract negotiation.
-     * @param body dspace:ContractOfferMessage sent by a provider.
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractOfferMessage sent by a provider.
      * @param token identity token.
      */
     @POST
@@ -232,8 +231,8 @@ public class DspNegotiationController {
     /**
      * Consumer-specific endpoint.
      *
-     * @param id of contract negotiation.
-     * @param body dspace:ContractAgreementMessage sent by a provider.
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractAgreementMessage sent by a provider.
      * @param token identity token.
      */
     @POST
@@ -247,7 +246,8 @@ public class DspNegotiationController {
     private <M extends ContractRemoteMessage> ContractNegotiation processMessage(String token, Optional<String> processId, JsonObject body, String expectedType, Class<M> messageClass,
                                                                                  BiFunction<M, ClaimToken, ServiceResult<ContractNegotiation>> serviceCall) {
         var claimToken = checkAndReturnAuthToken(token);
-        var expanded = expand(body).getJsonObject(0);
+        var expanded = jsonLdService.expand(body).map(ej -> ej).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+
         var message = transformerRegistry.transform(hasValidType(expanded, expectedType), messageClass)
                 .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
@@ -277,11 +277,4 @@ public class DspNegotiationController {
         return object;
     }
 
-    // TODO refactor according to https://github.com/eclipse-edc/Connector/issues/2763
-    private JsonObject jsonLdContext() {
-        return Json.createObjectBuilder()
-                .add(ODRL_PREFIX, ODRL_SCHEMA)
-                .add(DSPACE_PREFIX, DSPACE_SCHEMA)
-                .build();
-    }
 }
