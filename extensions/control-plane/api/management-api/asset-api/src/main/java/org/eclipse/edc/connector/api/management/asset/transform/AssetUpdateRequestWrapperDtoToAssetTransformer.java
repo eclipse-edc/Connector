@@ -36,6 +36,7 @@ public class AssetUpdateRequestWrapperDtoToAssetTransformer implements DtoTransf
     public @Nullable Asset transform(@NotNull AssetUpdateRequestWrapperDto object, @NotNull TransformerContext context) {
         return Asset.Builder.newInstance()
                 .properties(object.getRequestDto().getProperties())
+                .privateProperties(object.getRequestDto().getPrivateProperties())
                 .id(object.getAssetId())
                 .build();
     }

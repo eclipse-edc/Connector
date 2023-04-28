@@ -35,7 +35,11 @@ public class DataAddressDtoToDataAddressTransformer implements DtoTransformer<Da
 
     @Override
     public @Nullable DataAddress transform(@NotNull DataAddressDto object, @NotNull TransformerContext context) {
-        return DataAddress.Builder.newInstance().properties(object.getProperties()).build();
+        return DataAddress
+                .Builder
+                .newInstance()
+                .properties(object.getProperties())
+                .build();
     }
 
 }

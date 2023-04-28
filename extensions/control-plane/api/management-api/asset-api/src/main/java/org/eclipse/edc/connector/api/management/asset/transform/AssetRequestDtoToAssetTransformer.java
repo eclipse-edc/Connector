@@ -38,6 +38,7 @@ public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetCr
         return Asset.Builder.newInstance()
                 .id(object.getId())
                 .properties(object.getProperties())
+                .privateProperties(object.getPrivateProperties())
                 .build();
     }
 }

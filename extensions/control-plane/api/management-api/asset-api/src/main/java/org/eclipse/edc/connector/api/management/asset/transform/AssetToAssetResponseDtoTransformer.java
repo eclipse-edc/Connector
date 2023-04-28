@@ -38,6 +38,7 @@ public class AssetToAssetResponseDtoTransformer implements DtoTransformer<Asset,
         return AssetResponseDto.Builder.newInstance()
                 .id(object.getId())
                 .properties(object.getProperties())
+                .privateProperties(object.getPrivateProperties())
                 .createdAt(object.getCreatedAt())
                 .build();
     }
