@@ -51,6 +51,13 @@ class TitaniumJsonLdTest {
     }
 
     @Test
+    void expand_withEmptyArray() {
+        var expanded = service.expand(createObjectBuilder().build());
+        assertThat(expanded.succeeded()).isTrue();
+        assertThat(expanded.getContent()).isEmpty();
+    }
+
+    @Test
     void expand_withCustomContext() {
         var jsonObject = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add("custom", "https://custom.namespace.org/schema/").build())

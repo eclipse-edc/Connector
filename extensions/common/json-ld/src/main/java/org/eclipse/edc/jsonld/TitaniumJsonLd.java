@@ -44,7 +44,10 @@ public class TitaniumJsonLd implements JsonLd {
         try {
             var document = JsonDocument.of(json);
             var expanded = com.apicatalog.jsonld.JsonLd.expand(document).get();
-            return Result.success(expanded.getJsonObject(0));
+            if (expanded.size() > 0) {
+                return Result.success(expanded.getJsonObject(0));
+            }
+            return Result.success(Json.createObjectBuilder().build());
         } catch (JsonLdError error) {
             monitor.warning("Error expanding JSON-LD structure", error);
             return Result.failure(error.getMessage());
