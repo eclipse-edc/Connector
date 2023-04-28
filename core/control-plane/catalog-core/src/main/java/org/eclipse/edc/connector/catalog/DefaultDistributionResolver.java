@@ -9,12 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -26,11 +27,11 @@ import java.util.stream.Collectors;
 
 public class DefaultDistributionResolver implements DistributionResolver {
 
-    private final DataService dataService;
+    private final DataServiceRegistry dataServiceRegistry;
     private final DataPlaneInstanceStore dataPlaneInstanceStore;
 
-    public DefaultDistributionResolver(DataService dataService, DataPlaneInstanceStore dataPlaneInstanceStore) {
-        this.dataService = dataService;
+    public DefaultDistributionResolver(DataServiceRegistry dataServiceRegistry, DataPlaneInstanceStore dataPlaneInstanceStore) {
+        this.dataServiceRegistry = dataServiceRegistry;
         this.dataPlaneInstanceStore = dataPlaneInstanceStore;
     }
 
@@ -38,7 +39,13 @@ public class DefaultDistributionResolver implements DistributionResolver {
     public List<Distribution> getDistributions(Asset asset, DataAddress dataAddress) {
         return dataPlaneInstanceStore.getAll()
                 .flatMap(it -> it.getAllowedDestTypes().stream())
-                .map(destType -> Distribution.Builder.newInstance().format(destType).dataService(dataService).build())
+                .map(this::createDistribution)
                 .collect(Collectors.toList());
+    }
+    
+    private Distribution createDistribution(String format) {
+        var builder = Distribution.Builder.newInstance().format(format);
+        dataServiceRegistry.getDataServices().forEach(builder::dataService);
+        return builder.build();
     }
 }

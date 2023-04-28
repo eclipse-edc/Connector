@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
@@ -43,19 +41,9 @@ public class CatalogCoreExtension implements ServiceExtension {
     @Inject
     private DistributionResolver distributionResolver;
 
-    @Inject
-    private DataService dataService;
-
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Provider
-    public DataServiceRegistry dataServiceRegistry() {
-        var registry = new DataServiceRegistryImpl();
-        registry.register(dataService);
-        return registry;
     }
 
     @Provider
