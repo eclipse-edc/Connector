@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.edc.spi.callback;
+package org.eclipse.edc.connector.spi.callback;
 
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 /**
- *  The resolver translate the scheme part {@link CallbackAddress#getUri()} to an internal
- *  naming of {@link RemoteMessageDispatcher#protocol()} ()}
+ * The resolver translate the scheme part {@link CallbackAddress#getUri()} to an internal
+ * naming of {@link RemoteMessageDispatcher#protocol()} ()}
  */
 @FunctionalInterface
 public interface CallbackProtocolResolver {

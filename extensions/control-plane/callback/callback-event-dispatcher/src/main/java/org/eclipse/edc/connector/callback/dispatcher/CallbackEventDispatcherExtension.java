@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.callback.dispatcher;
 
 import org.eclipse.edc.connector.callback.CallbackProtocolResolverRegistryImpl;
+import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
