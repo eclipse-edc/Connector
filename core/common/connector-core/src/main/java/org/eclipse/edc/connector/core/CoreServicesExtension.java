@@ -106,7 +106,6 @@ public class CoreServicesExtension implements ServiceExtension {
         healthCheckService = new HealthCheckServiceImpl(config, executorInstrumentation);
         ruleBindingRegistry = new RuleBindingRegistryImpl();
 
-        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
     }
 
     @Override
@@ -118,6 +117,11 @@ public class CoreServicesExtension implements ServiceExtension {
     public void shutdown() {
         healthCheckService.stop();
         ServiceExtension.super.shutdown();
+    }
+
+    @Override
+    public void prepare() {
+        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
     }
 
     @Provider

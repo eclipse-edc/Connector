@@ -59,6 +59,7 @@ class CoreServicesExtensionTest {
     @Test
     void verifyPolicyTypesAreRegistered() {
         extension.initialize(context);
+        extension.prepare();
         PolicyRegistrationTypes.TYPES.forEach(t -> verify(typeManager).registerTypes(t));
     }
 
